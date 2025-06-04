@@ -1,4 +1,8 @@
 
+/**
+ * @file LoadingSpinner.tsx
+ * @description Loading spinner indicating in-progress actions.
+ */
 import React from 'react';
 import { LoadingReason } from '../types'; // Import LoadingReason
 

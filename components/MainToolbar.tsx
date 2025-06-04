@@ -1,4 +1,8 @@
 
+/**
+ * @file MainToolbar.tsx
+ * @description Top-level toolbar with action buttons.
+ */
 import React from 'react';
 import {
   CoinIcon,

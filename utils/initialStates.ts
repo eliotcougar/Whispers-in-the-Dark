@@ -1,5 +1,9 @@
 
 
+/**
+ * @file utils/initialStates.ts
+ * @description Provides functions creating initial game states.
+ */
 import {
   FullGameState, 
   MapData, 

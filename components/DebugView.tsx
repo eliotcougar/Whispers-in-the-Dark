@@ -1,4 +1,8 @@
 
+/**
+ * @file DebugView.tsx
+ * @description Developer panel for inspecting game state.
+ */
 import React, { useState } from 'react';
 import { GameStateStack, FullGameState, AIMapUpdatePayload, Item, Character, MapData, ThemeHistoryState } from '../types';
 import { structuredCloneGameState } from '../utils/cloneUtils';

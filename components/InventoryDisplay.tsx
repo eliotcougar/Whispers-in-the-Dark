@@ -1,4 +1,8 @@
 
+/**
+ * @file InventoryDisplay.tsx
+ * @description Shows the Player's items and handles interactions.
+ */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Item, KnownUse } from '../types';
 import { InventoryIcon, TrashIcon } from './icons.tsx';

@@ -1,4 +1,8 @@
 
+/**
+ * @file DialogueDisplay.tsx
+ * @description Renders dialogue history and choice options.
+ */
 import React, { useEffect, useRef, useMemo } from 'react';
 import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types'; 
 import { highlightEntitiesInText, HighlightableEntity } from '../utils/highlightHelper';

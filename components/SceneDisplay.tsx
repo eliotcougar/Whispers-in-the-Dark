@@ -1,5 +1,9 @@
 
 
+/**
+ * @file SceneDisplay.tsx
+ * @description Shows the main scene description and objectives.
+ */
 import React, { useMemo } from 'react';
 import { Item, Character, AdventureTheme, MapNode } from '../types'; 
 import { highlightEntitiesInText, HighlightableEntity } from '../utils/highlightHelper';
