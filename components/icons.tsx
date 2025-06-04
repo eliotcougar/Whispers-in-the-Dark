@@ -1,4 +1,8 @@
 
+/**
+ * @file Collection of small React components rendering SVG icons used across
+ * the user interface.
+ */
 import React from 'react';
 
 export const RestartIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
