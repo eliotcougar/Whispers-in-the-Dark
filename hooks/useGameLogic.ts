@@ -58,6 +58,13 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setGameStateStack(prev => [newGameState, prev[0]]);
   }, []);
 
+  /**
+   * Replaces the entire game state stack with a blank state.
+   */
+  const resetGameStateStack = useCallback((newState: FullGameState) => {
+    setGameStateStack([newState, newState]);
+  }, []);
+
   const { handleMapLayoutConfigChange } = useMapUpdates({ setGameStateStack });
 
   const {
@@ -129,6 +136,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     onSettingsUpdateFromLoad,
     getCurrentGameState,
     commitGameState,
+    resetGameStateStack,
     processAiResponse,
   });
   loadInitialGameRef.current = loadInitialGame;

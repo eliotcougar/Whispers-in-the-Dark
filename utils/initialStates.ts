@@ -5,9 +5,10 @@
  * @description Provides functions creating initial game states.
  */
 import {
-  FullGameState, 
-  MapData, 
-  MapLayoutConfig
+  FullGameState,
+  MapData,
+  MapLayoutConfig,
+  ThemePackName
 } from '../types';
 import { 
     CURRENT_SAVE_GAME_VERSION, 
@@ -74,4 +75,21 @@ export const getInitialGameStates = (): FullGameState => {
     stabilityLevel: DEFAULT_STABILITY_LEVEL,
     chaosLevel: DEFAULT_CHAOS_LEVEL,
   };
+};
+
+/**
+ * Returns a blank game state populated with the provided settings.
+ */
+export const getInitialGameStatesWithSettings = (
+  playerGender: string,
+  enabledThemePacks: ThemePackName[],
+  stabilityLevel: number,
+  chaosLevel: number
+): FullGameState => {
+  const base = getInitialGameStates();
+  base.playerGender = playerGender;
+  base.enabledThemePacks = [...enabledThemePacks];
+  base.stabilityLevel = stabilityLevel;
+  base.chaosLevel = chaosLevel;
+  return base;
 };
