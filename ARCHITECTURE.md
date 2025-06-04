@@ -55,12 +55,13 @@ This layer abstracts external interactions and complex data processing.
 *   **AI Interaction Services:**
     *   `services/geminiClient.ts`: Initializes the Google Gemini API client.
     *   `services/gameAIService.ts`: Handles main game turn AI calls and theme summarization.
-    *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries. Dialogue context now uses `MapNode[]` for place information.
+    *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries. Dialogue context now uses `MapNode[]` for place information and it can summarize conversations so NPCs remember past talks.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
     *   `services/mapUpdateService.ts`:
         *   Receives narrative context and current `MapData`.
         *   Prompts an auxiliary AI (using `MAP_UPDATE_SYSTEM_INSTRUCTION`) to get an `AIMapUpdatePayload`.
         *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
+    *   `services/mapCorrectionService.ts`: Prunes and refines map connection chains using AI after updates.
 *   **Data Processing & Validation:**
     *   `services/aiResponseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections. It now ignores `placesAdded`/`placesUpdated` fields, relying on the `mapUpdated` flag.
     *   `services/validationUtils.ts`: General data structure validation.
@@ -70,6 +71,7 @@ This layer abstracts external interactions and complex data processing.
 *   **Utility Functions:**
     *   `utils/promptFormatters.ts`: Now formats `MapNode[]` instead of `Place[]` for AI prompts regarding locations.
     *   `utils/mapNodeMatcher.ts`: `selectBestMatchingMapNode` now operates on `MapNode[]`.
+    *   `utils/mapPruningUtils.ts`: Introduces temporary leaf nodes to restructure problematic main node connections before refinement.
 
 ### 1.4. Data Layer
 
@@ -108,6 +110,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   If `mapUpdated` is true or `localPlace` significantly changes, calls `mapUpdateService`.
     *   Receives `AIMapUpdatePayload` from `mapUpdateService`.
     *   Updates `FullGameState.mapData` based on this payload.
+    *   Refines problematic connection chains via `mapCorrectionService` which prunes temporary leaves and applies AI suggestions.
     *   If a new *main* `MapNode` is added by `mapUpdateService` and lacks full description/aliases (as per `MAP_UPDATE_SYSTEM_INSTRUCTION`), `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to populate them.
 *   **`mapUpdateService`**:
     *   Takes narrative context, current `MapData`, and known main place names for the theme.
