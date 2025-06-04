@@ -18,7 +18,7 @@ import {
   TurnChanges,
 } from '../types';
 import { executeAIMainTurn } from '../services/gameAIService';
-import { fetchCorrectedName_Service } from '../services/correctionService';
+import { fetchCorrectedName_Service } from '../services/corrections';
 import { parseAIResponse } from '../services/aiResponseParser';
 import {
   FREE_FORM_ACTION_COST,

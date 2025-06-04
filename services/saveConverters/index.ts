@@ -28,7 +28,7 @@ import {
   DEFAULT_ENABLED_THEME_PACKS,
   DEFAULT_PLAYER_GENDER
 } from '../../constants';
-import { fetchCorrectedCharacterDetails_Service, fetchCorrectedLocalPlace_Service } from '../correctionService';
+import { fetchCorrectedCharacterDetails_Service, fetchCorrectedLocalPlace_Service } from '../corrections';
 import {
   DEFAULT_K_REPULSION,
   DEFAULT_K_SPRING,
