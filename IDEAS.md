@@ -22,8 +22,7 @@ Spatio-temporal Continuity update:
   - Mobile Locations (Ships, Airships, Spaseships, Cars, ...) - inherently linked to Vehicle-type items.
   + Reduce the variety of node and edge types. Cleanup.
   - More node hierarchies (Area, Settlement, Building, Room)
-  - Correction services for "Validation Error (NodeData - Update): Invalid 'status'. Value:"  "removed" 
-    Try to define a set of possible synonyms for migrating to nodesToDelete. (replacing door to edge) IMPORTANT!!!
+  + Correction services for "Validation Error (NodeData - Update): Invalid 'status'. Value:"  "removed"
 
 Ink and Quill update
  - Notebook item type with real text notes inside.
