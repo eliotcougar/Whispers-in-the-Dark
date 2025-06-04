@@ -268,10 +268,11 @@ export interface MapLayoutConfig extends MapLayoutConfigShape {
 export interface MapNodeData {
   description: string; // Description is ALWAYS REQUIRED.
   aliases?: string[];  // Optional, can be updated.
-  status?: 'undiscovered' | 'discovered' | 'rumored' | 'quest_target'; 
+  status?: 'undiscovered' | 'discovered' | 'rumored' | 'quest_target';
   visited?: boolean; // Managed by game logic, not AI directly.
   isLeaf?: boolean; // If true, it's a detailed feature or connector. Defaults to false.
-  parentNodeId?: string; // ID of parent node for leaves.
+  parentNodeId?: string; // ID of parent node for hierarchical placement.
+  nodeType?: 'region' | 'city' | 'building' | 'room' | 'feature';
   [key: string]: any; // For any other custom data.
 }
 
@@ -311,10 +312,10 @@ export interface AIEdgeUpdate {
   newData: MapEdge['data']; 
 }
 
-export interface AINodeUpdate { 
+export interface AINodeUpdate {
   placeName: string; // User-facing name to identify the node for update or to set for a new node.
-  data: Partial<MapNodeData> & { description?: string }; // 'description' is only provided by map AI for LEAF nodes it adds/updates.
-  initialPosition?: { x: number; y: number }; 
+  data: Partial<MapNodeData> & { description?: string }; // 'description' mainly provided for feature-level nodes.
+  initialPosition?: { x: number; y: number };
 }
 
 export interface AIMapUpdatePayload {

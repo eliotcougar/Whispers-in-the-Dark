@@ -2,6 +2,7 @@
 const VALID_NODE_STATUSES_FOR_MAP_AI = `['undiscovered', 'discovered', 'rumored', 'quest_target']`;
 const VALID_EDGE_TYPES_FOR_MAP_AI = `['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook', 'containment']`;
 const VALID_EDGE_STATUSES_FOR_MAP_AI = `['open', 'accessible', 'closed', 'locked', 'blocked', 'hidden', 'rumored', 'one_way', 'collapsed', 'removed', 'active', 'inactive']`;
+const VALID_NODE_TYPES_FOR_MAP_AI = `['region', 'city', 'building', 'room', 'feature']`;
 
 export const MAP_UPDATE_SYSTEM_INSTRUCTION = `
 You are an AI assistant specializing in updating a game map based on narrative events.
@@ -16,7 +17,8 @@ Respond ONLY with a JSON object adhering to the following structure:
         "aliases": ["string"],   // REQUIRED for ALL nodes. Array of alternative names/shorthands (can be empty []). Soft limit of 3-4 aliases.
         "status": "string",      // REQUIRED for ALL nodes. MUST be one of: ${VALID_NODE_STATUSES_FOR_MAP_AI}.
         "isLeaf"?: boolean,      // Optional. If true, it's a detailed feature or connector. Defaults to false if absent.
-        "parentNodeId"?: string  // Optional. NAME of parent node if this is a Leaf Node. The parent can be a Main Node or another Leaf Node. The game service will resolve this name to an ID.
+        "nodeType"?: "string",   // Optional. One of: ${VALID_NODE_TYPES_FOR_MAP_AI}. Indicates hierarchy level.
+        "parentNodeId"?: string  // Optional. NAME of parent node for hierarchical placement. The game service will resolve this name to an ID.
       }
     }
   ],
@@ -29,7 +31,8 @@ Respond ONLY with a JSON object adhering to the following structure:
         "aliases"?: ["string"],   // Optional. Can be updated for ANY node (main or leaf). If provided, array of strings.
         "status"?: "string",      // Optional. MUST be one of: ${VALID_NODE_STATUSES_FOR_MAP_AI}
         "isLeaf"?: boolean,       // Optional. CAN be changed under rare circumstances.
-        "parentNodeId"?: string   // Optional. NAME of parent node for leaves. Can be null to clear parent. Parent can be a Main Node or another Leaf Node.
+        "nodeType"?: "string",    // Optional. One of: ${VALID_NODE_TYPES_FOR_MAP_AI}
+        "parentNodeId"?: string   // Optional. NAME of parent node for hierarchy. Can be null to clear parent. Parent can be any other node.
       }
     }
   ],
@@ -64,15 +67,16 @@ CRITICAL INSTRUCTIONS:
     - "description", "aliases", and "status" are ALWAYS REQUIRED in the "data" field for ALL added nodes (main and leaf).
     - "description" must be a non-empty string, ideally under 300 characters.
     - "aliases" must be an array of strings (e.g., ["The Old Shack", "Hideout"]).
+    - You may provide "nodeType" to indicate hierarchy: ${VALID_NODE_TYPES_FOR_MAP_AI}.
 - Node Data for "nodesToUpdate":
     - "description" and "aliases" can be optionally provided in "newData" to update ANY node (main or leaf).
     - If you provide "newData.placeName", that will be the node's new primary name.
 - Main Nodes (isLeaf: false or absent):
     - When adding a Main Node via "nodesToAdd": Its "placeName" MUST correspond to a location name that the storyteller AI has indicated as a significant, named location OR be derived from "All Known Main Locations for this Theme" if adding one not yet on map.
 - Leaf Nodes (isLeaf: true):
-    - Are detailed sub-locations within or connected to Main Nodes or other Leaf Nodes.
-    - If a Leaf Node is part of another node (Main or Leaf), its "parentNodeId" in "data" (for nodesToAdd) or "newData" (for nodesToUpdate) should be the NAME of that parent node. Can be null to clear.
-    - Typically, an edge of "type": "containment" should connect a Leaf Node to its parent node.
+    - Are detailed sub-locations within or connected to other nodes.
+    - Use "parentNodeId" in "data" or "newData" to specify the NAME of the parent node for any hierarchical relationship. Can be null to clear.
+    - Typically, an edge of "type": "containment" should connect a node to its parent.
 - Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. Avoid creating duplicate nodes.
 - You MUST use one of the EXACT string values provided for 'status' (node/edge) or 'type' (edge) fields.
 - If the narrative suggests a generic leaf node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing leaf node's "placeName" (if name changed via newData.placeName) and "data" via "nodesToUpdate", rather than adding a new node.
