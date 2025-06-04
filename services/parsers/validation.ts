@@ -1,10 +1,9 @@
-
 /**
- * @file validationUtils.ts
+ * @file validation.ts
  * @description Shared validation helpers for AI payloads.
  */
-import { Item, KnownUse, ItemType, Character, DialogueTurnResponsePart, ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload } from '../types';
-import { VALID_ITEM_TYPES } from '../constants';
+import { Item, KnownUse, ItemType, Character, DialogueTurnResponsePart, ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload } from '../../types';
+import { VALID_ITEM_TYPES } from '../../constants';
 
 export function isValidKnownUse(ku: any): ku is KnownUse {
   return ku &&

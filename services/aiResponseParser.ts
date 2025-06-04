@@ -10,7 +10,7 @@ import {
     isValidCharacterUpdate,
     isValidNewCharacterPayload,
     isDialogueSetupPayloadStructurallyValid
-} from './validationUtils';
+} from './parsers/validation';
 import {
     fetchCorrectedItemAction_Service,
     fetchCorrectedItemPayload_Service,
@@ -21,6 +21,7 @@ import {
 } from './corrections';
 
 
+import { sanitizeJsonString } from './parsers/jsonSanitizer';
 /**
  * Parses the AI's JSON response, validates its structure against GameStateFromAI,
  * and attempts to correct malformed sections using correction services.
@@ -46,12 +47,7 @@ export async function parseAIResponse(
     currentThemeMapData: MapData = { nodes: [], edges: [] },
     currentInventoryForCorrection: Item[] = []
 ): Promise<GameStateFromAI | null> {
-  let jsonStr = responseText.trim();
-  const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-  const fenceMatch = jsonStr.match(fenceRegex);
-  if (fenceMatch && fenceMatch[1]) {
-    jsonStr = fenceMatch[1].trim();
-  }
+  const jsonStr = sanitizeJsonString(responseText);
 
   // Derive known main map nodes from map data for correction context
   const allRelevantMainMapNodesForCorrection: MapNode[] = currentThemeMapData.nodes

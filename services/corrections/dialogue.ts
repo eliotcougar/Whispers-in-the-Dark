@@ -5,7 +5,7 @@
 import { AdventureTheme, Character, MapNode, Item, DialogueSetupPayload } from '../../types';
 import { MAX_RETRIES } from '../../constants';
 import { formatKnownPlacesForPrompt, formatKnownCharactersForPrompt } from '../../utils/promptFormatters';
-import { isDialogueSetupPayloadStructurallyValid } from '../validationUtils';
+import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
 import { callCorrectionAI } from './base';
 
 /**
