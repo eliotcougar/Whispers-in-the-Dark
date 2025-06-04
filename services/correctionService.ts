@@ -1,4 +1,8 @@
 
+/**
+ * @file correctionService.ts
+ * @description Helper utilities for correcting malformed AI responses.
+ */
 import { Item, ItemType, AdventureTheme, Character, DialogueTurnResponsePart, DialogueSetupPayload, ItemChange, MapNode } from '../types'; // Changed Place to MapNode
 import { AUXILIARY_MODEL_NAME, MINIMAL_MODEL_NAME, MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../constants';
 import { ai } from './geminiClient';
@@ -41,7 +45,7 @@ const callCorrectionAI = async (
       }
     });
 
-    let jsonStr = response.text.trim();
+    let jsonStr = (response.text ?? '').trim();
     const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
     const fenceMatch = jsonStr.match(fenceRegex);
     if (fenceMatch && fenceMatch[1]) {
@@ -81,7 +85,7 @@ const callMinimalCorrectionAI = async (
         // No separate systemInstruction for this model type (though gemini-2.5-flash-preview-04-17 does support it if used directly)
       }
     });
-    return response.text.trim();
+    return response.text?.trim() ?? null;
   } catch (error) {
     console.error(`callMinimalCorrectionAI: Error during single AI call for prompt starting with "${prompt.substring(0,100)}...":`, error);
     return null;

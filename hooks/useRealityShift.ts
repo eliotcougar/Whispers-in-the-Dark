@@ -3,7 +3,7 @@
  * @description Hook that manages reality shift mechanics including theme summarization and manual shifts.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, Dispatch, SetStateAction } from 'react';
 import {
   AdventureTheme,
   ThemePackName,
@@ -19,7 +19,7 @@ import { getInitialGameStates } from '../utils/initialStates';
 
 export interface UseRealityShiftProps {
   getCurrentGameState: () => FullGameState;
-  setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
+  setGameStateStack: Dispatch<SetStateAction<GameStateStack>>;
   loadInitialGame: (options: { explicitThemeName?: string | null; isRestart?: boolean; isTransitioningFromShift?: boolean; customGameFlag?: boolean; savedStateToLoad?: FullGameState | null; }) => void;
   enabledThemePacksProp: ThemePackName[];
   playerGenderProp: string;
@@ -68,7 +68,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       characterNames: themeCharacters.map(c => c.name)
     };
 
-    setGameStateStack(prevStack => {
+    setGameStateStack((prevStack: GameStateStack) => {
       const newFullState = { ...prevStack[0] };
       newFullState.themeHistory = { ...newFullState.themeHistory, [themeToSummarize.name]: themeMemory };
       return [newFullState, prevStack[1]];
@@ -103,7 +103,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
 
     const previousCustomMode = currentFullState.isCustomGameMode ?? false;
 
-    setGameStateStack(prevStack => {
+    setGameStateStack((prevStack: GameStateStack) => {
       let newStateForShiftStart = { ...prevStack[0] };
       const inventoryToCarryOver = newStateForShiftStart.inventory;
       const scoreToCarryOver = newStateForShiftStart.score;
@@ -167,7 +167,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     summarizeAndStoreThemeHistory(currentThemeObj, currentFullState);
 
     if (currentFullState.isCustomGameMode) {
-      setGameStateStack(prev => [{ ...prev[0], isAwaitingManualShiftThemeSelection: true, lastActionLog: 'You focus your will, preparing to choose a new reality...' }, prev[1]]);
+      setGameStateStack((prev: GameStateStack) => [{ ...prev[0], isAwaitingManualShiftThemeSelection: true, lastActionLog: 'You focus your will, preparing to choose a new reality...' }, prev[1]]);
     } else {
       triggerRealityShift(false);
     }
@@ -179,7 +179,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     if (!currentFullState.isAwaitingManualShiftThemeSelection) return;
 
     setLoadingReason('reality_shift_load');
-    setGameStateStack(prev => [{
+    setGameStateStack((prev: GameStateStack) => [{
       ...prev[0],
       isAwaitingManualShiftThemeSelection: false,
       pendingNewThemeNameAfterShift: themeName,
@@ -191,7 +191,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
 
   /** Cancels the manual shift selection process. */
   const cancelManualShiftThemeSelection = useCallback(() => {
-    setGameStateStack(prev => [{ ...prev[0], isAwaitingManualShiftThemeSelection: false, lastActionLog: 'You decide against manually shifting reality for now.' }, prev[1]]);
+    setGameStateStack((prev: GameStateStack) => [{ ...prev[0], isAwaitingManualShiftThemeSelection: false, lastActionLog: 'You decide against manually shifting reality for now.' }, prev[1]]);
     setError(null);
     setLoadingReason(null);
   }, [setGameStateStack, setError, setLoadingReason]);

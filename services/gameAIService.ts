@@ -1,4 +1,8 @@
 
+/**
+ * @file gameAIService.ts
+ * @description Wrapper functions for the main storytelling AI interactions.
+ */
 import { GenerateContentResponse } from "@google/genai";
 import { GameStateFromAI, Item, ItemChange, AdventureTheme, Character, MapNode } from '../types'; // Removed Place, added MapNode
 import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES, DEFAULT_PLAYER_GENDER } from '../constants';
@@ -33,7 +37,12 @@ export const executeAIMainTurn = async (
                 }
             });
             // Return the raw response. Parsing and processing happen in useGameLogic.
-            console.log("Executing AI Main Turn. Total tokens: ", response.usageMetadata.totalTokenCount, ", Thought Tokens:", response.usageMetadata.thoughtsTokenCount, ", Prompt Tokens: ", response.usageMetadata.promptTokenCount);
+            console.log(
+                "Executing AI Main Turn. Total tokens: ",
+                response.usageMetadata?.totalTokenCount ?? 'N/A',
+                ", Thought Tokens:", response.usageMetadata?.thoughtsTokenCount ?? 'N/A',
+                ", Prompt Tokens: ", response.usageMetadata?.promptTokenCount ?? 'N/A'
+            );
             return response;
         } catch (error) {
             console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
@@ -92,7 +101,7 @@ Do not include any preamble. Just provide the summary text itself.
               // Omit thinkingConfig for higher quality (default enabled)
           }
       });
-      const text = response.text.trim();
+      const text = (response.text ?? '').trim();
       if (text && text.length > 0) {
         return text;
       }

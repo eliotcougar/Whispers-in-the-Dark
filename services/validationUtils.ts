@@ -1,4 +1,8 @@
 
+/**
+ * @file validationUtils.ts
+ * @description Shared validation helpers for AI payloads.
+ */
 import { Item, KnownUse, ItemType, Character, DialogueTurnResponsePart, ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload } from '../types';
 import { VALID_ITEM_TYPES } from '../constants';
 
@@ -90,14 +94,14 @@ export function isValidItem(item: any, context?: 'gain' | 'update'): item is Ite
 export function isValidNameDescAliasesPair(obj: any): obj is { name: string; description: string; aliases?: string[] } {
     return obj && typeof obj.name === 'string' && obj.name.trim() !== '' &&
            typeof obj.description === 'string' && 
-           (obj.aliases === undefined || (Array.isArray(obj.aliases) && obj.aliases.every(alias => typeof alias === 'string')));
+           (obj.aliases === undefined || (Array.isArray(obj.aliases) && obj.aliases.every((alias: unknown) => typeof alias === 'string')));
 }
 
 // Specific validator for CharacterUpdate payload elements from AI
 export function isValidCharacterUpdate(obj: any): obj is ValidCharacterUpdatePayload {
     if (!obj || typeof obj.name !== 'string' || obj.name.trim() === '') return false;
     if (obj.newDescription !== undefined && typeof obj.newDescription !== 'string') return false;
-    if (obj.newAliases !== undefined && !(Array.isArray(obj.newAliases) && obj.newAliases.every(alias => typeof alias === 'string'))) return false;
+    if (obj.newAliases !== undefined && !(Array.isArray(obj.newAliases) && obj.newAliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (obj.addAlias !== undefined && typeof obj.addAlias !== 'string') return false; 
     if (obj.newPresenceStatus !== undefined && !['distant', 'nearby', 'companion', 'unknown'].includes(obj.newPresenceStatus)) return false;
     if (obj.newLastKnownLocation !== undefined && obj.newLastKnownLocation !== null && typeof obj.newLastKnownLocation !== 'string') return false; 
@@ -116,7 +120,7 @@ export function isValidCharacterUpdate(obj: any): obj is ValidCharacterUpdatePay
 export function isValidNewCharacterPayload(obj: any): obj is ValidNewCharacterPayload {
     if (!obj || typeof obj.name !== 'string' || obj.name.trim() === '') return false;
     if (typeof obj.description !== 'string' || obj.description.trim() === '') return false; 
-    if (obj.aliases !== undefined && !(Array.isArray(obj.aliases) && obj.aliases.every(alias => typeof alias === 'string'))) return false;
+    if (obj.aliases !== undefined && !(Array.isArray(obj.aliases) && obj.aliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (obj.presenceStatus !== undefined && !['distant', 'nearby', 'companion', 'unknown'].includes(obj.presenceStatus)) return false;
     if (obj.lastKnownLocation !== undefined && obj.lastKnownLocation !== null && typeof obj.lastKnownLocation !== 'string') return false; 
     if (obj.preciseLocation !== undefined && obj.preciseLocation !== null && typeof obj.preciseLocation !== 'string') return false;

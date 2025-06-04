@@ -1,4 +1,8 @@
 
+/**
+ * @file saveLoadService.ts
+ * @description Functions for saving and loading game state across versions.
+ */
 import { FullGameState, SavedGameDataShape, Item, ThemeHistoryState, AdventureTheme, Character, ItemType, ThemePackName, KnownUse as V2KnownUse, DialogueHistoryEntry, DialogueData, MapData, MapNode, MapEdge, MapLayoutConfig, MapNodeData, DialogueSummaryRecord } from '../types';
 import { CURRENT_SAVE_GAME_VERSION, LOCAL_STORAGE_SAVE_KEY, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, VALID_ITEM_TYPES, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_PLAYER_GENDER } from '../constants';
 import { THEME_PACKS, ALL_THEME_PACK_NAMES } from '../themes';
@@ -213,8 +217,8 @@ async function convertV1toV2Intermediate(v1Data: V1SavedGameState): Promise<V2In
       try {
         const correctedDetails = await fetchCorrectedCharacterDetails_Service(
           v1Char.name,
-          logContextForChar,
-          sceneContextForChar,
+          logContextForChar || undefined,
+          sceneContextForChar || undefined,
           charThemeObj, // Pass AdventureTheme object
           relevantMapNodesForCharThemeContext
         );
@@ -298,7 +302,7 @@ function convertV2toV3Shape(v2Data: V2IntermediateSavedGameState): SavedGameData
         const loadedConfig = v2Data.mapLayoutConfig;
         const patchedConfig: Partial<MapLayoutConfig> = {};
         for (const key of Object.keys(defaultConfig) as Array<keyof MapLayoutConfig>) {
-            if (loadedConfig.hasOwnProperty(key) && typeof (loadedConfig as any)[key] === 'number') {
+            if (Object.prototype.hasOwnProperty.call(loadedConfig, key) && typeof (loadedConfig as any)[key] === 'number') {
                 patchedConfig[key] = (loadedConfig as any)[key];
             } else {
                 patchedConfig[key] = defaultConfig[key];
@@ -352,7 +356,7 @@ function isValidItemForSave(item: any): item is Item {
     (item.activeDescription === undefined || typeof item.activeDescription === 'string') &&
     (item.isActive === undefined || typeof item.isActive === 'boolean') &&
     (item.isJunk === undefined || typeof item.isJunk === 'boolean') &&
-    (item.knownUses === undefined || (Array.isArray(item.knownUses) && item.knownUses.every(ku =>
+    (item.knownUses === undefined || (Array.isArray(item.knownUses) && item.knownUses.every((ku: V2KnownUse) =>
       ku && typeof ku.actionName === 'string' && typeof ku.promptEffect === 'string' &&
       (ku.description === undefined || typeof ku.description === 'string') &&
       (ku.appliesWhenActive === undefined || typeof ku.appliesWhenActive === 'boolean') &&

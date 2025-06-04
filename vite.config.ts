@@ -1,7 +1,14 @@
+/**
+ * @file vite.config.ts
+ * @description Configuration for Vite bundler.
+ */
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { defineConfig, loadEnv } from 'vite';
 
-export default defineConfig(({ mode }) => {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig(({ mode }: { mode: string }) => {
     const env = loadEnv(mode, '.', '');
     return {
       define: {

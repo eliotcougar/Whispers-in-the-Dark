@@ -368,7 +368,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
     const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter(n => n.themeName === currentThemeObj.name && !n.data.isLeaf);
     const currentThemeCharacters = currentFullState.allCharacters.filter(c => c.themeName === currentThemeObj.name);
-    const currentMapNodeDetails = currentFullState.currentMapNodeId ? currentFullState.mapData.nodes.find(n => n.id === currentFullState.currentMapNodeId) : null;
+    const currentMapNodeDetails = currentFullState.currentMapNodeId
+        ? currentFullState.mapData.nodes.find(n => n.id === currentFullState.currentMapNodeId) ?? null
+        : null;
 
     const prompt = formatMainGameTurnPrompt(
         currentFullState.currentScene, action, currentFullState.inventory,
@@ -384,7 +386,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
     try {
         const response = await executeAIMainTurn(prompt, currentThemeObj.systemInstructionModifier);
-        if (draftState.lastDebugPacket) draftState.lastDebugPacket.rawResponseText = response.text;
+        if (draftState.lastDebugPacket) draftState.lastDebugPacket.rawResponseText = response.text ?? null;
 
         const currentThemeMapDataForParse = {
             nodes: draftState.mapData.nodes.filter(n => n.themeName === currentThemeObj.name),
@@ -396,8 +398,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         };
 
         const parsedData = await parseAIResponse(
-            response.text, playerGenderProp, currentThemeObj, handleParseAttemptFailed,
-            currentFullState.lastActionLog, currentFullState.currentScene,
+            response.text ?? '', playerGenderProp, currentThemeObj, handleParseAttemptFailed,
+            currentFullState.lastActionLog || undefined, currentFullState.currentScene,
             currentThemeCharacters,
             currentThemeMapDataForParse, currentFullState.inventory
         );
@@ -556,7 +558,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
     try {
       const response = await executeAIMainTurn(prompt, themeObjToLoad.systemInstructionModifier);
-      if (draftState.lastDebugPacket) draftState.lastDebugPacket.rawResponseText = response.text;
+        if (draftState.lastDebugPacket) draftState.lastDebugPacket.rawResponseText = response.text ?? null;
       
       const currentThemeMapDataForParse = {
             nodes: draftState.mapData.nodes.filter(n => n.themeName === themeObjToLoad.name),
@@ -567,7 +569,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
             })
       };
       const parsedData = await parseAIResponse(
-          response.text, playerGenderProp, themeObjToLoad, handleParseAttemptFailed,
+          response.text ?? '', playerGenderProp, themeObjToLoad, handleParseAttemptFailed,
           undefined, undefined, 
           draftState.allCharacters.filter(c => c.themeName === themeObjToLoad.name), 
           currentThemeMapDataForParse, draftState.inventory

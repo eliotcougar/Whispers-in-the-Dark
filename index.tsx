@@ -1,4 +1,8 @@
 
+/**
+ * @file index.tsx
+ * @description Entry point for the React application.
+ */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App'; // Changed to default import

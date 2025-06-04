@@ -379,7 +379,9 @@ export async function parseAIResponse(
                 );
                 if (correctedDetails) {
                     newCharDataFromUpdate.description = correctedDetails.description;
-                    newCharDataFromUpdate.aliases = Array.from(new Set([...newCharDataFromUpdate.aliases, ...correctedDetails.aliases]));
+                    newCharDataFromUpdate.aliases = Array.from(
+                        new Set([...(newCharDataFromUpdate.aliases || []), ...(correctedDetails.aliases || [])])
+                    );
                     newCharDataFromUpdate.presenceStatus = correctedDetails.presenceStatus;
                     newCharDataFromUpdate.lastKnownLocation = correctedDetails.lastKnownLocation;
                     newCharDataFromUpdate.preciseLocation = correctedDetails.preciseLocation;
