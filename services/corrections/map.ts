@@ -6,6 +6,7 @@ import { AdventureTheme, MapNode } from '../../types';
 import { MAX_RETRIES } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { isApiConfigured } from '../apiClient';
 
 /**
  * Infers or corrects the player's current local place string.
@@ -17,7 +18,7 @@ export const fetchCorrectedLocalPlace_Service = async (
   localTime: string | null,
   localEnvironment: string | null
 ): Promise<string | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error('fetchCorrectedLocalPlace_Service: API Key not configured.');
     return null;
   }
@@ -68,7 +69,7 @@ export const fetchCorrectedPlaceDetails_Service = async (
   sceneDescriptionContext: string | undefined,
   currentTheme: AdventureTheme
 ): Promise<{ name: string; description: string; aliases?: string[] } | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error('fetchCorrectedPlaceDetails_Service: API Key not configured.');
     return null;
   }
@@ -137,7 +138,7 @@ export const fetchFullPlaceDetailsForNewMapNode_Service = async (
   sceneDescriptionContext: string | undefined,
   currentTheme: AdventureTheme
 ): Promise<{ name: string; description: string; aliases?: string[] } | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error('fetchFullPlaceDetailsForNewMapNode_Service: API Key not configured.');
     return null;
   }

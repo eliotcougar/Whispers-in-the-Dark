@@ -6,6 +6,7 @@ import { AdventureTheme, Character, MapNode } from '../../types';
 import { MAX_RETRIES } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { isApiConfigured } from '../apiClient';
 
 /** Structure returned when correcting character details. */
 export interface CorrectedCharacterDetails {
@@ -26,7 +27,7 @@ export const fetchCorrectedCharacterDetails_Service = async (
   currentTheme: AdventureTheme,
   allRelevantMapNodes: MapNode[]
 ): Promise<CorrectedCharacterDetails | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error(`fetchCorrectedCharacterDetails_Service: API Key not configured. Cannot fetch details for "${characterName}".`);
     return null;
   }
@@ -96,7 +97,7 @@ export const fetchCorrectedCompanionOrNPCLocation_Service = async (
   invalidPreciseLocationPayload: string,
   currentTheme: AdventureTheme
 ): Promise<string | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error(`fetchCorrectedCompanionOrNPCLocation_Service: API Key not configured. Cannot correct location for "${characterName}".`);
     return null;
   }

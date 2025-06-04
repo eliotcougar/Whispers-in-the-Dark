@@ -8,13 +8,14 @@ import { GameStateFromAI, Item, ItemChange, AdventureTheme, Character, MapNode }
 import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES, DEFAULT_PLAYER_GENDER } from '../constants';
 import { SYSTEM_INSTRUCTION } from '../prompts/mainPrompts';
 import { ai } from './geminiClient';
+import { isApiConfigured } from './apiClient';
 
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
     fullPrompt: string,
     themeSystemInstructionModifier: string | undefined // Retain as string for direct use
 ): Promise<GenerateContentResponse> => {
-    if (!process.env.API_KEY) {
+    if (!isApiConfigured()) {
       console.error("API Key not configured for Gemini Service.");
       return Promise.reject(new Error("API Key not configured."));
     }
@@ -66,7 +67,7 @@ export const summarizeThemeAdventure_Service = async (
   lastSceneDescription: string,
   actionLog: string[]
 ): Promise<string | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error("API Key not configured for Gemini Service. Cannot summarize.");
     return null;
   }

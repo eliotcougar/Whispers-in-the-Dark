@@ -9,6 +9,7 @@ import { GameStateFromAI, AdventureTheme, MapData, MapNode, MapEdge, DialogueSum
 import { AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { ai } from './geminiClient';
+import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 import { isValidAIMapUpdatePayload } from '../utils/mapUpdateValidationUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -83,7 +84,7 @@ export const updateMapFromAIData_Service = async (
   allKnownMainMapNodesForTheme: MapNode[],
   previousMapNodeId: string | null
 ): Promise<MapUpdateServiceResult | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error("API Key not configured for Map Update Service.");
     return null;
   }

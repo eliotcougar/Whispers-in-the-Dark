@@ -29,6 +29,7 @@ import {
   DEFAULT_PLAYER_GENDER
 } from '../../constants';
 import { fetchCorrectedCharacterDetails_Service, fetchCorrectedLocalPlace_Service } from '../corrections';
+import { isApiConfigured } from '../apiClient';
 import {
   DEFAULT_K_REPULSION,
   DEFAULT_K_SPRING,
@@ -232,7 +233,7 @@ export async function convertV1toV2Intermediate(v1Data: V1SavedGameState): Promi
     let lastKnownLocation: string | null = null;
     let preciseLocation: string | null = null;
 
-    if (charThemeObj && process.env.API_KEY) {
+    if (charThemeObj && isApiConfigured()) {
       const relevantMapNodesForCharThemeContext = v1ConvertedMapNodes.filter(node => node.themeName === charThemeObj!.name);
       const sceneContextForChar = (v1Data.currentThemeName === v1Char.themeName) ? v1Data.currentScene : undefined;
       const logContextForChar = (v1Data.currentThemeName === v1Char.themeName) ? v1Data.lastActionLog : undefined;

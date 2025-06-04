@@ -7,6 +7,7 @@ import { MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../../constants';
 import { isValidItem } from '../parsers/validation';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { isApiConfigured } from '../apiClient';
 
 /**
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
@@ -18,7 +19,7 @@ export const fetchCorrectedItemPayload_Service = async (
   malformedPayloadString: string,
   currentTheme: AdventureTheme
 ): Promise<Item | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error(`fetchCorrectedItemPayload_Service: API Key not configured. Cannot correct item payload for action "${actionType}".`);
     return null;
   }
@@ -134,7 +135,7 @@ export const fetchCorrectedItemAction_Service = async (
   malformedItemChangeString: string,
   currentTheme: AdventureTheme
 ): Promise<ItemChange['action'] | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error('fetchCorrectedItemAction_Service: API Key not configured. Cannot correct item action.');
     return null;
   }

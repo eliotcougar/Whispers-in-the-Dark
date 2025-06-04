@@ -10,6 +10,7 @@ import { AIMapUpdatePayload, MapChainToRefine, MapData, MapNode, MapEdge, Advent
 import { AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../constants';
 import { MAP_CHAIN_CORRECTION_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { ai as geminiAIInstance } from './geminiClient';
+import { isApiConfigured } from './apiClient';
 import { VALID_NODE_STATUS_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
 import { pruneAndRefineMapConnections } from '../utils/mapPruningUtils'; // Import pruning utility
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -22,7 +23,7 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
  * @returns A promise that resolves to the AI's response or null on error.
  */
 const callCorrectionAI = async (prompt: string, systemInstruction: string): Promise<GenerateContentResponse | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error("callCorrectionAI (mapCorrectionService): API Key not configured.");
     return null;
   }

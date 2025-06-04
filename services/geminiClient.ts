@@ -1,12 +1,13 @@
-
+/**
+ * @file services/geminiClient.ts
+ * @description Provides a shared GoogleGenAI client instance.
+ */
 import { GoogleGenAI } from "@google/genai";
+import { geminiClient, isApiConfigured, getApiKey } from "./apiClient";
 
-if (!process.env.API_KEY) {
-  console.error("API_KEY environment variable is not set. The application will not be able to connect to the Gemini API.");
-  // Potentially throw an error or have a fallback if critical for app initialization
+if (!isApiConfigured()) {
+  console.error("GEMINI_API_KEY environment variable is not set. The application will not be able to connect to the Gemini API.");
 }
 
-// Initialize the GoogleGenAI client
-// The exclamation mark asserts that API_KEY is non-null, 
-// assuming process.env.API_KEY is properly configured in the environment.
-export const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+/** Shared Gemini client used across services. */
+export const ai: GoogleGenAI | null = geminiClient;

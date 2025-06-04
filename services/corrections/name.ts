@@ -5,6 +5,7 @@
 import { AdventureTheme } from '../../types';
 import { MAX_RETRIES } from '../../constants';
 import { callMinimalCorrectionAI } from './base';
+import { isApiConfigured } from '../apiClient';
 
 /**
  * Attempts to match a malformed name against a list of valid names.
@@ -17,7 +18,7 @@ export const fetchCorrectedName_Service = async (
   validNamesList: string[],
   currentTheme: AdventureTheme
 ): Promise<string | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error(`fetchCorrectedName_Service: API Key not configured. Cannot correct ${entityTypeToCorrect} name.`);
     return null;
   }
