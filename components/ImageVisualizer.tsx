@@ -1,16 +1,12 @@
 
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { geminiClient as ai, isApiConfigured } from '../services/apiClient';
 import { AdventureTheme, Character, MapNode } from '../types'; 
 import LoadingSpinner from './LoadingSpinner';
 
-const API_KEY = process.env.API_KEY;
-let ai: GoogleGenAI | null = null;
-if (API_KEY) {
-  ai = new GoogleGenAI({ apiKey: API_KEY });
-} else {
-  console.error("API_KEY for GoogleGenAI is not set. Image visualization will not work.");
+if (!isApiConfigured()) {
+  console.error("GEMINI_API_KEY for GoogleGenAI is not set. Image visualization will not work.");
 }
 
 interface ImageVisualizerProps {

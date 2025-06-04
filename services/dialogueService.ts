@@ -14,6 +14,7 @@ import {
     DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION
 } from '../prompts/dialoguePrompts';
 import { ai } from './geminiClient';
+import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 
 const callDialogueGeminiAPI = async (
@@ -102,7 +103,7 @@ export const fetchDialogueTurn = async (
   playerLastUtterance: string,
   dialogueParticipants: string[]
 ): Promise<DialogueAIResponse | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error("API Key not configured for Dialogue Service.");
     return Promise.reject(new Error("API Key not configured."));
   }
@@ -189,9 +190,9 @@ Provide new dialogue options, ensuring the last one is a way to end the dialogue
 
 
 export const summarizeDialogueForUpdates = async (
-  summaryContext: DialogueSummaryContext 
+  summaryContext: DialogueSummaryContext
 ): Promise<DialogueSummaryResponse | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error("API Key not configured for Dialogue Summary Service.");
     return Promise.reject(new Error("API Key not configured."));
   }
@@ -268,9 +269,9 @@ If the dialogue revealed new map information (new locations, changed accessibili
  * @returns A promise that resolves to the summary string (500-1000 chars) or null.
  */
 export const summarizeDialogueForMemory = async (
-  context: DialogueMemorySummaryContext 
+  context: DialogueMemorySummaryContext
 ): Promise<string | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error("API Key not configured for Dialogue Memory Summary Service.");
     return null;
   }

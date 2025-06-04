@@ -4,6 +4,7 @@
  */
 import { AUXILIARY_MODEL_NAME, MINIMAL_MODEL_NAME } from '../../constants';
 import { ai } from '../geminiClient';
+import { isApiConfigured } from '../apiClient';
 
 /** Temperature used for all correction related AI calls. */
 export const CORRECTION_TEMPERATURE = 0.75;
@@ -47,7 +48,7 @@ export const callMinimalCorrectionAI = async (
   prompt: string,
   systemInstruction: string
 ): Promise<string | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error('callMinimalCorrectionAI: API Key not configured.');
     return null;
   }

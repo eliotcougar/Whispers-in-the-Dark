@@ -8,6 +8,7 @@ import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { formatKnownCharactersForPrompt } from '../../utils/promptFormatters/dialogue';
 import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
 import { callCorrectionAI } from './base';
+import { isApiConfigured } from '../apiClient';
 
 /**
  * Attempts to correct a malformed DialogueSetupPayload.
@@ -22,7 +23,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
   playerGender: string,
   malformedDialogueSetup: Partial<DialogueSetupPayload> | any
 ): Promise<DialogueSetupPayload | null> => {
-  if (!process.env.API_KEY) {
+  if (!isApiConfigured()) {
     console.error('fetchCorrectedDialogueSetup_Service: API Key not configured.');
     return null;
   }
