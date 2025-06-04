@@ -707,13 +707,20 @@ export const loadGameStateFromLocalStorage = async (): Promise<FullGameState | n
        dataToValidateAndExpand = parsedData as SavedGameDataShape;
        ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
        ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
-    } else if (parsedData) {
-       console.warn(`Unknown save version '${parsedData.saveGameVersion}' from localStorage. This might fail validation.`);
-       dataToValidateAndExpand = parsedData as SavedGameDataShape;
-       if (dataToValidateAndExpand) {
-         ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
-         ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
-       }
+   } else if (parsedData) {
+      console.warn(`Unknown save version '${parsedData.saveGameVersion}' from localStorage. This might fail validation.`);
+      dataToValidateAndExpand = parsedData as SavedGameDataShape;
+      if (dataToValidateAndExpand) {
+        ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
+        ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
+      }
+   }
+
+    if (dataToValidateAndExpand && !dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
+      dataToValidateAndExpand.currentThemeObject = findThemeByName(dataToValidateAndExpand.currentThemeName);
+      if (!dataToValidateAndExpand.currentThemeObject) {
+        console.warn(`Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during localStorage load. Game state might be incomplete.`);
+      }
     }
 
 
@@ -739,13 +746,6 @@ export const loadGameStateFromLocalStorage = async (): Promise<FullGameState | n
       dataToValidateAndExpand.globalTurnNumber = dataToValidateAndExpand.globalTurnNumber ?? 0; 
       dataToValidateAndExpand.mainQuest = dataToValidateAndExpand.mainQuest ?? null;
       dataToValidateAndExpand.isCustomGameMode = dataToValidateAndExpand.isCustomGameMode ?? false; 
-      
-      if (!dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
-          dataToValidateAndExpand.currentThemeObject = findThemeByName(dataToValidateAndExpand.currentThemeName);
-          if (!dataToValidateAndExpand.currentThemeObject) {
-              console.warn(`Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during localStorage load. Game state might be incomplete.`);
-          }
-      }
       
       return expandSavedDataToFullState(dataToValidateAndExpand);
     }
@@ -816,6 +816,13 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
             }
           }
 
+          if (dataToValidateAndExpand && !dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
+            dataToValidateAndExpand.currentThemeObject = findThemeByName(dataToValidateAndExpand.currentThemeName);
+            if (!dataToValidateAndExpand.currentThemeObject) {
+                 console.warn(`Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during file load. Game state might be incomplete.`);
+            }
+          }
+
           if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
             dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({ ...item, isJunk: item.isJunk ?? false }));
             dataToValidateAndExpand.score = dataToValidateAndExpand.score ?? 0;
@@ -839,13 +846,6 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
             dataToValidateAndExpand.mainQuest = dataToValidateAndExpand.mainQuest ?? null;
             dataToValidateAndExpand.isCustomGameMode = dataToValidateAndExpand.isCustomGameMode ?? false; 
 
-            if (!dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
-                dataToValidateAndExpand.currentThemeObject = findThemeByName(dataToValidateAndExpand.currentThemeName);
-                if (!dataToValidateAndExpand.currentThemeObject) {
-                     console.warn(`Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during file load. Game state might be incomplete.`);
-                }
-            }
-            
             resolve(expandSavedDataToFullState(dataToValidateAndExpand));
             return;
           }
