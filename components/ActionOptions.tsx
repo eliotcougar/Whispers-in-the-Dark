@@ -1,5 +1,10 @@
 
 
+/**
+ * @file ActionOptions.tsx
+ * @description Renders the list of actions the Player can choose from.
+ */
+
 import React, { useMemo } from 'react';
 import { Item, Character, MapNode } from '../types'; 
 import { highlightEntitiesInText, HighlightableEntity } from '../utils/highlightHelper';
@@ -9,17 +14,21 @@ interface ActionOptionsProps {
   onActionSelect: (action: string) => void;
   disabled: boolean;
   inventory: Item[];
-  mapData: MapNode[]; 
+  mapData: MapNode[];
   allCharacters: Character[];
   currentThemeName: string | null;
 }
 
-const ActionOptions: React.FC<ActionOptionsProps> = ({ 
-  options, 
-  onActionSelect, 
+/**
+ * Component that displays all available actions as buttons.
+ * Calls `onActionSelect` with the chosen action when a button is clicked.
+ */
+const ActionOptions: React.FC<ActionOptionsProps> = ({
+  options,
+  onActionSelect,
   disabled,
   inventory,
-  mapData, 
+  mapData,
   allCharacters,
   currentThemeName 
 }) => {
