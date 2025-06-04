@@ -28,6 +28,9 @@ interface ImageVisualizerProps {
   cachedImageScene: string | null;
 }
 
+/**
+ * Requests and displays AI-generated imagery for the current scene.
+ */
 const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
   currentSceneDescription,
   currentTheme, // This is now AdventureTheme | null

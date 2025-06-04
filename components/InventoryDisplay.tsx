@@ -16,6 +16,9 @@ interface InventoryDisplayProps {
 
 type SortOrder = 'default' | 'name' | 'type';
 
+/**
+ * Displays the item type label with theme-based coloring.
+ */
 export const ItemTypeDisplay: React.FC<{ type: Item['type'] }> = ({ type }) => {
   let color = 'text-slate-400'; // Default
   if (type === 'single-use') color = 'text-red-400';
@@ -27,10 +30,13 @@ export const ItemTypeDisplay: React.FC<{ type: Item['type'] }> = ({ type }) => {
   else if (type === 'vehicle') color = 'text-indigo-400';
   else if (type === 'knowledge') color = 'text-purple-400';
   else if (type === 'status effect') color = 'text-pink-400';
-  
+
   return <span className={`text-xs italic ${color}`}>{type}</span>;
 };
 
+/**
+ * Shows the player's inventory and handles item interactions.
+ */
 const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemInteract, onDiscardJunkItem, disabled }) => {
   const [newlyAddedItemNames, setNewlyAddedItemNames] = useState<Set<string>>(new Set());
   const prevItemsRef = useRef<Item[]>(items);

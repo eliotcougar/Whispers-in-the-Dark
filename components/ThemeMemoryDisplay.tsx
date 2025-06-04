@@ -15,7 +15,10 @@ interface ThemeMemoryDisplayProps {
   onClose: () => void;
 }
 
-const ThemeMemoryDisplay: React.FC<ThemeMemoryDisplayProps> = ({ 
+/**
+ * Displays a history of themes the player has explored.
+ */
+const ThemeMemoryDisplay: React.FC<ThemeMemoryDisplayProps> = ({
   themeHistory, 
   isVisible, 
   onClose,

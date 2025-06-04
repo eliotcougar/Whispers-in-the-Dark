@@ -73,6 +73,9 @@ const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: num
   return lines;
 };
 
+/**
+ * SVG view for rendering map nodes and edges with tooltips.
+ */
 const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeId, layoutIdealEdgeLength }) => {
   const interactions = useMapInteractions();
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;

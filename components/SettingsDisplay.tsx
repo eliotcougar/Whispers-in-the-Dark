@@ -21,6 +21,9 @@ interface SettingsDisplayProps {
   isCustomGameMode: boolean;
 }
 
+/**
+ * Screen for tweaking player and gameplay settings.
+ */
 const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
   isVisible,
   onClose,

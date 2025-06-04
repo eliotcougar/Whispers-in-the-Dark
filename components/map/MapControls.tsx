@@ -48,6 +48,9 @@ const renderParameterControl = (
   </div>
 );
 
+/**
+ * Collapsible panel for adjusting map layout parameters.
+ */
 const MapControls: React.FC<MapControlsProps> = props => {
   const [expanded, setExpanded] = useState(false);
   const {

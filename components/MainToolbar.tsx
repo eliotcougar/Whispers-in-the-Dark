@@ -24,6 +24,9 @@ interface MainToolbarProps {
   turnsSinceLastShift: number;
 }
 
+/**
+ * Provides quick-access buttons for common game actions.
+ */
 const MainToolbar: React.FC<MainToolbarProps> = ({
   score,
   isLoading,

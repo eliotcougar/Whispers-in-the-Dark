@@ -70,7 +70,9 @@ const areItemsEffectivelyIdentical = (item1?: Item, item2?: Item): boolean => {
   return areKnownUsesEffectivelyIdentical(item1.knownUses, item2.knownUses);
 };
 
-
+/**
+ * Animates item gains, losses, and transformations over time.
+ */
 const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
   lastTurnChanges,
   isGameBusy,

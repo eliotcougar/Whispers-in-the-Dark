@@ -7,9 +7,12 @@ import React from 'react';
 import { LoadingReason } from '../types'; // Import LoadingReason
 
 interface LoadingSpinnerProps {
-  loadingReason?: LoadingReason; 
+  loadingReason?: LoadingReason;
 }
 
+/**
+ * Displays a spinner with a reason message while the game is busy.
+ */
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
   const spinnerBaseClass = "rounded-full h-16 w-16 border-t-4 border-b-4";
   const spinnerClass = `${spinnerBaseClass} animate-spin border-sky-600`;
