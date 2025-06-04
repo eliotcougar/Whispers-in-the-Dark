@@ -98,10 +98,23 @@ export const updateMapFromAIData_Service = async (
   const currentThemeEdgesFromMapData = currentMapData.edges.filter(e =>
     currentThemeNodeIdsSet.has(e.sourceNodeId) && currentThemeNodeIdsSet.has(e.targetNodeId)
   );
+  const themeNodeIdMap = new Map<string, MapNode>();
+  const themeNodeNameMap = new Map<string, MapNode>();
+  const themeEdgesMap = new Map<string, MapEdge[]>();
+  currentThemeNodesFromMapData.forEach(n => {
+    themeNodeIdMap.set(n.id, n);
+    themeNodeNameMap.set(n.placeName, n);
+  });
+  currentThemeEdgesFromMapData.forEach(e => {
+    if (!themeEdgesMap.has(e.sourceNodeId)) themeEdgesMap.set(e.sourceNodeId, []);
+    if (!themeEdgesMap.has(e.targetNodeId)) themeEdgesMap.set(e.targetNodeId, []);
+    themeEdgesMap.get(e.sourceNodeId)!.push(e);
+    themeEdgesMap.get(e.targetNodeId)!.push(e);
+  });
 
   let previousMapNodeContext = "Player's Previous Map Node: Unknown or N/A.";
   if (previousMapNodeId) {
-    const prevNode = currentThemeNodesFromMapData.find(n => n.id === previousMapNodeId);
+    const prevNode = themeNodeIdMap.get(previousMapNodeId);
     if (prevNode) {
       previousMapNodeContext = `Player's Previous Map Node: Was at "${prevNode.placeName}" (ID: ${prevNode.id}, Type: ${prevNode.data.isLeaf ? 'Leaf' : 'Main'}, Visited: ${!!prevNode.data.visited}).`;
     }
@@ -189,6 +202,25 @@ Key points:
   const newMapData: MapData = structuredCloneGameState(currentMapData);
   const newNodesInBatchIdNameMap: Record<string, { id: string; name: string }> = {};
 
+  // Refresh lookup maps for the cloned map data
+  themeNodeIdMap.clear();
+  themeNodeNameMap.clear();
+  themeEdgesMap.clear();
+  newMapData.nodes
+    .filter(n => n.themeName === currentTheme.name)
+    .forEach(n => {
+      themeNodeIdMap.set(n.id, n);
+      themeNodeNameMap.set(n.placeName, n);
+    });
+  newMapData.edges.forEach(e => {
+    if (themeNodeIdMap.has(e.sourceNodeId) && themeNodeIdMap.has(e.targetNodeId)) {
+      if (!themeEdgesMap.has(e.sourceNodeId)) themeEdgesMap.set(e.sourceNodeId, []);
+      if (!themeEdgesMap.has(e.targetNodeId)) themeEdgesMap.set(e.targetNodeId, []);
+      themeEdgesMap.get(e.sourceNodeId)!.push(e);
+      themeEdgesMap.get(e.targetNodeId)!.push(e);
+    }
+  });
+
   // Annihilation Step (remains the same)
   let nodesToAddOps_mut: AIMapUpdatePayload['nodesToAdd'] = [...(validParsedPayload.nodesToAdd || [])];
   let nodesToRemove_mut = [...(validParsedPayload.nodesToRemove || [])];
@@ -222,7 +254,7 @@ Key points:
   // Helper to find node by name in theme (checks existing nodes first, then those added in this batch)
   // This version is for edges, AFTER all nodes for the batch are processed.
   const findNodeByNameInThemeOrBatchForEdges = (name: string): MapNode | { id: string; name: string } | undefined => {
-    const existingNode = newMapData.nodes.find(n => n.placeName === name && n.themeName === currentTheme.name);
+    const existingNode = themeNodeNameMap.get(name);
     if (existingNode) return existingNode;
     return newNodesInBatchIdNameMap[name];
   };
@@ -234,14 +266,9 @@ Key points:
   // Pass 1: Add Main Nodes
   mainNodesToAddOps.forEach(nodeAddOp => {
     // Check if a main node with this name already exists in the theme
-    const existingMainNode = newMapData.nodes.find(n =>
-        n.placeName === nodeAddOp.placeName &&
-        n.themeName === currentTheme.name &&
-        !n.data.isLeaf
-    );
-    if (existingMainNode) {
+    const existingMainNode = themeNodeNameMap.get(nodeAddOp.placeName);
+    if (existingMainNode && !existingMainNode.data.isLeaf) {
         console.warn(`MapUpdate (nodesToAdd - Pass 1): Main node "${nodeAddOp.placeName}" already exists. Skipping add.`);
-        // Ensure it's in newNodesInBatchIdNameMap for edge resolution if it wasn't there before (e.g. from previous state)
         if (!newNodesInBatchIdNameMap[existingMainNode.placeName]) {
             newNodesInBatchIdNameMap[existingMainNode.placeName] = { id: existingMainNode.id, name: existingMainNode.placeName };
         }
@@ -262,18 +289,26 @@ Key points:
 
     const newNode: MapNode = { id: newNodeId, themeName: currentTheme.name, placeName: nodeAddOp.placeName, position: nodeAddOp.initialPosition || { x: 0, y: 0 }, data: newNodeData };
     newMapData.nodes.push(newNode);
+    themeNodeIdMap.set(newNodeId, newNode);
+    themeNodeNameMap.set(nodeAddOp.placeName, newNode);
     newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
   });
 
   // Pass 2: Add Leaf Nodes
   leafNodesToAddOps.forEach(nodeAddOp => {
     // Check if a leaf node with this name (and potentially same parent if specified) already exists
-     const existingLeafNode = newMapData.nodes.find(n =>
-        n.placeName === nodeAddOp.placeName &&
-        n.themeName === currentTheme.name &&
-        n.data.isLeaf &&
-        (nodeAddOp.data?.parentNodeId ? n.data.parentNodeId === (newMapData.nodes.find(p => p.placeName === nodeAddOp.data!.parentNodeId && p.themeName === currentTheme.name)?.id) : true) // If parentId given, check it matches
-    );
+    const potentialLeaf = themeNodeNameMap.get(nodeAddOp.placeName);
+    let existingLeafNode: MapNode | undefined;
+    if (potentialLeaf && potentialLeaf.data.isLeaf) {
+        if (nodeAddOp.data?.parentNodeId) {
+            const parent = themeNodeNameMap.get(nodeAddOp.data.parentNodeId);
+            if (parent && potentialLeaf.data.parentNodeId === parent.id) {
+                existingLeafNode = potentialLeaf;
+            }
+        } else {
+            existingLeafNode = potentialLeaf;
+        }
+    }
     if (existingLeafNode) {
         console.warn(`MapUpdate (nodesToAdd - Pass 2): Leaf node "${nodeAddOp.placeName}" seems to already exist. Skipping add.`);
          if (!newNodesInBatchIdNameMap[existingLeafNode.placeName]) {
@@ -287,8 +322,7 @@ Key points:
 
     let resolvedParentNodeId: string | undefined = undefined;
     if (nodeAddOp.data?.parentNodeId) {
-        // Allow parent to be ANY node (main or leaf)
-        const parentNode = newMapData.nodes.find(n => n.placeName === nodeAddOp.data!.parentNodeId && n.themeName === currentTheme.name);
+        const parentNode = themeNodeNameMap.get(nodeAddOp.data.parentNodeId);
         if (parentNode) {
             resolvedParentNodeId = parentNode.id;
         } else {
@@ -307,17 +341,16 @@ Key points:
 
     const newNode: MapNode = { id: newNodeId, themeName: currentTheme.name, placeName: nodeAddOp.placeName, position: nodeAddOp.initialPosition || { x: 0, y: 0 }, data: newNodeData };
     newMapData.nodes.push(newNode);
+    themeNodeIdMap.set(newNodeId, newNode);
+    themeNodeNameMap.set(nodeAddOp.placeName, newNode);
     newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
   });
 
   // Process Node Updates (after all adds, so placeName changes are based on initial state of batch)
   (validParsedPayload.nodesToUpdate || []).forEach(nodeUpdateOp => {
-    // Find node by its original placeName in the currentMapData (before this batch's additions/updates)
-    // or among nodes already processed if it was a new node being immediately updated (less common for map AI but possible).
-    const nodeToUpdateIndex = newMapData.nodes.findIndex(n => n.placeName === nodeUpdateOp.placeName && n.themeName === currentTheme.name);
+    const node = themeNodeNameMap.get(nodeUpdateOp.placeName);
 
-    if (nodeToUpdateIndex !== -1) {
-        const node = newMapData.nodes[nodeToUpdateIndex];
+    if (node) {
 
         // Handle parentNodeId update specifically for leaves
         let resolvedParentIdOnUpdate: string | undefined | null = node.data.parentNodeId; // Default to existing
@@ -328,7 +361,7 @@ Key points:
                 resolvedParentIdOnUpdate = undefined; // Store as undefined if cleared
             } else if (typeof nodeUpdateOp.newData.parentNodeId === 'string') {
                 // Allow parent to be ANY node (main or leaf)
-                const parentNode = newMapData.nodes.find(n => n.placeName === nodeUpdateOp.newData!.parentNodeId && n.themeName === currentTheme.name);
+                const parentNode = themeNodeNameMap.get(nodeUpdateOp.newData!.parentNodeId);
                 if (parentNode) {
                     resolvedParentIdOnUpdate = parentNode.id;
                 } else {
@@ -362,7 +395,9 @@ Key points:
                     delete newNodesInBatchIdNameMap[oldBatchEntryKey];
                     newNodesInBatchIdNameMap[nodeUpdateOp.newData.placeName] = { id: node.id, name: nodeUpdateOp.newData.placeName };
                 }
+                themeNodeNameMap.delete(node.placeName);
                 node.placeName = nodeUpdateOp.newData.placeName;
+                themeNodeNameMap.set(node.placeName, node);
             }
         }
     } else {
@@ -372,12 +407,19 @@ Key points:
 
   // Process Node Removals
   nodesToRemove_mut.forEach(nodeRemoveOp => {
-      const nodeIndex = newMapData.nodes.findIndex(n => n.placeName === nodeRemoveOp.placeName && n.themeName === currentTheme.name);
-      if (nodeIndex !== -1) {
-          const removedNodeId = newMapData.nodes[nodeIndex].id;
-          newMapData.nodes.splice(nodeIndex, 1);
+      const node = themeNodeNameMap.get(nodeRemoveOp.placeName);
+      if (node) {
+          const removedNodeId = node.id;
+          const index = newMapData.nodes.findIndex(n => n.id === removedNodeId);
+          if (index !== -1) newMapData.nodes.splice(index, 1);
+          themeNodeNameMap.delete(nodeRemoveOp.placeName);
+          themeNodeIdMap.delete(removedNodeId);
           // Also remove edges connected to this node
           newMapData.edges = newMapData.edges.filter(edge => edge.sourceNodeId !== removedNodeId && edge.targetNodeId !== removedNodeId);
+          for (const [nid, edges] of themeEdgesMap) {
+              themeEdgesMap.set(nid, edges.filter(e => e.sourceNodeId !== removedNodeId && e.targetNodeId !== removedNodeId));
+          }
+          themeEdgesMap.delete(removedNodeId);
           // Remove from newNodesInBatchIdNameMap if it was added then removed in same batch
           delete newNodesInBatchIdNameMap[nodeRemoveOp.placeName];
       } else {
@@ -394,12 +436,17 @@ Key points:
       }
       const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
       const newEdgeId = `${sourceNodeId}_to_${targetNodeId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
-      const existingEdgeOfTheSameType = newMapData.edges.find(e =>
+      const existingEdgeOfTheSameType = (themeEdgesMap.get(sourceNodeId) || []).find(e =>
           ((e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) || (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId))
           && e.data.type === edgeAddOp.data?.type
       );
       if (!existingEdgeOfTheSameType) {
-          newMapData.edges.push({ id: newEdgeId, sourceNodeId, targetNodeId, data: edgeAddOp.data || {} });
+          const newEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeAddOp.data || {} } as MapEdge;
+          newMapData.edges.push(newEdge);
+          if (!themeEdgesMap.has(sourceNodeId)) themeEdgesMap.set(sourceNodeId, []);
+          if (!themeEdgesMap.has(targetNodeId)) themeEdgesMap.set(targetNodeId, []);
+          themeEdgesMap.get(sourceNodeId)!.push(newEdge);
+          themeEdgesMap.get(targetNodeId)!.push(newEdge);
       } else {
            console.warn(`MapUpdate: Edge of type "${edgeAddOp.data?.type}" already exists between "${edgeAddOp.sourcePlaceName}" and "${edgeAddOp.targetPlaceName}". Skipping add.`);
       }
@@ -413,14 +460,12 @@ Key points:
 
     // Find edge to update. If type is specified in newData, it's part of the match criteria.
     // Otherwise, find any edge and update its type.
-    const edgeToUpdate = newMapData.edges.find(e =>
-        ((e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) || (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)) &&
-        // If AI specifies a type in newData, try to match an edge of that original type if possible,
-        // otherwise, this logic might need adjustment if AI means "change type of *any* edge between these nodes to X"
-        (edgeUpdateOp.newData.type ? e.data.type === edgeUpdateOp.newData.type : true)
-    ) || newMapData.edges.find(e => // Fallback: find any edge if type-specific match fails
-        (e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) || (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)
+    const candidateEdges = (themeEdgesMap.get(sourceNodeId) || []).filter(e =>
+        (e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) ||
+        (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)
     );
+    let edgeToUpdate = candidateEdges.find(e => edgeUpdateOp.newData.type ? e.data.type === edgeUpdateOp.newData.type : true);
+    if (!edgeToUpdate) edgeToUpdate = candidateEdges[0];
 
     if (edgeToUpdate) {
         edgeToUpdate.data = { ...edgeToUpdate.data, ...edgeUpdateOp.newData };
@@ -436,27 +481,28 @@ Key points:
       const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
       const removalType = edgeRemoveOp.type;
 
-      newMapData.edges = newMapData.edges.filter(e => {
-          const matchesNodes = (e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) ||
-                             (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId);
-          if (!matchesNodes) return true; // Keep if not between the specified nodes
-          // If it is between the nodes, check type if removalType is specified
-          if (removalType) {
-              return e.data.type !== removalType; // Keep if type doesn't match removalType
+      const remainingEdges: MapEdge[] = [];
+      newMapData.edges.forEach(edge => {
+          const matchesNodes = (edge.sourceNodeId === sourceNodeId && edge.targetNodeId === targetNodeId) ||
+                               (edge.sourceNodeId === targetNodeId && edge.targetNodeId === sourceNodeId);
+          if (!matchesNodes || (removalType && edge.data.type !== removalType)) {
+              remainingEdges.push(edge);
           } else {
-              return false; // Remove if removalType is not specified (remove all edges between these nodes)
+              const arr1 = themeEdgesMap.get(edge.sourceNodeId);
+              if (arr1) themeEdgesMap.set(edge.sourceNodeId, arr1.filter(e => e !== edge));
+              const arr2 = themeEdgesMap.get(edge.targetNodeId);
+              if (arr2) themeEdgesMap.set(edge.targetNodeId, arr2.filter(e => e !== edge));
           }
       });
+      newMapData.edges = remainingEdges;
   });
 
   // --- Upgrade Leaf Nodes to Main Nodes if they have >= 6 containment edges ---
   const nodesToUpgradeIndices: number[] = [];
   newMapData.nodes.forEach((node, index) => {
-    if (node.data.isLeaf && node.themeName === currentTheme.name) { // Check theme
-      const containmentEdgeCount = newMapData.edges.filter(edge =>
-        (edge.sourceNodeId === node.id || edge.targetNodeId === node.id) &&
-        edge.data.type === 'containment'
-      ).length;
+    if (node.data.isLeaf && node.themeName === currentTheme.name) {
+      const connectedEdges = themeEdgesMap.get(node.id) || [];
+      const containmentEdgeCount = connectedEdges.filter(edge => edge.data.type === 'containment').length;
 
       if (containmentEdgeCount >= 6) {
         nodesToUpgradeIndices.push(index);
