@@ -14,7 +14,7 @@ import {
     DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION
 } from '../prompts/dialoguePrompts';
 import { ai } from './geminiClient';
-import { formatKnownPlacesForPrompt } from '../utils/promptFormatters'; 
+import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 
 const callDialogueGeminiAPI = async (
   prompt: string,

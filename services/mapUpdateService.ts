@@ -9,7 +9,7 @@ import { GameStateFromAI, AdventureTheme, MapData, MapNode, MapEdge, DialogueSum
 import { AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { ai } from './geminiClient';
-import { formatKnownPlacesForPrompt } from '../utils/promptFormatters';
+import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 import { isValidAIMapUpdatePayload } from '../utils/mapUpdateValidationUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
