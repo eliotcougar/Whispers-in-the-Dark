@@ -1,5 +1,9 @@
 
 
+/**
+ * @file ImageVisualizer.tsx
+ * @description Requests and displays AI generated images.
+ */
 import React, { useState, useEffect, useCallback } from 'react';
 import { geminiClient as ai, isApiConfigured } from '../services/apiClient';
 import { AdventureTheme, Character, MapNode } from '../types'; 

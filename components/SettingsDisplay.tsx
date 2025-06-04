@@ -1,4 +1,8 @@
 
+/**
+ * @file SettingsDisplay.tsx
+ * @description Screen for adjusting game and user settings.
+ */
 import React, { useState, useEffect } from 'react';
 import { ThemePackName, ALL_THEME_PACK_NAMES } from '../themes';
 import { DEFAULT_PLAYER_GENDER } from '../constants';

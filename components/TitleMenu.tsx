@@ -1,4 +1,8 @@
 
+/**
+ * @file TitleMenu.tsx
+ * @description Main title screen with game start options.
+ */
 import React from 'react';
 import { CURRENT_GAME_VERSION } from '../constants'; // Import the version constant
 

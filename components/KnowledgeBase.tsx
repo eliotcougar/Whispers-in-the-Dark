@@ -1,4 +1,8 @@
 
+/**
+ * @file KnowledgeBase.tsx
+ * @description Displays discovered characters and theme info.
+ */
 import React from 'react';
 import { Character, AdventureTheme } from '../types'; 
 import { CompanionIcon, NearbyNPCIcon } from './icons.tsx'; 

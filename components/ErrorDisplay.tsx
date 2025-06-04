@@ -1,4 +1,8 @@
 
+/**
+ * @file ErrorDisplay.tsx
+ * @description Shows an error message with optional retry.
+ */
 import React from 'react';
 
 interface ErrorDisplayProps {

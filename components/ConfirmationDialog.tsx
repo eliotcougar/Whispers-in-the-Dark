@@ -1,5 +1,9 @@
 
 
+/**
+ * @file ConfirmationDialog.tsx
+ * @description Modal dialog to confirm user actions.
+ */
 import React from 'react';
 
 interface ConfirmationDialogProps {

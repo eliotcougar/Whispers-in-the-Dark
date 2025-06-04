@@ -1,4 +1,8 @@
 
+/**
+ * @file InfoDisplay.tsx
+ * @description Modal summarizing version and build info.
+ */
 import React from 'react';
 import { CURRENT_SAVE_GAME_VERSION, GEMINI_MODEL_NAME } from '../constants'; // For displaying versions
 

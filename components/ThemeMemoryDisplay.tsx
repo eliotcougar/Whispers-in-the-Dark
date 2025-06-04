@@ -1,5 +1,9 @@
 
 
+/**
+ * @file ThemeMemoryDisplay.tsx
+ * @description Displays memory of previously visited themes.
+ */
 import React from 'react';
 import { ThemeHistoryState, MapNode } from '../types'; // MapNode might be relevant if place details were to be shown
 import { ScrollIcon as MemoryIcon } from './icons.tsx';

@@ -1,4 +1,8 @@
 
+/**
+ * @file CustomGameSetupScreen.tsx
+ * @description Allows the Player to select starting themes.
+ */
 import React from 'react';
 import { AdventureTheme, ThemePackName } from '../types';
 import { THEME_PACKS } from '../themes'; // To get pack names and structure
