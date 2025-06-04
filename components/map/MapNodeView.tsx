@@ -99,17 +99,31 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
 
-  /** Region host nodes used for drawing containment circles. */
-  const regionHostNodes = useMemo(() => {
-    return nodes.filter(mainNode => {
-      if (mainNode.data.isLeaf) return false;
-      return edges.some(edge =>
-        edge.data.type === 'containment' &&
-        ((edge.sourceNodeId === mainNode.id && nodes.find(n => n.id === edge.targetNodeId)?.data.isLeaf && nodes.find(n => n.id === edge.targetNodeId)?.data.parentNodeId === mainNode.id) ||
-          (edge.targetNodeId === mainNode.id && nodes.find(n => n.id === edge.sourceNodeId)?.data.isLeaf && nodes.find(n => n.id === edge.sourceNodeId)?.data.parentNodeId === mainNode.id))
-      );
-    });
-  }, [nodes, edges]);
+  /**
+   * Parent nodes that contain other nodes. Used for drawing large region
+   * circles around groups of nodes.
+   */
+  const regionCircles = useMemo(() => {
+    return nodes
+      .filter(parent => nodes.some(n => n.data.parentNodeId === parent.id))
+      .map(parent => {
+        const children = nodes.filter(n => n.data.parentNodeId === parent.id);
+        const maxDistance = children.length > 0
+          ? Math.max(
+              ...children.map(c =>
+                Math.hypot(c.position.x - parent.position.x, c.position.y - parent.position.y)
+              )
+            )
+          : 0;
+        return {
+          node: parent,
+          radius: Math.max(layoutIdealEdgeLength, maxDistance + NODE_RADIUS * 1.5),
+        };
+      });
+  }, [nodes, layoutIdealEdgeLength]);
+
+  /** IDs of nodes that act as parents. */
+  const hostNodeIdSet = useMemo(() => new Set(regionCircles.map(rc => rc.node.id)), [regionCircles]);
 
   /** Shows node details in a tooltip. */
   const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
@@ -168,12 +182,12 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
         preserveAspectRatio="xMidYMid meet"
       >
         <g>
-          {regionHostNodes.map(hostNode => (
+          {regionCircles.map(rc => (
             <circle
-              key={`region-circle-${hostNode.id}`}
-              cx={hostNode.position.x}
-              cy={hostNode.position.y}
-              r={layoutIdealEdgeLength}
+              key={`region-circle-${rc.node.id}`}
+              cx={rc.node.position.x}
+              cy={rc.node.position.y}
+              r={rc.radius}
               fill="none"
               stroke="#888888"
               strokeWidth="1px"
@@ -204,7 +218,10 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
             if (node.data.status === 'quest_target') nodeClass += ' quest_target';
             const maxCharsPerLine = node.data.nodeType === 'feature' || node.data.nodeType === 'room' || node.data.isLeaf ? 20 : 25;
             const labelLines = splitTextIntoLines(node.placeName, maxCharsPerLine, MAX_LABEL_LINES);
-            const initialDyOffset = -(labelLines.length - 1) * 0.5 * LABEL_LINE_HEIGHT_EM + 0.3;
+            const isHost = hostNodeIdSet.has(node.id);
+            const initialDyOffset = isHost
+              ? getRadiusForNode(node) / 10 + 2
+              : -(labelLines.length - 1) * 0.5 * LABEL_LINE_HEIGHT_EM + 0.3;
             return (
               <g key={node.id} transform={`translate(${node.position.x}, ${node.position.y})`} className="map-node" onMouseEnter={e => handleNodeMouseEnter(node, e)} onMouseLeave={handleMouseLeaveGeneral}>
                 <circle className={nodeClass} r={getRadiusForNode(node)} />
