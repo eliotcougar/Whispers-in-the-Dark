@@ -1,0 +1,210 @@
+
+import React, { useEffect, useRef, useMemo } from 'react';
+import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types'; 
+import { highlightEntitiesInText, HighlightableEntity } from '../utils/highlightHelper';
+
+interface DialogueDisplayProps {
+  isVisible: boolean;
+  onClose: () => void; 
+  history: DialogueHistoryEntry[];
+  options: string[];
+  onOptionSelect: (option: string) => void;
+  participants: string[];
+  isLoading: boolean; 
+  isDialogueExiting?: boolean;
+  inventory: Item[];
+  mapData: MapNode[]; 
+  allCharacters: Character[];
+  currentThemeName: string | null;
+  loadingReason: LoadingReason | null; // Added prop
+}
+
+const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
+  isVisible,
+  onClose,
+  history,
+  options,
+  onOptionSelect,
+  participants,
+  isLoading,
+  isDialogueExiting,
+  inventory,
+  mapData, 
+  allCharacters,
+  currentThemeName,
+  loadingReason, // Destructure prop
+}) => {
+  const dialogueFrameRef = useRef<HTMLDivElement | null>(null); 
+  const lastHistoryEntryRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (isVisible && lastHistoryEntryRef.current) {
+      lastHistoryEntryRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [history, isVisible]);
+
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const frame = dialogueFrameRef.current;
+    if (frame) {
+        const shouldScrollToBottom = isLoading && 
+            (isDialogueExiting || (!isDialogueExiting && options.length === 0));
+
+        if (shouldScrollToBottom) {
+            frame.scrollTo({ top: frame.scrollHeight, behavior: 'smooth' });
+        }
+    }
+  }, [isLoading, isDialogueExiting, options.length, isVisible, history.length]);
+
+  const entitiesForHighlighting = useMemo((): HighlightableEntity[] => {
+    const items: HighlightableEntity[] = inventory.map(item => ({ 
+      name: item.name, 
+      type: 'item',
+      description: item.isActive && item.activeDescription ? item.activeDescription : item.description,
+    }));
+    
+    // Derive places from mapData (main nodes)
+    const places: HighlightableEntity[] = currentThemeName 
+      ? mapData
+          .filter(node => node.themeName === currentThemeName && !node.data.isLeaf) 
+          .map(node => ({ 
+            name: node.placeName, 
+            type: 'place', 
+            description: node.data.description || 'A location of interest.', 
+            aliases: node.data.aliases || [] 
+          }))
+      : [];
+
+    const Chars: HighlightableEntity[] = currentThemeName
+      ? allCharacters.filter(c => c.themeName === currentThemeName).map(c => ({ 
+          name: c.name, 
+          type: 'character',
+          description: c.description,
+          aliases: c.aliases 
+        }))
+      : [];
+    return [...items, ...places, ...Chars];
+  }, [inventory, mapData, allCharacters, currentThemeName]);
+
+
+  if (!isVisible) return null;
+
+  const participantsString = participants.join(', ');
+  const optionsDisabled = isLoading || isDialogueExiting;
+
+  const renderOptionsArea = () => {
+    if (isDialogueExiting) {
+      let exitingText = "Finalizing conversation...";
+      if (loadingReason === 'dialogue_memory_creation') {
+        exitingText = "Memories are forming...";
+      } else if (loadingReason === 'dialogue_conclusion_summary') {
+        exitingText = "Conversation is concluding...";
+      } else if (loadingReason === 'dialogue_summary') {
+         exitingText = "Concluding dialogue..."; // Generic summary
+      }
+
+      return (
+        <div className="flex flex-col items-center justify-center py-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sky-400 mb-2"></div>
+          <p className="text-lg text-slate-300 italic">{exitingText}</p>
+        </div>
+      );
+    }
+    
+    if (isLoading) { 
+      let loadingText = "Waiting for response...";
+      if (loadingReason === 'dialogue_turn') {
+        loadingText = "The conversation continues...";
+      }
+      return (
+        <div className="flex flex-col items-center justify-center py-4 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sky-400 mb-2"></div>
+          <p className="text-slate-400 italic">{loadingText}</p>
+        </div>
+      );
+    }
+
+    if (options.length > 0) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {options.map((option) => (
+            <button
+              key={option}
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                onOptionSelect(option);
+                event.currentTarget.blur();
+              }}
+              disabled={optionsDisabled} 
+              className={`w-full p-3 rounded-md shadow transition-all duration-150 ease-in-out
+                          text-left text-white font-medium animate-dialogue-new-entry
+                          bg-sky-700 hover:bg-sky-600 focus:ring-2 focus:ring-sky-500 focus:outline-none
+                          disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
+                          border border-sky-800 hover:border-sky-500`}
+            >
+              {highlightEntitiesInText(option, entitiesForHighlighting)}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-center py-4">
+        <p className="text-slate-400 italic">Waiting for response or options...</p>
+         <button
+            onClick={onClose} 
+            className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow"
+          >
+            Force End Conversation (if really stuck)
+          </button>
+      </div>
+    );
+  };
+
+
+  return (
+    <div ref={dialogueFrameRef} className="dialogue-frame open" role="dialog" aria-modal="true" aria-labelledby="dialogue-title">
+      <div className="dialogue-frame-content">
+        <button
+          onClick={onClose}
+          className="animated-frame-close-button" 
+          aria-label="End Conversation"
+          disabled={isLoading || isDialogueExiting} // Updated disabled condition
+        >
+          &times;
+        </button>
+        <h1 id="dialogue-title" className="text-2xl font-bold text-sky-300 mb-4 text-center">
+          Conversation with: {participantsString}
+        </h1>
+
+        <div className="dialogue-log-area flex-grow mb-4 pr-2 min-h-[200px] overflow-y-auto"> 
+          {history.map((entry, index) => {
+            const isPlayer = entry.speaker.toLowerCase() === 'player';
+            return (
+              <div 
+                key={index} 
+                ref={index === history.length - 1 ? lastHistoryEntryRef : null}
+                className={`mb-3 p-3 rounded-lg animate-dialogue-new-entry ${isPlayer ? 'bg-slate-700 ml-auto w-11/12 text-right' : 'bg-slate-600 mr-auto w-11/12'}`}
+              >
+                <strong className={isPlayer ? 'text-amber-400' : 'text-emerald-400'}>
+                  {entry.speaker}:
+                </strong>
+                <span className="text-slate-200 ml-2">
+                  {highlightEntitiesInText(entry.line, entitiesForHighlighting)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="dialogue-options-area mt-auto border-t border-slate-600 pt-4">
+          {renderOptionsArea()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DialogueDisplay;
