@@ -1,4 +1,8 @@
 
+/**
+ * @file highlightHelper.tsx
+ * @description Utility for highlighting entities within text snippets.
+ */
 import React from 'react';
 // Item and Character types are fine. Place-like entities will be mapped to HighlightableEntity.
 // No direct type change needed here as long as the calling components map MapNode data to HighlightableEntity structure.
@@ -44,7 +48,7 @@ export const highlightEntitiesInText = (
     };
 
     addTermToMap(entity.name, entity.name);
-    (entity.aliases || []).forEach(alias => {
+    (entity.aliases || []).forEach((alias: string) => {
       addTermToMap(alias, alias);
     });
 

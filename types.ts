@@ -1,4 +1,7 @@
-
+/**
+ * @file types.ts
+ * @description Shared TypeScript interfaces and types for the game's data structures.
+ */
 
 import { VALID_ITEM_TYPES } from './constants';
 import { ALL_THEME_PACK_NAMES } from './themes'; // For ThemePackName
@@ -46,9 +49,9 @@ export interface Item {
 // This ItemChange is from the AI's perspective, and will be processed into ItemChangeRecord
 export interface ItemChange {
   // For "gain" or "update", 'item' is an Item object.
-  // For "lose" or "use", 'item' is a string (item name).
-  item: string | Item | null; 
-  action: "gain" | "lose" | "use" | "update";
+  // For "lose", 'item' is a string (item name).
+  item: string | Item | null;
+  action: "gain" | "lose" | "update";
   invalidPayload?: any; // If the 'item' field was unparseable/invalid from AI
 }
 

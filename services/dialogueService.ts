@@ -1,4 +1,8 @@
 
+/**
+ * @file dialogueService.ts
+ * @description AI interaction helpers for managing game dialogues.
+ */
 import { GenerateContentResponse } from "@google/genai";
 import {
   DialogueAIResponse, DialogueHistoryEntry, DialogueSummaryContext, DialogueSummaryResponse,
@@ -172,7 +176,7 @@ Provide new dialogue options, ensuring the last one is a way to end the dialogue
     try {
       console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, true); // Disable thinking for dialogue
-      const parsed = parseDialogueAIResponse(response.text);
+      const parsed = parseDialogueAIResponse(response.text ?? '');
       if (parsed) return parsed;
       console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue turn. Retrying if attempts remain.`);
     } catch (error) {
@@ -246,7 +250,7 @@ If the dialogue revealed new map information (new locations, changed accessibili
     try {
       console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 2})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION, false); // Default (enabled) thinking
-      const parsed = parseDialogueSummaryResponse(response.text);
+      const parsed = parseDialogueSummaryResponse(response.text ?? '');
       if (parsed) return parsed;
       console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
     } catch (error) {
@@ -312,7 +316,7 @@ Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any 
             // Omit thinkingConfig for higher quality (default enabled)
         }
       });
-      const memoryText = response.text.trim();
+      const memoryText = (response.text ?? '').trim();
       if (memoryText.length > 0) { // Only log and return if memoryText is actually non-empty
         console.log (`summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`)
         return memoryText; 

@@ -1,6 +1,11 @@
 
+/**
+ * @file App.tsx
+ * @description Main application component wiring together UI and game logic.
+ */
+
 import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
-import { FullGameState, AdventureTheme, Character, ThemePackName, Item, KnownUse, GameStateFromAI, GameStateStack, TurnChanges, DialogueData, MapData, MapLayoutConfig, MapNode, LoadingReason } from './types'; // Added MapNode, LoadingReason
+import { FullGameState, ThemePackName } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import SceneDisplay from './components/SceneDisplay';
 import ActionOptions from './components/ActionOptions';
@@ -83,7 +88,6 @@ const App: React.FC = () => {
     currentScene, mainQuest, currentObjective, actionOptions,
     inventory, gameLog, isLoading, error, lastActionLog, themeHistory, mapData, 
     currentMapNodeId, mapLayoutConfig,
-    isLoadingAfterRealityShift, isSpinnerShaking, // Removed isPostRealityShiftDisorientation from direct destructuring for App.tsx general use, specific use in MainToolbar is removed below.
     allCharacters, 
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
@@ -386,7 +390,7 @@ const App: React.FC = () => {
 
             {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized && (
               <div className="my-4 flex justify-center">
-                <LoadingSpinner isDisturbed={isLoadingAfterRealityShift} isShaking={isSpinnerShaking} loadingReason={loadingReason} />
+                <LoadingSpinner loadingReason={loadingReason} />
               </div>
             )}
             {isLoading && !hasGameBeenInitialized && (

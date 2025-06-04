@@ -1,4 +1,8 @@
 
+/**
+ * @file correctionService.ts
+ * @description Helper utilities for correcting malformed AI responses.
+ */
 import { Item, ItemType, AdventureTheme, Character, DialogueTurnResponsePart, DialogueSetupPayload, ItemChange, MapNode } from '../types'; // Changed Place to MapNode
 import { AUXILIARY_MODEL_NAME, MINIMAL_MODEL_NAME, MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../constants';
 import { ai } from './geminiClient';
@@ -41,7 +45,7 @@ const callCorrectionAI = async (
       }
     });
 
-    let jsonStr = response.text.trim();
+    let jsonStr = (response.text ?? '').trim();
     const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
     const fenceMatch = jsonStr.match(fenceRegex);
     if (fenceMatch && fenceMatch[1]) {
@@ -81,7 +85,7 @@ const callMinimalCorrectionAI = async (
         // No separate systemInstruction for this model type (though gemini-2.5-flash-preview-04-17 does support it if used directly)
       }
     });
-    return response.text.trim();
+    return response.text?.trim() ?? null;
   } catch (error) {
     console.error(`callMinimalCorrectionAI: Error during single AI call for prompt starting with "${prompt.substring(0,100)}...":`, error);
     return null;
@@ -514,7 +518,7 @@ Example Response: If unclear from context, respond with a generic but plausible 
 
 
 /**
- * Fetches a corrected item action ("gain", "lose", "use", "update") from the AI
+ * Fetches a corrected item action ("gain", "lose", "update") from the AI
  * when the 'action' field of an ItemChange object is missing or malformed.
  * Implements retry logic based on successful validation of the response.
  * Uses callMinimalCorrectionAI for simple string output.
@@ -549,7 +553,7 @@ Narrative Context (use this to infer the intended action):
 - Scene Description (current situation): "${sceneDescription || "Not specified, infer from log."}"
 - Theme Guidance: "${currentTheme.systemInstructionModifier || "General adventure theme."}"
 
-Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "lose", "use", or "update") that was intended.
+Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "lose", or "update") that was intended.
 - "gain": Player acquired a new item.
 - "lose": Player lost an item or it was consumed.
 - "update": An existing item's properties changed (e.g., description, isActive state, transformed into another item).
@@ -559,7 +563,7 @@ Do NOT include any other text, explanation, quotes, or markdown formatting.
 If no action can be confidently determined, respond with an empty string.
 `;
 
-    const systemInstructionForFix = `Determine the correct item 'action' ("gain", "lose", "use", "update") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
+    const systemInstructionForFix = `Determine the correct item 'action' ("gain", "lose", "update") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       const correctedActionResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix); // Use minimal call

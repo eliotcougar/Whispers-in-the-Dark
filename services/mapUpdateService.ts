@@ -148,8 +148,8 @@ Key points:
     try {
       console.log(`Map Update Service: Attempt ${attempt + 1}/${MAX_RETRIES}`);
       const response = await callMapUpdateAI(prompt, MAP_UPDATE_SYSTEM_INSTRUCTION);
-      debugInfo.rawResponse = response.text;
-      const parsedPayloadAttempt = parseAIMapUpdateResponse(response.text);
+      debugInfo.rawResponse = response.text ?? '';
+      const parsedPayloadAttempt = parseAIMapUpdateResponse(response.text ?? '');
 
       if (parsedPayloadAttempt) {
         if (isValidAIMapUpdatePayload(parsedPayloadAttempt)) {
@@ -250,8 +250,8 @@ Key points:
     const newNodeId = `${currentTheme.name}_main_${baseNameForId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
 
     const newNodeData: MapNodeData = {
-        description: nodeAddOp.data.description, // Assumed validated by isValidAIMapUpdatePayload
-        aliases: nodeAddOp.data.aliases,
+        description: nodeAddOp.data.description || '', // Ensure string
+        aliases: nodeAddOp.data.aliases || [],
         status: nodeAddOp.data.status,
         isLeaf: false, // Explicitly false for main nodes
         // parentNodeId is not applicable for main nodes from this payload structure
@@ -295,8 +295,8 @@ Key points:
     }
 
     const newNodeData: MapNodeData = {
-        description: nodeAddOp.data.description,
-        aliases: nodeAddOp.data.aliases,
+        description: nodeAddOp.data.description || '',
+        aliases: nodeAddOp.data.aliases || [],
         status: nodeAddOp.data.status,
         isLeaf: true, // Explicitly true for leaf nodes
         parentNodeId: resolvedParentNodeId,

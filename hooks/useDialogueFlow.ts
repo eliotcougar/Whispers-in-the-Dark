@@ -178,10 +178,10 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
 
     const isExitOption = originalOptions.length > 0 && option === originalOptions[originalOptions.length - 1];
 
-    const stateAfterPlayerChoice: FullGameState = { 
+    const stateAfterPlayerChoice: FullGameState = {
       ...currentFullState,
       dialogueState: {
-        ...currentFullState.dialogueState,
+        ...(currentFullState.dialogueState as DialogueData),
         history: historyWithPlayerChoice, 
         options: [], 
       },
@@ -212,8 +212,8 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
           stateAfterPlayerChoice.inventory,
           playerGenderProp,
           historyWithPlayerChoice, 
-          option, 
-          stateAfterPlayerChoice.dialogueState.participants 
+          option,
+          stateAfterPlayerChoice.dialogueState!.participants
         );
 
         const latestStateAfterFetch = getCurrentGameState(); 

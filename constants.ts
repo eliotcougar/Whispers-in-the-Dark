@@ -30,3 +30,4 @@ export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`)
 
 export const MAX_DIALOGUE_SUMMARIES_PER_CHARACTER = 5; // Max summaries to store per character
 export const MAX_DIALOGUE_SUMMARIES_IN_PROMPT = 3;   // Max summaries to include in AI prompt
+export const RECENT_LOG_COUNT_FOR_PROMPT = 10; // Number of log messages to include in AI prompts

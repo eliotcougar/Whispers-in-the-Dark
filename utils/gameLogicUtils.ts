@@ -47,8 +47,6 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
   } else if (action === 'lose') {
     const itemName = itemPayloadFromChange as string;
     newInventory = newInventory.filter(i => i.name !== itemName);
-  } else if (action === 'use') {
-    // "use" action itself doesn't directly modify inventory state here.
   } else if (action === 'update') {
     const updatePayload = itemPayloadFromChange as Item;
     const originalName = updatePayload.name; 
