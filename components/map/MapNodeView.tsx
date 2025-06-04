@@ -1,0 +1,213 @@
+/**
+ * @file MapNodeView.tsx
+ * @description SVG view rendering map nodes and edges with tooltip interactions.
+ */
+
+import React, { useMemo, useState } from 'react';
+import { MapNode, MapEdge } from '../../types';
+import useMapInteractions from '../../hooks/useMapInteractions';
+import {
+  NODE_RADIUS,
+  EDGE_HOVER_WIDTH,
+  MAX_LABEL_LINES,
+  LABEL_LINE_HEIGHT_EM,
+} from '../../utils/mapConstants';
+
+interface MapNodeViewProps {
+  nodes: MapNode[];
+  edges: MapEdge[];
+  currentMapNodeId: string | null;
+  layoutIdealEdgeLength: number;
+}
+
+/** Splits a label into multiple lines for display. */
+const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: number): string[] => {
+  if (!text) return [];
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    if (lines.length === maxLines) break;
+
+    if (currentLine.length === 0) {
+      currentLine = word;
+    } else if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
+      currentLine += ` ${word}`;
+    } else {
+      lines.push(currentLine);
+      if (lines.length === maxLines) {
+        if (word) {
+          const lastLineContent = lines[maxLines - 1];
+          if (lastLineContent.length > 3) {
+            lines[maxLines - 1] = lastLineContent.slice(0, -3) + '...';
+          } else {
+            lines[maxLines - 1] = '..';
+          }
+        }
+        currentLine = '';
+        break;
+      }
+      currentLine = word;
+    }
+  }
+
+  if (currentLine && lines.length < maxLines) {
+    lines.push(currentLine);
+  } else if (currentLine && lines.length === maxLines && lines[maxLines - 1] && !lines[maxLines - 1].endsWith('...')) {
+    if (lines[maxLines - 1].length > 3) {
+      lines[maxLines - 1] = lines[maxLines - 1].slice(0, -3) + '...';
+    } else {
+      lines[maxLines - 1] = '..';
+    }
+  }
+
+  if (lines.length === maxLines && text.split(' ').length > words.indexOf(currentLine.split(' ')[0]) + currentLine.split(' ').length) {
+    const lastLine = lines[maxLines - 1];
+    if (lastLine && lastLine.length > 3 && !lastLine.endsWith('...')) {
+      lines[maxLines - 1] = lastLine.slice(0, Math.max(0, lastLine.length - 3)) + '...';
+    } else if (lastLine && !lastLine.endsWith('...')) {
+      lines[maxLines - 1] = '..';
+    }
+  }
+  return lines;
+};
+
+const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeId, layoutIdealEdgeLength }) => {
+  const interactions = useMapInteractions();
+  const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
+  const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
+
+  /** Region host nodes used for drawing containment circles. */
+  const regionHostNodes = useMemo(() => {
+    return nodes.filter(mainNode => {
+      if (mainNode.data.isLeaf) return false;
+      return edges.some(edge =>
+        edge.data.type === 'containment' &&
+        ((edge.sourceNodeId === mainNode.id && nodes.find(n => n.id === edge.targetNodeId)?.data.isLeaf && nodes.find(n => n.id === edge.targetNodeId)?.data.parentNodeId === mainNode.id) ||
+          (edge.targetNodeId === mainNode.id && nodes.find(n => n.id === edge.sourceNodeId)?.data.isLeaf && nodes.find(n => n.id === edge.sourceNodeId)?.data.parentNodeId === mainNode.id))
+      );
+    });
+  }, [nodes, edges]);
+
+  /** Shows node details in a tooltip. */
+  const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
+    const svgRect = svgRef.current?.getBoundingClientRect();
+    if (!svgRect) return;
+    let content = `${node.placeName}`;
+    if (node.data.description) content += `\nDescription: ${node.data.description}`;
+    if (node.data.aliases && node.data.aliases.length > 0) content += `\nAliases: ${node.data.aliases.join(', ')}`;
+    if (node.data.status) content += `\nStatus: ${node.data.status}`;
+    if (node.data.isLeaf && node.data.parentNodeId) {
+      const parentNode = nodes.find(n => n.id === node.data.parentNodeId);
+      content += `\n(Part of: ${parentNode?.placeName || 'Unknown Location'})`;
+    }
+    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15 });
+  };
+
+  /** Shows edge details in a tooltip. */
+  const handleEdgeMouseEnter = (edge: MapEdge, event: React.MouseEvent) => {
+    const svgRect = svgRef.current?.getBoundingClientRect();
+    if (!svgRect) return;
+    const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
+    const targetNode = nodes.find(n => n.id === edge.targetNodeId);
+    let content = `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
+    if (edge.data.description) content += `\nDescription: ${edge.data.description}`;
+    if (edge.data.type) content += `\nType: ${edge.data.type}`;
+    if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
+    if (edge.data.travelTime) content += `\nTravel: ${edge.data.travelTime}`;
+    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15 });
+  };
+
+  /** Hides the tooltip. */
+  const handleMouseLeaveGeneral = () => { setTooltip(null); };
+
+  if (nodes.length === 0) {
+    return (
+      <div className="map-content-area">
+        <p className="text-slate-500 italic">No map data available for this theme yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="map-content-area">
+      <svg
+        ref={svgRef}
+        viewBox={viewBox}
+        className="map-svg-container"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <g>
+          {regionHostNodes.map(hostNode => (
+            <circle
+              key={`region-circle-${hostNode.id}`}
+              cx={hostNode.position.x}
+              cy={hostNode.position.y}
+              r={layoutIdealEdgeLength}
+              fill="none"
+              stroke="#888888"
+              strokeWidth="1px"
+              opacity="0.3"
+            />
+          ))}
+
+          {edges.map(edge => {
+            const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
+            const targetNode = nodes.find(n => n.id === edge.targetNodeId);
+            if (!sourceNode || !targetNode) return null;
+            let edgeClass = 'map-edge';
+            if (edge.data.type) edgeClass += ` ${edge.data.type.replace(/\s+/g, '_').toLowerCase()}`;
+            if (edge.data.status) edgeClass += ` ${edge.data.status.replace(/\s+/g, '_').toLowerCase()}`;
+            return (
+              <g key={edge.id} className="map-edge-group" onMouseEnter={e => handleEdgeMouseEnter(edge, e)} onMouseLeave={handleMouseLeaveGeneral}>
+                <line x1={sourceNode.position.x} y1={sourceNode.position.y} x2={targetNode.position.x} y2={targetNode.position.y} stroke="transparent" strokeWidth={EDGE_HOVER_WIDTH} />
+                <line x1={sourceNode.position.x} y1={sourceNode.position.y} x2={targetNode.position.x} y2={targetNode.position.y} className={edgeClass} />
+              </g>
+            );
+          })}
+
+          {nodes.map(node => {
+            let nodeClass = 'map-node-circle';
+            if (node.data.isLeaf) nodeClass += ' leaf';
+            if (node.id === currentMapNodeId) nodeClass += ' current';
+            if (node.data.status === 'quest_target') nodeClass += ' quest_target';
+            const maxCharsPerLine = node.data.isLeaf ? 20 : 25;
+            const labelLines = splitTextIntoLines(node.placeName, maxCharsPerLine, MAX_LABEL_LINES);
+            const initialDyOffset = -(labelLines.length - 1) * 0.5 * LABEL_LINE_HEIGHT_EM + 0.3;
+            return (
+              <g key={node.id} transform={`translate(${node.position.x}, ${node.position.y})`} className="map-node" onMouseEnter={e => handleNodeMouseEnter(node, e)} onMouseLeave={handleMouseLeaveGeneral}>
+                <circle className={nodeClass} r={node.data.isLeaf ? NODE_RADIUS * 0.7 : NODE_RADIUS} />
+                <text className={`map-node-label ${node.data.isLeaf ? 'leaf-label' : ''}`}>
+                  {labelLines.map((line, index) => (
+                    <tspan key={`${node.id}-line-${index}`} x="0" dy={index === 0 ? `${initialDyOffset}em` : `${LABEL_LINE_HEIGHT_EM}em`}>{line}</tspan>
+                  ))}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+      {tooltip && (
+        <div className="map-tooltip" style={{ top: tooltip.y, left: tooltip.x }}>
+          {tooltip.content.split('\n').map((line, index) => (
+            <React.Fragment key={index}>
+              {line}
+              {index < tooltip.content.split('\n').length - 1 && <br />}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MapNodeView;
