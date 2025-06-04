@@ -251,12 +251,19 @@ Key points:
   }
   edgesToAdd_mut = finalEdgesToAdd;
 
-  // Helper to find node by name in theme (checks existing nodes first, then those added in this batch)
-  // This version is for edges, AFTER all nodes for the batch are processed.
-  const findNodeByNameInThemeOrBatchForEdges = (name: string): MapNode | { id: string; name: string } | undefined => {
-    const existingNode = themeNodeNameMap.get(name);
-    if (existingNode) return existingNode;
-    return newNodesInBatchIdNameMap[name];
+  /**
+   * Resolves a node reference by either place name or ID.
+   * This is used for edges and node updates where the AI might
+   * provide either identifier form.
+   */
+  const findNodeByIdentifier = (identifier: string): MapNode | { id: string; name: string } | undefined => {
+    const byName = themeNodeNameMap.get(identifier);
+    if (byName) return byName;
+    const byId = themeNodeIdMap.get(identifier);
+    if (byId) return byId;
+    if (newNodesInBatchIdNameMap[identifier]) return newNodesInBatchIdNameMap[identifier];
+    const fromBatch = Object.values(newNodesInBatchIdNameMap).find(entry => entry.id === identifier || entry.name === identifier);
+    return fromBatch;
   };
 
   // --- Two-Pass Node Addition ---
@@ -266,7 +273,7 @@ Key points:
   // Pass 1: Add Main Nodes
   mainNodesToAddOps.forEach(nodeAddOp => {
     // Check if a main node with this name already exists in the theme
-    const existingMainNode = themeNodeNameMap.get(nodeAddOp.placeName);
+    const existingMainNode = findNodeByIdentifier(nodeAddOp.placeName) as MapNode | undefined;
     if (existingMainNode && !existingMainNode.data.isLeaf) {
         console.warn(`MapUpdate (nodesToAdd - Pass 1): Main node "${nodeAddOp.placeName}" already exists. Skipping add.`);
         if (!newNodesInBatchIdNameMap[existingMainNode.placeName]) {
@@ -297,11 +304,11 @@ Key points:
   // Pass 2: Add Leaf Nodes
   leafNodesToAddOps.forEach(nodeAddOp => {
     // Check if a leaf node with this name (and potentially same parent if specified) already exists
-    const potentialLeaf = themeNodeNameMap.get(nodeAddOp.placeName);
+    const potentialLeaf = findNodeByIdentifier(nodeAddOp.placeName) as MapNode | undefined;
     let existingLeafNode: MapNode | undefined;
     if (potentialLeaf && potentialLeaf.data.isLeaf) {
         if (nodeAddOp.data?.parentNodeId) {
-            const parent = themeNodeNameMap.get(nodeAddOp.data.parentNodeId);
+            const parent = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
             if (parent && potentialLeaf.data.parentNodeId === parent.id) {
                 existingLeafNode = potentialLeaf;
             }
@@ -322,7 +329,7 @@ Key points:
 
     let resolvedParentNodeId: string | undefined = undefined;
     if (nodeAddOp.data?.parentNodeId) {
-        const parentNode = themeNodeNameMap.get(nodeAddOp.data.parentNodeId);
+        const parentNode = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
         if (parentNode) {
             resolvedParentNodeId = parentNode.id;
         } else {
@@ -348,7 +355,7 @@ Key points:
 
   // Process Node Updates (after all adds, so placeName changes are based on initial state of batch)
   (validParsedPayload.nodesToUpdate || []).forEach(nodeUpdateOp => {
-    const node = themeNodeNameMap.get(nodeUpdateOp.placeName);
+    const node = findNodeByIdentifier(nodeUpdateOp.placeName) as MapNode | undefined;
 
     if (node) {
 
@@ -361,7 +368,7 @@ Key points:
                 resolvedParentIdOnUpdate = undefined; // Store as undefined if cleared
             } else if (typeof nodeUpdateOp.newData.parentNodeId === 'string') {
                 // Allow parent to be ANY node (main or leaf)
-                const parentNode = themeNodeNameMap.get(nodeUpdateOp.newData!.parentNodeId);
+                const parentNode = findNodeByIdentifier(nodeUpdateOp.newData!.parentNodeId) as MapNode | undefined;
                 if (parentNode) {
                     resolvedParentIdOnUpdate = parentNode.id;
                 } else {
@@ -407,12 +414,12 @@ Key points:
 
   // Process Node Removals
   nodesToRemove_mut.forEach(nodeRemoveOp => {
-      const node = themeNodeNameMap.get(nodeRemoveOp.placeName);
+      const node = findNodeByIdentifier(nodeRemoveOp.placeName) as MapNode | undefined;
       if (node) {
           const removedNodeId = node.id;
           const index = newMapData.nodes.findIndex(n => n.id === removedNodeId);
           if (index !== -1) newMapData.nodes.splice(index, 1);
-          themeNodeNameMap.delete(nodeRemoveOp.placeName);
+          themeNodeNameMap.delete(node.placeName);
           themeNodeIdMap.delete(removedNodeId);
           // Also remove edges connected to this node
           newMapData.edges = newMapData.edges.filter(edge => edge.sourceNodeId !== removedNodeId && edge.targetNodeId !== removedNodeId);
@@ -421,16 +428,17 @@ Key points:
           }
           themeEdgesMap.delete(removedNodeId);
           // Remove from newNodesInBatchIdNameMap if it was added then removed in same batch
-          delete newNodesInBatchIdNameMap[nodeRemoveOp.placeName];
+          const batchKey = Object.keys(newNodesInBatchIdNameMap).find(k => newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.placeName);
+          if (batchKey) delete newNodesInBatchIdNameMap[batchKey];
       } else {
           console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.placeName}" not found for removal.`);
       }
   });
 
-  // Process Edges (Uses findNodeByNameInThemeOrBatchForEdges which checks newMapData.nodes directly)
+  // Process Edges (uses findNodeByIdentifier which checks newMapData nodes directly)
   edgesToAdd_mut.forEach(edgeAddOp => {
-      const sourceNodeRef = findNodeByNameInThemeOrBatchForEdges(edgeAddOp.sourcePlaceName);
-      const targetNodeRef = findNodeByNameInThemeOrBatchForEdges(edgeAddOp.targetPlaceName);
+      const sourceNodeRef = findNodeByIdentifier(edgeAddOp.sourcePlaceName);
+      const targetNodeRef = findNodeByIdentifier(edgeAddOp.targetPlaceName);
       if (!sourceNodeRef || !targetNodeRef) {
           console.warn(`MapUpdate: Skipping edge add due to missing source ("${edgeAddOp.sourcePlaceName}") or target ("${edgeAddOp.targetPlaceName}") node for new edge.`); return;
       }
@@ -453,8 +461,8 @@ Key points:
   });
 
   (validParsedPayload.edgesToUpdate || []).forEach(edgeUpdateOp => {
-    const sourceNodeRef = findNodeByNameInThemeOrBatchForEdges(edgeUpdateOp.sourcePlaceName);
-    const targetNodeRef = findNodeByNameInThemeOrBatchForEdges(edgeUpdateOp.targetPlaceName);
+    const sourceNodeRef = findNodeByIdentifier(edgeUpdateOp.sourcePlaceName);
+    const targetNodeRef = findNodeByIdentifier(edgeUpdateOp.targetPlaceName);
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
     const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
 
@@ -475,8 +483,8 @@ Key points:
   });
 
   edgesToRemove_mut.forEach(edgeRemoveOp => {
-      const sourceNodeRef = findNodeByNameInThemeOrBatchForEdges(edgeRemoveOp.sourcePlaceName);
-      const targetNodeRef = findNodeByNameInThemeOrBatchForEdges(edgeRemoveOp.targetPlaceName);
+      const sourceNodeRef = findNodeByIdentifier(edgeRemoveOp.sourcePlaceName);
+      const targetNodeRef = findNodeByIdentifier(edgeRemoveOp.targetPlaceName);
       if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge removal due to missing source ("${edgeRemoveOp.sourcePlaceName}") or target ("${edgeRemoveOp.targetPlaceName}") node.`); return; }
       const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
       const removalType = edgeRemoveOp.type;
