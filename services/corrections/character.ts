@@ -1,0 +1,150 @@
+/**
+ * @file services/corrections/character.ts
+ * @description Correction helpers for character related data.
+ */
+import { AdventureTheme, Character, MapNode } from '../../types';
+import { MAX_RETRIES } from '../../constants';
+import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters';
+import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+
+/** Structure returned when correcting character details. */
+export interface CorrectedCharacterDetails {
+  description: string;
+  aliases: string[];
+  presenceStatus: Character['presenceStatus'];
+  lastKnownLocation: string | null;
+  preciseLocation: string | null;
+}
+
+/**
+ * Fetches corrected or inferred details for a newly mentioned character from the AI.
+ */
+export const fetchCorrectedCharacterDetails_Service = async (
+  characterName: string,
+  logMessage: string | undefined,
+  sceneDescription: string | undefined,
+  currentTheme: AdventureTheme,
+  allRelevantMapNodes: MapNode[]
+): Promise<CorrectedCharacterDetails | null> => {
+  if (!process.env.API_KEY) {
+    console.error(`fetchCorrectedCharacterDetails_Service: API Key not configured. Cannot fetch details for "${characterName}".`);
+    return null;
+  }
+
+  const knownPlacesString = allRelevantMapNodes.length > 0
+    ? 'Known map locations in this theme: ' + formatKnownPlacesForPrompt(allRelevantMapNodes, true)
+    : 'No specific map locations are currently known for this theme.';
+
+  const prompt = `
+Role: You are an AI assistant generating detailed JSON objects for new game characters.
+Task: Provide a suitable description, aliases, presenceStatus, lastKnownLocation, and preciseLocation for a character. Information MUST be derived *strictly* from the provided context.
+
+Character Name: "${characterName}"
+
+Context:
+- Log Message (how they appeared/what they're doing): "${logMessage || 'Not specified, infer from scene.'}"
+- Scene Description (where they appeared/are relevant): "${sceneDescription || 'Not specified, infer from log.'}"
+- ${knownPlacesString}
+- Theme Guidance (influences character style/role): "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
+
+Respond ONLY in JSON format with the following structure:
+{
+  "description": "string (A detailed, engaging description fitting the scene and theme. MUST be non-empty.)",
+  "aliases": ["string"],
+  "presenceStatus": "nearby" | "distant" | "companion" | "unknown",
+  "lastKnownLocation": "string | null",
+  "preciseLocation": "string | null"
+}
+
+Constraints:
+- 'description' and 'presenceStatus' are REQUIRED and must be non-empty.
+- If 'presenceStatus' is 'nearby' or 'companion', 'preciseLocation' MUST be a descriptive string derived from context; 'lastKnownLocation' can be null or a broader area.
+- If 'presenceStatus' is 'distant' or 'unknown', 'preciseLocation' MUST be null; 'lastKnownLocation' should describe general whereabouts or be 'Unknown' if context doesn't specify.
+`;
+
+  const systemInstructionForFix = `You generate detailed JSON objects for new game characters based on narrative context. Provide description, aliases, presenceStatus, lastKnownLocation, and preciseLocation. Adhere strictly to the JSON format and field requirements. Derive all information strictly from the provided context.`;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const correctedDetails = await callCorrectionAI(prompt, systemInstructionForFix);
+    if (
+      correctedDetails &&
+      typeof correctedDetails.description === 'string' && correctedDetails.description.trim() !== '' &&
+      Array.isArray(correctedDetails.aliases) && correctedDetails.aliases.every((a: any) => typeof a === 'string') &&
+      typeof correctedDetails.presenceStatus === 'string' && ['distant', 'nearby', 'companion', 'unknown'].includes(correctedDetails.presenceStatus) &&
+      (correctedDetails.lastKnownLocation === null || typeof correctedDetails.lastKnownLocation === 'string') &&
+      (correctedDetails.preciseLocation === null || typeof correctedDetails.preciseLocation === 'string') &&
+      !((correctedDetails.presenceStatus === 'nearby' || correctedDetails.presenceStatus === 'companion') && correctedDetails.preciseLocation === null && correctedDetails.preciseLocation !== '') &&
+      !((correctedDetails.presenceStatus === 'distant' || correctedDetails.presenceStatus === 'unknown') && correctedDetails.preciseLocation !== null)
+    ) {
+      return correctedDetails as CorrectedCharacterDetails;
+    } else {
+      console.warn(`fetchCorrectedCharacterDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected details for "${characterName}" invalid or incomplete. Response:`, correctedDetails);
+      if (attempt === MAX_RETRIES) return null;
+    }
+  }
+  return null;
+};
+
+/**
+ * Fetches a corrected "preciseLocation" string for a character in the current scene.
+ */
+export const fetchCorrectedCompanionOrNPCLocation_Service = async (
+  characterName: string,
+  logMessage: string | undefined,
+  sceneDescription: string | undefined,
+  allRelevantMapNodes: MapNode[],
+  invalidPreciseLocationPayload: string,
+  currentTheme: AdventureTheme
+): Promise<string | null> => {
+  if (!process.env.API_KEY) {
+    console.error(`fetchCorrectedCompanionOrNPCLocation_Service: API Key not configured. Cannot correct location for "${characterName}".`);
+    return null;
+  }
+
+  const knownPlacesString = allRelevantMapNodes.length > 0
+    ? 'Known map locations in this theme that might be relevant: ' + formatKnownPlacesForPrompt(allRelevantMapNodes, true)
+    : 'No specific map locations are currently known for this theme.';
+
+  const prompt = `
+Role: You are an AI assistant tasked with correcting or inferring a character's "preciseLocation".
+Character Name: "${characterName}" (This character is currently present in the scene with the player).
+
+"preciseLocation" definition:
+- It describes the character's specific location or activity *within the current scene*.
+- It MUST be a short, descriptive phrase (ideally under 50 characters, absolute max ~60 characters).
+- Examples: "examining the bookshelf", "hiding behind barrels", "next to you", "across the room", "arguing with the guard".
+
+Narrative Context (use this to infer the location/activity):
+- Log Message (may describe character's actions): "${logMessage || 'Not specified, infer from scene.'}"
+- Scene Description (primary source for character's current state): "${sceneDescription || 'Not specified, infer from log.'}"
+- ${knownPlacesString}
+
+Malformed or Missing "preciseLocation" data from previous AI: "${invalidPreciseLocationPayload}"
+
+Task: Based *only* on the character's name and the provided narrative context, determine the correct short "preciseLocation" string for this character within the current scene.
+
+Respond ONLY with the corrected "preciseLocation" string. No other text, quotes, or markdown formatting.
+Example Response: "examining the ancient map"
+Example Response: "near you"
+Example Response: If unclear from context, respond with a generic but plausible short phrase like "observing the surroundings" or "standing nearby".
+`;
+
+  const systemInstructionForFix = `Infer or correct a character's "preciseLocation" (a short phrase, max ~50-60 chars, describing their in-scene activity/position) from narrative context and potentially malformed input. Respond ONLY with the string value. Adhere to theme context: ${currentTheme.systemInstructionModifier || 'General interpretation.'}`;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const correctedLocationResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
+    if (correctedLocationResponse !== null) {
+      const correctedLocation = correctedLocationResponse.trim();
+      if (correctedLocation.length > 0 && correctedLocation.length <= 60) {
+        console.warn(`fetchCorrectedCompanionOrNPCLocation_Service: Returned corrected NPC Location `, correctedLocation, `.`);
+        return correctedLocation;
+      } else {
+        console.warn(`fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected preciseLocation for "${characterName}" was empty or too long: "${correctedLocation}"`);
+      }
+    } else {
+      console.warn(`fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for preciseLocation of "${characterName}". Received: null`);
+    }
+    if (attempt === MAX_RETRIES) return null;
+  }
+  return null;
+};

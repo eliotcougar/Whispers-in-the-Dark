@@ -6,7 +6,7 @@
 import { FullGameState, SavedGameDataShape, Item, ThemeHistoryState, AdventureTheme, Character, ItemType, ThemePackName, KnownUse as V2KnownUse, DialogueHistoryEntry, DialogueData, MapData, MapNode, MapEdge, MapLayoutConfig, MapNodeData, DialogueSummaryRecord } from '../types';
 import { CURRENT_SAVE_GAME_VERSION, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, VALID_ITEM_TYPES, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_PLAYER_GENDER } from '../constants';
 import { ALL_THEME_PACK_NAMES } from '../themes';
-import { fetchCorrectedCharacterDetails_Service, fetchCorrectedLocalPlace_Service } from './correctionService';
+import { fetchCorrectedCharacterDetails_Service, fetchCorrectedLocalPlace_Service } from './corrections';
 import {
     DEFAULT_K_REPULSION, DEFAULT_K_SPRING, DEFAULT_IDEAL_EDGE_LENGTH,
     DEFAULT_K_CENTERING, DEFAULT_K_UNTANGLE, DEFAULT_K_EDGE_NODE_REPULSION, // Added

@@ -17,8 +17,8 @@ import {
     fetchCorrectedName_Service,
     fetchCorrectedCharacterDetails_Service,
     fetchCorrectedDialogueSetup_Service,
-    fetchCorrectedPlaceDetails_Service, 
-} from './correctionService';
+    fetchCorrectedPlaceDetails_Service,
+} from './corrections';
 
 
 /**
