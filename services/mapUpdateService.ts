@@ -11,6 +11,7 @@ import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { ai } from './geminiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters';
 import { isValidAIMapUpdatePayload } from '../utils/mapUpdateValidationUtils';
+import { structuredCloneGameState } from '../utils/cloneUtils';
 
 // Local type definition for Place, matching what useGameLogic might prepare
 interface Place {
@@ -184,7 +185,7 @@ Key points:
   }
 
   // Proceed with map data processing using validParsedPayload
-  const newMapData: MapData = JSON.parse(JSON.stringify(currentMapData));
+  const newMapData: MapData = structuredCloneGameState(currentMapData);
   const newNodesInBatchIdNameMap: Record<string, { id: string; name: string }> = {};
 
   // Annihilation Step (remains the same)

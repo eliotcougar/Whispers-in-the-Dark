@@ -28,6 +28,7 @@ import {
 } from '../services/dialogueService';
 import { MAX_LOG_MESSAGES, MAX_DIALOGUE_SUMMARIES_PER_CHARACTER } from '../constants';
 import { addLogMessageToList } from '../utils/gameLogicUtils';
+import { structuredCloneGameState } from '../utils/cloneUtils';
 
 const DIALOGUE_EXIT_READ_DELAY_MS = 5000;
 
@@ -84,7 +85,7 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     setDialogueUiCloseDelayTargetMs(Date.now() + DIALOGUE_EXIT_READ_DELAY_MS);
     setError(null);
 
-    let workingGameState = JSON.parse(JSON.stringify(stateAtDialogueConclusionStart)) as FullGameState;
+    let workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
 
     setLoadingReason('dialogue_memory_creation');
     const memorySummaryContext: DialogueMemorySummaryContext = {

@@ -1,5 +1,11 @@
 
+/**
+ * @file mapLayoutUtils.ts
+ * @description Utilities for performing force-directed layout of game maps.
+ */
+
 import { MapNode, MapEdge } from '../types';
+import { structuredCloneGameState } from './cloneUtils';
 
 export const DEFAULT_K_REPULSION = 20000; 
 export const DEFAULT_K_SPRING = 0.25;     
@@ -145,7 +151,7 @@ export const applyBasicLayoutAlgorithm = (
 ): MapNode[] => {
   if (initialNodes.length === 0) return [];
 
-  let nodes = JSON.parse(JSON.stringify(initialNodes)) as MapNode[];
+  let nodes = structuredCloneGameState(initialNodes);
   const nodeMap = new Map(nodes.map(node => [node.id, node]));
 
   const {

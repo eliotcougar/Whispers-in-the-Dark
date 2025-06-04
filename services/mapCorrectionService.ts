@@ -12,6 +12,7 @@ import { MAP_CHAIN_CORRECTION_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { ai as geminiAIInstance } from './geminiClient';
 import { VALID_NODE_STATUS_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
 import { pruneAndRefineMapConnections } from '../utils/mapPruningUtils'; // Import pruning utility
+import { structuredCloneGameState } from '../utils/cloneUtils';
 
 
 /**
@@ -263,7 +264,7 @@ function applyChainRefinementPayloadToMapData(
   chains: MapChainToRefine[],
   refinementPayload: AIMapUpdatePayload
 ): { updatedMapData: MapData; changesMade: boolean } {
-  const workingMapData: MapData = JSON.parse(JSON.stringify(currentMapData));
+  const workingMapData: MapData = structuredCloneGameState(currentMapData);
   let changesMadeOverall = false;
 
   chains.forEach(chain => {

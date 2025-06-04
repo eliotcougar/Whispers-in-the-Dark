@@ -65,6 +65,7 @@ import {
 } from '../utils/mapLayoutUtils';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from '../utils/mapNodeMatcher';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
+import { structuredCloneGameState } from '../utils/cloneUtils';
 
 
 const OBJECTIVE_ANIMATION_DURATION = 5000;
@@ -356,7 +357,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setParseErrorCounter(0);
     setFreeFormActionText("");
 
-    const baseStateSnapshot = JSON.parse(JSON.stringify(currentFullState)) as FullGameState;
+    const baseStateSnapshot = structuredCloneGameState(currentFullState);
     let scoreChangeFromAction = isFreeForm ? -FREE_FORM_ACTION_COST : 0;
 
     const currentThemeObj = currentFullState.currentThemeObject; 
@@ -380,7 +381,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         playerGenderProp, currentFullState.themeHistory, currentMapNodeDetails, currentFullState.mapData
     );
 
-    let draftState = JSON.parse(JSON.stringify(currentFullState)) as FullGameState;
+    let draftState = structuredCloneGameState(currentFullState);
     draftState.lastDebugPacket = { prompt, rawResponseText: null, parsedResponse: null, timestamp: new Date().toISOString() };
     if (isFreeForm) draftState.score -= FREE_FORM_ACTION_COST;
 
@@ -543,7 +544,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       draftState.inventory = [];
     }
 
-    const baseStateSnapshotForInitialTurn = JSON.parse(JSON.stringify(draftState)) as FullGameState;
+    const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
     let prompt = "";
     if (isTransitioningFromShift && draftState.themeHistory[themeObjToLoad.name]) {
       const currentThemeMainMapNodes = draftState.mapData.nodes.filter(n => n.themeName === themeObjToLoad.name && !n.data.isLeaf);
@@ -671,7 +672,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     const itemToDiscard = currentFullState.inventory.find(item => item.name === itemName);
     if (!itemToDiscard || !itemToDiscard.isJunk) return;
 
-    let draftState = JSON.parse(JSON.stringify(currentFullState)) as FullGameState;
+    let draftState = structuredCloneGameState(currentFullState);
     draftState.inventory = draftState.inventory.filter(item => item.name !== itemName);
     const itemChangeRecord: ItemChangeRecord = { type: 'loss', lostItem: { ...itemToDiscard } };
     const turnChangesForDiscard: TurnChanges = {
@@ -735,12 +736,12 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setIsLoading,
     setLoadingReason,
     onDialogueConcluded: (summaryPayload, preparedGameState) => {
-      let draftState = JSON.parse(JSON.stringify(preparedGameState)) as FullGameState;
+      let draftState = structuredCloneGameState(preparedGameState);
       processAiResponse(
         summaryPayload,
         preparedGameState.currentThemeObject, 
         draftState,
-        { baseStateSnapshot: JSON.parse(JSON.stringify(preparedGameState)) as FullGameState, isFromDialogueSummary: true }
+        { baseStateSnapshot: structuredCloneGameState(preparedGameState), isFromDialogueSummary: true }
       ).then(() => {
         commitGameState(draftState);
         setIsLoading(false); setLoadingReason(null);

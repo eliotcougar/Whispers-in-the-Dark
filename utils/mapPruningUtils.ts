@@ -6,6 +6,7 @@
  */
 
 import { MapData, MapNode, MapEdge, MapChainToRefine, MapChainLeafInfo } from '../types';
+import { structuredCloneGameState } from './cloneUtils';
 
 /**
  * Generates a unique ID string.
@@ -34,7 +35,7 @@ export const pruneAndRefineMapConnections = (
   originalMapData: MapData,
   currentThemeName: string
 ): { updatedMapData: MapData; chainsToRefine: MapChainToRefine[] } => {
-  const workingMapData: MapData = JSON.parse(JSON.stringify(originalMapData));
+  const workingMapData: MapData = structuredCloneGameState(originalMapData);
   const chainsToRefine: MapChainToRefine[] = [];
   const edgesToRemoveIds = new Set<string>();
 

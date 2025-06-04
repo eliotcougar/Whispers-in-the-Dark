@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { GameStateStack, FullGameState, AIMapUpdatePayload, Item, Character, MapData, ThemeHistoryState } from '../types';
+import { structuredCloneGameState } from '../utils/cloneUtils';
 import { DebugPacket } from '../hooks/useGameLogic';
 
 interface DebugViewProps {
@@ -31,7 +32,7 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
       displayContent = content;
     } else if (isJson) {
       try {
-        let contentForDisplay: any = JSON.parse(JSON.stringify(content));
+        let contentForDisplay: any = structuredCloneGameState(content);
         
         if (title.startsWith("Current Game State") || title.startsWith("Previous Game State")) {
             if ('lastDebugPacket' in contentForDisplay) delete contentForDisplay.lastDebugPacket;
