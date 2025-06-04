@@ -39,6 +39,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
   } = props;
 
   const handleDialogueOptionSelect = useCallback(async (option: string) => {
+    console.log('[DEBUG FLOW] Dialogue option selected:', option);
     const currentFullState = getCurrentGameState();
     const currentThemeObj = currentFullState.currentThemeObject;
 
@@ -88,6 +89,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           option,
           stateAfterPlayerChoice.dialogueState!.participants
         );
+        console.log('[DEBUG FLOW] Dialogue turn data received:', turnData);
 
         const latestStateAfterFetch = getCurrentGameState();
         if (turnData && latestStateAfterFetch.dialogueState) {
@@ -109,6 +111,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
             lastTurnChanges: null,
           };
           commitGameState(stateWithNpcResponse);
+          console.log('[DEBUG FLOW] NPC responses processed and state committed.');
 
           if (turnData.dialogueEnds) {
             await initiateDialogueExit(stateWithNpcResponse);
@@ -123,6 +126,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         }
       } catch (e) {
         console.error('Error during dialogue turn:', e);
+        console.log('[DEBUG FLOW] Error occurred while fetching dialogue turn');
         setError('An error occurred in the conversation. You might need to end it.');
         const stateToRevertToOnError = getCurrentGameState();
         if (stateToRevertToOnError.dialogueState) {
@@ -143,6 +147,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         if (stillInActiveNonExitingDialogue) {
           setIsLoading(false);
           setLoadingReason(null);
+          console.log('[DEBUG FLOW] Dialogue turn complete, awaiting player choice');
         }
       }
     }
