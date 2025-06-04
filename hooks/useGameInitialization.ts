@@ -18,7 +18,7 @@ import {
   formatNewGameFirstTurnPrompt,
   formatNewThemePostShiftPrompt,
   formatReturnToThemePostShiftPrompt,
-} from '../utils/promptFormatters';
+} from '../utils/promptFormatters/dialogue';
 import { getInitialGameStates } from '../utils/initialStates';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';

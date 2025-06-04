@@ -4,7 +4,7 @@
  */
 import { AdventureTheme, MapNode } from '../../types';
 import { MAX_RETRIES } from '../../constants';
-import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters';
+import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 
 /**

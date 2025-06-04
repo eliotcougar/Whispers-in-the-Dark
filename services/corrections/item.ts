@@ -5,7 +5,7 @@
 import { Item, AdventureTheme, ItemChange } from '../../types';
 import { MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../../constants';
 import { isValidItem } from '../parsers/validation';
-import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters';
+import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 
 /**

@@ -12,7 +12,7 @@ import {
     DEFAULT_K_CENTERING, DEFAULT_K_UNTANGLE, DEFAULT_K_EDGE_NODE_REPULSION, // Added
     DEFAULT_DAMPING_FACTOR, DEFAULT_MAX_DISPLACEMENT, DEFAULT_LAYOUT_ITERATIONS
 } from '../utils/mapLayoutUtils';
-import { formatKnownPlacesForPrompt } from '../utils/promptFormatters';
+import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 
 import { convertV1toV2Intermediate, convertV2toV3Shape, V1SavedGameState, V2IntermediateSavedGameState, getDefaultMapLayoutConfig } from "./saveConverters";
 import { findThemeByName } from "./themeUtils";
