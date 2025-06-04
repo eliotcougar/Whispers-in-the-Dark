@@ -737,7 +737,6 @@ export const loadGameStateFromLocalStorage = async (): Promise<FullGameState | n
       }
     }
 
-
     if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
       dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({ ...item, isJunk: item.isJunk ?? false }));
       dataToValidateAndExpand.score = dataToValidateAndExpand.score ?? 0;
