@@ -14,6 +14,7 @@ import { parseAIResponse } from '../services/aiResponseParser';
 import { getThemesFromPacks } from '../themes';
 import { CURRENT_SAVE_GAME_VERSION } from '../constants';
 import { findThemeByName } from '../services/themeUtils';
+import { fetchMapHierarchyFromLocation_Service } from '../services/mapHierarchyService';
 import {
   formatNewGameFirstTurnPrompt,
   formatNewThemePostShiftPrompt,
@@ -265,6 +266,26 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           baseStateSnapshot: baseStateSnapshotForInitialTurn,
           forceEmptyInventory: !isTransitioningFromShift && isRestart,
         });
+
+        if (!isTransitioningFromShift && !draftState.themeHistory[themeObjToLoad.name]) {
+          const hierarchy = await fetchMapHierarchyFromLocation_Service(
+            draftState.localPlace,
+            draftState.currentScene,
+            themeObjToLoad
+          );
+          if (hierarchy) {
+            hierarchy.nodes.forEach(n => {
+              if (!draftState.mapData.nodes.some(ex => ex.placeName === n.placeName && ex.themeName === n.themeName)) {
+                draftState.mapData.nodes.push(n);
+              }
+            });
+            hierarchy.edges.forEach(e => {
+              if (!draftState.mapData.edges.some(ex => ex.sourceNodeId === e.sourceNodeId && ex.targetNodeId === e.targetNodeId && ex.data.type === e.data.type)) {
+                draftState.mapData.edges.push(e);
+              }
+            });
+          }
+        }
 
         setHasGameBeenInitialized(true);
         draftState.pendingNewThemeNameAfterShift = null;

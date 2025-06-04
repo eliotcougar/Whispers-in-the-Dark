@@ -144,3 +144,16 @@ CRITICAL INSTRUCTIONS:
 - Base your refinements on the context of MainNodeA, MainNodeB, the leaf suggestions, the edge details, and the overall game context.
 - The goal is to make these temporary connections feel like natural, integrated parts of the map.
 `;
+
+export const MAP_HIERARCHY_SYSTEM_INSTRUCTION = `
+You are an AI assistant generating hierarchical map nodes for a text adventure game.
+Given context about the player's current location and theme, return a JSON array describing
+locations from the broadest region down to the player's specific position.
+Each entry should have:
+  "placeName": string,
+  "description": string,
+  "aliases": ["string"],
+  "nodeType": ${VALID_NODE_TYPES_FOR_MAP_AI},
+  "status": ${VALID_NODE_STATUSES_FOR_MAP_AI},
+  "parentPlaceName"?: string|null
+The first entry must have parentPlaceName null. Respond ONLY with the JSON array.`;
