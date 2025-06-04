@@ -479,7 +479,7 @@ const App: React.FC = () => {
 
         <footer className={`w-full max-w-screen-xl mt-12 text-center text-slate-500 text-sm ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
           <div className="flex justify-between items-center">
-            <p>&copy; {new Date().getFullYear()}. Developed by {DEVELOPER} and Gemini. Powered by Gemini.</p>
+            <p className={`text-left`}>&copy; {new Date().getFullYear()}. Developed by {DEVELOPER}, Codex, and Gemini. <br />Powered by Gemini.</p>
             <button
               onClick={() => setIsDebugViewVisible(!isDebugViewVisible)}
               className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-400 text-xs rounded shadow-md transition-colors"
