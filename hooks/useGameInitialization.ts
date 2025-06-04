@@ -19,7 +19,10 @@ import {
   formatNewThemePostShiftPrompt,
   formatReturnToThemePostShiftPrompt,
 } from '../utils/promptFormatters/dialogue';
-import { getInitialGameStates } from '../utils/initialStates';
+import {
+  getInitialGameStates,
+  getInitialGameStatesWithSettings
+} from '../utils/initialStates';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';
 import { ProcessAiResponseFn } from './usePlayerActions';
@@ -47,6 +50,7 @@ export interface UseGameInitializationProps {
   ) => void;
   getCurrentGameState: () => FullGameState;
   commitGameState: (state: FullGameState) => void;
+  resetGameStateStack: (state: FullGameState) => void;
   processAiResponse: ProcessAiResponseFn;
 }
 
@@ -67,6 +71,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     onSettingsUpdateFromLoad,
     getCurrentGameState,
     commitGameState,
+    resetGameStateStack,
     processAiResponse,
   } = props;
 
@@ -297,26 +302,71 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
    * information while the initial turn is loading.
    */
   const handleStartNewGameFromButton = useCallback(() => {
-    commitGameState(getInitialGameStates());
+    const blankState = getInitialGameStatesWithSettings(
+      playerGenderProp,
+      enabledThemePacksProp,
+      stabilityLevelProp,
+      chaosLevelProp
+    );
+    resetGameStateStack(blankState);
     setHasGameBeenInitialized(false);
     loadInitialGame({ isRestart: true, customGameFlag: false });
-  }, [loadInitialGame, setHasGameBeenInitialized, commitGameState]);
+  }, [
+    loadInitialGame,
+    setHasGameBeenInitialized,
+    resetGameStateStack,
+    playerGenderProp,
+    enabledThemePacksProp,
+    stabilityLevelProp,
+    chaosLevelProp,
+  ]);
 
   /** Starts a custom game using the provided theme name. */
   const startCustomGame = useCallback(
     (themeName: string) => {
+      const blankState = getInitialGameStatesWithSettings(
+        playerGenderProp,
+        enabledThemePacksProp,
+        stabilityLevelProp,
+        chaosLevelProp
+      );
+      resetGameStateStack(blankState);
       setHasGameBeenInitialized(false);
       loadInitialGame({ explicitThemeName: themeName, isRestart: true, customGameFlag: true });
     },
-    [loadInitialGame, setHasGameBeenInitialized]
+    [
+      loadInitialGame,
+      setHasGameBeenInitialized,
+      resetGameStateStack,
+      playerGenderProp,
+      enabledThemePacksProp,
+      stabilityLevelProp,
+      chaosLevelProp,
+    ]
   );
 
   /** Restarts the game from scratch. */
   const executeRestartGame = useCallback(() => {
     setError(null);
+    const blankState = getInitialGameStatesWithSettings(
+      playerGenderProp,
+      enabledThemePacksProp,
+      stabilityLevelProp,
+      chaosLevelProp
+    );
+    resetGameStateStack(blankState);
     setHasGameBeenInitialized(false);
     loadInitialGame({ isRestart: true, customGameFlag: false });
-  }, [loadInitialGame, setError, setHasGameBeenInitialized]);
+  }, [
+    loadInitialGame,
+    setError,
+    setHasGameBeenInitialized,
+    resetGameStateStack,
+    playerGenderProp,
+    enabledThemePacksProp,
+    stabilityLevelProp,
+    chaosLevelProp,
+  ]);
 
   /** Retry helper used when an error occurred in the main logic. */
   const handleRetry = useCallback(() => {
