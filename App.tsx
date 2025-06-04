@@ -29,12 +29,12 @@ import CustomGameSetupScreen from './components/CustomGameSetupScreen';
 
 import {
   saveGameStateToFile,
-  loadGameStateFromFile,
+  loadGameStateFromFile
+} from "./services/saveLoadService";
+import {
   saveGameStateToLocalStorage,
   loadGameStateFromLocalStorage
-} from './services/saveLoadService';
-import { DEFAULT_PLAYER_GENDER, DEVELOPER, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, CURRENT_SAVE_GAME_VERSION, FREE_FORM_ACTION_COST, FREE_FORM_ACTION_MAX_LENGTH } from './constants';
-import { getThemesFromPacks, ALL_THEME_PACK_NAMES } from './themes'; 
+} from "./services/storage";
 
 
 const AUTOSAVE_DEBOUNCE_TIME = 1500;
