@@ -13,7 +13,7 @@ import { executeAIMainTurn } from '../services/gameAIService';
 import { parseAIResponse } from '../services/aiResponseParser';
 import { getThemesFromPacks } from '../themes';
 import { CURRENT_SAVE_GAME_VERSION } from '../constants';
-import { findThemeByName } from '../services/saveLoadService';
+import { findThemeByName } from '../services/themeUtils';
 import {
   formatNewGameFirstTurnPrompt,
   formatNewThemePostShiftPrompt,
