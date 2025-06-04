@@ -51,7 +51,10 @@ If no suitable match can be confidently made, respond with an empty string.`;
     const correctedNameResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
 
     if (correctedNameResponse !== null) {
-      const correctedName = correctedNameResponse.trim();
+      let correctedName = correctedNameResponse.trim();
+      // Some models may return quoted strings such as "\"name\"" or """" for no match.
+      // Strip surrounding single or double quotes before validation.
+      correctedName = correctedName.replace(/^['"]+|['"]+$/g, '').trim();
       if (correctedName === '') {
         console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`);
         return null;
