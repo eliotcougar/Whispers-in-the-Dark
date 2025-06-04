@@ -5,7 +5,7 @@
  */
 
 import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
-import { FullGameState, AdventureTheme, Character, ThemePackName, Item, KnownUse, GameStateFromAI, GameStateStack, TurnChanges, DialogueData, MapData, MapLayoutConfig, MapNode, LoadingReason } from './types'; // Added MapNode, LoadingReason
+import { FullGameState, ThemePackName } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import SceneDisplay from './components/SceneDisplay';
 import ActionOptions from './components/ActionOptions';
