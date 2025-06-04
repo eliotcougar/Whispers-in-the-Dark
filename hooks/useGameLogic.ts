@@ -288,7 +288,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     if (themeContextForResponse) { 
         for (const change of aiItemChangesFromParser) {
             let currentChange = { ...change };
-            if ((currentChange.action === 'lose' || currentChange.action === 'use') && typeof currentChange.item === 'string') {
+            if (currentChange.action === 'lose' && typeof currentChange.item === 'string') {
                 const itemNameFromAI = currentChange.item;
                 const exactMatchInInventory = baseStateSnapshot.inventory.find(invItem => invItem.name === itemNameFromAI);
                 if (!exactMatchInInventory) {

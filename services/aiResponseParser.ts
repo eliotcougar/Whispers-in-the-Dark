@@ -1,3 +1,7 @@
+/**
+ * @file aiResponseParser.ts
+ * @description Utilities for validating and parsing AI storyteller responses.
+ */
 
 import { GameStateFromAI, Item, ItemChange, Character, MapData,
     ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload, CharacterPresenceInfo, MapNode, AdventureTheme } from '../types';
@@ -169,7 +173,7 @@ export async function parseAIResponse(
         continue;
       }
 
-      if (typeof ic.action !== 'string' || !['gain', 'lose', 'use', 'update'].includes(ic.action)) {
+      if (typeof ic.action !== 'string' || !['gain', 'lose', 'update'].includes(ic.action)) {
         console.warn("parseAIResponse ('itemChange'): Invalid itemChange 'action'. Attempting correction.", ic);
         const correctedAction = await fetchCorrectedItemAction_Service(
             logMessageFromPayload || parsedData.logMessage,
@@ -177,7 +181,7 @@ export async function parseAIResponse(
             JSON.stringify(ic),
             currentTheme
         );
-        if (correctedAction && ['gain', 'lose', 'use', 'update'].includes(correctedAction)) {
+        if (correctedAction && ['gain', 'lose', 'update'].includes(correctedAction)) {
             ic.action = correctedAction;
             console.log(`parseAIResponse ('itemChange'): Corrected itemChange action to: "${correctedAction}"`, ic);
         } else {
@@ -234,7 +238,7 @@ export async function parseAIResponse(
             (currentItemPayload as Item).isActive = (currentItemPayload as Item).isActive ?? false;
           }
           break;
-        case 'lose': case 'use':
+        case 'lose':
           if (typeof currentItemPayload === 'string') {
             currentInvalidPayload = undefined;
           } else if (typeof currentItemPayload === 'object' && currentItemPayload !== null && typeof (currentItemPayload as any).name === 'string' && (currentItemPayload as any).name.trim() !== '') {
