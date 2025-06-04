@@ -68,6 +68,73 @@ const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | nu
 };
 
 /**
+ * Converts node/edge update operations that merely set a
+ * status suggesting removal (e.g., "removed", "deleted") into
+ * proper remove operations. This prevents validation errors when
+ * MapAI uses an update action with a removal status.
+ */
+const normalizeRemovalUpdates = (payload: AIMapUpdatePayload) => {
+  const nodeRemovalSynonyms = new Set([
+    'removed',
+    'deleted',
+    'destroyed',
+    'eliminated',
+    'erased',
+    'gone',
+    'lost',
+    'obliterated',
+    'terminated',
+    'discarded'
+  ]);
+  const edgeRemovalSynonyms = new Set([
+    'removed',
+    'deleted',
+    'destroyed',
+    'eliminated',
+    'erased',
+    'gone',
+    'lost',
+    'severed',
+    'cut',
+    'broken',
+    'disconnected',
+    'obliterated',
+    'terminated',
+    'dismantled'
+  ]);
+
+  const updatedNodesToUpdate: typeof payload.nodesToUpdate = [];
+  const updatedNodesToRemove: typeof payload.nodesToRemove = payload.nodesToRemove ? [...payload.nodesToRemove] : [];
+  (payload.nodesToUpdate || []).forEach(nodeUpd => {
+    const statusVal = nodeUpd.newData?.status?.toLowerCase();
+    if (statusVal && nodeRemovalSynonyms.has(statusVal)) {
+      updatedNodesToRemove.push({ placeName: nodeUpd.placeName });
+    } else {
+      updatedNodesToUpdate.push(nodeUpd);
+    }
+  });
+  payload.nodesToUpdate = updatedNodesToUpdate.length > 0 ? updatedNodesToUpdate : undefined;
+  payload.nodesToRemove = updatedNodesToRemove.length > 0 ? updatedNodesToRemove : undefined;
+
+  const updatedEdgesToUpdate: typeof payload.edgesToUpdate = [];
+  const updatedEdgesToRemove: typeof payload.edgesToRemove = payload.edgesToRemove ? [...payload.edgesToRemove] : [];
+  (payload.edgesToUpdate || []).forEach(edgeUpd => {
+    const statusVal = edgeUpd.newData?.status?.toLowerCase();
+    if (statusVal && edgeRemovalSynonyms.has(statusVal)) {
+      updatedEdgesToRemove.push({
+        sourcePlaceName: edgeUpd.sourcePlaceName,
+        targetPlaceName: edgeUpd.targetPlaceName,
+        type: edgeUpd.newData.type
+      });
+    } else {
+      updatedEdgesToUpdate.push(edgeUpd);
+    }
+  });
+  payload.edgesToUpdate = updatedEdgesToUpdate.length > 0 ? updatedEdgesToUpdate : undefined;
+  payload.edgesToRemove = updatedEdgesToRemove.length > 0 ? updatedEdgesToRemove : undefined;
+};
+
+/**
  * Updates the game map based on narrative events and AI suggestions.
  * Implements a retry loop for fetching and validating the AI map update payload.
  * @param aiResponse The AI response from the main game turn or dialogue summary.
@@ -167,6 +234,7 @@ Key points:
       const parsedPayloadAttempt = parseAIMapUpdateResponse(response.text ?? '');
 
       if (parsedPayloadAttempt) {
+        normalizeRemovalUpdates(parsedPayloadAttempt);
         if (isValidAIMapUpdatePayload(parsedPayloadAttempt)) {
             debugInfo.parsedPayload = parsedPayloadAttempt;
             validParsedPayload = parsedPayloadAttempt; // Successfully got a valid payload
