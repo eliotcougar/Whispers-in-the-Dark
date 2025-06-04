@@ -11,7 +11,7 @@ import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { ai } from './geminiClient';
 import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
-import { isValidAIMapUpdatePayload } from '../utils/mapUpdateValidationUtils';
+import { isValidAIMapUpdatePayload, VALID_NODE_STATUS_VALUES, VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
 // Local type definition for Place, matching what useGameLogic might prepare
@@ -135,6 +135,138 @@ const normalizeRemovalUpdates = (payload: AIMapUpdatePayload) => {
 };
 
 /**
+ * Normalizes status and type fields within the payload to
+ * their canonical values, accepting various synonyms.
+ * Returns an array of error strings for values that remain
+ * invalid after synonym normalization.
+ */
+const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] => {
+  const errors: string[] = [];
+
+  const nodeStatusSynonyms: Record<string, MapNodeData['status']> = {
+    unknown: 'undiscovered',
+    unexplored: 'undiscovered',
+    found: 'discovered',
+    revealed: 'discovered',
+    rumoured: 'rumored',
+    speculation: 'rumored',
+    whispered: 'rumored',
+    goal: 'quest_target',
+    objective: 'quest_target'
+  };
+
+  const nodeTypeSynonyms: Record<string, NonNullable<MapNodeData['nodeType']>> = {
+    area: 'region',
+    zone: 'region',
+    province: 'region',
+    territory: 'region',
+    town: 'city',
+    village: 'city',
+    settlement: 'city',
+    structure: 'building',
+    edifice: 'building',
+    chamber: 'room',
+    hall: 'room',
+    landmark: 'feature',
+    spot: 'feature'
+  };
+
+  const edgeTypeSynonyms: Record<string, MapEdgeData['type']> = {
+    trail: 'path',
+    track: 'path',
+    walkway: 'path',
+    street: 'road',
+    roadway: 'road',
+    highway: 'road',
+    seaway: 'sea route',
+    'sea path': 'sea route',
+    portal: 'teleporter',
+    warp: 'teleporter',
+    'secret passageway': 'secret_passage',
+    'hidden_passage': 'secret_passage',
+    ford: 'river_crossing',
+    'makeshift_bridge': 'temporary_bridge',
+    'temporary crossing': 'temporary_bridge',
+    grapple: 'boarding_hook',
+    'grappling_hook': 'boarding_hook',
+    inside: 'containment',
+    within: 'containment'
+  };
+
+  const edgeStatusSynonyms: Record<string, MapEdgeData['status']> = {
+    opened: 'open',
+    usable: 'accessible',
+    available: 'accessible',
+    shut: 'closed',
+    sealed: 'locked',
+    barred: 'locked',
+    obstructed: 'blocked',
+    barricaded: 'blocked',
+    concealed: 'hidden',
+    secret: 'hidden',
+    rumoured: 'rumored',
+    legendary: 'rumored',
+    'one way': 'one_way',
+    'one-way': 'one_way',
+    single_direction: 'one_way',
+    fallen: 'collapsed',
+    deactivated: 'inactive'
+  };
+
+  const applyNodeDataFix = (data: Partial<MapNodeData> | undefined, context: string) => {
+    if (!data) return;
+    if (data.status) {
+      const mapped = nodeStatusSynonyms[data.status.toLowerCase()];
+      if (mapped) data.status = mapped;
+      if (!VALID_NODE_STATUS_VALUES.includes(data.status as any)) {
+        errors.push(`${context} invalid status "${data.status}"`);
+      }
+    }
+    if (data.nodeType) {
+      const mapped = nodeTypeSynonyms[data.nodeType.toLowerCase()];
+      if (mapped) data.nodeType = mapped;
+      if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType as any)) {
+        errors.push(`${context} invalid nodeType "${data.nodeType}"`);
+      }
+    }
+  };
+
+  const applyEdgeDataFix = (data: Partial<MapEdgeData> | undefined, context: string) => {
+    if (!data) return;
+    if (data.type) {
+      const mapped = edgeTypeSynonyms[data.type.toLowerCase()];
+      if (mapped) data.type = mapped;
+      if (!VALID_EDGE_TYPE_VALUES.includes(data.type as any)) {
+        errors.push(`${context} invalid type "${data.type}"`);
+      }
+    }
+    if (data.status) {
+      const mapped = edgeStatusSynonyms[data.status.toLowerCase()];
+      if (mapped) data.status = mapped;
+      if (!VALID_EDGE_STATUS_VALUES.includes(data.status as any)) {
+        errors.push(`${context} invalid status "${data.status}"`);
+      }
+    }
+  };
+
+  (payload.nodesToAdd || []).forEach((n, idx) => applyNodeDataFix(n.data, `nodesToAdd[${idx}]`));
+  (payload.nodesToUpdate || []).forEach((n, idx) => applyNodeDataFix(n.newData, `nodesToUpdate[${idx}].newData`));
+  (payload.edgesToAdd || []).forEach((e, idx) => applyEdgeDataFix(e.data, `edgesToAdd[${idx}]`));
+  (payload.edgesToUpdate || []).forEach((e, idx) => applyEdgeDataFix(e.newData, `edgesToUpdate[${idx}].newData`));
+  (payload.edgesToRemove || []).forEach((e, idx) => {
+    if (e.type) {
+      const mapped = edgeTypeSynonyms[e.type.toLowerCase()];
+      if (mapped) e.type = mapped;
+      if (!VALID_EDGE_TYPE_VALUES.includes(e.type as any)) {
+        errors.push(`edgesToRemove[${idx}] invalid type "${e.type}"`);
+      }
+    }
+  });
+
+  return errors;
+};
+
+/**
  * Updates the game map based on narrative events and AI suggestions.
  * Implements a retry loop for fetching and validating the AI map update payload.
  * @param aiResponse The AI response from the main game turn or dialogue summary.
@@ -200,7 +332,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
     : "No main places are pre-defined for this theme.";
 
 
-  const prompt = `
+  const basePrompt = `
 Narrative Context for Map Update:
 - Current Theme: "${currentTheme.name}"
 - System Modifier for Theme: ${currentTheme.systemInstructionModifier}
@@ -223,18 +355,26 @@ Key points:
 - If new details are revealed about a location (main or leaf), update description and/or aliases.
 - If the Player's new 'localPlace' tells that they are at a specific map node leaf (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
 `;
-  const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt };
+  let prompt = basePrompt;
+  const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt };
   let validParsedPayload: AIMapUpdatePayload | null = null;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       console.log(`Map Update Service: Attempt ${attempt + 1}/${MAX_RETRIES}`);
+      if (attempt > 0 && debugInfo.validationError) {
+        prompt = `${basePrompt}\nCRITICALLY IMPORTANT: ${debugInfo.validationError}`;
+      } else {
+        prompt = basePrompt;
+      }
+      debugInfo.prompt = prompt;
       const response = await callMapUpdateAI(prompt, MAP_UPDATE_SYSTEM_INSTRUCTION);
       debugInfo.rawResponse = response.text ?? '';
       const parsedPayloadAttempt = parseAIMapUpdateResponse(response.text ?? '');
 
       if (parsedPayloadAttempt) {
         normalizeRemovalUpdates(parsedPayloadAttempt);
+        const synonymErrors = normalizeStatusAndTypeSynonyms(parsedPayloadAttempt);
         if (isValidAIMapUpdatePayload(parsedPayloadAttempt)) {
             debugInfo.parsedPayload = parsedPayloadAttempt;
             validParsedPayload = parsedPayloadAttempt; // Successfully got a valid payload
@@ -242,7 +382,8 @@ Key points:
             break; // Exit retry loop
         } else {
             console.warn(`Map Update Service (Attempt ${attempt + 1}/${MAX_RETRIES}): Payload parsed but FAILED VALIDATION. Invalid payload:`, parsedPayloadAttempt);
-            debugInfo.validationError = "Parsed payload failed structural/value validation.";
+            const errMsg = synonymErrors.length > 0 ? `Invalid values: ${synonymErrors.join('; ')}` : 'Parsed payload failed structural/value validation.';
+            debugInfo.validationError = errMsg;
             debugInfo.parsedPayload = parsedPayloadAttempt; // Store the invalid payload for debugging
         }
       } else {
