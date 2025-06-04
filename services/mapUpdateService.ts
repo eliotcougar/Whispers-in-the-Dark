@@ -358,8 +358,8 @@ Key points:
         aliases: nodeAddOp.data.aliases || [],
         status: nodeAddOp.data.status,
         isLeaf: false, // Explicitly false for main nodes
-        // parentNodeId is not applicable for main nodes from this payload structure
-        ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, isLeaf, status, visited, ...rest }) => rest)(nodeAddOp.data) : {})
+        parentNodeId: nodeAddOp.data.parentNodeId,
+        ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, isLeaf, status, nodeType, visited, ...rest }) => rest)(nodeAddOp.data) : {})
     };
 
     const newNode: MapNode = { id: newNodeId, themeName: currentTheme.name, placeName: nodeAddOp.placeName, position: nodeAddOp.initialPosition || { x: 0, y: 0 }, data: newNodeData };
@@ -411,7 +411,7 @@ Key points:
         status: nodeAddOp.data.status,
         isLeaf: true, // Explicitly true for leaf nodes
         parentNodeId: resolvedParentNodeId,
-        ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, isLeaf, status, visited, ...rest }) => rest)(nodeAddOp.data) : {})
+        ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, isLeaf, status, nodeType, visited, ...rest }) => rest)(nodeAddOp.data) : {})
     };
 
     const newNode: MapNode = { id: newNodeId, themeName: currentTheme.name, placeName: nodeAddOp.placeName, position: nodeAddOp.initialPosition || { x: 0, y: 0 }, data: newNodeData };
@@ -427,11 +427,10 @@ Key points:
 
     if (node) {
 
-        // Handle parentNodeId update specifically for leaves
+        // Handle parentNodeId update
         let resolvedParentIdOnUpdate: string | undefined | null = node.data.parentNodeId; // Default to existing
-        const effectiveIsLeafForUpdate = nodeUpdateOp.newData?.isLeaf !== undefined ? nodeUpdateOp.newData.isLeaf : node.data.isLeaf;
 
-        if (effectiveIsLeafForUpdate && nodeUpdateOp.newData?.parentNodeId !== undefined) {
+        if (nodeUpdateOp.newData?.parentNodeId !== undefined) {
             if (nodeUpdateOp.newData.parentNodeId === null) { // Explicitly clearing parent
                 resolvedParentIdOnUpdate = undefined; // Store as undefined if cleared
             } else if (typeof nodeUpdateOp.newData.parentNodeId === 'string') {
@@ -452,15 +451,16 @@ Key points:
             if (nodeUpdateOp.newData.aliases !== undefined) node.data.aliases = nodeUpdateOp.newData.aliases;
             if (nodeUpdateOp.newData.status !== undefined) node.data.status = nodeUpdateOp.newData.status;
             if (nodeUpdateOp.newData.isLeaf !== undefined) node.data.isLeaf = nodeUpdateOp.newData.isLeaf;
+            if (nodeUpdateOp.newData.nodeType !== undefined) node.data.nodeType = nodeUpdateOp.newData.nodeType;
 
             // Update parentNodeId based on resolution
             node.data.parentNodeId = resolvedParentIdOnUpdate;
 
             // Apply other custom data, excluding handled fields
             for (const key in nodeUpdateOp.newData) {
-                if (!['description', 'aliases', 'status', 'isLeaf', 'parentNodeId', 'placeName', 'visited'].includes(key)) {
-                    (node.data as any)[key] = (nodeUpdateOp.newData as any)[key];
-                }
+            if (!['description', 'aliases', 'status', 'isLeaf', 'parentNodeId', 'nodeType', 'placeName', 'visited'].includes(key)) {
+                (node.data as any)[key] = (nodeUpdateOp.newData as any)[key];
+            }
             }
             // Handle placeName change last, as it might affect lookups for newNodesInBatchIdNameMap if not careful
             if (nodeUpdateOp.newData.placeName && nodeUpdateOp.newData.placeName !== node.placeName) {

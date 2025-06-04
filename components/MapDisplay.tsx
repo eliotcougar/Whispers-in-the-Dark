@@ -117,8 +117,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       }
     });
 
-    const nodesNeedingInitialLayout = nodesToProcess.filter(node => !node.data.isLeaf && node.position.x === 0 && node.position.y === 0);
-    const leafNodesNeedingInitialLayout = nodesToProcess.filter(node => node.data.isLeaf && node.position.x === 0 && node.position.y === 0);
+    const nodesNeedingInitialLayout = nodesToProcess.filter(node => !node.data.parentNodeId && node.position.x === 0 && node.position.y === 0);
+    const childNodesNeedingInitialLayout = nodesToProcess.filter(node => node.data.parentNodeId && node.position.x === 0 && node.position.y === 0);
 
     if (nodesNeedingInitialLayout.length > 0) {
       const radius = Math.min(VIEWBOX_WIDTH_INITIAL, VIEWBOX_HEIGHT_INITIAL) / 3;
@@ -131,36 +131,16 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       });
     }
 
-    leafNodesNeedingInitialLayout.forEach(leafNode => {
-      if (leafNode.data.parentNodeId) {
-        const parentNodePos = newPositions[leafNode.data.parentNodeId] || nodesToProcess.find(n => n.id === leafNode.data.parentNodeId)?.position;
+    childNodesNeedingInitialLayout.forEach(childNode => {
+      if (childNode.data.parentNodeId) {
+        const parentNodePos = newPositions[childNode.data.parentNodeId] || nodesToProcess.find(n => n.id === childNode.data.parentNodeId)?.position;
         if (parentNodePos) {
-          newPositions[leafNode.id] = { x: parentNodePos.x + NODE_RADIUS * 1.5 * (Math.random() > 0.5 ? 1 : -1), y: parentNodePos.y + NODE_RADIUS * 1.5 * (Math.random() > 0.5 ? 1 : -1) };
+          newPositions[childNode.id] = { x: parentNodePos.x + NODE_RADIUS * 1.5 * (Math.random() > 0.5 ? 1 : -1), y: parentNodePos.y + NODE_RADIUS * 1.5 * (Math.random() > 0.5 ? 1 : -1) };
         } else {
-          newPositions[leafNode.id] = { x: Math.random() * 100 - 50, y: Math.random() * 100 - 50 };
+          newPositions[childNode.id] = { x: Math.random() * 100 - 50, y: Math.random() * 100 - 50 };
         }
       } else {
-        const connectedEdgesForLeaf: MapEdge[] = currentThemeEdges.filter(e => e.sourceNodeId === leafNode.id || e.targetNodeId === leafNode.id);
-        const mainNodesConnectedToLeaf = connectedEdgesForLeaf.reduce((acc: MapNode[], edge: MapEdge) => {
-          const otherEndId = edge.sourceNodeId === leafNode.id ? edge.targetNodeId : edge.sourceNodeId;
-          const otherNode = nodesToProcess.find(n => n.id === otherEndId && !n.data.isLeaf);
-          if (otherNode && !acc.find(existingNode => existingNode.id === otherNode.id)) {
-            acc.push(otherNode);
-          }
-          return acc;
-        }, [] as MapNode[]);
-
-        if (mainNodesConnectedToLeaf.length === 2) {
-          const pos1 = newPositions[mainNodesConnectedToLeaf[0].id] || mainNodesConnectedToLeaf[0].position;
-          const pos2 = newPositions[mainNodesConnectedToLeaf[1].id] || mainNodesConnectedToLeaf[1].position;
-          if (pos1 && pos2) {
-            newPositions[leafNode.id] = { x: (pos1.x + pos2.x) / 2, y: (pos1.y + pos2.y) / 2 };
-          } else {
-            newPositions[leafNode.id] = { x: Math.random() * 100 - 50, y: Math.random() * 100 - 50 };
-          }
-        } else {
-          newPositions[leafNode.id] = { x: Math.random() * 100 - 50, y: Math.random() * 100 - 50 };
-        }
+        newPositions[childNode.id] = { x: Math.random() * 100 - 50, y: Math.random() * 100 - 50 };
       }
     });
 

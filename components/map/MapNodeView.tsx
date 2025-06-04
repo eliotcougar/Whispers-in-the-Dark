@@ -20,6 +20,24 @@ interface MapNodeViewProps {
   layoutIdealEdgeLength: number;
 }
 
+/** Returns circle radius based on nodeType hierarchy. */
+const getRadiusForNode = (node: MapNode): number => {
+  switch (node.data.nodeType) {
+    case 'region':
+      return NODE_RADIUS * 1.4;
+    case 'city':
+      return NODE_RADIUS * 1.2;
+    case 'building':
+      return NODE_RADIUS;
+    case 'room':
+      return NODE_RADIUS * 0.8;
+    case 'feature':
+      return NODE_RADIUS * 0.6;
+    default:
+      return node.data.isLeaf ? NODE_RADIUS * 0.7 : NODE_RADIUS;
+  }
+};
+
 /** Splits a label into multiple lines for display. */
 const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: number): string[] => {
   if (!text) return [];
@@ -181,15 +199,16 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
           {nodes.map(node => {
             let nodeClass = 'map-node-circle';
             if (node.data.isLeaf) nodeClass += ' leaf';
+            if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
             if (node.data.status === 'quest_target') nodeClass += ' quest_target';
-            const maxCharsPerLine = node.data.isLeaf ? 20 : 25;
+            const maxCharsPerLine = node.data.nodeType === 'feature' || node.data.nodeType === 'room' || node.data.isLeaf ? 20 : 25;
             const labelLines = splitTextIntoLines(node.placeName, maxCharsPerLine, MAX_LABEL_LINES);
             const initialDyOffset = -(labelLines.length - 1) * 0.5 * LABEL_LINE_HEIGHT_EM + 0.3;
             return (
               <g key={node.id} transform={`translate(${node.position.x}, ${node.position.y})`} className="map-node" onMouseEnter={e => handleNodeMouseEnter(node, e)} onMouseLeave={handleMouseLeaveGeneral}>
-                <circle className={nodeClass} r={node.data.isLeaf ? NODE_RADIUS * 0.7 : NODE_RADIUS} />
-                <text className={`map-node-label ${node.data.isLeaf ? 'leaf-label' : ''}`}>
+                <circle className={nodeClass} r={getRadiusForNode(node)} />
+                <text className={`map-node-label ${node.data.nodeType === 'feature' || node.data.nodeType === 'room' || node.data.isLeaf ? 'leaf-label' : ''}`}>
                   {labelLines.map((line, index) => (
                     <tspan key={`${node.id}-line-${index}`} x="0" dy={index === 0 ? `${initialDyOffset}em` : `${LABEL_LINE_HEIGHT_EM}em`}>{line}</tspan>
                   ))}

@@ -6,6 +6,7 @@
 import { AIMapUpdatePayload, MapNodeData, MapEdgeData } from '../types'; // AINodeUpdate is implicitly part of AIMapUpdatePayload
 
 export const VALID_NODE_STATUS_VALUES: ReadonlyArray<MapNodeData['status']> = ['undiscovered', 'discovered', 'rumored', 'quest_target'];
+export const VALID_NODE_TYPE_VALUES: ReadonlyArray<NonNullable<MapNodeData['nodeType']>> = ['region', 'city', 'building', 'room', 'feature'];
 export const VALID_EDGE_TYPE_VALUES: ReadonlyArray<MapEdgeData['type']> = ['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook', 'containment'];
 export const VALID_EDGE_STATUS_VALUES: ReadonlyArray<MapEdgeData['status']> = ['open', 'accessible', 'closed', 'locked', 'blocked', 'hidden', 'rumored', 'one_way', 'collapsed', 'removed', 'active', 'inactive'];
 
@@ -59,7 +60,13 @@ function isValidAINodeDataInternal(data: any, isNodeAddContext: boolean): boolea
     console.warn("Validation Error (NodeData): 'isLeaf' must be boolean if present. Value:", data.isLeaf);
     return false;
   }
-  
+
+  // nodeType: Optional. If present must be valid string value.
+  if (data.nodeType !== undefined && (typeof data.nodeType !== 'string' || !VALID_NODE_TYPE_VALUES.includes(data.nodeType as any))) {
+    console.warn("Validation Error (NodeData): 'nodeType' is invalid. Value:", data.nodeType, "Valid are:", VALID_NODE_TYPE_VALUES);
+    return false;
+  }
+
   // parentNodeId: Optional for both. String if present.
   if (data.parentNodeId !== undefined && (data.parentNodeId !== null && (typeof data.parentNodeId !== 'string' || data.parentNodeId.trim() === ''))) {
     // Allow null to clear parentNodeId
