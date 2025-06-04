@@ -18,6 +18,9 @@ interface DebugViewProps {
 
 type DebugTab = "GameState" | "MainAI" | "MapLocationAI" | "Inventory" | "Characters" | "MapDataFull" | "ThemeHistory" | "GameLog" | "MiscState";
 
+/**
+ * Developer-only panel for inspecting and manipulating game state.
+ */
 const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, gameStateStack, onUndoTurn }) => {
   const [activeTab, setActiveTab] = useState<DebugTab>("GameState");
   const [showMainAIRaw, setShowMainAIRaw] = useState<boolean>(true);

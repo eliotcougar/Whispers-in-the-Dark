@@ -10,6 +10,9 @@ interface ErrorDisplayProps {
   onRetry?: () => void;
 }
 
+/**
+ * Renders a flashing error message with an optional retry button.
+ */
 const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ message, onRetry }) => (
   <div className="bg-red-800 border border-red-600 text-red-100 p-6 rounded-lg shadow-xl my-4 animate-pulse">
     <div className="flex items-center mb-2">

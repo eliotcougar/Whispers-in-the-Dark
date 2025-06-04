@@ -11,6 +11,9 @@ interface InfoDisplayProps {
   onClose: () => void;
 }
 
+/**
+ * Shows build and version information in a modal window.
+ */
 const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
   const textModel = GEMINI_MODEL_NAME; // from constants.ts
   const imageModel = "imagen-3.0-generate-002"; // from ImageVisualizer.tsx

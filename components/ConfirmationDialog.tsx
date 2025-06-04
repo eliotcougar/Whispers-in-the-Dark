@@ -14,10 +14,13 @@ interface ConfirmationDialogProps {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
-  confirmButtonClass?: string; 
+  confirmButtonClass?: string;
   isCustomModeShift?: boolean; // New prop
 }
 
+/**
+ * Modal dialog prompting the user to confirm or cancel an action.
+ */
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   isOpen,
   title,

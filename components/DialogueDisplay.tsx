@@ -23,6 +23,9 @@ interface DialogueDisplayProps {
   loadingReason: LoadingReason | null; // Added prop
 }
 
+/**
+ * Renders dialogue history and available dialogue options.
+ */
 const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
   isVisible,
   onClose,

@@ -20,6 +20,9 @@ interface GroupedEntities {
   };
 }
 
+/**
+ * Lists discovered characters grouped by their associated theme.
+ */
 const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
   allCharacters,
   currentTheme, // This is now AdventureTheme | null

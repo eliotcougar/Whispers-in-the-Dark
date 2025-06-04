@@ -17,6 +17,9 @@ interface TitleMenuProps {
   isGameActive: boolean;
 }
 
+/**
+ * Main title screen offering game start and load options.
+ */
 const TitleMenu: React.FC<TitleMenuProps> = ({
   isVisible,
   onClose,

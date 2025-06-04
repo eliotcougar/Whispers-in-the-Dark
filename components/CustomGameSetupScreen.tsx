@@ -17,6 +17,9 @@ interface CustomGameSetupScreenProps {
   descriptionText?: string; // Optional: Custom description text
 }
 
+/**
+ * Lets the player pick starting themes for a custom game.
+ */
 const CustomGameSetupScreen: React.FC<CustomGameSetupScreenProps> = ({
   isVisible,
   onClose,

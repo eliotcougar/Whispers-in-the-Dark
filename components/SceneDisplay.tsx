@@ -19,10 +19,13 @@ interface SceneDisplayProps {
   currentThemeName: string | null;
   objectiveAnimationType?: 'success' | 'neutral' | null; 
   localTime?: string | null; 
-  localEnvironment?: string | null; 
+  localEnvironment?: string | null;
   localPlace?: string | null;
 }
 
+/**
+ * Displays the current scene description and quest objectives.
+ */
 const SceneDisplay: React.FC<SceneDisplayProps> = ({
   description,
   mainQuest,

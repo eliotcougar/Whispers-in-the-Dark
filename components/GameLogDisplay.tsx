@@ -10,6 +10,9 @@ interface GameLogDisplayProps {
   messages: string[];
 }
 
+/**
+ * Shows a scrollable log of important game events.
+ */
 const GameLogDisplay: React.FC<GameLogDisplayProps> = ({ messages }) => {
   const logEndRef = useRef<null | HTMLDivElement>(null);
   return (

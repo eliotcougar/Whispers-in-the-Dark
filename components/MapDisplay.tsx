@@ -32,6 +32,9 @@ interface MapDisplayProps {
   onClose: () => void;
 }
 
+/**
+ * Renders the interactive map with controls for layout tweaking.
+ */
 const MapDisplay: React.FC<MapDisplayProps> = ({
   mapData,
   currentThemeName,
