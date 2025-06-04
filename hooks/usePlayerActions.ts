@@ -267,6 +267,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       draftState.lastTurnChanges = turnChanges;
     }, [loadingReason, setLoadingReason, setError, setGameStateStack]);
 
+  /**
+   * Executes a player's chosen action by querying the AI storyteller.
+   * On failure, the draft state is rolled back to the base snapshot so no
+   * counters or score are affected.
+   */
   const executePlayerAction = useCallback(
     async (action: string, isFreeForm: boolean = false) => {
       const currentFullState = getCurrentGameState();
@@ -316,9 +321,16 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       );
 
       let draftState = structuredCloneGameState(currentFullState);
-      draftState.lastDebugPacket = { prompt, rawResponseText: null, parsedResponse: null, timestamp: new Date().toISOString() };
+      const debugPacket = {
+        prompt,
+        rawResponseText: null,
+        parsedResponse: null,
+        timestamp: new Date().toISOString(),
+      };
+      draftState.lastDebugPacket = debugPacket;
       if (isFreeForm) draftState.score -= FREE_FORM_ACTION_COST;
 
+      let encounteredError = false;
       try {
         const response = await executeAIMainTurn(prompt, currentThemeObj.systemInstructionModifier);
         if (draftState.lastDebugPacket) draftState.lastDebugPacket.rawResponseText = response.text ?? null;
@@ -346,15 +358,19 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
         await processAiResponse(parsedData, currentThemeObj, draftState, { baseStateSnapshot, scoreChangeFromAction });
       } catch (e: any) {
+        encounteredError = true;
         console.error('Error executing player action:', e);
-        setError(`The Dungeon Master\'s connection seems unstable. Error: (${e.message || 'Unknown AI error'}). Please try again or consult the game log.`);
+        setError(`The Dungeon Master's connection seems unstable. Error: (${e.message || 'Unknown AI error'}). Please try again or consult the game log.`);
+        draftState = structuredCloneGameState(baseStateSnapshot);
         draftState.lastActionLog = `Your action ("${action}") caused a ripple in reality, but the outcome is obscured.`;
         draftState.actionOptions = ['Look around.', 'Ponder the situation.', 'Check your inventory.', 'Try to move on.'];
         draftState.dialogueState = null;
-        if (draftState.lastDebugPacket) draftState.lastDebugPacket.error = e.message || String(e);
+        draftState.lastDebugPacket = { ...debugPacket, error: e.message || String(e) };
       } finally {
-        draftState.turnsSinceLastShift += 1;
-        draftState.globalTurnNumber += 1;
+        if (!encounteredError) {
+          draftState.turnsSinceLastShift += 1;
+          draftState.globalTurnNumber += 1;
+        }
         commitGameState(draftState);
         setIsLoading(false);
         setLoadingReason(null);
