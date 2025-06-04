@@ -45,6 +45,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
 
+  // Tracks whether a saved game from app initialization has already been
+  // applied to prevent re-loading it when starting a new game.
+  const hasLoadedInitialSave = useRef<boolean>(false);
+
   const triggerShiftRef = useRef<(c?: boolean) => void>(() => {});
   const manualShiftRef = useRef<() => void>(() => {});
   const loadInitialGameRef = useRef<(opts: any) => void>(() => {});
@@ -157,10 +161,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   });
 
   useEffect(() => {
-    if (isAppReady && !hasGameBeenInitialized) {
-      if (initialSavedStateFromApp) {
-        loadInitialGame({ savedStateToLoad: initialSavedStateFromApp });
-      }
+    if (
+      isAppReady &&
+      !hasGameBeenInitialized &&
+      initialSavedStateFromApp &&
+      !hasLoadedInitialSave.current
+    ) {
+      loadInitialGame({ savedStateToLoad: initialSavedStateFromApp });
+      hasLoadedInitialSave.current = true;
     }
   }, [isAppReady, hasGameBeenInitialized, initialSavedStateFromApp, loadInitialGame]);
 

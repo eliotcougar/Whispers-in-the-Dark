@@ -291,11 +291,16 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       processAiResponse,
     ]);
 
-  /** Starts a completely new game. */
+  /**
+   * Starts a completely new game.
+   * The current state is cleared immediately so the UI does not display stale
+   * information while the initial turn is loading.
+   */
   const handleStartNewGameFromButton = useCallback(() => {
+    commitGameState(getInitialGameStates());
     setHasGameBeenInitialized(false);
     loadInitialGame({ isRestart: true, customGameFlag: false });
-  }, [loadInitialGame, setHasGameBeenInitialized]);
+  }, [loadInitialGame, setHasGameBeenInitialized, commitGameState]);
 
   /** Starts a custom game using the provided theme name. */
   const startCustomGame = useCallback(
