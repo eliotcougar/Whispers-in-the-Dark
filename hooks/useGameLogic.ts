@@ -22,13 +22,10 @@ import {
     executeAIMainTurn,
     summarizeThemeAdventure_Service
 } from '../services/gameAIService';
-import { updateMapFromAIData_Service } from '../services/mapUpdateService';
 import {
     fetchCorrectedLocalPlace_Service,
-    fetchCorrectedName_Service,
-    fetchFullPlaceDetailsForNewMapNode_Service
+    fetchCorrectedName_Service
 } from '../services/correctionService';
-import { executeMapCorrectionAndRefinement_Service } from '../services/mapCorrectionService'; // Added
 import { parseAIResponse } from '../services/aiResponseParser';
 import { getThemesFromPacks } from '../themes';
 import {
@@ -37,7 +34,9 @@ import {
   DEFAULT_ENABLED_THEME_PACKS,
   DEFAULT_STABILITY_LEVEL,
   DEFAULT_CHAOS_LEVEL,
-  MAX_LOG_MESSAGES
+  MAX_LOG_MESSAGES,
+  FREE_FORM_ACTION_COST,
+  RECENT_LOG_COUNT_FOR_PROMPT
 } from '../constants';
 import {
   findThemeByName,
@@ -58,17 +57,17 @@ import {
 } from '../utils/promptFormatters';
 import { getInitialGameStates } from '../utils/initialStates';
 import { useDialogueFlow } from './useDialogueFlow';
+import { useRealityShift } from './useRealityShift';
 import {
     DEFAULT_K_REPULSION, DEFAULT_K_SPRING, DEFAULT_IDEAL_EDGE_LENGTH,
     DEFAULT_K_CENTERING, DEFAULT_K_UNTANGLE, DEFAULT_K_EDGE_NODE_REPULSION,
     DEFAULT_DAMPING_FACTOR, DEFAULT_MAX_DISPLACEMENT, DEFAULT_LAYOUT_ITERATIONS
 } from '../utils/mapLayoutUtils';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from '../utils/mapNodeMatcher';
+import { handleMapUpdates } from '../utils/mapUpdateHandlers';
 
 
-const FREE_FORM_ACTION_COST = 5;
 const OBJECTIVE_ANIMATION_DURATION = 5000;
-export const RECENT_LOG_COUNT_FOR_PROMPT = 10;
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
@@ -157,8 +156,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const [freeFormActionText, setFreeFormActionText] = useState<string>("");
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
 
-  const isSummarizingThemeRef = useRef<Record<string, boolean>>({}); 
-  const objectiveAnimationClearTimerRef = useRef<number | null>(null); 
+  const objectiveAnimationClearTimerRef = useRef<number | null>(null);
 
   const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
 
@@ -313,147 +311,16 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     draftState.inventory = applyAllItemChanges(correctedAndVerifiedItemChanges, options.forceEmptyInventory ? [] : baseStateSnapshot.inventory);
 
     let mapAISuggestedNodeIdentifier: string | undefined = undefined;
-
-    if (themeContextForResponse && ('mapUpdated' in aiData && aiData.mapUpdated || (draftState.localPlace !== baseStateSnapshot.localPlace))) {
-        const originalLoadingReason = loadingReason; setLoadingReason('map');
-        let knownMainMapNodesForTheme: MapNode[] = draftState.mapData.nodes.filter(node =>
-            node.themeName === themeContextForResponse.name && !node.data.isLeaf
-        );
-        const mapUpdateResult = await updateMapFromAIData_Service(
-            aiData, draftState.mapData, themeContextForResponse,
-            knownMainMapNodesForTheme, baseStateSnapshot.currentMapNodeId
-        );
-        setLoadingReason(originalLoadingReason);
-
-        if (mapUpdateResult) {
-            if (mapUpdateResult.updatedMapData && JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
-                turnChanges.mapDataChanged = true;
-                draftState.mapData = mapUpdateResult.updatedMapData;
-            }
-            if (mapUpdateResult.debugInfo && draftState.lastDebugPacket) {
-                draftState.lastDebugPacket.mapUpdateDebugInfo = mapUpdateResult.debugInfo;
-            }
-            mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
-
-            if (mapUpdateResult.debugInfo?.parsedPayload?.nodesToAdd) {
-                for (const nodeAdd of mapUpdateResult.debugInfo.parsedPayload.nodesToAdd) {
-                    const isMainNode = !nodeAdd.data?.isLeaf;
-                    if (isMainNode) {
-                        const newlyAddedNodeInDraft = draftState.mapData.nodes.find(n => n.placeName === nodeAdd.placeName && n.themeName === themeContextForResponse.name && !n.data.isLeaf);
-                        if (newlyAddedNodeInDraft && (!newlyAddedNodeInDraft.data.description || newlyAddedNodeInDraft.data.description.trim() === "" || (newlyAddedNodeInDraft.data.description.startsWith("Description missing")))) {
-                            const originalLoadingReasonCorrection = loadingReason; setLoadingReason('correction');
-                            const placeDetails = await fetchFullPlaceDetailsForNewMapNode_Service(
-                                nodeAdd.placeName, aiData.logMessage,
-                                'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
-                                themeContextForResponse
-                            );
-                            setLoadingReason(originalLoadingReasonCorrection);
-                            if (placeDetails) {
-                                const nodeIndexToUpdate = draftState.mapData.nodes.findIndex(n => n.id === newlyAddedNodeInDraft.id);
-                                if (nodeIndexToUpdate !== -1) {
-                                    draftState.mapData.nodes[nodeIndexToUpdate].data.description = placeDetails.description;
-                                    draftState.mapData.nodes[nodeIndexToUpdate].data.aliases = placeDetails.aliases || [];
-                                    if(!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     if (themeContextForResponse) {
-        const originalLoadingReason = loadingReason; setLoadingReason('correction'); 
-        const gameLogTail = draftState.gameLog.slice(-5);
-        
-        const correctionResult = await executeMapCorrectionAndRefinement_Service(
-            draftState.mapData,
+        mapAISuggestedNodeIdentifier = await handleMapUpdates(
+            aiData,
+            draftState,
+            baseStateSnapshot,
             themeContextForResponse,
-            { sceneDescription: ('sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene) || "", gameLogTail }
+            loadingReason,
+            setLoadingReason,
+            turnChanges
         );
-        setLoadingReason(originalLoadingReason);
-
-        if (correctionResult.mapDataChanged) {
-            draftState.mapData = correctionResult.refinedMapData;
-            turnChanges.mapDataChanged = true;
-        }
-        if (draftState.lastDebugPacket) {
-            draftState.lastDebugPacket.mapPruningDebugInfo = correctionResult.debugInfo;
-        }
-    }
-
-    if (themeContextForResponse) {
-        const themeName = themeContextForResponse.name;
-        const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as ValidNewCharacterPayload[];
-        const charactersUpdatedFromAI = ('charactersUpdated' in aiData && aiData.charactersUpdated ? aiData.charactersUpdated : []) as ValidCharacterUpdatePayload[];
-
-        if (isFromDialogueSummary) {
-            if (charactersAddedFromAI.length > 0 || charactersUpdatedFromAI.length > 0) {
-                turnChanges.characterChanges = buildCharacterChangeRecords(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
-                draftState.allCharacters = applyAllCharacterChanges(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
-            }
-        } else {
-            turnChanges.characterChanges = buildCharacterChangeRecords(charactersAddedFromAI, charactersUpdatedFromAI, themeName, baseStateSnapshot.allCharacters);
-            draftState.allCharacters = applyAllCharacterChanges(charactersAddedFromAI, charactersUpdatedFromAI, themeName, baseStateSnapshot.allCharacters);
-        }
-    }
-
-    const oldMapNodeId = baseStateSnapshot.currentMapNodeId;
-    let finalChosenNodeId: string | null = oldMapNodeId;
-    if (themeContextForResponse) {
-        let aiMatchedNodeId: string | null = null;
-        const currentThemeNodesFromDraftState = draftState.mapData.nodes.filter(n => n.themeName === themeContextForResponse!.name);
-
-        if (mapAISuggestedNodeIdentifier) {
-            const matchResult = attemptMatchAndSetNode(mapAISuggestedNodeIdentifier, 'mapAI', oldMapNodeId, themeContextForResponse.name, currentThemeNodesFromDraftState);
-            if (matchResult.matched) aiMatchedNodeId = matchResult.nodeId;
-        }
-        if (!aiMatchedNodeId && 'currentMapNodeId' in aiData && aiData.currentMapNodeId) {
-            const matchResult = attemptMatchAndSetNode(aiData.currentMapNodeId, 'mainAI', oldMapNodeId, themeContextForResponse.name, currentThemeNodesFromDraftState);
-            if (matchResult.matched) aiMatchedNodeId = matchResult.nodeId;
-        }
-
-        if (aiMatchedNodeId) {
-            finalChosenNodeId = aiMatchedNodeId;
-        } else if (draftState.localPlace) {
-            finalChosenNodeId = selectBestMatchingMapNode(draftState.localPlace, themeContextForResponse, draftState.mapData, currentThemeNodesFromDraftState, oldMapNodeId) || oldMapNodeId;
-        }
-    }
-    draftState.currentMapNodeId = finalChosenNodeId;
-    if (draftState.currentMapNodeId !== oldMapNodeId) turnChanges.currentMapNodeIdChanged = true;
-
-    if (draftState.currentMapNodeId) {
-        const currentNodeIndex = draftState.mapData.nodes.findIndex(n => n.id === draftState.currentMapNodeId);
-        if (currentNodeIndex !== -1) {
-            if (!draftState.mapData.nodes[currentNodeIndex].data.visited) {
-                draftState.mapData.nodes[currentNodeIndex].data.visited = true;
-                if(!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
-            }
-            const parentNodeIdFromData = draftState.mapData.nodes[currentNodeIndex].data.parentNodeId;
-            if (parentNodeIdFromData) {
-                const parentNodeIndex = draftState.mapData.nodes.findIndex(n => n.id === parentNodeIdFromData);
-                if (parentNodeIndex !== -1 && !draftState.mapData.nodes[parentNodeIndex].data.visited) {
-                    draftState.mapData.nodes[parentNodeIndex].data.visited = true;
-                     if(!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
-                }
-            }
-        }
-    }
-
-    if (turnChanges.mapDataChanged) {
-        const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
-        const edgesToRemoveIndices: number[] = [];
-        draftState.mapData.edges.forEach((edge, index) => {
-            if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {
-                if (edge.data.status === 'rumored' || edge.data.status === 'removed') {
-                    edgesToRemoveIndices.push(index);
-                }
-            }
-        });
-        if (edgesToRemoveIndices.length > 0) {
-            draftState.mapData.edges = draftState.mapData.edges.filter((_, index) => !edgesToRemoveIndices.includes(index));
-        }
     }
 
     if (aiData.logMessage) {
@@ -742,145 +609,24 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     loadInitialGame({ explicitThemeName: themeName, isRestart: true, customGameFlag: true });
   }, [loadInitialGame, setHasGameBeenInitialized]);
 
-  const summarizeAndStoreThemeHistory = useCallback(async (themeToSummarize: AdventureTheme, finalStateBeforeShift: FullGameState) => {
-    if (isSummarizingThemeRef.current[themeToSummarize.name]) return;
-    isSummarizingThemeRef.current[themeToSummarize.name] = true;
+  const {
+    triggerRealityShift,
+    executeManualRealityShift,
+    completeManualShiftWithSelectedTheme,
+    cancelManualShiftThemeSelection
+  } = useRealityShift({
+    getCurrentGameState,
+    setGameStateStack,
+    loadInitialGame,
+    enabledThemePacksProp,
+    playerGenderProp,
+    stabilityLevelProp,
+    chaosLevelProp,
+    setError,
+    setLoadingReason,
+    isLoading
+  });
 
-    const summary = await summarizeThemeAdventure_Service(
-      themeToSummarize, 
-      finalStateBeforeShift.currentScene, finalStateBeforeShift.gameLog
-    );
-
-    const themeMainMapNodes = finalStateBeforeShift.mapData.nodes.filter(n => n.themeName === themeToSummarize.name && !n.data.isLeaf);
-    const themeCharacters = finalStateBeforeShift.allCharacters.filter(c => c.themeName === themeToSummarize.name);
-
-    const themeMemory: ThemeMemory = {
-      summary: summary || "The details of this reality are hazy...",
-      mainQuest: finalStateBeforeShift.mainQuest || "Unknown",
-      currentObjective: finalStateBeforeShift.currentObjective || "Unknown",
-      placeNames: themeMainMapNodes.map(node => node.placeName),
-      characterNames: themeCharacters.map(c => c.name),
-    };
-
-    setGameStateStack(prevStack => {
-      const newFullState = { ...prevStack[0] };
-      newFullState.themeHistory = { ...newFullState.themeHistory, [themeToSummarize.name]: themeMemory };
-      return [newFullState, prevStack[1]];
-    });
-
-    delete isSummarizingThemeRef.current[themeToSummarize.name];
-  }, [setGameStateStack]);
-
-  const triggerRealityShift = useCallback((isChaosShift: boolean = false) => {
-    const currentFullState = getCurrentGameState();
-    const currentThemeObj = currentFullState.currentThemeObject; 
-
-    if (!currentThemeObj || isLoading) return; // Use general isLoading
-
-    summarizeAndStoreThemeHistory(currentThemeObj, currentFullState);
-    setLoadingReason('reality_shift_load'); // Use new loading reason
-
-    let targetThemeName: string | null = null;
-    if (currentFullState.pendingNewThemeNameAfterShift && !currentFullState.isAwaitingManualShiftThemeSelection) {
-      targetThemeName = currentFullState.pendingNewThemeNameAfterShift;
-    } else if (!currentFullState.isAwaitingManualShiftThemeSelection) {
-      const availableThemes = getThemesFromPacks(enabledThemePacksProp);
-      targetThemeName = selectNextThemeName(availableThemes, currentThemeObj.name);
-    }
-
-    if (!targetThemeName && !currentFullState.isAwaitingManualShiftThemeSelection) {
-      setError("Could not select a new theme for reality shift. Current theme remains.");
-      setLoadingReason(null); 
-      return;
-    }
-
-    const previousCustomMode = currentFullState.isCustomGameMode ?? false;
-
-    setGameStateStack(prevStack => {
-      let newStateForShiftStart = { ...prevStack[0] };
-      const inventoryToCarryOver = newStateForShiftStart.inventory;
-      const scoreToCarryOver = newStateForShiftStart.score;
-      const themeHistoryToCarryOver = newStateForShiftStart.themeHistory;
-      const mapDataToCarryOver = newStateForShiftStart.mapData;
-      const allCharactersToCarryOver = newStateForShiftStart.allCharacters;
-      const mapLayoutConfigToCarryOver = newStateForShiftStart.mapLayoutConfig;
-      const globalTurnNumberToCarryOver = newStateForShiftStart.globalTurnNumber;
-
-      newStateForShiftStart = getInitialGameStates();
-      newStateForShiftStart.inventory = inventoryToCarryOver;
-      newStateForShiftStart.score = scoreToCarryOver;
-      newStateForShiftStart.themeHistory = themeHistoryToCarryOver;
-      newStateForShiftStart.mapData = mapDataToCarryOver;
-      newStateForShiftStart.allCharacters = allCharactersToCarryOver;
-      newStateForShiftStart.mapLayoutConfig = mapLayoutConfigToCarryOver;
-      newStateForShiftStart.globalTurnNumber = globalTurnNumberToCarryOver;
-
-      newStateForShiftStart.pendingNewThemeNameAfterShift = targetThemeName;
-      newStateForShiftStart.currentThemeName = null;
-      newStateForShiftStart.currentThemeObject = null; 
-      newStateForShiftStart.dialogueState = null;
-      newStateForShiftStart.turnsSinceLastShift = 0;
-      newStateForShiftStart.isCustomGameMode = previousCustomMode;
-      newStateForShiftStart.isAwaitingManualShiftThemeSelection = currentFullState.isAwaitingManualShiftThemeSelection;
-
-      if (isChaosShift) newStateForShiftStart.score = Math.max(0, newStateForShiftStart.score - 10);
-
-      newStateForShiftStart.playerGender = playerGenderProp;
-      newStateForShiftStart.enabledThemePacks = enabledThemePacksProp;
-      newStateForShiftStart.stabilityLevel = stabilityLevelProp;
-      newStateForShiftStart.chaosLevel = chaosLevelProp;
-      return [newStateForShiftStart, prevStack[1]];
-    });
-
-    if (!currentFullState.isAwaitingManualShiftThemeSelection && targetThemeName) {
-        loadInitialGame({
-          explicitThemeName: targetThemeName, isTransitioningFromShift: true,
-          customGameFlag: previousCustomMode
-        });
-    }
-  }, [
-    getCurrentGameState, enabledThemePacksProp, summarizeAndStoreThemeHistory, loadInitialGame,
-    setError, setIsLoading, setLoadingReason, setGameStateStack,
-    playerGenderProp, stabilityLevelProp, chaosLevelProp, getInitialGameStates, isLoading // Added isLoading to dep array
-  ]);
-
-  const executeManualRealityShift = useCallback(() => {
-    const currentFullState = getCurrentGameState();
-    const currentThemeObj = currentFullState.currentThemeObject; 
-
-    if (!currentThemeObj || isLoading) return;
-
-    setError("MANUAL SHIFT! Reality destabilizes...");
-    summarizeAndStoreThemeHistory(currentThemeObj, currentFullState); 
-
-    if (currentFullState.isCustomGameMode) {
-      setGameStateStack(prev => [{...prev[0], isAwaitingManualShiftThemeSelection: true, lastActionLog: "You focus your will, preparing to choose a new reality..." }, prev[1]]);
-    } else {
-      triggerRealityShift(false);
-    }
-  }, [getCurrentGameState, summarizeAndStoreThemeHistory, triggerRealityShift, setError, setGameStateStack, isLoading]);
-
-  const completeManualShiftWithSelectedTheme = useCallback((themeName: string) => {
-    const currentFullState = getCurrentGameState();
-    if (!currentFullState.isAwaitingManualShiftThemeSelection) return;
-
-    setLoadingReason('reality_shift_load');
-    setGameStateStack(prev => [{
-        ...prev[0], isAwaitingManualShiftThemeSelection: false, pendingNewThemeNameAfterShift: themeName,
-        lastActionLog: `You chose to shift reality to: ${themeName}. The world warps around you!`,
-    }, prev[1]]);
-
-    loadInitialGame({
-        explicitThemeName: themeName, isTransitioningFromShift: true,
-        customGameFlag: true
-    });
-  }, [getCurrentGameState, setGameStateStack, loadInitialGame, setLoadingReason]);
-
-  const cancelManualShiftThemeSelection = useCallback(() => {
-    setGameStateStack(prev => [{...prev[0], isAwaitingManualShiftThemeSelection: false, lastActionLog: "You decide against manually shifting reality for now." }, prev[1]]);
-    setError(null);
-    setLoadingReason(null);
-  }, [setGameStateStack, setError, setLoadingReason]);
 
   const handleActionSelect = useCallback((action: string) => {
     const currentFullState = getCurrentGameState();

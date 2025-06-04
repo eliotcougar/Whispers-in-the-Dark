@@ -1,6 +1,10 @@
 
+/**
+ * @file promptFormatters.ts
+ * @description Utility functions for creating well-structured AI prompts from game state data.
+ */
+
 import { Item, Character, FullGameState, AdventureTheme, ThemeMemory, MapData, MapNode, MapEdge, ThemeHistoryState } from '../types';
-import { RECENT_LOG_COUNT_FOR_PROMPT } from '../hooks/useGameLogic'; 
 
 export const formatInventoryForPrompt = (inventory: Item[]): string => {
   if (inventory.length === 0) return "Empty."; 
