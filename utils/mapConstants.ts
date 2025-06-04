@@ -1,0 +1,11 @@
+/**
+ * @file mapConstants.ts
+ * @description Shared constants for map display and layout.
+ */
+
+export const NODE_RADIUS = 20;
+export const VIEWBOX_WIDTH_INITIAL = 1000;
+export const VIEWBOX_HEIGHT_INITIAL = 750;
+export const EDGE_HOVER_WIDTH = 8;
+export const MAX_LABEL_LINES = 4;
+export const LABEL_LINE_HEIGHT_EM = 1.1;
