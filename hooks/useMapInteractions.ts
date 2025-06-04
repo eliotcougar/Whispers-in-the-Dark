@@ -76,9 +76,13 @@ export const useMapInteractions = (
     if (isDragging) handleMouseUp();
   };
 
-  /** Zooms the viewBox with the mouse wheel. */
+  /**
+   * Zooms the viewBox with the mouse wheel. The event may be marked as
+   * passive by the browser, so first check if it is cancelable before calling
+   * `preventDefault` to avoid console warnings.
+   */
   const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     if (!svgRef.current) return;
 
     const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
@@ -114,7 +118,7 @@ export const useMapInteractions = (
   /** Starts touch interactions for panning or pinch zoom. */
   const handleTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
     if (!svgRef.current) return;
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
 
     if (e.touches.length === 1) {
       if ((e.target as SVGElement).closest('.map-node')) return;
@@ -132,7 +136,7 @@ export const useMapInteractions = (
   /** Handles touch movement for panning or pinch zooming. */
   const handleTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
     if (!svgRef.current) return;
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
 
     if (e.touches.length === 1 && isDragging && lastScreenDragPoint) {
       const touch = e.touches[0];
