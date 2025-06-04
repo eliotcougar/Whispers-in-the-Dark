@@ -685,6 +685,10 @@ export const saveGameStateToLocalStorage = (gameState: FullGameState): boolean =
   }
 };
 
+/**
+ * Loads the latest saved game from localStorage if available.
+ * Converts older save versions to the current structure and validates the result.
+ */
 export const loadGameStateFromLocalStorage = async (): Promise<FullGameState | null> => {
   try {
     const savedDataString = localStorage.getItem(LOCAL_STORAGE_SAVE_KEY);
@@ -723,6 +727,15 @@ export const loadGameStateFromLocalStorage = async (): Promise<FullGameState | n
       }
     }
 
+    if (dataToValidateAndExpand) {
+      const gt = (dataToValidateAndExpand as any).globalTurnNumber;
+      if (typeof gt === 'string') {
+        const parsed = parseInt(gt, 10);
+        dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
+      } else if (gt === undefined || gt === null) {
+        dataToValidateAndExpand.globalTurnNumber = 0;
+      }
+    }
 
     if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
       dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({ ...item, isJunk: item.isJunk ?? false }));
@@ -784,6 +797,10 @@ export const saveGameStateToFile = (gameState: FullGameState): void => {
   }
 };
 
+/**
+ * Reads a saved game from a user-selected file.
+ * Handles version conversion and validation similar to the localStorage load.
+ */
 export const loadGameStateFromFile = async (file: File): Promise<FullGameState | null> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -818,12 +835,22 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
 
           if (dataToValidateAndExpand && !dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
             dataToValidateAndExpand.currentThemeObject = findThemeByName(dataToValidateAndExpand.currentThemeName);
-            if (!dataToValidateAndExpand.currentThemeObject) {
-                 console.warn(`Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during file load. Game state might be incomplete.`);
-            }
+          if (!dataToValidateAndExpand.currentThemeObject) {
+               console.warn(`Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during file load. Game state might be incomplete.`);
           }
+        }
 
-          if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
+        if (dataToValidateAndExpand) {
+          const gt = (dataToValidateAndExpand as any).globalTurnNumber;
+          if (typeof gt === 'string') {
+            const parsed = parseInt(gt, 10);
+            dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
+          } else if (gt === undefined || gt === null) {
+            dataToValidateAndExpand.globalTurnNumber = 0;
+          }
+        }
+
+        if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
             dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({ ...item, isJunk: item.isJunk ?? false }));
             dataToValidateAndExpand.score = dataToValidateAndExpand.score ?? 0;
             dataToValidateAndExpand.stabilityLevel = dataToValidateAndExpand.stabilityLevel ?? DEFAULT_STABILITY_LEVEL;
