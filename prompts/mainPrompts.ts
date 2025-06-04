@@ -46,7 +46,7 @@ Respond ONLY in JSON format with the following structure:
   ],
   "objectiveAchieved"?: false, /* Optional. Set to true if the currentObjective has just been successfully completed by the player's last action. Defaults to false or can be omitted if objective not achieved. */
 
-  "dialogueSetup"?: { /* Optional. Provide this object if the context indicates the start of a conversation with any of the present Characters if starting a new dialogue. If provided, it MUST be valid, and the main "options" array above MAY be empty. */
+  "dialogueSetup"?: { /* Optional. ALWAYS provide this if the Scene implies a start of a conversation with any of the nearby Characters. */
     "participants": [ /* REQUIRED. Array of 1+ NPC names. These characters MUST be from 'Known Characters' OR be part of 'charactersAdded' in this response. DO NOT add Player's Character to the list. */
       "Character Name 1",
       "Character Name 2"?,
