@@ -9,7 +9,7 @@
 import { MapNode, MapEdge } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
 import { NODE_RADIUS, VIEWBOX_WIDTH_INITIAL, VIEWBOX_HEIGHT_INITIAL } from './mapConstants';
-import { getFamilyDiameter } from './mapGraphUtils';
+import { getFamilyDiameter, getParent } from './mapGraphUtils';
 
 export const DEFAULT_K_REPULSION = 20000; 
 export const DEFAULT_K_SPRING = 0.25;     
@@ -134,7 +134,78 @@ const isExternalToGroup = (otherNode: MapNode, groupHostNode: MapNode, allThemeE
     return false;
   }
   
-  return true; 
+  return true;
+};
+
+/**
+ * Calculates the desired spring length for a given edge.
+ * The length is derived from the diameter of the closest parent
+ * region encompassing the edge and whether the connection leaves
+ * that region.
+ *
+ * @param edge - The edge whose ideal length is requested.
+ * @param nodeMap - Map of node IDs to nodes in the current layout.
+ * @param allEdges - All edges used in the layout (for external check).
+ * @param defaultLen - Fallback length if no parent context can be determined.
+ * @returns Object containing the ideal length and metadata about the edge.
+ */
+const getEdgeLayoutInfo = (
+  edge: MapEdge,
+  nodeMap: Map<string, MapNode>,
+  allEdges: MapEdge[],
+  defaultLen: number
+): { idealLength: number; isParentChild: boolean; hasExternal: boolean } => {
+  const source = nodeMap.get(edge.sourceNodeId);
+  const target = nodeMap.get(edge.targetNodeId);
+  if (!source || !target) {
+    return { idealLength: defaultLen, isParentChild: false, hasExternal: false };
+  }
+
+  const srcParent = getParent(source, nodeMap);
+  const tgtParent = getParent(target, nodeMap);
+
+  let parentRef: MapNode | undefined;
+  let childRef: MapNode | undefined;
+  let isParentChild = false;
+
+  if (srcParent && srcParent.id === target.id) {
+    parentRef = target; childRef = source; isParentChild = true;
+  } else if (tgtParent && tgtParent.id === source.id) {
+    parentRef = source; childRef = target; isParentChild = true;
+  } else if (srcParent && tgtParent && srcParent.id === tgtParent.id) {
+    parentRef = srcParent;
+  }
+
+  let diameter = parentRef ? (parentRef.data.visualRadius || NODE_RADIUS) * 2 : defaultLen;
+
+  let hasExternal = false;
+  if (isParentChild && parentRef && childRef) {
+    for (const other of allEdges) {
+      if (other.id === edge.id) continue;
+      if (other.sourceNodeId === childRef.id) {
+        const otherTarget = nodeMap.get(other.targetNodeId);
+        if (otherTarget && otherTarget.id !== parentRef.id && otherTarget.data.parentNodeId !== parentRef.id) {
+          hasExternal = true; break;
+        }
+      } else if (other.targetNodeId === childRef.id) {
+        const otherSrc = nodeMap.get(other.sourceNodeId);
+        if (otherSrc && otherSrc.id !== parentRef.id && otherSrc.data.parentNodeId !== parentRef.id) {
+          hasExternal = true; break;
+        }
+      }
+    }
+  }
+
+  let idealLength = defaultLen;
+  if (isParentChild) {
+    idealLength = hasExternal ? diameter * 0.8 : diameter * 0.4;
+  } else if (parentRef) {
+    idealLength = diameter * 0.6;
+  } else {
+    idealLength = defaultLen * 1.5;
+  }
+
+  return { idealLength, isParentChild, hasExternal };
 };
 
 
@@ -235,56 +306,17 @@ export const applyBasicLayoutAlgorithm = (
         let distance = Math.sqrt(dxS * dxS + dyS * dyS);
         if (distance === 0) distance = 0.1;
 
-        let idealLen = IDEAL_EDGE_LENGTH; // Default
-        let springK = K_SPRING;        // Default
-        let attractionMultiplier = 1.0;   // Default
+        const info = getEdgeLayoutInfo(edge, nodeMap, allThemeEdges, IDEAL_EDGE_LENGTH);
+        let idealLen = info.idealLength;
+        let springK = K_SPRING;
+        let attractionMultiplier = 1.0;
 
-        let parentNodeForLayout: MapNode | undefined = undefined;
-        let childNodeForLayout: MapNode | undefined = undefined;
-        let isTrueParentChildPair = false;
-
-        // Check for actual parent-child relationship first
-        // This relationship dictates the layout for ANY edge connecting this specific parent-child pair.
-        if (
-          sourceNode.data.nodeType !== 'feature' &&
-          (targetNode.data.nodeType === 'feature') &&
-          targetNode.data.parentNodeId === sourceNode.id
-        ) {
-            parentNodeForLayout = sourceNode; childNodeForLayout = targetNode; isTrueParentChildPair = true;
-        } else if (
-          (sourceNode.data.nodeType === 'feature') &&
-          targetNode.data.nodeType !== 'feature' &&
-          sourceNode.data.parentNodeId === targetNode.id
-        ) {
-            parentNodeForLayout = targetNode; childNodeForLayout = sourceNode; isTrueParentChildPair = true;
-        }
-        
-        if (isTrueParentChildPair && parentNodeForLayout && childNodeForLayout) {
-            // This is the DOMINANT rule for this pair of nodes.
-            let hasExternalConnection = false;
-            for (const otherEdge of allThemeEdges) {
-                if (otherEdge.id === edge.id) continue;
-                let connectedNodeId: string | undefined;
-                if (otherEdge.sourceNodeId === childNodeForLayout.id) connectedNodeId = otherEdge.targetNodeId;
-                else if (otherEdge.targetNodeId === childNodeForLayout.id) connectedNodeId = otherEdge.sourceNodeId;
-
-                if (connectedNodeId) {
-                    const connectedMapNode = nodeMap.get(connectedNodeId);
-                    if (connectedMapNode) {
-                        const connectedIsLeaf = connectedMapNode.data.nodeType === 'feature';
-                        if (connectedMapNode.id !== parentNodeForLayout.id && (!connectedIsLeaf || connectedMapNode.data.parentNodeId !== parentNodeForLayout.id)) {
-                            hasExternalConnection = true; break;
-                        }
-                    }
-                }
-            }
-            if (hasExternalConnection) {
-                idealLen = IDEAL_EDGE_LENGTH; springK = K_SPRING * 20; // Strong force to keep at boundary    
-            } else { 
-                idealLen = IDEAL_EDGE_LENGTH * 0.4; springK = K_SPRING * 1.5; // Pull internal leaves closer
-            }
-        } else {
-            idealLen = IDEAL_EDGE_LENGTH * 1.5;
+        if (info.isParentChild) {
+          if (info.hasExternal) {
+            springK = K_SPRING * 20;
+          } else {
+            springK = K_SPRING * 1.5;
+          }
         }
         
         const displacement = distance - idealLen;
