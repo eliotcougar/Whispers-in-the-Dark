@@ -14,6 +14,7 @@ import {
     DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION
 } from '../prompts/dialoguePrompts';
 import { ai } from './geminiClient';
+import { callMinimalCorrectionAI } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 
@@ -309,23 +310,18 @@ Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any 
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) { // Extra retry for this
     try {
       console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 1})`);
-      const response = await ai.models.generateContent({
-        model: MINIMAL_MODEL_NAME, // Will now use gemini-2.5-flash-preview-04-17
-        contents: `${systemInstructionPart}\n\n${userPromptPart}`, 
-        config: {
-            temperature: 1.0, 
-            // Omit thinkingConfig for higher quality (default enabled)
-        }
-      });
-      const memoryText = (response.text ?? '').trim();
-      if (memoryText.length > 0) { // Only log and return if memoryText is actually non-empty
-        console.log (`summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`)
-        return memoryText; 
+      const memoryText = await callMinimalCorrectionAI(
+        userPromptPart,
+        systemInstructionPart
+      );
+      if (memoryText && memoryText.length > 0) { // Only log and return if memoryText is actually non-empty
+        console.log(`summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`);
+        return memoryText;
       }
       // If memoryText is empty, it will fall through and potentially return null after retries.
       // The calling function (useDialogueFlow) has a fallback for null/empty.
       console.warn(`Attempt ${attempt} for memory summary yielded empty text after trim: '${memoryText}'`);
-      if (attempt === MAX_RETRIES + 1) return null; 
+      if (attempt === MAX_RETRIES + 1) return null;
     } catch (error) {
       console.error(`Error generating memory summary (Attempt ${attempt}/${MAX_RETRIES + 1}):`, error);
       if (attempt === MAX_RETRIES + 1) return null;
