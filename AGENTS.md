@@ -9,6 +9,7 @@
 1. Ensure Node.js (version >=18) is installed.
 2. Run `npm install` once to install dependencies.
 3. Run `npm run build` to verify TypeScript compilation and bundling succeeds.
+   The build uses TypeScript strict mode so type errors will cause failures.
 
 ## Specific terms:
   - "REALITY SHIFT" - process of switching between Themes.

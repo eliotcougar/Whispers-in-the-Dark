@@ -1,6 +1,11 @@
 
+/**
+ * @file mapPrompts.ts
+ * @description Prompt templates and valid value lists for the map update AI.
+ */
+
 const VALID_NODE_STATUSES_FOR_MAP_AI = `['undiscovered', 'discovered', 'rumored', 'quest_target']`;
-const VALID_EDGE_TYPES_FOR_MAP_AI = `['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook', 'containment']`;
+const VALID_EDGE_TYPES_FOR_MAP_AI = `['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook']`;
 const VALID_EDGE_STATUSES_FOR_MAP_AI = `['open', 'accessible', 'closed', 'locked', 'blocked', 'hidden', 'rumored', 'one_way', 'collapsed', 'removed', 'active', 'inactive']`;
 const VALID_NODE_TYPES_FOR_MAP_AI = `['region', 'city', 'building', 'room', 'feature']`;
 
@@ -75,8 +80,7 @@ CRITICAL INSTRUCTIONS:
     - When adding a Main Node via "nodesToAdd": Its "placeName" MUST correspond to a location name that the storyteller AI has indicated as a significant, named location OR be derived from "All Known Main Locations for this Theme" if adding one not yet on map.
 - Leaf Nodes (isLeaf: true):
     - Are detailed sub-locations within or connected to other nodes.
-    - Use "parentNodeId" in "data" or "newData" to specify the NAME of the parent node for any hierarchical relationship. Can be null to clear.
-    - Typically, an edge of "type": "containment" should connect a node to its parent.
+    - Use "parentNodeId" in "data" or "newData" to specify the NAME of the parent node for any hierarchical relationship. Can be null to clear. The hierarchy is defined solely via parentNodeId.
 - Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. Avoid creating duplicate nodes.
 - You MUST use one of the EXACT string values provided for 'status' (node/edge) or 'type' (edge) fields.
 - If the narrative suggests a generic leaf node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing leaf node's "placeName" (if name changed via newData.placeName) and "data" via "nodesToUpdate", rather than adding a new node.

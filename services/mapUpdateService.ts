@@ -32,6 +32,10 @@ export interface MapUpdateServiceResult {
   } | null;
 }
 
+/**
+ * Sends a prompt and system instruction to the auxiliary AI model and returns
+ * the raw response.
+ */
 const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promise<GenerateContentResponse> => {
   return ai.models.generateContent({
     model: AUXILIARY_MODEL_NAME, // Will now use gemini-2.5-flash-preview-04-17
@@ -45,6 +49,9 @@ const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promi
   });
 };
 
+/**
+ * Parses the AI's map update response into an AIMapUpdatePayload structure.
+ */
 const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | null => {
   let jsonStr = responseText.trim();
   const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
@@ -347,7 +354,7 @@ Based on the Narrative Context and existing map context, provide a JSON response
 Key points:
 - If the narrative mentions a main location that is NOT yet on the map, add it.
 - For ALL nodes in 'nodesToAdd', you MUST provide 'description' (non-empty string, <300 chars), 'aliases' (array of strings, can be empty), and 'status'.
-- If any new specific places (leaf nodes) within or between main locations are described, add them, and connect to their respective parent Nodes with type="containment" edges.
+  - If any new specific places (leaf nodes) within or between main locations are described, add them and specify their parent via \`parentNodeId\`.
 - All nodes MUST represent physical locations.
 - If connections (paths, doors, etc.) are revealed or changed, update edges.
 - If new details are revealed about a location (main or leaf), update description and/or aliases.

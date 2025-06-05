@@ -8,7 +8,7 @@ import { VIEWBOX_WIDTH_INITIAL, VIEWBOX_HEIGHT_INITIAL } from '../utils/mapConst
 
 export interface UseMapInteractionsResult {
   viewBox: string;
-  svgRef: React.RefObject<SVGSVGElement>;
+  svgRef: React.RefObject<SVGSVGElement | null>;
   handleMouseDown: (e: React.MouseEvent<SVGSVGElement>) => void;
   handleMouseMove: (e: React.MouseEvent<SVGSVGElement>) => void;
   handleMouseUp: () => void;
@@ -24,7 +24,7 @@ export const useMapInteractions = (
   initialViewBox: string = `${-VIEWBOX_WIDTH_INITIAL / 2} ${-VIEWBOX_HEIGHT_INITIAL / 2} ${VIEWBOX_WIDTH_INITIAL} ${VIEWBOX_HEIGHT_INITIAL}`
 ): UseMapInteractionsResult => {
   const [viewBox, setViewBox] = useState(initialViewBox);
-  const svgRef = useRef<SVGSVGElement>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [lastScreenDragPoint, setLastScreenDragPoint] = useState<{ x: number; y: number } | null>(null);
   const [lastPinchDistance, setLastPinchDistance] = useState<number | null>(null);
