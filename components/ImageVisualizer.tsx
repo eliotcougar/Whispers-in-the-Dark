@@ -84,7 +84,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     const mentionedPlaces: string[] = [];
     // Derive places from mapData (main nodes)
     mapData
-      .filter(node => node.themeName === currentTheme.name && !node.data.isLeaf) 
+      .filter(node => node.themeName === currentTheme.name)
       .forEach(node => {
         if (currentSceneDescription.toLowerCase().includes(node.placeName.toLowerCase())) {
           prompt += ` The ${node.placeName} is prominent, described as: ${node.data.description || 'A notable location.'}.`; 

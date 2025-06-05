@@ -320,13 +320,13 @@ export const updateMapFromAIData_Service = async (
   if (previousMapNodeId) {
     const prevNode = themeNodeIdMap.get(previousMapNodeId);
     if (prevNode) {
-      previousMapNodeContext = `Player's Previous Map Node: Was at "${prevNode.placeName}" (ID: ${prevNode.id}, Type: ${prevNode.data.isLeaf ? 'Leaf' : 'Main'}, Visited: ${!!prevNode.data.visited}).`;
+      previousMapNodeContext = `Player's Previous Map Node: Was at "${prevNode.placeName}" (ID: ${prevNode.id}, Type: ${prevNode.data.nodeType === 'feature' ? 'Leaf' : 'Main'}, Visited: ${!!prevNode.data.visited}).`;
     }
   }
 
   const existingMapContext = `
 Current Map Nodes (for your reference):
-${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- Node: "${n.placeName}" (ID: ${n.id}, Leaf: ${!!n.data.isLeaf}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
+${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- Node: "${n.placeName}" (ID: ${n.id}, Leaf: ${n.data.nodeType === 'feature'}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
 
 Current Map Edges (for your reference):
 ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- Edge from node ID ${e.sourceNodeId} to node ID ${e.targetNodeId}, Type: ${e.data.type || 'N/A'}, Status: ${e.data.status || 'N/A'}`).join('\n') : "None exist yet."}
@@ -459,7 +459,6 @@ Key points:
 
   const finalEdgesToAdd: typeof edgesToAdd_mut = [];
   for (const edgeAdd of edgesToAdd_mut) {
-      if (edgeAdd.data?.type === 'containment') continue;
       const removeIndex = edgesToRemove_mut.findIndex(er => {
           const namesMatch = (er.sourcePlaceName.toLowerCase() === edgeAdd.sourcePlaceName.toLowerCase() && er.targetPlaceName.toLowerCase() === edgeAdd.targetPlaceName.toLowerCase()) ||
                            (er.sourcePlaceName.toLowerCase() === edgeAdd.targetPlaceName.toLowerCase() && er.targetPlaceName.toLowerCase() === edgeAdd.sourcePlaceName.toLowerCase());
@@ -486,94 +485,55 @@ Key points:
     return fromBatch;
   };
 
-  // --- Two-Pass Node Addition ---
-  const mainNodesToAddOps = (nodesToAddOps_mut || []).filter(op => !op.data?.isLeaf);
-  const leafNodesToAddOps = (nodesToAddOps_mut || []).filter(op => op.data?.isLeaf);
+  // --- Hierarchical Node Addition ---
+  let unresolvedQueue: AIMapUpdatePayload['nodesToAdd'] = [...(nodesToAddOps_mut || [])];
 
-  // Pass 1: Add Main Nodes
-  mainNodesToAddOps.forEach(nodeAddOp => {
-    // Check if a main node with this name already exists in the theme
-    const existingMainNode = findNodeByIdentifier(nodeAddOp.placeName) as MapNode | undefined;
-    if (existingMainNode && !existingMainNode.data.isLeaf) {
-        console.warn(`MapUpdate (nodesToAdd - Pass 1): Main node "${nodeAddOp.placeName}" already exists. Skipping add.`);
-        if (!newNodesInBatchIdNameMap[existingMainNode.placeName]) {
-            newNodesInBatchIdNameMap[existingMainNode.placeName] = { id: existingMainNode.id, name: existingMainNode.placeName };
-        }
-        return;
-    }
-
-    const baseNameForId = nodeAddOp.placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-    const newNodeId = `${currentTheme.name}_main_${baseNameForId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
-
-    const newNodeData: MapNodeData = {
-        description: nodeAddOp.data.description || '', // Ensure string
-        aliases: nodeAddOp.data.aliases || [],
-        status: nodeAddOp.data.status!,
-        isLeaf: false, // Explicitly false for main nodes
-        parentNodeId: nodeAddOp.data.parentNodeId,
-        nodeType: nodeAddOp.data.nodeType!,
-        ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, isLeaf, status, nodeType, visited, ...rest }) => rest)(nodeAddOp.data) : {})
-    };
-
-    const newNode: MapNode = { id: newNodeId, themeName: currentTheme.name, placeName: nodeAddOp.placeName, position: nodeAddOp.initialPosition || { x: 0, y: 0 }, data: newNodeData };
-    newMapData.nodes.push(newNode);
-    themeNodeIdMap.set(newNodeId, newNode);
-    themeNodeNameMap.set(nodeAddOp.placeName, newNode);
-    newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
-  });
-
-  // Pass 2: Add Leaf Nodes
-  leafNodesToAddOps.forEach(nodeAddOp => {
-    // Check if a leaf node with this name (and potentially same parent if specified) already exists
-    const potentialLeaf = findNodeByIdentifier(nodeAddOp.placeName) as MapNode | undefined;
-    let existingLeafNode: MapNode | undefined;
-    if (potentialLeaf && potentialLeaf.data.isLeaf) {
-        if (nodeAddOp.data?.parentNodeId) {
-            const parent = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
-            if (parent && potentialLeaf.data.parentNodeId === parent.id) {
-                existingLeafNode = potentialLeaf;
-            }
+  while (unresolvedQueue.length > 0) {
+    const nextQueue: typeof unresolvedQueue = [];
+    for (const nodeAddOp of unresolvedQueue) {
+      let resolvedParentId: string | undefined = undefined;
+      if (nodeAddOp.data?.parentNodeId) {
+        const parent = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
+        if (parent) {
+          resolvedParentId = parent.id;
         } else {
-            existingLeafNode = potentialLeaf;
+          nextQueue.push(nodeAddOp);
+          continue;
         }
-    }
-    if (existingLeafNode) {
-        console.warn(`MapUpdate (nodesToAdd - Pass 2): Leaf node "${nodeAddOp.placeName}" seems to already exist. Skipping add.`);
-         if (!newNodesInBatchIdNameMap[existingLeafNode.placeName]) {
-            newNodesInBatchIdNameMap[existingLeafNode.placeName] = { id: existingLeafNode.id, name: existingLeafNode.placeName };
-        }
-        return;
-    }
+      }
 
-    const baseNameForId = nodeAddOp.placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-    const newNodeId = `${currentTheme.name}_leaf_${baseNameForId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
+      const baseNameForId = nodeAddOp.placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+      const newNodeId = `${currentTheme.name}_node_${baseNameForId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
 
-    let resolvedParentNodeId: string | undefined = undefined;
-    if (nodeAddOp.data?.parentNodeId) {
-        const parentNode = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
-        if (parentNode) {
-            resolvedParentNodeId = parentNode.id;
-        } else {
-            console.warn(`MapUpdate (nodesToAdd - Pass 2): Leaf node "${nodeAddOp.placeName}" specifies parent NAME "${nodeAddOp.data.parentNodeId}" which was not found among existing or newly added nodes.`);
-        }
-    }
-
-    const newNodeData: MapNodeData = {
+      const newNodeData: MapNodeData = {
         description: nodeAddOp.data.description || '',
         aliases: nodeAddOp.data.aliases || [],
         status: nodeAddOp.data.status!,
-        isLeaf: true, // Explicitly true for leaf nodes
-        parentNodeId: resolvedParentNodeId,
+        parentNodeId: resolvedParentId,
         nodeType: nodeAddOp.data.nodeType!,
-        ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, isLeaf, status, nodeType, visited, ...rest }) => rest)(nodeAddOp.data) : {})
-    };
+        ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, status, nodeType, visited, ...rest }) => rest)(nodeAddOp.data) : {})
+      };
 
-    const newNode: MapNode = { id: newNodeId, themeName: currentTheme.name, placeName: nodeAddOp.placeName, position: nodeAddOp.initialPosition || { x: 0, y: 0 }, data: newNodeData };
-    newMapData.nodes.push(newNode);
-    themeNodeIdMap.set(newNodeId, newNode);
-    themeNodeNameMap.set(nodeAddOp.placeName, newNode);
-    newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
-  });
+      const newNode: MapNode = {
+        id: newNodeId,
+        themeName: currentTheme.name,
+        placeName: nodeAddOp.placeName,
+        position: nodeAddOp.initialPosition || { x: 0, y: 0 },
+        data: newNodeData,
+      };
+
+      newMapData.nodes.push(newNode);
+      themeNodeIdMap.set(newNodeId, newNode);
+      themeNodeNameMap.set(nodeAddOp.placeName, newNode);
+      newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
+    }
+
+    if (nextQueue.length === unresolvedQueue.length) {
+      console.warn('MapUpdate: Some nodes could not be added due to unresolved parents:', nextQueue.map(n => n.placeName).join(', '));
+      break;
+    }
+    unresolvedQueue = nextQueue;
+  }
 
   // Process Node Updates (after all adds, so placeName changes are based on initial state of batch)
   (validParsedPayload.nodesToUpdate || []).forEach(nodeUpdateOp => {
@@ -604,7 +564,6 @@ Key points:
             if (nodeUpdateOp.newData.description !== undefined) node.data.description = nodeUpdateOp.newData.description;
             if (nodeUpdateOp.newData.aliases !== undefined) node.data.aliases = nodeUpdateOp.newData.aliases;
             if (nodeUpdateOp.newData.status !== undefined) node.data.status = nodeUpdateOp.newData.status;
-            if (nodeUpdateOp.newData.isLeaf !== undefined) node.data.isLeaf = nodeUpdateOp.newData.isLeaf;
             if (nodeUpdateOp.newData.nodeType !== undefined) node.data.nodeType = nodeUpdateOp.newData.nodeType;
 
             // Update parentNodeId based on resolution
@@ -612,7 +571,7 @@ Key points:
 
             // Apply other custom data, excluding handled fields
             for (const key in nodeUpdateOp.newData) {
-            if (!['description', 'aliases', 'status', 'isLeaf', 'parentNodeId', 'nodeType', 'placeName', 'visited'].includes(key)) {
+            if (!['description', 'aliases', 'status', 'parentNodeId', 'nodeType', 'placeName', 'visited'].includes(key)) {
                 (node.data as any)[key] = (nodeUpdateOp.newData as any)[key];
             }
             }
@@ -683,7 +642,6 @@ Key points:
   });
 
   (validParsedPayload.edgesToUpdate || []).forEach(edgeUpdateOp => {
-    if (edgeUpdateOp.newData.type === 'containment') return;
     const sourceNodeRef = findNodeByIdentifier(edgeUpdateOp.sourcePlaceName);
     const targetNodeRef = findNodeByIdentifier(edgeUpdateOp.targetPlaceName);
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
@@ -706,7 +664,6 @@ Key points:
   });
 
   edgesToRemove_mut.forEach(edgeRemoveOp => {
-      if (edgeRemoveOp.type === 'containment') return;
       const sourceNodeRef = findNodeByIdentifier(edgeRemoveOp.sourcePlaceName);
       const targetNodeRef = findNodeByIdentifier(edgeRemoveOp.targetPlaceName);
       if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge removal due to missing source ("${edgeRemoveOp.sourcePlaceName}") or target ("${edgeRemoveOp.targetPlaceName}") node.`); return; }

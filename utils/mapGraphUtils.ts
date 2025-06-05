@@ -73,7 +73,7 @@ export const getFamilyDiameter = (
   if (children.length === 0) return 0;
   if (children.length === 1) {
     const r = children[0].data.visualRadius || NODE_RADIUS;
-    return r * 2;
+    return r * 2 + NODE_RADIUS * 0.2;
   }
   let max = 0;
   for (let i = 0; i < children.length; i++) {

@@ -477,7 +477,7 @@ export async function parseAIResponse(
 ): Promise<GameStateFromAI | null> {
     const jsonStr = sanitizeJsonString(responseText);
 
-    const allRelevantMainMapNodesForCorrection: MapNode[] = currentThemeMapData.nodes.filter(node => !node.data.isLeaf);
+    const allRelevantMainMapNodesForCorrection: MapNode[] = currentThemeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
 
     try {
         const parsedData = JSON.parse(jsonStr) as Partial<GameStateFromAI>;

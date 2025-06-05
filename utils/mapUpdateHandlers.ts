@@ -38,7 +38,7 @@ export const handleMapUpdates = async (
     const originalLoadingReason = loadingReason;
     setLoadingReason('map');
     const knownMainMapNodesForTheme: MapNode[] = draftState.mapData.nodes.filter(
-      node => node.themeName === themeContextForResponse.name && !node.data.isLeaf
+      node => node.themeName === themeContextForResponse.name && node.data.nodeType !== 'feature'
     );
     const mapUpdateResult = await updateMapFromAIData_Service(
       aiData,
@@ -72,10 +72,13 @@ export const handleMapUpdates = async (
 
       if (mapUpdateResult.debugInfo?.parsedPayload?.nodesToAdd) {
         for (const nodeAdd of mapUpdateResult.debugInfo.parsedPayload.nodesToAdd) {
-          const isMainNode = !nodeAdd.data?.isLeaf;
+          const isMainNode = nodeAdd.data?.nodeType !== 'feature';
           if (isMainNode) {
             const newlyAddedNodeInDraft = draftState.mapData.nodes.find(
-              n => n.placeName === nodeAdd.placeName && n.themeName === themeContextForResponse.name && !n.data.isLeaf
+              n =>
+                n.placeName === nodeAdd.placeName &&
+                n.themeName === themeContextForResponse.name &&
+                n.data.nodeType !== 'feature'
             );
             if (
               newlyAddedNodeInDraft &&

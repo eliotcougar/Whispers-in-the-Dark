@@ -12,8 +12,6 @@ interface MapControlsProps {
   setLayoutKSpring: (val: number) => void;
   layoutIdealEdgeLength: number;
   setLayoutIdealEdgeLength: (val: number) => void;
-  layoutKCentering: number;
-  setLayoutKCentering: (val: number) => void;
   layoutKUntangle: number;
   setLayoutKUntangle: (val: number) => void;
   layoutKEdgeNodeRepulsion: number;
@@ -24,8 +22,6 @@ interface MapControlsProps {
   setLayoutMaxDisplacement: (val: number) => void;
   layoutIterations: number;
   setLayoutIterations: (val: number) => void;
-  isNestedView: boolean;
-  onToggleNestedView: () => void;
   onReset: () => void;
   onRefreshLayout: () => void;
 }
@@ -43,7 +39,7 @@ const renderParameterControl = (
 ) => (
   <div className="map-control-group">
     <label htmlFor={id} className="map-control-label">
-      {label}: {value.toFixed(id === 'layoutKCentering' || id === 'layoutKSpring' || id === 'layoutDampingFactor' ? 3 : step === 0.1 ? 1 : 0)}
+      {label}: {value.toFixed(id === 'layoutKSpring' || id === 'layoutDampingFactor' ? 3 : step === 0.1 ? 1 : 0)}
     </label>
     <input type="range" id={id} min={min} max={max} step={step} value={value} onChange={e => onChange(parseFloat(e.target.value))} className="map-control-input" />
     {explanation && <p className="map-control-explanation">{explanation}</p>}
@@ -62,8 +58,6 @@ const MapControls: React.FC<MapControlsProps> = props => {
     setLayoutKSpring,
     layoutIdealEdgeLength,
     setLayoutIdealEdgeLength,
-    layoutKCentering,
-    setLayoutKCentering,
     layoutKUntangle,
     setLayoutKUntangle,
     layoutKEdgeNodeRepulsion,
@@ -74,8 +68,6 @@ const MapControls: React.FC<MapControlsProps> = props => {
     setLayoutMaxDisplacement,
     layoutIterations,
     setLayoutIterations,
-    isNestedView,
-    onToggleNestedView,
     onReset,
     onRefreshLayout,
   } = props;
@@ -87,7 +79,6 @@ const MapControls: React.FC<MapControlsProps> = props => {
           {renderParameterControl('Repulsion', 'layoutKRepulsion', layoutKRepulsion, setLayoutKRepulsion, 1000, 50000, 1000)}
           {renderParameterControl('Spring', 'layoutKSpring', layoutKSpring, setLayoutKSpring, 0.01, 0.5, 0.01)}
           {renderParameterControl('Edge Length', 'layoutIdealEdgeLength', layoutIdealEdgeLength, setLayoutIdealEdgeLength, 50, 300, 10)}
-          {renderParameterControl('Centering', 'layoutKCentering', layoutKCentering, setLayoutKCentering, 0.001, 0.1, 0.001)}
           {renderParameterControl('Untangle', 'layoutKUntangle', layoutKUntangle, setLayoutKUntangle, 0, 20000, 1000)}
           {renderParameterControl('Node/Edge Repel', 'layoutKEdgeNodeRepulsion', layoutKEdgeNodeRepulsion, setLayoutKEdgeNodeRepulsion, 0, 20000, 1000)}
           {renderParameterControl('Damping', 'layoutDampingFactor', layoutDampingFactor, setLayoutDampingFactor, 0.0, 0.99, 0.01)}
@@ -99,9 +90,6 @@ const MapControls: React.FC<MapControlsProps> = props => {
         </div>
       )}
       <div className="map-action-buttons-row">
-        <button onClick={onToggleNestedView} className="map-control-button">
-          {isNestedView ? 'Force Layout' : 'Nested Layout'}
-        </button>
         <button onClick={onRefreshLayout} className="map-control-button">
           Refresh Layout
         </button>

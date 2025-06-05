@@ -71,7 +71,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
 
       try {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
-          (node) => node.themeName === currentThemeObj.name && !node.data.isLeaf
+          node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
         );
         const turnData = await fetchDialogueTurn(
           currentThemeObj,

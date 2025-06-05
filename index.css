@@ -309,12 +309,14 @@ body {
   fill: #facc15; /* yellow-400 */
   stroke: #eab308; /* yellow-500 */
   stroke-width: 10px;
+  fill-opacity: 0.15;
 }
 .map-node-circle.current.leaf {
   /* Current leaf node style */
   fill: #fde047; /* yellow-300 */
   stroke: #facc15; /* yellow-400 */
   stroke-width: 10px;
+  fill-opacity: 0.15;
 }
 .map-node-circle.quest_target {
   stroke: #fb923c; /* orange-400 */

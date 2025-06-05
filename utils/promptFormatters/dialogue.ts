@@ -192,7 +192,10 @@ export const formatReturnToThemePostShiftPrompt = (
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
   const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
-    n => n.themeName === theme.name && !n.data.isLeaf
+    n =>
+      n.themeName === theme.name &&
+      n.data.nodeType !== 'feature' &&
+      n.data.nodeType !== 'room'
   );
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
   const charactersContext = formatKnownCharactersForPrompt(allCharactersForTheme, false);

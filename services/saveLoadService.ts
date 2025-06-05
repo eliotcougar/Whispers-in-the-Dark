@@ -14,7 +14,7 @@ import {
 } from '../utils/mapLayoutUtils';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 
-import { convertV1toV2Intermediate, convertV2toV3Shape, V1SavedGameState, V2IntermediateSavedGameState, getDefaultMapLayoutConfig } from "./saveConverters";
+import { convertV2toV3Shape, V2IntermediateSavedGameState, getDefaultMapLayoutConfig } from "./saveConverters";
 import { findThemeByName } from "./themeUtils";
 
 
@@ -381,11 +381,7 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
           let parsedData = JSON.parse(event.target.result);
           let dataToValidateAndExpand: SavedGameDataShape | null = null;
 
-          if (parsedData && parsedData.saveGameVersion === "1.0.0") {
-            console.log("V1 save data detected from file. Attempting conversion to V3...");
-            const v2Intermediate = await convertV1toV2Intermediate(parsedData as V1SavedGameState);
-            dataToValidateAndExpand = convertV2toV3Shape(v2Intermediate);
-          } else if (parsedData && parsedData.saveGameVersion === "2") {
+          if (parsedData && parsedData.saveGameVersion === "2") {
              console.log("V2 save data detected from file. Attempting conversion to V3...");
              dataToValidateAndExpand = convertV2toV3Shape(parsedData as V2IntermediateSavedGameState);
           } else if (parsedData && (parsedData.saveGameVersion === CURRENT_SAVE_GAME_VERSION || (typeof parsedData.saveGameVersion === 'string' && parsedData.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0])))) {

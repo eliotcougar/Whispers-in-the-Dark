@@ -57,7 +57,12 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       finalStateBeforeShift.gameLog
     );
 
-    const themeMainMapNodes = finalStateBeforeShift.mapData.nodes.filter(n => n.themeName === themeToSummarize.name && !n.data.isLeaf);
+    const themeMainMapNodes = finalStateBeforeShift.mapData.nodes.filter(
+      n =>
+        n.themeName === themeToSummarize.name &&
+        n.data.nodeType !== 'feature' &&
+        n.data.nodeType !== 'room'
+    );
     const themeCharacters = finalStateBeforeShift.allCharacters.filter(c => c.themeName === themeToSummarize.name);
 
     const themeMemory: ThemeMemory = {

@@ -189,7 +189,7 @@ export const attemptMatchAndSetNode = (
     }
   
     // Tie-breaker 2: Prefer non-leaf nodes
-    const nonLeafMatches = matchingNodesByNameOrAlias.filter(n => !n.data.isLeaf);
+    const nonLeafMatches = matchingNodesByNameOrAlias.filter(n => n.data.nodeType !== 'feature');
     if (nonLeafMatches.length > 0) {
       const chosenNonLeaf = nonLeafMatches[0]; // Could add more heuristics like name length later if needed
       console.log(`MapNodeMatcher (${source}): Tie-breaker: Chose non-leaf node "${chosenNonLeaf.placeName}" (ID: ${chosenNonLeaf.id}).`);
@@ -237,10 +237,11 @@ export const selectBestMatchingMapNode = (
       else if (normalizedLocalPlaceForEarlyMatch.includes(normName) && normName.length > 0) currentMatchScore = 800 + (normName.length * 0.5);
 
       if (currentMatchScore > 0) {
+        const isLeafNode = node.data.nodeType === 'feature';
         exactMatches.push({
           nodeId: node.id,
-          score: currentMatchScore + (node.data.isLeaf ? EXACT_MATCH_LEAF_BONUS : 0),
-          isLeaf: !!node.data.isLeaf,
+          score: currentMatchScore + (isLeafNode ? EXACT_MATCH_LEAF_BONUS : 0),
+          isLeaf: isLeafNode,
           nameLength: nameOrAlias.length
         });
       }
@@ -326,8 +327,10 @@ export const selectBestMatchingMapNode = (
     } else if (maxScoreForThisNodeCandidate === overallBestScore && bestMatchNodeId) {
       const prevBestNode = themeNodes.find(n => n.id === bestMatchNodeId);
       if (prevBestNode) {
-        if (node.data.isLeaf && !prevBestNode.data.isLeaf) bestMatchNodeId = node.id; 
-        else if (!node.data.isLeaf && prevBestNode.data.isLeaf) { /* Keep prev */ }
+        const nodeIsLeaf = node.data.nodeType === 'feature';
+        const prevIsLeaf = prevBestNode.data.nodeType === 'feature';
+        if (nodeIsLeaf && !prevIsLeaf) bestMatchNodeId = node.id;
+        else if (!nodeIsLeaf && prevIsLeaf) { /* Keep prev */ }
         else if (normalizeStringForMatching(node.placeName).length > normalizeStringForMatching(prevBestNode.placeName).length) bestMatchNodeId = node.id;
       }
     }
@@ -335,8 +338,8 @@ export const selectBestMatchingMapNode = (
   
   if (bestMatchNodeId && overallBestScore > 0) {
     const bestNode = themeNodes.find(n => n.id === bestMatchNodeId);
-    if (bestNode && !bestNode.data.isLeaf && !bestNode.data.parentNodeId) { 
-      const leafChildren = themeNodes.filter(leaf => leaf.data.isLeaf && leaf.data.parentNodeId === bestNode.id);
+    if (bestNode && bestNode.data.nodeType !== 'feature' && !bestNode.data.parentNodeId) {
+      const leafChildren = themeNodes.filter(leaf => leaf.data.nodeType === 'feature' && leaf.data.parentNodeId === bestNode.id);
       for (const leafChild of leafChildren) {
         const leafName = leafChild.placeName;
         const normalizedLeafName = normalizeStringForMatching(leafName);

@@ -14,7 +14,6 @@ import { parseAIResponse } from '../services/aiResponseParser';
 import { getThemesFromPacks } from '../themes';
 import { CURRENT_SAVE_GAME_VERSION } from '../constants';
 import { findThemeByName } from '../services/themeUtils';
-import { fetchMapHierarchyFromLocation_Service } from '../services/mapHierarchyService';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
   formatNewGameFirstTurnPrompt,
@@ -222,7 +221,12 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
       let prompt = '';
       if (isTransitioningFromShift && draftState.themeHistory[themeObjToLoad.name]) {
-        const currentThemeMainMapNodes = draftState.mapData.nodes.filter((n) => n.themeName === themeObjToLoad.name && !n.data.isLeaf);
+        const currentThemeMainMapNodes = draftState.mapData.nodes.filter(
+          n =>
+            n.themeName === themeObjToLoad.name &&
+            n.data.nodeType !== 'feature' &&
+            n.data.nodeType !== 'room'
+        );
         const currentThemeCharacters = draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name);
         prompt = formatReturnToThemePostShiftPrompt(
           themeObjToLoad,
@@ -268,31 +272,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           forceEmptyInventory: !isTransitioningFromShift && isRestart,
         });
 
-        if (!isTransitioningFromShift && !draftState.themeHistory[themeObjToLoad.name]) {
-          const hierarchy = await fetchMapHierarchyFromLocation_Service(
-            draftState.localPlace || '',
-            draftState.currentScene,
-            themeObjToLoad
-          );
-          if (hierarchy) {
-            hierarchy.nodes.forEach(n => {
-              if (!draftState.mapData.nodes.some(ex => ex.placeName === n.placeName && ex.themeName === n.themeName)) {
-                draftState.mapData.nodes.push(n);
-              }
-            });
-
-            // Assign topmost parent to orphan nodes
-            const roots = draftState.mapData.nodes.filter(n => n.themeName === themeObjToLoad.name && !n.data.parentNodeId);
-            if (roots.length > 0) {
-              const topParentId = roots[0].id;
-              draftState.mapData.nodes.forEach(n => {
-                if (n.themeName === themeObjToLoad.name && !n.data.parentNodeId && n.id !== topParentId) {
-                  n.data.parentNodeId = topParentId;
-                }
-              });
-            }
-          }
-        }
 
         setHasGameBeenInitialized(true);
         draftState.pendingNewThemeNameAfterShift = null;
