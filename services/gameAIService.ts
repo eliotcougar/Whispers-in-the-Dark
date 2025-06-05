@@ -36,7 +36,7 @@ export const executeAIMainTurn = async (
                     systemInstruction: systemInstructionForCall,
                     responseMimeType: "application/json",
                     temperature: 1.0,
-                    thinkingConfig: { thinkingBudget: 0 } // Disable thinking for lower latency
+                    thinkingConfig: { thinkingBudget: 4096 } // Disable thinking for lower latency
                 }
             });
             // Return the raw response. Parsing and processing happen in useGameLogic.
