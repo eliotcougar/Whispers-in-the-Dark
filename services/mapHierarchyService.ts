@@ -64,7 +64,6 @@ Provide an array of location objects from largest region down to the player's lo
       const parsed = JSON.parse(cleaned);
       if (Array.isArray(parsed)) {
         const newNodes: MapNode[] = [];
-        const newEdges: MapEdge[] = [];
         const idMap: Record<string, string> = {};
         parsed.forEach((obj: RawHierarchyNode) => {
           const base = obj.placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
@@ -84,15 +83,12 @@ Provide an array of location objects from largest region down to the player's lo
             const childId = idMap[obj.placeName];
             const parentId = idMap[obj.parentPlaceName];
             if (childId && parentId) {
-              const edgeId = `${childId}_${parentId}_containment`;
-              const edgeData: MapEdgeData = { type: 'containment', status: 'open' };
-              newEdges.push({ id: edgeId, sourceNodeId: parentId, targetNodeId: childId, data: edgeData });
               const childNode = newNodes.find(n => n.id === childId);
               if (childNode) childNode.data.parentNodeId = parentId;
             }
           }
         });
-        return { nodes: newNodes, edges: newEdges, debugInfo };
+        return { nodes: newNodes, edges: [], debugInfo };
       }
     } catch (e) {
       console.error(`MapHierarchyService attempt ${attempt + 1} failed:`, e);

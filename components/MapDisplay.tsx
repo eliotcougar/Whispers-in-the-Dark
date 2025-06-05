@@ -101,11 +101,16 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     return mapData.nodes.filter(node => node.themeName === currentThemeName);
   }, [mapData.nodes, currentThemeName]);
 
-  /** Edges belonging to the current theme. */
+  /** Edges belonging to the current theme (excluding old containment edges). */
   const currentThemeEdges = useMemo(() => {
     if (!currentThemeName) return [] as MapEdge[];
     const themeNodeIds = new Set(currentThemeNodes.map(node => node.id));
-    return mapData.edges.filter(edge => themeNodeIds.has(edge.sourceNodeId) && themeNodeIds.has(edge.targetNodeId));
+    return mapData.edges.filter(
+      edge =>
+        themeNodeIds.has(edge.sourceNodeId) &&
+        themeNodeIds.has(edge.targetNodeId) &&
+        edge.data.type !== 'containment'
+    );
   }, [mapData.edges, currentThemeNodes, currentThemeName]);
 
   /** Prepares nodes for layout and runs the force algorithm. */
@@ -168,9 +173,22 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
         DAMPING_FACTOR: layoutDampingFactor,
         MAX_DISPLACEMENT: layoutMaxDisplacement,
       };
+      const parentChildEdges: MapEdge[] = [];
+      preparedNodes.forEach(node => {
+        if (node.data.parentNodeId) {
+          parentChildEdges.push({
+            id: `pc_${node.data.parentNodeId}_${node.id}`,
+            sourceNodeId: node.data.parentNodeId,
+            targetNodeId: node.id,
+            data: { type: 'parent-child' },
+          });
+        }
+      });
+      const layoutEdges = [...currentThemeEdges, ...parentChildEdges];
+
       const nodesAfterLayout = applyBasicLayoutAlgorithm(
         preparedNodes,
-        currentThemeEdges,
+        layoutEdges,
         VIEWBOX_WIDTH_INITIAL,
         VIEWBOX_HEIGHT_INITIAL,
         layoutIterations,

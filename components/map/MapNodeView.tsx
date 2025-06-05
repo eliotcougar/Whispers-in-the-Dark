@@ -138,12 +138,13 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
     let content = `${node.placeName}`;
+    if (node.data.nodeType) content += `\nType: ${node.data.nodeType}`;
     if (node.data.description) content += `\nDescription: ${node.data.description}`;
     if (node.data.aliases && node.data.aliases.length > 0) content += `\nAliases: ${node.data.aliases.join(', ')}`;
     if (node.data.status) content += `\nStatus: ${node.data.status}`;
-    if (node.data.isLeaf && node.data.parentNodeId) {
+    if (node.data.parentNodeId) {
       const parentNode = nodes.find(n => n.id === node.data.parentNodeId);
-      content += `\n(Part of: ${parentNode?.placeName || 'Unknown Location'})`;
+      content += `\n(Parent: ${parentNode?.placeName || 'Unknown Location'})`;
     }
     setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15 });
   };

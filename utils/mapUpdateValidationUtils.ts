@@ -7,7 +7,7 @@ import { AIMapUpdatePayload, MapNodeData, MapEdgeData } from '../types'; // AINo
 
 export const VALID_NODE_STATUS_VALUES: ReadonlyArray<MapNodeData['status']> = ['undiscovered', 'discovered', 'rumored', 'quest_target'];
 export const VALID_NODE_TYPE_VALUES: ReadonlyArray<NonNullable<MapNodeData['nodeType']>> = ['region', 'city', 'building', 'room', 'feature'];
-export const VALID_EDGE_TYPE_VALUES: ReadonlyArray<MapEdgeData['type']> = ['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook', 'containment'];
+export const VALID_EDGE_TYPE_VALUES: ReadonlyArray<MapEdgeData['type']> = ['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook'];
 export const VALID_EDGE_STATUS_VALUES: ReadonlyArray<MapEdgeData['status']> = ['open', 'accessible', 'closed', 'locked', 'blocked', 'hidden', 'rumored', 'one_way', 'collapsed', 'removed', 'active', 'inactive'];
 
 function isValidAINodeDataInternal(data: any, isNodeAddContext: boolean): boolean {

@@ -279,11 +279,17 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                 draftState.mapData.nodes.push(n);
               }
             });
-            hierarchy.edges.forEach(e => {
-              if (!draftState.mapData.edges.some(ex => ex.sourceNodeId === e.sourceNodeId && ex.targetNodeId === e.targetNodeId && ex.data.type === e.data.type)) {
-                draftState.mapData.edges.push(e);
-              }
-            });
+
+            // Assign topmost parent to orphan nodes
+            const roots = draftState.mapData.nodes.filter(n => n.themeName === themeObjToLoad.name && !n.data.parentNodeId);
+            if (roots.length > 0) {
+              const topParentId = roots[0].id;
+              draftState.mapData.nodes.forEach(n => {
+                if (n.themeName === themeObjToLoad.name && !n.data.parentNodeId && n.id !== topParentId) {
+                  n.data.parentNodeId = topParentId;
+                }
+              });
+            }
           }
         }
 
