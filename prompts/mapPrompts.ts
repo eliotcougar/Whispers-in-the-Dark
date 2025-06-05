@@ -22,7 +22,7 @@ Respond ONLY with a JSON object adhering to the following structure:
         "aliases": ["string"],   // REQUIRED for ALL nodes. Array of alternative names/shorthands (can be empty []). Soft limit of 3-4 aliases.
         "status": "string",      // REQUIRED for ALL nodes. MUST be one of: ${VALID_NODE_STATUSES_FOR_MAP_AI}.
         "isLeaf"?: boolean,      // Optional. If true, it's a detailed feature or connector. Defaults to false if absent.
-        "nodeType"?: "string",   // Optional. One of: ${VALID_NODE_TYPES_FOR_MAP_AI}. Indicates hierarchy level.
+        "nodeType": "string",    // REQUIRED. One of: ${VALID_NODE_TYPES_FOR_MAP_AI}. Indicates hierarchy level.
         "parentNodeId"?: string  // Optional. NAME of parent node for hierarchical placement. The game service will resolve this name to an ID.
       }
     }
@@ -72,7 +72,7 @@ CRITICAL INSTRUCTIONS:
     - "description", "aliases", and "status" are ALWAYS REQUIRED in the "data" field for ALL added nodes (main and leaf).
     - "description" must be a non-empty string, ideally under 300 characters.
     - "aliases" must be an array of strings (e.g., ["The Old Shack", "Hideout"]).
-    - You may provide "nodeType" to indicate hierarchy: ${VALID_NODE_TYPES_FOR_MAP_AI}.
+    - You MUST provide "nodeType" to indicate hierarchy: ${VALID_NODE_TYPES_FOR_MAP_AI}.
 - Node Data for "nodesToUpdate":
     - "description" and "aliases" can be optionally provided in "newData" to update ANY node (main or leaf).
     - If you provide "newData.placeName", that will be the node's new primary name.

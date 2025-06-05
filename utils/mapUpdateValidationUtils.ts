@@ -61,10 +61,16 @@ function isValidAINodeDataInternal(data: any, isNodeAddContext: boolean): boolea
     return false;
   }
 
-  // nodeType: Optional. If present must be valid string value.
-  if (data.nodeType !== undefined && (typeof data.nodeType !== 'string' || !VALID_NODE_TYPE_VALUES.includes(data.nodeType as any))) {
-    console.warn("Validation Error (NodeData): 'nodeType' is invalid. Value:", data.nodeType, "Valid are:", VALID_NODE_TYPE_VALUES);
-    return false;
+  if (isNodeAddContext) {
+    if (typeof data.nodeType !== 'string' || !VALID_NODE_TYPE_VALUES.includes(data.nodeType as any)) {
+      console.warn("Validation Error (NodeData - Add): 'nodeType' is mandatory and invalid. Value:", data.nodeType, "Valid are:", VALID_NODE_TYPE_VALUES);
+      return false;
+    }
+  } else {
+    if (data.nodeType !== undefined && (typeof data.nodeType !== 'string' || !VALID_NODE_TYPE_VALUES.includes(data.nodeType as any))) {
+      console.warn("Validation Error (NodeData - Update): 'nodeType' is invalid. Value:", data.nodeType);
+      return false;
+    }
   }
 
   // parentNodeId: Optional for both. String if present.
