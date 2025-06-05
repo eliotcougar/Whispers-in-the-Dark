@@ -273,6 +273,8 @@ export interface MapNodeData {
   isLeaf?: boolean; // If true, it's a detailed feature or connector. Defaults to false.
   parentNodeId?: string; // ID of parent node for hierarchical placement.
   nodeType?: 'region' | 'city' | 'building' | 'room' | 'feature';
+  /** Pre-calculated radius used by nested circle layouts. */
+  visualRadius?: number;
   [key: string]: any; // For any other custom data.
 }
 

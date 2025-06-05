@@ -24,6 +24,8 @@ interface MapControlsProps {
   setLayoutMaxDisplacement: (val: number) => void;
   layoutIterations: number;
   setLayoutIterations: (val: number) => void;
+  isNestedView: boolean;
+  onToggleNestedView: () => void;
   onReset: () => void;
   onRefreshLayout: () => void;
 }
@@ -72,6 +74,8 @@ const MapControls: React.FC<MapControlsProps> = props => {
     setLayoutMaxDisplacement,
     layoutIterations,
     setLayoutIterations,
+    isNestedView,
+    onToggleNestedView,
     onReset,
     onRefreshLayout,
   } = props;
@@ -95,6 +99,9 @@ const MapControls: React.FC<MapControlsProps> = props => {
         </div>
       )}
       <div className="map-action-buttons-row">
+        <button onClick={onToggleNestedView} className="map-control-button">
+          {isNestedView ? 'Force Layout' : 'Nested Layout'}
+        </button>
         <button onClick={onRefreshLayout} className="map-control-button">
           Refresh Layout
         </button>

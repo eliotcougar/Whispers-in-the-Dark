@@ -20,8 +20,13 @@ interface MapNodeViewProps {
   layoutIdealEdgeLength: number;
 }
 
-/** Returns circle radius based on nodeType hierarchy. */
+/**
+ * Returns the radius for a node's circle. Uses the computed visualRadius from
+ * nested layouts when available, otherwise falls back to a default based on the
+ * node type.
+ */
 const getRadiusForNode = (node: MapNode): number => {
+  if (node.data.visualRadius) return node.data.visualRadius;
   switch (node.data.nodeType) {
     case 'region':
       return NODE_RADIUS * 1.4;
@@ -107,6 +112,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
     return nodes
       .filter(parent => nodes.some(n => n.data.parentNodeId === parent.id))
       .map(parent => {
+        if (parent.data.visualRadius) {
+          return { node: parent, radius: parent.data.visualRadius };
+        }
         const children = nodes.filter(n => n.data.parentNodeId === parent.id);
         const maxDistance = children.length > 0
           ? Math.max(
