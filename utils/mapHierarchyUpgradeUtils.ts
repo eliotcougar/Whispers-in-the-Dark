@@ -24,17 +24,29 @@ const generateUniqueId = (prefix: string = 'id_'): string => {
  * @param connectorName - Name of the connector feature.
  * @returns Updated MapData with the applied transformation.
  */
+
+export interface FeatureUpgradeResult {
+  updatedMapData: MapData;
+  newNode: MapNode | null;
+  newEdges: MapEdge[];
+}
+
 export const upgradeFeatureToRegion = (
   mapData: MapData,
   featureNodeId: string,
   connectorName = 'New Connector'
-): MapData => {
+): FeatureUpgradeResult => {
   const working: MapData = structuredCloneGameState(mapData);
   const featureIndex = working.nodes.findIndex(n => n.id === featureNodeId);
-  if (featureIndex === -1) return working;
+  if (featureIndex === -1) {
+    return { updatedMapData: working, newNode: null, newEdges: [] };
+  }
 
   const featureNode = working.nodes[featureIndex];
-  if (featureNode.data.nodeType !== 'feature') return working;
+  if (featureNode.data.nodeType !== 'feature') {
+    return { updatedMapData: working, newNode: null, newEdges: [] };
+  }
+
 
   // Promote feature to region level
   featureNode.data.nodeType = 'region';
@@ -64,7 +76,11 @@ export const upgradeFeatureToRegion = (
   });
 
   // Add edges from connector to existing children
-  const childNodes = working.nodes.filter(n => n.data.parentNodeId === featureNodeId && n.id !== connectorId);
+  const childNodes = working.nodes.filter(
+    n => n.data.parentNodeId === featureNodeId && n.id !== connectorId
+  );
+  const createdEdges: MapEdge[] = [];
+
   childNodes.forEach(child => {
     const edgeId = generateUniqueId(`edge_${connectorId}_to_${child.id}_`);
     const newEdge: MapEdge = {
@@ -78,7 +94,35 @@ export const upgradeFeatureToRegion = (
       },
     };
     working.edges.push(newEdge);
+    createdEdges.push(newEdge);
   });
 
-  return working;
+  return { updatedMapData: working, newNode: connectorNode, newEdges: createdEdges };
+};
+
+/**
+ * Scans the map for feature nodes that already have child nodes and upgrades
+ * them to regions. Returns the updated map data and any newly created nodes
+ * and edges.
+ */
+export const upgradeFeaturesWithChildren = (
+  mapData: MapData
+): { updatedMapData: MapData; addedNodes: MapNode[]; addedEdges: MapEdge[] } => {
+  let working: MapData = structuredCloneGameState(mapData);
+  const addedNodes: MapNode[] = [];
+  const addedEdges: MapEdge[] = [];
+
+  working.nodes.forEach(node => {
+    if (node.data.nodeType === 'feature') {
+      const hasChild = working.nodes.some(n => n.data.parentNodeId === node.id);
+      if (hasChild) {
+        const res = upgradeFeatureToRegion(working, node.id, 'Temp Connector');
+        working = res.updatedMapData;
+        addedNodes.push(res.newNode);
+        addedEdges.push(...res.newEdges);
+      }
+    }
+  });
+
+  return { updatedMapData: working, addedNodes, addedEdges };
 };
