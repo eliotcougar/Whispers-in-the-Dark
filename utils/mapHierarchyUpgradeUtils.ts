@@ -24,6 +24,7 @@ const generateUniqueId = (prefix: string = 'id_'): string => {
  * @param connectorName - Name of the connector feature.
  * @returns Updated MapData with the applied transformation.
  */
+
 export interface FeatureUpgradeResult {
   updatedMapData: MapData;
   newNode: MapNode | null;
@@ -45,6 +46,7 @@ export const upgradeFeatureToRegion = (
   if (featureNode.data.nodeType !== 'feature') {
     return { updatedMapData: working, newNode: null, newEdges: [] };
   }
+
 
   // Promote feature to region level
   featureNode.data.nodeType = 'region';
@@ -78,6 +80,7 @@ export const upgradeFeatureToRegion = (
     n => n.data.parentNodeId === featureNodeId && n.id !== connectorId
   );
   const createdEdges: MapEdge[] = [];
+
   childNodes.forEach(child => {
     const edgeId = generateUniqueId(`edge_${connectorId}_to_${child.id}_`);
     const newEdge: MapEdge = {
