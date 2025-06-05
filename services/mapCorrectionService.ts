@@ -5,11 +5,11 @@
  *              connected by temporary leaf nodes) using AI, and applying pruning logic.
  */
 
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GenerateContentResponse } from "@google/genai";
 import { AIMapUpdatePayload, MapChainToRefine, MapData, MapNode, MapEdge, AdventureTheme, MapNodeData } from '../types';
-import { AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../constants';
+import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constants';
 import { MAP_CHAIN_CORRECTION_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
-import { ai as geminiAIInstance } from './geminiClient';
+import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 import { VALID_NODE_STATUS_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
 import { pruneAndRefineMapConnections } from '../utils/mapPruningUtils'; // Import pruning utility
@@ -29,16 +29,15 @@ const callCorrectionAI = async (prompt: string, systemInstruction: string): Prom
     return null;
   }
   try {
-    const response = await geminiAIInstance.models.generateContent({
-      model: AUXILIARY_MODEL_NAME, // Will now use gemini-2.5-flash-preview-04-17
-      contents: prompt,
-      config: {
-        systemInstruction: systemInstruction,
+    const response = await dispatchAIRequest(
+      [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+      prompt,
+      systemInstruction,
+      {
         responseMimeType: "application/json",
         temperature: 0.7,
-        // Omit thinkingConfig for higher quality (default enabled)
       }
-    });
+    );
     return response;
   } catch (error) {
     console.error(`callCorrectionAI (mapCorrectionService): Error during AI call:`, error);

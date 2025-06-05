@@ -5,9 +5,9 @@
 
 import { GenerateContentResponse } from '@google/genai';
 import { AdventureTheme, MapEdge, MapEdgeData, MapNode, MapNodeData } from '../types';
-import { AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../constants';
+import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constants';
 import { MAP_HIERARCHY_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
-import { ai } from './geminiClient';
+import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 
 interface RawHierarchyNode {
@@ -49,15 +49,15 @@ Provide an array of location objects from largest region down to the player's lo
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const response: GenerateContentResponse = await ai.models.generateContent({
-        model: AUXILIARY_MODEL_NAME,
-        contents: prompt,
-        config: {
-          systemInstruction: MAP_HIERARCHY_SYSTEM_INSTRUCTION,
+      const response: GenerateContentResponse = await dispatchAIRequest(
+        [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        MAP_HIERARCHY_SYSTEM_INSTRUCTION,
+        {
           responseMimeType: 'application/json',
           temperature: 0.75,
-        },
-      });
+        }
+      );
 
       debugInfo.rawResponse = response.text ?? '';
       const cleaned = debugInfo.rawResponse.trim().replace(/^```json\s*|\s*```$/g, '');

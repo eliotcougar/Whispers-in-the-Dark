@@ -6,9 +6,9 @@
  */
 import { GenerateContentResponse } from "@google/genai";
 import { GameStateFromAI, AdventureTheme, MapData, MapNode, MapEdge, DialogueSummaryResponse, MapNodeData, MapEdgeData, AIMapUpdatePayload, AINodeUpdate } from '../types';
-import { AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../constants';
+import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
-import { ai } from './geminiClient';
+import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 import { isValidAIMapUpdatePayload, VALID_NODE_STATUS_VALUES, VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
@@ -38,16 +38,15 @@ export interface MapUpdateServiceResult {
  * the raw response.
  */
 const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promise<GenerateContentResponse> => {
-  return ai.models.generateContent({
-    model: AUXILIARY_MODEL_NAME, // Will now use gemini-2.5-flash-preview-04-17
-    contents: prompt,
-    config: {
-      systemInstruction: systemInstruction,
+  return dispatchAIRequest(
+    [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+    prompt,
+    systemInstruction,
+    {
       responseMimeType: "application/json",
       temperature: 0.75,
-      // Omit thinkingConfig for higher quality (default enabled)
     }
-  });
+  );
 };
 
 /**
