@@ -188,9 +188,7 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
     'makeshift_bridge': 'temporary_bridge',
     'temporary crossing': 'temporary_bridge',
     grapple: 'boarding_hook',
-    'grappling_hook': 'boarding_hook',
-    inside: 'containment',
-    within: 'containment'
+    'grappling_hook': 'boarding_hook'
   };
 
   const edgeStatusSynonyms: Record<string, MapEdgeData['status']> = {
@@ -449,6 +447,7 @@ Key points:
 
   const finalEdgesToAdd: typeof edgesToAdd_mut = [];
   for (const edgeAdd of edgesToAdd_mut) {
+      if (edgeAdd.data?.type === 'containment') continue;
       const removeIndex = edgesToRemove_mut.findIndex(er => {
           const namesMatch = (er.sourcePlaceName.toLowerCase() === edgeAdd.sourcePlaceName.toLowerCase() && er.targetPlaceName.toLowerCase() === edgeAdd.targetPlaceName.toLowerCase()) ||
                            (er.sourcePlaceName.toLowerCase() === edgeAdd.targetPlaceName.toLowerCase() && er.targetPlaceName.toLowerCase() === edgeAdd.sourcePlaceName.toLowerCase());
@@ -670,6 +669,7 @@ Key points:
   });
 
   (validParsedPayload.edgesToUpdate || []).forEach(edgeUpdateOp => {
+    if (edgeUpdateOp.newData.type === 'containment') return;
     const sourceNodeRef = findNodeByIdentifier(edgeUpdateOp.sourcePlaceName);
     const targetNodeRef = findNodeByIdentifier(edgeUpdateOp.targetPlaceName);
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
@@ -692,6 +692,7 @@ Key points:
   });
 
   edgesToRemove_mut.forEach(edgeRemoveOp => {
+      if (edgeRemoveOp.type === 'containment') return;
       const sourceNodeRef = findNodeByIdentifier(edgeRemoveOp.sourcePlaceName);
       const targetNodeRef = findNodeByIdentifier(edgeRemoveOp.targetPlaceName);
       if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge removal due to missing source ("${edgeRemoveOp.sourcePlaceName}") or target ("${edgeRemoveOp.targetPlaceName}") node.`); return; }
@@ -714,32 +715,7 @@ Key points:
       newMapData.edges = remainingEdges;
   });
 
-  // --- Upgrade Leaf Nodes to Main Nodes if they have >= 6 containment edges ---
-  const nodesToUpgradeIndices: number[] = [];
-  newMapData.nodes.forEach((node, index) => {
-    if (node.data.isLeaf && node.themeName === currentTheme.name) {
-      const connectedEdges = themeEdgesMap.get(node.id) || [];
-      const containmentEdgeCount = connectedEdges.filter(edge => edge.data.type === 'containment').length;
-
-      if (containmentEdgeCount >= 6) {
-        nodesToUpgradeIndices.push(index);
-      }
-    }
-  });
-
-  if (nodesToUpgradeIndices.length > 0) {
-    console.log(`MapUpdate: Upgrading ${nodesToUpgradeIndices.length} leaf node(s) to main nodes due to high containment edge count.`);
-    nodesToUpgradeIndices.forEach(index => {
-      const nodeToUpgrade = newMapData.nodes[index];
-      console.log(`  - Upgrading node: "${nodeToUpgrade.placeName}" (ID: ${nodeToUpgrade.id})`);
-      nodeToUpgrade.data.isLeaf = false;
-      nodeToUpgrade.data.parentNodeId = undefined;
-      // Optionally, you could clear or generalize its description/aliases here,
-      // or queue it for a detail fetch via correctionService if its details were too leaf-specific.
-      // For now, just changing status.
-    });
-  }
-  // --- End of Leaf Upgrade Logic ---
+  // --- End of Leaf Upgrade Logic (containment edges removed) ---
 
 
   return { updatedMapData: newMapData, debugInfo };

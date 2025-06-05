@@ -43,7 +43,7 @@ export const pruneAndRefineMapConnections = (
   const themeNodeMap = new Map(themeNodes.map(n => [n.id, n]));
 
 
-  // Phase 1: Process M1 -(containment)- L - M2 cases
+  // Phase 1: Process M1 - L - M2 cases based on parent links
   const leafNodesInTheme = themeNodes.filter(node => node.data.isLeaf);
 
   for (const leafL of leafNodesInTheme) {
@@ -52,18 +52,11 @@ export const pruneAndRefineMapConnections = (
     const parentM1 = themeNodeMap.get(leafL.data.parentNodeId);
     if (!parentM1 || parentM1.data.isLeaf) continue; // Parent must be a main node
 
-    // Check for containment edge between M1 and L
-    const containmentEdgeM1L = workingMapData.edges.find(edge =>
-      edge.data.type === 'containment' &&
-      ((edge.sourceNodeId === parentM1.id && edge.targetNodeId === leafL.id) ||
-       (edge.sourceNodeId === leafL.id && edge.targetNodeId === parentM1.id))
-    );
-    if (!containmentEdgeM1L) continue;
+
 
     // Find edges connecting L to another main node M2 (not M1)
     const edgesFromL = workingMapData.edges.filter(edge =>
       (edge.sourceNodeId === leafL.id || edge.targetNodeId === leafL.id) &&
-      edge.data.type !== 'containment' && // Not another containment edge
       !edgesToRemoveIds.has(edge.id) // Not already marked for removal
     );
 
@@ -93,14 +86,7 @@ export const pruneAndRefineMapConnections = (
         workingMapData.nodes.push(tempLeafM2);
         themeNodeMap.set(tempLeafM2_Id, tempLeafM2); // Add to map for current phase
 
-        const containmentEdgeM2_LM2_Id = generateUniqueId(`edge_containM2_`);
-        const containmentEdgeM2_LM2: MapEdge = {
-          id: containmentEdgeM2_LM2_Id,
-          sourceNodeId: mainNodeM2.id,
-          targetNodeId: tempLeafM2.id,
-          data: { type: 'containment', status: 'open', description: `Connects ${mainNodeM2.placeName} to its entry point.` },
-        };
-        workingMapData.edges.push(containmentEdgeM2_LM2);
+
 
         const edge_L_LM2_Id = generateUniqueId(`edge_L_LM2_`);
         const edge_L_LM2: MapEdge = {
@@ -163,14 +149,6 @@ export const pruneAndRefineMapConnections = (
       workingMapData.nodes.push(leafM1);
       themeNodeMap.set(leafM1_Id, leafM1); 
 
-      const containmentEdgeM1_LM1_Id = generateUniqueId(`edge_containM1_`);
-      const containmentEdgeM1_LM1: MapEdge = {
-        id: containmentEdgeM1_LM1_Id,
-        sourceNodeId: sourceNode.id,
-        targetNodeId: leafM1.id,
-        data: { type: 'containment', status: 'open', description: `Connects ${sourceNode.placeName} to its exit point.` },
-      };
-      workingMapData.edges.push(containmentEdgeM1_LM1);
 
       // Create Leaf L_M2 (child of targetNode)
       const tempLeafM2_NameSuggestion = `Entrance to ${targetNode.placeName} from ${sourceNode.placeName}`;
@@ -192,14 +170,6 @@ export const pruneAndRefineMapConnections = (
       workingMapData.nodes.push(leafM2);
       themeNodeMap.set(leafM2_Id, leafM2);
 
-      const containmentEdgeM2_LM2_Id = generateUniqueId(`edge_containM2_`);
-      const containmentEdgeM2_LM2: MapEdge = {
-        id: containmentEdgeM2_LM2_Id,
-        sourceNodeId: targetNode.id,
-        targetNodeId: leafM2.id,
-        data: { type: 'containment', status: 'open', description: `Connects ${targetNode.placeName} to its entry point.` },
-      };
-      workingMapData.edges.push(containmentEdgeM2_LM2);
 
       // Create edge between Leaf L_M1 and Leaf L_M2
       const edgeBetweenLeaves_Id = generateUniqueId(`edge_leaves_`);

@@ -370,11 +370,6 @@ body {
   stroke: #ca8a04;
   stroke-dasharray: 5, 2, 2, 2;
 } /* Yellowish, distinct dash */
-.map-edge.containment {
-  stroke: #888;
-  stroke-dasharray: 2, 2;
-  stroke-width: 1.5px;
-}
 
 .map-tooltip {
   position: absolute;
