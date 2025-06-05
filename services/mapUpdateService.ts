@@ -503,9 +503,10 @@ Key points:
     const newNodeData: MapNodeData = {
         description: nodeAddOp.data.description || '', // Ensure string
         aliases: nodeAddOp.data.aliases || [],
-        status: nodeAddOp.data.status,
+        status: nodeAddOp.data.status!,
         isLeaf: false, // Explicitly false for main nodes
         parentNodeId: nodeAddOp.data.parentNodeId,
+        nodeType: nodeAddOp.data.nodeType!,
         ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, isLeaf, status, nodeType, visited, ...rest }) => rest)(nodeAddOp.data) : {})
     };
 
@@ -555,9 +556,10 @@ Key points:
     const newNodeData: MapNodeData = {
         description: nodeAddOp.data.description || '',
         aliases: nodeAddOp.data.aliases || [],
-        status: nodeAddOp.data.status,
+        status: nodeAddOp.data.status!,
         isLeaf: true, // Explicitly true for leaf nodes
         parentNodeId: resolvedParentNodeId,
+        nodeType: nodeAddOp.data.nodeType!,
         ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, isLeaf, status, nodeType, visited, ...rest }) => rest)(nodeAddOp.data) : {})
     };
 

@@ -301,6 +301,10 @@ body {
   fill: #2dd4bf; /* teal-400 */
   stroke: #14b8a6; /* teal-500 */
 }
+.map-node-circle.region { fill-opacity: 0; }
+.map-node-circle.city { fill-opacity: 0.05; }
+.map-node-circle.building { fill-opacity: 0.1; }
+.map-node-circle.room { fill-opacity: 0.15; }
 .map-node-circle.current {
   fill: #facc15; /* yellow-400 */
   stroke: #eab308; /* yellow-500 */

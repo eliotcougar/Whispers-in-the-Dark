@@ -267,11 +267,11 @@ export interface MapLayoutConfig extends MapLayoutConfigShape {
 export interface MapNodeData {
   description: string; // Description is ALWAYS REQUIRED.
   aliases?: string[];  // Optional, can be updated.
-  status?: 'undiscovered' | 'discovered' | 'rumored' | 'quest_target';
+  status: 'undiscovered' | 'discovered' | 'rumored' | 'quest_target';
   visited?: boolean; // Managed by game logic, not AI directly.
   isLeaf?: boolean; // If true, it's a detailed feature or connector. Defaults to false.
   parentNodeId?: string; // ID of parent node for hierarchical placement.
-  nodeType?: 'region' | 'city' | 'building' | 'room' | 'feature';
+  nodeType: 'region' | 'city' | 'building' | 'room' | 'feature';
   /** Pre-calculated radius used by nested circle layouts. */
   visualRadius?: number;
   [key: string]: any; // For any other custom data.

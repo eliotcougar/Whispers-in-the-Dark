@@ -2,11 +2,12 @@
  * @file services/corrections/map.ts
  * @description Correction helpers for map and location related data.
  */
-import { AdventureTheme, MapNode } from '../../types';
+import { AdventureTheme, MapNode, MapNodeData, MapEdgeData } from '../../types';
 import { MAX_RETRIES } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
+import { VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES } from '../../utils/mapUpdateValidationUtils';
 
 /**
  * Infers or corrects the player's current local place string.
@@ -178,6 +179,207 @@ Respond ONLY with the single, complete JSON object.`;
       console.warn(`fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`, correctedPayload);
     }
     if (attempt === MAX_RETRIES) return null;
+  }
+  return null;
+};
+
+/**
+ * Attempts to correct or infer a missing or invalid nodeType for a MapNode.
+ */
+export const fetchCorrectedNodeType_Service = async (
+  nodeInfo: { placeName: string; nodeType?: string; description?: string },
+  currentTheme: AdventureTheme
+): Promise<NonNullable<MapNodeData['nodeType']> | null> => {
+  const synonyms: Record<string, NonNullable<MapNodeData['nodeType']>> = {
+    area: 'region',
+    zone: 'region',
+    province: 'region',
+    territory: 'region',
+    town: 'city',
+    village: 'city',
+    settlement: 'city',
+    structure: 'building',
+    edifice: 'building',
+    chamber: 'room',
+    hall: 'room',
+    landmark: 'feature',
+    spot: 'feature',
+    forest: 'region',
+    woods: 'region',
+    jungle: 'region',
+    grove: 'region',
+    mountain: 'region',
+    mountains: 'region',
+    range: 'region',
+    peak: 'region',
+    valley: 'region',
+    desert: 'region',
+    swamp: 'region',
+    marsh: 'region',
+    marshland: 'region',
+    bog: 'region',
+    fen: 'region',
+    sea: 'region',
+    ocean: 'region',
+    'open sea': 'region',
+    'open ocean': 'region',
+    coast: 'region',
+    coastline: 'region',
+    shore: 'region',
+    island: 'region',
+    archipelago: 'region',
+    peninsula: 'region',
+    plateau: 'region',
+    hill: 'region',
+    hills: 'region',
+    plains: 'region',
+    lake: 'region',
+    bay: 'region',
+    lagoon: 'region',
+    fjord: 'region',
+    river: 'feature',
+    stream: 'feature',
+    creek: 'feature',
+    waterfall: 'feature',
+    beach: 'feature',
+    cliff: 'feature',
+    canyon: 'feature',
+    gorge: 'feature',
+    ravine: 'feature',
+    reef: 'feature',
+    cave: 'feature',
+    cavern: 'feature',
+    grotto: 'feature'
+  };
+
+  if (nodeInfo.nodeType) {
+    const normalized = synonyms[nodeInfo.nodeType.toLowerCase()] || nodeInfo.nodeType.toLowerCase();
+    if (VALID_NODE_TYPE_VALUES.includes(normalized as any)) {
+      return normalized as NonNullable<MapNodeData['nodeType']>;
+    }
+  }
+
+  const heuristics: [RegExp, NonNullable<MapNodeData['nodeType']>][] = [
+    [/region|province|area|zone|territory|forest|woods|jungle|grove|mountain|mountains|range|peak|valley|desert|swamp|marsh|marshland|bog|fen|sea|ocean|open\ssea|open\socean|coast|coastline|shore|island|archipelago|peninsula|plateau|hill|hills|plains|lake|bay|lagoon|fjord/i, 'region'],
+    [/city|town|village|settlement/i, 'city'],
+    [/building|tower|house|fort|castle|structure|edifice/i, 'building'],
+    [/room|chamber|hall|quarters/i, 'room'],
+    [/river|stream|creek|waterfall|beach|cliff|canyon|gorge|ravine|reef|cave|cavern|grotto/i, 'feature']
+  ];
+
+  for (const [regex, type] of heuristics) {
+    if (regex.test(nodeInfo.placeName) || (nodeInfo.description && regex.test(nodeInfo.description))) {
+      return type;
+    }
+  }
+
+  if (!isApiConfigured()) {
+    console.error('fetchCorrectedNodeType_Service: API Key not configured.');
+    return null;
+  }
+
+  const prompt = `Determine the most appropriate nodeType for a map location in a text adventure game.
+Location Name: "${nodeInfo.placeName}"
+Description: "${nodeInfo.description || 'No description provided.'}"
+Valid node types: ${VALID_NODE_TYPE_VALUES.join(', ')}
+Respond ONLY with the single node type.`;
+
+  const systemInstr = `Infer a map node's type. Answer with one of: ${VALID_NODE_TYPE_VALUES.join(', ')}.`;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
+    if (typeResp) {
+      const cleaned = typeResp.trim().toLowerCase();
+      const mapped = synonyms[cleaned] || cleaned;
+      if (VALID_NODE_TYPE_VALUES.includes(mapped as any)) {
+        return mapped as NonNullable<MapNodeData['nodeType']>;
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * Attempts to correct or infer a missing or invalid edge type for a MapEdge.
+ */
+export const fetchCorrectedEdgeType_Service = async (
+  edgeInfo: { type?: string; description?: string },
+  currentTheme: AdventureTheme
+): Promise<MapEdgeData['type'] | null> => {
+  const synonyms: Record<string, MapEdgeData['type']> = {
+    trail: 'path',
+    track: 'path',
+    walkway: 'path',
+    footpath: 'path',
+    street: 'road',
+    roadway: 'road',
+    highway: 'road',
+    lane: 'road',
+    avenue: 'road',
+    boulevard: 'road',
+    seaway: 'sea route',
+    'sea path': 'sea route',
+    'ocean route': 'sea route',
+    portal: 'teleporter',
+    warp: 'teleporter',
+    gate: 'door',
+    gateway: 'door',
+    'secret passageway': 'secret_passage',
+    hidden_passage: 'secret_passage',
+    tunnel: 'secret_passage',
+    ford: 'river_crossing',
+    ferry: 'river_crossing',
+    bridge: 'temporary_bridge',
+    'makeshift_bridge': 'temporary_bridge',
+    'temporary crossing': 'temporary_bridge',
+    grapple: 'boarding_hook',
+    'grappling_hook': 'boarding_hook'
+  };
+
+  if (edgeInfo.type) {
+    const normalized = synonyms[edgeInfo.type.toLowerCase()] || edgeInfo.type.toLowerCase();
+    if (VALID_EDGE_TYPE_VALUES.includes(normalized as any)) {
+      return normalized as MapEdgeData['type'];
+    }
+  }
+
+  const heuristics: [RegExp, MapEdgeData['type']][] = [
+    [/trail|track|walkway|footpath/i, 'path'],
+    [/road|street|highway|avenue|boulevard|lane|roadway/i, 'road'],
+    [/sea\sroute|seaway|sea\spath|ocean\sroute/i, 'sea route'],
+    [/door|gate|gateway/i, 'door'],
+    [/teleporter|portal|warp/i, 'teleporter'],
+    [/secret\spassage|hidden\spassage|tunnel/i, 'secret_passage'],
+    [/river\scrossing|ford|ferry/i, 'river_crossing'],
+    [/temporary\sbridge|makeshift\sbridge|bridge|temporary\scrossing/i, 'temporary_bridge'],
+    [/boarding\shook|grapple|grappling\shook/i, 'boarding_hook']
+  ];
+
+  for (const [regex, type] of heuristics) {
+    if ((edgeInfo.type && regex.test(edgeInfo.type)) || (edgeInfo.description && regex.test(edgeInfo.description))) {
+      return type;
+    }
+  }
+
+  if (!isApiConfigured()) {
+    console.error('fetchCorrectedEdgeType_Service: API Key not configured.');
+    return null;
+  }
+
+  const prompt = `Determine the most appropriate edge type for a map connection in a text adventure game.
+Description: "${edgeInfo.description || 'No description provided.'}"
+Valid edge types: ${VALID_EDGE_TYPE_VALUES.join(', ')}
+Respond ONLY with the single edge type.`;
+
+  const systemInstr = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(', ')}.`;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
+    if (typeResp) {
+      const cleaned = typeResp.trim().toLowerCase();
+      const mapped = synonyms[cleaned] || cleaned;
+      if (VALID_EDGE_TYPE_VALUES.includes(mapped as any)) {
+        return mapped as MapEdgeData['type'];
+      }
+    }
   }
   return null;
 };
