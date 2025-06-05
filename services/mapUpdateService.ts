@@ -493,12 +493,16 @@ Key points:
     for (const nodeAddOp of unresolvedQueue) {
       let resolvedParentId: string | undefined = undefined;
       if (nodeAddOp.data?.parentNodeId) {
-        const parent = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
-        if (parent) {
-          resolvedParentId = parent.id;
+        if (nodeAddOp.data.parentNodeId === 'Universe') {
+          resolvedParentId = undefined;
         } else {
-          nextQueue.push(nodeAddOp);
-          continue;
+          const parent = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
+          if (parent) {
+            resolvedParentId = parent.id;
+          } else {
+            nextQueue.push(nodeAddOp);
+            continue;
+          }
         }
       }
 
@@ -548,13 +552,17 @@ Key points:
             if (nodeUpdateOp.newData.parentNodeId === null) { // Explicitly clearing parent
                 resolvedParentIdOnUpdate = undefined; // Store as undefined if cleared
             } else if (typeof nodeUpdateOp.newData.parentNodeId === 'string') {
-                // Allow parent to be ANY node (main or leaf)
-                const parentNode = findNodeByIdentifier(nodeUpdateOp.newData!.parentNodeId) as MapNode | undefined;
-                if (parentNode) {
-                    resolvedParentIdOnUpdate = parentNode.id;
+                if (nodeUpdateOp.newData.parentNodeId === 'Universe') {
+                    resolvedParentIdOnUpdate = undefined;
                 } else {
-                    console.warn(`MapUpdate (nodesToUpdate): Leaf node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.newData.parentNodeId}" which was not found.`);
-                    resolvedParentIdOnUpdate = undefined; // Or keep old one: node.data.parentNodeId
+                    // Allow parent to be ANY node (main or leaf)
+                    const parentNode = findNodeByIdentifier(nodeUpdateOp.newData!.parentNodeId) as MapNode | undefined;
+                    if (parentNode) {
+                        resolvedParentIdOnUpdate = parentNode.id;
+                    } else {
+                        console.warn(`MapUpdate (nodesToUpdate): Leaf node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.newData.parentNodeId}" which was not found.`);
+                        resolvedParentIdOnUpdate = undefined; // Or keep old one: node.data.parentNodeId
+                    }
                 }
             }
         }

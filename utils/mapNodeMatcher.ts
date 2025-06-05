@@ -338,7 +338,7 @@ export const selectBestMatchingMapNode = (
   
   if (bestMatchNodeId && overallBestScore > 0) {
     const bestNode = themeNodes.find(n => n.id === bestMatchNodeId);
-    if (bestNode && bestNode.data.nodeType !== 'feature' && !bestNode.data.parentNodeId) {
+    if (bestNode && bestNode.data.nodeType !== 'feature' && (!bestNode.data.parentNodeId || bestNode.data.parentNodeId === 'Universe')) {
       const leafChildren = themeNodes.filter(leaf => leaf.data.nodeType === 'feature' && leaf.data.parentNodeId === bestNode.id);
       for (const leafChild of leafChildren) {
         const leafName = leafChild.placeName;
