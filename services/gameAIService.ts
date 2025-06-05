@@ -8,6 +8,7 @@ import { GameStateFromAI, Item, ItemChange, AdventureTheme, Character, MapNode }
 import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES, DEFAULT_PLAYER_GENDER } from '../constants';
 import { SYSTEM_INSTRUCTION } from '../prompts/mainPrompts';
 import { ai } from './geminiClient';
+import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 
@@ -96,14 +97,14 @@ Do not include any preamble. Just provide the summary text itself.
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) { // Extra retry for summarization
     try {
       console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1})`);
-      const response = await ai.models.generateContent({
-          model: AUXILIARY_MODEL_NAME, // Will now use gemini-2.5-flash-preview-04-17
-          contents: summarizationPrompt,
-          config: {
+      const response = await dispatchAIRequest(
+          [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+          summarizationPrompt,
+          undefined,
+          {
               temperature: 0.8,
-              // Omit thinkingConfig for higher quality (default enabled)
           }
-      });
+      );
       const text = (response.text ?? '').trim();
       if (text && text.length > 0) {
         return text;
