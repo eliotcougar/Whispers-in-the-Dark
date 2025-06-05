@@ -5,6 +5,7 @@
 import { AUXILIARY_MODEL_NAME, MINIMAL_MODEL_NAME } from '../../constants';
 import { ai } from '../geminiClient';
 import { isApiConfigured } from '../apiClient';
+import { isServerOrClientError } from '../../utils/aiErrorUtils';
 
 /** Temperature used for all correction related AI calls. */
 export const CORRECTION_TEMPERATURE = 0.75;
@@ -36,6 +37,9 @@ export const callCorrectionAI = async (
     return JSON.parse(jsonStr);
   } catch (error) {
     console.error(`callCorrectionAI: Error during single AI call or parsing for prompt starting with "${prompt.substring(0, 100)}...":`, error);
+    if (isServerOrClientError(error)) {
+      return null;
+    }
     return null;
   }
 };

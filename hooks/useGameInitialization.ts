@@ -15,6 +15,7 @@ import { getThemesFromPacks } from '../themes';
 import { CURRENT_SAVE_GAME_VERSION } from '../constants';
 import { findThemeByName } from '../services/themeUtils';
 import { fetchMapHierarchyFromLocation_Service } from '../services/mapHierarchyService';
+import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
   formatNewGameFirstTurnPrompt,
   formatNewThemePostShiftPrompt,
@@ -300,7 +301,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         }
       } catch (e: any) {
         console.error('Error loading initial game:', e);
-        setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${e.message || 'Unknown AI error'}`);
+        if (isServerOrClientError(e)) {
+          draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
+          const status = extractStatusFromError(e);
+          setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
+        } else {
+          setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${e.message || 'Unknown AI error'}`);
+        }
         if (draftState.lastDebugPacket) draftState.lastDebugPacket.error = e.message || String(e);
       } finally {
         commitGameState(draftState);

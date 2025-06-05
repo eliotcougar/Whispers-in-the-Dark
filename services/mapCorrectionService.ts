@@ -14,6 +14,7 @@ import { isApiConfigured } from './apiClient';
 import { VALID_NODE_STATUS_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
 import { pruneAndRefineMapConnections } from '../utils/mapPruningUtils'; // Import pruning utility
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { isServerOrClientError } from '../utils/aiErrorUtils';
 
 
 /**
@@ -41,6 +42,9 @@ const callCorrectionAI = async (prompt: string, systemInstruction: string): Prom
     return response;
   } catch (error) {
     console.error(`callCorrectionAI (mapCorrectionService): Error during AI call:`, error);
+    if (isServerOrClientError(error)) {
+      return null;
+    }
     return null;
   }
 };

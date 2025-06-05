@@ -9,6 +9,7 @@ import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES, DEFAULT_PLAYER_GE
 import { SYSTEM_INSTRUCTION } from '../prompts/mainPrompts';
 import { ai } from './geminiClient';
 import { isApiConfigured } from './apiClient';
+import { isServerOrClientError } from '../utils/aiErrorUtils';
 
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
@@ -47,11 +48,12 @@ export const executeAIMainTurn = async (
             return response;
         } catch (error) {
             console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
+            if (isServerOrClientError(error)) {
+                return Promise.reject(error);
+            }
             if (attempt === MAX_RETRIES) {
-                // After max retries, reject the promise so useGameLogic can handle it (e.g., trigger reality shift)
                 return Promise.reject(new Error(`Failed to execute AI Main Turn after maximum retries: ${error instanceof Error ? error.message : String(error)}`));
             }
-            // Small delay before retrying
             await new Promise(resolve => setTimeout(resolve, 500 * attempt));
         }
     }
