@@ -8,6 +8,7 @@ import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
   applyBasicLayoutAlgorithm,
   applyNestedCircleLayout,
+  applyNestedForceLayout,
   LayoutForceConstants,
   DEFAULT_K_REPULSION,
   DEFAULT_K_SPRING,
@@ -118,7 +119,22 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     const nodesToProcess = [...currentThemeNodes];
 
     if (isNestedView) {
-      const nestedNodes = applyNestedCircleLayout(nodesToProcess);
+      const forceConstants: LayoutForceConstants = {
+        K_REPULSION: layoutKRepulsion,
+        K_SPRING: layoutKSpring,
+        IDEAL_EDGE_LENGTH: layoutIdealEdgeLength,
+        K_CENTERING: layoutKCentering,
+        K_UNTANGLE: layoutKUntangle,
+        K_EDGE_NODE_REPULSION: layoutKEdgeNodeRepulsion,
+        DAMPING_FACTOR: layoutDampingFactor,
+        MAX_DISPLACEMENT: layoutMaxDisplacement,
+      };
+      const nestedNodes = applyNestedForceLayout(
+        nodesToProcess,
+        currentThemeEdges,
+        layoutIterations,
+        forceConstants
+      );
       setDisplayedNodes(nestedNodes);
       return;
     }

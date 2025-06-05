@@ -8,7 +8,7 @@
 
 import { MapNode, MapEdge } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
-import { NODE_RADIUS } from './mapConstants';
+import { NODE_RADIUS, VIEWBOX_WIDTH_INITIAL, VIEWBOX_HEIGHT_INITIAL } from './mapConstants';
 
 export const DEFAULT_K_REPULSION = 20000; 
 export const DEFAULT_K_SPRING = 0.25;     
@@ -452,6 +452,163 @@ export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
       positionNode(root, x, y);
     }
   });
+
+  return Array.from(nodeMap.values());
+};
+
+/**
+ * Enhances the basic nested circle layout with bottom-up force layout steps.
+ * Children within the same parent are force-laid out first. Parent nodes are
+ * then attracted to each other based on cross-parent connections while moving
+ * their entire child subtrees together. The process repeats up the hierarchy
+ * until the root level.
+ *
+ * @param nodes - Nodes to layout.
+ * @param edges - Edges describing connections between nodes.
+ * @param iterations - Number of iterations to run for each force layout step.
+ * @param forceConstants - Constants controlling the force layout behaviour.
+ * @returns New array of nodes with updated positions after hierarchical force
+ * layout.
+ */
+export const applyNestedForceLayout = (
+  nodes: MapNode[],
+  edges: MapEdge[],
+  iterations: number,
+  forceConstants: LayoutForceConstants
+): MapNode[] => {
+  if (nodes.length === 0) return [];
+
+  // Start with a deterministic nested circle layout.
+  const baseNodes = applyNestedCircleLayout(nodes);
+  const nodeMap = new Map(baseNodes.map(n => [n.id, structuredCloneGameState(n)]));
+
+  const parentMap: Record<string, string | undefined> = {};
+  const childMap: Record<string, string[]> = {};
+  nodeMap.forEach(node => {
+    parentMap[node.id] = node.data.parentNodeId;
+    if (node.data.parentNodeId) {
+      if (!childMap[node.data.parentNodeId]) childMap[node.data.parentNodeId] = [];
+      childMap[node.data.parentNodeId].push(node.id);
+    }
+  });
+
+  /** Recursively computes depth of a node from the root. */
+  const depthMap: Record<string, number> = {};
+  const computeDepth = (id: string): number => {
+    if (depthMap[id] !== undefined) return depthMap[id];
+    const p = parentMap[id];
+    if (!p) return (depthMap[id] = 0);
+    return (depthMap[id] = computeDepth(p) + 1);
+  };
+  nodeMap.forEach((_, id) => computeDepth(id));
+  const maxDepth = Math.max(...Object.values(depthMap));
+
+  /** Builds a set of all descendants for a node. */
+  const descendantMap: Record<string, Set<string>> = {};
+  const buildDescendants = (id: string): Set<string> => {
+    if (descendantMap[id]) return descendantMap[id];
+    const set = new Set<string>();
+    const children = childMap[id] || [];
+    children.forEach(c => {
+      set.add(c);
+      buildDescendants(c).forEach(d => set.add(d));
+    });
+    descendantMap[id] = set;
+    return set;
+  };
+  nodeMap.forEach((_, id) => buildDescendants(id));
+
+  /** Returns ancestor of a node at the given target depth. */
+  const ancestorAtDepth = (id: string, targetDepth: number): string | null => {
+    let cur = id;
+    let d = depthMap[id];
+    while (d > targetDepth) {
+      const p = parentMap[cur];
+      if (!p) return null;
+      cur = p;
+      d--;
+    }
+    return cur;
+  };
+
+  for (let level = maxDepth; level >= 1; level--) {
+    // Step 1: layout children within each parent at this level-1
+    const parentsAtPrev = Array.from(nodeMap.values()).filter(n => depthMap[n.id] === level - 1);
+    parentsAtPrev.forEach(parent => {
+      const cIds = childMap[parent.id] || [];
+      if (cIds.length <= 1) return;
+      const childNodes = cIds.map(cid => nodeMap.get(cid)!);
+      const internalEdges = edges.filter(e => cIds.includes(e.sourceNodeId) && cIds.includes(e.targetNodeId));
+      const laidOut = applyBasicLayoutAlgorithm(
+        childNodes,
+        internalEdges,
+        (parent.data.visualRadius || NODE_RADIUS * 2) * 2,
+        (parent.data.visualRadius || NODE_RADIUS * 2) * 2,
+        Math.max(1, Math.round(iterations / 2)),
+        forceConstants
+      );
+      laidOut.forEach(n => {
+        const updated = {
+          ...n,
+          position: {
+            x: parent.position.x + n.position.x,
+            y: parent.position.y + n.position.y,
+          },
+        };
+        nodeMap.set(n.id, updated);
+      });
+    });
+
+    // Step 2: build aggregated edges between parents at this level-1
+    const parentEdgesMap = new Map<string, MapEdge>();
+    edges.forEach(edge => {
+      const srcParent = ancestorAtDepth(edge.sourceNodeId, level - 1);
+      const tgtParent = ancestorAtDepth(edge.targetNodeId, level - 1);
+      if (!srcParent || !tgtParent || srcParent === tgtParent) return;
+      const key = srcParent < tgtParent ? `${srcParent}-${tgtParent}` : `${tgtParent}-${srcParent}`;
+      if (!parentEdgesMap.has(key)) {
+        parentEdgesMap.set(key, {
+          id: `agg_${key}`,
+          sourceNodeId: srcParent,
+          targetNodeId: tgtParent,
+          data: { type: 'aggregate' },
+        });
+      }
+    });
+
+    const parentsToLayout = parentsAtPrev.map(p => nodeMap.get(p.id)!);
+    if (parentsToLayout.length > 1) {
+      const beforePos: Record<string, { x: number; y: number }> = {};
+      parentsToLayout.forEach(p => (beforePos[p.id] = { ...p.position }));
+      const laidOutParents = applyBasicLayoutAlgorithm(
+        parentsToLayout,
+        Array.from(parentEdgesMap.values()),
+        VIEWBOX_WIDTH_INITIAL,
+        VIEWBOX_HEIGHT_INITIAL,
+        Math.max(1, Math.round(iterations / 2)),
+        forceConstants
+      );
+      laidOutParents.forEach(p => {
+        const prev = beforePos[p.id];
+        const dx = p.position.x - prev.x;
+        const dy = p.position.y - prev.y;
+        nodeMap.set(p.id, p);
+        const desc = descendantMap[p.id] || new Set<string>();
+        desc.forEach(cid => {
+          const child = nodeMap.get(cid);
+          if (child) {
+            nodeMap.set(cid, {
+              ...child,
+              position: {
+                x: child.position.x + dx,
+                y: child.position.y + dy,
+              },
+            });
+          }
+        });
+      });
+    }
+  }
 
   return Array.from(nodeMap.values());
 };
