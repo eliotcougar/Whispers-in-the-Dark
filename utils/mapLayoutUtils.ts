@@ -9,6 +9,7 @@
 import { MapNode, MapEdge } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
 import { NODE_RADIUS, VIEWBOX_WIDTH_INITIAL, VIEWBOX_HEIGHT_INITIAL } from './mapConstants';
+import { getFamilyDiameter } from './mapGraphUtils';
 
 export const DEFAULT_K_REPULSION = 20000; 
 export const DEFAULT_K_SPRING = 0.25;     
@@ -556,6 +557,38 @@ export const applyNestedForceLayout = (
           },
         };
         nodeMap.set(n.id, updated);
+      });
+
+      const currentParent = nodeMap.get(parent.id)!;
+      const diameter = getFamilyDiameter(currentParent, nodeMap);
+      const newRadius = Math.max(currentParent.data.visualRadius || NODE_RADIUS, diameter / 2);
+      nodeMap.set(parent.id, {
+        ...currentParent,
+        data: { ...currentParent.data, visualRadius: newRadius },
+      });
+
+      cIds.forEach(cid => {
+        const child = nodeMap.get(cid)!;
+        const external = edges.some(e => {
+          if (e.sourceNodeId === cid) {
+            return e.targetNodeId !== parent.id && !descendantMap[parent.id]?.has(e.targetNodeId);
+          }
+          if (e.targetNodeId === cid) {
+            return e.sourceNodeId !== parent.id && !descendantMap[parent.id]?.has(e.sourceNodeId);
+          }
+          return false;
+        });
+        if (external) {
+          const angle = Math.atan2(child.position.y - currentParent.position.y, child.position.x - currentParent.position.x);
+          const rChild = child.data.visualRadius || NODE_RADIUS;
+          nodeMap.set(cid, {
+            ...child,
+            position: {
+              x: currentParent.position.x + (newRadius - rChild) * Math.cos(angle),
+              y: currentParent.position.y + (newRadius - rChild) * Math.sin(angle),
+            },
+          });
+        }
       });
     });
 
