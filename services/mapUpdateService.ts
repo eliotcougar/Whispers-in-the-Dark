@@ -304,10 +304,14 @@ export const updateMapFromAIData_Service = async (
   );
   const themeNodeIdMap = new Map<string, MapNode>();
   const themeNodeNameMap = new Map<string, MapNode>();
+  const themeNodeAliasMap = new Map<string, MapNode>();
   const themeEdgesMap = new Map<string, MapEdge[]>();
   currentThemeNodesFromMapData.forEach(n => {
     themeNodeIdMap.set(n.id, n);
     themeNodeNameMap.set(n.placeName, n);
+    if (n.data.aliases) {
+      n.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), n));
+    }
   });
   currentThemeEdgesFromMapData.forEach(e => {
     if (!themeEdgesMap.has(e.sourceNodeId)) themeEdgesMap.set(e.sourceNodeId, []);
@@ -424,12 +428,14 @@ Key points:
   // Refresh lookup maps for the cloned map data
   themeNodeIdMap.clear();
   themeNodeNameMap.clear();
+  themeNodeAliasMap.clear();
   themeEdgesMap.clear();
   newMapData.nodes
     .filter(n => n.themeName === currentTheme.name)
     .forEach(n => {
       themeNodeIdMap.set(n.id, n);
       themeNodeNameMap.set(n.placeName, n);
+      if (n.data.aliases) n.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), n));
     });
   newMapData.edges.forEach(e => {
     if (themeNodeIdMap.has(e.sourceNodeId) && themeNodeIdMap.has(e.targetNodeId)) {
@@ -480,6 +486,8 @@ Key points:
     if (byName) return byName;
     const byId = themeNodeIdMap.get(identifier);
     if (byId) return byId;
+    const byAlias = themeNodeAliasMap.get(identifier.toLowerCase());
+    if (byAlias) return byAlias;
     if (newNodesInBatchIdNameMap[identifier]) return newNodesInBatchIdNameMap[identifier];
     const fromBatch = Object.values(newNodesInBatchIdNameMap).find(entry => entry.id === identifier || entry.name === identifier);
     return fromBatch;
@@ -529,6 +537,9 @@ Key points:
       newMapData.nodes.push(newNode);
       themeNodeIdMap.set(newNodeId, newNode);
       themeNodeNameMap.set(nodeAddOp.placeName, newNode);
+      if (newNode.data.aliases) {
+        newNode.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), newNode));
+      }
       newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
     }
 
@@ -570,7 +581,13 @@ Key points:
         // Apply general data updates
         if (nodeUpdateOp.newData) {
             if (nodeUpdateOp.newData.description !== undefined) node.data.description = nodeUpdateOp.newData.description;
-            if (nodeUpdateOp.newData.aliases !== undefined) node.data.aliases = nodeUpdateOp.newData.aliases;
+            if (nodeUpdateOp.newData.aliases !== undefined) {
+                node.data.aliases = nodeUpdateOp.newData.aliases;
+                for (const [k, v] of Array.from(themeNodeAliasMap.entries())) {
+                  if (v.id === node.id) themeNodeAliasMap.delete(k);
+                }
+                node.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), node));
+            }
             if (nodeUpdateOp.newData.status !== undefined) node.data.status = nodeUpdateOp.newData.status;
             if (nodeUpdateOp.newData.nodeType !== undefined) node.data.nodeType = nodeUpdateOp.newData.nodeType;
 
@@ -592,8 +609,15 @@ Key points:
                     newNodesInBatchIdNameMap[nodeUpdateOp.newData.placeName] = { id: node.id, name: nodeUpdateOp.newData.placeName };
                 }
                 themeNodeNameMap.delete(node.placeName);
+                const oldName = node.placeName;
                 node.placeName = nodeUpdateOp.newData.placeName;
                 themeNodeNameMap.set(node.placeName, node);
+                if (!node.data.aliases) node.data.aliases = [];
+                if (!node.data.aliases.includes(oldName)) node.data.aliases.push(oldName);
+                for (const [k, v] of Array.from(themeNodeAliasMap.entries())) {
+                  if (v.id === node.id) themeNodeAliasMap.delete(k);
+                }
+                node.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), node));
             }
         }
     } else {
@@ -616,6 +640,9 @@ Key points:
               themeEdgesMap.set(nid, edges.filter(e => e.sourceNodeId !== removedNodeId && e.targetNodeId !== removedNodeId));
           }
           themeEdgesMap.delete(removedNodeId);
+          for (const [k, v] of Array.from(themeNodeAliasMap.entries())) {
+              if (v.id === removedNodeId) themeNodeAliasMap.delete(k);
+          }
           // Remove from newNodesInBatchIdNameMap if it was added then removed in same batch
           const batchKey = Object.keys(newNodesInBatchIdNameMap).find(k => newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.placeName);
           if (batchKey) delete newNodesInBatchIdNameMap[batchKey];
@@ -623,6 +650,12 @@ Key points:
           console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.placeName}" not found for removal.`);
       }
   });
+
+  const isEdgeConnectionAllowed = (nodeA: MapNode, nodeB: MapNode): boolean => {
+      const sameParent = nodeA.data.parentNodeId && nodeA.data.parentNodeId === nodeB.data.parentNodeId;
+      const externalFeatures = nodeA.data.nodeType === 'feature' && nodeB.data.nodeType === 'feature' && nodeA.data.parentNodeId !== nodeB.data.parentNodeId;
+      return !!sameParent || externalFeatures;
+  };
 
   // Process Edges (uses findNodeByIdentifier which checks newMapData nodes directly)
   edgesToAdd_mut.forEach(edgeAddOp => {
@@ -632,6 +665,12 @@ Key points:
           console.warn(`MapUpdate: Skipping edge add due to missing source ("${edgeAddOp.sourcePlaceName}") or target ("${edgeAddOp.targetPlaceName}") node for new edge.`); return;
       }
       const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
+      const sourceNode = themeNodeIdMap.get(sourceNodeId)!;
+      const targetNode = themeNodeIdMap.get(targetNodeId)!;
+      if (!isEdgeConnectionAllowed(sourceNode, targetNode)) {
+          console.warn(`MapUpdate: Edge between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping add.`);
+          return;
+      }
       const newEdgeId = `${sourceNodeId}_to_${targetNodeId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
       const existingEdgeOfTheSameType = (themeEdgesMap.get(sourceNodeId) || []).find(e =>
           ((e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) || (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId))
@@ -654,6 +693,12 @@ Key points:
     const targetNodeRef = findNodeByIdentifier(edgeUpdateOp.targetPlaceName);
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
     const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
+    const sourceNode = themeNodeIdMap.get(sourceNodeId)!;
+    const targetNode = themeNodeIdMap.get(targetNodeId)!;
+    if (!isEdgeConnectionAllowed(sourceNode, targetNode)) {
+        console.warn(`MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`);
+        return;
+    }
 
     // Find edge to update. If type is specified in newData, it's part of the match criteria.
     // Otherwise, find any edge and update its type.
