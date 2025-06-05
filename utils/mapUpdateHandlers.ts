@@ -19,6 +19,8 @@ import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/correcti
 import { executeMapCorrectionAndRefinement_Service } from '../services/mapCorrectionService';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
+import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
+import { renameMapElements_Service, applyRenamePayload } from '../services/mapRenameService';
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
@@ -129,6 +131,22 @@ export const handleMapUpdates = async (
   }
   if (draftState.lastDebugPacket) {
     draftState.lastDebugPacket.mapPruningDebugInfo = correctionResult.debugInfo;
+  }
+
+  // Upgrade any feature nodes that now have children into regions
+  const upgradeResult = upgradeFeaturesWithChildren(draftState.mapData);
+  if (upgradeResult.addedNodes.length > 0 || upgradeResult.addedEdges.length > 0) {
+    draftState.mapData = upgradeResult.updatedMapData;
+    turnChanges.mapDataChanged = true;
+    const renamePayload = await renameMapElements_Service(
+      upgradeResult.addedNodes,
+      upgradeResult.addedEdges,
+      themeContextForResponse,
+      { sceneDescription: 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene || '', gameLogTail }
+    );
+    if (renamePayload) {
+      applyRenamePayload(draftState.mapData, renamePayload);
+    }
   }
 
   const themeName = themeContextForResponse.name;
