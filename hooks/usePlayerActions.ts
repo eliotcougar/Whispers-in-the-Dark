@@ -239,15 +239,22 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
       let mapAISuggestedNodeIdentifier: string | undefined = undefined;
       if (themeContextForResponse) {
-        mapAISuggestedNodeIdentifier = await handleMapUpdates(
-          aiData,
-          draftState,
-          baseStateSnapshot,
-          themeContextForResponse,
-          loadingReason,
-          setLoadingReason,
-          turnChanges
-        );
+        try {
+          mapAISuggestedNodeIdentifier = await handleMapUpdates(
+            aiData,
+            draftState,
+            baseStateSnapshot,
+            themeContextForResponse,
+            loadingReason,
+            setLoadingReason,
+            turnChanges
+          );
+        } catch (mapErr) {
+          setError(
+            mapErr instanceof Error ? mapErr.message : String(mapErr)
+          );
+          throw mapErr;
+        }
       }
 
       if (aiData.logMessage) {

@@ -49,6 +49,17 @@ export const handleMapUpdates = async (
     );
     setLoadingReason(originalLoadingReason);
 
+    if (!mapUpdateResult) {
+      throw new Error('Map Update Service returned no data.');
+    }
+    if (!mapUpdateResult.updatedMapData) {
+      const reason =
+        mapUpdateResult.debugInfo?.validationError ||
+        mapUpdateResult.debugInfo?.rawResponse ||
+        'Unknown error';
+      throw new Error(`Map update failed: ${reason}`);
+    }
+
     if (mapUpdateResult) {
       if (mapUpdateResult.updatedMapData && JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
         turnChanges.mapDataChanged = true;

@@ -56,8 +56,10 @@ export const callMinimalCorrectionAI = async (
     console.error('callMinimalCorrectionAI: API Key not configured.');
     return null;
   }
+
+  const fullPrompt = `${systemInstruction}\n\n${prompt}`;
+
   try {
-    const fullPrompt = `${systemInstruction}\n\n${prompt}`;
     const response = await ai.models.generateContent({
       model: MINIMAL_MODEL_NAME,
       contents: fullPrompt,
@@ -65,7 +67,24 @@ export const callMinimalCorrectionAI = async (
     });
     return response.text?.trim() ?? null;
   } catch (error) {
-    console.error(`callMinimalCorrectionAI: Error during single AI call for prompt starting with "${prompt.substring(0,100)}...":`, error);
+    console.error(
+      `callMinimalCorrectionAI: MINIMAL_MODEL failed for prompt starting with "${prompt.substring(0,100)}...":`,
+      error
+    );
+    if (isServerOrClientError(error)) {
+      try {
+        console.warn('callMinimalCorrectionAI: Falling back to AUXILIARY_MODEL due to error.');
+        const fallbackResp = await ai.models.generateContent({
+          model: AUXILIARY_MODEL_NAME,
+          contents: fullPrompt,
+          config: { temperature: CORRECTION_TEMPERATURE },
+        });
+        return fallbackResp.text?.trim() ?? null;
+      } catch (fallbackError) {
+        console.error('callMinimalCorrectionAI: Fallback AUXILIARY_MODEL failed:', fallbackError);
+        return null;
+      }
+    }
     return null;
   }
 };
