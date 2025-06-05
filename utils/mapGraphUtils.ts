@@ -17,7 +17,7 @@ export const getParent = (
   node: MapNode,
   nodeMap: Map<string, MapNode>
 ): MapNode | undefined => {
-  if (!node.data.parentNodeId) return undefined;
+  if (!node.data.parentNodeId || node.data.parentNodeId === 'Universe') return undefined;
   return nodeMap.get(node.data.parentNodeId);
 };
 

@@ -226,7 +226,7 @@ export const formatMapContextForPrompt = (
   if (currentNode.data.status) context += ` Status: ${currentNode.data.status}.`;
 
   const parentNodeForCurrent =
-    (currentNode.data.nodeType === 'feature') && currentNode.data.parentNodeId
+    currentNode.data.nodeType === 'feature' && currentNode.data.parentNodeId && currentNode.data.parentNodeId !== 'Universe'
       ? allNodesForTheme.find(n => n.id === currentNode.data.parentNodeId)
       : null;
 
@@ -241,7 +241,7 @@ export const formatMapContextForPrompt = (
 
   const areaMainNodeId =
     currentNode.data.nodeType === 'feature'
-      ? currentNode.data.parentNodeId
+      ? (currentNode.data.parentNodeId && currentNode.data.parentNodeId !== 'Universe' ? currentNode.data.parentNodeId : undefined)
       : currentNode.id;
   let exitsContext = '';
   if (areaMainNodeId) {
@@ -263,7 +263,8 @@ export const formatMapContextForPrompt = (
               entryLeaf &&
               entryLeaf.data.nodeType === 'feature' &&
               entryLeaf.data.parentNodeId &&
-              entryLeaf.data.parentNodeId !== areaMainNode.id
+              entryLeaf.data.parentNodeId !== areaMainNode.id &&
+              entryLeaf.data.parentNodeId !== 'Universe'
             ) {
               const otherAreaMainNode = allNodesForTheme.find(
                 node => node.id === entryLeaf.data.parentNodeId && !(node.data.nodeType === "feature")

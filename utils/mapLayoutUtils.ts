@@ -396,9 +396,10 @@ export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
   const nodeMap = new Map(nodes.map(n => [n.id, structuredCloneGameState(n)]));
   const childMap: Map<string, MapNode[]> = new Map();
   nodes.forEach(n => {
-    if (n.data.parentNodeId && nodeMap.has(n.data.parentNodeId)) {
-      if (!childMap.has(n.data.parentNodeId)) childMap.set(n.data.parentNodeId, []);
-      childMap.get(n.data.parentNodeId)!.push(nodeMap.get(n.id)!);
+    const parentId = n.data.parentNodeId && n.data.parentNodeId !== 'Universe' ? n.data.parentNodeId : undefined;
+    if (parentId && nodeMap.has(parentId)) {
+      if (!childMap.has(parentId)) childMap.set(parentId, []);
+      childMap.get(parentId)!.push(nodeMap.get(n.id)!);
     }
   });
 
@@ -418,7 +419,7 @@ export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
     return node.data.visualRadius!;
   };
 
-  const roots = nodes.filter(n => !n.data.parentNodeId).map(n => nodeMap.get(n.id)!);
+  const roots = nodes.filter(n => !n.data.parentNodeId || n.data.parentNodeId === 'Universe').map(n => nodeMap.get(n.id)!);
   roots.forEach(r => computeRadius(r));
 
   /** Recursively positions a node and its children. */
@@ -481,10 +482,11 @@ export const applyNestedForceLayout = (
   const parentMap: Record<string, string | undefined> = {};
   const childMap: Record<string, string[]> = {};
   nodeMap.forEach(node => {
-    parentMap[node.id] = node.data.parentNodeId;
-    if (node.data.parentNodeId) {
-      if (!childMap[node.data.parentNodeId]) childMap[node.data.parentNodeId] = [];
-      childMap[node.data.parentNodeId].push(node.id);
+    const parentId = node.data.parentNodeId && node.data.parentNodeId !== 'Universe' ? node.data.parentNodeId : undefined;
+    parentMap[node.id] = parentId;
+    if (parentId) {
+      if (!childMap[parentId]) childMap[parentId] = [];
+      childMap[parentId].push(node.id);
     }
   });
 

@@ -104,8 +104,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     ) => {
       const { baseStateSnapshot, isFromDialogueSummary = false, scoreChangeFromAction = 0 } = options;
 
-      console.log('[DEBUG FLOW] processAiResponse called. isFromDialogueSummary:', isFromDialogueSummary);
-
       const turnChanges: TurnChanges = {
         itemChanges: [],
         characterChanges: [],
@@ -121,7 +119,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       };
 
       if (!aiData) {
-        console.log('[DEBUG FLOW] processAiResponse: aiData is null or invalid.');
         setError('The Dungeon Master\'s connection is unstable... (Invalid AI response after retries)');
         if (!isFromDialogueSummary && 'actionOptions' in draftState) {
           draftState.actionOptions = [
@@ -265,7 +262,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
 
       if ('dialogueSetup' in aiData && aiData.dialogueSetup) {
-        console.log('[DEBUG FLOW] Valid dialogueSetup detected. Starting dialogue with:', aiData.dialogueSetup.participants);
         draftState.actionOptions = [];
         draftState.dialogueState = {
           participants: aiData.dialogueSetup.participants,
@@ -277,7 +273,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
 
       draftState.lastTurnChanges = turnChanges;
-      console.log('[DEBUG FLOW] processAiResponse completed.');
     }, [loadingReason, setLoadingReason, setError, setGameStateStack]);
 
   /**
@@ -287,7 +282,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    */
   const executePlayerAction = useCallback(
     async (action: string, isFreeForm: boolean = false) => {
-      console.log('[DEBUG FLOW] executePlayerAction start:', action);
       const currentFullState = getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 
@@ -352,7 +346,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       let encounteredError = false;
       try {
         const response = await executeAIMainTurn(prompt, currentThemeObj.systemInstructionModifier);
-        console.log('[DEBUG FLOW] AI raw response received.');
         if (draftState.lastDebugPacket) draftState.lastDebugPacket.rawResponseText = response.text ?? null;
 
         const currentThemeMapDataForParse = {
@@ -376,13 +369,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           currentFullState.inventory
         );
 
-        console.log('[DEBUG FLOW] AI response parsed:', parsedData);
-
         await processAiResponse(parsedData, currentThemeObj, draftState, { baseStateSnapshot, scoreChangeFromAction });
       } catch (e: any) {
         encounteredError = true;
         console.error('Error executing player action:', e);
-        console.log('[DEBUG FLOW] executePlayerAction encountered error');
         if (isServerOrClientError(e)) {
           const status = extractStatusFromError(e);
           setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
@@ -400,7 +390,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           draftState.globalTurnNumber += 1;
         }
         commitGameState(draftState);
-        console.log('[DEBUG FLOW] executePlayerAction finished and state committed');
         setIsLoading(false);
         setLoadingReason(null);
 
