@@ -6,6 +6,7 @@
 
 import { MapNode, MapEdge } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
+import { NODE_RADIUS } from './mapConstants';
 
 export const DEFAULT_K_REPULSION = 20000; 
 export const DEFAULT_K_SPRING = 0.25;     
@@ -381,4 +382,73 @@ export const applyBasicLayoutAlgorithm = (
     });
   }
   return nodes;
+};
+
+/**
+ * Calculates a simple nested circle layout based solely on parent/child
+ * relationships. Each parent node encloses its children in a circle whose
+ * radius is derived from the summed area of the children's circles. Children
+ * are distributed evenly around their parent.
+ * @param nodes - Array of map nodes to layout.
+ * @returns A new array of nodes with updated positions and visualRadius values.
+ */
+export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
+  if (nodes.length === 0) return [];
+
+  const nodeMap = new Map(nodes.map(n => [n.id, structuredCloneGameState(n)]));
+  const childMap: Map<string, MapNode[]> = new Map();
+  nodes.forEach(n => {
+    if (n.data.parentNodeId && nodeMap.has(n.data.parentNodeId)) {
+      if (!childMap.has(n.data.parentNodeId)) childMap.set(n.data.parentNodeId, []);
+      childMap.get(n.data.parentNodeId)!.push(nodeMap.get(n.id)!);
+    }
+  });
+
+  /** Recursively computes visualRadius for a node based on its children. */
+  const computeRadius = (node: MapNode): number => {
+    const children = childMap.get(node.id) || [];
+    if (children.length === 0) {
+      node.data.visualRadius = NODE_RADIUS;
+    } else {
+      let totalArea = 0;
+      children.forEach(c => {
+        totalArea += Math.pow(computeRadius(c), 2);
+      });
+      node.data.visualRadius = Math.sqrt(totalArea) * 1.2;
+    }
+    return node.data.visualRadius!;
+  };
+
+  const roots = nodes.filter(n => !n.data.parentNodeId).map(n => nodeMap.get(n.id)!);
+  roots.forEach(r => computeRadius(r));
+
+  /** Recursively positions a node and its children. */
+  const positionNode = (node: MapNode, cx: number, cy: number) => {
+    node.position = { x: cx, y: cy };
+    const children = childMap.get(node.id) || [];
+    if (children.length === 0) return;
+    const angleStep = (2 * Math.PI) / children.length;
+    const radiusForChildren = node.data.visualRadius! * 0.75;
+    children.forEach((child, idx) => {
+      const childR = child.data.visualRadius || NODE_RADIUS;
+      const angle = angleStep * idx;
+      const px = cx + (radiusForChildren - childR) * Math.cos(angle);
+      const py = cy + (radiusForChildren - childR) * Math.sin(angle);
+      positionNode(child, px, py);
+    });
+  };
+
+  const rootRadius = roots.length > 1 ? Math.max(...roots.map(r => r.data.visualRadius || NODE_RADIUS)) * 2.5 : 0;
+  roots.forEach((root, idx) => {
+    if (roots.length === 1) {
+      positionNode(root, 0, 0);
+    } else {
+      const angle = (2 * Math.PI * idx) / roots.length;
+      const x = rootRadius * Math.cos(angle);
+      const y = rootRadius * Math.sin(angle);
+      positionNode(root, x, y);
+    }
+  });
+
+  return Array.from(nodeMap.values());
 };

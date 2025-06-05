@@ -7,6 +7,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
   applyBasicLayoutAlgorithm,
+  applyNestedCircleLayout,
   LayoutForceConstants,
   DEFAULT_K_REPULSION,
   DEFAULT_K_SPRING,
@@ -45,6 +46,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onClose,
 }) => {
   const [displayedNodes, setDisplayedNodes] = useState<MapNode[]>([]);
+  const [isNestedView, setIsNestedView] = useState(false);
 
   const [layoutKRepulsion, setLayoutKRepulsion] = useState(initialLayoutConfig?.K_REPULSION ?? DEFAULT_K_REPULSION);
   const [layoutKSpring, setLayoutKSpring] = useState(initialLayoutConfig?.K_SPRING ?? DEFAULT_K_SPRING);
@@ -109,6 +111,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   /** Prepares nodes for layout and runs the force algorithm. */
   const runLayout = useCallback(() => {
     const nodesToProcess = [...currentThemeNodes];
+
+    if (isNestedView) {
+      const nestedNodes = applyNestedCircleLayout(nodesToProcess);
+      setDisplayedNodes(nestedNodes);
+      return;
+    }
     const newPositions: { [id: string]: { x: number; y: number } } = {};
 
     nodesToProcess.forEach(node => {
@@ -172,7 +180,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     } else {
       setDisplayedNodes(preparedNodes);
     }
-  }, [currentThemeNodes, currentThemeEdges, layoutIterations, layoutKRepulsion, layoutKSpring, layoutIdealEdgeLength, layoutKCentering, layoutKUntangle, layoutKEdgeNodeRepulsion, layoutDampingFactor, layoutMaxDisplacement]);
+  }, [currentThemeNodes, currentThemeEdges, layoutIterations, layoutKRepulsion, layoutKSpring, layoutIdealEdgeLength, layoutKCentering, layoutKUntangle, layoutKEdgeNodeRepulsion, layoutDampingFactor, layoutMaxDisplacement, isNestedView]);
 
   useEffect(() => {
     if (isVisible) {
@@ -231,6 +239,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           setLayoutMaxDisplacement={setLayoutMaxDisplacement}
           layoutIterations={layoutIterations}
           setLayoutIterations={setLayoutIterations}
+          isNestedView={isNestedView}
+          onToggleNestedView={() => setIsNestedView(v => !v)}
           onReset={handleResetLayoutToDefaults}
           onRefreshLayout={handleRefreshLayout}
         />
