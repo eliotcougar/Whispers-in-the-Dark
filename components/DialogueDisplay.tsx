@@ -73,14 +73,14 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
     }));
     
     // Derive places from mapData (main nodes)
-    const places: HighlightableEntity[] = currentThemeName 
+    const places: HighlightableEntity[] = currentThemeName
       ? mapData
-          .filter(node => node.themeName === currentThemeName && !node.data.isLeaf) 
-          .map(node => ({ 
-            name: node.placeName, 
-            type: 'place', 
-            description: node.data.description || 'A location of interest.', 
-            aliases: node.data.aliases || [] 
+          .filter(node => node.themeName === currentThemeName)
+          .map(node => ({
+            name: node.placeName,
+            type: 'place',
+            description: node.data.description || 'A location of interest.',
+            aliases: node.data.aliases || []
           }))
       : [];
 

@@ -44,13 +44,15 @@ export const pruneAndRefineMapConnections = (
 
 
   // Phase 1: Process M1 - L - M2 cases based on parent links
-  const leafNodesInTheme = themeNodes.filter(node => node.data.isLeaf);
+  const leafNodesInTheme = themeNodes.filter(
+    node => node.data.nodeType === 'feature'
+  );
 
   for (const leafL of leafNodesInTheme) {
     if (!leafL.data.parentNodeId) continue;
 
     const parentM1 = themeNodeMap.get(leafL.data.parentNodeId);
-    if (!parentM1 || parentM1.data.isLeaf) continue; // Parent must be a main node
+    if (!parentM1 || parentM1.data.nodeType === 'feature') continue; // Parent must be a main node
 
 
 
@@ -64,7 +66,12 @@ export const pruneAndRefineMapConnections = (
       const otherNodeId = edge_LM2.sourceNodeId === leafL.id ? edge_LM2.targetNodeId : edge_LM2.sourceNodeId;
       const mainNodeM2 = themeNodeMap.get(otherNodeId);
 
-      if (mainNodeM2 && !mainNodeM2.data.isLeaf && mainNodeM2.id !== parentM1.id) {
+      if (
+        mainNodeM2 &&
+        mainNodeM2.data.nodeType !== 'feature' &&
+        mainNodeM2.data.nodeType !== 'room' &&
+        mainNodeM2.id !== parentM1.id
+      ) {
         // Found M1 - L - M2 connection. Replace L-M2 with L - L_M2 - M2
         
         const tempLeafM2_NameSuggestion = `Entrance to ${mainNodeM2.placeName} from ${leafL.placeName}`;
@@ -78,7 +85,7 @@ export const pruneAndRefineMapConnections = (
             description: `A temporary transition point into ${mainNodeM2.placeName}.`,
             aliases: [`Entrance to ${mainNodeM2.placeName}`],
             status: 'discovered',
-            isLeaf: true,
+            nodeType: 'feature',
             parentNodeId: mainNodeM2.id,
             visited: false,
           },
@@ -125,9 +132,14 @@ export const pruneAndRefineMapConnections = (
     const sourceNode = themeNodeMap.get(edge.sourceNodeId);
     const targetNode = themeNodeMap.get(edge.targetNodeId);
 
-    if (sourceNode && targetNode &&
-        !sourceNode.data.isLeaf && !targetNode.data.isLeaf &&
-        edge.data.type !== 'containment') {
+    if (
+      sourceNode &&
+      targetNode &&
+      sourceNode.data.nodeType !== 'feature' &&
+      sourceNode.data.nodeType !== 'room' &&
+      targetNode.data.nodeType !== 'feature' &&
+      targetNode.data.nodeType !== 'room'
+    ) {
       
       // Create Leaf L_M1 (child of sourceNode)
       const tempLeafM1_NameSuggestion = `Exit from ${sourceNode.placeName} towards ${targetNode.placeName}`;
@@ -141,7 +153,7 @@ export const pruneAndRefineMapConnections = (
           description: `A temporary transition point from ${sourceNode.placeName}.`,
           aliases: [`Exit from ${sourceNode.placeName}`],
           status: 'discovered',
-          isLeaf: true,
+          nodeType: 'feature',
           parentNodeId: sourceNode.id,
           visited: false,
         },
@@ -162,7 +174,7 @@ export const pruneAndRefineMapConnections = (
           description: `A temporary transition point into ${targetNode.placeName}.`,
           aliases: [`Entrance to ${targetNode.placeName}`],
           status: 'discovered',
-          isLeaf: true,
+          nodeType: 'feature',
           parentNodeId: targetNode.id,
           visited: false,
         },

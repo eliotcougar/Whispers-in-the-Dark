@@ -205,7 +205,10 @@ export const summarizeDialogueForUpdates = async (
 
   const dialogueLogString = summaryContext.dialogueLog.map(entry => `${entry.speaker}: "${entry.line}"`).join('\n');
   const inventoryString = summaryContext.inventory.map(item => `${item.name} (Type: ${item.type})`).join(', ') || "Empty";
-  const knownPlacesString = formatKnownPlacesForPrompt(summaryContext.mapDataForTheme.nodes.filter(n => !n.data.isLeaf), true);
+  const knownPlacesString = formatKnownPlacesForPrompt(
+    summaryContext.mapDataForTheme.nodes.filter(n => n.data.nodeType !== 'feature'),
+    true
+  );
   
   let knownCharactersString = "Known Characters: ";
   if (summaryContext.knownCharactersInTheme.length > 0) {

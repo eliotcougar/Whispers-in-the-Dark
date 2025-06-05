@@ -95,11 +95,14 @@ function doSegmentsIntersect(p1: Point, q1: Point, p2: Point, q2: Point): boolea
  * @returns True if the node is a region host, false otherwise.
  */
 const isRegionHostNode = (node: MapNode, allThemeEdges: MapEdge[], nodeMap: Map<string, MapNode>): boolean => {
-  if (node.data.isLeaf) return false; // Only main nodes can host regions
+  if (node.data.nodeType === 'feature') return false; // Only main nodes can host regions
 
   // Check if any node considers 'node' as its parent via parentNodeId
   for (const potentialChild of nodeMap.values()) {
-    if (potentialChild.data.isLeaf && potentialChild.data.parentNodeId === node.id) {
+    if (
+      potentialChild.data.nodeType === 'feature' &&
+      potentialChild.data.parentNodeId === node.id
+    ) {
       // Found a leaf child. Now check if there's an edge connecting them.
       const edgeExists = allThemeEdges.some(edge =>
         (edge.sourceNodeId === node.id && edge.targetNodeId === potentialChild.id) ||
@@ -124,8 +127,11 @@ const isExternalToGroup = (otherNode: MapNode, groupHostNode: MapNode, allThemeE
   if (otherNode.id === groupHostNode.id) return false; 
 
   // If otherNode is a leaf and its parentNodeId is the groupHostNode, it's part of the group.
-  if (otherNode.data.isLeaf && otherNode.data.parentNodeId === groupHostNode.id) {
-    return false; 
+  if (
+    otherNode.data.nodeType === 'feature' &&
+    otherNode.data.parentNodeId === groupHostNode.id
+  ) {
+    return false;
   }
   
   return true; 
@@ -186,10 +192,12 @@ export const applyBasicLayoutAlgorithm = (
         let distance = Math.sqrt(distanceSq);
 
         let repulsionForceMagnitude = K_REPULSION / distanceSq;
-        
-        const commonRepulsionMultiplier = (node1.data.isLeaf && node2.data.isLeaf) 
-            ? 0.5 
-            : (node1.data.isLeaf || node2.data.isLeaf ? 0.7 : 1);
+
+        const node1IsLeaf = node1.data.nodeType === 'feature';
+        const node2IsLeaf = node2.data.nodeType === 'feature';
+        const commonRepulsionMultiplier = node1IsLeaf && node2IsLeaf
+            ? 0.5
+            : (node1IsLeaf || node2IsLeaf ? 0.7 : 1);
         repulsionForceMagnitude *= commonRepulsionMultiplier;
 
         const node1IsHost = isRegionHostNode(node1, allThemeEdges, nodeMap);
@@ -237,9 +245,17 @@ export const applyBasicLayoutAlgorithm = (
 
         // Check for actual parent-child relationship first
         // This relationship dictates the layout for ANY edge connecting this specific parent-child pair.
-        if (!sourceNode.data.isLeaf && targetNode.data.isLeaf && targetNode.data.parentNodeId === sourceNode.id) {
+        if (
+          sourceNode.data.nodeType !== 'feature' &&
+          (targetNode.data.nodeType === 'feature') &&
+          targetNode.data.parentNodeId === sourceNode.id
+        ) {
             parentNodeForLayout = sourceNode; childNodeForLayout = targetNode; isTrueParentChildPair = true;
-        } else if (sourceNode.data.isLeaf && !targetNode.data.isLeaf && sourceNode.data.parentNodeId === targetNode.id) {
+        } else if (
+          (sourceNode.data.nodeType === 'feature') &&
+          targetNode.data.nodeType !== 'feature' &&
+          sourceNode.data.parentNodeId === targetNode.id
+        ) {
             parentNodeForLayout = targetNode; childNodeForLayout = sourceNode; isTrueParentChildPair = true;
         }
         
@@ -247,7 +263,7 @@ export const applyBasicLayoutAlgorithm = (
             // This is the DOMINANT rule for this pair of nodes.
             let hasExternalConnection = false;
             for (const otherEdge of allThemeEdges) {
-                if (otherEdge.id === edge.id) continue; 
+                if (otherEdge.id === edge.id) continue;
                 let connectedNodeId: string | undefined;
                 if (otherEdge.sourceNodeId === childNodeForLayout.id) connectedNodeId = otherEdge.targetNodeId;
                 else if (otherEdge.targetNodeId === childNodeForLayout.id) connectedNodeId = otherEdge.sourceNodeId;
@@ -255,9 +271,8 @@ export const applyBasicLayoutAlgorithm = (
                 if (connectedNodeId) {
                     const connectedMapNode = nodeMap.get(connectedNodeId);
                     if (connectedMapNode) {
-                        // External if connected to something other than its parent AND that something is not another leaf of the same parent
-                        if (connectedMapNode.id !== parentNodeForLayout.id && 
-                            (!connectedMapNode.data.isLeaf || connectedMapNode.data.parentNodeId !== parentNodeForLayout.id)) {
+                        const connectedIsLeaf = connectedMapNode.data.nodeType === 'feature';
+                        if (connectedMapNode.id !== parentNodeForLayout.id && (!connectedIsLeaf || connectedMapNode.data.parentNodeId !== parentNodeForLayout.id)) {
                             hasExternalConnection = true; break;
                         }
                     }
@@ -269,27 +284,7 @@ export const applyBasicLayoutAlgorithm = (
                 idealLen = IDEAL_EDGE_LENGTH * 0.4; springK = K_SPRING * 1.5; // Pull internal leaves closer
             }
         } else {
-            // If not a true parent-child pair, then apply rules based on edge type and node types for THIS specific edge
-            if (edge.data.type === 'containment' && sourceNode.data.isLeaf && targetNode.data.isLeaf) {
-                idealLen = IDEAL_EDGE_LENGTH * 0.3;
-                springK = K_SPRING * 1.5; // Stronger containment for leaf-leaf
-            } else if (edge.data.type !== 'containment' && sourceNode.data.isLeaf && targetNode.data.isLeaf) {
-                // Non-containment edge between two LEAF nodes (very attractive)
-                idealLen = IDEAL_EDGE_LENGTH * 0.3; 
-                springK = K_SPRING * 1.5;            
-            } else if (edge.data.type !== 'containment' && !sourceNode.data.isLeaf && !targetNode.data.isLeaf) {
-                // Non-containment edge directly connecting two main nodes
-                idealLen = IDEAL_EDGE_LENGTH * 2;
-                // springK = K_SPRING; // Default
-            } else {
-                // Default for other edges (e.g., path, door, or leaf-to-main non-parent-child,
-                // or explicit 'containment' edge between leaf and its non-parent main node)
-                idealLen = IDEAL_EDGE_LENGTH * 1.5;
-                // springK = K_SPRING; // Default
-                if (sourceNode.data.isLeaf || targetNode.data.isLeaf) {
-                    attractionMultiplier = 1.3; 
-                }
-            }
+            idealLen = IDEAL_EDGE_LENGTH * 1.5;
         }
         
         const displacement = distance - idealLen;

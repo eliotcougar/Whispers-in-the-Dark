@@ -40,7 +40,7 @@ const getRadiusForNode = (node: MapNode): number => {
     case 'feature':
       return NODE_RADIUS * 0.6;
     default:
-      return node.data.isLeaf ? NODE_RADIUS * 0.7 : NODE_RADIUS;
+      return NODE_RADIUS;
   }
 };
 
@@ -222,11 +222,10 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
 
           {nodes.map(node => {
             let nodeClass = 'map-node-circle';
-            if (node.data.isLeaf) nodeClass += ' leaf';
             if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
             if (node.data.status === 'quest_target') nodeClass += ' quest_target';
-            const maxCharsPerLine = node.data.nodeType === 'feature' || node.data.nodeType === 'room' || node.data.isLeaf ? 20 : 25;
+            const maxCharsPerLine = node.data.nodeType === 'feature' ? 20 : 25;
             const labelLines = splitTextIntoLines(node.placeName, maxCharsPerLine, MAX_LABEL_LINES);
             const isHost = hostNodeIdSet.has(node.id);
             const initialDyOffset = isHost
@@ -235,7 +234,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
             return (
               <g key={node.id} transform={`translate(${node.position.x}, ${node.position.y})`} className="map-node" onMouseEnter={e => handleNodeMouseEnter(node, e)} onMouseLeave={handleMouseLeaveGeneral}>
                 <circle className={nodeClass} r={getRadiusForNode(node)} />
-                <text className={`map-node-label ${node.data.nodeType === 'feature' || node.data.nodeType === 'room' || node.data.isLeaf ? 'leaf-label' : ''}`}>
+                <text className={`map-node-label ${node.data.nodeType === 'feature' ? 'leaf-label' : ''}`}>
                   {labelLines.map((line, index) => (
                     <tspan key={`${node.id}-line-${index}`} x="0" dy={index === 0 ? `${initialDyOffset}em` : `${LABEL_LINE_HEIGHT_EM}em`}>{line}</tspan>
                   ))}

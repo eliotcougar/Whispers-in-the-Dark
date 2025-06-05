@@ -13,7 +13,9 @@ export const formatKnownPlacesForPrompt = (
   mapNodes: MapNode[],
   detailed: boolean = false
 ): string => {
-  const mainNodes = mapNodes.filter(node => !node.data.isLeaf);
+  const mainNodes = mapNodes.filter(
+    node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
+  );
   if (mainNodes.length === 0) {
     return 'None specifically known in this theme yet.';
   }
@@ -119,51 +121,11 @@ const getFormattedConnectionsForNode = (
     const detailsArray: string[] = [];
     const statusText = bestEdge.data.status || 'open';
 
-    const isPerspectiveMainToItsLeafChildContainment =
-      bestEdge.data.type === 'containment' &&
-      !perspectiveNode.data.isLeaf &&
-      otherNode.data.isLeaf &&
-      otherNode.data.parentNodeId === perspectiveNode.id;
-
-    const isPerspectiveLeafToOtherLeafContainment =
-      bestEdge.data.type === 'containment' &&
-      perspectiveNode.data.isLeaf &&
-      otherNode.data.isLeaf;
-
-    const isPerspectiveLeafToItsParentContainment =
-      bestEdge.data.type === 'containment' &&
-      perspectiveNode.data.isLeaf &&
-      perspectiveNode.data.parentNodeId === otherNode.id;
-
-    if (isPerspectiveLeafToItsParentContainment) {
-      processedTargets.add(targetNodeId);
-      continue;
-    }
-
-    if (isPerspectiveMainToItsLeafChildContainment) {
-      pathString = `- Nearby feature: "${otherNode.placeName}" (within "${perspectiveNode.placeName}")`;
-      if (statusText !== 'open') detailsArray.push(`status: ${statusText}`);
-    } else if (isPerspectiveLeafToOtherLeafContainment) {
-      pathString = `- Direct connection to: "${otherNode.placeName}"`;
-      if (statusText !== 'open') detailsArray.push(`status: ${statusText}`);
-      if (bestEdge.data.type && bestEdge.data.type !== 'containment') {
-        detailsArray.push(`type: ${bestEdge.data.type}`);
-      } else if (bestEdge.data.type === 'containment' && detailsArray.length === 0 && !(bestEdge.data.travelTime || bestEdge.data.description)) {
-        // no-op for simple containment
-      } else if (bestEdge.data.type) {
-        detailsArray.push(`type: ${bestEdge.data.type}`);
-      }
-      if (bestEdge.data.travelTime) detailsArray.push(`travel time: ${bestEdge.data.travelTime}`);
-      if (bestEdge.data.description) detailsArray.push(bestEdge.data.description);
-    } else {
-      const connectionDescription = `from "${perspectiveNode.placeName}" to "${otherNode.placeName}"`;
-      pathString = `- `;
-      pathString += statusText + ' ';
-      pathString += (bestEdge.data.type || 'connection') + ' ';
-      pathString += connectionDescription;
-      if (bestEdge.data.description) detailsArray.push(bestEdge.data.description);
-      if (bestEdge.data.travelTime) detailsArray.push(`travel time: ${bestEdge.data.travelTime}`);
-    }
+    pathString = `- Path to: "${otherNode.placeName}"`;
+    if (statusText !== 'open') detailsArray.push(`status: ${statusText}`);
+    if (bestEdge.data.type) detailsArray.push(`type: ${bestEdge.data.type}`);
+    if (bestEdge.data.travelTime) detailsArray.push(`travel time: ${bestEdge.data.travelTime}`);
+    if (bestEdge.data.description) detailsArray.push(bestEdge.data.description);
 
     if (detailsArray.length > 0) pathString += ` (${detailsArray.join(', ')})`;
     pathString += '.';
@@ -208,7 +170,10 @@ const getNearbyNodeIds = (
         if (!visitedForHops.has(neighborNodeId)) {
           const neighborNode = allNodes.find(n => n.id === neighborNodeId);
           if (neighborNode) {
-            const neighborNodeType = neighborNode.data.isLeaf ? 'leaf' : 'node';
+            const neighborNodeType =
+              neighborNode.data.nodeType === 'feature'
+                ? 'leaf'
+                : 'node';
             if (typesToTraverse && typesToTraverse.length > 0 && !typesToTraverse.includes(neighborNodeType)) {
               continue;
             }
@@ -224,7 +189,7 @@ const getNearbyNodeIds = (
     for (const nodeId of allReachableNodeIds) {
       const node = allNodes.find(n => n.id === nodeId);
       if (node) {
-        const nodeType = node.data.isLeaf ? 'leaf' : 'node';
+        const nodeType = (node.data.nodeType === "feature" || node.data.nodeType === "room") ? 'leaf' : 'node';
         if (typesToInclude.includes(nodeType)) {
           filteredReachableNodeIds.add(nodeId);
         }
@@ -261,12 +226,12 @@ export const formatMapContextForPrompt = (
   if (currentNode.data.status) context += ` Status: ${currentNode.data.status}.`;
 
   const parentNodeForCurrent =
-    currentNode.data.isLeaf && currentNode.data.parentNodeId
+    (currentNode.data.nodeType === 'feature') && currentNode.data.parentNodeId
       ? allNodesForTheme.find(n => n.id === currentNode.data.parentNodeId)
       : null;
 
   if (parentNodeForCurrent) {
-    if (parentNodeForCurrent.data.isLeaf) {
+    if (parentNodeForCurrent.data.nodeType === 'feature') {
       context += ` This is a feature of "${parentNodeForCurrent.placeName}".`;
     } else {
       context += ` This is part of the larger known location: "${parentNodeForCurrent.placeName}".`;
@@ -274,13 +239,16 @@ export const formatMapContextForPrompt = (
   }
   context += '\n';
 
-  const areaMainNodeId = currentNode.data.isLeaf ? currentNode.data.parentNodeId : currentNode.id;
+  const areaMainNodeId =
+    currentNode.data.nodeType === 'feature'
+      ? currentNode.data.parentNodeId
+      : currentNode.id;
   let exitsContext = '';
   if (areaMainNodeId) {
     const areaMainNode = allNodesForTheme.find(node => node.id === areaMainNodeId);
-    if (areaMainNode && !areaMainNode.data.isLeaf) {
+    if (areaMainNode && !(areaMainNode.data.nodeType === 'feature')) {
       const exitLeafNodesInCurrentArea = allNodesForTheme.filter(
-        node => node.data.isLeaf && node.data.parentNodeId === areaMainNode.id
+        node => node.data.nodeType === "feature" && node.data.parentNodeId === areaMainNode.id
       );
       const exitStrings: string[] = [];
       if (exitLeafNodesInCurrentArea.length > 0) {
@@ -293,12 +261,12 @@ export const formatMapContextForPrompt = (
             const entryLeaf = allNodesForTheme.find(node => node.id === otherEndNodeId);
             if (
               entryLeaf &&
-              entryLeaf.data.isLeaf &&
+              entryLeaf.data.nodeType === 'feature' &&
               entryLeaf.data.parentNodeId &&
               entryLeaf.data.parentNodeId !== areaMainNode.id
             ) {
               const otherAreaMainNode = allNodesForTheme.find(
-                node => node.id === entryLeaf.data.parentNodeId && !node.data.isLeaf
+                node => node.id === entryLeaf.data.parentNodeId && !(node.data.nodeType === "feature")
               );
               if (otherAreaMainNode) {
                 const edgeStatus = edge.data.status || 'open';
@@ -317,7 +285,7 @@ export const formatMapContextForPrompt = (
       } else {
         exitsContext = `No mapped exits from the current main area ("${areaMainNode.placeName}") to other major areas are known.`;
       }
-    } else if (areaMainNode && areaMainNode.data.isLeaf) {
+    } else if (areaMainNode && (areaMainNode.data.nodeType === 'feature')) {
       exitsContext = `You are at a detailed feature ("${areaMainNode.placeName}"). Connections to other major areas are listed below if available.`;
     }
   } else {
@@ -326,7 +294,10 @@ export const formatMapContextForPrompt = (
   context += exitsContext + '\n\n';
 
   const processedTargets = new Set<string>();
-  const excludeForCurrentNode = currentNode.data.isLeaf && parentNodeForCurrent ? parentNodeForCurrent.id : null;
+  const excludeForCurrentNode =
+    (currentNode.data.nodeType === 'feature') && parentNodeForCurrent
+      ? parentNodeForCurrent.id
+      : null;
   let pathsFromCurrentNode = getFormattedConnectionsForNode(
     currentNode,
     allNodesForTheme,

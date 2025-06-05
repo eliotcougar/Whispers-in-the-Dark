@@ -55,11 +55,6 @@ function isValidAINodeDataInternal(data: any, isNodeAddContext: boolean): boolea
     }
   }
   
-  // isLeaf: Optional for both. Boolean if present.
-  if (data.isLeaf !== undefined && typeof data.isLeaf !== 'boolean') {
-    console.warn("Validation Error (NodeData): 'isLeaf' must be boolean if present. Value:", data.isLeaf);
-    return false;
-  }
 
   if (isNodeAddContext) {
     if (typeof data.nodeType !== 'string' || !VALID_NODE_TYPE_VALUES.includes(data.nodeType as any)) {

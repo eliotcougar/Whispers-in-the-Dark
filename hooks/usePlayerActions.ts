@@ -309,7 +309,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
 
       const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
-      const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter((n) => n.themeName === currentThemeObj.name && !n.data.isLeaf);
+        const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter(
+          n =>
+            n.themeName === currentThemeObj.name &&
+            n.data.nodeType !== 'feature' &&
+            n.data.nodeType !== 'room'
+        );
       const currentThemeCharacters = currentFullState.allCharacters.filter((c) => c.themeName === currentThemeObj.name);
       const currentMapNodeDetails = currentFullState.currentMapNodeId
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
