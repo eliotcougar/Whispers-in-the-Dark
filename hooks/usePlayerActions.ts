@@ -18,6 +18,7 @@ import {
   TurnChanges,
 } from '../types';
 import { executeAIMainTurn } from '../services/gameAIService';
+import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import { fetchCorrectedName_Service } from '../services/corrections';
 import { parseAIResponse } from '../services/aiResponseParser';
 import {
@@ -370,7 +371,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         encounteredError = true;
         console.error('Error executing player action:', e);
         console.log('[DEBUG FLOW] executePlayerAction encountered error');
-        setError(`The Dungeon Master's connection seems unstable. Error: (${e.message || 'Unknown AI error'}). Please try again or consult the game log.`);
+        if (isServerOrClientError(e)) {
+          const status = extractStatusFromError(e);
+          setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
+        } else {
+          setError(`The Dungeon Master's connection seems unstable. Error: (${e.message || 'Unknown AI error'}). Please try again or consult the game log.`);
+        }
         draftState = structuredCloneGameState(baseStateSnapshot);
         draftState.lastActionLog = `Your action ("${action}") caused a ripple in reality, but the outcome is obscured.`;
         draftState.actionOptions = ['Look around.', 'Ponder the situation.', 'Check your inventory.', 'Try to move on.'];

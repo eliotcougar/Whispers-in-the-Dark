@@ -13,6 +13,7 @@ import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 import { isValidAIMapUpdatePayload, VALID_NODE_STATUS_VALUES, VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { isServerOrClientError } from '../utils/aiErrorUtils';
 
 // Local type definition for Place, matching what useGameLogic might prepare
 interface Place {
@@ -400,6 +401,11 @@ Key points:
       }
     } catch (error) {
       console.error(`Error in map update service (Attempt ${attempt + 1}/${MAX_RETRIES}):`, error);
+      if (isServerOrClientError(error)) {
+        debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
+        debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
+        return { updatedMapData: null, debugInfo };
+      }
       debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
       debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
       if (attempt === MAX_RETRIES - 1) {
