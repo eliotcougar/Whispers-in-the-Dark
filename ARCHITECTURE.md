@@ -123,4 +123,4 @@ This map-centric refactor centralizes location data management, making it more r
 
 ### 2.3. Hierarchical Map System
 
-`MapNode` objects can represent locations at several hierarchical levels. Each node may specify a `nodeType` (`region`, `city`, `building`, `room`, or `feature`) and an optional `parentNodeId`. Nodes with a parent are laid out near their parent in the map view and edges of type `containment` typically connect them. This allows the map to contain nested areas such as rooms within buildings or features within rooms.
+`MapNode` objects can represent locations at several hierarchical levels. Each node may specify a `nodeType` (`region`, `city`, `building`, `room`, or `feature`) and an optional `parentNodeId`. Nodes with a parent are laid out near their parent in the map view. The hierarchy is represented solely with `parentNodeId` and no longer relies on `containment` edges. This allows the map to contain nested areas such as rooms within buildings or features within rooms.

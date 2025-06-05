@@ -5,7 +5,6 @@
 
 import { VALID_ITEM_TYPES } from './constants';
 import { ALL_THEME_PACK_NAMES } from './themes'; // For ThemePackName
-import { DebugPacket } from './hooks/useGameLogic'; 
 import { LayoutForceConstants as MapLayoutConfigShape } from './utils/mapLayoutUtils'; // Renamed for clarity
 
 export type ItemType = typeof VALID_ITEM_TYPES[number];
@@ -288,7 +287,7 @@ export interface MapNode {
 
 export interface MapEdgeData {
   description?: string;
-  type?: 'path' | 'road' | 'sea route' | 'door' | 'teleporter' | 'secret_passage' | 'river_crossing' | 'temporary_bridge' | 'boarding_hook' | 'containment';
+  type?: 'path' | 'road' | 'sea route' | 'door' | 'teleporter' | 'secret_passage' | 'river_crossing' | 'temporary_bridge' | 'boarding_hook';
   status?: 'open' | 'accessible' | 'closed' | 'locked' | 'blocked' | 'hidden' | 'rumored' | 'one_way' | 'collapsed' | 'removed' | 'active' | 'inactive'; 
   travelTime?: string; 
   [key: string]: any; 
@@ -349,6 +348,29 @@ export interface MapChainToRefine {
   originalDirectEdgeId: string; // ID of the original direct edge between mainNodeA and mainNodeB that was removed
 }
 // --- End Map Pruning & Refinement Types ---
+
+export interface DebugPacket {
+  prompt: string;
+  rawResponseText: string | null;
+  parsedResponse: GameStateFromAI | DialogueSummaryResponse | null;
+  error?: string;
+  timestamp: string;
+  mapUpdateDebugInfo?: {
+    prompt: string;
+    rawResponse?: string;
+    parsedPayload?: AIMapUpdatePayload;
+    validationError?: string;
+  } | null;
+  mapPruningDebugInfo?: {
+    pruningDebugInfo?: { chainsToRefineCount: number };
+    refinementDebugInfo?: {
+      prompt?: string;
+      rawResponse?: string;
+      parsedPayload?: AIMapUpdatePayload;
+      validationError?: string;
+    };
+  } | null;
+}
 
 
 export interface FullGameState {

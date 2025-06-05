@@ -29,11 +29,12 @@ const getRadiusForNode = (node: MapNode): number => {
   if (node.data.visualRadius) return node.data.visualRadius;
   switch (node.data.nodeType) {
     case 'region':
-      return NODE_RADIUS * 1.4;
+      // Larger size so that child circles and labels can fit inside.
+      return NODE_RADIUS * 2.4;
     case 'city':
-      return NODE_RADIUS * 1.2;
+      return NODE_RADIUS * 1.8;
     case 'building':
-      return NODE_RADIUS;
+      return NODE_RADIUS * 1.3;
     case 'room':
       return NODE_RADIUS * 0.8;
     case 'feature':

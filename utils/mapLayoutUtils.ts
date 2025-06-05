@@ -2,7 +2,9 @@
 /**
  * @file mapLayoutUtils.ts
  * @description Utilities for performing force-directed layout of game maps.
- */
+ * The nested circle algorithm allocates extra padding so that child node
+ * circles and labels fit comfortably inside their parent.
+*/
 
 import { MapNode, MapEdge } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
@@ -414,7 +416,8 @@ export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
       children.forEach(c => {
         totalArea += Math.pow(computeRadius(c), 2);
       });
-      node.data.visualRadius = Math.sqrt(totalArea) * 1.2;
+      // Expand parent circle enough to contain children labels comfortably
+      node.data.visualRadius = Math.sqrt(totalArea) * 1.8;
     }
     return node.data.visualRadius!;
   };

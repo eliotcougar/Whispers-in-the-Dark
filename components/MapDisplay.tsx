@@ -148,7 +148,11 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       if (childNode.data.parentNodeId) {
         const parentNodePos = newPositions[childNode.data.parentNodeId] || nodesToProcess.find(n => n.id === childNode.data.parentNodeId)?.position;
         if (parentNodePos) {
-          newPositions[childNode.id] = { x: parentNodePos.x + NODE_RADIUS * 1.5 * (Math.random() > 0.5 ? 1 : -1), y: parentNodePos.y + NODE_RADIUS * 1.5 * (Math.random() > 0.5 ? 1 : -1) };
+          // Spread children a bit farther from the parent so that labels have room
+          newPositions[childNode.id] = {
+            x: parentNodePos.x + NODE_RADIUS * 2.5 * (Math.random() > 0.5 ? 1 : -1),
+            y: parentNodePos.y + NODE_RADIUS * 2.5 * (Math.random() > 0.5 ? 1 : -1),
+          };
         } else {
           newPositions[childNode.id] = { x: Math.random() * 100 - 50, y: Math.random() * 100 - 50 };
         }

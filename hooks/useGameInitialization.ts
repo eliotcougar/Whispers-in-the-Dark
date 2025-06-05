@@ -269,7 +269,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
         if (!isTransitioningFromShift && !draftState.themeHistory[themeObjToLoad.name]) {
           const hierarchy = await fetchMapHierarchyFromLocation_Service(
-            draftState.localPlace,
+            draftState.localPlace || '',
             draftState.currentScene,
             themeObjToLoad
           );
