@@ -5,7 +5,7 @@
  * @description Shows the main scene description and objectives.
  */
 import React, { useMemo } from 'react';
-import { Item, Character, AdventureTheme, MapNode } from '../types'; 
+import { Item, Character, MapNode } from '../types';
 import { highlightEntitiesInText, HighlightableEntity } from '../utils/highlightHelper';
 
 interface SceneDisplayProps {
@@ -84,7 +84,7 @@ const SceneDisplay: React.FC<SceneDisplayProps> = ({
   }, [lastActionLog, entitiesForHighlighting]);
 
   const objectiveBoxClasses = useMemo(() => {
-    let baseClass = "mb-4 p-3 bg-amber-900/50 border border-amber-700 rounded-md";
+    const baseClass = "mb-4 p-3 bg-amber-900/50 border border-amber-700 rounded-md";
     if (objectiveAnimationType === 'success') {
       return `${baseClass} animate-objective-success`;
     }

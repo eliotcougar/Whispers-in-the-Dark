@@ -55,10 +55,12 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
     }
   }, [playerGender, isVisible]);
 
+  /** Toggles a theme pack in the player's preferences. */
   const handleThemePackToggle = (packName: ThemePackName) => {
     onToggleThemePack(packName);
   };
 
+  /** Updates gender selection based on radio option. */
   const handleGenderRadioChange = (option: 'Male' | 'Female' | 'Custom') => {
     setSelectedGenderOption(option);
     if (option === 'Male') {
@@ -70,6 +72,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
     }
   };
 
+  /** Handles typing into the custom gender text input. */
   const handleCustomGenderInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCustomGenderInput(value);
@@ -98,7 +101,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
             {isCustomGameMode && (
               <div className="p-3 mb-3 bg-indigo-800/70 border border-indigo-600 rounded-md text-indigo-200 text-sm">
                 <p>Random Reality Shifts are disabled in Custom Game mode.</p>
-                <p>You can still change these settings, and they will apply if you start a regular "New Game" from the Main Menu.</p>
+                <p>You can still change these settings, and they will apply if you start a regular &quot;New Game&quot; from the Main Menu.</p>
               </div>
             )}
             <div className="settings-slider-container">
