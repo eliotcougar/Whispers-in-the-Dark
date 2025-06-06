@@ -223,14 +223,14 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
     if (data.status) {
       const mapped = nodeStatusSynonyms[data.status.toLowerCase()];
       if (mapped) data.status = mapped;
-      if (!VALID_NODE_STATUS_VALUES.includes(data.status as any)) {
+      if (!VALID_NODE_STATUS_VALUES.includes(data.status as MapNodeData['status'])) {
         errors.push(`${context} invalid status "${data.status}"`);
       }
     }
     if (data.nodeType) {
       const mapped = nodeTypeSynonyms[data.nodeType.toLowerCase()];
       if (mapped) data.nodeType = mapped;
-      if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType as any)) {
+      if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType as MapNodeData['nodeType'])) {
         errors.push(`${context} invalid nodeType "${data.nodeType}"`);
       }
     }
@@ -241,14 +241,14 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
     if (data.type) {
       const mapped = edgeTypeSynonyms[data.type.toLowerCase()];
       if (mapped) data.type = mapped;
-      if (!VALID_EDGE_TYPE_VALUES.includes(data.type as any)) {
+      if (!VALID_EDGE_TYPE_VALUES.includes(data.type as MapEdgeData['type'])) {
         errors.push(`${context} invalid type "${data.type}"`);
       }
     }
     if (data.status) {
       const mapped = edgeStatusSynonyms[data.status.toLowerCase()];
       if (mapped) data.status = mapped;
-      if (!VALID_EDGE_STATUS_VALUES.includes(data.status as any)) {
+      if (!VALID_EDGE_STATUS_VALUES.includes(data.status as MapEdgeData['status'])) {
         errors.push(`${context} invalid status "${data.status}"`);
       }
     }
@@ -262,7 +262,7 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
     if (e.type) {
       const mapped = edgeTypeSynonyms[e.type.toLowerCase()];
       if (mapped) e.type = mapped;
-      if (!VALID_EDGE_TYPE_VALUES.includes(e.type as any)) {
+      if (!VALID_EDGE_TYPE_VALUES.includes(e.type as MapEdgeData['type'])) {
         errors.push(`edgesToRemove[${idx}] invalid type "${e.type}"`);
       }
     }
@@ -597,7 +597,7 @@ Key points:
             // Apply other custom data, excluding handled fields
             for (const key in nodeUpdateOp.newData) {
             if (!['description', 'aliases', 'status', 'parentNodeId', 'nodeType', 'placeName', 'visited'].includes(key)) {
-                (node.data as any)[key] = (nodeUpdateOp.newData as any)[key];
+                (node.data as Record<string, unknown>)[key] = (nodeUpdateOp.newData as Record<string, unknown>)[key];
             }
             }
             // Handle placeName change last, as it might affect lookups for newNodesInBatchIdNameMap if not careful

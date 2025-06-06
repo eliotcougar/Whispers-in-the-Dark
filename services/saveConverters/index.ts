@@ -333,8 +333,9 @@ export function convertV2toV3Shape(v2Data: V2IntermediateSavedGameState): SavedG
       const loadedConfig = v2Data.mapLayoutConfig;
       const patchedConfig: Partial<MapLayoutConfig> = {};
       for (const key of Object.keys(defaultConfig) as Array<keyof MapLayoutConfig>) {
-        if (Object.prototype.hasOwnProperty.call(loadedConfig, key) && typeof (loadedConfig as any)[key] === 'number') {
-          patchedConfig[key] = (loadedConfig as any)[key];
+        const val = (loadedConfig as Record<string, unknown>)[key];
+        if (Object.prototype.hasOwnProperty.call(loadedConfig, key) && typeof val === 'number') {
+          patchedConfig[key] = val;
         } else {
           patchedConfig[key] = defaultConfig[key];
         }

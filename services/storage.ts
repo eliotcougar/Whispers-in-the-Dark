@@ -25,7 +25,7 @@ export const saveGameStateToLocalStorage = (gameState: FullGameState): boolean =
     return true;
   } catch (error) {
     console.error('Error saving game state to localStorage:', error);
-    if (error instanceof DOMException && (error.name === 'QuotaExceededError' || (error as any).code === 22)) {
+    if (error instanceof DOMException && (error.name === 'QuotaExceededError' || (error as { code?: unknown }).code === 22)) {
       alert('Could not save game: Browser storage is full. Please clear some space or try saving to a file.');
     } else {
       alert('An unexpected error occurred while trying to automatically save your game.');
@@ -73,7 +73,7 @@ export const loadGameStateFromLocalStorage = async (): Promise<FullGameState | n
     }
 
     if (dataToValidateAndExpand) {
-      const gt = (dataToValidateAndExpand as any).globalTurnNumber;
+      const gt = (dataToValidateAndExpand as { globalTurnNumber?: unknown }).globalTurnNumber;
       if (typeof gt === 'string') {
         const parsed = parseInt(gt, 10);
         dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
@@ -90,7 +90,7 @@ export const loadGameStateFromLocalStorage = async (): Promise<FullGameState | n
       dataToValidateAndExpand.localTime = dataToValidateAndExpand.localTime ?? null;
       dataToValidateAndExpand.localEnvironment = dataToValidateAndExpand.localEnvironment ?? null;
       dataToValidateAndExpand.localPlace = dataToValidateAndExpand.localPlace ?? null;
-      dataToValidateAndExpand.allCharacters = dataToValidateAndExpand.allCharacters.map((c: any) => ({
+      dataToValidateAndExpand.allCharacters = dataToValidateAndExpand.allCharacters.map((c: unknown) => ({
         ...c,
         aliases: c.aliases || [],
         presenceStatus: c.presenceStatus || 'unknown',

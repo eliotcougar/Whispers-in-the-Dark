@@ -5,7 +5,7 @@
 import { Item, KnownUse, ItemType, Character, DialogueTurnResponsePart, ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload } from '../../types';
 import { VALID_ITEM_TYPES } from '../../constants';
 
-export function isValidKnownUse(ku: any): ku is KnownUse {
+export function isValidKnownUse(ku: unknown): ku is KnownUse {
   return ku &&
     typeof ku.actionName === 'string' && ku.actionName.trim() !== '' &&
     typeof ku.promptEffect === 'string' && ku.promptEffect.trim() !== '' && // Ensure non-empty
@@ -14,7 +14,7 @@ export function isValidKnownUse(ku: any): ku is KnownUse {
     (ku.description === undefined || typeof ku.description === 'string');
 }
 
-export function isValidItem(item: any, context?: 'gain' | 'update'): item is Item {
+export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
   if (!item || typeof item !== 'object') return false;
 
   // Name is always required
@@ -90,14 +90,14 @@ export function isValidItem(item: any, context?: 'gain' | 'update'): item is Ite
 }
 
 
-export function isValidNameDescAliasesPair(obj: any): obj is { name: string; description: string; aliases?: string[] } {
+export function isValidNameDescAliasesPair(obj: unknown): obj is { name: string; description: string; aliases?: string[] } {
     return obj && typeof obj.name === 'string' && obj.name.trim() !== '' &&
            typeof obj.description === 'string' && 
            (obj.aliases === undefined || (Array.isArray(obj.aliases) && obj.aliases.every((alias: unknown) => typeof alias === 'string')));
 }
 
 // Specific validator for CharacterUpdate payload elements from AI
-export function isValidCharacterUpdate(obj: any): obj is ValidCharacterUpdatePayload {
+export function isValidCharacterUpdate(obj: unknown): obj is ValidCharacterUpdatePayload {
     if (!obj || typeof obj.name !== 'string' || obj.name.trim() === '') return false;
     if (obj.newDescription !== undefined && typeof obj.newDescription !== 'string') return false;
     if (obj.newAliases !== undefined && !(Array.isArray(obj.newAliases) && obj.newAliases.every((alias: unknown) => typeof alias === 'string'))) return false;
@@ -116,7 +116,7 @@ export function isValidCharacterUpdate(obj: any): obj is ValidCharacterUpdatePay
 }
 
 // Validator for Character object from AI charactersAdded
-export function isValidNewCharacterPayload(obj: any): obj is ValidNewCharacterPayload {
+export function isValidNewCharacterPayload(obj: unknown): obj is ValidNewCharacterPayload {
     if (!obj || typeof obj.name !== 'string' || obj.name.trim() === '') return false;
     if (typeof obj.description !== 'string' || obj.description.trim() === '') return false; 
     if (obj.aliases !== undefined && !(Array.isArray(obj.aliases) && obj.aliases.every((alias: unknown) => typeof alias === 'string'))) return false;
@@ -140,7 +140,7 @@ export function isValidNewCharacterPayload(obj: any): obj is ValidNewCharacterPa
  * @returns {boolean} True if `dialogueSetup` has a valid structure, false otherwise.
  */
 export function isDialogueSetupPayloadStructurallyValid(
-  dialogueSetup?: any // Can be malformed or undefined
+  dialogueSetup?: unknown // Can be malformed or undefined
 ): dialogueSetup is DialogueSetupPayload {
   
   if (!dialogueSetup || typeof dialogueSetup !== 'object') {
@@ -152,7 +152,7 @@ export function isDialogueSetupPayloadStructurallyValid(
   if (
     !Array.isArray(dialogueSetup.participants) ||
     dialogueSetup.participants.length === 0 ||
-    !dialogueSetup.participants.every((p: any) => typeof p === 'string' && p.trim() !== '')
+    !dialogueSetup.participants.every((p: unknown) => typeof p === 'string' && p.trim() !== '')
   ) {
     console.warn("isDialogueSetupPayloadStructurallyValid: dialogueSetup.participants is invalid.", dialogueSetup.participants);
     return false;
@@ -162,7 +162,7 @@ export function isDialogueSetupPayloadStructurallyValid(
   if (
     !Array.isArray(dialogueSetup.initialNpcResponses) ||
     dialogueSetup.initialNpcResponses.length === 0 || // Must have at least one NPC response
-    !dialogueSetup.initialNpcResponses.every((r: any) =>
+    !dialogueSetup.initialNpcResponses.every((r: unknown) =>
       r && typeof r.speaker === 'string' && r.speaker.trim() !== '' &&
       dialogueSetup.participants.includes(r.speaker) && // Speaker must be one of the participants
       typeof r.line === 'string' && r.line.trim() !== ''
@@ -176,7 +176,7 @@ export function isDialogueSetupPayloadStructurallyValid(
   if (
     !Array.isArray(dialogueSetup.initialPlayerOptions) ||
     dialogueSetup.initialPlayerOptions.length < 4 || // Must have at least 4 options (e.g., 3 choices + end)
-    !dialogueSetup.initialPlayerOptions.every((opt: any) => typeof opt === 'string' && opt.trim() !== '')
+    !dialogueSetup.initialPlayerOptions.every((opt: unknown) => typeof opt === 'string' && opt.trim() !== '')
   ) {
     console.warn("isDialogueSetupPayloadStructurallyValid: dialogueSetup.initialPlayerOptions is invalid.", dialogueSetup.initialPlayerOptions);
     return false;

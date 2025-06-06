@@ -18,13 +18,24 @@ import { callMinimalCorrectionAI } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 
+interface GeminiRequestConfig {
+  systemInstruction: string;
+  responseMimeType: string;
+  temperature: number;
+  thinkingConfig?: { thinkingBudget: number };
+}
+
+/**
+ * Executes a Gemini API call for dialogue related prompts.
+ * Allows optional disabling of model "thinking" for faster responses.
+ */
 const callDialogueGeminiAPI = async (
   prompt: string,
   systemInstruction: string,
-  disableThinking: boolean = false // Added parameter
+  disableThinking: boolean = false
 ): Promise<GenerateContentResponse> => {
-  const config: any = { // Use 'any' for config to dynamically add thinkingConfig
-    systemInstruction: systemInstruction,
+  const config: GeminiRequestConfig = {
+    systemInstruction,
     responseMimeType: "application/json",
     temperature: 0.8,
   };
@@ -88,6 +99,9 @@ const parseDialogueSummaryResponse = (responseText: string): DialogueSummaryResp
   };
 
 
+/**
+ * Fetches the next dialogue turn from the AI based on the current game state.
+ */
 export const fetchDialogueTurn = async (
   currentTheme: AdventureTheme, // Changed to AdventureTheme object
   currentQuest: string | null,
@@ -190,6 +204,9 @@ Provide new dialogue options, ensuring the last one is a way to end the dialogue
 };
 
 
+/**
+ * Summarizes a completed dialogue to derive game state updates.
+ */
 export const summarizeDialogueForUpdates = async (
   summaryContext: DialogueSummaryContext
 ): Promise<DialogueSummaryResponse | null> => {

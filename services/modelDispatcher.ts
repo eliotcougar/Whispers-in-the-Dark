@@ -25,7 +25,7 @@ export const dispatchAIRequest = async (
   modelNames: string[],
   prompt: string,
   systemInstruction?: string,
-  config: Record<string, any> = {}
+  config: Record<string, unknown> = {}
 ): Promise<GenerateContentResponse> => {
   if (!isApiConfigured() || !ai) {
     return Promise.reject(new Error('API Key not configured.'));

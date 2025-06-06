@@ -169,8 +169,8 @@ const isValidChainCorrectionPayload = (
       return false;
     }
     const edgeData = edgeUpdate ? edgeUpdate.newData : (edgeAdd ? edgeAdd.data : null);
-    if (!edgeData || typeof edgeData.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(edgeData.type as any) ||
-        typeof edgeData.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(edgeData.status as any) ||
+    if (!edgeData || typeof edgeData.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(edgeData.type as MapEdgeData['type']) ||
+        typeof edgeData.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(edgeData.status as MapEdgeData['status']) ||
         (edgeData.description && typeof edgeData.description !== 'string')
     ) {
       console.warn(`isValidChainCorrectionPayload: Invalid edge data for chain connecting ${expectedLeafANewName} and ${expectedLeafBNewName}.`, edgeData);
