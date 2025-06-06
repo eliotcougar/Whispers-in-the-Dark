@@ -82,11 +82,30 @@ function isValidAINodeDataInternal(data: unknown, isNodeAddContext: boolean): bo
     }
   }
 
-  // parentNodeId: Optional for both. String if present.
-  if (node.parentNodeId !== undefined && (node.parentNodeId !== null && (typeof node.parentNodeId !== 'string' || node.parentNodeId.trim() === ''))) {
-    // Allow null to clear parentNodeId
-    console.warn("Validation Error (NodeData): 'parentNodeId' must be a non-empty string or null if present. Value:", node.parentNodeId);
-    return false;
+  // parentNodeId: Required for Add, Optional for Update
+  if (isNodeAddContext) {
+    if (
+      typeof node.parentNodeId !== 'string' ||
+      node.parentNodeId.trim() === ''
+    ) {
+      console.warn(
+        "Validation Error (NodeData - Add): 'parentNodeId' is mandatory and must be a non-empty string. Value:",
+        node.parentNodeId
+      );
+      return false;
+    }
+  } else {
+    if (
+      node.parentNodeId !== undefined &&
+      node.parentNodeId !== null &&
+      (typeof node.parentNodeId !== 'string' || node.parentNodeId.trim() === '')
+    ) {
+      console.warn(
+        "Validation Error (NodeData - Update): 'parentNodeId' must be a non-empty string or null if present. Value:",
+        node.parentNodeId
+      );
+      return false;
+    }
   }
   
   return true;
