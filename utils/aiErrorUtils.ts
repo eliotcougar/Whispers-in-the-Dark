@@ -19,7 +19,12 @@ export const extractStatusFromError = (err: unknown): number | null => {
   };
   if (typeof errObj.status === 'number') return errObj.status;
   if (errObj.error && typeof errObj.error.code === 'number') return errObj.error.code;
-  const msg = String(errObj.message ?? '');
+  const msg =
+    typeof errObj.message === 'string' ||
+    typeof errObj.message === 'number' ||
+    typeof errObj.message === 'boolean'
+      ? String(errObj.message)
+      : '';
   const match = msg.match(/status:\s*(\d{3})/);
   if (match) return parseInt(match[1], 10);
   return null;

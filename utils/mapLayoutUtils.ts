@@ -120,10 +120,9 @@ const isRegionHostNode = (node: MapNode, allThemeEdges: MapEdge[], nodeMap: Map<
  * (based on parentNodeId) that is part of the group.
  * @param otherNode The node to check.
  * @param groupHostNode The main node hosting the group/region.
- * @param allThemeEdges All edges in the current theme (used indirectly by some layout rules, but parentNodeId is primary here).
  * @returns True if otherNode is external to groupHostNode's group, false otherwise.
  */
-const isExternalToGroup = (otherNode: MapNode, groupHostNode: MapNode, allThemeEdges: MapEdge[]): boolean => {
+const isExternalToGroup = (otherNode: MapNode, groupHostNode: MapNode): boolean => {
   if (otherNode.id === groupHostNode.id) return false; 
 
   // If otherNode is a leaf and its parentNodeId is the groupHostNode, it's part of the group.
@@ -176,7 +175,7 @@ const getEdgeLayoutInfo = (
     parentRef = srcParent;
   }
 
-  let diameter = parentRef ? (parentRef.data.visualRadius || NODE_RADIUS) * 2 : defaultLen;
+  const diameter = parentRef ? (parentRef.data.visualRadius || NODE_RADIUS) * 2 : defaultLen;
 
   let hasExternal = false;
   if (isParentChild && parentRef && childRef) {
@@ -259,8 +258,8 @@ export const applyBasicLayoutAlgorithm = (
         }
         
         let distanceSq = dxR * dxR + dyR * dyR;
-        if (distanceSq === 0) distanceSq = 0.01; 
-        let distance = Math.sqrt(distanceSq);
+        if (distanceSq === 0) distanceSq = 0.01;
+        const distance = Math.sqrt(distanceSq);
 
         let repulsionForceMagnitude = K_REPULSION / distanceSq;
 
@@ -275,12 +274,12 @@ export const applyBasicLayoutAlgorithm = (
         const node2IsHost = isRegionHostNode(node2, allThemeEdges, nodeMap);
         let pushOutMultiplier = 1.0;
 
-        if (node1IsHost && isExternalToGroup(node2, node1, allThemeEdges)) {
+        if (node1IsHost && isExternalToGroup(node2, node1)) {
           if (distance < IDEAL_EDGE_LENGTH) {
             pushOutMultiplier = Math.max(pushOutMultiplier, (IDEAL_EDGE_LENGTH / Math.max(distance, 1))**2);
           }
         }
-        if (node2IsHost && isExternalToGroup(node1, node2, allThemeEdges)) {
+        if (node2IsHost && isExternalToGroup(node1, node2)) {
           if (distance < IDEAL_EDGE_LENGTH) {
             pushOutMultiplier = Math.max(pushOutMultiplier, (IDEAL_EDGE_LENGTH / Math.max(distance, 1))**2);
           }
@@ -307,9 +306,9 @@ export const applyBasicLayoutAlgorithm = (
         if (distance === 0) distance = 0.1;
 
         const info = getEdgeLayoutInfo(edge, nodeMap, allThemeEdges, IDEAL_EDGE_LENGTH);
-        let idealLen = info.idealLength;
+        const idealLen = info.idealLength;
         let springK = K_SPRING;
-        let attractionMultiplier = 1.0;
+        const attractionMultiplier = 1.0;
 
         if (info.isParentChild) {
           if (info.hasExternal) {
