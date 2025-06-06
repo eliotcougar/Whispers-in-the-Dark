@@ -21,7 +21,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
   allRelevantMapNodes: MapNode[],
   currentInventory: Item[],
   playerGender: string,
-  malformedDialogueSetup: Partial<DialogueSetupPayload> | any
+  malformedDialogueSetup: Partial<DialogueSetupPayload> | unknown
 ): Promise<DialogueSetupPayload | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedDialogueSetup_Service: API Key not configured.');
@@ -63,9 +63,9 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
   const systemInstructionForFix = `Correct a malformed 'dialogueSetup' JSON payload. Ensure 'participants' are valid NPCs, 'initialNpcResponses' are logical, and 'initialPlayerOptions' are varied with an exit option. Adhere strictly to the JSON format.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedPayload = await callCorrectionAI(prompt, systemInstructionForFix);
+    const correctedPayload = await callCorrectionAI<DialogueSetupPayload>(prompt, systemInstructionForFix);
     if (correctedPayload && isDialogueSetupPayloadStructurallyValid(correctedPayload)) {
-      return correctedPayload as DialogueSetupPayload;
+      return correctedPayload;
     } else {
       console.warn(`fetchCorrectedDialogueSetup_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected dialogueSetup payload invalid. Response:`, correctedPayload);
     }

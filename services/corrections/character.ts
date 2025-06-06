@@ -66,18 +66,18 @@ Constraints:
   const systemInstructionForFix = `You generate detailed JSON objects for new game characters based on narrative context. Provide description, aliases, presenceStatus, lastKnownLocation, and preciseLocation. Adhere strictly to the JSON format and field requirements. Derive all information strictly from the provided context.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedDetails = await callCorrectionAI(prompt, systemInstructionForFix);
+    const correctedDetails = await callCorrectionAI<CorrectedCharacterDetails>(prompt, systemInstructionForFix);
     if (
       correctedDetails &&
       typeof correctedDetails.description === 'string' && correctedDetails.description.trim() !== '' &&
-      Array.isArray(correctedDetails.aliases) && correctedDetails.aliases.every((a: any) => typeof a === 'string') &&
+      Array.isArray(correctedDetails.aliases) && correctedDetails.aliases.every((a): a is string => typeof a === 'string') &&
       typeof correctedDetails.presenceStatus === 'string' && ['distant', 'nearby', 'companion', 'unknown'].includes(correctedDetails.presenceStatus) &&
       (correctedDetails.lastKnownLocation === null || typeof correctedDetails.lastKnownLocation === 'string') &&
       (correctedDetails.preciseLocation === null || typeof correctedDetails.preciseLocation === 'string') &&
       !((correctedDetails.presenceStatus === 'nearby' || correctedDetails.presenceStatus === 'companion') && correctedDetails.preciseLocation === null && correctedDetails.preciseLocation !== '') &&
       !((correctedDetails.presenceStatus === 'distant' || correctedDetails.presenceStatus === 'unknown') && correctedDetails.preciseLocation !== null)
     ) {
-      return correctedDetails as CorrectedCharacterDetails;
+      return correctedDetails;
     } else {
       console.warn(`fetchCorrectedCharacterDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected details for "${characterName}" invalid or incomplete. Response:`, correctedDetails);
       if (attempt === MAX_RETRIES) return null;

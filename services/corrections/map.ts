@@ -114,14 +114,14 @@ Respond ONLY with the single, complete, corrected JSON object.`;
   const systemInstructionForFix = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (string, non-empty), and "aliases" (array of strings, can be empty) are provided. Adhere strictly to the JSON format.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedPayload = await callCorrectionAI(prompt, systemInstructionForFix);
+    const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
     if (
       correctedPayload &&
       typeof correctedPayload.name === 'string' && correctedPayload.name.trim() !== '' &&
       typeof correctedPayload.description === 'string' && correctedPayload.description.trim() !== '' &&
-      Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((a: any) => typeof a === 'string')
+      Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((a): a is string => typeof a === 'string')
     ) {
-      return correctedPayload as { name: string; description: string; aliases?: string[] };
+      return correctedPayload;
     } else {
       console.warn(`fetchCorrectedPlaceDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid. Response:`, correctedPayload);
     }
@@ -167,14 +167,14 @@ Respond ONLY with the single, complete JSON object.`;
   const systemInstructionForFix = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating a fitting, non-empty description and aliases (array of strings, can be empty). Adhere strictly to the JSON format.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedPayload = await callCorrectionAI(prompt, systemInstructionForFix);
+    const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
     if (
       correctedPayload &&
       typeof correctedPayload.name === 'string' && correctedPayload.name === mapNodePlaceName &&
       typeof correctedPayload.description === 'string' && correctedPayload.description.trim() !== '' &&
-      Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((alias: any) => typeof alias === 'string')
+      Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((alias): alias is string => typeof alias === 'string')
     ) {
-      return correctedPayload as { name: string; description: string; aliases?: string[] };
+      return correctedPayload;
     } else {
       console.warn(`fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`, correctedPayload);
     }
@@ -254,7 +254,7 @@ export const fetchCorrectedNodeType_Service = async (
 
   if (nodeInfo.nodeType) {
     const normalized = synonyms[nodeInfo.nodeType.toLowerCase()] || nodeInfo.nodeType.toLowerCase();
-    if (VALID_NODE_TYPE_VALUES.includes(normalized as any)) {
+    if (VALID_NODE_TYPE_VALUES.includes(normalized as NonNullable<MapNodeData['nodeType']>)) {
       return normalized as NonNullable<MapNodeData['nodeType']>;
     }
   }
@@ -290,7 +290,7 @@ Respond ONLY with the single node type.`;
     if (typeResp) {
       const cleaned = typeResp.trim().toLowerCase();
       const mapped = synonyms[cleaned] || cleaned;
-      if (VALID_NODE_TYPE_VALUES.includes(mapped as any)) {
+      if (VALID_NODE_TYPE_VALUES.includes(mapped as NonNullable<MapNodeData['nodeType']>)) {
         return mapped as NonNullable<MapNodeData['nodeType']>;
       }
     }
@@ -337,7 +337,7 @@ export const fetchCorrectedEdgeType_Service = async (
 
   if (edgeInfo.type) {
     const normalized = synonyms[edgeInfo.type.toLowerCase()] || edgeInfo.type.toLowerCase();
-    if (VALID_EDGE_TYPE_VALUES.includes(normalized as any)) {
+    if (VALID_EDGE_TYPE_VALUES.includes(normalized as MapEdgeData['type'])) {
       return normalized as MapEdgeData['type'];
     }
   }
@@ -376,7 +376,7 @@ Respond ONLY with the single edge type.`;
     if (typeResp) {
       const cleaned = typeResp.trim().toLowerCase();
       const mapped = synonyms[cleaned] || cleaned;
-      if (VALID_EDGE_TYPE_VALUES.includes(mapped as any)) {
+      if (VALID_EDGE_TYPE_VALUES.includes(mapped as MapEdgeData['type'])) {
         return mapped as MapEdgeData['type'];
       }
     }
