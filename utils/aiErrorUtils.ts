@@ -12,10 +12,14 @@
  */
 export const extractStatusFromError = (err: unknown): number | null => {
   if (!err || typeof err !== 'object') return null;
-  const anyErr = err as any;
-  if (typeof anyErr.status === 'number') return anyErr.status;
-  if (anyErr.error && typeof anyErr.error.code === 'number') return anyErr.error.code;
-  const msg = String(anyErr.message || '');
+  const errObj = err as {
+    status?: number;
+    error?: { code?: number };
+    message?: unknown;
+  };
+  if (typeof errObj.status === 'number') return errObj.status;
+  if (errObj.error && typeof errObj.error.code === 'number') return errObj.error.code;
+  const msg = String(errObj.message ?? '');
   const match = msg.match(/status:\s*(\d{3})/);
   if (match) return parseInt(match[1], 10);
   return null;

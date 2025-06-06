@@ -58,7 +58,7 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
     }
     
     const existingItem = newInventory[itemIndexInNewInventory];
-    let updatedItem: Item = { ...existingItem }; 
+    const updatedItem: Item = { ...existingItem };
 
     if (updatePayload.type !== undefined) updatedItem.type = updatePayload.type;
     if (updatePayload.description !== undefined) updatedItem.description = updatePayload.description;
@@ -75,7 +75,7 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
     }
 
     if (updatePayload.addKnownUse) {
-      let currentKnownUses = updatedItem.knownUses ? [...updatedItem.knownUses] : [];
+      const currentKnownUses = updatedItem.knownUses ? [...updatedItem.knownUses] : [];
       const kuIndex = currentKnownUses.findIndex(ku => ku.actionName === updatePayload.addKnownUse!.actionName);
       if (kuIndex !== -1) currentKnownUses[kuIndex] = updatePayload.addKnownUse; 
       else currentKnownUses.push(updatePayload.addKnownUse); 
@@ -125,10 +125,9 @@ export const selectNextThemeName = (
   if (availableThemes.length === 0) {
     return null;
   }
-  let filteredThemes = availableThemes;
-  if (currentThemeName && availableThemes.length > 1) {
-    filteredThemes = availableThemes.filter(theme => theme.name !== currentThemeName);
-  }
+  const filteredThemes = currentThemeName && availableThemes.length > 1
+    ? availableThemes.filter(theme => theme.name !== currentThemeName)
+    : availableThemes;
   const themesToChooseFrom = filteredThemes.length > 0 ? filteredThemes : availableThemes;
   const randomIndex = Math.floor(Math.random() * themesToChooseFrom.length);
   return themesToChooseFrom[randomIndex].name;
@@ -175,7 +174,7 @@ export const buildItemChangeRecords = (
 
       if (oldItem) {
         const oldItemCopy = { ...oldItem }; 
-        let newItemData: Item = {
+        const newItemData: Item = {
           name: updatePayload.newName || oldItemCopy.name,
           type: updatePayload.type !== undefined ? updatePayload.type : oldItemCopy.type,
           description: updatePayload.description !== undefined ? updatePayload.description : oldItemCopy.description,
@@ -185,7 +184,7 @@ export const buildItemChangeRecords = (
           knownUses: Array.isArray(updatePayload.knownUses) ? updatePayload.knownUses : (oldItemCopy.knownUses || []),
         };
         if (updatePayload.addKnownUse) {
-          let currentKnownUses = [...(newItemData.knownUses || [])]; 
+          const currentKnownUses = [...(newItemData.knownUses || [])];
           const kuIndex = currentKnownUses.findIndex(ku => ku.actionName === updatePayload.addKnownUse!.actionName);
           if (kuIndex !== -1) currentKnownUses[kuIndex] = updatePayload.addKnownUse;
           else currentKnownUses.push(updatePayload.addKnownUse);
@@ -252,7 +251,7 @@ export const buildCharacterChangeRecords = (
   (charactersUpdatedFromAI || []).forEach(cUpdate => {
     const oldChar = currentAllCharacters.find(c => c.name === cUpdate.name && c.themeName === currentThemeName);
     if (oldChar) {
-      let newCharData: Character = { ...oldChar, dialogueSummaries: oldChar.dialogueSummaries || [] }; // Preserve summaries
+      const newCharData: Character = { ...oldChar, dialogueSummaries: oldChar.dialogueSummaries || [] }; // Preserve summaries
       if (cUpdate.newDescription !== undefined) newCharData.description = cUpdate.newDescription;
       if (cUpdate.newAliases !== undefined) newCharData.aliases = cUpdate.newAliases;
       if (cUpdate.addAlias) {
