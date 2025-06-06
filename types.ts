@@ -51,7 +51,7 @@ export interface ItemChange {
   // For "lose", 'item' is a string (item name).
   item: string | Item | null;
   action: "gain" | "lose" | "update";
-  invalidPayload?: any; // If the 'item' field was unparseable/invalid from AI
+  invalidPayload?: unknown; // If the 'item' field was unparseable/invalid from AI
 }
 
 export interface DialogueSummaryRecord {
@@ -84,7 +84,8 @@ export interface DialogueTurnResponsePart {
   line: string;    
 }
 
-export interface DialogueHistoryEntry extends DialogueTurnResponsePart {}
+// Alias used throughout the codebase for clarity in dialogue history arrays.
+export type DialogueHistoryEntry = DialogueTurnResponsePart;
 
 // New structure for active dialogue state
 export interface DialogueData {
@@ -273,7 +274,7 @@ export interface MapNodeData {
   nodeType: 'region' | 'city' | 'building' | 'room' | 'feature';
   /** Pre-calculated radius used by nested circle layouts. */
   visualRadius?: number;
-  [key: string]: any; // For any other custom data.
+  [key: string]: unknown; // For any other custom data.
 }
 
 export interface MapNode {
@@ -289,7 +290,7 @@ export interface MapEdgeData {
   type?: 'path' | 'road' | 'sea route' | 'door' | 'teleporter' | 'secret_passage' | 'river_crossing' | 'temporary_bridge' | 'boarding_hook';
   status?: 'open' | 'accessible' | 'closed' | 'locked' | 'blocked' | 'hidden' | 'rumored' | 'one_way' | 'collapsed' | 'removed' | 'active' | 'inactive'; 
   travelTime?: string; 
-  [key: string]: any; 
+  [key: string]: unknown;
 }
 
 export interface MapEdge {
