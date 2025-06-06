@@ -14,7 +14,11 @@ const compat = new FlatCompat({
   allConfig: js.configs.all
 });
 
-export const ignores = ['node_modules', 'dist', 'build'];
+
+// Explicitly ignore generated and dependency directories.
+const ignoreConfig = {
+  ignores: ['node_modules', 'dist', 'build']
+};
 
 const tsCompat = compat.config({
   parser: '@typescript-eslint/parser',
@@ -47,4 +51,9 @@ const tsCompat = compat.config({
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
 
-export default [js.configs.recommended, ...compat.plugins('@typescript-eslint', 'react', 'react-hooks'), ...tsCompat];
+export default [
+  ignoreConfig,
+  js.configs.recommended,
+  ...compat.plugins('@typescript-eslint', 'react', 'react-hooks'),
+  ...tsCompat
+];
