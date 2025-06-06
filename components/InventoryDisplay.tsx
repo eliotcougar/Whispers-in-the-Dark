@@ -20,16 +20,19 @@ type SortOrder = 'default' | 'name' | 'type';
  * Displays the item type label with theme-based coloring.
  */
 export const ItemTypeDisplay: React.FC<{ type: Item['type'] }> = ({ type }) => {
-  let color = 'text-slate-400'; // Default
-  if (type === 'single-use') color = 'text-red-400';
-  else if (type === 'multi-use') color = 'text-yellow-400';
-  else if (type === 'equipment') color = 'text-sky-400';
-  else if (type === 'container') color = 'text-orange-400';
-  else if (type === 'key') color = 'text-lime-400';
-  else if (type === 'ammunition') color = 'text-cyan-400';
-  else if (type === 'vehicle') color = 'text-indigo-400';
-  else if (type === 'knowledge') color = 'text-purple-400';
-  else if (type === 'status effect') color = 'text-pink-400';
+  const colorMap: Record<Item['type'], string> = {
+    'single-use': 'text-red-400',
+    'multi-use': 'text-yellow-400',
+    equipment: 'text-sky-400',
+    container: 'text-orange-400',
+    key: 'text-lime-400',
+    ammunition: 'text-cyan-400',
+    vehicle: 'text-indigo-400',
+    knowledge: 'text-purple-400',
+    'status effect': 'text-pink-400',
+  };
+
+  const color = colorMap[type] ?? 'text-slate-400';
 
   return <span className={`text-xs italic ${color}`}>{type}</span>;
 };
@@ -76,7 +79,7 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
   }, [items]);
 
   const displayedItems = useMemo(() => {
-    let itemsToDisplay = [...items]; 
+    const itemsToDisplay = [...items];
 
     if (sortOrder === 'name') {
       itemsToDisplay.sort((a, b) => a.name.localeCompare(b.name));
@@ -95,6 +98,9 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
   }, [items, sortOrder]);
 
 
+  /**
+   * Filters known uses based on the item's active state.
+   */
   const getApplicableKnownUses = (item: Item): KnownUse[] => {
     if (!item.knownUses) return [];
     return item.knownUses.filter(ku => {
