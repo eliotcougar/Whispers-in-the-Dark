@@ -9,7 +9,7 @@
  */
 
 import {
-  Item, ItemChange, AdventureTheme, Character, MapNode,
+  Item, ItemChange, AdventureTheme, Character,
   ItemChangeRecord, CharacterChangeRecord,
   ValidCharacterUpdatePayload, ValidNewCharacterPayload
 } from '../types';
@@ -288,7 +288,7 @@ export const applyAllCharacterChanges = (
   currentThemeName: string,
   currentAllCharacters: Character[]
 ): Character[] => {
-  let newAllCharacters = [...currentAllCharacters];
+  const newAllCharacters = [...currentAllCharacters];
   (charactersAddedFromAI || []).forEach(cAdd => {
     if (!newAllCharacters.some(c => c.name === cAdd.name && c.themeName === currentThemeName)) {
       const newChar: Character = {

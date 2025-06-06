@@ -5,7 +5,7 @@
  *              intermediate leaf nodes to replace direct main-to-main node edges.
  */
 
-import { MapData, MapNode, MapEdge, MapChainToRefine, MapChainLeafInfo } from '../types';
+import { MapData, MapNode, MapEdge, MapChainToRefine } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
 
 /**

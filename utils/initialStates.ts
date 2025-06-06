@@ -6,7 +6,6 @@
  */
 import {
   FullGameState,
-  MapData,
   MapLayoutConfig,
   ThemePackName
 } from '../types';

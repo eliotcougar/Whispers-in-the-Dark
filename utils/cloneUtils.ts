@@ -17,7 +17,7 @@ export function structuredCloneGameState<T>(state: T): T {
   if (typeof globalObj.structuredClone === 'function') {
     return globalObj.structuredClone(state) as T;
   }
-  return deepCopy(state);
+  return deepCopy(state) as T;
 }
 
 /**
@@ -26,17 +26,17 @@ export function structuredCloneGameState<T>(state: T): T {
  * @param value - The value to clone.
  * @returns A deeply cloned copy of `value`.
  */
-function deepCopy<T>(value: T): T {
+function deepCopy(value: unknown): unknown {
   if (value === null || typeof value !== 'object') {
     return value;
   }
 
   if (value instanceof Date) {
-    return new Date(value.getTime()) as unknown as T;
+    return new Date(value.getTime());
   }
 
   if (Array.isArray(value)) {
-    return (value.map(v => deepCopy(v)) as unknown) as T;
+    return value.map(v => deepCopy(v));
   }
 
   const clonedObj: Record<string, unknown> = {};
@@ -45,5 +45,5 @@ function deepCopy<T>(value: T): T {
       clonedObj[key] = deepCopy((value as Record<string, unknown>)[key]);
     }
   }
-  return clonedObj as T;
+  return clonedObj;
 }
