@@ -14,6 +14,7 @@ import {
   DEFAULT_DAMPING_FACTOR,
   DEFAULT_MAX_DISPLACEMENT,
   DEFAULT_LAYOUT_ITERATIONS,
+  applyNestedCircleLayout,
 } from '../utils/mapLayoutUtils';
 import MapNodeView from './map/MapNodeView';
 import MapControls from './map/MapControls';
@@ -111,11 +112,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
    */
   const runLayout = useCallback(() => {
     const nodesToProcess = [...currentThemeNodes];
-
-    // Previously the layout algorithm adjusted node positions here using
-    // a force-directed approach, but automatic adjustments are disabled.
-
-    setDisplayedNodes(nodesToProcess);
+    const laidOut = applyNestedCircleLayout(nodesToProcess);
+    setDisplayedNodes(laidOut);
   }, [currentThemeNodes]);
 
   useEffect(() => {
