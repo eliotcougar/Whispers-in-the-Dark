@@ -1,4 +1,9 @@
 
+/**
+ * @file dialoguePrompts.ts
+ * @description Prompt templates for guiding NPC dialogue generation.
+ */
+
 import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from './helperPrompts';
 
 export const DIALOGUE_SYSTEM_INSTRUCTION = `You are an AI assistant guiding a dialogue turn in a text-based adventure game. The player is in conversation with one or more characters. Your role is to:

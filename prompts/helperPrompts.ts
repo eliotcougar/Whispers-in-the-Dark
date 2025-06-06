@@ -1,4 +1,9 @@
 
+/**
+ * @file helperPrompts.ts
+ * @description Utility prompt snippets used across multiple AI requests.
+ */
+
 import { VALID_ITEM_TYPES_STRING } from '../constants'; // Import needed constant
 
 export const ITEMS_GUIDE = `- "itemChange" is ALWAYS an array. If no item change, send an empty array: "itemChange": [].
