@@ -16,8 +16,8 @@ export const DEFAULT_NESTED_ANGLE_PADDING = 0.25;
 
 /**
  * Each parent node encloses its children while children are positioned on the
- * circumference of a circle that is just large enough to avoid overlaps. Leaf
- * feature nodes receive a fixed base radius. The computation runs bottom-up so
+ * circumference of a circle that is just large enough to avoid overlaps.
+ * Feature nodes receive a fixed base radius. The computation runs bottom-up so
  * each parent's radius is known before positioning its siblings.
  *
  * @param nodes - Array of map nodes to layout.

@@ -2,7 +2,7 @@
 /**
  * @file mapPruningUtils.ts
  * @description Utility functions for restructuring map connections by introducing
- *              intermediate leaf nodes to replace direct main-to-main node edges.
+ *              intermediate feature nodes to replace direct main-to-main node edges.
  */
 
 import { MapData, MapNode, MapEdge, MapChainToRefine } from '../types';
@@ -19,17 +19,17 @@ const generateUniqueId = (prefix: string = "id_"): string => {
 
 /**
  * Identifies and restructures map connections based on specified patterns.
- * Phase 1: Handles 'M1-(containment)-L-M2' cases by adding a temporary leaf to M2.
- * Phase 2: Handles direct 'M1-M2' cases by adding temporary leaves to both M1 and M2.
- * Original problematic edges are removed, and new chains are prepared for AI refinement.
+ * Phase 1: Handles parent-child-feature transitions (M1 -> featureL -> M2) by adding a temporary feature for M2.
+ * Phase 2: Handles direct M1-M2 connections by inserting temporary features for both nodes.
+ * Original problematic edges are removed and new chains are prepared for AI refinement.
  *
  * @param originalMapData - The current map data.
  * @param currentThemeName - The name of the currently active theme.
  * @returns An object containing:
- *          - `updatedMapData`: The map data with new temporary leaf nodes,
- *            containment edges, leaf-to-leaf edges, and original direct edges removed.
+ *          - `updatedMapData`: The map data with new temporary feature nodes,
+ *            parent-child edges, feature-to-feature edges, and original direct edges removed.
  *          - `chainsToRefine`: An array of `MapChainToRefine` objects, each detailing
- *            a new (mainNode-leaf-leaf-mainNode) chain that requires AI refinement.
+ *            a new (mainNode-feature-feature-mainNode) chain that requires AI refinement.
  */
 export const pruneAndRefineMapConnections = (
   originalMapData: MapData,
@@ -44,26 +44,26 @@ export const pruneAndRefineMapConnections = (
 
 
   // Phase 1: Process M1 - L - M2 cases based on parent links
-  const leafNodesInTheme = themeNodes.filter(
+  const featureNodesInTheme = themeNodes.filter(
     node => node.data.nodeType === 'feature'
   );
 
-  for (const leafL of leafNodesInTheme) {
-    if (!leafL.data.parentNodeId) continue;
+  for (const featureL of featureNodesInTheme) {
+    if (!featureL.data.parentNodeId) continue;
 
-    const parentM1 = themeNodeMap.get(leafL.data.parentNodeId);
+    const parentM1 = themeNodeMap.get(featureL.data.parentNodeId);
     if (!parentM1 || parentM1.data.nodeType === 'feature') continue; // Parent must be a main node
 
 
 
     // Find edges connecting L to another main node M2 (not M1)
     const edgesFromL = workingMapData.edges.filter(edge =>
-      (edge.sourceNodeId === leafL.id || edge.targetNodeId === leafL.id) &&
+      (edge.sourceNodeId === featureL.id || edge.targetNodeId === featureL.id) &&
       !edgesToRemoveIds.has(edge.id) // Not already marked for removal
     );
 
     for (const edge_LM2 of edgesFromL) {
-      const otherNodeId = edge_LM2.sourceNodeId === leafL.id ? edge_LM2.targetNodeId : edge_LM2.sourceNodeId;
+      const otherNodeId = edge_LM2.sourceNodeId === featureL.id ? edge_LM2.targetNodeId : edge_LM2.sourceNodeId;
       const mainNodeM2 = themeNodeMap.get(otherNodeId);
 
       if (
@@ -74,12 +74,12 @@ export const pruneAndRefineMapConnections = (
       ) {
         // Found M1 - L - M2 connection. Replace L-M2 with L - L_M2 - M2
         
-        const tempLeafM2_NameSuggestion = `Entrance to ${mainNodeM2.placeName} from ${leafL.placeName}`;
-        const tempLeafM2_Id = generateUniqueId(`${currentThemeName}_leafM2_`);
-        const tempLeafM2: MapNode = {
-          id: tempLeafM2_Id,
+        const tempFeatureM2_NameSuggestion = `Entrance to ${mainNodeM2.placeName} from ${featureL.placeName}`;
+        const tempFeatureM2_Id = generateUniqueId(`${currentThemeName}_featureM2_`);
+        const tempFeatureM2: MapNode = {
+          id: tempFeatureM2_Id,
           themeName: currentThemeName,
-          placeName: `TempLeaf_${mainNodeM2.id.slice(-4)}_${leafL.id.slice(-4)}_B`,
+          placeName: `TempFeature_${mainNodeM2.id.slice(-4)}_${featureL.id.slice(-4)}_B`,
           position: { x: mainNodeM2.position.x - 20, y: mainNodeM2.position.y - 20 },
           data: {
             description: `A temporary transition point into ${mainNodeM2.placeName}.`,
@@ -90,20 +90,20 @@ export const pruneAndRefineMapConnections = (
             visited: false,
           },
         };
-        workingMapData.nodes.push(tempLeafM2);
-        themeNodeMap.set(tempLeafM2_Id, tempLeafM2); // Add to map for current phase
+        workingMapData.nodes.push(tempFeatureM2);
+        themeNodeMap.set(tempFeatureM2_Id, tempFeatureM2); // Add to map for current phase
 
 
 
         const edge_L_LM2_Id = generateUniqueId(`edge_L_LM2_`);
         const edge_L_LM2: MapEdge = {
           id: edge_L_LM2_Id,
-          sourceNodeId: leafL.id,
-          targetNodeId: tempLeafM2.id,
+          sourceNodeId: featureL.id,
+          targetNodeId: tempFeatureM2.id,
           data: { // Inherit type and status from original L-M2 edge
             type: edge_LM2.data.type || 'path',
             status: edge_LM2.data.status || 'open',
-            description: `Path connecting ${leafL.placeName} and new transition to ${mainNodeM2.placeName}.`,
+            description: `Path connecting ${featureL.placeName} and new transition to ${mainNodeM2.placeName}.`,
           },
         };
         workingMapData.edges.push(edge_L_LM2);
@@ -113,9 +113,9 @@ export const pruneAndRefineMapConnections = (
         chainsToRefine.push({
           mainNodeA_Id: parentM1.id,
           mainNodeB_Id: mainNodeM2.id,
-          leafA_Info: { nodeId: leafL.id, isTemporary: false, nameSuggestion: leafL.placeName },
-          leafB_Info: { nodeId: tempLeafM2.id, isTemporary: true, nameSuggestion: tempLeafM2_NameSuggestion },
-          edgeBetweenLeaves_Id: edge_L_LM2_Id,
+          featureA_Info: { nodeId: featureL.id, isTemporary: false, nameSuggestion: featureL.placeName },
+          featureB_Info: { nodeId: tempFeatureM2.id, isTemporary: true, nameSuggestion: tempFeatureM2_NameSuggestion },
+          edgeBetweenFeatures_Id: edge_L_LM2_Id,
           originalDirectEdgeId: edge_LM2.id,
         });
       }
@@ -141,13 +141,13 @@ export const pruneAndRefineMapConnections = (
       targetNode.data.nodeType !== 'room'
     ) {
       
-      // Create Leaf L_M1 (child of sourceNode)
-      const tempLeafM1_NameSuggestion = `Exit from ${sourceNode.placeName} towards ${targetNode.placeName}`;
-      const leafM1_Id = generateUniqueId(`${currentThemeName}_leafM1_`);
-      const leafM1: MapNode = {
-        id: leafM1_Id,
+      // Create Feature F_M1 (child of sourceNode)
+      const tempFeatureM1_NameSuggestion = `Exit from ${sourceNode.placeName} towards ${targetNode.placeName}`;
+      const featureM1_Id = generateUniqueId(`${currentThemeName}_featureM1_`);
+      const featureM1: MapNode = {
+        id: featureM1_Id,
         themeName: currentThemeName,
-        placeName: `TempLeaf_${sourceNode.id.slice(-4)}_${targetNode.id.slice(-4)}_A`,
+        placeName: `TempFeature_${sourceNode.id.slice(-4)}_${targetNode.id.slice(-4)}_A`,
         position: { x: sourceNode.position.x + 20, y: sourceNode.position.y + 20 },
         data: {
           description: `A temporary transition point from ${sourceNode.placeName}.`,
@@ -158,17 +158,17 @@ export const pruneAndRefineMapConnections = (
           visited: false,
         },
       };
-      workingMapData.nodes.push(leafM1);
-      themeNodeMap.set(leafM1_Id, leafM1); 
+      workingMapData.nodes.push(featureM1);
+      themeNodeMap.set(featureM1_Id, featureM1); 
 
 
-      // Create Leaf L_M2 (child of targetNode)
-      const tempLeafM2_NameSuggestion = `Entrance to ${targetNode.placeName} from ${sourceNode.placeName}`;
-      const leafM2_Id = generateUniqueId(`${currentThemeName}_leafM2_`);
-      const leafM2: MapNode = {
-        id: leafM2_Id,
+      // Create Feature F_M2 (child of targetNode)
+      const tempFeatureM2_NameSuggestion = `Entrance to ${targetNode.placeName} from ${sourceNode.placeName}`;
+      const featureM2_Id = generateUniqueId(`${currentThemeName}_featureM2_`);
+      const featureM2: MapNode = {
+        id: featureM2_Id,
         themeName: currentThemeName,
-        placeName: `TempLeaf_${sourceNode.id.slice(-4)}_${targetNode.id.slice(-4)}_B`,
+        placeName: `TempFeature_${sourceNode.id.slice(-4)}_${targetNode.id.slice(-4)}_B`,
         position: { x: targetNode.position.x - 20, y: targetNode.position.y - 20 },
         data: {
           description: `A temporary transition point into ${targetNode.placeName}.`,
@@ -179,32 +179,32 @@ export const pruneAndRefineMapConnections = (
           visited: false,
         },
       };
-      workingMapData.nodes.push(leafM2);
-      themeNodeMap.set(leafM2_Id, leafM2);
+      workingMapData.nodes.push(featureM2);
+      themeNodeMap.set(featureM2_Id, featureM2);
 
 
-      // Create edge between Leaf L_M1 and Leaf L_M2
-      const edgeBetweenLeaves_Id = generateUniqueId(`edge_leaves_`);
-      const edgeBetweenLeaves: MapEdge = {
-        id: edgeBetweenLeaves_Id,
-        sourceNodeId: leafM1.id,
-        targetNodeId: leafM2.id,
+      // Create edge between Feature F_M1 and Feature F_M2
+      const edgeBetweenFeatures_Id = generateUniqueId(`edge_features_`);
+      const edgeBetweenFeatures: MapEdge = {
+        id: edgeBetweenFeatures_Id,
+        sourceNodeId: featureM1.id,
+        targetNodeId: featureM2.id,
         data: { // Inherit type and status from original M1-M2 edge
           type: edge.data.type || 'path',
           status: edge.data.status || 'open',
           description: `Path between temporary transition points.`,
         },
       };
-      workingMapData.edges.push(edgeBetweenLeaves);
+      workingMapData.edges.push(edgeBetweenFeatures);
 
       edgesToRemoveIds.add(edge.id);
 
       chainsToRefine.push({
         mainNodeA_Id: sourceNode.id,
         mainNodeB_Id: targetNode.id,
-        leafA_Info: { nodeId: leafM1.id, isTemporary: true, nameSuggestion: tempLeafM1_NameSuggestion },
-        leafB_Info: { nodeId: leafM2.id, isTemporary: true, nameSuggestion: tempLeafM2_NameSuggestion },
-        edgeBetweenLeaves_Id: edgeBetweenLeaves_Id,
+        featureA_Info: { nodeId: featureM1.id, isTemporary: true, nameSuggestion: tempFeatureM1_NameSuggestion },
+        featureB_Info: { nodeId: featureM2.id, isTemporary: true, nameSuggestion: tempFeatureM2_NameSuggestion },
+        edgeBetweenFeatures_Id: edgeBetweenFeatures_Id,
         originalDirectEdgeId: edge.id,
       });
     }

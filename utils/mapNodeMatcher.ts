@@ -114,13 +114,13 @@ const parseLocalPlaceIntoChunks = (localPlace: string | null | undefined): Extra
 };
 
 const PROXIMITY_BONUS = 30; 
-const EXACT_MATCH_LEAF_BONUS = 10;
+const EXACT_MATCH_FEATURE_BONUS = 10;
 
 interface ExactMatchCandidate {
   nodeId: string;
-  score: number; 
-  isLeaf: boolean;
-  nameLength: number; 
+  score: number;
+  isFeature: boolean;
+  nameLength: number;
 }
 
 /**
@@ -188,17 +188,17 @@ export const attemptMatchAndSetNode = (
       }
     }
   
-    // Tie-breaker 2: Prefer non-leaf nodes
-    const nonLeafMatches = matchingNodesByNameOrAlias.filter(n => n.data.nodeType !== 'feature');
-    if (nonLeafMatches.length > 0) {
-      const chosenNonLeaf = nonLeafMatches[0]; // Could add more heuristics like name length later if needed
-      console.log(`MapNodeMatcher (${source}): Tie-breaker: Chose non-leaf node "${chosenNonLeaf.placeName}" (ID: ${chosenNonLeaf.id}).`);
-      return { matched: true, nodeId: chosenNonLeaf.id };
+    // Tie-breaker 2: Prefer non-feature nodes
+    const nonFeatureMatches = matchingNodesByNameOrAlias.filter(n => n.data.nodeType !== 'feature');
+    if (nonFeatureMatches.length > 0) {
+      const chosenNonFeature = nonFeatureMatches[0]; // Could add more heuristics like name length later if needed
+      console.log(`MapNodeMatcher (${source}): Tie-breaker: Chose non-feature node "${chosenNonFeature.placeName}" (ID: ${chosenNonFeature.id}).`);
+      return { matched: true, nodeId: chosenNonFeature.id };
     }
   
-    // Tie-breaker 3: All matches are leaf nodes, pick the first one
+    // Tie-breaker 3: All matches are feature nodes, pick the first one
     const firstMatch = matchingNodesByNameOrAlias[0]; // Could add more heuristics like name length
-    console.log(`MapNodeMatcher (${source}): Tie-breaker: Chose first leaf node match "${firstMatch.placeName}" (ID: ${firstMatch.id}).`);
+    console.log(`MapNodeMatcher (${source}): Tie-breaker: Chose first feature node match "${firstMatch.placeName}" (ID: ${firstMatch.id}).`);
     return { matched: true, nodeId: firstMatch.id };
 };
 
@@ -249,11 +249,11 @@ export const selectBestMatchingMapNode = (
       else if (normalizedLocalPlaceForEarlyMatch.includes(normName) && normName.length > 0) currentMatchScore = 800 + (normName.length * 0.5);
 
       if (currentMatchScore > 0) {
-        const isLeafNode = node.data.nodeType === 'feature';
+        const isFeatureNode = node.data.nodeType === 'feature';
         exactMatches.push({
           nodeId: node.id,
-          score: currentMatchScore + (isLeafNode ? EXACT_MATCH_LEAF_BONUS : 0),
-          isLeaf: isLeafNode,
+          score: currentMatchScore + (isFeatureNode ? EXACT_MATCH_FEATURE_BONUS : 0),
+          isFeature: isFeatureNode,
           nameLength: nameOrAlias.length
         });
       }
@@ -262,9 +262,9 @@ export const selectBestMatchingMapNode = (
 
   if (exactMatches.length > 0) {
     exactMatches.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score; 
-      if (a.isLeaf !== b.isLeaf) return a.isLeaf ? -1 : 1; 
-      return b.nameLength - a.nameLength; 
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.isFeature !== b.isFeature) return a.isFeature ? -1 : 1;
+      return b.nameLength - a.nameLength;
     });
     return exactMatches[0].nodeId; 
   }
@@ -339,10 +339,10 @@ export const selectBestMatchingMapNode = (
     } else if (maxScoreForThisNodeCandidate === overallBestScore && bestMatchNodeId) {
       const prevBestNode = themeNodes.find(n => n.id === bestMatchNodeId);
       if (prevBestNode) {
-        const nodeIsLeaf = node.data.nodeType === 'feature';
-        const prevIsLeaf = prevBestNode.data.nodeType === 'feature';
-        if (nodeIsLeaf && !prevIsLeaf) bestMatchNodeId = node.id;
-        else if (!nodeIsLeaf && prevIsLeaf) { /* Keep prev */ }
+        const nodeIsFeature = node.data.nodeType === 'feature';
+        const prevIsFeature = prevBestNode.data.nodeType === 'feature';
+        if (nodeIsFeature && !prevIsFeature) bestMatchNodeId = node.id;
+        else if (!nodeIsFeature && prevIsFeature) { /* Keep prev */ }
         else if (normalizeStringForMatching(node.placeName).length > normalizeStringForMatching(prevBestNode.placeName).length) bestMatchNodeId = node.id;
       }
     }
@@ -351,12 +351,12 @@ export const selectBestMatchingMapNode = (
   if (bestMatchNodeId && overallBestScore > 0) {
     const bestNode = themeNodes.find(n => n.id === bestMatchNodeId);
     if (bestNode && bestNode.data.nodeType !== 'feature' && (!bestNode.data.parentNodeId || bestNode.data.parentNodeId === 'Universe')) {
-      const leafChildren = themeNodes.filter(leaf => leaf.data.nodeType === 'feature' && leaf.data.parentNodeId === bestNode.id);
-      for (const leafChild of leafChildren) {
-        const leafName = leafChild.placeName;
-        const normalizedLeafName = normalizeStringForMatching(leafName);
-        const directlyMentionedChunk = extractedChunks.find(chunk => chunk.prepositionType === 'direct' && normalizeStringForMatching(chunk.phrase).includes(normalizedLeafName));
-        if (directlyMentionedChunk) { bestMatchNodeId = leafChild.id; break; }
+      const featureChildren = themeNodes.filter(child => child.data.nodeType === 'feature' && child.data.parentNodeId === bestNode.id);
+      for (const featureChild of featureChildren) {
+        const featureName = featureChild.placeName;
+        const normalizedFeatureName = normalizeStringForMatching(featureName);
+        const directlyMentionedChunk = extractedChunks.find(chunk => chunk.prepositionType === 'direct' && normalizeStringForMatching(chunk.phrase).includes(normalizedFeatureName));
+        if (directlyMentionedChunk) { bestMatchNodeId = featureChild.id; break; }
       }
     }
   }

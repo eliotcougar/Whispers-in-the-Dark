@@ -75,7 +75,7 @@ This layer abstracts external interactions and complex data processing.
 *   **Utility Functions:**
     *   `utils/promptFormatters.ts`: Now formats `MapNode[]` instead of `Place[]` for AI prompts regarding locations.
     *   `utils/mapNodeMatcher.ts`: `selectBestMatchingMapNode` now operates on `MapNode[]`.
-    *   `utils/mapPruningUtils.ts`: Introduces temporary leaf nodes to restructure problematic main node connections before refinement.
+    *   `utils/mapPruningUtils.ts`: Introduces temporary feature nodes to restructure problematic main node connections before refinement.
     *   `utils/mapHierarchyUpgradeUtils.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.
     *   `utils/mapLayoutUtils.ts`: Performs nested circle and force-directed layout for map visualization.
 
@@ -130,7 +130,7 @@ This map-centric refactor centralizes location data management, making it more r
 
 ### 2.3. Hierarchical Map System
 
-`MapNode` objects can represent locations at several hierarchical levels. Each node **must specify** a `nodeType` (`region`, `city`, `building`, `room`, or `feature`) **and a `status`** (`undiscovered`, `discovered`, `rumored`, or `quest_target`). Nodes may optionally include a `parentNodeId`. Nodes with a parent are laid out near their parent in the map view. The hierarchy is represented solely with `parentNodeId` and no longer relies on `containment` edges. This allows the map to contain nested areas such as rooms within buildings or features within rooms.
+`MapNode` objects can represent locations at several hierarchical levels. Each node **must specify** a `nodeType` (`region`, `location`, `settlement`, `exterior`, `interior`, `room`, or `feature`) **and a `status`** (`undiscovered`, `discovered`, `rumored`, or `quest_target`). Nodes may optionally include a `parentNodeId`. Nodes with a parent are laid out near their parent in the map view. The hierarchy is represented solely with `parentNodeId`, replacing the old containment-edge approach. This allows the map to contain nested areas such as rooms within buildings or features within rooms.
 
 ### 2.4. Map Layout and Visualization
 

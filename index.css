@@ -297,13 +297,15 @@ body {
   stroke: #60a5fa; /* blue-400 */
   fill: #3b82f6; /* blue-500 */
 }
-.map-node-circle.leaf {
+.map-node-circle.feature {
   fill: #2dd4bf; /* teal-400 */
   stroke: #14b8a6; /* teal-500 */
 }
 .map-node-circle.region { fill-opacity: 0; }
-.map-node-circle.city { fill-opacity: 0.05; }
-.map-node-circle.building { fill-opacity: 0.1; }
+.map-node-circle.location { fill-opacity: 0.03; }
+.map-node-circle.settlement { fill-opacity: 0.05; }
+.map-node-circle.exterior { fill-opacity: 0.1; }
+.map-node-circle.interior { fill-opacity: 0.12; }
 .map-node-circle.room { fill-opacity: 0.15; }
 .map-node-circle.current {
   fill: #facc15; /* yellow-400 */
@@ -311,8 +313,8 @@ body {
   stroke-width: 10px;
   fill-opacity: 0.15;
 }
-.map-node-circle.current.leaf {
-  /* Current leaf node style */
+.map-node-circle.current.feature {
+  /* Current feature node style */
   fill: #fde047; /* yellow-300 */
   stroke: #facc15; /* yellow-400 */
   stroke-width: 10px;
@@ -335,8 +337,8 @@ body {
   font-weight: bold;
   pointer-events: none;
 }
-.map-node-label.leaf-label {
-  font-size: 7px; /* Smaller font for leaf nodes */
+.map-node-label.feature-label {
+  font-size: 7px; /* Smaller font for feature nodes */
   stroke-width: 0.6px; /* Proportionally thinner outline */
 }
 .map-edge {

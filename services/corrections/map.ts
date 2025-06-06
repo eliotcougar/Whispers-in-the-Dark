@@ -8,6 +8,7 @@ import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
 import { VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES } from '../../utils/mapUpdateValidationUtils';
+import { NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS } from '../../utils/mapSynonyms';
 
 /**
  * Infers or corrects the player's current local place string.
@@ -190,67 +191,7 @@ Respond ONLY with the single, complete JSON object.`;
 export const fetchCorrectedNodeType_Service = async (
   nodeInfo: { placeName: string; nodeType?: string; description?: string }
 ): Promise<NonNullable<MapNodeData['nodeType']> | null> => {
-  const synonyms: Record<string, NonNullable<MapNodeData['nodeType']>> = {
-    area: 'region',
-    zone: 'region',
-    province: 'region',
-    territory: 'region',
-    town: 'city',
-    village: 'city',
-    settlement: 'city',
-    structure: 'building',
-    edifice: 'building',
-    chamber: 'room',
-    hall: 'room',
-    landmark: 'feature',
-    spot: 'feature',
-    forest: 'region',
-    woods: 'region',
-    jungle: 'region',
-    grove: 'region',
-    mountain: 'region',
-    mountains: 'region',
-    range: 'region',
-    peak: 'region',
-    valley: 'region',
-    desert: 'region',
-    swamp: 'region',
-    marsh: 'region',
-    marshland: 'region',
-    bog: 'region',
-    fen: 'region',
-    sea: 'region',
-    ocean: 'region',
-    'open sea': 'region',
-    'open ocean': 'region',
-    coast: 'region',
-    coastline: 'region',
-    shore: 'region',
-    island: 'region',
-    archipelago: 'region',
-    peninsula: 'region',
-    plateau: 'region',
-    hill: 'region',
-    hills: 'region',
-    plains: 'region',
-    lake: 'region',
-    bay: 'region',
-    lagoon: 'region',
-    fjord: 'region',
-    river: 'feature',
-    stream: 'feature',
-    creek: 'feature',
-    waterfall: 'feature',
-    beach: 'feature',
-    cliff: 'feature',
-    canyon: 'feature',
-    gorge: 'feature',
-    ravine: 'feature',
-    reef: 'feature',
-    cave: 'feature',
-    cavern: 'feature',
-    grotto: 'feature'
-  };
+  const synonyms = NODE_TYPE_SYNONYMS;
 
   if (nodeInfo.nodeType) {
     const normalized = synonyms[nodeInfo.nodeType.toLowerCase()] || nodeInfo.nodeType.toLowerCase();
@@ -261,8 +202,9 @@ export const fetchCorrectedNodeType_Service = async (
 
   const heuristics: [RegExp, NonNullable<MapNodeData['nodeType']>][] = [
     [/region|province|area|zone|territory|forest|woods|jungle|grove|mountain|mountains|range|peak|valley|desert|swamp|marsh|marshland|bog|fen|sea|ocean|open\ssea|open\socean|coast|coastline|shore|island|archipelago|peninsula|plateau|hill|hills|plains|lake|bay|lagoon|fjord/i, 'region'],
-    [/city|town|village|settlement/i, 'city'],
-    [/building|tower|house|fort|castle|structure|edifice/i, 'building'],
+    [/city|town|village|settlement/i, 'settlement'],
+    [/building|tower|house|fort|castle|structure|edifice/i, 'exterior'],
+    [/interior|inside|hallway|corridor/i, 'interior'],
     [/room|chamber|hall|quarters/i, 'room'],
     [/river|stream|creek|waterfall|beach|cliff|canyon|gorge|ravine|reef|cave|cavern|grotto/i, 'feature']
   ];
@@ -304,35 +246,7 @@ Respond ONLY with the single node type.`;
 export const fetchCorrectedEdgeType_Service = async (
   edgeInfo: { type?: string; description?: string }
 ): Promise<MapEdgeData['type'] | null> => {
-  const synonyms: Record<string, MapEdgeData['type']> = {
-    trail: 'path',
-    track: 'path',
-    walkway: 'path',
-    footpath: 'path',
-    street: 'road',
-    roadway: 'road',
-    highway: 'road',
-    lane: 'road',
-    avenue: 'road',
-    boulevard: 'road',
-    seaway: 'sea route',
-    'sea path': 'sea route',
-    'ocean route': 'sea route',
-    portal: 'teleporter',
-    warp: 'teleporter',
-    gate: 'door',
-    gateway: 'door',
-    'secret passageway': 'secret_passage',
-    hidden_passage: 'secret_passage',
-    tunnel: 'secret_passage',
-    ford: 'river_crossing',
-    ferry: 'river_crossing',
-    bridge: 'temporary_bridge',
-    'makeshift_bridge': 'temporary_bridge',
-    'temporary crossing': 'temporary_bridge',
-    grapple: 'boarding_hook',
-    'grappling_hook': 'boarding_hook'
-  };
+  const synonyms = EDGE_TYPE_SYNONYMS;
 
   if (edgeInfo.type) {
     const normalized = synonyms[edgeInfo.type.toLowerCase()] || edgeInfo.type.toLowerCase();
