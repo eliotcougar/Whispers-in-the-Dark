@@ -438,7 +438,7 @@ export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
   });
 
   const BASE_FEATURE_RADIUS = NODE_RADIUS;
-  const PADDING = 5;
+  const PADDING = 15;
   const SMALL_ANGLE_PADDING = 0.1;
   const INCREMENT = 2;
 
