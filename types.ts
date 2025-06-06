@@ -5,7 +5,6 @@
 
 import { VALID_ITEM_TYPES } from './constants';
 import { ALL_THEME_PACK_NAMES } from './themes'; // For ThemePackName
-import { LayoutForceConstants as MapLayoutConfigShape } from './utils/mapLayoutUtils'; // Renamed for clarity
 
 export type ItemType = typeof VALID_ITEM_TYPES[number];
 export type ThemePackName = typeof ALL_THEME_PACK_NAMES[number];
@@ -253,10 +252,10 @@ export interface TurnChanges {
 // --- End TurnChanges Data Structures ---
 
 // --- Map Data Structures ---
-export interface MapLayoutConfig extends MapLayoutConfigShape {
-  iterations: number;
-  K_UNTANGLE: number; 
-  K_EDGE_NODE_REPULSION: number; // Added for node-edge repulsion
+export interface MapLayoutConfig {
+  IDEAL_EDGE_LENGTH: number;
+  NESTED_PADDING: number;
+  NESTED_ANGLE_PADDING: number;
 }
 
 export interface MapNodeData {

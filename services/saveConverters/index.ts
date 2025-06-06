@@ -26,15 +26,9 @@ import {
 import { fetchCorrectedCharacterDetails_Service, fetchCorrectedLocalPlace_Service } from '../corrections';
 import { isApiConfigured } from '../apiClient';
 import {
-  DEFAULT_K_REPULSION,
-  DEFAULT_K_SPRING,
   DEFAULT_IDEAL_EDGE_LENGTH,
-  DEFAULT_K_CENTERING,
-  DEFAULT_K_UNTANGLE,
-  DEFAULT_K_EDGE_NODE_REPULSION,
-  DEFAULT_DAMPING_FACTOR,
-  DEFAULT_MAX_DISPLACEMENT,
-  DEFAULT_LAYOUT_ITERATIONS,
+  DEFAULT_NESTED_PADDING,
+  DEFAULT_NESTED_ANGLE_PADDING,
 } from '../../utils/mapLayoutUtils';
 import { findThemeByName } from '../themeUtils';
 
@@ -143,15 +137,9 @@ export interface V2IntermediateSavedGameState {
 
 /** Returns default map layout configuration. */
 export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
-  K_REPULSION: DEFAULT_K_REPULSION,
-  K_SPRING: DEFAULT_K_SPRING,
   IDEAL_EDGE_LENGTH: DEFAULT_IDEAL_EDGE_LENGTH,
-  K_CENTERING: DEFAULT_K_CENTERING,
-  K_UNTANGLE: DEFAULT_K_UNTANGLE,
-  K_EDGE_NODE_REPULSION: DEFAULT_K_EDGE_NODE_REPULSION,
-  DAMPING_FACTOR: DEFAULT_DAMPING_FACTOR,
-  MAX_DISPLACEMENT: DEFAULT_MAX_DISPLACEMENT,
-  iterations: DEFAULT_LAYOUT_ITERATIONS,
+  NESTED_PADDING: DEFAULT_NESTED_PADDING,
+  NESTED_ANGLE_PADDING: DEFAULT_NESTED_ANGLE_PADDING,
 });
 
 /**
