@@ -221,12 +221,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
       let prompt = '';
       if (isTransitioningFromShift && draftState.themeHistory[themeObjToLoad.name]) {
-        const currentThemeMainMapNodes = draftState.mapData.nodes.filter(
-          n =>
-            n.themeName === themeObjToLoad.name &&
-            n.data.nodeType !== 'feature' &&
-            n.data.nodeType !== 'room'
-        );
         const currentThemeCharacters = draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name);
         prompt = formatReturnToThemePostShiftPrompt(
           themeObjToLoad,
@@ -278,16 +272,19 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         if (!isTransitioningFromShift || draftState.globalTurnNumber === 0) {
           draftState.globalTurnNumber = 1;
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('Error loading initial game:', e);
         if (isServerOrClientError(e)) {
           draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
           const status = extractStatusFromError(e);
           setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
         } else {
-          setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${e.message || 'Unknown AI error'}`);
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage || 'Unknown AI error'}`);
         }
-        if (draftState.lastDebugPacket) draftState.lastDebugPacket.error = e.message || String(e);
+        if (draftState.lastDebugPacket) {
+          draftState.lastDebugPacket.error = e instanceof Error ? e.message : String(e);
+        }
       } finally {
         commitGameState(draftState);
         setIsLoading(false);
@@ -323,7 +320,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     );
     resetGameStateStack(blankState);
     setHasGameBeenInitialized(false);
-    loadInitialGame({ isRestart: true, customGameFlag: false });
+    void loadInitialGame({ isRestart: true, customGameFlag: false });
   }, [
     loadInitialGame,
     setHasGameBeenInitialized,
@@ -345,7 +342,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       );
       resetGameStateStack(blankState);
       setHasGameBeenInitialized(false);
-      loadInitialGame({ explicitThemeName: themeName, isRestart: true, customGameFlag: true });
+      void loadInitialGame({ explicitThemeName: themeName, isRestart: true, customGameFlag: true });
     },
     [
       loadInitialGame,
@@ -369,7 +366,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     );
     resetGameStateStack(blankState);
     setHasGameBeenInitialized(false);
-    loadInitialGame({ isRestart: true, customGameFlag: false });
+    void loadInitialGame({ isRestart: true, customGameFlag: false });
   }, [
     loadInitialGame,
     setError,
@@ -386,7 +383,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     setError(null);
     const currentFullState = getCurrentGameState();
     if (!currentFullState.currentThemeName) {
-      loadInitialGame({ isRestart: true, customGameFlag: currentFullState.isCustomGameMode ?? false });
+      void loadInitialGame({ isRestart: true, customGameFlag: currentFullState.isCustomGameMode ?? false });
     } else {
       const genericRetryState = {
         ...currentFullState,
