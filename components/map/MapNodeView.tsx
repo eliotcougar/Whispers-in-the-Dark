@@ -31,10 +31,14 @@ const getRadiusForNode = (node: MapNode): number => {
     case 'region':
       // Larger size so that child circles and labels can fit inside.
       return NODE_RADIUS * 2.4;
-    case 'city':
+    case 'location':
+      return NODE_RADIUS * 2.0;
+    case 'settlement':
       return NODE_RADIUS * 1.8;
-    case 'building':
-      return NODE_RADIUS * 1.3;
+    case 'exterior':
+      return NODE_RADIUS * 1.4;
+    case 'interior':
+      return NODE_RADIUS * 1.2;
     case 'room':
       return NODE_RADIUS * 0.8;
     case 'feature':
@@ -248,7 +252,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
                   onMouseLeave={handleMouseLeaveGeneral}
                 >
                   <circle className={nodeClass} r={radius} />
-                  <text className="map-node-label leaf-label" pointerEvents="none">
+                  <text className="map-node-label feature-label" pointerEvents="none">
                     {labelLines.map((line, index) => (
                       <tspan
                         key={`${node.id}-line-${index}`}
@@ -282,7 +286,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
                     onMouseLeave={handleMouseLeaveGeneral}
                   />
                   <text
-                    className="map-node-label leaf-label"
+                    className="map-node-label feature-label"
                     pointerEvents="all"
                     onMouseEnter={handleEnter}
                     onMouseLeave={handleMouseLeaveGeneral}

@@ -143,8 +143,8 @@ const getNearbyNodeIds = (
   maxHops: number,
   allNodes: MapNode[],
   allEdges: MapEdge[],
-  typesToInclude?: ('node' | 'leaf')[],
-  typesToTraverse?: ('node' | 'leaf')[]
+  typesToInclude?: ('node' | 'feature')[],
+  typesToTraverse?: ('node' | 'feature')[]
 ): Set<string> => {
   const allReachableNodeIds = new Set<string>();
   const queue: { nodeId: string; hop: number }[] = [{ nodeId: startNodeId, hop: 0 }];
@@ -172,7 +172,7 @@ const getNearbyNodeIds = (
           if (neighborNode) {
             const neighborNodeType =
               neighborNode.data.nodeType === 'feature'
-                ? 'leaf'
+                ? 'feature'
                 : 'node';
             if (typesToTraverse && typesToTraverse.length > 0 && !typesToTraverse.includes(neighborNodeType)) {
               continue;
@@ -189,7 +189,7 @@ const getNearbyNodeIds = (
     for (const nodeId of allReachableNodeIds) {
       const node = allNodes.find(n => n.id === nodeId);
       if (node) {
-        const nodeType = (node.data.nodeType === "feature" || node.data.nodeType === "room") ? 'leaf' : 'node';
+        const nodeType = (node.data.nodeType === "feature" || node.data.nodeType === "room") ? 'feature' : 'node';
         if (typesToInclude.includes(nodeType)) {
           filteredReachableNodeIds.add(nodeId);
         }
@@ -247,33 +247,33 @@ export const formatMapContextForPrompt = (
   if (areaMainNodeId) {
     const areaMainNode = allNodesForTheme.find(node => node.id === areaMainNodeId);
     if (areaMainNode && !(areaMainNode.data.nodeType === 'feature')) {
-      const exitLeafNodesInCurrentArea = allNodesForTheme.filter(
+      const exitFeatureNodesInCurrentArea = allNodesForTheme.filter(
         node => node.data.nodeType === "feature" && node.data.parentNodeId === areaMainNode.id
       );
       const exitStrings: string[] = [];
-      if (exitLeafNodesInCurrentArea.length > 0) {
-        for (const exitLeaf of exitLeafNodesInCurrentArea) {
-          if (exitLeaf.id === currentNode.id) continue;
+      if (exitFeatureNodesInCurrentArea.length > 0) {
+        for (const exitFeature of exitFeatureNodesInCurrentArea) {
+          if (exitFeature.id === currentNode.id) continue;
           for (const edge of allEdgesForTheme) {
-            if (edge.sourceNodeId !== exitLeaf.id && edge.targetNodeId !== exitLeaf.id) continue;
+            if (edge.sourceNodeId !== exitFeature.id && edge.targetNodeId !== exitFeature.id) continue;
             if (NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) continue;
-            const otherEndNodeId = edge.sourceNodeId === exitLeaf.id ? edge.targetNodeId : edge.sourceNodeId;
-            const entryLeaf = allNodesForTheme.find(node => node.id === otherEndNodeId);
+            const otherEndNodeId = edge.sourceNodeId === exitFeature.id ? edge.targetNodeId : edge.sourceNodeId;
+            const entryFeature = allNodesForTheme.find(node => node.id === otherEndNodeId);
             if (
-              entryLeaf &&
-              entryLeaf.data.nodeType === 'feature' &&
-              entryLeaf.data.parentNodeId &&
-              entryLeaf.data.parentNodeId !== areaMainNode.id &&
-              entryLeaf.data.parentNodeId !== 'Universe'
+              entryFeature &&
+              entryFeature.data.nodeType === 'feature' &&
+              entryFeature.data.parentNodeId &&
+              entryFeature.data.parentNodeId !== areaMainNode.id &&
+              entryFeature.data.parentNodeId !== 'Universe'
             ) {
               const otherAreaMainNode = allNodesForTheme.find(
-                node => node.id === entryLeaf.data.parentNodeId && !(node.data.nodeType === "feature")
+                node => node.id === entryFeature.data.parentNodeId && !(node.data.nodeType === "feature")
               );
               if (otherAreaMainNode) {
                 const edgeStatus = edge.data.status || 'open';
                 const edgeType = edge.data.type || 'path';
                 exitStrings.push(
-                  `- '${edgeStatus} ${edgeType}' exit at '${exitLeaf.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryLeaf.placeName}'.`
+                  `- '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
                 );
               }
             }

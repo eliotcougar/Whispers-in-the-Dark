@@ -128,7 +128,7 @@ function isValidMapNodeData(data: unknown): data is MapNodeData {
     (maybe.status === undefined ||
       ['undiscovered', 'discovered', 'rumored', 'quest_target'].includes(maybe.status)) &&
     (maybe.visited === undefined || typeof maybe.visited === 'boolean') &&
-    (maybe.isLeaf === undefined || typeof maybe.isLeaf === 'boolean') &&
+    (maybe.isFeature === undefined || typeof maybe.isFeature === 'boolean') &&
     (maybe.parentNodeId === undefined ||
       maybe.parentNodeId === null ||
       typeof maybe.parentNodeId === 'string')
@@ -346,8 +346,8 @@ export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined):
         if (typeof node.data.visited !== 'boolean') {
             node.data.visited = false;
         }
-        if (typeof node.data.isLeaf !== 'boolean') {
-            node.data.isLeaf = false;
+        if (typeof node.data.isFeature !== 'boolean') {
+            node.data.isFeature = false;
         }
         // parentNodeId can be string or undefined, so no default needed unless specific logic requires it
     });
@@ -378,7 +378,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
             description: node.data.description || "Description missing in save prep",
             aliases: node.data.aliases || [],
             status: node.data.status,
-            isLeaf: node.data.isLeaf,
+            isFeature: node.data.isFeature,
             visited: node.data.visited,
             parentNodeId: node.data.parentNodeId,
             ...Object.fromEntries(Object.entries(node.data).filter(([key]) => !['description', 'aliases'].includes(key)))

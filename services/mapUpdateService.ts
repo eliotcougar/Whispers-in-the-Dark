@@ -21,6 +21,7 @@ import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 import { isValidAIMapUpdatePayload, VALID_NODE_STATUS_VALUES, VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
+import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../utils/mapSynonyms';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 
@@ -152,73 +153,10 @@ const normalizeRemovalUpdates = (payload: AIMapUpdatePayload) => {
 const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] => {
   const errors: string[] = [];
 
-  const nodeStatusSynonyms: Record<string, MapNodeData['status']> = {
-    unknown: 'undiscovered',
-    unexplored: 'undiscovered',
-    found: 'discovered',
-    revealed: 'discovered',
-    rumoured: 'rumored',
-    speculation: 'rumored',
-    whispered: 'rumored',
-    goal: 'quest_target',
-    objective: 'quest_target'
-  };
-
-  const nodeTypeSynonyms: Record<string, NonNullable<MapNodeData['nodeType']>> = {
-    area: 'region',
-    zone: 'region',
-    province: 'region',
-    territory: 'region',
-    town: 'city',
-    village: 'city',
-    settlement: 'city',
-    structure: 'building',
-    edifice: 'building',
-    chamber: 'room',
-    hall: 'room',
-    landmark: 'feature',
-    spot: 'feature'
-  };
-
-  const edgeTypeSynonyms: Record<string, MapEdgeData['type']> = {
-    trail: 'path',
-    track: 'path',
-    walkway: 'path',
-    street: 'road',
-    roadway: 'road',
-    highway: 'road',
-    seaway: 'sea route',
-    'sea path': 'sea route',
-    portal: 'teleporter',
-    warp: 'teleporter',
-    'secret passageway': 'secret_passage',
-    'hidden_passage': 'secret_passage',
-    ford: 'river_crossing',
-    'makeshift_bridge': 'temporary_bridge',
-    'temporary crossing': 'temporary_bridge',
-    grapple: 'boarding_hook',
-    'grappling_hook': 'boarding_hook'
-  };
-
-  const edgeStatusSynonyms: Record<string, MapEdgeData['status']> = {
-    opened: 'open',
-    usable: 'accessible',
-    available: 'accessible',
-    shut: 'closed',
-    sealed: 'locked',
-    barred: 'locked',
-    obstructed: 'blocked',
-    barricaded: 'blocked',
-    concealed: 'hidden',
-    secret: 'hidden',
-    rumoured: 'rumored',
-    legendary: 'rumored',
-    'one way': 'one_way',
-    'one-way': 'one_way',
-    single_direction: 'one_way',
-    fallen: 'collapsed',
-    deactivated: 'inactive'
-  };
+  const nodeStatusSynonyms = NODE_STATUS_SYNONYMS;
+  const nodeTypeSynonyms = NODE_TYPE_SYNONYMS;
+  const edgeTypeSynonyms = EDGE_TYPE_SYNONYMS;
+  const edgeStatusSynonyms = EDGE_STATUS_SYNONYMS;
 
   const applyNodeDataFix = (data: Partial<MapNodeData> | undefined, context: string) => {
     if (!data) return;
@@ -326,13 +264,13 @@ export const updateMapFromAIData_Service = async (
   if (previousMapNodeId) {
     const prevNode = themeNodeIdMap.get(previousMapNodeId);
     if (prevNode) {
-      previousMapNodeContext = `Player's Previous Map Node: Was at "${prevNode.placeName}" (ID: ${prevNode.id}, Type: ${prevNode.data.nodeType === 'feature' ? 'Leaf' : 'Main'}, Visited: ${!!prevNode.data.visited}).`;
+      previousMapNodeContext = `Player's Previous Map Node: Was at "${prevNode.placeName}" (ID: ${prevNode.id}, Type: ${prevNode.data.nodeType === 'feature' ? 'Feature' : 'Main'}, Visited: ${!!prevNode.data.visited}).`;
     }
   }
 
   const existingMapContext = `
 Current Map Nodes (for your reference):
-${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- Node: "${n.placeName}" (ID: ${n.id}, Leaf: ${n.data.nodeType === 'feature'}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
+${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- Node: "${n.placeName}" (ID: ${n.id}, Feature: ${n.data.nodeType === 'feature'}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
 
 Current Map Edges (for your reference):
 ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- Edge from node ID ${e.sourceNodeId} to node ID ${e.targetNodeId}, Type: ${e.data.type || 'N/A'}, Status: ${e.data.status || 'N/A'}`).join('\n') : "None exist yet."}
@@ -360,11 +298,11 @@ Based on the Narrative Context and existing map context, provide a JSON response
 Key points:
 - If the narrative mentions a main location that is NOT yet on the map, add it.
 - For ALL nodes in 'nodesToAdd', you MUST provide 'description' (non-empty string, <300 chars), 'aliases' (array of strings, can be empty), and 'status'.
-  - If any new specific places (leaf nodes) within or between main locations are described, add them and specify their parent via \`parentNodeId\`.
+  - If any new specific places (feature nodes) within or between main locations are described, add them and specify their parent via \`parentNodeId\`.
 - All nodes MUST represent physical locations.
 - If connections (paths, doors, etc.) are revealed or changed, update edges.
-- If new details are revealed about a location (main or leaf), update description and/or aliases.
-- If the Player's new 'localPlace' tells that they are at a specific map node leaf (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
+ - If new details are revealed about a location (main or feature), update description and/or aliases.
+ - If the Player's new 'localPlace' tells that they are at a specific feature node (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
 `;
   let prompt = basePrompt;
   const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt };
@@ -580,12 +518,12 @@ Key points:
                 if (nodeUpdateOp.newData.parentNodeId === 'Universe') {
                     resolvedParentIdOnUpdate = undefined;
                 } else {
-                    // Allow parent to be ANY node (main or leaf)
+                    // Allow parent to be ANY node
                     const parentNode = findNodeByIdentifier(nodeUpdateOp.newData.parentNodeId) as MapNode | undefined;
                     if (parentNode) {
                         resolvedParentIdOnUpdate = parentNode.id;
                     } else {
-                        console.warn(`MapUpdate (nodesToUpdate): Leaf node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.newData.parentNodeId}" which was not found.`);
+                        console.warn(`MapUpdate (nodesToUpdate): Feature node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.newData.parentNodeId}" which was not found.`);
                         resolvedParentIdOnUpdate = undefined; // Or keep old one: node.data.parentNodeId
                     }
                 }
@@ -756,7 +694,7 @@ Key points:
       newMapData.edges = remainingEdges;
   });
 
-  // --- End of Leaf Upgrade Logic (containment edges removed) ---
+  // --- End of Temporary Feature Upgrade (parent-child edges cleaned up) ---
 
 
   return { updatedMapData: newMapData, debugInfo };

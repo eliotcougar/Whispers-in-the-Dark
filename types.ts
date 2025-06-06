@@ -264,7 +264,14 @@ export interface MapNodeData {
   status: 'undiscovered' | 'discovered' | 'rumored' | 'quest_target';
   visited?: boolean; // Managed by game logic, not AI directly.
   parentNodeId?: string; // ID of parent node for hierarchical placement.
-  nodeType: 'region' | 'city' | 'building' | 'room' | 'feature';
+  nodeType:
+    | 'region'
+    | 'location'
+    | 'settlement'
+    | 'exterior'
+    | 'interior'
+    | 'room'
+    | 'feature';
   /** Pre-calculated radius used by nested circle layouts. */
   visualRadius?: number;
   [key: string]: unknown; // For any other custom data.
@@ -313,7 +320,7 @@ export interface AINodeUpdate {
 }
 
 export interface AIMapUpdatePayload {
-  // Description is required in MapNodeData, but map AI only provides it for leaf nodes in 'nodesToAdd'.
+  // Description is required in MapNodeData, but map AI only provides it for feature nodes in 'nodesToAdd'.
   // For main nodes, map AI only provides 'status'. Game logic fetches full description.
   nodesToAdd?: (AINodeUpdate & { data: { status: MapNodeData['status'] } & Partial<Omit<MapNodeData, 'description' | 'aliases' | 'status'>> })[]; 
   nodesToUpdate?: { placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }[]; // Added placeName to newData for renaming
@@ -326,18 +333,18 @@ export interface AIMapUpdatePayload {
 // --- End Map Update Service Payload ---
 
 // --- Map Pruning & Refinement Types ---
-export interface MapChainLeafInfo {
-  nodeId: string;         // ID of the leaf node
-  isTemporary: boolean;   // Was this leaf created by the pruning utility?
+export interface MapChainFeatureInfo {
+  nodeId: string;         // ID of the feature node
+  isTemporary: boolean;   // Was this feature created by the pruning utility?
   nameSuggestion?: string; // Suggested name by pruning utility (e.g. "Exit from [MainNodeA_Name]")
 }
 
 export interface MapChainToRefine {
   mainNodeA_Id: string;
   mainNodeB_Id: string;
-  leafA_Info: MapChainLeafInfo; // Leaf child of mainNodeA
-  leafB_Info: MapChainLeafInfo; // Leaf child of mainNodeB
-  edgeBetweenLeaves_Id: string; // ID of the edge connecting leafA and leafB (if it exists and needs refinement)
+  featureA_Info: MapChainFeatureInfo; // Feature child of mainNodeA
+  featureB_Info: MapChainFeatureInfo; // Feature child of mainNodeB
+  edgeBetweenFeatures_Id: string; // ID of the edge connecting featureA and featureB (if it exists and needs refinement)
   originalDirectEdgeId: string; // ID of the original direct edge between mainNodeA and mainNodeB that was removed
 }
 // --- End Map Pruning & Refinement Types ---
