@@ -6,6 +6,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
+  applyNestedForceLayout,
+  type LayoutForceConstants,
   DEFAULT_K_REPULSION,
   DEFAULT_K_SPRING,
   DEFAULT_IDEAL_EDGE_LENGTH,
@@ -105,18 +107,27 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     );
   }, [mapData.edges, currentThemeNodes, currentThemeName]);
 
-  /**
-   * Prepares nodes for display. The force-directed layout algorithm is
-   * intentionally disabled, so nodes are shown using their stored positions.
-   */
+  /** Prepares nodes for layout and runs the nested force algorithm. */
   const runLayout = useCallback(() => {
     const nodesToProcess = [...currentThemeNodes];
-
-    // Previously the layout algorithm adjusted node positions here using
-    // a force-directed approach, but automatic adjustments are disabled.
-
-    setDisplayedNodes(nodesToProcess);
-  }, [currentThemeNodes]);
+    const forceConstants: LayoutForceConstants = {
+      K_REPULSION: layoutKRepulsion,
+      K_SPRING: layoutKSpring,
+      IDEAL_EDGE_LENGTH: layoutIdealEdgeLength,
+      K_CENTERING: 0,
+      K_UNTANGLE: layoutKUntangle,
+      K_EDGE_NODE_REPULSION: layoutKEdgeNodeRepulsion,
+      DAMPING_FACTOR: layoutDampingFactor,
+      MAX_DISPLACEMENT: layoutMaxDisplacement,
+    };
+    const nestedNodes = applyNestedForceLayout(
+      nodesToProcess,
+      currentThemeEdges,
+      layoutIterations,
+      forceConstants
+    );
+    setDisplayedNodes(nestedNodes);
+  }, [currentThemeNodes, currentThemeEdges, layoutIterations, layoutKRepulsion, layoutKSpring, layoutIdealEdgeLength, layoutKUntangle, layoutKEdgeNodeRepulsion, layoutDampingFactor, layoutMaxDisplacement]);
 
   useEffect(() => {
     if (isVisible) {
