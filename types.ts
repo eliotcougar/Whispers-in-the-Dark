@@ -72,12 +72,6 @@ export interface Character {
   dialogueSummaries?: DialogueSummaryRecord[]; // Stores summaries of past dialogues
 }
 
-export interface CharacterPresenceInfo { // Retaining for potential intermediate AI parsing, but aim to phase out.
-  name: string;
-  preciseLocation?: string; 
-  invalidPreciseLocationPayload?: string; 
-}
-
 // --- Dialogue Mode Types ---
 export interface DialogueTurnResponsePart {
   speaker: string; 
