@@ -18,7 +18,6 @@ import {
     fetchCorrectedName_Service,
     fetchCorrectedCharacterDetails_Service,
     fetchCorrectedDialogueSetup_Service,
-    fetchCorrectedPlaceDetails_Service,
 } from './corrections';
 
 import { sanitizeJsonString } from './parsers/jsonSanitizer';
@@ -229,17 +228,23 @@ async function processItemChanges(
                         currentItemPayload = null;
                     }
                 }
-                if (currentItemPayload) {
-                    (currentItemPayload as Item).newName = undefined;
-                    (currentItemPayload as Item).addKnownUse = undefined;
-                    (currentItemPayload as Item).isJunk = (currentItemPayload as Item).isJunk ?? false;
-                    (currentItemPayload as Item).isActive = (currentItemPayload as Item).isActive ?? false;
+                if (currentItemPayload && typeof currentItemPayload !== 'string') {
+                    currentItemPayload.newName = undefined;
+                    currentItemPayload.addKnownUse = undefined;
+                    currentItemPayload.isJunk = currentItemPayload.isJunk ?? false;
+                    currentItemPayload.isActive = currentItemPayload.isActive ?? false;
                 }
                 break;
-            case 'update':
-                let originalNameForUpdate: string | undefined = undefined;
-                if (typeof currentItemPayload === 'object' && currentItemPayload !== null && typeof (currentItemPayload as Item).name === 'string') {
-                    originalNameForUpdate = (currentItemPayload as Item).name;
+            case 'update': {
+                let originalNameForUpdate: string | undefined;
+                if (
+                    currentItemPayload &&
+                    typeof currentItemPayload === 'object' &&
+                    'name' in currentItemPayload &&
+                    typeof (currentItemPayload as { name?: unknown }).name === 'string'
+                ) {
+                    originalNameForUpdate = (currentItemPayload as { name: string }).name;
+                    const itemObject = currentItemPayload;
                     if (!context.currentInventoryForCorrection.some(invItem => invItem.name === originalNameForUpdate) && originalNameForUpdate.trim() !== '') {
                         console.warn(`parseAIResponse ('update'): Original item name "${originalNameForUpdate}" not found in inventory. Attempting name correction.`);
                         const correctedOriginalName = await fetchCorrectedName_Service(
@@ -251,12 +256,13 @@ async function processItemChanges(
                             context.currentTheme
                         );
                         if (correctedOriginalName && correctedOriginalName.trim() !== '') {
-                            (currentItemPayload as Item).name = correctedOriginalName;
+                            itemObject.name = correctedOriginalName;
                             console.log(`parseAIResponse ('update'): Corrected original item name to "${correctedOriginalName}".`);
                         } else {
                             console.warn(`parseAIResponse ('update'): Failed to correct original item name "${originalNameForUpdate}".`);
                         }
                     }
+                    currentItemPayload = itemObject;
                 }
                 if (!isValidItem(currentItemPayload, 'update')) {
                     console.warn(`parseAIResponse ('update'): Invalid item structure. Attempting full payload correction.`, currentItemPayload);
@@ -275,19 +281,20 @@ async function processItemChanges(
                         currentItemPayload = null;
                     }
                 }
-                if (currentItemPayload) {
-                    (currentItemPayload as Item).isJunk = (currentItemPayload as Item).isJunk ?? false;
-                    (currentItemPayload as Item).isActive = (currentItemPayload as Item).isActive ?? false;
+                if (currentItemPayload && typeof currentItemPayload !== 'string') {
+                    currentItemPayload.isJunk = currentItemPayload.isJunk ?? false;
+                    currentItemPayload.isActive = currentItemPayload.isActive ?? false;
                 }
                 break;
+            }
             case 'lose':
                 if (typeof currentItemPayload === 'string') {
                     currentInvalidPayload = undefined;
                 } else if (
+                    currentItemPayload &&
                     typeof currentItemPayload === 'object' &&
-                    currentItemPayload !== null &&
                     'name' in currentItemPayload &&
-                    typeof (currentItemPayload as { name: unknown }).name === 'string' &&
+                    typeof (currentItemPayload as { name?: unknown }).name === 'string' &&
                     (currentItemPayload as { name: string }).name.trim() !== ''
                 ) {
                     currentItemPayload = (currentItemPayload as { name: string }).name.trim();
@@ -365,8 +372,14 @@ async function handleCharacterChanges(
     const tempFinalCharactersUpdatedPayloads: ValidCharacterUpdatePayload[] = [];
 
     for (const cUpdate of rawCharacterUpdates) {
-        if (typeof (cUpdate as Record<string, unknown>).name === 'string' && (cUpdate as Record<string, unknown>).name.trim() !== '') {
-            let currentCUpdatePayload: { [key: string]: unknown; name: string } = { ...(cUpdate as Record<string, unknown>) } as { [key: string]: unknown; name: string };
+        if (
+            typeof cUpdate === 'object' &&
+            cUpdate !== null &&
+            'name' in cUpdate &&
+            typeof (cUpdate as { name?: unknown }).name === 'string' &&
+            (cUpdate as { name: string }).name.trim() !== ''
+        ) {
+            const currentCUpdatePayload: { [key: string]: unknown; name: string } = { ...(cUpdate as Record<string, unknown>) };
             const allKnownAndCurrentlyAddedCharNames = new Set([
                 ...context.allRelevantCharacters.map(c => c.name),
                 ...finalCharactersAdded.map(c => c.name),
@@ -391,7 +404,7 @@ async function handleCharacterChanges(
             }
 
             if (isValidCharacterUpdate(currentCUpdatePayload)) {
-                tempFinalCharactersUpdatedPayloads.push(currentCUpdatePayload as ValidCharacterUpdatePayload);
+                tempFinalCharactersUpdatedPayloads.push(currentCUpdatePayload);
             } else {
                 console.warn(`parseAIResponse ('charactersUpdated'): Payload for "${currentCUpdatePayload.name}" is invalid after potential name correction. Discarding. Payload:`, currentCUpdatePayload);
             }
@@ -410,7 +423,7 @@ async function handleCharacterChanges(
         if (isAlreadyKnownFromPreviousTurns || isBeingAddedThisTurn) {
             finalCharacterUpdateInstructions.push(charUpdatePayload);
             if (isBeingAddedThisTurn) {
-                let charInAddedList = finalCharactersAdded[charAddedThisTurnIndex];
+                const charInAddedList = finalCharactersAdded[charAddedThisTurnIndex];
                 if (charUpdatePayload.newDescription !== undefined) charInAddedList.description = charUpdatePayload.newDescription;
                 if (charUpdatePayload.newAliases !== undefined) charInAddedList.aliases = charUpdatePayload.newAliases;
                 if (charUpdatePayload.addAlias) charInAddedList.aliases = Array.from(new Set([...(charInAddedList.aliases || []), charUpdatePayload.addAlias]));
@@ -428,7 +441,7 @@ async function handleCharacterChanges(
         } else {
             console.warn(`parseAIResponse ('charactersUpdated'): Target character "${targetName}" for update not found. Converting to an add operation.`);
 
-            let newCharDataFromUpdate: Character = {
+            const newCharDataFromUpdate: Character = {
                 name: targetName,
                 description: charUpdatePayload.newDescription || `Details for ${targetName} are emerging.`,
                 aliases: charUpdatePayload.newAliases || (charUpdatePayload.addAlias ? [charUpdatePayload.addAlias] : []),
@@ -481,8 +494,8 @@ export async function parseAIResponse(
     playerGender: string,
     currentTheme: AdventureTheme,
     onParseAttemptFailed?: () => void,
-    logMessageFromPayload?: string | undefined,
-    sceneDescriptionFromPayload?: string | undefined,
+    logMessageFromPayload?: string,
+    sceneDescriptionFromPayload?: string,
     allRelevantCharacters: Character[] = [],
     currentThemeMapData: MapData = { nodes: [], edges: [] },
     currentInventoryForCorrection: Item[] = []

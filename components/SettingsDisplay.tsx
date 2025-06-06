@@ -147,7 +147,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
               />
               <p id="chaosSliderLabel" className={`settings-explanation ${sliderControlOpacityClass}`}>
-                Percentage chance (0-100%) of a random reality shift occurring each turn, *after* the 'Stability' period has passed.
+                Percentage chance (0-100%) of a random reality shift occurring each turn, *after* the &apos;Stability&apos; period has passed.
                 Higher values mean more frequent shifts.
               </p>
             </div>
@@ -160,7 +160,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">Player Character Gender</h2>
             <p className="settings-explanation mb-3">
-              Choose your character's gender. This may subtly influence descriptions and interactions in the game. Changing it in the middle of the game can have unexpected effects.
+              Choose your character&apos;s gender. This may subtly influence descriptions and interactions in the game. Changing it in the middle of the game can have unexpected effects.
             </p>
             <div className="space-y-3">
               {(['Male', 'Female', 'Custom'] as const).map(option => (
@@ -182,7 +182,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
                   type="text"
                   value={customGenderInput}
                   onChange={handleCustomGenderInputChange}
-                  placeholder="Enter custom gender (or leave blank for 'Not Specified')"
+                  placeholder="Enter custom gender (or leave blank for &apos;Not Specified&apos;)"
                   className="w-full p-2 mt-2 bg-slate-600 text-slate-100 border border-slate-500 rounded-md focus:ring-sky-500 focus:border-sky-500"
                   aria-label="Custom gender input"
                 />

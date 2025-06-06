@@ -154,7 +154,7 @@ export const buildItemChangeRecords = (
     let record: ItemChangeRecord | null = null;
 
     if (change.action === 'gain' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
-      const gainedItemData = itemPayload as Item;
+      const gainedItemData = itemPayload;
       const cleanGainedItem: Item = {
         name: gainedItemData.name, type: gainedItemData.type, description: gainedItemData.description,
         activeDescription: gainedItemData.activeDescription,
@@ -168,7 +168,7 @@ export const buildItemChangeRecords = (
       const lostItem = currentInventory.find(i => i.name === itemName);
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } }; 
     } else if (change.action === 'update' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
-      const updatePayload = itemPayload as Item;
+      const updatePayload = itemPayload;
       const originalItemName = updatePayload.name;
       const oldItem = currentInventory.find(i => i.name === originalItemName);
 

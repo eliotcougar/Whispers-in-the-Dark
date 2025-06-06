@@ -6,9 +6,9 @@
 import { GenerateContentResponse } from "@google/genai";
 import {
   DialogueAIResponse, DialogueHistoryEntry, DialogueSummaryContext, DialogueSummaryResponse,
-  Item, Character, GameStateFromAI, MapNode, MapData, DialogueMemorySummaryContext, AdventureTheme // Added AdventureTheme
+  Item, Character, MapNode, DialogueMemorySummaryContext, AdventureTheme
 } from '../types';
-import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MINIMAL_MODEL_NAME, MAX_RETRIES, MAX_DIALOGUE_SUMMARIES_IN_PROMPT } from '../constants';
+import { GEMINI_MODEL_NAME, MAX_RETRIES, MAX_DIALOGUE_SUMMARIES_IN_PROMPT } from '../constants';
 import { 
     DIALOGUE_SYSTEM_INSTRUCTION, 
     DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION

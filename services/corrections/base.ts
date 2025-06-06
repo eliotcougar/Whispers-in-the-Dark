@@ -19,7 +19,7 @@ export const CORRECTION_TEMPERATURE = 0.75;
  * The generic type allows callers to specify the expected shape of the
  * parsed JSON result.
  */
-export const callCorrectionAI = async <T = any>(
+export const callCorrectionAI = async <T = unknown>(
   prompt: string,
   systemInstruction: string
 ): Promise<T | null> => {

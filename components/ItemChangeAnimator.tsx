@@ -4,7 +4,7 @@
  * @description Animates item gain, loss, and changes.
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Item, TurnChanges, ItemChangeRecord, KnownUse } from '../types';
+import { Item, TurnChanges, KnownUse } from '../types';
 import { ItemTypeDisplay } from './InventoryDisplay';
 
 type AnimationType = 'gain' | 'loss' | 'change';

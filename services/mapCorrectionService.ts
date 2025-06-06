@@ -6,7 +6,7 @@
  */
 
 import { GenerateContentResponse } from "@google/genai";
-import { AIMapUpdatePayload, MapChainToRefine, MapData, MapNode, MapEdge, AdventureTheme, MapNodeData } from '../types';
+import { AIMapUpdatePayload, MapChainToRefine, MapData, AdventureTheme } from '../types';
 import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constants';
 import { MAP_CHAIN_CORRECTION_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { dispatchAIRequest } from './modelDispatcher';
@@ -61,15 +61,19 @@ const parseChainCorrectionResponse = (responseText: string): AIMapUpdatePayload 
     jsonStr = fenceMatch[1].trim();
   }
   try {
-    const parsed = JSON.parse(jsonStr);
-    if (parsed && (parsed.nodesToUpdate || parsed.edgesToUpdate || parsed.edgesToAdd)) {
+    const parsed: unknown = JSON.parse(jsonStr);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      ('nodesToUpdate' in parsed || 'edgesToUpdate' in parsed || 'edgesToAdd' in parsed)
+    ) {
       return parsed as AIMapUpdatePayload;
     }
-    console.warn("Parsed chain correction JSON is empty or lacks key update fields:", parsed);
+    console.warn('Parsed chain correction JSON is empty or lacks key update fields:', parsed);
     return null;
   } catch (e) {
-    console.error("Failed to parse chain correction JSON response from AI:", e);
-    console.debug("Original chain correction response text:", responseText);
+    console.error('Failed to parse chain correction JSON response from AI:', e);
+    console.debug('Original chain correction response text:', responseText);
     return null;
   }
 };
@@ -115,7 +119,7 @@ const isValidChainCorrectionPayload = (
     if (!nodeAUpdate.newData || typeof nodeAUpdate.newData.placeName !== 'string' || nodeAUpdate.newData.placeName.trim() === '' ||
         typeof nodeAUpdate.newData.description !== 'string' || nodeAUpdate.newData.description.trim() === '' ||
         !Array.isArray(nodeAUpdate.newData.aliases) || !nodeAUpdate.newData.aliases.every(a => typeof a === 'string') ||
-        (nodeAUpdate.newData.status && !VALID_NODE_STATUS_VALUES.includes(nodeAUpdate.newData.status as MapNodeData['status']))
+        (nodeAUpdate.newData.status && !VALID_NODE_STATUS_VALUES.includes(nodeAUpdate.newData.status))
     ) {
       console.warn(`isValidChainCorrectionPayload: Invalid newData for leaf node (temp name ${tempPlaceNameA}).`, nodeAUpdate.newData);
       return false;
@@ -126,7 +130,7 @@ const isValidChainCorrectionPayload = (
     if (!nodeBUpdate.newData || typeof nodeBUpdate.newData.placeName !== 'string' || nodeBUpdate.newData.placeName.trim() === '' ||
         typeof nodeBUpdate.newData.description !== 'string' || nodeBUpdate.newData.description.trim() === '' ||
         !Array.isArray(nodeBUpdate.newData.aliases) || !nodeBUpdate.newData.aliases.every(a => typeof a === 'string') ||
-        (nodeBUpdate.newData.status && !VALID_NODE_STATUS_VALUES.includes(nodeBUpdate.newData.status as MapNodeData['status']))
+        (nodeBUpdate.newData.status && !VALID_NODE_STATUS_VALUES.includes(nodeBUpdate.newData.status))
     ) {
       console.warn(`isValidChainCorrectionPayload: Invalid newData for leaf node (temp name ${tempPlaceNameB}).`, nodeBUpdate.newData);
       return false;
@@ -169,8 +173,8 @@ const isValidChainCorrectionPayload = (
       return false;
     }
     const edgeData = edgeUpdate ? edgeUpdate.newData : (edgeAdd ? edgeAdd.data : null);
-    if (!edgeData || typeof edgeData.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(edgeData.type as MapEdgeData['type']) ||
-        typeof edgeData.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(edgeData.status as MapEdgeData['status']) ||
+    if (!edgeData || typeof edgeData.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(edgeData.type) ||
+        typeof edgeData.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(edgeData.status) ||
         (edgeData.description && typeof edgeData.description !== 'string')
     ) {
       console.warn(`isValidChainCorrectionPayload: Invalid edge data for chain connecting ${expectedLeafANewName} and ${expectedLeafBNewName}.`, edgeData);
@@ -201,7 +205,9 @@ async function refineMapChainsWithAI_Internal(
   currentTheme: AdventureTheme,
   gameContext: { sceneDescription: string; gameLogTail: string[] }
 ): Promise<RefineAIServiceInternalResult> {
-    let promptParts: string[] = ["You need to refine the following map chain(s) based on their context within the game world."];
+    const promptParts: string[] = [
+      'You need to refine the following map chain(s) based on their context within the game world.'
+    ];
     promptParts.push("For each chain, provide refined details for the two leaf nodes and the edge connecting them.");
 
     chainsToRefine.forEach((chain, index) => {

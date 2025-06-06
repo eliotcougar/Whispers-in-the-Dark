@@ -5,23 +5,26 @@
  * to update the game's map data based on narrative events.
  */
 import { GenerateContentResponse } from "@google/genai";
-import { GameStateFromAI, AdventureTheme, MapData, MapNode, MapEdge, DialogueSummaryResponse, MapNodeData, MapEdgeData, AIMapUpdatePayload, AINodeUpdate } from '../types';
+import {
+  GameStateFromAI,
+  AdventureTheme,
+  MapData,
+  MapNode,
+  MapEdge,
+  DialogueSummaryResponse,
+  MapNodeData,
+  MapEdgeData,
+  AIMapUpdatePayload
+} from '../types';
 import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
-import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 import { isValidAIMapUpdatePayload, VALID_NODE_STATUS_VALUES, VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 
 // Local type definition for Place, matching what useGameLogic might prepare
-interface Place {
-  name: string;
-  description: string;
-  themeName: string;
-  aliases?: string[];
-}
 
 export interface MapUpdateServiceResult {
   updatedMapData: MapData | null;
@@ -60,9 +63,8 @@ const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | nu
     jsonStr = fenceMatch[1].trim();
   }
   try {
-    const parsed = JSON.parse(jsonStr);
-    // A more robust check might be needed here depending on how minimal a valid payload can be
-    if (parsed && (parsed.nodesToAdd || parsed.nodesToUpdate || parsed.nodesToRemove || parsed.edgesToAdd || parsed.edgesToUpdate || parsed.edgesToRemove || parsed.suggestedCurrentMapNodeId !== undefined)) {
+    const parsed: unknown = JSON.parse(jsonStr);
+    if (isValidAIMapUpdatePayload(parsed as AIMapUpdatePayload | null)) {
       return parsed as AIMapUpdatePayload;
     }
     console.warn("Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:", parsed);
@@ -223,14 +225,14 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
     if (data.status) {
       const mapped = nodeStatusSynonyms[data.status.toLowerCase()];
       if (mapped) data.status = mapped;
-      if (!VALID_NODE_STATUS_VALUES.includes(data.status as MapNodeData['status'])) {
+      if (!VALID_NODE_STATUS_VALUES.includes(data.status)) {
         errors.push(`${context} invalid status "${data.status}"`);
       }
     }
     if (data.nodeType) {
       const mapped = nodeTypeSynonyms[data.nodeType.toLowerCase()];
       if (mapped) data.nodeType = mapped;
-      if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType as MapNodeData['nodeType'])) {
+      if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType)) {
         errors.push(`${context} invalid nodeType "${data.nodeType}"`);
       }
     }
@@ -241,14 +243,14 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
     if (data.type) {
       const mapped = edgeTypeSynonyms[data.type.toLowerCase()];
       if (mapped) data.type = mapped;
-      if (!VALID_EDGE_TYPE_VALUES.includes(data.type as MapEdgeData['type'])) {
+      if (!VALID_EDGE_TYPE_VALUES.includes(data.type)) {
         errors.push(`${context} invalid type "${data.type}"`);
       }
     }
     if (data.status) {
       const mapped = edgeStatusSynonyms[data.status.toLowerCase()];
       if (mapped) data.status = mapped;
-      if (!VALID_EDGE_STATUS_VALUES.includes(data.status as MapEdgeData['status'])) {
+      if (!VALID_EDGE_STATUS_VALUES.includes(data.status)) {
         errors.push(`${context} invalid status "${data.status}"`);
       }
     }
@@ -262,7 +264,7 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
     if (e.type) {
       const mapped = edgeTypeSynonyms[e.type.toLowerCase()];
       if (mapped) e.type = mapped;
-      if (!VALID_EDGE_TYPE_VALUES.includes(e.type as MapEdgeData['type'])) {
+        if (!VALID_EDGE_TYPE_VALUES.includes(e.type)) {
         errors.push(`edgesToRemove[${idx}] invalid type "${e.type}"`);
       }
     }
@@ -448,9 +450,9 @@ Key points:
 
   // Annihilation Step (remains the same)
   let nodesToAddOps_mut: AIMapUpdatePayload['nodesToAdd'] = [...(validParsedPayload.nodesToAdd || [])];
-  let nodesToRemove_mut = [...(validParsedPayload.nodesToRemove || [])];
+  const nodesToRemove_mut = [...(validParsedPayload.nodesToRemove || [])];
   let edgesToAdd_mut = [...(validParsedPayload.edgesToAdd || [])];
-  let edgesToRemove_mut = [...(validParsedPayload.edgesToRemove || [])];
+  const edgesToRemove_mut = [...(validParsedPayload.edgesToRemove || [])];
 
   const finalNodesToAddOps: typeof nodesToAddOps_mut = [];
   if (nodesToAddOps_mut) {
@@ -517,13 +519,25 @@ Key points:
       const baseNameForId = nodeAddOp.placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
       const newNodeId = `${currentTheme.name}_node_${baseNameForId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
 
+      const {
+        description,
+        aliases,
+        parentNodeId: _ignoredParent,
+        status,
+        nodeType,
+        visited: _ignoredVisited,
+        ...rest
+      } = nodeAddOp.data;
+      void _ignoredParent;
+      void _ignoredVisited;
+
       const newNodeData: MapNodeData = {
-        description: nodeAddOp.data.description || '',
-        aliases: nodeAddOp.data.aliases || [],
-        status: nodeAddOp.data.status!,
+        description: description || '',
+        aliases: aliases || [],
+        status,
         parentNodeId: resolvedParentId,
-        nodeType: nodeAddOp.data.nodeType!,
-        ...(nodeAddOp.data ? (({ description, aliases, parentNodeId, status, nodeType, visited, ...rest }) => rest)(nodeAddOp.data) : {})
+        nodeType,
+        ...rest,
       };
 
       const newNode: MapNode = {
@@ -567,7 +581,7 @@ Key points:
                     resolvedParentIdOnUpdate = undefined;
                 } else {
                     // Allow parent to be ANY node (main or leaf)
-                    const parentNode = findNodeByIdentifier(nodeUpdateOp.newData!.parentNodeId) as MapNode | undefined;
+                    const parentNode = findNodeByIdentifier(nodeUpdateOp.newData.parentNodeId) as MapNode | undefined;
                     if (parentNode) {
                         resolvedParentIdOnUpdate = parentNode.id;
                     } else {
@@ -636,9 +650,9 @@ Key points:
           themeNodeIdMap.delete(removedNodeId);
           // Also remove edges connected to this node
           newMapData.edges = newMapData.edges.filter(edge => edge.sourceNodeId !== removedNodeId && edge.targetNodeId !== removedNodeId);
-          for (const [nid, edges] of themeEdgesMap) {
-              themeEdgesMap.set(nid, edges.filter(e => e.sourceNodeId !== removedNodeId && e.targetNodeId !== removedNodeId));
-          }
+          themeEdgesMap.forEach((edgesArr: MapEdge[], nid: string) => {
+              themeEdgesMap.set(nid, edgesArr.filter(e => e.sourceNodeId !== removedNodeId && e.targetNodeId !== removedNodeId));
+          });
           themeEdgesMap.delete(removedNodeId);
           for (const [k, v] of Array.from(themeNodeAliasMap.entries())) {
               if (v.id === removedNodeId) themeNodeAliasMap.delete(k);
@@ -677,12 +691,14 @@ Key points:
           && e.data.type === edgeAddOp.data?.type
       );
       if (!existingEdgeOfTheSameType) {
-          const newEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeAddOp.data || {} } as MapEdge;
+          const newEdge: MapEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeAddOp.data || {} };
           newMapData.edges.push(newEdge);
-          if (!themeEdgesMap.has(sourceNodeId)) themeEdgesMap.set(sourceNodeId, []);
-          if (!themeEdgesMap.has(targetNodeId)) themeEdgesMap.set(targetNodeId, []);
-          themeEdgesMap.get(sourceNodeId)!.push(newEdge);
-          themeEdgesMap.get(targetNodeId)!.push(newEdge);
+          let arrSource = themeEdgesMap.get(sourceNodeId);
+          if (!arrSource) { arrSource = []; themeEdgesMap.set(sourceNodeId, arrSource); }
+          arrSource.push(newEdge);
+          let arrTarget = themeEdgesMap.get(targetNodeId);
+          if (!arrTarget) { arrTarget = []; themeEdgesMap.set(targetNodeId, arrTarget); }
+          arrTarget.push(newEdge);
       } else {
            console.warn(`MapUpdate: Edge of type "${edgeAddOp.data?.type}" already exists between "${edgeAddOp.sourcePlaceName}" and "${edgeAddOp.targetPlaceName}". Skipping add.`);
       }
@@ -693,8 +709,9 @@ Key points:
     const targetNodeRef = findNodeByIdentifier(edgeUpdateOp.targetPlaceName);
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
     const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
-    const sourceNode = themeNodeIdMap.get(sourceNodeId)!;
-    const targetNode = themeNodeIdMap.get(targetNodeId)!;
+    const sourceNode = themeNodeIdMap.get(sourceNodeId);
+    const targetNode = themeNodeIdMap.get(targetNodeId);
+    if (!sourceNode || !targetNode) return;
     if (!isEdgeConnectionAllowed(sourceNode, targetNode)) {
         console.warn(`MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`);
         return;

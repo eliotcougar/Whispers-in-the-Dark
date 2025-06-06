@@ -21,7 +21,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
   allRelevantMapNodes: MapNode[],
   currentInventory: Item[],
   playerGender: string,
-  malformedDialogueSetup: Partial<DialogueSetupPayload> | unknown
+  malformedDialogueSetup: Partial<DialogueSetupPayload>
 ): Promise<DialogueSetupPayload | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedDialogueSetup_Service: API Key not configured.');
