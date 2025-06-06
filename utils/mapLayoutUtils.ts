@@ -19,6 +19,8 @@ export const DEFAULT_K_EDGE_NODE_REPULSION = 5000;
 export const DEFAULT_DAMPING_FACTOR = 0.9;
 export const DEFAULT_MAX_DISPLACEMENT = 10;
 export const DEFAULT_LAYOUT_ITERATIONS = 50;
+export const DEFAULT_NESTED_PADDING = 25;
+export const DEFAULT_NESTED_ANGLE_PADDING = 0.1;
 
 
 export interface LayoutForceConstants {
@@ -42,7 +44,15 @@ export interface LayoutForceConstants {
  * @returns A new array of nodes with updated absolute positions and
  *          `visualRadius` values.
  */
-export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
+export interface NestedCircleLayoutConfig {
+  padding: number;
+  anglePadding: number;
+}
+
+export const applyNestedCircleLayout = (
+  nodes: MapNode[],
+  config?: Partial<NestedCircleLayoutConfig>
+): MapNode[] => {
   if (nodes.length === 0) return [];
 
   const nodeMap = new Map(nodes.map(n => [n.id, structuredCloneGameState(n)]));
@@ -56,8 +66,8 @@ export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
   });
 
   const BASE_FEATURE_RADIUS = NODE_RADIUS;
-  const PADDING = 25;
-  const SMALL_ANGLE_PADDING = 0.1;
+  const PADDING = config?.padding ?? DEFAULT_NESTED_PADDING;
+  const SMALL_ANGLE_PADDING = config?.anglePadding ?? DEFAULT_NESTED_ANGLE_PADDING;
   const INCREMENT = 2;
 
   /**

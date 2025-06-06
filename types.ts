@@ -255,8 +255,10 @@ export interface TurnChanges {
 // --- Map Data Structures ---
 export interface MapLayoutConfig extends MapLayoutConfigShape {
   iterations: number;
-  K_UNTANGLE: number; 
+  K_UNTANGLE: number;
   K_EDGE_NODE_REPULSION: number; // Added for node-edge repulsion
+  NESTED_PADDING: number;
+  NESTED_ANGLE_PADDING: number;
 }
 
 export interface MapNodeData {

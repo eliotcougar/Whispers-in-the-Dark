@@ -15,6 +15,8 @@ import {
   DEFAULT_DAMPING_FACTOR,
   DEFAULT_MAX_DISPLACEMENT,
   DEFAULT_LAYOUT_ITERATIONS,
+  DEFAULT_NESTED_PADDING,
+  DEFAULT_NESTED_ANGLE_PADDING,
 } from '../utils/mapLayoutUtils';
 
 /** Returns the default configuration for the map layout force algorithm. */
@@ -28,6 +30,8 @@ export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
   DAMPING_FACTOR: DEFAULT_DAMPING_FACTOR,
   MAX_DISPLACEMENT: DEFAULT_MAX_DISPLACEMENT,
   iterations: DEFAULT_LAYOUT_ITERATIONS,
+  NESTED_PADDING: DEFAULT_NESTED_PADDING,
+  NESTED_ANGLE_PADDING: DEFAULT_NESTED_ANGLE_PADDING,
 });
 
 export interface UseMapUpdatesProps {

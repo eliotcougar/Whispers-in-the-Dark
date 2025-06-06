@@ -14,6 +14,8 @@ import {
   DEFAULT_DAMPING_FACTOR,
   DEFAULT_MAX_DISPLACEMENT,
   DEFAULT_LAYOUT_ITERATIONS,
+  DEFAULT_NESTED_PADDING,
+  DEFAULT_NESTED_ANGLE_PADDING,
   applyNestedCircleLayout,
 } from '../utils/mapLayoutUtils';
 import MapNodeView from './map/MapNodeView';
@@ -52,6 +54,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   const [layoutDampingFactor, setLayoutDampingFactor] = useState(initialLayoutConfig?.DAMPING_FACTOR ?? DEFAULT_DAMPING_FACTOR);
   const [layoutMaxDisplacement, setLayoutMaxDisplacement] = useState(initialLayoutConfig?.MAX_DISPLACEMENT ?? DEFAULT_MAX_DISPLACEMENT);
   const [layoutIterations, setLayoutIterations] = useState(initialLayoutConfig?.iterations ?? DEFAULT_LAYOUT_ITERATIONS);
+  const [layoutNestedPadding, setLayoutNestedPadding] = useState(
+    initialLayoutConfig?.NESTED_PADDING ?? DEFAULT_NESTED_PADDING
+  );
+  const [layoutNestedAnglePadding, setLayoutNestedAnglePadding] = useState(
+    initialLayoutConfig?.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
+  );
 
   useEffect(() => {
     if (initialLayoutConfig) {
@@ -63,6 +71,10 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       setLayoutDampingFactor(initialLayoutConfig.DAMPING_FACTOR);
       setLayoutMaxDisplacement(initialLayoutConfig.MAX_DISPLACEMENT);
       setLayoutIterations(initialLayoutConfig.iterations);
+      setLayoutNestedPadding(initialLayoutConfig.NESTED_PADDING ?? DEFAULT_NESTED_PADDING);
+      setLayoutNestedAnglePadding(
+        initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
+      );
     }
   }, [initialLayoutConfig]);
 
@@ -78,8 +90,21 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       DAMPING_FACTOR: layoutDampingFactor,
       MAX_DISPLACEMENT: layoutMaxDisplacement,
       iterations: layoutIterations,
+      NESTED_PADDING: layoutNestedPadding,
+      NESTED_ANGLE_PADDING: layoutNestedAnglePadding,
     }),
-    [layoutKRepulsion, layoutKSpring, layoutIdealEdgeLength, layoutKUntangle, layoutKEdgeNodeRepulsion, layoutDampingFactor, layoutMaxDisplacement, layoutIterations]
+    [
+      layoutKRepulsion,
+      layoutKSpring,
+      layoutIdealEdgeLength,
+      layoutKUntangle,
+      layoutKEdgeNodeRepulsion,
+      layoutDampingFactor,
+      layoutMaxDisplacement,
+      layoutIterations,
+      layoutNestedPadding,
+      layoutNestedAnglePadding,
+    ]
   );
 
   useEffect(() => {
@@ -112,9 +137,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
    */
   const runLayout = useCallback(() => {
     const nodesToProcess = [...currentThemeNodes];
-    const laidOut = applyNestedCircleLayout(nodesToProcess);
+    const laidOut = applyNestedCircleLayout(nodesToProcess, {
+      padding: layoutNestedPadding,
+      anglePadding: layoutNestedAnglePadding,
+    });
     setDisplayedNodes(laidOut);
-  }, [currentThemeNodes]);
+  }, [currentThemeNodes, layoutNestedPadding, layoutNestedAnglePadding]);
 
   useEffect(() => {
     if (isVisible) {
@@ -139,6 +167,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     setLayoutDampingFactor(DEFAULT_DAMPING_FACTOR);
     setLayoutMaxDisplacement(DEFAULT_MAX_DISPLACEMENT);
     setLayoutIterations(DEFAULT_LAYOUT_ITERATIONS);
+    setLayoutNestedPadding(DEFAULT_NESTED_PADDING);
+    setLayoutNestedAnglePadding(DEFAULT_NESTED_ANGLE_PADDING);
   };
 
   if (!isVisible) return null;
@@ -155,22 +185,10 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
         <p className="text-center text-xs text-slate-400 mb-1">Pan by dragging, zoom with the mouse wheel or pinch. Hover for details.</p>
         <MapNodeView nodes={displayedNodes} edges={currentThemeEdges} currentMapNodeId={currentMapNodeId} layoutIdealEdgeLength={layoutIdealEdgeLength} />
         <MapControls
-          layoutKRepulsion={layoutKRepulsion}
-          setLayoutKRepulsion={setLayoutKRepulsion}
-          layoutKSpring={layoutKSpring}
-          setLayoutKSpring={setLayoutKSpring}
-          layoutIdealEdgeLength={layoutIdealEdgeLength}
-          setLayoutIdealEdgeLength={setLayoutIdealEdgeLength}
-          layoutKUntangle={layoutKUntangle}
-          setLayoutKUntangle={setLayoutKUntangle}
-          layoutKEdgeNodeRepulsion={layoutKEdgeNodeRepulsion}
-          setLayoutKEdgeNodeRepulsion={setLayoutKEdgeNodeRepulsion}
-          layoutDampingFactor={layoutDampingFactor}
-          setLayoutDampingFactor={setLayoutDampingFactor}
-          layoutMaxDisplacement={layoutMaxDisplacement}
-          setLayoutMaxDisplacement={setLayoutMaxDisplacement}
-          layoutIterations={layoutIterations}
-          setLayoutIterations={setLayoutIterations}
+          padding={layoutNestedPadding}
+          setPadding={setLayoutNestedPadding}
+          anglePadding={layoutNestedAnglePadding}
+          setAnglePadding={setLayoutNestedAnglePadding}
           onReset={handleResetLayoutToDefaults}
           onRefreshLayout={handleRefreshLayout}
         />
