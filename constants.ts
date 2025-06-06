@@ -1,4 +1,9 @@
 
+/**
+ * @file constants.ts
+ * @description Global constants and default configuration values.
+ */
+
 import { ALL_THEME_PACK_NAMES } from './themes';
 
 // Using gemini-2.5-flash-preview-04-17 model specified by API guidelines for general text tasks.

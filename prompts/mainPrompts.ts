@@ -1,4 +1,9 @@
 
+/**
+ * @file mainPrompts.ts
+ * @description Core system prompt templates for the main storytelling flow.
+ */
+
 import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from './helperPrompts';
 
 export const SYSTEM_INSTRUCTION = `You are the Dungeon Master for a text-based adventure game. Your role is to describe scenes, provide action/dialogue choices, manage inventory, player goals, track known characters (including their presence, general location, and precise location in scene), and maintain local time/environment/place.

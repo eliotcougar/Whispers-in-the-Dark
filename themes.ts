@@ -1,4 +1,9 @@
 
+/**
+ * @file themes.ts
+ * @description Predefined theme packs for the game's reality shifts.
+ */
+
 import { AdventureTheme } from "./types";
 
 export const FANTASY_AND_MYTH_THEMES: AdventureTheme[] = [
