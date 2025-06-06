@@ -38,12 +38,17 @@ export const saveGameStateToLocalStorage = (gameState: FullGameState): boolean =
  * Loads the latest saved game from localStorage if available.
  * Handles version conversion and validation steps.
  */
-export const loadGameStateFromLocalStorage = async (): Promise<FullGameState | null> => {
+export const loadGameStateFromLocalStorage = (): FullGameState | null => {
   try {
     const savedDataString = localStorage.getItem(LOCAL_STORAGE_SAVE_KEY);
     if (!savedDataString) return null;
 
-    let parsedData = JSON.parse(savedDataString);
+    const parsedData: unknown = JSON.parse(savedDataString);
+    if (typeof parsedData !== 'object' || parsedData === null) {
+      console.warn('Saved data found in localStorage is not an object.');
+      return null;
+    }
+
     let dataToValidateAndExpand: SavedGameDataShape | null = null;
 
     if (parsedData && parsedData.saveGameVersion === '2') {
