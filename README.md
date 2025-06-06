@@ -16,6 +16,10 @@ An AI-powered text adventure built with React and TypeScript. The game uses Goog
    ```bash
    npm run build
    ```
+5. To lint the project run the test script:
+   ```bash
+   npm test
+   ```
 
 ## Features
 
