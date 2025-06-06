@@ -69,7 +69,7 @@ export const applyRenamePayload = (
   payload: RenameMapElementsPayload
 ): void => {
   payload.nodes.forEach(nu => {
-    const node = (mapData.nodes as MapNode[]).find(n => n.id === nu.id);
+    const node = mapData.nodes.find(n => n.id === nu.id);
     if (node) {
       node.placeName = nu.placeName;
       node.data.description = nu.description;
@@ -77,7 +77,7 @@ export const applyRenamePayload = (
     }
   });
   payload.edges.forEach(eu => {
-    const edge = (mapData.edges as MapEdge[]).find(e => e.id === eu.id);
+    const edge = mapData.edges.find(e => e.id === eu.id);
     if (edge) {
       edge.data.description = eu.description;
     }

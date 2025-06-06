@@ -4,7 +4,6 @@
  */
 
 import {
-  FullGameState,
   SavedGameDataShape,
   Item,
   ThemeHistoryState,
@@ -15,18 +14,14 @@ import {
   KnownUse as V2KnownUse,
   MapData,
   MapNode,
-  MapEdge,
-  MapLayoutConfig,
-  MapNodeData,
-  DialogueSummaryRecord
+  MapLayoutConfig
 } from '../../types';
 import {
   CURRENT_SAVE_GAME_VERSION,
   DEFAULT_STABILITY_LEVEL,
   DEFAULT_CHAOS_LEVEL,
-  VALID_ITEM_TYPES,
   DEFAULT_ENABLED_THEME_PACKS,
-  DEFAULT_PLAYER_GENDER
+  DEFAULT_PLAYER_GENDER,
 } from '../../constants';
 import { fetchCorrectedCharacterDetails_Service, fetchCorrectedLocalPlace_Service } from '../corrections';
 import { isApiConfigured } from '../apiClient';
@@ -170,11 +165,11 @@ export async function convertV1toV2Intermediate(v1Data: V1SavedGameState): Promi
     description: v1Item.description,
     activeDescription: undefined,
     isActive: v1Item.isActive ?? false,
-    knownUses: (v1Item.knownUses || []).map((ku: V1KnownUse) => ({
+    knownUses: (v1Item.knownUses || []).map((ku: V1KnownUse): V2KnownUse => ({
       ...ku,
       appliesWhenActive: undefined,
       appliesWhenInactive: undefined,
-    } as V2KnownUse)),
+    })),
     isJunk: v1Item.isJunk ?? false,
   }));
 
@@ -228,13 +223,15 @@ export async function convertV1toV2Intermediate(v1Data: V1SavedGameState): Promi
   }
 
   const v2AllCharactersPromises = v1Data.allCharacters.map(async (v1Char: V1Character) => {
-    let charThemeObj = findThemeByName(v1Char.themeName);
+    const charThemeObj = findThemeByName(v1Char.themeName);
     let presenceStatus: Character['presenceStatus'] = 'unknown';
     let lastKnownLocation: string | null = null;
     let preciseLocation: string | null = null;
 
     if (charThemeObj && isApiConfigured()) {
-      const relevantMapNodesForCharThemeContext = v1ConvertedMapNodes.filter(node => node.themeName === charThemeObj!.name);
+      const relevantMapNodesForCharThemeContext = v1ConvertedMapNodes.filter(
+        node => node.themeName === charThemeObj.name,
+      );
       const sceneContextForChar = (v1Data.currentThemeName === v1Char.themeName) ? v1Data.currentScene : undefined;
       const logContextForChar = (v1Data.currentThemeName === v1Char.themeName) ? v1Data.lastActionLog : undefined;
       try {
@@ -368,67 +365,19 @@ export function convertV2toV3Shape(v2Data: V2IntermediateSavedGameState): SavedG
   };
 }
 
-/** Validates dialogue summary records used during conversion. */
-function isValidDialogueSummaryRecord(record: any): record is DialogueSummaryRecord {
-  return record &&
-    typeof record.summaryText === 'string' &&
-    Array.isArray(record.participants) && record.participants.every((p: any) => typeof p === 'string') &&
-    typeof record.timestamp === 'string' &&
-    typeof record.location === 'string';
-}
 
 /** Validates items when converting older saves. */
-function isValidItemForSave(item: any): item is Item {
-  return item &&
-    typeof item.name === 'string' &&
-    typeof item.type === 'string' && (VALID_ITEM_TYPES as readonly string[]).includes(item.type) &&
-    typeof item.description === 'string' &&
-    (item.activeDescription === undefined || typeof item.activeDescription === 'string') &&
-    (item.isActive === undefined || typeof item.isActive === 'boolean') &&
-    (item.isJunk === undefined || typeof item.isJunk === 'boolean') &&
-    (item.knownUses === undefined || (Array.isArray(item.knownUses) && item.knownUses.every((ku: V2KnownUse) =>
-      ku && typeof ku.actionName === 'string' && typeof ku.promptEffect === 'string' &&
-      (ku.description === undefined || typeof ku.description === 'string') &&
-      (ku.appliesWhenActive === undefined || typeof ku.appliesWhenActive === 'boolean') &&
-      (ku.appliesWhenInactive === undefined || typeof ku.appliesWhenInactive === 'boolean')
-    )));
-}
-
-/** Validates the theme history object during conversion. */
-function isValidThemeHistory(history: any): history is ThemeHistoryState {
-  if (typeof history !== 'object' || history === null) return false;
-  for (const key in history) {
-    if (Object.prototype.hasOwnProperty.call(history, key)) {
-      const entry = history[key];
-      if (!entry || typeof entry.summary !== 'string' || typeof entry.mainQuest !== 'string' ||
-        typeof entry.currentObjective !== 'string' ||
-        !Array.isArray(entry.placeNames) || !entry.placeNames.every((name: any) => typeof name === 'string') ||
-        !Array.isArray(entry.characterNames) || !entry.characterNames.every((name: any) => typeof name === 'string')
-      ) return false;
-    }
-  }
-  return true;
-}
-
-/** Validates a character record for the current save format. */
-function isValidCharacterForSave(character: any): character is Character {
-  return character && typeof character.themeName === 'string' && typeof character.name === 'string' && character.name.trim() !== '' &&
-    typeof character.description === 'string' && character.description.trim() !== '' &&
-    (character.aliases === undefined || (Array.isArray(character.aliases) && character.aliases.every((alias: any) => typeof alias === 'string'))) &&
-    (character.presenceStatus === undefined || ['distant', 'nearby', 'companion', 'unknown'].includes(character.presenceStatus)) &&
-    (character.lastKnownLocation === undefined || character.lastKnownLocation === null || typeof character.lastKnownLocation === 'string') &&
-    (character.preciseLocation === undefined || character.preciseLocation === null || typeof character.preciseLocation === 'string') &&
-    (character.dialogueSummaries === undefined || (Array.isArray(character.dialogueSummaries) && character.dialogueSummaries.every(isValidDialogueSummaryRecord)));
-}
 
 
 /** Validates a map layout configuration during conversion. */
-function isValidMapLayoutConfig(config: any): config is MapLayoutConfig {
+function isValidMapLayoutConfig(config: unknown): config is MapLayoutConfig {
   if (!config || typeof config !== 'object') return false;
-  const defaultConfigKeys = Object.keys(getDefaultMapLayoutConfig()) as Array<keyof MapLayoutConfig>;
-  for (const key of defaultConfigKeys) {
-    if (typeof config[key] !== 'number') {
-      console.warn(`isValidMapLayoutConfig: Key '${key}' is missing or not a number. Value: ${config[key]}`);
+  const maybe = config as Partial<MapLayoutConfig>;
+  const keys = Object.keys(getDefaultMapLayoutConfig()) as Array<keyof MapLayoutConfig>;
+  for (const key of keys) {
+    const val = maybe[key];
+    if (typeof val !== 'number') {
+      console.warn(`isValidMapLayoutConfig: Key '${key}' is missing or not a number. Value: ${String(val)}`);
       return false;
     }
   }

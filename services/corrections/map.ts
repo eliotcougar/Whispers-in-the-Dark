@@ -77,7 +77,8 @@ export const fetchCorrectedPlaceDetails_Service = async (
 
   let originalPlaceNameFromMalformed = 'Not specified or unparseable';
   try {
-    const malformedObj = JSON.parse(malformedMapNodePayloadString);
+    const malformedObj: Record<string, unknown> =
+      JSON.parse(malformedMapNodePayloadString) as Record<string, unknown>;
     if (malformedObj && typeof malformedObj.name === 'string') {
       originalPlaceNameFromMalformed = `"${malformedObj.name}"`;
     } else if (typeof malformedMapNodePayloadString === 'string' && !malformedMapNodePayloadString.startsWith('{')) {
@@ -187,8 +188,7 @@ Respond ONLY with the single, complete JSON object.`;
  * Attempts to correct or infer a missing or invalid nodeType for a MapNode.
  */
 export const fetchCorrectedNodeType_Service = async (
-  nodeInfo: { placeName: string; nodeType?: string; description?: string },
-  currentTheme: AdventureTheme
+  nodeInfo: { placeName: string; nodeType?: string; description?: string }
 ): Promise<NonNullable<MapNodeData['nodeType']> | null> => {
   const synonyms: Record<string, NonNullable<MapNodeData['nodeType']>> = {
     area: 'region',
@@ -254,8 +254,8 @@ export const fetchCorrectedNodeType_Service = async (
 
   if (nodeInfo.nodeType) {
     const normalized = synonyms[nodeInfo.nodeType.toLowerCase()] || nodeInfo.nodeType.toLowerCase();
-    if (VALID_NODE_TYPE_VALUES.includes(normalized as NonNullable<MapNodeData['nodeType']>)) {
-      return normalized as NonNullable<MapNodeData['nodeType']>;
+    if (VALID_NODE_TYPE_VALUES.includes(normalized as MapNodeData['nodeType'])) {
+      return normalized as MapNodeData['nodeType'];
     }
   }
 
@@ -290,8 +290,8 @@ Respond ONLY with the single node type.`;
     if (typeResp) {
       const cleaned = typeResp.trim().toLowerCase();
       const mapped = synonyms[cleaned] || cleaned;
-      if (VALID_NODE_TYPE_VALUES.includes(mapped as NonNullable<MapNodeData['nodeType']>)) {
-        return mapped as NonNullable<MapNodeData['nodeType']>;
+      if (VALID_NODE_TYPE_VALUES.includes(mapped as MapNodeData['nodeType'])) {
+        return mapped as MapNodeData['nodeType'];
       }
     }
   }
@@ -302,8 +302,7 @@ Respond ONLY with the single node type.`;
  * Attempts to correct or infer a missing or invalid edge type for a MapEdge.
  */
 export const fetchCorrectedEdgeType_Service = async (
-  edgeInfo: { type?: string; description?: string },
-  currentTheme: AdventureTheme
+  edgeInfo: { type?: string; description?: string }
 ): Promise<MapEdgeData['type'] | null> => {
   const synonyms: Record<string, MapEdgeData['type']> = {
     trail: 'path',

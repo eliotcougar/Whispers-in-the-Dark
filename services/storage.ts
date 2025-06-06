@@ -49,21 +49,27 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
       return null;
     }
 
+    const parsedObj = parsedData as Record<string, unknown>;
+
     let dataToValidateAndExpand: SavedGameDataShape | null = null;
 
-    if (parsedData && parsedData.saveGameVersion === '2') {
+    if (parsedObj && parsedObj.saveGameVersion === '2') {
       console.log('V2 save data detected from localStorage. Attempting conversion to V3...');
-      dataToValidateAndExpand = convertV2toV3Shape(parsedData as V2IntermediateSavedGameState);
-    } else if (parsedData && (parsedData.saveGameVersion === CURRENT_SAVE_GAME_VERSION || (typeof parsedData.saveGameVersion === 'string' && parsedData.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0])))) {
-      if (parsedData.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
-        console.warn(`Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${parsedData.saveGameVersion}' from localStorage. Attempting to treat as current version (V3) for validation.`);
+      dataToValidateAndExpand = convertV2toV3Shape(parsedObj as V2IntermediateSavedGameState);
+    } else if (
+      parsedObj &&
+      (parsedObj.saveGameVersion === CURRENT_SAVE_GAME_VERSION ||
+        (typeof parsedObj.saveGameVersion === 'string' && parsedObj.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0])))
+    ) {
+      if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
+        console.warn(`Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${String(parsedObj.saveGameVersion)}' from localStorage. Attempting to treat as current version (V3) for validation.`);
       }
-      dataToValidateAndExpand = parsedData as SavedGameDataShape;
+      dataToValidateAndExpand = parsedObj as SavedGameDataShape;
       ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
       ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
-    } else if (parsedData) {
-      console.warn(`Unknown save version '${parsedData.saveGameVersion}' from localStorage. This might fail validation.`);
-      dataToValidateAndExpand = parsedData as SavedGameDataShape;
+    } else if (parsedObj) {
+      console.warn(`Unknown save version '${String(parsedObj.saveGameVersion)}' from localStorage. This might fail validation.`);
+      dataToValidateAndExpand = parsedObj as SavedGameDataShape;
       if (dataToValidateAndExpand) {
         ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
         ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
@@ -78,11 +84,11 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
     }
 
     if (dataToValidateAndExpand) {
-      const gt = (dataToValidateAndExpand as { globalTurnNumber?: unknown }).globalTurnNumber;
-      if (typeof gt === 'string') {
-        const parsed = parseInt(gt, 10);
+      const gtRaw = (parsedObj as { globalTurnNumber?: unknown }).globalTurnNumber;
+      if (typeof gtRaw === 'string') {
+        const parsed = parseInt(gtRaw, 10);
         dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
-      } else if (gt === undefined || gt === null) {
+      } else if (gtRaw === undefined || gtRaw === null) {
         dataToValidateAndExpand.globalTurnNumber = 0;
       }
     }
@@ -95,7 +101,7 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
       dataToValidateAndExpand.localTime = dataToValidateAndExpand.localTime ?? null;
       dataToValidateAndExpand.localEnvironment = dataToValidateAndExpand.localEnvironment ?? null;
       dataToValidateAndExpand.localPlace = dataToValidateAndExpand.localPlace ?? null;
-      dataToValidateAndExpand.allCharacters = dataToValidateAndExpand.allCharacters.map((c: unknown) => ({
+      dataToValidateAndExpand.allCharacters = dataToValidateAndExpand.allCharacters.map((c) => ({
         ...c,
         aliases: c.aliases || [],
         presenceStatus: c.presenceStatus || 'unknown',

@@ -5,7 +5,6 @@
 import { Item, AdventureTheme, ItemChange } from '../../types';
 import { MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../../constants';
 import { isValidItem } from '../parsers/validation';
-import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
 
@@ -26,7 +25,7 @@ export const fetchCorrectedItemPayload_Service = async (
 
   let originalItemNameFromMalformed = 'Not specified or unparseable from malformed payload';
   try {
-    const malformedObj = JSON.parse(malformedPayloadString);
+    const malformedObj: Record<string, unknown> = JSON.parse(malformedPayloadString) as Record<string, unknown>;
     if (malformedObj && typeof malformedObj.name === 'string') {
       originalItemNameFromMalformed = `"${malformedObj.name}"`;
     }

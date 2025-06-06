@@ -6,7 +6,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
-  LayoutForceConstants,
   DEFAULT_K_REPULSION,
   DEFAULT_K_SPRING,
   DEFAULT_IDEAL_EDGE_LENGTH,
@@ -112,22 +111,12 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
    */
   const runLayout = useCallback(() => {
     const nodesToProcess = [...currentThemeNodes];
-    const forceConstants: LayoutForceConstants = {
-      K_REPULSION: layoutKRepulsion,
-      K_SPRING: layoutKSpring,
-      IDEAL_EDGE_LENGTH: layoutIdealEdgeLength,
-      K_CENTERING: 0,
-      K_UNTANGLE: layoutKUntangle,
-      K_EDGE_NODE_REPULSION: layoutKEdgeNodeRepulsion,
-      DAMPING_FACTOR: layoutDampingFactor,
-      MAX_DISPLACEMENT: layoutMaxDisplacement,
-    };
 
     // Previously the layout algorithm adjusted node positions here using
     // a force-directed approach, but automatic adjustments are disabled.
 
     setDisplayedNodes(nodesToProcess);
-  }, [currentThemeNodes, layoutIterations, layoutKRepulsion, layoutKSpring, layoutIdealEdgeLength, layoutKUntangle, layoutKEdgeNodeRepulsion, layoutDampingFactor, layoutMaxDisplacement]);
+  }, [currentThemeNodes]);
 
   useEffect(() => {
     if (isVisible) {
