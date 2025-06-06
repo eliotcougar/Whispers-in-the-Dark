@@ -22,7 +22,8 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   `InventoryDisplay.tsx`: Manages the player's inventory, item interactions, and junk discarding.
     *   `GameLogDisplay.tsx`: Shows a history of game events.
     *   `DialogueDisplay.tsx`: Handles the UI for conversations with NPCs, using `MapNode` data for highlighting.
-    *   `MapDisplay.tsx`: Visualizes the `MapData` for the current theme.
+    *   `MapDisplay.tsx`: Visualizes the `MapData` for the current theme. Includes pan/zoom interactions and exposes layout tuning via `MapControls`.
+    *   `MapNodeView.tsx`: Renders individual nodes within the map SVG.
     *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `ThemeMemoryDisplay.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` now primarily focuses on Characters, with location information being map-centric.
     *   `LoadingSpinner.tsx`, `ErrorDisplay.tsx`: Provide feedback during loading or error states.
     *   `MainToolbar.tsx`: Contains buttons for primary game actions and information display, including opening the map.
@@ -38,13 +39,16 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
         *   If the storyteller AI's response includes `mapUpdated: true` or if `localPlace` changes significantly, it triggers the `mapUpdateService`.
         *   Applies the `AIMapUpdatePayload` returned by `mapUpdateService` to `FullGameState.mapData`.
         *   If `mapUpdateService` indicates a new main map node was added without full details, `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to complete its data.
-    *   Manages the "Reality Shift" mechanic, theme selection, and dialogue mode.
+    *   Manages the "Reality Shift" mechanic (via `useRealityShift`), theme selection, and dialogue mode.
+    *   Provides undo functionality by swapping the two-element `GameStateStack`.
     *   Determines `currentMapNodeId` based on AI suggestions or by using `selectBestMatchingMapNode` (which now uses `MapNode[]`).
+    *   Delegates to sub hooks: `usePlayerActions`, `useDialogueFlow`, `useMapUpdates`, and `useGameInitialization`.
 *   **Key Functions:**
     *   `executePlayerAction()`: Core function for a standard game turn.
     *   `loadInitialGame()`: Sets up a new game or loads an existing one.
     *   `processAiResponse()`: Modifies a draft `FullGameState` based on parsed AI data (storyteller or dialogue summary) and map update results.
     *   `commitGameState()`: Pushes a new `FullGameState` onto the stack.
+    *   `handleUndoTurn()`: Restores the previous `FullGameState` from the stack.
 
 ### 1.3. Service Layer
 
@@ -60,6 +64,8 @@ This layer abstracts external interactions and complex data processing.
         *   Prompts an auxiliary AI (using `MAP_UPDATE_SYSTEM_INSTRUCTION`) to get an `AIMapUpdatePayload`.
         *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
     *   `services/mapCorrectionService.ts`: Prunes and refines map connection chains using AI after updates.
+    *   `services/mapRenameService.ts`: Assigns thematic names and descriptions to new map nodes and edges.
+    *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
     *   `services/aiResponseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections. It now ignores `placesAdded`/`placesUpdated` fields, relying on the `mapUpdated` flag.
     *   `services/validationUtils.ts`: General data structure validation.
@@ -70,15 +76,18 @@ This layer abstracts external interactions and complex data processing.
     *   `utils/promptFormatters.ts`: Now formats `MapNode[]` instead of `Place[]` for AI prompts regarding locations.
     *   `utils/mapNodeMatcher.ts`: `selectBestMatchingMapNode` now operates on `MapNode[]`.
     *   `utils/mapPruningUtils.ts`: Introduces temporary leaf nodes to restructure problematic main node connections before refinement.
+    *   `utils/mapHierarchyUpgradeUtils.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.
+    *   `utils/mapLayoutUtils.ts`: Performs nested circle and force-directed layout for map visualization.
 
 ### 1.4. Data Layer
 
 *   **Type Definitions:**
-    *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. The `Place` type is deprecated as a primary game state element for locations.
+    *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. The `Place` type is deprecated as a primary game state element for locations.
 *   **Constants & Configuration:**
     *   `constants.ts`: Global constants, model names, and system prompts, including `MAP_UPDATE_SYSTEM_INSTRUCTION`.
 *   **Theme Definitions:**
     *   `themes.ts`: Defines adventure themes.
+    *   `CustomGameSetupScreen.tsx` allows starting a game from a user-chosen theme.
 
 ### 1.5. External Dependencies
 
@@ -122,3 +131,11 @@ This map-centric refactor centralizes location data management, making it more r
 ### 2.3. Hierarchical Map System
 
 `MapNode` objects can represent locations at several hierarchical levels. Each node **must specify** a `nodeType` (`region`, `city`, `building`, `room`, or `feature`) **and a `status`** (`undiscovered`, `discovered`, `rumored`, or `quest_target`). Nodes may optionally include a `parentNodeId`. Nodes with a parent are laid out near their parent in the map view. The hierarchy is represented solely with `parentNodeId` and no longer relies on `containment` edges. This allows the map to contain nested areas such as rooms within buildings or features within rooms.
+
+### 2.4. Map Layout and Visualization
+
+The `MapDisplay` component renders `MapData` using a hierarchical force‑directed algorithm defined in `mapLayoutUtils.ts`.
+
+* A bottom‑up nested circle pass allocates enough space for each node's children before a force layout step.
+* Layout parameters (`K_REPULSION`, `IDEAL_EDGE_LENGTH`, etc.) are persisted in `mapLayoutConfig` and can be tweaked through the `MapControls` UI.
+* `useMapInteractions` enables panning and zooming the SVG view.
