@@ -74,7 +74,9 @@ const App: React.FC = () => {
       }
       setAppReady(true);
     };
-    loadInitialData();
+    // Execute the async data loading and explicitly ignore the returned promise
+    // since we handle all state updates internally.
+    void loadInitialData();
   }, []);
 
   const handleSettingsUpdateFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>) => {
@@ -103,7 +105,7 @@ const App: React.FC = () => {
     allCharacters, 
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    handleItemInteraction, handleRetry, executeRestartGame, executeManualRealityShift,
+    handleItemInteraction, handleRetry, executeManualRealityShift,
     completeManualShiftWithSelectedTheme, 
     cancelManualShiftThemeSelection,    
     isAwaitingManualShiftThemeSelection, 
@@ -239,6 +241,14 @@ const App: React.FC = () => {
     event.target.value = '';
   };
 
+  /**
+   * Wrapper to satisfy lint rule by explicitly ignoring the returned Promise
+   * from the async file handler.
+   */
+  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    void handleFileSelected(event);
+  };
+
   const canPerformFreeAction = score >= FREE_FORM_ACTION_COST && !isLoading && hasGameBeenInitialized && !dialogueState;
 
   const setGeneratedImageCache = useCallback((url: string, scene: string) => {
@@ -266,6 +276,16 @@ const App: React.FC = () => {
     setIsManualShiftThemeSelectionVisible(false);
     cancelManualShiftThemeSelection();
   };
+
+  /**
+   * Wrapper ensuring lint compliance for the async dialogue option handler.
+   */
+  const handleDialogueOptionSelectSafe = useCallback(
+    (option: string) => {
+      void handleDialogueOptionSelect(option);
+    },
+    [handleDialogueOptionSelect]
+  );
 
 
   const handleNewGameFromMenu = () => {
@@ -506,7 +526,7 @@ const App: React.FC = () => {
       <input
         type="file"
         ref={fileInputRef}
-        onChange={handleFileSelected}
+        onChange={handleFileInputChange}
         accept=".json,application/json"
         className="hidden"
         aria-hidden="true"
@@ -517,7 +537,7 @@ const App: React.FC = () => {
         onClose={handleForceExitDialogue}
         history={dialogueState?.history || []}
         options={dialogueState?.options || []}
-        onOptionSelect={handleDialogueOptionSelect}
+        onOptionSelect={handleDialogueOptionSelectSafe}
         participants={dialogueState?.participants || []}
         isLoading={isLoading} 
         isDialogueExiting={isDialogueExiting} 
