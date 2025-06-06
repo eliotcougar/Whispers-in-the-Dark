@@ -77,6 +77,7 @@ CRITICAL INSTRUCTIONS:
 - Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. Avoid creating duplicate nodes.
 - NEVER add a node named "Universe" or create edges that reference a place named "Universe". That name is reserved for the root and already exists.
 - You MUST use one of the EXACT string values provided for 'status' (node/edge) or 'type' (edge) fields.
+- Edges may only connect feature nodes that share the same parent, whose parents share a common grandparent, or where one feature's parent is the grandparent of the other (child–grandchild connections).
 - If the narrative suggests a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "data" via "nodesToUpdate", rather than adding a new node.
 `;
 
