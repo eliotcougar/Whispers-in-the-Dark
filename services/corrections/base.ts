@@ -3,7 +3,8 @@
  * @description Shared utilities for calling the AI correction models.
  */
 import { AUXILIARY_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME } from '../../constants';
-import { dispatchAIRequest } from '../modelDispatcher';
+import { dispatchAIRequest, dispatchAIRequestWithModelInfo } from '../modelDispatcher';
+import { MinimalModelCallRecord } from '../../types';
 import { isApiConfigured } from '../apiClient';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
 
@@ -55,7 +56,8 @@ export const callCorrectionAI = async <T = unknown>(
  */
 export const callMinimalCorrectionAI = async (
   prompt: string,
-  systemInstruction: string
+  systemInstruction: string,
+  debugLog?: MinimalModelCallRecord[]
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error('callMinimalCorrectionAI: API Key not configured.');
@@ -63,11 +65,12 @@ export const callMinimalCorrectionAI = async (
   }
 
   try {
-    const response = await dispatchAIRequest(
+    const { response } = await dispatchAIRequestWithModelInfo(
       [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction,
-      { temperature: CORRECTION_TEMPERATURE }
+      { temperature: CORRECTION_TEMPERATURE },
+      debugLog
     );
     return response.text?.trim() ?? null;
   } catch (error) {

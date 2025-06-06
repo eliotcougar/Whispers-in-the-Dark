@@ -14,7 +14,8 @@ import {
   DialogueSummaryResponse,
   MapNodeData,
   MapEdgeData,
-  AIMapUpdatePayload
+  AIMapUpdatePayload,
+  MinimalModelCallRecord
 } from '../types';
 import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
@@ -35,6 +36,7 @@ export interface MapUpdateServiceResult {
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
+    minimalModelCalls?: MinimalModelCallRecord[];
   } | null;
 }
 
@@ -278,6 +280,7 @@ export const updateMapFromAIData_Service = async (
   const currentThemeEdgesFromMapData = currentMapData.edges.filter(e =>
     currentThemeNodeIdsSet.has(e.sourceNodeId) && currentThemeNodeIdsSet.has(e.targetNodeId)
   );
+  const minimalModelCalls: MinimalModelCallRecord[] = [];
   const themeNodeIdMap = new Map<string, MapNode>();
   const themeNodeNameMap = new Map<string, MapNode>();
   const themeNodeAliasMap = new Map<string, MapNode>();
@@ -341,7 +344,7 @@ Key points:
  - If the Player's new 'localPlace' tells that they are at a specific feature node (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
 `;
   let prompt = basePrompt;
-  const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt };
+  const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };
   let validParsedPayload: AIMapUpdatePayload | null = null;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -555,7 +558,8 @@ Key points:
               currentMapNodeId: referenceMapNodeId,
               themeNodes: currentThemeNodesFromMapData,
               themeEdges: currentThemeEdgesFromMapData,
-            }
+            },
+            minimalModelCalls
           );
           unresolved.data.parentNodeId = guessed || 'Universe';
         }
@@ -729,18 +733,18 @@ Key points:
           n.themeName === parent.themeName &&
           n.data.nodeType === 'feature' &&
           n.data.parentNodeId === parent.id &&
-          n.placeName.toLowerCase().includes(targetName.toLowerCase())
+          n.placeName.toLowerCase() === targetName.toLowerCase()
       );
       if (existing) return existing;
       const newNodeId = generateUniqueId(`${parent.id}_feat_`);
       const newNode: MapNode = {
           id: newNodeId,
           themeName: parent.themeName,
-          placeName: `${targetName} connector`,
+          placeName: targetName,
           position: { ...parent.position },
           data: {
-              description: `Connector towards ${targetName}`,
-              aliases: [],
+              description: `A short path leading toward ${targetName}`,
+              aliases: [`${targetName} connector`],
               status: 'discovered',
               nodeType: 'feature',
               parentNodeId: parent.id,
@@ -766,7 +770,7 @@ Key points:
             currentMapNodeId: referenceMapNodeId,
             themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name),
             themeEdges: newMapData.edges
-          });
+          }, minimalModelCalls);
           if (guess) sourceNodeRef = findNodeByIdentifier(guess);
       }
 
@@ -779,7 +783,7 @@ Key points:
             currentMapNodeId: referenceMapNodeId,
             themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name),
             themeEdges: newMapData.edges
-          });
+          }, minimalModelCalls);
           if (guess) targetNodeRef = findNodeByIdentifier(guess);
       }
 
@@ -797,7 +801,7 @@ Key points:
             logMessage: logMsg,
             currentTheme,
             themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-          });
+          }, minimalModelCalls);
           sourceNode = findOrCreateConnectorFeature(sourceNode, name || targetNode.placeName);
       }
       if (targetNode.data.nodeType !== 'feature') {
@@ -806,7 +810,7 @@ Key points:
             logMessage: logMsg,
             currentTheme,
             themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-          });
+          }, minimalModelCalls);
           targetNode = findOrCreateConnectorFeature(targetNode, name || sourceNode.placeName);
       }
 
@@ -823,7 +827,7 @@ Key points:
                   logMessage: logMsg,
                   currentTheme,
                   themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-              });
+              }, minimalModelCalls);
               sourceNode = findOrCreateConnectorFeature(sourceParent, name || targetNode.placeName);
           }
           if (targetParent) {
@@ -832,7 +836,7 @@ Key points:
                   logMessage: logMsg,
                   currentTheme,
                   themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-              });
+              }, minimalModelCalls);
               targetNode = findOrCreateConnectorFeature(targetParent, name || sourceNode.placeName);
           }
           safetyCounter++;

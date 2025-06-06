@@ -355,6 +355,13 @@ export interface MapChainToRefine {
 }
 // --- End Map Pruning & Refinement Types ---
 
+export interface MinimalModelCallRecord {
+  prompt: string;
+  systemInstruction: string;
+  modelUsed: string;
+  responseText: string;
+}
+
 export interface DebugPacket {
   prompt: string;
   rawResponseText: string | null;
@@ -366,6 +373,7 @@ export interface DebugPacket {
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
+    minimalModelCalls?: MinimalModelCallRecord[];
   } | null;
   mapPruningDebugInfo?: {
     pruningDebugInfo?: { chainsToRefineCount: number };

@@ -2,7 +2,7 @@
  * @file services/corrections/map.ts
  * @description Correction helpers for map and location related data.
  */
-import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge } from '../../types';
+import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge, MinimalModelCallRecord } from '../../types';
 import { MAX_RETRIES } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
@@ -317,7 +317,8 @@ export const fetchLikelyParentNode_Service = async (
       currentMapNodeId: string | null;
       themeNodes: MapNode[];
       themeEdges: MapEdge[];
-    }
+    },
+    debugLog?: MinimalModelCallRecord[]
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error('fetchLikelyParentNode_Service: API Key not configured.');
@@ -397,7 +398,7 @@ Respond ONLY with the name of the best parent node from the list above, or "Univ
     'Choose the most logical parent node name for a new map node. Respond only with that single name.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const resp = await callMinimalCorrectionAI(prompt, systemInstr);
+    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
     if (resp && resp.trim().length > 0) {
       return resp.trim();
     }
@@ -421,7 +422,8 @@ export const fetchLikelyExistingNodeForEdge_Service = async (
     currentMapNodeId: string | null;
     themeNodes: MapNode[];
     themeEdges: MapEdge[];
-  }
+  },
+  debugLog?: MinimalModelCallRecord[]
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error('fetchLikelyExistingNodeForEdge_Service: API Key not configured.');
@@ -494,7 +496,7 @@ Respond ONLY with the name of the best matching node from the list above.`;
   const systemInstr = 'Choose the most probable existing node name and respond only with that single name.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const resp = await callMinimalCorrectionAI(prompt, systemInstr);
+    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
     if (resp && resp.trim().length > 0) {
       return resp.trim();
     }
@@ -515,7 +517,8 @@ export const fetchConnectorFeatureName_Service = async (
     logMessage: string | undefined;
     currentTheme: AdventureTheme;
     themeNodes: MapNode[];
-  }
+  },
+  debugLog?: MinimalModelCallRecord[]
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error('fetchConnectorFeatureName_Service: API Key not configured.');
@@ -540,7 +543,7 @@ Theme: "${context.currentTheme.name}"`;
   const systemInstr = 'Respond ONLY with the chosen feature name.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const resp = await callMinimalCorrectionAI(prompt, systemInstr);
+    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
     if (resp && resp.trim().length > 0) {
       return resp.trim();
     }

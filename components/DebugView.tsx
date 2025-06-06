@@ -166,6 +166,8 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
                   renderContent("Parsed Map Update AI Payload", debugPacket.mapUpdateDebugInfo.parsedPayload)
                 }
                 {debugPacket.mapUpdateDebugInfo.validationError && renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false)}
+                {debugPacket.mapUpdateDebugInfo.minimalModelCalls &&
+                  renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls)}
               </>
             ) : (
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>

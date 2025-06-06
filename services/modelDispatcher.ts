@@ -7,6 +7,7 @@ import { GenerateContentResponse } from '@google/genai';
 import { ai } from './geminiClient';
 import { isApiConfigured } from './apiClient';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
+import { MinimalModelCallRecord } from '../types';
 
 /** Determines if a model supports separate system instructions. */
 const supportsSystemInstruction = (model: string): boolean => !model.startsWith('gemma-');
@@ -50,6 +51,64 @@ export const dispatchAIRequest = async (
       });
       return response;
     } catch (err) {
+      lastError = err;
+      if (!isServerOrClientError(err)) {
+        throw err;
+      }
+      console.warn(
+        `dispatchAIRequest: Model ${model} failed with status ${extractStatusFromError(err)}. Trying next model if available.`
+      );
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+};
+
+export const dispatchAIRequestWithModelInfo = async (
+  modelNames: string[],
+  prompt: string,
+  systemInstruction?: string,
+  config: Record<string, unknown> = {},
+  debugLog?: MinimalModelCallRecord[]
+): Promise<{ response: GenerateContentResponse; modelUsed: string }> => {
+  if (!isApiConfigured() || !ai) {
+    return Promise.reject(new Error('API Key not configured.'));
+  }
+
+  let lastError: unknown = null;
+  for (const model of modelNames) {
+    try {
+      const modelSupportsSystem = supportsSystemInstruction(model);
+      const contents = modelSupportsSystem
+        ? prompt
+        : `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`;
+      const cfg = { ...config };
+      if (modelSupportsSystem && systemInstruction) {
+        cfg.systemInstruction = systemInstruction;
+      }
+
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+        config: cfg,
+      });
+      if (debugLog) {
+        debugLog.push({
+          prompt,
+          systemInstruction: systemInstruction || '',
+          modelUsed: model,
+          responseText: response.text ?? '',
+        });
+      }
+      return { response, modelUsed: model };
+    } catch (err) {
+      if (debugLog) {
+        debugLog.push({
+          prompt,
+          systemInstruction: systemInstruction || '',
+          modelUsed: model,
+          responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      }
       lastError = err;
       if (!isServerOrClientError(err)) {
         throw err;
