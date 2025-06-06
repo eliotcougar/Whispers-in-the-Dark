@@ -4,7 +4,7 @@
  * @description Developer panel for inspecting game state.
  */
 import React, { useState } from 'react';
-import { GameStateStack, FullGameState, AIMapUpdatePayload, Item, Character, MapData, ThemeHistoryState, DebugPacket } from '../types';
+import { GameStateStack, DebugPacket, MapNode } from '../types';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
 interface DebugViewProps {
@@ -30,36 +30,47 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
   const currentState = gameStateStack[0];
   const previousState = gameStateStack[1];
 
-  const renderContent = (title: string, content: any, isJson: boolean = true, maxHeightClass: string = "max-h-60") => {
-    let displayContent: string;
-    if (content === null || content === undefined) {
-      displayContent = "N/A";
-    } else if (typeof content === 'string') {
-      displayContent = content;
-    } else if (isJson) {
-      try {
-        let contentForDisplay: any = structuredCloneGameState(content);
-        
-        if (title.startsWith("Current Game State") || title.startsWith("Previous Game State")) {
+  /**
+   * Renders a single debugging section with a JSON or text payload.
+   */
+  const renderContent = <T,>(
+    title: string,
+    content: T,
+    isJson: boolean = true,
+    maxHeightClass: string = "max-h-60",
+  ) => {
+    const displayContent: string = (() => {
+      if (content === null || content === undefined) {
+        return "N/A";
+      }
+      if (typeof content === 'string') {
+        return content;
+      }
+      if (isJson) {
+        try {
+          const contentForDisplay = structuredCloneGameState(content);
+
+          if (title.startsWith("Current Game State") || title.startsWith("Previous Game State")) {
             if ('lastDebugPacket' in contentForDisplay) delete contentForDisplay.lastDebugPacket;
             if ('lastTurnChanges' in contentForDisplay) delete contentForDisplay.lastTurnChanges;
             if ('mapData' in contentForDisplay && contentForDisplay.mapData && Array.isArray(contentForDisplay.mapData.nodes)) {
-                contentForDisplay.mapDataSummary = {
-                    nodeCount: contentForDisplay.mapData.nodes.length,
-                    edgeCount: contentForDisplay.mapData.edges.length,
-                    firstNNodeNames: contentForDisplay.mapData.nodes.slice(0,5).map((n: any) => n.placeName)
-                };
-                delete contentForDisplay.mapData;
+              contentForDisplay.mapDataSummary = {
+                nodeCount: contentForDisplay.mapData.nodes.length,
+                edgeCount: contentForDisplay.mapData.edges.length,
+                firstNNodeNames: contentForDisplay.mapData.nodes.slice(0,5).map((n: MapNode) => n.placeName),
+              };
+              delete contentForDisplay.mapData;
             }
+          }
+
+          return JSON.stringify(contentForDisplay, null, 2);
+        } catch (e) {
+          console.error("Error stringifying debug content:", e, content);
+          return "Error stringifying JSON content.";
         }
-        displayContent = JSON.stringify(contentForDisplay, null, 2);
-      } catch (e) {
-        displayContent = "Error stringifying JSON content.";
-        console.error("Error stringifying debug content:", e, content);
       }
-    } else {
-      displayContent = String(content);
-    }
+      return String(content);
+    })();
 
     return (
       <section className="mb-4">
@@ -85,6 +96,9 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
     { name: "MiscState", label: "Misc State" },
   ];
 
+  /**
+   * Determines which debug tab content to display based on the active tab.
+   */
   const renderTabContent = () => {
     switch (activeTab) {
       case "GameState":
