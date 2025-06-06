@@ -10,7 +10,7 @@ import { useDialogueFlow } from './useDialogueFlow';
 import { useRealityShift } from './useRealityShift';
 import { useMapUpdates, getDefaultMapLayoutConfig } from './useMapUpdates';
 import { usePlayerActions } from './usePlayerActions';
-import { useGameInitialization } from './useGameInitialization';
+import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
 export interface UseGameLogicProps {
@@ -41,7 +41,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingReason, setLoadingReason] = useState<LoadingReason>(null);
   const [error, setError] = useState<string | null>(null);
-  const [parseErrorCounter, setParseErrorCounter] = useState<number>(0);
+  const [, setParseErrorCounter] = useState<number>(0);
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
 
@@ -51,7 +51,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const triggerShiftRef = useRef<(c?: boolean) => void>(() => {});
   const manualShiftRef = useRef<() => void>(() => {});
-  const loadInitialGameRef = useRef<(opts: any) => void>(() => {});
+  const loadInitialGameRef = useRef<(opts: LoadInitialGameOptions) => Promise<void>>(async () => {});
 
   const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
   const commitGameState = useCallback((newGameState: FullGameState) => {
@@ -75,7 +75,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   } = useRealityShift({
     getCurrentGameState,
     setGameStateStack,
-    loadInitialGame: (opts) => loadInitialGameRef.current(opts),
+    loadInitialGame: (opts) => { void loadInitialGameRef.current(opts); },
     enabledThemePacksProp,
     playerGenderProp,
     stabilityLevelProp,
@@ -175,7 +175,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       initialSavedStateFromApp &&
       !hasLoadedInitialSave.current
     ) {
-      loadInitialGame({ savedStateToLoad: initialSavedStateFromApp });
+      void loadInitialGame({ savedStateToLoad: initialSavedStateFromApp });
       hasLoadedInitialSave.current = true;
     }
   }, [isAppReady, hasGameBeenInitialized, initialSavedStateFromApp, loadInitialGame]);
