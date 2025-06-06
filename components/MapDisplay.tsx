@@ -6,14 +6,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
-  DEFAULT_K_REPULSION,
-  DEFAULT_K_SPRING,
   DEFAULT_IDEAL_EDGE_LENGTH,
-  DEFAULT_K_UNTANGLE,
-  DEFAULT_K_EDGE_NODE_REPULSION,
-  DEFAULT_DAMPING_FACTOR,
-  DEFAULT_MAX_DISPLACEMENT,
-  DEFAULT_LAYOUT_ITERATIONS,
   DEFAULT_NESTED_PADDING,
   DEFAULT_NESTED_ANGLE_PADDING,
   applyNestedCircleLayout,
@@ -46,14 +39,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
 }) => {
   const [displayedNodes, setDisplayedNodes] = useState<MapNode[]>([]);
 
-  const [layoutKRepulsion, setLayoutKRepulsion] = useState(initialLayoutConfig?.K_REPULSION ?? DEFAULT_K_REPULSION);
-  const [layoutKSpring, setLayoutKSpring] = useState(initialLayoutConfig?.K_SPRING ?? DEFAULT_K_SPRING);
   const [layoutIdealEdgeLength, setLayoutIdealEdgeLength] = useState(initialLayoutConfig?.IDEAL_EDGE_LENGTH ?? DEFAULT_IDEAL_EDGE_LENGTH);
-  const [layoutKUntangle, setLayoutKUntangle] = useState(initialLayoutConfig?.K_UNTANGLE ?? DEFAULT_K_UNTANGLE);
-  const [layoutKEdgeNodeRepulsion, setLayoutKEdgeNodeRepulsion] = useState(initialLayoutConfig?.K_EDGE_NODE_REPULSION ?? DEFAULT_K_EDGE_NODE_REPULSION);
-  const [layoutDampingFactor, setLayoutDampingFactor] = useState(initialLayoutConfig?.DAMPING_FACTOR ?? DEFAULT_DAMPING_FACTOR);
-  const [layoutMaxDisplacement, setLayoutMaxDisplacement] = useState(initialLayoutConfig?.MAX_DISPLACEMENT ?? DEFAULT_MAX_DISPLACEMENT);
-  const [layoutIterations, setLayoutIterations] = useState(initialLayoutConfig?.iterations ?? DEFAULT_LAYOUT_ITERATIONS);
   const [layoutNestedPadding, setLayoutNestedPadding] = useState(
     initialLayoutConfig?.NESTED_PADDING ?? DEFAULT_NESTED_PADDING
   );
@@ -63,14 +49,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
 
   useEffect(() => {
     if (initialLayoutConfig) {
-      setLayoutKRepulsion(initialLayoutConfig.K_REPULSION);
-      setLayoutKSpring(initialLayoutConfig.K_SPRING);
       setLayoutIdealEdgeLength(initialLayoutConfig.IDEAL_EDGE_LENGTH);
-      setLayoutKUntangle(initialLayoutConfig.K_UNTANGLE);
-      setLayoutKEdgeNodeRepulsion(initialLayoutConfig.K_EDGE_NODE_REPULSION);
-      setLayoutDampingFactor(initialLayoutConfig.DAMPING_FACTOR);
-      setLayoutMaxDisplacement(initialLayoutConfig.MAX_DISPLACEMENT);
-      setLayoutIterations(initialLayoutConfig.iterations);
       setLayoutNestedPadding(initialLayoutConfig.NESTED_PADDING ?? DEFAULT_NESTED_PADDING);
       setLayoutNestedAnglePadding(
         initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
@@ -81,30 +60,11 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   /** Current layout configuration derived from state sliders. */
   const currentConfigToPropagate = useMemo(
     (): MapLayoutConfig => ({
-      K_REPULSION: layoutKRepulsion,
-      K_SPRING: layoutKSpring,
       IDEAL_EDGE_LENGTH: layoutIdealEdgeLength,
-      K_CENTERING: 0,
-      K_UNTANGLE: layoutKUntangle,
-      K_EDGE_NODE_REPULSION: layoutKEdgeNodeRepulsion,
-      DAMPING_FACTOR: layoutDampingFactor,
-      MAX_DISPLACEMENT: layoutMaxDisplacement,
-      iterations: layoutIterations,
       NESTED_PADDING: layoutNestedPadding,
       NESTED_ANGLE_PADDING: layoutNestedAnglePadding,
     }),
-    [
-      layoutKRepulsion,
-      layoutKSpring,
-      layoutIdealEdgeLength,
-      layoutKUntangle,
-      layoutKEdgeNodeRepulsion,
-      layoutDampingFactor,
-      layoutMaxDisplacement,
-      layoutIterations,
-      layoutNestedPadding,
-      layoutNestedAnglePadding,
-    ]
+    [layoutIdealEdgeLength, layoutNestedPadding, layoutNestedAnglePadding]
   );
 
   useEffect(() => {
@@ -159,14 +119,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
 
   /** Resets all layout parameters to default values. */
   const handleResetLayoutToDefaults = () => {
-    setLayoutKRepulsion(DEFAULT_K_REPULSION);
-    setLayoutKSpring(DEFAULT_K_SPRING);
     setLayoutIdealEdgeLength(DEFAULT_IDEAL_EDGE_LENGTH);
-    setLayoutKUntangle(DEFAULT_K_UNTANGLE);
-    setLayoutKEdgeNodeRepulsion(DEFAULT_K_EDGE_NODE_REPULSION);
-    setLayoutDampingFactor(DEFAULT_DAMPING_FACTOR);
-    setLayoutMaxDisplacement(DEFAULT_MAX_DISPLACEMENT);
-    setLayoutIterations(DEFAULT_LAYOUT_ITERATIONS);
     setLayoutNestedPadding(DEFAULT_NESTED_PADDING);
     setLayoutNestedAnglePadding(DEFAULT_NESTED_ANGLE_PADDING);
   };

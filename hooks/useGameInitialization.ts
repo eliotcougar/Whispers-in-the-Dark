@@ -132,9 +132,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         const mapDataToApply = savedStateToLoad.mapData || { nodes: [], edges: [] };
         const currentMapNodeIdToApply = savedStateToLoad.currentMapNodeId || null;
         const mapLayoutConfigToApply = savedStateToLoad.mapLayoutConfig || getDefaultMapLayoutConfig();
-        if (!mapLayoutConfigToApply.K_EDGE_NODE_REPULSION) {
-          mapLayoutConfigToApply.K_EDGE_NODE_REPULSION = getDefaultMapLayoutConfig().K_EDGE_NODE_REPULSION;
-        }
         if (typeof mapLayoutConfigToApply.NESTED_PADDING !== 'number') {
           mapLayoutConfigToApply.NESTED_PADDING = getDefaultMapLayoutConfig().NESTED_PADDING;
         }

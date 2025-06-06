@@ -10,29 +10,9 @@ import { MapNode } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
 import { NODE_RADIUS } from './mapConstants';
 
-export const DEFAULT_K_REPULSION = 20000; 
-export const DEFAULT_K_SPRING = 0.25;     
-export const DEFAULT_IDEAL_EDGE_LENGTH = 120; 
-export const DEFAULT_K_CENTERING = 0.04;   
-export const DEFAULT_K_UNTANGLE = 5000; 
-export const DEFAULT_K_EDGE_NODE_REPULSION = 5000;
-export const DEFAULT_DAMPING_FACTOR = 0.9;
-export const DEFAULT_MAX_DISPLACEMENT = 10;
-export const DEFAULT_LAYOUT_ITERATIONS = 50;
+export const DEFAULT_IDEAL_EDGE_LENGTH = 120;
 export const DEFAULT_NESTED_PADDING = 5;
 export const DEFAULT_NESTED_ANGLE_PADDING = 0.25;
-
-
-export interface LayoutForceConstants {
-  K_REPULSION: number;
-  K_SPRING: number;
-  IDEAL_EDGE_LENGTH: number;
-  K_CENTERING: number;
-  K_UNTANGLE: number;
-  K_EDGE_NODE_REPULSION: number; 
-  DAMPING_FACTOR: number;
-  MAX_DISPLACEMENT: number;
-}
 
 /**
  * Each parent node encloses its children while children are positioned on the
