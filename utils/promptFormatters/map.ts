@@ -299,7 +299,7 @@ export const formatMapContextForPrompt = (
     (currentNode.data.nodeType === 'feature') && parentNodeForCurrent
       ? parentNodeForCurrent.id
       : null;
-  let pathsFromCurrentNode = getFormattedConnectionsForNode(
+  const pathsFromCurrentNode = getFormattedConnectionsForNode(
     currentNode,
     allNodesForTheme,
     allEdgesForTheme,
@@ -307,16 +307,15 @@ export const formatMapContextForPrompt = (
     processedTargets
   );
 
-  let pathsFromParentNode: string[] = [];
-  if (parentNodeForCurrent) {
-    pathsFromParentNode = getFormattedConnectionsForNode(
-      parentNodeForCurrent,
-      allNodesForTheme,
-      allEdgesForTheme,
-      currentNode.id,
-      processedTargets
-    );
-  }
+  const pathsFromParentNode = parentNodeForCurrent
+    ? getFormattedConnectionsForNode(
+        parentNodeForCurrent,
+        allNodesForTheme,
+        allEdgesForTheme,
+        currentNode.id,
+        processedTargets
+      )
+    : [];
 
   if (pathsFromCurrentNode.length > 0) {
     context +=
