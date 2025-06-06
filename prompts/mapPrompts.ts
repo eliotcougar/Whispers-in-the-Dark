@@ -75,6 +75,7 @@ CRITICAL INSTRUCTIONS:
       - When adding a new main location via "nodesToAdd", the "placeName" MUST correspond to a location name that the storyteller AI has indicated as significant.
     - You MUST include "parentNodeId" to specify the parent for every node except the root. The hierarchy relies solely on parentNodeId.
 - Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. Avoid creating duplicate nodes.
+- NEVER add a node named "Universe" or create edges that reference a place named "Universe". That name is reserved for the root and already exists.
 - You MUST use one of the EXACT string values provided for 'status' (node/edge) or 'type' (edge) fields.
 - If the narrative suggests a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "data" via "nodesToUpdate", rather than adding a new node.
 `;

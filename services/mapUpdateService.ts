@@ -66,6 +66,33 @@ const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | nu
   }
   try {
     const parsed: unknown = JSON.parse(jsonStr);
+    // Drop any illegal attempts to add/update/remove the special root node
+    // "Universe" and discard edges referring to it before validation.
+    if (parsed && typeof parsed === 'object') {
+      const payload = parsed as AIMapUpdatePayload;
+      const nameIsUniverse = (n: unknown): boolean =>
+        typeof n === 'string' && n.trim().toLowerCase() === 'universe';
+      if (Array.isArray(payload.nodesToAdd)) {
+        payload.nodesToAdd = payload.nodesToAdd.filter(n => !nameIsUniverse(n.placeName));
+      }
+      if (Array.isArray(payload.nodesToUpdate)) {
+        payload.nodesToUpdate = payload.nodesToUpdate.filter(n => !nameIsUniverse(n.placeName));
+      }
+      if (Array.isArray(payload.nodesToRemove)) {
+        payload.nodesToRemove = payload.nodesToRemove.filter(n => !nameIsUniverse(n.placeName));
+      }
+      const filterEdgeArray = (arr: typeof payload.edgesToAdd) =>
+        (arr || []).filter(e => !nameIsUniverse(e.sourcePlaceName) && !nameIsUniverse(e.targetPlaceName));
+      if (Array.isArray(payload.edgesToAdd)) {
+        payload.edgesToAdd = filterEdgeArray(payload.edgesToAdd);
+      }
+      if (Array.isArray(payload.edgesToUpdate)) {
+        payload.edgesToUpdate = filterEdgeArray(payload.edgesToUpdate);
+      }
+      if (Array.isArray(payload.edgesToRemove)) {
+        payload.edgesToRemove = filterEdgeArray(payload.edgesToRemove);
+      }
+    }
     if (isValidAIMapUpdatePayload(parsed as AIMapUpdatePayload | null)) {
       return parsed as AIMapUpdatePayload;
     }
