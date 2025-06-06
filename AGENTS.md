@@ -1,15 +1,7 @@
 
-## Code style:
-  - Add function-level comments, briefly explaining the purpose of the function.
-  - Add module-level comments at the begginning of each file.
-  - Maintain strict flow of Game State between the main game mode and separate modules.
-
 ## Testing
-
-1. Ensure Node.js (version >=18) is installed.
-2. Run `npm install` once to install dependencies.
-3. Run `npm run build` to verify TypeScript compilation and bundling succeeds.
-   The build uses TypeScript strict mode so type errors will cause failures.
+1. Run `npm run build` to verify TypeScript compilation and bundling succeeds.
+2. Run `npm run lint` to check for any linting errors and warnings that must be fixed.
 
 ## Specific terms:
   - "REALITY SHIFT" - process of switching between Themes.
@@ -23,10 +15,10 @@ CURRENT_SAVE_GAME_VERSION string should always be a single incremental number, f
 
 ## Main Game Flow:
  - Wait for Player's Input.
- - Construct the request prompt to the AI storyteller, using current Game State and Player's Input.
- - Wait for the response from AI storyteller.
+ - Construct the request prompt to the AI storyteller using current Game State and Player's Input.
+ - Wait for the response from AI storyteller API.
  - Validate the data structures in the JSON response from AI storyteller.
- - Attempt to fix the errors in the response (for example, wrong name identifiers for game entities, missing fields) using special requests to a specialized auxiliary AI.
+ - Attempt to fix the errors in the response (for example, wrong name identifiers for game entities, missing fields) using in-place heuristics or using special requests to an auxiliary AI.
  - Construct the next Game State and Turn Changes objects.
  - Repeat.
 
