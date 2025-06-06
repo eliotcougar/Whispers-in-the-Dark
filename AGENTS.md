@@ -22,6 +22,9 @@ CURRENT_SAVE_GAME_VERSION string should always be a single incremental number, f
  - Construct the next Game State and Turn Changes objects.
  - Repeat.
 
+## Code and Prompts synchronization:
+ - When making changes to the data structures and code, always make sure the AI prompts used by the game are in agreement with the changes you make.
+
 ## Unified visual style rules:
  - Close modal frame button grey, hover: red.
  - Other buttons colors different, but hover is always a step lighter.
@@ -36,3 +39,6 @@ CURRENT_SAVE_GAME_VERSION string should always be a single incremental number, f
     - **Solution**: Use functional updates `setState(prevState => ...)`, or include all relevant stateful values in the `useEffect` dependency array and ensure the logic inside the effect correctly handles potentially changed values upon re-running. If an effect should only run once but needs to interact with evolving state, consider using `useRef` to hold a mutable reference to the latest state or state update functions, or refactor to pass latest state through callbacks.
     - **Example Problem**: `useEffect(() => { async function fetchData() { const data = await apiCall(); setState(currentValue + data); } fetchData(); }, [apiCall]);` If `currentValue` changes while `apiCall` is running, `setState` will use a stale `currentValue`.
     - **Example Fix**: `useEffect(() => { async function fetchData() { const data = await apiCall(); setState(prevValue => prevValue + data); } fetchData(); }, [apiCall]);`
+
+## Teach the user:
+ - Take the opportunity to shortly teach the logic behind the changes you make in the general chat (not in the code).
