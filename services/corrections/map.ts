@@ -2,7 +2,7 @@
  * @file services/corrections/map.ts
  * @description Correction helpers for map and location related data.
  */
-import { AdventureTheme, MapNode, MapNodeData, MapEdgeData } from '../../types';
+import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge } from '../../types';
 import { MAX_RETRIES } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
@@ -292,6 +292,257 @@ Respond ONLY with the single edge type.`;
       if (VALID_EDGE_TYPE_VALUES.includes(mapped as MapEdgeData['type'])) {
         return mapped as MapEdgeData['type'];
       }
+    }
+  }
+  return null;
+};
+
+/**
+ * Suggests the most likely parent node name for a new map node when the provided
+ * parent cannot be resolved.
+ */
+export const fetchLikelyParentNode_Service = async (
+  proposedNode: {
+    placeName: string;
+    description?: string;
+    nodeType?: string;
+    status?: string;
+    aliases?: string[];
+  },
+    context: {
+      sceneDescription: string;
+      logMessage: string | undefined;
+      localPlace: string;
+      currentTheme: AdventureTheme;
+      currentMapNodeId: string | null;
+      themeNodes: MapNode[];
+      themeEdges: MapEdge[];
+    }
+): Promise<string | null> => {
+  if (!isApiConfigured()) {
+    console.error('fetchLikelyParentNode_Service: API Key not configured.');
+    return null;
+  }
+
+  const currentNode =
+    context.currentMapNodeId &&
+    context.themeNodes.find(n => n.id === context.currentMapNodeId);
+
+  const nodeMap = new Map<string, MapNode>();
+  context.themeNodes.forEach(n => nodeMap.set(n.id, n));
+
+  const adjacency = new Map<string, Set<string>>();
+  context.themeNodes.forEach(n => adjacency.set(n.id, new Set<string>()));
+
+  context.themeEdges.forEach(e => {
+    if (adjacency.has(e.sourceNodeId) && adjacency.has(e.targetNodeId)) {
+      adjacency.get(e.sourceNodeId)!.add(e.targetNodeId);
+      adjacency.get(e.targetNodeId)!.add(e.sourceNodeId);
+    }
+  });
+
+  context.themeNodes.forEach(n => {
+    const pid = n.data.parentNodeId;
+    if (pid && pid !== 'Universe' && adjacency.has(pid)) {
+      adjacency.get(n.id)!.add(pid);
+      adjacency.get(pid)!.add(n.id);
+    }
+  });
+
+  const distMap = new Map<string, number>();
+  if (currentNode && adjacency.has(currentNode.id)) {
+    const queue: string[] = [currentNode.id];
+    distMap.set(currentNode.id, 0);
+    while (queue.length > 0) {
+      const id = queue.shift()!;
+      const d = distMap.get(id)!;
+      adjacency.get(id)!.forEach(neigh => {
+        if (!distMap.has(neigh)) {
+          distMap.set(neigh, d + 1);
+          queue.push(neigh);
+        }
+      });
+    }
+  }
+
+  const nodesWithDist = context.themeNodes.map(n => {
+    const dist = distMap.has(n.id) ? distMap.get(n.id)! : Number.MAX_SAFE_INTEGER;
+    return { node: n, dist };
+  });
+
+  nodesWithDist.sort((a, b) => a.dist - b.dist);
+
+  const nodeLines = nodesWithDist
+    .map(({ node }) => {
+      const parent =
+        node.data.parentNodeId && node.data.parentNodeId !== 'Universe'
+          ? context.themeNodes.find(nn => nn.id === node.data.parentNodeId)
+          : null;
+      const parentName = parent ? parent.placeName : 'Universe';
+      return `- "${node.placeName}" (Type: ${node.data.nodeType}, Status: ${node.data.status}, Parent: ${parentName})`;
+    })
+    .join('\n');
+
+  const prompt = `Determine the most probable parent location for a new map node in a text adventure game.
+Scene Description: "${context.sceneDescription}"
+Log Message: "${context.logMessage || 'None'}"
+Player Local Place: "${context.localPlace}"
+Current Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
+Proposed Node Details: Name "${proposedNode.placeName}", Type "${proposedNode.nodeType || 'unknown'}", Status "${proposedNode.status || 'unknown'}", Description "${proposedNode.description || 'N/A'}"
+Existing Nodes ordered by proximity to player (shortest hops):
+${nodeLines}
+Respond ONLY with the name of the best parent node from the list above, or "Universe" if none are suitable.`;
+
+  const systemInstr =
+    'Choose the most logical parent node name for a new map node. Respond only with that single name.';
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const resp = await callMinimalCorrectionAI(prompt, systemInstr);
+    if (resp && resp.trim().length > 0) {
+      return resp.trim();
+    }
+  }
+  return null;
+};
+
+/**
+ * When an edge references a node name that doesn't exist, this helper attempts
+ * to pick the most likely existing node the AI might have meant. Nodes are
+ * ordered by hop distance from the player's current location before being
+ * presented to the minimal model.
+ */
+export const fetchLikelyExistingNodeForEdge_Service = async (
+  missingNodeName: string,
+  context: {
+    sceneDescription: string;
+    logMessage: string | undefined;
+    localPlace: string;
+    currentTheme: AdventureTheme;
+    currentMapNodeId: string | null;
+    themeNodes: MapNode[];
+    themeEdges: MapEdge[];
+  }
+): Promise<string | null> => {
+  if (!isApiConfigured()) {
+    console.error('fetchLikelyExistingNodeForEdge_Service: API Key not configured.');
+    return null;
+  }
+
+  const nodeMap = new Map<string, MapNode>();
+  context.themeNodes.forEach(n => nodeMap.set(n.id, n));
+
+  const adjacency = new Map<string, Set<string>>();
+  context.themeNodes.forEach(n => adjacency.set(n.id, new Set<string>()));
+  context.themeEdges.forEach(e => {
+    if (adjacency.has(e.sourceNodeId) && adjacency.has(e.targetNodeId)) {
+      adjacency.get(e.sourceNodeId)!.add(e.targetNodeId);
+      adjacency.get(e.targetNodeId)!.add(e.sourceNodeId);
+    }
+  });
+  context.themeNodes.forEach(n => {
+    const pid = n.data.parentNodeId;
+    if (pid && pid !== 'Universe' && adjacency.has(pid)) {
+      adjacency.get(n.id)!.add(pid);
+      adjacency.get(pid)!.add(n.id);
+    }
+  });
+
+  const distMap = new Map<string, number>();
+  if (context.currentMapNodeId && adjacency.has(context.currentMapNodeId)) {
+    const queue: string[] = [context.currentMapNodeId];
+    distMap.set(context.currentMapNodeId, 0);
+    while (queue.length > 0) {
+      const id = queue.shift()!;
+      const d = distMap.get(id)!;
+      adjacency.get(id)!.forEach(neigh => {
+        if (!distMap.has(neigh)) {
+          distMap.set(neigh, d + 1);
+          queue.push(neigh);
+        }
+      });
+    }
+  }
+
+  const nodesWithDist = context.themeNodes.map(n => {
+    const dist = distMap.has(n.id) ? distMap.get(n.id)! : Number.MAX_SAFE_INTEGER;
+    return { node: n, dist };
+  });
+
+  nodesWithDist.sort((a, b) => a.dist - b.dist);
+
+  const nodeLines = nodesWithDist
+    .map(({ node }) => {
+      const parent =
+        node.data.parentNodeId && node.data.parentNodeId !== 'Universe'
+          ? context.themeNodes.find(nn => nn.id === node.data.parentNodeId)
+          : null;
+      const parentName = parent ? parent.placeName : 'Universe';
+      return `- "${node.placeName}" (Type: ${node.data.nodeType}, Parent: ${parentName})`;
+    })
+    .join('\n');
+
+  const prompt = `Resolve an unknown map node name for an edge connection in a text adventure game.
+Missing Name: "${missingNodeName}"
+Scene Description: "${context.sceneDescription}"
+Log Message: "${context.logMessage || 'None'}"
+Player Local Place: "${context.localPlace}"
+Current Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
+Existing Nodes ordered by proximity to player (shortest hops):
+${nodeLines}
+Respond ONLY with the name of the best matching node from the list above.`;
+
+  const systemInstr = 'Choose the most probable existing node name and respond only with that single name.';
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const resp = await callMinimalCorrectionAI(prompt, systemInstr);
+    if (resp && resp.trim().length > 0) {
+      return resp.trim();
+    }
+  }
+  return null;
+};
+
+/**
+ * Suggests the best feature child under a parent node to serve as a connector
+ * when adding an edge. The minimal model can select an existing feature or
+ * propose a short new name if none are suitable.
+ */
+export const fetchConnectorFeatureName_Service = async (
+  parentNode: MapNode,
+  targetPlaceName: string,
+  context: {
+    sceneDescription: string;
+    logMessage: string | undefined;
+    currentTheme: AdventureTheme;
+    themeNodes: MapNode[];
+  }
+): Promise<string | null> => {
+  if (!isApiConfigured()) {
+    console.error('fetchConnectorFeatureName_Service: API Key not configured.');
+    return null;
+  }
+
+  const features = context.themeNodes.filter(
+    n => n.data.parentNodeId === parentNode.id && n.data.nodeType === 'feature'
+  );
+  const featureLines =
+    features.length > 0
+      ? features.map(f => `- "${f.placeName}"`).join('\n')
+      : 'None';
+
+  const prompt = `Select the best existing feature under "${parentNode.placeName}" to connect toward "${targetPlaceName}" or suggest a short new feature name.
+Existing Features:
+${featureLines}
+Scene Description: "${context.sceneDescription}"
+Log Message: "${context.logMessage || 'None'}"
+Theme: "${context.currentTheme.name}"`;
+
+  const systemInstr = 'Respond ONLY with the chosen feature name.';
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const resp = await callMinimalCorrectionAI(prompt, systemInstr);
+    if (resp && resp.trim().length > 0) {
+      return resp.trim();
     }
   }
   return null;

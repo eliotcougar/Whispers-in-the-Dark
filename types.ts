@@ -320,9 +320,15 @@ export interface AINodeUpdate {
 }
 
 export interface AIMapUpdatePayload {
-  // Description is required in MapNodeData, but map AI only provides it for feature nodes in 'nodesToAdd'.
-  // For main nodes, map AI only provides 'status'. Game logic fetches full description.
-  nodesToAdd?: (AINodeUpdate & { data: { status: MapNodeData['status'] } & Partial<Omit<MapNodeData, 'description' | 'aliases' | 'status'>> })[]; 
+  // parentNodeId is mandatory for each entry in nodesToAdd. The value is a NAME
+  // of the intended parent node (use "Universe" for the root node).
+  // Description and aliases are required for all new nodes.
+  nodesToAdd?: (AINodeUpdate & {
+    data: {
+      status: MapNodeData['status'];
+      parentNodeId: string;
+    } & Partial<Omit<MapNodeData, 'status' | 'parentNodeId'>>;
+  })[];
   nodesToUpdate?: { placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }[]; // Added placeName to newData for renaming
   nodesToRemove?: { placeName: string; }[]; 
   edgesToAdd?: { sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }[]; 
