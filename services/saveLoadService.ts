@@ -219,7 +219,8 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   }
   const obj = data as Partial<SavedGameDataShape> & Record<string, unknown>;
   if (obj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
-    console.warn(`Save data version mismatch. Expected ${CURRENT_SAVE_GAME_VERSION}, got ${data.saveGameVersion}. Attempting to load anyway if structure is V3-compatible.`);
+    const providedVersion = (data as { saveGameVersion?: unknown }).saveGameVersion;
+    console.warn(`Save data version mismatch. Expected ${CURRENT_SAVE_GAME_VERSION}, got ${String(providedVersion)}. Attempting to load anyway if structure is V3-compatible.`);
   }
 
   const fields: (keyof SavedGameDataShape)[] = [
@@ -381,6 +382,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
             isFeature: node.data.isFeature,
             visited: node.data.visited,
             parentNodeId: node.data.parentNodeId,
+            nodeType: node.data.nodeType,
             ...Object.fromEntries(Object.entries(node.data).filter(([key]) => !['description', 'aliases'].includes(key)))
         }
     })),
@@ -495,9 +497,9 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
           let dataToValidateAndExpand: SavedGameDataShape | null = null;
 
           const parsedObj = parsedData as Record<string, unknown>;
-          if (parsedObj && parsedObj.saveGameVersion === "2") {
-             console.log("V2 save data detected from file. Attempting conversion to V3...");
-             dataToValidateAndExpand = convertV2toV3Shape(parsedObj as V2IntermediateSavedGameState);
+            if (parsedObj && parsedObj.saveGameVersion === "2") {
+               console.log("V2 save data detected from file. Attempting conversion to V3...");
+               dataToValidateAndExpand = convertV2toV3Shape(parsedObj as unknown as V2IntermediateSavedGameState);
           } else if (parsedObj && (parsedObj.saveGameVersion === CURRENT_SAVE_GAME_VERSION || (typeof parsedObj.saveGameVersion === 'string' && parsedObj.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0])))) {
             if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
                 console.warn(`Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${String(parsedObj.saveGameVersion)}' from file. Attempting to treat as current version (V3) for validation.`);

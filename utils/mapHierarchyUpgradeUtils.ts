@@ -118,7 +118,9 @@ export const upgradeFeaturesWithChildren = (
       if (hasChild) {
         const res = upgradeFeatureToRegion(working, node.id, 'Temp Connector');
         working = res.updatedMapData;
-        addedNodes.push(res.newNode);
+        if (res.newNode) {
+          addedNodes.push(res.newNode);
+        }
         addedEdges.push(...res.newEdges);
       }
     }

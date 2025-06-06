@@ -29,7 +29,7 @@ export const executeAIMainTurn = async (
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            const response = await ai.models.generateContent({
+            const response = await ai!.models.generateContent({
                 model: GEMINI_MODEL_NAME,
                 contents: fullPrompt,
                 config: {

@@ -182,7 +182,7 @@ async function processItemChanges(
     const processedItemChanges: ItemChange[] = [];
     for (const rawIc of changes) {
         const ic = typeof rawIc === 'object' && rawIc !== null
-            ? ({ ...(rawIc as Record<string, unknown>) } as ItemChange)
+            ? ({ ...(rawIc as Record<string, unknown>) } as unknown as ItemChange)
             : (rawIc as ItemChange);
         if (typeof ic === 'object' && ic !== null && Object.keys(ic).length === 0 && ic.constructor === Object) {
             console.warn("parseAIResponse ('itemChange'): Skipping empty itemChange object:", ic);
@@ -379,7 +379,10 @@ async function handleCharacterChanges(
             typeof (cUpdate as { name?: unknown }).name === 'string' &&
             (cUpdate as { name: string }).name.trim() !== ''
         ) {
-            const currentCUpdatePayload: { [key: string]: unknown; name: string } = { ...(cUpdate as Record<string, unknown>) };
+            const currentCUpdatePayload: { [key: string]: unknown; name: string } = {
+                ...(cUpdate as Record<string, unknown>),
+                name: (cUpdate as { name: string }).name,
+            };
             const allKnownAndCurrentlyAddedCharNames = new Set([
                 ...context.allRelevantCharacters.map(c => c.name),
                 ...finalCharactersAdded.map(c => c.name),

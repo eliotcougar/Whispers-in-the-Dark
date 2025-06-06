@@ -474,7 +474,7 @@ Key points:
         aliases: aliases || [],
         status,
         parentNodeId: resolvedParentId,
-        nodeType,
+        nodeType: nodeType ?? 'feature',
         ...rest,
       };
 

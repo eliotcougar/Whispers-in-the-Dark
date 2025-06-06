@@ -195,6 +195,8 @@ export function isDialogueSetupPayloadStructurallyValid(
     return false;
   }
 
+  const participants = obj.participants;
+
   if (
     !Array.isArray(obj.initialNpcResponses) ||
     obj.initialNpcResponses.length === 0 ||
@@ -203,7 +205,7 @@ export function isDialogueSetupPayloadStructurallyValid(
         r &&
         typeof (r as { speaker?: unknown }).speaker === 'string' &&
         (r as { speaker: string }).speaker.trim() !== '' &&
-        obj.participants.includes((r as { speaker: string }).speaker) &&
+        participants.includes((r as { speaker: string }).speaker) &&
         typeof (r as { line?: unknown }).line === 'string' &&
         (r as { line: string }).line.trim() !== '',
     )
