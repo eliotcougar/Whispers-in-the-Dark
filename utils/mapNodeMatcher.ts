@@ -202,6 +202,18 @@ export const attemptMatchAndSetNode = (
     return { matched: true, nodeId: firstMatch.id };
 };
 
+/**
+ * Determines the most appropriate map node based on a textual place description.
+ * The function scores each node by comparing tokens and prepositions extracted
+ * from the description, preferring nodes that were previously nearby.
+ *
+ * @param localPlace - The freeform location string from the player.
+ * @param currentTheme - The current active theme object.
+ * @param mapData - Complete map graph data.
+ * @param allNodesForTheme - Nodes belonging to the current theme.
+ * @param previousMapNodeId - ID of the player's previous map node if any.
+ * @returns The best matching node ID or null when no suitable match is found.
+ */
 export const selectBestMatchingMapNode = (
   localPlace: string | null,
   currentTheme: AdventureTheme | null,

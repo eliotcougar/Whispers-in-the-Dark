@@ -36,6 +36,10 @@ const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
     iterations: DEFAULT_LAYOUT_ITERATIONS,
 });
 
+/**
+ * Creates a default FullGameState with all numeric counters and collections
+ * initialized to their starting values.
+ */
 export const getInitialGameStates = (): FullGameState => {
   return {
     saveGameVersion: CURRENT_SAVE_GAME_VERSION, 
@@ -78,7 +82,8 @@ export const getInitialGameStates = (): FullGameState => {
 };
 
 /**
- * Returns a blank game state populated with the provided settings.
+ * Creates an initial game state using the specified configuration options.
+ * Useful when starting a new game with user-supplied settings.
  */
 export const getInitialGameStatesWithSettings = (
   playerGender: string,

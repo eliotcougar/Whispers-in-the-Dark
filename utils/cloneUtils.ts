@@ -13,8 +13,9 @@
  * @returns A deep copy of the input object.
  */
 export function structuredCloneGameState<T>(state: T): T {
-  if (typeof (globalThis as any).structuredClone === 'function') {
-    return (globalThis as any).structuredClone(state);
+  const globalObj = globalThis as unknown as { structuredClone?: (value: unknown) => unknown };
+  if (typeof globalObj.structuredClone === 'function') {
+    return globalObj.structuredClone(state) as T;
   }
   return deepCopy(state);
 }
@@ -31,17 +32,17 @@ function deepCopy<T>(value: T): T {
   }
 
   if (value instanceof Date) {
-    return new Date(value.getTime()) as any;
+    return new Date(value.getTime()) as unknown as T;
   }
 
   if (Array.isArray(value)) {
     return (value.map(v => deepCopy(v)) as unknown) as T;
   }
 
-  const clonedObj: Record<string, any> = {};
-  for (const key in value as Record<string, any>) {
+  const clonedObj: Record<string, unknown> = {};
+  for (const key in value as Record<string, unknown>) {
     if (Object.prototype.hasOwnProperty.call(value, key)) {
-      clonedObj[key] = deepCopy((value as Record<string, any>)[key]);
+      clonedObj[key] = deepCopy((value as Record<string, unknown>)[key]);
     }
   }
   return clonedObj as T;
