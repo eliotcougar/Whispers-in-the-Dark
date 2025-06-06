@@ -107,7 +107,10 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     );
   }, [mapData.edges, currentThemeNodes, currentThemeName]);
 
-  /** Prepares nodes for layout and runs the nested force algorithm. */
+  /**
+   * Prepares nodes for display. The force-directed layout algorithm is
+   * intentionally disabled, so nodes are shown using their stored positions.
+   */
   const runLayout = useCallback(() => {
     const nodesToProcess = [...currentThemeNodes];
     const forceConstants: LayoutForceConstants = {
@@ -120,13 +123,13 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       DAMPING_FACTOR: layoutDampingFactor,
       MAX_DISPLACEMENT: layoutMaxDisplacement,
     };
-    const nestedNodes = applyNestedForceLayout(
-      nodesToProcess,
-      currentThemeEdges,
-      layoutIterations,
-      forceConstants
-    );
-    setDisplayedNodes(nestedNodes);
+
+    // Previously the layout algorithm adjusted node positions here. The
+    // functions remain available, but automatic adjustments are disabled.
+    // const nestedNodes = applyNestedForceLayout(nodesToProcess, currentThemeEdges,
+    //   layoutIterations, forceConstants);
+
+    setDisplayedNodes(nodesToProcess);
   }, [currentThemeNodes, currentThemeEdges, layoutIterations, layoutKRepulsion, layoutKSpring, layoutIdealEdgeLength, layoutKUntangle, layoutKEdgeNodeRepulsion, layoutDampingFactor, layoutMaxDisplacement]);
 
   useEffect(() => {
