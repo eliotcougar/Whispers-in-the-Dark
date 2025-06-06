@@ -53,13 +53,22 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
           if (title.startsWith("Current Game State") || title.startsWith("Previous Game State")) {
             if ('lastDebugPacket' in contentForDisplay) delete contentForDisplay.lastDebugPacket;
             if ('lastTurnChanges' in contentForDisplay) delete contentForDisplay.lastTurnChanges;
-            if ('mapData' in contentForDisplay && contentForDisplay.mapData && Array.isArray(contentForDisplay.mapData.nodes)) {
-              contentForDisplay.mapDataSummary = {
-                nodeCount: contentForDisplay.mapData.nodes.length,
-                edgeCount: contentForDisplay.mapData.edges.length,
-                firstNNodeNames: contentForDisplay.mapData.nodes.slice(0,5).map((n: MapNode) => n.placeName),
-              };
-              delete contentForDisplay.mapData;
+            if (
+              typeof contentForDisplay === 'object' &&
+              contentForDisplay !== null &&
+              'mapData' in contentForDisplay
+            ) {
+              const mapData = (contentForDisplay as {
+                mapData?: { nodes: MapNode[]; edges: unknown[] };
+              }).mapData;
+              if (mapData && Array.isArray(mapData.nodes) && Array.isArray(mapData.edges)) {
+                contentForDisplay.mapDataSummary = {
+                  nodeCount: mapData.nodes.length,
+                  edgeCount: mapData.edges.length,
+                  firstNNodeNames: mapData.nodes.slice(0, 5).map((n: MapNode) => n.placeName),
+                };
+                delete (contentForDisplay as { mapData?: unknown }).mapData;
+              }
             }
           }
 
