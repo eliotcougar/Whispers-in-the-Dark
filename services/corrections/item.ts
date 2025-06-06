@@ -115,9 +115,9 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
   const systemInstructionForFix = `Correct JSON item payloads based on the provided structure, context, and specific instructions for the action type. Adhere strictly to the JSON format. Preserve the original intent of the item change if discernible. CRITICAL: Ensure the 'type' field is never 'junk'; use 'isJunk: true' and a valid type instead.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedItemPayload = await callCorrectionAI(prompt, systemInstructionForFix);
+    const correctedItemPayload = await callCorrectionAI<Item>(prompt, systemInstructionForFix);
     if (correctedItemPayload && isValidItem(correctedItemPayload, actionType === 'gain' ? 'gain' : 'update')) {
-      return correctedItemPayload as Item;
+      return correctedItemPayload;
     } else {
       console.warn(`fetchCorrectedItemPayload_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected '${actionType}' payload invalid after validation. Response:`, correctedItemPayload);
       if (attempt === MAX_RETRIES) return null;
@@ -168,9 +168,9 @@ If no action can be confidently determined, respond with an empty string.`;
     const correctedActionResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
     if (correctedActionResponse !== null) {
       const action = correctedActionResponse.trim().toLowerCase();
-      if (['gain', 'lose', 'update'].includes(action)) {
+      if (action === 'gain' || action === 'lose' || action === 'update') {
         console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, action, `.`);
-        return action as ItemChange['action'];
+        return action;
       } else if (action === '') {
         console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
         return null;

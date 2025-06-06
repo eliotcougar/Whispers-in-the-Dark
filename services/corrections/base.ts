@@ -14,10 +14,15 @@ export const CORRECTION_TEMPERATURE = 0.75;
  * Makes a single AI call expecting a JSON response and parses the result.
  * Uses AUXILIARY_MODEL_NAME.
  */
-export const callCorrectionAI = async (
+/**
+ * Dispatches a JSON-returning AI request using the auxiliary model.
+ * The generic type allows callers to specify the expected shape of the
+ * parsed JSON result.
+ */
+export const callCorrectionAI = async <T = any>(
   prompt: string,
   systemInstruction: string
-): Promise<any | null> => {
+): Promise<T | null> => {
   try {
     const response = await dispatchAIRequest(
       [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
@@ -34,7 +39,7 @@ export const callCorrectionAI = async (
     if (fenceMatch && fenceMatch[1]) {
       jsonStr = fenceMatch[1].trim();
     }
-    return JSON.parse(jsonStr);
+    return JSON.parse(jsonStr) as T;
   } catch (error) {
     console.error(`callCorrectionAI: Error during single AI call or parsing for prompt starting with "${prompt.substring(0, 100)}...":`, error);
     if (isServerOrClientError(error)) {
