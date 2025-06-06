@@ -26,6 +26,7 @@ export const ItemTypeDisplay: React.FC<{ type: Item['type'] }> = ({ type }) => {
     equipment: 'text-sky-400',
     container: 'text-orange-400',
     key: 'text-lime-400',
+    weapon: 'text-amber-400',
     ammunition: 'text-cyan-400',
     vehicle: 'text-indigo-400',
     knowledge: 'text-purple-400',

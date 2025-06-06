@@ -42,7 +42,7 @@ const callDialogueGeminiAPI = async (
   if (disableThinking) {
     config.thinkingConfig = { thinkingBudget: 0 };
   }
-  return ai.models.generateContent({
+  return ai!.models.generateContent({
     model: GEMINI_MODEL_NAME, // Will use gemini-2.5-flash-preview-04-17
     contents: prompt,
     config: config

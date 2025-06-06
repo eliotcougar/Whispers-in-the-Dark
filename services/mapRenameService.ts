@@ -49,13 +49,13 @@ Each array can be empty. Keep IDs exactly as provided.`;
   const systemInst = 'Rename provided map nodes and edges with thematic names. Return strict JSON.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const result = await callCorrectionAI(prompt, systemInst);
+    const result = await callCorrectionAI<RenameMapElementsPayload>(prompt, systemInst);
     if (
       result &&
       Array.isArray(result.nodes) &&
       Array.isArray(result.edges)
     ) {
-      return result as RenameMapElementsPayload;
+      return result;
     }
   }
   return null;

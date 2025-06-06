@@ -189,6 +189,7 @@ export async function convertV1toV2Intermediate(v1Data: V1SavedGameState): Promi
         status: 'discovered',
         isFeature: false,
         visited: true,
+        nodeType: 'location',
       },
     };
   });
@@ -300,6 +301,7 @@ export function convertV2toV3Shape(v2Data: V2IntermediateSavedGameState): SavedG
           isFeature: node.data.isFeature ?? false,
           visited: node.data.visited ?? false,
           parentNodeId: node.data.parentNodeId,
+          nodeType: node.data.nodeType ?? 'location',
           ...Object.fromEntries(Object.entries(node.data).filter(([key]) => !['description', 'aliases', 'status', 'isFeature', 'visited', 'parentNodeId'].includes(key)))
         }
       })),

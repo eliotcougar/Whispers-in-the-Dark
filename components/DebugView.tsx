@@ -25,6 +25,9 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
   const [showMainAIRaw, setShowMainAIRaw] = useState<boolean>(true);
   const [showMapAIRaw, setShowMapAIRaw] = useState<boolean>(true);
 
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null;
+
   if (!isVisible) return null;
 
   const currentState = gameStateStack[0];
@@ -51,23 +54,21 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
           const contentForDisplay = structuredCloneGameState(content);
 
           if (title.startsWith("Current Game State") || title.startsWith("Previous Game State")) {
-            if ('lastDebugPacket' in contentForDisplay) delete contentForDisplay.lastDebugPacket;
-            if ('lastTurnChanges' in contentForDisplay) delete contentForDisplay.lastTurnChanges;
-            if (
-              typeof contentForDisplay === 'object' &&
-              contentForDisplay !== null &&
-              'mapData' in contentForDisplay
-            ) {
-              const mapData = (contentForDisplay as {
-                mapData?: { nodes: MapNode[]; edges: unknown[] };
-              }).mapData;
-              if (mapData && Array.isArray(mapData.nodes) && Array.isArray(mapData.edges)) {
-                contentForDisplay.mapDataSummary = {
-                  nodeCount: mapData.nodes.length,
-                  edgeCount: mapData.edges.length,
-                  firstNNodeNames: mapData.nodes.slice(0, 5).map((n: MapNode) => n.placeName),
-                };
-                delete (contentForDisplay as { mapData?: unknown }).mapData;
+            if (isRecord(contentForDisplay)) {
+              if ('lastDebugPacket' in contentForDisplay) delete contentForDisplay.lastDebugPacket;
+              if ('lastTurnChanges' in contentForDisplay) delete contentForDisplay.lastTurnChanges;
+
+              if ('mapData' in contentForDisplay) {
+                const mapData = contentForDisplay.mapData as { nodes: MapNode[]; edges: unknown[] } | undefined;
+
+                if (mapData && Array.isArray(mapData.nodes) && Array.isArray(mapData.edges)) {
+                  (contentForDisplay as Record<string, unknown>).mapDataSummary = {
+                    nodeCount: mapData.nodes.length,
+                    edgeCount: mapData.edges.length,
+                    firstNNodeNames: mapData.nodes.slice(0, 5).map((n: MapNode) => n.placeName),
+                  };
+                  delete (contentForDisplay as Record<string, unknown>).mapData;
+                }
               }
             }
           }
