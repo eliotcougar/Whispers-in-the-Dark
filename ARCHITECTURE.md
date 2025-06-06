@@ -6,9 +6,7 @@ This document outlines the high-level architecture and state machine design of t
 ## 1. High-Level Architecture
 
 The game is a single-page web application built with React and TypeScript, interacting with the Google Gemini API for its core narrative and content generation. The architecture can be broadly divided into the following layers:
-
-![High-Level Architecture Diagram](https://dummyimage.com/800x500/333/fff&text=High-Level+Architecture+Diagram)
-*(Conceptual diagram: UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API)*
+UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
 
 ### 1.1. UI Layer (React Components)
 
