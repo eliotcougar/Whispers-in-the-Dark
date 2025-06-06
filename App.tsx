@@ -60,8 +60,8 @@ const App: React.FC = () => {
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    const loadInitialData = async () => {
-      const loadedState = await loadGameStateFromLocalStorage();
+    const loadInitialData = () => {
+      const loadedState = loadGameStateFromLocalStorage();
       if (loadedState) {
         setPlayerGender(loadedState.playerGender ?? DEFAULT_PLAYER_GENDER);
         setEnabledThemePacks(loadedState.enabledThemePacks ?? [...DEFAULT_ENABLED_THEME_PACKS]);
@@ -73,9 +73,8 @@ const App: React.FC = () => {
       }
       setAppReady(true);
     };
-    // Execute the async data loading and explicitly ignore the returned promise
-    // since we handle all state updates internally.
-    void loadInitialData();
+    // Load initial data and update settings; no async operations needed here.
+    loadInitialData();
   }, []);
 
   const handleSettingsUpdateFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>) => {
