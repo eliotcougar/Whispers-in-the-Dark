@@ -1,5 +1,6 @@
 
 ## Testing
+1. Run `npm run typecheck` to verify strict type safety.
 1. Run `npm run build` to verify TypeScript compilation and bundling succeeds.
 2. Run `npm run lint` to check for any linting errors and warnings that must be fixed.
 
