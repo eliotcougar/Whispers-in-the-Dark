@@ -33,14 +33,21 @@ const ANIMATION_TRANSITION_DURATION_MS = 600;
 const HOLD_DURATION_MS = 2000;
 
 
-const areKnownUsesEffectivelyIdentical = (ku1Array?: KnownUse[], ku2Array?: KnownUse[]): boolean => {
+/**
+ * Determines whether two arrays of KnownUse objects represent the same
+ * effective set of uses, ignoring property order.
+ */
+const areKnownUsesEffectivelyIdentical = (
+  ku1Array?: KnownUse[],
+  ku2Array?: KnownUse[]
+): boolean => {
   const kus1 = ku1Array || [];
   const kus2 = ku2Array || [];
   if (kus1.length !== kus2.length) return false;
   if (kus1.length === 0) return true;
 
   const stringifyKnownUse = (ku: KnownUse) => {
-    const orderedKu: Record<string, any> = {};
+    const orderedKu: Record<keyof KnownUse, KnownUse[keyof KnownUse]> = {} as Record<keyof KnownUse, KnownUse[keyof KnownUse]>;
     (Object.keys(ku) as Array<keyof KnownUse>).sort().forEach(key => {
       orderedKu[key] = ku[key];
     });
@@ -56,7 +63,14 @@ const areKnownUsesEffectivelyIdentical = (ku1Array?: KnownUse[], ku2Array?: Know
   return true;
 };
 
-const areItemsEffectivelyIdentical = (item1?: Item, item2?: Item): boolean => {
+/**
+ * Checks whether two items are effectively the same to avoid animating
+ * trivial updates that do not change visible properties.
+ */
+const areItemsEffectivelyIdentical = (
+  item1?: Item,
+  item2?: Item
+): boolean => {
   if (!item1 || !item2) return item1 === item2;
   if (item1.name !== item2.name ||
       item1.type !== item2.type ||
@@ -92,6 +106,7 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
   const [currentProcessingChanges, setCurrentProcessingChanges] = useState<TurnChanges | null>(null);
   const activeTimeoutRef = useRef<number | null>(null);
 
+  /** Clears any pending animation timeout. */
   const clearActiveTimeout = useCallback(() => {
     if (activeTimeoutRef.current) {
       clearTimeout(activeTimeoutRef.current);
@@ -99,6 +114,7 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
     }
   }, []);
 
+  /** Resets all animation-related state back to the idle baseline. */
   const resetAnimationState = useCallback(() => {
     clearActiveTimeout();
     setAnimationQueue([]);
@@ -154,8 +170,11 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
         setCurrentProcessingChanges(null);
         setIsVisibleOverlay(false); // Ensure overlay is hidden if no animations
     }
-  }, [lastTurnChanges, isGameBusy, animatedTurnChangesRef, currentProcessingChanges, currentAnimatingItem, animationQueue.length]);
+  }, [lastTurnChanges, isGameBusy, animatedTurnChangesRef, currentProcessingChanges, currentAnimatingItem, animationQueue]);
 
+  /**
+   * Pops the next queued item change and kicks off its animation sequence.
+   */
   const processNextAnimation = useCallback(() => {
     clearActiveTimeout();
     if (animationQueue.length > 0 && !isGameBusy) {
@@ -195,7 +214,7 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
         setCurrentProcessingChanges(null); // Ready for new lastTurnChanges
       }
     }
-  }, [animationStep, animationQueue, currentAnimatingItem, processNextAnimation, isGameBusy, currentProcessingChanges, animatedTurnChangesRef, isVisibleOverlay]);
+  }, [animationStep, animationQueue, currentAnimatingItem, processNextAnimation, isGameBusy, currentProcessingChanges, animatedTurnChangesRef]);
 
 
   // Main animation step orchestrator
@@ -251,6 +270,7 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
   }, [currentAnimatingItem, animationStep, isGameBusy, clearActiveTimeout]);
 
 
+  /** Skips any in-progress or queued animations, marking them as complete. */
   const handleSkipAnimations = useCallback(() => {
     if (isGameBusy) return; // Don't allow skipping if game is busy with other things
     resetAnimationState();
@@ -265,6 +285,7 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
   }, [isGameBusy, resetAnimationState, lastTurnChanges, animatedTurnChangesRef, currentProcessingChanges]);
 
 
+  /** Renders the static card markup for a given item. */
   const renderCardContent = (item: Item) => (
     <>
       <div className="flex justify-between items-center mb-1 text-xs">
@@ -301,6 +322,7 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
     return null;
   }
   
+  /** Returns the appropriate glow CSS class for the active animation state. */
   const getGlowClass = (cardType?: 'old' | 'new' | 'single'): string => {
     if (!activeGlowType) return '';
     if (activeGlowType === 'gain' && cardType === 'single') return 'apply-green-glow-effect';
