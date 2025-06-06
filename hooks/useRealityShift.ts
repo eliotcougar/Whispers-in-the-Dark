@@ -89,16 +89,22 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
 
     if (!currentThemeObj || isLoading) return;
 
-    summarizeAndStoreThemeHistory(currentThemeObj, currentFullState);
+    void summarizeAndStoreThemeHistory(currentThemeObj, currentFullState);
     setLoadingReason('reality_shift_load');
 
-    let targetThemeName: string | null = null;
-    if (currentFullState.pendingNewThemeNameAfterShift && !currentFullState.isAwaitingManualShiftThemeSelection) {
-      targetThemeName = currentFullState.pendingNewThemeNameAfterShift;
-    } else if (!currentFullState.isAwaitingManualShiftThemeSelection) {
-      const availableThemes = getThemesFromPacks(enabledThemePacksProp);
-      targetThemeName = selectNextThemeName(availableThemes, currentThemeObj.name);
-    }
+    const targetThemeName: string | null = (() => {
+      if (
+        currentFullState.pendingNewThemeNameAfterShift &&
+        !currentFullState.isAwaitingManualShiftThemeSelection
+      ) {
+        return currentFullState.pendingNewThemeNameAfterShift;
+      }
+      if (!currentFullState.isAwaitingManualShiftThemeSelection) {
+        const availableThemes = getThemesFromPacks(enabledThemePacksProp);
+        return selectNextThemeName(availableThemes, currentThemeObj.name);
+      }
+      return null;
+    })();
 
     if (!targetThemeName && !currentFullState.isAwaitingManualShiftThemeSelection) {
       setError('Could not select a new theme for reality shift. Current theme remains.');
@@ -145,7 +151,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     });
 
     if (!currentFullState.isAwaitingManualShiftThemeSelection && targetThemeName) {
-      loadInitialGame({ explicitThemeName: targetThemeName, isTransitioningFromShift: true, customGameFlag: previousCustomMode });
+      void loadInitialGame({ explicitThemeName: targetThemeName, isTransitioningFromShift: true, customGameFlag: previousCustomMode });
     }
   }, [
     getCurrentGameState,
@@ -169,7 +175,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     if (!currentThemeObj || isLoading) return;
 
     setError('MANUAL SHIFT! Reality destabilizes...');
-    summarizeAndStoreThemeHistory(currentThemeObj, currentFullState);
+    void summarizeAndStoreThemeHistory(currentThemeObj, currentFullState);
 
     if (currentFullState.isCustomGameMode) {
       setGameStateStack((prev: GameStateStack) => [{ ...prev[0], isAwaitingManualShiftThemeSelection: true, lastActionLog: 'You focus your will, preparing to choose a new reality...' }, prev[1]]);
@@ -191,7 +197,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       lastActionLog: `You chose to shift reality to: ${themeName}. The world warps around you!`
     }, prev[1]]);
 
-    loadInitialGame({ explicitThemeName: themeName, isTransitioningFromShift: true, customGameFlag: true });
+    void loadInitialGame({ explicitThemeName: themeName, isTransitioningFromShift: true, customGameFlag: true });
   }, [getCurrentGameState, setGameStateStack, loadInitialGame, setLoadingReason]);
 
   /** Cancels the manual shift selection process. */

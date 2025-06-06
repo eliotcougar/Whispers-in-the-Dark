@@ -207,7 +207,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const correctedAndVerifiedItemChanges: ItemChange[] = [];
       if (themeContextForResponse) {
         for (const change of aiItemChangesFromParser) {
-          let currentChange = { ...change };
+          const currentChange = { ...change };
           if (currentChange.action === 'lose' && typeof currentChange.item === 'string') {
             const itemNameFromAI = currentChange.item;
             const exactMatchInInventory = baseStateSnapshot.inventory.find((invItem) => invItem.name === itemNameFromAI);
@@ -234,10 +234,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       turnChanges.itemChanges = buildItemChangeRecords(correctedAndVerifiedItemChanges, baseStateSnapshot.inventory);
       draftState.inventory = applyAllItemChanges(correctedAndVerifiedItemChanges, options.forceEmptyInventory ? [] : baseStateSnapshot.inventory);
 
-      let mapAISuggestedNodeIdentifier: string | undefined = undefined;
       if (themeContextForResponse) {
         try {
-          mapAISuggestedNodeIdentifier = await handleMapUpdates(
+          await handleMapUpdates(
             aiData,
             draftState,
             baseStateSnapshot,
@@ -292,7 +291,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       setFreeFormActionText('');
 
       const baseStateSnapshot = structuredCloneGameState(currentFullState);
-      let scoreChangeFromAction = isFreeForm ? -FREE_FORM_ACTION_COST : 0;
+      const scoreChangeFromAction = isFreeForm ? -FREE_FORM_ACTION_COST : 0;
 
       const currentThemeObj = currentFullState.currentThemeObject;
       if (!currentThemeObj) {
@@ -370,20 +369,21 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         );
 
         await processAiResponse(parsedData, currentThemeObj, draftState, { baseStateSnapshot, scoreChangeFromAction });
-      } catch (e: any) {
+      } catch (e: unknown) {
         encounteredError = true;
         console.error('Error executing player action:', e);
         if (isServerOrClientError(e)) {
           const status = extractStatusFromError(e);
           setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
         } else {
-          setError(`The Dungeon Master's connection seems unstable. Error: (${e.message || 'Unknown AI error'}). Please try again or consult the game log.`);
+          const errMsg = e instanceof Error ? e.message : String(e);
+          setError(`The Dungeon Master's connection seems unstable. Error: (${errMsg}). Please try again or consult the game log.`);
         }
         draftState = structuredCloneGameState(baseStateSnapshot);
         draftState.lastActionLog = `Your action ("${action}") caused a ripple in reality, but the outcome is obscured.`;
         draftState.actionOptions = ['Look around.', 'Ponder the situation.', 'Check your inventory.', 'Try to move on.'];
         draftState.dialogueState = null;
-        draftState.lastDebugPacket = { ...debugPacket, error: e.message || String(e) };
+        draftState.lastDebugPacket = { ...debugPacket, error: e instanceof Error ? e.message : String(e) };
       } finally {
         if (!encounteredError) {
           draftState.turnsSinceLastShift += 1;
@@ -417,6 +417,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       processAiResponse,
     ]);
 
+  /**
+   * Handles a player's menu selection or special shift action.
+   * @param action - The action string chosen by the player.
+   */
   const handleActionSelect = useCallback(
     (action: string) => {
       const currentFullState = getCurrentGameState();
@@ -438,23 +442,29 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           setError('No previous reality to return to.');
         }
       } else {
-        executePlayerAction(action);
+        void executePlayerAction(action);
       }
     }, [getCurrentGameState, executePlayerAction, triggerRealityShift, setError, setGameStateStack, executeManualRealityShift]);
 
+  /**
+   * Triggers an action based on the player's interaction with an item.
+   */
   const handleItemInteraction = useCallback(
     (item: Item, interactionType: 'generic' | 'specific' | 'inspect', knownUse?: KnownUse) => {
       if (interactionType === 'inspect') {
-        executePlayerAction(`Inspect: ${item.name}`);
+        void executePlayerAction(`Inspect: ${item.name}`);
       } else if (interactionType === 'specific' && knownUse) {
-        executePlayerAction(knownUse.promptEffect);
+        void executePlayerAction(knownUse.promptEffect);
       } else if (interactionType === 'generic') {
-        executePlayerAction(`Attempt to use: ${item.name}`);
+        void executePlayerAction(`Attempt to use: ${item.name}`);
       }
     },
     [executePlayerAction]
   );
 
+  /**
+   * Removes a junk item from the inventory and records the change in state.
+   */
   const handleDiscardJunkItem = useCallback(
     (itemName: string) => {
       const currentFullState = getCurrentGameState();
@@ -463,7 +473,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const itemToDiscard = currentFullState.inventory.find((item) => item.name === itemName);
       if (!itemToDiscard || !itemToDiscard.isJunk) return;
 
-      let draftState = structuredCloneGameState(currentFullState);
+      const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.filter((item) => item.name !== itemName);
       const itemChangeRecord: ItemChangeRecord = { type: 'loss', lostItem: { ...itemToDiscard } };
       const turnChangesForDiscard: TurnChanges = {
@@ -485,6 +495,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     [getCurrentGameState, commitGameState, isLoading]
   );
 
+  /**
+   * Executes the player's typed free-form action if allowed.
+   */
   const handleFreeFormActionSubmit = useCallback(() => {
     const currentFullState = getCurrentGameState();
     if (
@@ -494,10 +507,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       hasGameBeenInitialized &&
       !currentFullState.dialogueState
     ) {
-      executePlayerAction(freeFormActionText.trim(), true);
+      void executePlayerAction(freeFormActionText.trim(), true);
     }
   }, [freeFormActionText, getCurrentGameState, isLoading, hasGameBeenInitialized, executePlayerAction]);
 
+  /**
+   * Restores the previous turn's game state if available.
+   */
   const handleUndoTurn = useCallback(() => {
     setGameStateStack((prevStack) => {
       const [current, previous] = prevStack;
