@@ -19,15 +19,15 @@ import { findThemeByName } from "./themeUtils";
 
 
 // --- Validation Helpers for SavedGameDataShape (V3) ---
-function isValidDialogueSummaryRecord(record: any): record is DialogueSummaryRecord {
+function isValidDialogueSummaryRecord(record: unknown): record is DialogueSummaryRecord {
     return record &&
         typeof record.summaryText === 'string' &&
-        Array.isArray(record.participants) && record.participants.every((p: any) => typeof p === 'string') &&
+        Array.isArray(record.participants) && record.participants.every((p: unknown) => typeof p === 'string') &&
         typeof record.timestamp === 'string' &&
         typeof record.location === 'string';
 }
 
-function isValidItemForSave(item: any): item is Item {
+function isValidItemForSave(item: unknown): item is Item {
   return item &&
     typeof item.name === 'string' &&
     typeof item.type === 'string' && (VALID_ITEM_TYPES as readonly string[]).includes(item.type) &&
@@ -43,39 +43,39 @@ function isValidItemForSave(item: any): item is Item {
     )));
 }
 
-function isValidThemeHistory(history: any): history is ThemeHistoryState {
+function isValidThemeHistory(history: unknown): history is ThemeHistoryState {
   if (typeof history !== 'object' || history === null) return false;
   for (const key in history) {
     if (Object.prototype.hasOwnProperty.call(history, key)) {
       const entry = history[key];
       if (!entry || typeof entry.summary !== 'string' || typeof entry.mainQuest !== 'string' ||
           typeof entry.currentObjective !== 'string' ||
-          !Array.isArray(entry.placeNames) || !entry.placeNames.every((name: any) => typeof name === 'string') ||
-          !Array.isArray(entry.characterNames) || !entry.characterNames.every((name: any) => typeof name === 'string')
+          !Array.isArray(entry.placeNames) || !entry.placeNames.every((name: unknown) => typeof name === 'string') ||
+          !Array.isArray(entry.characterNames) || !entry.characterNames.every((name: unknown) => typeof name === 'string')
       ) return false;
     }
   }
   return true;
 }
 
-function isValidCharacterForSave(character: any): character is Character {
+function isValidCharacterForSave(character: unknown): character is Character {
   return character && typeof character.themeName === 'string' && typeof character.name === 'string' && character.name.trim() !== '' &&
     typeof character.description === 'string' && character.description.trim() !== '' &&
-    (character.aliases === undefined || (Array.isArray(character.aliases) && character.aliases.every((alias: any) => typeof alias === 'string'))) &&
+    (character.aliases === undefined || (Array.isArray(character.aliases) && character.aliases.every((alias: unknown) => typeof alias === 'string'))) &&
     (character.presenceStatus === undefined || ['distant', 'nearby', 'companion', 'unknown'].includes(character.presenceStatus)) &&
     (character.lastKnownLocation === undefined || character.lastKnownLocation === null || typeof character.lastKnownLocation === 'string') &&
     (character.preciseLocation === undefined || character.preciseLocation === null || typeof character.preciseLocation === 'string') &&
     (character.dialogueSummaries === undefined || (Array.isArray(character.dialogueSummaries) && character.dialogueSummaries.every(isValidDialogueSummaryRecord)));
 }
 
-function isValidThemePackNameArray(packs: any): packs is ThemePackName[] {
+function isValidThemePackNameArray(packs: unknown): packs is ThemePackName[] {
   return Array.isArray(packs) && packs.every(p => typeof p === 'string' && ALL_THEME_PACK_NAMES.includes(p as ThemePackName));
 }
 
-function isValidMapNodeData(data: any): data is MapNodeData {
+function isValidMapNodeData(data: unknown): data is MapNodeData {
     return data && typeof data === 'object' && data !== null &&
            typeof data.description === 'string' && // Description is mandatory
-           (data.aliases === undefined || (Array.isArray(data.aliases) && data.aliases.every((alias: any) => typeof alias === 'string'))) &&
+           (data.aliases === undefined || (Array.isArray(data.aliases) && data.aliases.every((alias: unknown) => typeof alias === 'string'))) &&
            (data.status === undefined || ['undiscovered', 'discovered', 'rumored', 'quest_target'].includes(data.status)) &&
            (data.visited === undefined || typeof data.visited === 'boolean') &&
            (data.isLeaf === undefined || typeof data.isLeaf === 'boolean') &&
@@ -83,7 +83,7 @@ function isValidMapNodeData(data: any): data is MapNodeData {
 }
 
 
-function isValidMapNode(node: any): node is MapNode {
+function isValidMapNode(node: unknown): node is MapNode {
     return node && typeof node.id === 'string' && node.id.trim() !== '' &&
            typeof node.themeName === 'string' &&
            typeof node.placeName === 'string' && node.placeName.trim() !== '' &&
@@ -92,20 +92,20 @@ function isValidMapNode(node: any): node is MapNode {
            isValidMapNodeData(node.data);
 }
 
-function isValidMapEdge(edge: any): edge is MapEdge {
+function isValidMapEdge(edge: unknown): edge is MapEdge {
     return edge && typeof edge.id === 'string' && edge.id.trim() !== '' &&
            typeof edge.sourceNodeId === 'string' && edge.sourceNodeId.trim() !== '' &&
            typeof edge.targetNodeId === 'string' && edge.targetNodeId.trim() !== '' &&
            typeof edge.data === 'object' && edge.data !== null;
 }
 
-function isValidMapData(mapData: any): mapData is MapData {
+function isValidMapData(mapData: unknown): mapData is MapData {
     return mapData && typeof mapData === 'object' && mapData !== null &&
            Array.isArray(mapData.nodes) && mapData.nodes.every(isValidMapNode) &&
            Array.isArray(mapData.edges) && mapData.edges.every(isValidMapEdge);
 }
 
-function isValidMapLayoutConfig(config: any): config is MapLayoutConfig {
+function isValidMapLayoutConfig(config: unknown): config is MapLayoutConfig {
     if (!config || typeof config !== 'object') return false;
     const defaultConfigKeys = Object.keys(getDefaultMapLayoutConfig()) as Array<keyof MapLayoutConfig>;
     for (const key of defaultConfigKeys) {
@@ -117,7 +117,7 @@ function isValidMapLayoutConfig(config: any): config is MapLayoutConfig {
     return true;
 }
 
-function isValidAdventureThemeObject(obj: any): obj is AdventureTheme {
+function isValidAdventureThemeObject(obj: unknown): obj is AdventureTheme {
     return obj &&
            typeof obj.name === 'string' && obj.name.trim() !== '' &&
            typeof obj.systemInstructionModifier === 'string' &&
@@ -128,7 +128,7 @@ function isValidAdventureThemeObject(obj: any): obj is AdventureTheme {
 }
 
 
-export function validateSavedGameState(data: any): data is SavedGameDataShape {
+export function validateSavedGameState(data: unknown): data is SavedGameDataShape {
   if (!data || typeof data !== 'object') { console.warn("Invalid save data: Not an object."); return false; }
   if (data.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
     console.warn(`Save data version mismatch. Expected ${CURRENT_SAVE_GAME_VERSION}, got ${data.saveGameVersion}. Attempting to load anyway if structure is V3-compatible.`);
@@ -154,11 +154,11 @@ export function validateSavedGameState(data: any): data is SavedGameDataShape {
   if (data.currentThemeName !== null && typeof data.currentThemeName !== 'string') { console.warn("Invalid save data (V3): currentThemeName type."); return false; }
   if (data.currentThemeObject !== null && !isValidAdventureThemeObject(data.currentThemeObject)) { console.warn("Invalid save data (V3): currentThemeObject type or structure."); return false; }
   if (typeof data.currentScene !== 'string') { console.warn("Invalid save data (V3): currentScene type."); return false; }
-  if (!Array.isArray(data.actionOptions) || !data.actionOptions.every((opt: any) => typeof opt === 'string')) { console.warn("Invalid save data (V3): actionOptions."); return false; }
+  if (!Array.isArray(data.actionOptions) || !data.actionOptions.every((opt: unknown) => typeof opt === 'string')) { console.warn("Invalid save data (V3): actionOptions."); return false; }
   if (data.mainQuest !== null && typeof data.mainQuest !== 'string') { console.warn("Invalid save data (V3): mainQuest type."); return false; }
   if (data.currentObjective !== null && typeof data.currentObjective !== 'string') { console.warn("Invalid save data (V3): currentObjective type."); return false; }
   if (!Array.isArray(data.inventory) || !data.inventory.every(isValidItemForSave)) { console.warn("Invalid save data (V3): inventory."); return false; }
-  if (!Array.isArray(data.gameLog) || !data.gameLog.every((msg: any) => typeof msg === 'string')) { console.warn("Invalid save data (V3): gameLog."); return false; }
+  if (!Array.isArray(data.gameLog) || !data.gameLog.every((msg: unknown) => typeof msg === 'string')) { console.warn("Invalid save data (V3): gameLog."); return false; }
   if (data.lastActionLog !== null && typeof data.lastActionLog !== 'string') { console.warn("Invalid save data (V3): lastActionLog type."); return false; }
   if (!isValidThemeHistory(data.themeHistory)) { console.warn("Invalid save data (V3): themeHistory."); return false; }
   if (data.pendingNewThemeNameAfterShift !== null && typeof data.pendingNewThemeNameAfterShift !== 'string') { console.warn("Invalid save data (V3): pendingNewThemeNameAfterShift type."); return false; }
@@ -201,8 +201,9 @@ export function ensureCompleteMapLayoutConfig(configHolder: { mapLayoutConfig?: 
         const loadedConfig = configHolder.mapLayoutConfig as Partial<MapLayoutConfig>; // Cast to allow partial
         const patchedConfig: Partial<MapLayoutConfig> = {};
         for (const key of Object.keys(defaultConfig) as Array<keyof MapLayoutConfig>) {
-            if (loadedConfig.hasOwnProperty(key) && typeof (loadedConfig as any)[key] === 'number') {
-                patchedConfig[key] = (loadedConfig as any)[key];
+            const val = (loadedConfig as Record<string, unknown>)[key];
+            if (loadedConfig.hasOwnProperty(key) && typeof val === 'number') {
+                patchedConfig[key] = val;
             } else {
                 patchedConfig[key] = defaultConfig[key];
             }
@@ -408,7 +409,7 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
         }
 
         if (dataToValidateAndExpand) {
-          const gt = (dataToValidateAndExpand as any).globalTurnNumber;
+          const gt = (dataToValidateAndExpand as { globalTurnNumber?: unknown }).globalTurnNumber;
           if (typeof gt === 'string') {
             const parsed = parseInt(gt, 10);
             dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
@@ -425,9 +426,9 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
             dataToValidateAndExpand.localTime = dataToValidateAndExpand.localTime ?? null;
             dataToValidateAndExpand.localEnvironment = dataToValidateAndExpand.localEnvironment ?? null;
             dataToValidateAndExpand.localPlace = dataToValidateAndExpand.localPlace ?? null;
-            dataToValidateAndExpand.allCharacters = dataToValidateAndExpand.allCharacters.map((c: any) => ({
-              ...c, 
-              aliases: c.aliases || [], 
+            dataToValidateAndExpand.allCharacters = dataToValidateAndExpand.allCharacters.map((c: unknown) => ({
+              ...c,
+              aliases: c.aliases || [],
               presenceStatus: c.presenceStatus || 'unknown',
               lastKnownLocation: c.lastKnownLocation ?? null,
               preciseLocation: c.preciseLocation || null,
