@@ -225,11 +225,16 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
             if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
             if (node.data.status === 'quest_target') nodeClass += ' quest_target';
-            const maxCharsPerLine = node.data.nodeType === 'feature' ? 20 : 25;
-            const labelLines = splitTextIntoLines(node.placeName, maxCharsPerLine, MAX_LABEL_LINES);
             const isHost = hostNodeIdSet.has(node.id);
+            const maxCharsPerLine =
+              node.data.nodeType === 'feature' || !isHost ? 20 : 25;
+            const labelLines = splitTextIntoLines(
+              node.placeName,
+              maxCharsPerLine,
+              MAX_LABEL_LINES
+            );
             const initialDyOffset = isHost
-              ? getRadiusForNode(node) / 10 + 2
+              ? (getRadiusForNode(node) / 10 + 2) * 0.75
               : -(labelLines.length - 1) * 0.5 * LABEL_LINE_HEIGHT_EM + 0.3;
             const radius = getRadiusForNode(node);
             const handleEnter = (e: React.MouseEvent) => handleNodeMouseEnter(node, e);
@@ -244,6 +249,44 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
                 >
                   <circle className={nodeClass} r={radius} />
                   <text className="map-node-label leaf-label" pointerEvents="none">
+                    {labelLines.map((line, index) => (
+                      <tspan
+                        key={`${node.id}-line-${index}`}
+                        x="0"
+                        dy={index === 0 ? `${initialDyOffset}em` : `${LABEL_LINE_HEIGHT_EM}em`}
+                      >
+                        {line}
+                      </tspan>
+                    ))}
+                  </text>
+                </g>
+              );
+            }
+
+            if (!isHost) {
+              return (
+                <g
+                  key={node.id}
+                  transform={`translate(${node.position.x}, ${node.position.y})`}
+                  className="map-node"
+                >
+                  <circle className={nodeClass} r={radius} pointerEvents="none" />
+                  <circle
+                    className="map-node-hover-ring"
+                    r={radius}
+                    fill="none"
+                    stroke="transparent"
+                    strokeWidth={8}
+                    pointerEvents="stroke"
+                    onMouseEnter={handleEnter}
+                    onMouseLeave={handleMouseLeaveGeneral}
+                  />
+                  <text
+                    className="map-node-label leaf-label"
+                    pointerEvents="all"
+                    onMouseEnter={handleEnter}
+                    onMouseLeave={handleMouseLeaveGeneral}
+                  >
                     {labelLines.map((line, index) => (
                       <tspan
                         key={`${node.id}-line-${index}`}
