@@ -187,7 +187,7 @@ export async function convertV1toV2Intermediate(v1Data: V1SavedGameState): Promi
         description: v1Place.description || 'Description missing from V1 save',
         aliases: v1Place.aliases || [],
         status: 'discovered',
-        isLeaf: false,
+        isFeature: false,
         visited: true,
       },
     };
@@ -297,10 +297,10 @@ export function convertV2toV3Shape(v2Data: V2IntermediateSavedGameState): SavedG
           description: node.data.description || 'Description missing from V2 save',
           aliases: node.data.aliases || [],
           status: node.data.status || 'discovered',
-          isLeaf: node.data.isLeaf ?? false,
+          isFeature: node.data.isFeature ?? false,
           visited: node.data.visited ?? false,
           parentNodeId: node.data.parentNodeId,
-          ...Object.fromEntries(Object.entries(node.data).filter(([key]) => !['description', 'aliases', 'status', 'isLeaf', 'visited', 'parentNodeId'].includes(key)))
+          ...Object.fromEntries(Object.entries(node.data).filter(([key]) => !['description', 'aliases', 'status', 'isFeature', 'visited', 'parentNodeId'].includes(key)))
         }
       })),
       edges: v2Data.mapData.edges,
