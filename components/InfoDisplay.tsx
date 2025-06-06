@@ -40,7 +40,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
             <p className="text-slate-300 leading-relaxed">
               Welcome to "Whispers in the Dark," an AI-powered text adventure game where you navigate a constantly shifting reality. 
               Your choices directly shape your fate as you uncover secrets, manage your inventory, and survive the challenges 
-              presented by an enigmatic Dungeon Master, powered by Google's Gemini AI. Each reality shift brings a new theme,
+              presented by an enigmatic Dungeon Master, powered by Google&apos;s Gemini AI. Each reality shift brings a new theme,
               new quests, and new dangers. You can also choose to start a "Custom Game" in a specific theme with random reality shifts disabled.
             </p>
           </section>
@@ -51,7 +51,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
             </h2>
             <div className="space-y-3 text-slate-300 leading-relaxed">
               <p><strong>Core Gameplay Loop:</strong> Read the scene description, then choose one of the provided action options, or use any of your items. Your actions determine the story's progression.</p>
-              <p><strong>Inventory:</strong> You'll acquire items throughout your adventure. Items can be gained, lost, or used. Some items have specific "Known Uses" that unlock as you interact with them or the environment. You can "Inspect" items for more details or "Attempt to Use" them in a generic way if no specific use is known or applicable. Item types include single-use, multi-use, equipment, containers, keys, weapons, ammunition, vehicles, knowledge, and status effects.</p>
+              <p><strong>Inventory:</strong> You&apos;ll acquire items throughout your adventure. Items can be gained, lost, or used. Some items have specific "Known Uses" that unlock as you interact with them or the environment. You can "Inspect" items for more details or "Attempt to Use" them in a generic way if no specific use is known or applicable. Item types include single-use, multi-use, equipment, containers, keys, weapons, ammunition, vehicles, knowledge, and status effects.</p>
               <p><strong>Quests & Objectives:</strong> Each theme typically has an "Overarching Quest" (a long-term goal) and a "Current Objective" (a short-term task). Completing objectives grants Score points and advances the story. The win/lose conditions are not implemented yet, and completing the main quest does not do much.</p>
               <p><strong>Local Context:</strong> The game tracks "Local Time," "Local Environment," and "Local Place." These details are influenced by your actions and the AI's narrative, providing a more immersive experience. The AI uses this context to generate scenes and the Image Visualizer uses it to create more accurate pictures.</p>
               <p><strong>Score & Custom Actions:</strong> You earn Score points primarily by completing objectives. These points can be spent to perform "Custom Actions" by typing your desired action into the input field. Custom actions cost points and have a character limit.</p>
@@ -68,8 +68,8 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
             </h2>
             <div className="space-y-3 text-slate-300 leading-relaxed">
               <p><strong>Image Visualizer:</strong> Click the "eye" icon to generate an AI-powered image representing the current scene. It uses Imagen 3, and the daily quota is not very big. Use sporadingly.</p>
-              <p><strong>Knowledge Base:</strong> Click the "book" icon to view details about all Places and Characters you've discovered across different themes.</p>
-              <p><strong>Echoes of Past Realities:</strong> This panel (part of the main game screen) shows a summary of themes you've previously experienced, helping you remember past adventures.</p>
+              <p><strong>Knowledge Base:</strong> Click the "book" icon to view details about all Places and Characters you&apos;ve discovered across different themes.</p>
+              <p><strong>Echoes of Past Realities:</strong> This panel (part of the main game screen) shows a summary of themes you&apos;ve previously experienced, helping you remember past adventures.</p>
               <p><strong>Map Display:</strong> Use the map icon to view a dynamic graph of locations within the current theme, showing connections and your current position.</p>
             </div>
           </section>
@@ -127,10 +127,10 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                   <li>The initial scenarios can now vary a little from game to game.</li>
                   <li>You are guaranteed to get theme-relevant items at the start of a new game.</li>
                   <li>Fixed some UI elements not updating with the game state.</li>
-                  <li>Added an animated overlay for gaining, losing, and changing items. You can cancel it by clicking if too many items transform after shift. (it took me way too long to debug, the AI couldn't find the source of the visual bugs)</li>
+                  <li>Added an animated overlay for gaining, losing, and changing items. You can cancel it by clicking if too many items transform after shift. (it took me way too long to debug, the AI couldn&apos;t find the source of the visual bugs)</li>
                   <li>Implemented more triage procedures for malformed AI output when it tried to trigger an action with nonexistent item/place/character.</li>
                   <li>Operations with items are now more reliable, primarily as the rusult of the previous fix.</li>
-                  <li>Items now track their specific functions better and don't inexplicably lose them as often.</li>
+                  <li>Items now track their specific functions better and don&apos;t inexplicably lose them as often.</li>
                   <li>Items now recieve their whenActive/whenInactive actions more reliably. Torches, flashlights, powered equipment, wielded weapons, worn clothing/armor.</li>
                   <li>The number of uses for limited-use items like food, water, ammo, etc. can go up and down.</li>
                   <li>Items should no longer get a duplicate "Inspect" function too often.</li>
@@ -156,9 +156,9 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                   <li>Moved Echoes of Past Realities to a dedicated screen next to Knowledge Base.</li>
                   <li>Inventory Items can now be arranged in multiple columns on bigger screens.</li>
                   <li>Basic Inventory sorting.</li>
-                  <li>Fixed the ability to exit and enter vehicles. (Try exiting an airship while it's flying)</li>
+                  <li>Fixed the ability to exit and enter vehicles. (Try exiting an airship while it&apos;s flying)</li>
                   <li>Some code refactoring and simplification behind the scenes.</li>
-                  <li>Less obtrusive attention to player's character gender in scene descriptions. Hopefully...</li>
+                  <li>Less obtrusive attention to player&apos;s character gender in scene descriptions. Hopefully...</li>
                   <li>Less frequent garbled text in the Visualizer images.</li>
                 </ul>
                 <h3 className="text-xl font-medium text-sky-400 mb-2">Version 1.1</h3>
@@ -181,10 +181,10 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                   <li>Inventory display updated: newly acquired items appear at the top and feature a brief animation.</li>
                   <li>Centralized the definition of `VALID_ITEM_TYPES` for consistency across the application and AI prompts.</li>
                   <li>Refactored components responsible for main game state and AI response fixes.</li>
-                  <li>Added "Local Place" tracking: AI now manages and updates the player's specific location within a scene. This is displayed in the UI, used as AI context, influences image generation, and includes correction logic for older save files.</li>
+                  <li>Added "Local Place" tracking: AI now manages and updates the player&apos;s specific location within a scene. This is displayed in the UI, used as AI context, influences image generation, and includes correction logic for older save files.</li>
                   <li>Added the ability to discard Junk items. The AI storyteller decides which items may be treated as junk at every moment.</li>
                   <li>Added the ability to choose a set of Theme-packs in the settings to limit the genres of the adventure.</li>
-                  <li>Added Player's Character gender to Settings that can slightly affect the story.</li>
+                  <li>Added Player&apos;s Character gender to Settings that can slightly affect the story.</li>
                   <li>Settings are now accessible from the Title screen (when no saved game exist).</li>
                   <li>The additional tracking of time and space greatly improved the cohesion of the storytelling.</li>
                   <li>Added this "Info" panel for game guidance and changelog.</li>
