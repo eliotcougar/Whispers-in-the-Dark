@@ -53,7 +53,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
     const stateAfterPlayerChoice: FullGameState = {
       ...currentFullState,
       dialogueState: {
-        ...(currentFullState.dialogueState as DialogueData),
+        ...currentFullState.dialogueState,
         history: historyWithPlayerChoice,
         options: [],
       },
@@ -115,7 +115,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           }
         } else if (latestStateAfterFetch.dialogueState) {
           setError('The conversation faltered. Try choosing an option again or ending the dialogue.');
-          let errorDialogueState = { ...latestStateAfterFetch.dialogueState };
+          const errorDialogueState = { ...latestStateAfterFetch.dialogueState };
           if (errorDialogueState.options.length === 0) {
             errorDialogueState.options = originalOptions.length > 0 ? originalOptions : ['End Conversation.'];
           }

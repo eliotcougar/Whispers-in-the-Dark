@@ -9,7 +9,6 @@ import {
   DialogueSummaryResponse,
   FullGameState,
   DialogueSummaryContext,
-  DialogueData,
   LoadingReason,
   MapData,
   DialogueSummaryRecord,
@@ -80,7 +79,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setDialogueUiCloseDelayTargetMs(Date.now() + DIALOGUE_EXIT_READ_DELAY_MS);
     setError(null);
 
-    let workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
+    const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
 
     setLoadingReason('dialogue_memory_creation');
     const memorySummaryContext: DialogueMemorySummaryContext = {
@@ -177,7 +176,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
         lastTurnChanges: null,
       };
       commitGameState(stateWithForceExit);
-      initiateDialogueExit(stateWithForceExit);
+      void initiateDialogueExit(stateWithForceExit);
     }
   }, [getCurrentGameState, commitGameState, isDialogueExiting, initiateDialogueExit]);
 
