@@ -5,7 +5,7 @@
 
 import { GameStateFromAI, Item, ItemChange, Character, MapData,
     ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload,
-    CharacterPresenceInfo, MapNode, AdventureTheme } from '../types';
+    MapNode, AdventureTheme } from '../types';
 import {
     isValidItem,
     isValidCharacterUpdate,
@@ -47,7 +47,7 @@ interface DialogueResult {
  * Returns the object back if valid or null if validation fails.
  */
 function validateBasicStructure(
-    parsedData: any,
+    parsedData: unknown,
     onParseAttemptFailed?: () => void
 ): Partial<GameStateFromAI> | null {
     if (!parsedData || typeof parsedData !== 'object') {
@@ -56,25 +56,26 @@ function validateBasicStructure(
         return null;
     }
 
-    if (typeof parsedData.sceneDescription !== 'string' || parsedData.sceneDescription.trim() === '') {
+    const data = parsedData as Record<string, unknown>;
+    if (typeof data.sceneDescription !== 'string' || data.sceneDescription.trim() === '') {
         console.warn('parseAIResponse: sceneDescription is missing or empty.', parsedData);
         onParseAttemptFailed?.();
         return null;
     }
 
     const baseFieldsValid =
-        (parsedData.mainQuest === undefined || typeof parsedData.mainQuest === 'string') &&
-        (parsedData.currentObjective === undefined || typeof parsedData.currentObjective === 'string') &&
-        (parsedData.logMessage === undefined || typeof parsedData.logMessage === 'string') &&
-        (parsedData.charactersAdded === undefined || Array.isArray(parsedData.charactersAdded)) &&
-        (parsedData.charactersUpdated === undefined || Array.isArray(parsedData.charactersUpdated)) &&
-        (parsedData.objectiveAchieved === undefined || typeof parsedData.objectiveAchieved === 'boolean') &&
-        (parsedData.localTime === undefined || typeof parsedData.localTime === 'string') &&
-        (parsedData.localEnvironment === undefined || typeof parsedData.localEnvironment === 'string') &&
-        (parsedData.localPlace === undefined || typeof parsedData.localPlace === 'string') &&
-        (parsedData.dialogueSetup === undefined || typeof parsedData.dialogueSetup === 'object') &&
-        (parsedData.mapUpdated === undefined || typeof parsedData.mapUpdated === 'boolean') &&
-        (parsedData.currentMapNodeId === undefined || parsedData.currentMapNodeId === null || typeof parsedData.currentMapNodeId === 'string');
+        (data.mainQuest === undefined || typeof data.mainQuest === 'string') &&
+        (data.currentObjective === undefined || typeof data.currentObjective === 'string') &&
+        (data.logMessage === undefined || typeof data.logMessage === 'string') &&
+        (data.charactersAdded === undefined || Array.isArray(data.charactersAdded)) &&
+        (data.charactersUpdated === undefined || Array.isArray(data.charactersUpdated)) &&
+        (data.objectiveAchieved === undefined || typeof data.objectiveAchieved === 'boolean') &&
+        (data.localTime === undefined || typeof data.localTime === 'string') &&
+        (data.localEnvironment === undefined || typeof data.localEnvironment === 'string') &&
+        (data.localPlace === undefined || typeof data.localPlace === 'string') &&
+        (data.dialogueSetup === undefined || typeof data.dialogueSetup === 'object') &&
+        (data.mapUpdated === undefined || typeof data.mapUpdated === 'boolean') &&
+        (data.currentMapNodeId === undefined || data.currentMapNodeId === null || typeof data.currentMapNodeId === 'string');
 
     if (!baseFieldsValid) {
         console.warn('parseAIResponse: Basic field validation failed (pre-dialogue specifics and array checks).', parsedData);
@@ -82,7 +83,7 @@ function validateBasicStructure(
         return null;
     }
 
-    return parsedData as Partial<GameStateFromAI>;
+    return data as Partial<GameStateFromAI>;
 }
 
 /**
@@ -170,18 +171,20 @@ async function handleDialogueSetup(
  * Validates and corrects itemChange payloads.
  */
 async function processItemChanges(
-    itemChanges: any,
+    itemChanges: unknown,
     baseData: Partial<GameStateFromAI>,
     context: ParserContext
 ): Promise<ItemChange[]> {
-    const changes: any[] = Array.isArray(itemChanges) ? itemChanges : [];
+    const changes: unknown[] = Array.isArray(itemChanges) ? itemChanges : [];
     if (!Array.isArray(itemChanges)) {
         console.warn('parseAIResponse: Invalid itemChange format (expected array). Discarding itemChange.', itemChanges);
     }
 
     const processedItemChanges: ItemChange[] = [];
     for (const rawIc of changes) {
-        let ic = { ...rawIc } as ItemChange;
+        const ic = typeof rawIc === 'object' && rawIc !== null
+            ? ({ ...(rawIc as Record<string, unknown>) } as ItemChange)
+            : (rawIc as ItemChange);
         if (typeof ic === 'object' && ic !== null && Object.keys(ic).length === 0 && ic.constructor === Object) {
             console.warn("parseAIResponse ('itemChange'): Skipping empty itemChange object:", ic);
             continue;
@@ -280,8 +283,14 @@ async function processItemChanges(
             case 'lose':
                 if (typeof currentItemPayload === 'string') {
                     currentInvalidPayload = undefined;
-                } else if (typeof currentItemPayload === 'object' && currentItemPayload !== null && typeof (currentItemPayload as any).name === 'string' && (currentItemPayload as any).name.trim() !== '') {
-                    currentItemPayload = (currentItemPayload as any).name.trim();
+                } else if (
+                    typeof currentItemPayload === 'object' &&
+                    currentItemPayload !== null &&
+                    'name' in currentItemPayload &&
+                    typeof (currentItemPayload as { name: unknown }).name === 'string' &&
+                    (currentItemPayload as { name: string }).name.trim() !== ''
+                ) {
+                    currentItemPayload = (currentItemPayload as { name: string }).name.trim();
                     currentInvalidPayload = undefined;
                     console.warn(`parseAIResponse ('${ic.action}'): Item payload was object, extracted name: "${currentItemPayload}".`);
                 } else {
@@ -300,14 +309,17 @@ async function processItemChanges(
  * Handles character additions and updates validation/correction logic.
  */
 async function handleCharacterChanges(
-    rawAdded: any,
-    rawUpdated: any,
+    rawAdded: unknown,
+    rawUpdated: unknown,
     baseData: Partial<GameStateFromAI>,
     context: ParserContext
 ): Promise<{ charactersAdded: Character[]; charactersUpdated: ValidCharacterUpdatePayload[] }> {
     const finalCharactersAdded: Character[] = [];
     if (Array.isArray(rawAdded)) {
         for (const originalCharAdd of rawAdded) {
+            const originalName = (typeof originalCharAdd === 'object' && originalCharAdd !== null && 'name' in originalCharAdd)
+                ? (originalCharAdd as { name?: unknown }).name as string | undefined
+                : undefined;
             if (isValidNewCharacterPayload(originalCharAdd)) {
                 finalCharactersAdded.push({
                     ...(originalCharAdd as Character),
@@ -317,9 +329,9 @@ async function handleCharacterChanges(
                     themeName: '',
                 });
             } else {
-                console.warn(`parseAIResponse ('charactersAdded'): Invalid character structure for "${(originalCharAdd as any)?.name || 'Unknown Name'}". Attempting correction.`);
+                console.warn(`parseAIResponse ('charactersAdded'): Invalid character structure for "${originalName || 'Unknown Name'}". Attempting correction.`);
                 const correctedDetails = await fetchCorrectedCharacterDetails_Service(
-                    (originalCharAdd as any)?.name || 'Newly Mentioned Character',
+                    originalName || 'Newly Mentioned Character',
                     context.logMessageFromPayload || baseData.logMessage,
                     context.sceneDescriptionFromPayload || baseData.sceneDescription,
                     context.currentTheme,
@@ -327,7 +339,7 @@ async function handleCharacterChanges(
                 );
                 if (correctedDetails) {
                     const correctedCharAddPayload: ValidNewCharacterPayload = {
-                        name: (originalCharAdd as any)?.name || (correctedDetails.description.split(' ').slice(0, 2).join(' ') || 'Corrected Character'),
+                        name: originalName || (correctedDetails.description.split(' ').slice(0, 2).join(' ') || 'Corrected Character'),
                         description: correctedDetails.description,
                         aliases: correctedDetails.aliases,
                         presenceStatus: correctedDetails.presenceStatus,
@@ -338,10 +350,10 @@ async function handleCharacterChanges(
                         finalCharactersAdded.push({ ...correctedCharAddPayload, themeName: '' } as Character);
                         console.log(`parseAIResponse ('charactersAdded'): Successfully corrected character:`, correctedCharAddPayload.name);
                     } else {
-                        console.warn(`parseAIResponse ('charactersAdded'): Corrected character "${(originalCharAdd as any)?.name || 'Unknown Name'}" still invalid. Discarding. Corrected Data:`, correctedCharAddPayload);
+                        console.warn(`parseAIResponse ('charactersAdded'): Corrected character "${originalName || 'Unknown Name'}" still invalid. Discarding. Corrected Data:`, correctedCharAddPayload);
                     }
                 } else {
-                    console.warn(`parseAIResponse ('charactersAdded'): Failed to correct character "${(originalCharAdd as any)?.name || 'Unknown Name'}". Discarding.`);
+                    console.warn(`parseAIResponse ('charactersAdded'): Failed to correct character "${originalName || 'Unknown Name'}". Discarding.`);
                 }
             }
         }
@@ -349,12 +361,12 @@ async function handleCharacterChanges(
         console.warn("parseAIResponse ('charactersAdded'): Field was present but not an array.", rawAdded);
     }
 
-    const rawCharacterUpdates: any[] = Array.isArray(rawUpdated) ? rawUpdated : [];
+    const rawCharacterUpdates: unknown[] = Array.isArray(rawUpdated) ? rawUpdated : [];
     const tempFinalCharactersUpdatedPayloads: ValidCharacterUpdatePayload[] = [];
 
     for (const cUpdate of rawCharacterUpdates) {
-        if (typeof cUpdate.name === 'string' && cUpdate.name.trim() !== '') {
-            let currentCUpdatePayload: any = { ...cUpdate };
+        if (typeof (cUpdate as Record<string, unknown>).name === 'string' && (cUpdate as Record<string, unknown>).name.trim() !== '') {
+            let currentCUpdatePayload: { [key: string]: unknown; name: string } = { ...(cUpdate as Record<string, unknown>) } as { [key: string]: unknown; name: string };
             const allKnownAndCurrentlyAddedCharNames = new Set([
                 ...context.allRelevantCharacters.map(c => c.name),
                 ...finalCharactersAdded.map(c => c.name),
@@ -569,8 +581,8 @@ export async function parseAIResponse(
         validated.localEnvironment = validated.localEnvironment?.trim() || 'Environment Undetermined';
         validated.localPlace = validated.localPlace?.trim() || 'Undetermined Location';
 
-        delete (validated as any).placesAdded;
-        delete (validated as any).placesUpdated;
+        delete (validated as Record<string, unknown>).placesAdded;
+        delete (validated as Record<string, unknown>).placesUpdated;
 
         return validated as GameStateFromAI;
 
