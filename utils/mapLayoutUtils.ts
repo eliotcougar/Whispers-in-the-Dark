@@ -415,72 +415,125 @@ export const applyBasicLayoutAlgorithm = (
 };
 
 /**
- * Calculates a simple nested circle layout based solely on parent/child
- * relationships. Each parent node encloses its children in a circle whose
- * radius is derived from the summed area of the children's circles. Children
- * are distributed evenly around their parent.
+ * Calculates a nested circle layout using an iterative packing algorithm.
+ * Each parent node encloses its children while children are positioned on the
+ * circumference of a circle that is just large enough to avoid overlaps. Leaf
+ * feature nodes receive a fixed base radius. The computation runs bottom-up so
+ * each parent's radius is known before positioning its siblings.
+ *
  * @param nodes - Array of map nodes to layout.
- * @returns A new array of nodes with updated positions and visualRadius values.
+ * @returns A new array of nodes with updated absolute positions and
+ *          `visualRadius` values.
  */
 export const applyNestedCircleLayout = (nodes: MapNode[]): MapNode[] => {
   if (nodes.length === 0) return [];
 
   const nodeMap = new Map(nodes.map(n => [n.id, structuredCloneGameState(n)]));
-  const childMap: Map<string, MapNode[]> = new Map();
-  nodes.forEach(n => {
-    const parentId = n.data.parentNodeId && n.data.parentNodeId !== 'Universe' ? n.data.parentNodeId : undefined;
-    if (parentId && nodeMap.has(parentId)) {
-      if (!childMap.has(parentId)) childMap.set(parentId, []);
-      childMap.get(parentId)!.push(nodeMap.get(n.id)!);
+  const childrenByParent: Map<string, string[]> = new Map();
+  nodeMap.forEach(node => {
+    const pid = node.data.parentNodeId && node.data.parentNodeId !== 'Universe' ? node.data.parentNodeId : undefined;
+    if (pid) {
+      if (!childrenByParent.has(pid)) childrenByParent.set(pid, []);
+      childrenByParent.get(pid)!.push(node.id);
     }
   });
 
-  /** Recursively computes visualRadius for a node based on its children. */
-  const computeRadius = (node: MapNode): number => {
-    const children = childMap.get(node.id) || [];
-    if (children.length === 0) {
-      node.data.visualRadius = NODE_RADIUS;
-    } else {
-      let totalArea = 0;
-      children.forEach(c => {
-        totalArea += Math.pow(computeRadius(c), 2);
-      });
-      // Expand parent circle enough to contain children labels comfortably
-      node.data.visualRadius = Math.sqrt(totalArea) * 1.8;
+  const BASE_FEATURE_RADIUS = NODE_RADIUS;
+  const PADDING = 5;
+  const SMALL_ANGLE_PADDING = 0.1;
+  const INCREMENT = 2;
+
+  /**
+   * Recursively layouts a node's children returning the radius for that node.
+   * Positions are stored relative to the node itself.
+   */
+  const layoutNode = (nodeId: string): number => {
+    const node = nodeMap.get(nodeId)!;
+    const childIds = childrenByParent.get(nodeId) || [];
+
+    if (node.data.nodeType === 'feature' || childIds.length === 0) {
+      node.data.visualRadius = BASE_FEATURE_RADIUS;
+      node.position = { x: 0, y: 0 };
+      return node.data.visualRadius;
     }
-    return node.data.visualRadius!;
+
+    // Layout children first
+    childIds.forEach(cid => layoutNode(cid));
+
+    if (childIds.length === 1) {
+      const onlyChild = nodeMap.get(childIds[0])!;
+      onlyChild.position = { x: 0, y: 0 };
+      node.data.visualRadius = (onlyChild.data.visualRadius || BASE_FEATURE_RADIUS) + PADDING;
+      node.position = { x: 0, y: 0 };
+      return node.data.visualRadius;
+    }
+
+    const children = childIds.map(cid => nodeMap.get(cid)!);
+
+    let R = Math.max(...children.map(c => c.data.visualRadius || BASE_FEATURE_RADIUS));
+    const angleGap = SMALL_ANGLE_PADDING;
+
+    while (true) {
+      let totalAngle = 0;
+      for (const child of children) {
+        const r = child.data.visualRadius || BASE_FEATURE_RADIUS;
+        if (R < r) {
+          totalAngle = 2 * Math.PI + 1;
+          break;
+        }
+        totalAngle += 2 * Math.asin(r / R);
+      }
+      totalAngle += children.length * angleGap;
+      if (totalAngle <= 2 * Math.PI) break;
+      R += INCREMENT;
+    }
+
+    let currentAngle = 0;
+    for (const child of children) {
+      const r = child.data.visualRadius || BASE_FEATURE_RADIUS;
+      child.position = {
+        x: R * Math.cos(currentAngle),
+        y: R * Math.sin(currentAngle),
+      };
+      currentAngle += 2 * Math.asin(r / R) + angleGap;
+    }
+
+    const maxChildRadius = Math.max(...children.map(c => c.data.visualRadius || BASE_FEATURE_RADIUS));
+    node.data.visualRadius = R + maxChildRadius + PADDING;
+    node.position = { x: 0, y: 0 };
+    return node.data.visualRadius;
   };
 
-  const roots = nodes.filter(n => !n.data.parentNodeId || n.data.parentNodeId === 'Universe').map(n => nodeMap.get(n.id)!);
-  roots.forEach(r => computeRadius(r));
+  const rootIds = Array.from(nodeMap.values())
+    .filter(n => !n.data.parentNodeId || n.data.parentNodeId === 'Universe')
+    .map(n => n.id);
 
-  /** Recursively positions a node and its children. */
-  const positionNode = (node: MapNode, cx: number, cy: number) => {
-    node.position = { x: cx, y: cy };
-    const children = childMap.get(node.id) || [];
-    if (children.length === 0) return;
-    const angleStep = (2 * Math.PI) / children.length;
-    const radiusForChildren = node.data.visualRadius! * 0.75;
-    children.forEach((child, idx) => {
-      const childR = child.data.visualRadius || NODE_RADIUS;
-      const angle = angleStep * idx;
-      const px = cx + (radiusForChildren - childR) * Math.cos(angle);
-      const py = cy + (radiusForChildren - childR) * Math.sin(angle);
-      positionNode(child, px, py);
-    });
+  const pseudoRootId = '__root__';
+  childrenByParent.set(pseudoRootId, rootIds);
+  const pseudoRootNode: MapNode = {
+    id: pseudoRootId,
+    themeName: 'root',
+    placeName: 'root',
+    position: { x: 0, y: 0 },
+    data: { description: 'root', nodeType: 'region', status: 'discovered' },
+  };
+  nodeMap.set(pseudoRootId, pseudoRootNode);
+
+  layoutNode(pseudoRootId);
+
+  /** Apply parent offsets recursively to convert relative positions to absolute. */
+  const applyOffset = (nodeId: string, offsetX: number, offsetY: number) => {
+    const node = nodeMap.get(nodeId)!;
+    if (nodeId !== pseudoRootId) {
+      node.position = { x: node.position.x + offsetX, y: node.position.y + offsetY };
+    }
+    const childIds = childrenByParent.get(nodeId) || [];
+    childIds.forEach(cid => applyOffset(cid, node.position.x, node.position.y));
   };
 
-  const rootRadius = roots.length > 1 ? Math.max(...roots.map(r => r.data.visualRadius || NODE_RADIUS)) * 2.5 : 0;
-  roots.forEach((root, idx) => {
-    if (roots.length === 1) {
-      positionNode(root, 0, 0);
-    } else {
-      const angle = (2 * Math.PI * idx) / roots.length;
-      const x = rootRadius * Math.cos(angle);
-      const y = rootRadius * Math.sin(angle);
-      positionNode(root, x, y);
-    }
-  });
+  applyOffset(pseudoRootId, 0, 0);
+
+  nodeMap.delete(pseudoRootId);
 
   return Array.from(nodeMap.values());
 };
