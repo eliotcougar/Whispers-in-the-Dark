@@ -6,7 +6,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
-  applyNestedForceLayout,
   LayoutForceConstants,
   DEFAULT_K_REPULSION,
   DEFAULT_K_SPRING,
@@ -124,13 +123,11 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       MAX_DISPLACEMENT: layoutMaxDisplacement,
     };
 
-    // Previously the layout algorithm adjusted node positions here. The
-    // functions remain available, but automatic adjustments are disabled.
-    // const nestedNodes = applyNestedForceLayout(nodesToProcess, currentThemeEdges,
-    //   layoutIterations, forceConstants);
+    // Previously the layout algorithm adjusted node positions here using
+    // a force-directed approach, but automatic adjustments are disabled.
 
     setDisplayedNodes(nodesToProcess);
-  }, [currentThemeNodes, currentThemeEdges, layoutIterations, layoutKRepulsion, layoutKSpring, layoutIdealEdgeLength, layoutKUntangle, layoutKEdgeNodeRepulsion, layoutDampingFactor, layoutMaxDisplacement]);
+  }, [currentThemeNodes, layoutIterations, layoutKRepulsion, layoutKSpring, layoutIdealEdgeLength, layoutKUntangle, layoutKEdgeNodeRepulsion, layoutDampingFactor, layoutMaxDisplacement]);
 
   useEffect(() => {
     if (isVisible) {
@@ -140,6 +137,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     }
   }, [isVisible, runLayout]);
 
+  /** Triggers a recalculation of node positions using the current settings. */
   const handleRefreshLayout = () => {
     runLayout();
   };
