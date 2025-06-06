@@ -4,7 +4,7 @@
  * @description Main application component wiring together UI and game logic.
  */
 
-import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { FullGameState, ThemePackName } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import SceneDisplay from './components/SceneDisplay';
@@ -45,7 +45,6 @@ import {
   FREE_FORM_ACTION_MAX_LENGTH,
   DEVELOPER
 } from "./constants";
-import { getThemesFromPacks, ALL_THEME_PACK_NAMES } from "./themes";
 
 
 
@@ -333,9 +332,6 @@ const App: React.FC = () => {
     }
   };
 
-  const allAvailableThemes = useMemo(() => {
-    return getThemesFromPacks(ALL_THEME_PACK_NAMES);
-  }, []);
 
   const handleOpenCustomGameSetup = () => {
     setUserRequestedTitleMenuOpen(false);
@@ -569,13 +565,11 @@ const App: React.FC = () => {
       <CustomGameSetupScreen
         isVisible={isCustomGameSetupVisible}
         onClose={handleCloseCustomGameSetup}
-        allThemes={allAvailableThemes}
         onThemeSelected={handleCustomThemeSelectedForNewGame}
       />
       <CustomGameSetupScreen
         isVisible={isManualShiftThemeSelectionVisible}
         onClose={handleCancelManualShiftThemeSelection}
-        allThemes={allAvailableThemes}
         onThemeSelected={handleManualShiftThemeSelected}
         disabledThemeName={currentTheme?.name || null}
         titleText="Select Destination Theme"

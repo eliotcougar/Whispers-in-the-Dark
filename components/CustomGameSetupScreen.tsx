@@ -9,8 +9,7 @@ import { THEME_PACKS } from '../themes'; // To get pack names and structure
 
 interface CustomGameSetupScreenProps {
   isVisible: boolean;
-  onClose: () => void; 
-  allThemes: AdventureTheme[]; 
+  onClose: () => void;
   onThemeSelected: (themeName: string) => void;
   disabledThemeName?: string | null; // Optional: Name of a theme to disable
   titleText?: string; // Optional: Custom title for the screen
@@ -23,7 +22,6 @@ interface CustomGameSetupScreenProps {
 const CustomGameSetupScreen: React.FC<CustomGameSetupScreenProps> = ({
   isVisible,
   onClose,
-  allThemes, 
   onThemeSelected,
   disabledThemeName,
   titleText,
@@ -36,11 +34,8 @@ const CustomGameSetupScreen: React.FC<CustomGameSetupScreenProps> = ({
   const groupedThemesByPack: Record<ThemePackName, AdventureTheme[]> = 
     Object.keys(THEME_PACKS).reduce((acc, packKey) => {
       const packName = packKey as ThemePackName;
-      // Filter allThemes to get only those belonging to the current packName
-      // This assumes AdventureTheme objects have a way to identify their pack,
-      // or allThemes is already structured/filtered appropriately by the caller.
-      // For now, we'll use THEME_PACKS directly as it's simpler.
-      acc[packName] = THEME_PACKS[packName]; 
+      // Use THEME_PACKS directly to group themes by their pack.
+      acc[packName] = THEME_PACKS[packName];
       return acc;
     }, {} as Record<ThemePackName, AdventureTheme[]>);
 
