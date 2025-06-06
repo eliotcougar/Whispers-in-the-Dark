@@ -49,7 +49,7 @@ export const formatKnownCharactersForPrompt = (
     c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown'
   );
 
-  let promptParts: string[] = [];
+  const promptParts: string[] = [];
   if (companions.length > 0) {
     const companionStrings = companions.map(c => `"${c.name}" (${c.preciseLocation || 'with player'})`);
     promptParts.push(`Companions traveling with the Player: ${companionStrings.join(', ')}.`);
@@ -133,7 +133,7 @@ export const formatNewGameFirstTurnPrompt = (
   theme: AdventureTheme,
   playerGender: string
 ): string => {
-  let prompt = `Start a new adventure in the theme "${theme.name}".
+  const prompt = `Start a new adventure in the theme "${theme.name}".
 Player's Character Gender: "${playerGender}"
 Suggested Initial Scene: "${theme.initialSceneDescriptionSeed}" (Adjust to add variely)
 Suggested Initial Main Quest: "${theme.initialMainQuest}" (Adjust to add variely)
@@ -160,7 +160,7 @@ export const formatNewThemePostShiftPrompt = (
   playerGender: string
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
-  let prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
+  const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
 Initial Scene: "${theme.initialSceneDescriptionSeed}" (Adapt this to an arrival scene, describing the disorienting transition).
 Main Quest: "${theme.initialMainQuest}" (Adjust to add variely)
@@ -199,7 +199,7 @@ export const formatReturnToThemePostShiftPrompt = (
   );
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
   const charactersContext = formatKnownCharactersForPrompt(allCharactersForTheme, false);
-  let prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
+  const prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
 The Adventure Summary: "${themeMemory.summary}"
 Main Quest: "${themeMemory.mainQuest}"
@@ -270,7 +270,7 @@ export const formatMainGameTurnPrompt = (
     'Details on relevant characters mentioned in current scene or action:'
   );
 
-  let prompt = `** Context:
+  const prompt = `** Context:
 Player's Character Gender: "${playerGender}"
 Previous Local Time: "${localTime || 'Unknown'}"
 Previous Local Environment: "${localEnvironment || 'Undetermined'}"
