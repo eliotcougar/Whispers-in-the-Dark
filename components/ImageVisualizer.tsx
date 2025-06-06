@@ -49,6 +49,9 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Maps the current theme to a concise style string for the prompt.
+   */
   const getThemeStylePrompt = (theme: AdventureTheme | null): string => {
     if (!theme) return "a general fantasy style";
     // Simple mapping for style, can be expanded
@@ -65,6 +68,9 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     return `a style fitting for ${theme.name}`;
   };
   
+  /**
+   * Calls the AI service to generate an image of the current scene.
+   */
   const generateImage = useCallback(async () => {
     if (!ai || !currentTheme) {
       setError("Image generation service or theme is not available.");
@@ -140,7 +146,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
         setIsLoading(false);
         setError(null);
       } else {
-        generateImage();
+        void generateImage();
       }
     }
   }, [isVisible, cachedImageUrl, cachedImageScene, currentSceneDescription, generateImage]);
@@ -168,7 +174,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
             <h2 id="visualizer-title" className="text-xl font-semibold text-red-400 mb-2">Vision Failed</h2>
             <p>{error}</p>
             <button
-              onClick={generateImage}
+              onClick={() => { void generateImage(); }}
               className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow transition-colors"
             >
               Retry Visualization
