@@ -1,7 +1,7 @@
 /**
  * @file mapHierarchyUpgradeUtils.ts
  * @description Utilities for upgrading feature nodes to higher-level regions
- *              when they acquire child nodes. Introduces connector features and
+ *              when they acquire child nodes. Introduces linking features and
  *              reroutes edges to conform to map layering rules.
  */
 
@@ -34,7 +34,7 @@ export interface FeatureUpgradeResult {
 export const upgradeFeatureToRegion = (
   mapData: MapData,
   featureNodeId: string,
-  connectorName = 'New Connector'
+  connectorName = 'New Approach'
 ): FeatureUpgradeResult => {
   const working: MapData = structuredCloneGameState(mapData);
   const featureIndex = working.nodes.findIndex(n => n.id === featureNodeId);
@@ -116,7 +116,7 @@ export const upgradeFeaturesWithChildren = (
     if (node.data.nodeType === 'feature') {
       const hasChild = working.nodes.some(n => n.data.parentNodeId === node.id);
       if (hasChild) {
-        const res = upgradeFeatureToRegion(working, node.id, 'Temp Connector');
+        const res = upgradeFeatureToRegion(working, node.id, 'Temp Approach');
         working = res.updatedMapData;
         if (res.newNode) {
           addedNodes.push(res.newNode);

@@ -746,10 +746,20 @@ Key points:
 
   const generateUniqueId = (prefix: string) => `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
 
+  const sanitizeConnectorName = (name: string): string => {
+      const cleaned = name
+        .replace(/\bconnector\b/gi, '')
+        .replace(/\bconnecting\b/gi, '')
+        .replace(/\bconnection\b/gi, '')
+        .trim();
+      return cleaned || 'Hidden Way';
+  };
+
   const findOrCreateConnectorFeature = (
       parent: MapNode,
-      targetName: string
+      rawName: string
   ): MapNode => {
+      const targetName = sanitizeConnectorName(rawName);
       const existing = newMapData.nodes.find(n =>
           n.themeName === parent.themeName &&
           n.data.nodeType === 'feature' &&
@@ -764,8 +774,8 @@ Key points:
           placeName: targetName,
           position: { ...parent.position },
           data: {
-              description: `A short path leading toward ${targetName}`,
-              aliases: [`${targetName} connector`],
+              description: `A short path leading toward ${rawName}`,
+              aliases: [`${targetName} approach`],
               status: 'discovered',
               nodeType: 'feature',
               parentNodeId: parent.id,

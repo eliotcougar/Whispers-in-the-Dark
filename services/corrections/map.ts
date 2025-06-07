@@ -540,7 +540,8 @@ Scene Description: "${context.sceneDescription}"
 Log Message: "${context.logMessage || 'None'}"
 Theme: "${context.currentTheme.name}"`;
 
-  const systemInstr = 'Respond ONLY with the chosen feature name.';
+  const systemInstr =
+    'Respond ONLY with the chosen feature name. Avoid generic words like "connector", "connection", "connect", or "link".';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
