@@ -80,6 +80,7 @@ CRITICAL INSTRUCTIONS:
 - Edges may only connect feature nodes that share the same parent, whose parents share a common grandparent, or where one feature's parent is the grandparent of the other (child–grandchild connections).
 - Edges of type 'shortcut' are exempt from these hierarchy restrictions but still must connect feature nodes.
 - If the narrative suggests a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "data" via "nodesToUpdate", rather than adding a new node.
+- When renaming a node using "nodesToUpdate", omit any matching entry in "nodesToRemove" for that node.
 `;
 
 export const MAP_CHAIN_CORRECTION_SYSTEM_INSTRUCTION = `

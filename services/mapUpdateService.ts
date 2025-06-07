@@ -455,6 +455,18 @@ Key points:
   }
   edgesToAdd_mut = finalEdgesToAdd;
 
+  // If a node is being renamed via nodesToUpdate, ignore any matching
+  // nodesToRemove operation referencing either the old or new name.
+  (validParsedPayload.nodesToUpdate || []).forEach(upd => {
+    const updNames = [upd.placeName.toLowerCase()];
+    if (upd.newData.placeName)
+      updNames.push(upd.newData.placeName.toLowerCase());
+    for (const name of updNames) {
+      const idx = nodesToRemove_mut.findIndex(r => r.placeName.toLowerCase() === name);
+      if (idx !== -1) nodesToRemove_mut.splice(idx, 1);
+    }
+  });
+
   /**
    * Resolves a node reference by either place name or ID.
    * This is used for edges and node updates where the AI might

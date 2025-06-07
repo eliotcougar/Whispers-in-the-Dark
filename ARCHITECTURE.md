@@ -123,6 +123,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   Takes narrative context, current `MapData`, and known main place names for the theme.
     *   Uses an auxiliary AI to generate `AIMapUpdatePayload` (node/edge changes).
     *   Applies these changes, creating/updating/deleting `MapNode`s and `MapEdge`s within `MapData`.
+    *   If a node is renamed via `nodesToUpdate`, any `nodesToRemove` entry with that old or new name is ignored.
 *   **Map Data (`FullGameState.mapData`)**: Becomes the single source of truth for all map-related information (nodes, their descriptions, aliases, statuses, connections).
 *   **Knowledge Base**: No longer displays "Places". Character information remains. Location understanding comes from interacting with and viewing the `MapDisplay`.
 
