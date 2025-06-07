@@ -354,6 +354,18 @@ export interface MapChainToRefine {
 }
 // --- End Map Pruning & Refinement Types ---
 
+export interface RenameMapElementsPayload {
+  nodes: { id: string; placeName: string; description: string; aliases?: string[] }[];
+  edges: { id: string; description: string }[];
+}
+
+export interface MapRenameDebugInfo {
+  prompt: string;
+  rawResponse?: string;
+  parsedPayload?: RenameMapElementsPayload;
+  validationError?: string;
+}
+
 export interface MinimalModelCallRecord {
   prompt: string;
   systemInstruction: string;
@@ -383,6 +395,7 @@ export interface DebugPacket {
       validationError?: string;
     };
   } | null;
+  mapRenameDebugInfo?: MapRenameDebugInfo | null;
 }
 
 

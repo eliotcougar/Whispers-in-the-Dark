@@ -4,35 +4,47 @@
  *              newly created map nodes and edges.
  */
 
-import { AdventureTheme, MapNode, MapEdge, MapData } from '../types';
+import {
+  AdventureTheme,
+  MapNode,
+  MapEdge,
+  MapData,
+  RenameMapElementsPayload,
+  MapRenameDebugInfo,
+} from '../types';
 import { updateNodeId } from '../utils/mapIdUtils';
 import {
   MAX_RETRIES,
   NODE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
   EDGE_DESCRIPTION_INSTRUCTION,
+  AUXILIARY_MODEL_NAME,
+  GEMINI_MODEL_NAME,
 } from '../constants';
-import { callCorrectionAI } from './corrections/base';
+import { dispatchAIRequest } from './modelDispatcher';
+import { CORRECTION_TEMPERATURE } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 
-export interface RenameMapElementsPayload {
-  nodes: { id: string; placeName: string; description: string; aliases?: string[] }[];
-  edges: { id: string; description: string }[];
-}
 
 /**
  * Calls the auxiliary AI to generate better names/descriptions for new nodes
  * and edges.
  */
+export interface RenameMapElementsServiceResult {
+  payload: RenameMapElementsPayload | null;
+  debugInfo: MapRenameDebugInfo;
+}
+
 export const renameMapElements_Service = async (
   mapData: MapData,
   newNodes: MapNode[],
   newEdges: MapEdge[],
   currentTheme: AdventureTheme,
   context: { sceneDescription: string; gameLogTail: string[] }
-): Promise<RenameMapElementsPayload | null> => {
+): Promise<RenameMapElementsServiceResult> => {
+  const baseDebug: MapRenameDebugInfo = { prompt: '' };
   if (!isApiConfigured() || (newNodes.length === 0 && newEdges.length === 0)) {
-    return null;
+    return { payload: null, debugInfo: baseDebug };
   }
 
   const nodesList = newNodes
@@ -50,18 +62,52 @@ export const renameMapElements_Service = async (
     .map(e => `- ID: ${e.id}, connects ${e.sourceNodeId} -> ${e.targetNodeId}, Type: ${e.data.type}`)
     .join('\n');
 
-const prompt = `You are an AI assistant tasked with assigning thematic names and descriptions
+const basePrompt = `You are an AI assistant tasked with assigning thematic names and descriptions
 for newly created map elements in a text adventure game.
 Current Theme: "${currentTheme.name}" (${currentTheme.systemInstructionModifier})
-Scene Description: "${context.sceneDescription}"
-Recent Events:\n -"${context.gameLogTail.slice(-5).join('\n -')}"
-New Nodes:\n${nodesList || 'None'}\nNew Edges:\n${edgesList || 'None'}\n
-Respond ONLY with a JSON object of the following form:
-{ "nodes": [ { "id": "string", "placeName": "string", "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
-    "aliases": ["string"] // ${ALIAS_INSTRUCTION}
-  } ],
-  "edges": [ { "id": "string", "description": "string" // ${EDGE_DESCRIPTION_INSTRUCTION} } ] }
-Arrays can be empty if either Nodes or Edges are None. All fields are REQUIRED. Keep IDs exactly as provided.`;
+  const debugInfo: MapRenameDebugInfo = { prompt: basePrompt };
+  let promptToSend = basePrompt;
+  let validPayload: RenameMapElementsPayload | null = null;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0 && debugInfo.validationError) {
+      promptToSend = `${basePrompt}\nCRITICALLY IMPORTANT: ${debugInfo.validationError}`;
+    } else {
+      promptToSend = basePrompt;
+    }
+    debugInfo.prompt = promptToSend;
+    try {
+      const response = await dispatchAIRequest(
+        [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        promptToSend,
+        systemInst,
+        { responseMimeType: 'application/json', temperature: CORRECTION_TEMPERATURE }
+      );
+      debugInfo.rawResponse = response.text ?? '';
+      let jsonStr = (response.text ?? '').trim();
+      const fenceMatch = jsonStr.match(/^```(?:json)?\s*\n?(.*?)\n?\s*```$/s);
+      if (fenceMatch && fenceMatch[1]) jsonStr = fenceMatch[1].trim();
+      const parsed = JSON.parse(jsonStr) as Partial<RenameMapElementsPayload>;
+      if (
+        parsed &&
+        Array.isArray(parsed.nodes) &&
+        Array.isArray(parsed.edges) &&
+        parsed.nodes.every(n => typeof n.id === 'string' && typeof n.placeName === 'string' && typeof n.description === 'string' && (n.aliases === undefined || (Array.isArray(n.aliases) && n.aliases.every(a => typeof a === 'string')))) &&
+        parsed.edges.every(e => typeof e.id === 'string' && typeof e.description === 'string')
+      ) {
+        validPayload = parsed as RenameMapElementsPayload;
+        debugInfo.parsedPayload = validPayload;
+        debugInfo.validationError = undefined;
+        break;
+      } else {
+        debugInfo.parsedPayload = parsed as RenameMapElementsPayload;
+        debugInfo.validationError = 'Parsed payload failed validation.';
+      }
+    } catch (err) {
+      debugInfo.rawResponse = `Error: ${err instanceof Error ? err.message : String(err)}`;
+      debugInfo.validationError = 'Error during rename AI call or parsing.';
+
+  return { payload: validPayload, debugInfo };
 
   const systemInst = 'Rename provided map nodes and edges with thematic names. Completely rewrite the placeName, description, and aliases according to the provided context. Return strict JSON.';
 

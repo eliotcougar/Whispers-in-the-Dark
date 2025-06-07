@@ -138,15 +138,18 @@ export const handleMapUpdates = async (
   if (upgradeResult.addedNodes.length > 0 || upgradeResult.addedEdges.length > 0) {
     draftState.mapData = upgradeResult.updatedMapData;
     turnChanges.mapDataChanged = true;
-    const renamePayload = await renameMapElements_Service(
+    const renameResult = await renameMapElements_Service(
       draftState.mapData,
       upgradeResult.addedNodes,
       upgradeResult.addedEdges,
       themeContextForResponse,
       { sceneDescription: 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene || '', gameLogTail }
     );
-    if (renamePayload) {
-      applyRenamePayload(draftState.mapData, renamePayload);
+    if (renameResult.payload) {
+      applyRenamePayload(draftState.mapData, renameResult.payload);
+    }
+    if (draftState.lastDebugPacket) {
+      draftState.lastDebugPacket.mapRenameDebugInfo = renameResult.debugInfo;
     }
   }
 
