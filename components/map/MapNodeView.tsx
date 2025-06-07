@@ -31,6 +31,8 @@ const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
 };
 
+const LABEL_MARGIN_PX = 6;
+
 interface MapNodeViewProps {
   nodes: MapNode[];
   edges: MapEdge[];
@@ -155,6 +157,66 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
 
   /** IDs of nodes that act as parents. */
   const hostNodeIdSet = useMemo(() => new Set(regionCircles.map(rc => rc.node.id)), [regionCircles]);
+
+  /**
+   * Calculate extra vertical offset for parent labels when they overlap with
+   * their children's labels. The algorithm starts from the deepest nodes and
+   * works its way up so offsets accumulate properly.
+   */
+  const labelOffsetMap = useMemo(() => {
+    const idToNode = new Map(nodes.map(n => [n.id, n]));
+    const depthCache = new Map<string, number>();
+    const getDepth = (node: MapNode | undefined): number => {
+      if (!node) return 0;
+      const cached = depthCache.get(node.id);
+      if (cached !== undefined) return cached;
+      const parent = node.data.parentNodeId ? idToNode.get(node.data.parentNodeId) : undefined;
+      const depth = parent ? getDepth(parent) + 1 : 0;
+      depthCache.set(node.id, depth);
+      return depth;
+    };
+
+    nodes.forEach(n => getDepth(n));
+    const sorted = [...nodes].sort((a, b) => getDepth(b) - getDepth(a));
+
+    const offsets: Record<string, number> = {};
+    sorted.forEach(n => { offsets[n.id] = 0; });
+
+    const fontSizeFor = (n: MapNode) => (n.data.nodeType === 'feature' ? 7 : 12);
+    const linesCache: Record<string, string[]> = {};
+    const getLines = (n: MapNode): string[] => {
+      if (linesCache[n.id]) return linesCache[n.id];
+      const isHost = nodes.some(ch => ch.data.parentNodeId === n.id);
+      const maxChars = n.data.nodeType === 'feature' || !isHost ? 20 : 25;
+      linesCache[n.id] = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
+      return linesCache[n.id];
+    };
+
+    const getLabelBox = (n: MapNode): { top: number; bottom: number } => {
+      const radius = getRadiusForNode(n);
+      const lines = getLines(n);
+      const font = fontSizeFor(n);
+      const height = lines.length * font * LABEL_LINE_HEIGHT_EM;
+      const top = n.position.y + radius + LABEL_MARGIN_PX + offsets[n.id];
+      return { top, bottom: top + height };
+    };
+
+    for (const node of sorted) {
+      const parentId = node.data.parentNodeId;
+      if (!parentId) continue;
+      const parent = idToNode.get(parentId);
+      if (!parent) continue;
+      const childBox = getLabelBox(node);
+      let parentBox = getLabelBox(parent);
+      if (childBox.top < parentBox.bottom) {
+        const shift = parentBox.bottom - childBox.top + LABEL_MARGIN_PX;
+        offsets[parent.id] += shift;
+        parentBox = getLabelBox(parent);
+      }
+    }
+
+    return offsets;
+  }, [nodes]);
 
   /** Shows node details in a tooltip. */
   const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
@@ -290,10 +352,10 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
               maxCharsPerLine,
               MAX_LABEL_LINES
             );
-            const initialDyOffset = isHost
-              ? (getRadiusForNode(node) / 10 + 2) * 0.75
-              : -(labelLines.length - 1) * 0.5 * LABEL_LINE_HEIGHT_EM + 0.3;
             const radius = getRadiusForNode(node);
+            const fontSize = node.data.nodeType === 'feature' ? 7 : 12;
+            const baseOffsetPx = radius + LABEL_MARGIN_PX + (labelOffsetMap[node.id] || 0);
+            const initialDyOffset = baseOffsetPx / fontSize;
             const handleEnter = (e: React.MouseEvent) => handleNodeMouseEnter(node, e);
             if (node.data.nodeType === 'feature') {
               return (
