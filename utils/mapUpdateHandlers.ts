@@ -139,6 +139,7 @@ export const handleMapUpdates = async (
     draftState.mapData = upgradeResult.updatedMapData;
     turnChanges.mapDataChanged = true;
     const renamePayload = await renameMapElements_Service(
+      draftState.mapData,
       upgradeResult.addedNodes,
       upgradeResult.addedEdges,
       themeContextForResponse,

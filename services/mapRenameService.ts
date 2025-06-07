@@ -4,7 +4,7 @@
  *              newly created map nodes and edges.
  */
 
-import { AdventureTheme, MapNode, MapEdge } from '../types';
+import { AdventureTheme, MapNode, MapEdge, MapData } from '../types';
 import { updateNodeId } from '../utils/mapIdUtils';
 import {
   MAX_RETRIES,
@@ -25,6 +25,7 @@ export interface RenameMapElementsPayload {
  * and edges.
  */
 export const renameMapElements_Service = async (
+  mapData: MapData,
   newNodes: MapNode[],
   newEdges: MapEdge[],
   currentTheme: AdventureTheme,
@@ -35,7 +36,15 @@ export const renameMapElements_Service = async (
   }
 
   const nodesList = newNodes
-    .map(n => `- ID: ${n.id}, Temp Name: "${n.placeName}", Type: ${n.data.nodeType}`)
+    .map(n => {
+      const parent = n.data.parentNodeId
+        ? mapData.nodes.find(p => p.id === n.data.parentNodeId)
+        : undefined;
+      const parentInfo = parent
+        ? `Parent: "${parent.placeName}" (Desc: "${parent.data.description}")`
+        : 'No parent';
+      return `- ID: ${n.id}, Temp Name: "${n.placeName}", Type: ${n.data.nodeType}, ${parentInfo}`;
+    })
     .join('\n');
   const edgesList = newEdges
     .map(e => `- ID: ${e.id}, connects ${e.sourceNodeId} -> ${e.targetNodeId}, Type: ${e.data.type}`)
