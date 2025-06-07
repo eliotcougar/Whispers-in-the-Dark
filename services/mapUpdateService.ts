@@ -43,6 +43,8 @@ import { fetchLikelyParentNode_Service, fetchLikelyExistingNodeForEdge_Service, 
 
 export interface MapUpdateServiceResult {
   updatedMapData: MapData | null;
+  newlyAddedNodes: MapNode[];
+  newlyAddedEdges: MapEdge[];
   debugInfo: {
     prompt: string;
     rawResponse?: string;
@@ -399,7 +401,7 @@ Key points:
       if (isServerOrClientError(error)) {
         debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
         debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
-        return { updatedMapData: null, debugInfo };
+        return { updatedMapData: null, newlyAddedNodes: [], newlyAddedEdges: [], debugInfo };
       }
       debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
       debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
@@ -410,12 +412,14 @@ Key points:
   }
 
   if (!validParsedPayload) {
-    return { updatedMapData: null, debugInfo }; // Return null if no valid payload after all retries
+    return { updatedMapData: null, newlyAddedNodes: [], newlyAddedEdges: [], debugInfo }; // Return null if no valid payload after all retries
   }
 
   // Proceed with map data processing using validParsedPayload
   const newMapData: MapData = structuredCloneGameState(currentMapData);
   const newNodesInBatchIdNameMap: Record<string, { id: string; name: string }> = {};
+  const newlyAddedNodes: MapNode[] = [];
+  const newlyAddedEdges: MapEdge[] = [];
 
   // Refresh lookup maps for the cloned map data
   themeNodeIdMap.clear();
@@ -560,6 +564,7 @@ Key points:
       };
 
       newMapData.nodes.push(newNode);
+      newlyAddedNodes.push(newNode);
       themeNodeIdMap.set(newNodeId, newNode);
       themeNodeNameMap.set(nodeAddOp.placeName, newNode);
       if (newNode.data.aliases) {
@@ -749,6 +754,13 @@ Key points:
       if (grandA && parentB.id === grandA.id) return true;
       if (grandB && parentA.id === grandB.id) return true;
 
+      // Allow connections between features whose parents are both direct children of the root
+      if (
+        parentA.data.parentNodeId === 'Universe' &&
+        parentB.data.parentNodeId === 'Universe'
+      )
+        return true;
+
       if (parentA.id === 'Universe' && grandB && grandB.id === 'Universe')
         return true;
       if (parentB.id === 'Universe' && grandA && grandA.id === 'Universe')
@@ -797,6 +809,7 @@ Key points:
           }
       };
       newMapData.nodes.push(newNode);
+      newlyAddedNodes.push(newNode);
       themeNodeIdMap.set(newNode.id, newNode);
       themeNodeNameMap.set(newNode.placeName, newNode);
       return newNode;
@@ -915,6 +928,7 @@ Key points:
           }
           const newEdge: MapEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeData };
           newMapData.edges.push(newEdge);
+          newlyAddedEdges.push(newEdge);
           let arrSource = themeEdgesMap.get(sourceNodeId);
           if (!arrSource) { arrSource = []; themeEdgesMap.set(sourceNodeId, arrSource); }
           arrSource.push(newEdge);
@@ -987,5 +1001,5 @@ Key points:
   // --- End of Temporary Feature Upgrade (parent-child edges cleaned up) ---
 
 
-  return { updatedMapData: newMapData, debugInfo };
+  return { updatedMapData: newMapData, newlyAddedNodes, newlyAddedEdges, debugInfo };
 };
