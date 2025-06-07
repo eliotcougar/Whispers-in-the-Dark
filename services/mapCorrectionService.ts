@@ -23,6 +23,7 @@ import {
 } from "../utils/mapUpdateValidationUtils";
 import { pruneAndRefineMapConnections } from "../utils/mapPruningUtils";
 import { structuredCloneGameState } from "../utils/cloneUtils";
+import { updateNodeId } from "../utils/mapIdUtils";
 import { dispatchAIRequest } from "./modelDispatcher";
 import { isServerOrClientError } from "../utils/aiErrorUtils";
 
@@ -417,6 +418,7 @@ function applyChainRefinementPayloadToMapData(
         nodeA.data.description = nodeAUpdateData.description;
       if (nodeAUpdateData.aliases) nodeA.data.aliases = nodeAUpdateData.aliases;
       if (nodeAUpdateData.status) nodeA.data.status = nodeAUpdateData.status;
+      updateNodeId(workingMapData, nodeA.id, nodeA.placeName);
       refinedFeatureAName = nodeA.placeName;
       localChangesThisChain = true;
     }
@@ -429,6 +431,7 @@ function applyChainRefinementPayloadToMapData(
         nodeB.data.description = nodeBUpdateData.description;
       if (nodeBUpdateData.aliases) nodeB.data.aliases = nodeBUpdateData.aliases;
       if (nodeBUpdateData.status) nodeB.data.status = nodeBUpdateData.status;
+      updateNodeId(workingMapData, nodeB.id, nodeB.placeName);
       refinedFeatureBName = nodeB.placeName;
       localChangesThisChain = true;
     }

@@ -767,7 +767,9 @@ Key points:
           n.placeName.toLowerCase() === targetName.toLowerCase()
       );
       if (existing) return existing;
-      const newNodeId = generateUniqueId(`${parent.id}_feat_`);
+      const newNodeId = generateUniqueId(
+        `node_${targetName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')}_`
+      );
       const newNode: MapNode = {
           id: newNodeId,
           themeName: parent.themeName,

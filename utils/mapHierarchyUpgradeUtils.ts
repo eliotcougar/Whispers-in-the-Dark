@@ -52,7 +52,9 @@ export const upgradeFeatureToRegion = (
   featureNode.data.nodeType = 'region';
 
   // Create connector feature as child of new region
-  const connectorId = generateUniqueId(`${featureNodeId}_conn_`);
+  const connectorId = generateUniqueId(
+    `node_${connectorName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')}_`
+  );
   const connectorNode: MapNode = {
     id: connectorId,
     themeName: featureNode.themeName,
