@@ -13,6 +13,24 @@ import {
   LABEL_LINE_HEIGHT_EM,
 } from '../../utils/mapConstants';
 
+const buildShortcutPath = (a: MapNode, b: MapNode): string => {
+  const x1 = a.position.x;
+  const y1 = a.position.y;
+  const x2 = b.position.x;
+  const y2 = b.position.y;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+  const midX = (x1 + x2) / 2;
+  const midY = (y1 + y2) / 2;
+  const offset = dist * 0.3;
+  const perpX = -dy / dist;
+  const perpY = dx / dist;
+  const cx = midX + perpX * offset;
+  const cy = midY + perpY * offset;
+  return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+};
+
 interface MapNodeViewProps {
   nodes: MapNode[];
   edges: MapEdge[];
@@ -217,9 +235,41 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
             if (edge.data.type) edgeClass += ` ${edge.data.type.replace(/\s+/g, '_').toLowerCase()}`;
             if (edge.data.status) edgeClass += ` ${edge.data.status.replace(/\s+/g, '_').toLowerCase()}`;
             return (
-              <g key={edge.id} className="map-edge-group" onMouseEnter={e => handleEdgeMouseEnter(edge, e)} onMouseLeave={handleMouseLeaveGeneral}>
-                <line x1={sourceNode.position.x} y1={sourceNode.position.y} x2={targetNode.position.x} y2={targetNode.position.y} stroke="transparent" strokeWidth={EDGE_HOVER_WIDTH} />
-                <line x1={sourceNode.position.x} y1={sourceNode.position.y} x2={targetNode.position.x} y2={targetNode.position.y} className={edgeClass} />
+              <g
+                key={edge.id}
+                className="map-edge-group"
+                onMouseEnter={e => handleEdgeMouseEnter(edge, e)}
+                onMouseLeave={handleMouseLeaveGeneral}
+              >
+                {edge.data.type === 'shortcut' ? (
+                  <>
+                    <path
+                      d={buildShortcutPath(sourceNode, targetNode)}
+                      stroke="transparent"
+                      strokeWidth={EDGE_HOVER_WIDTH}
+                      fill="none"
+                    />
+                    <path d={buildShortcutPath(sourceNode, targetNode)} className={edgeClass} />
+                  </>
+                ) : (
+                  <>
+                    <line
+                      x1={sourceNode.position.x}
+                      y1={sourceNode.position.y}
+                      x2={targetNode.position.x}
+                      y2={targetNode.position.y}
+                      stroke="transparent"
+                      strokeWidth={EDGE_HOVER_WIDTH}
+                    />
+                    <line
+                      x1={sourceNode.position.x}
+                      y1={sourceNode.position.y}
+                      x2={targetNode.position.x}
+                      y2={targetNode.position.y}
+                      className={edgeClass}
+                    />
+                  </>
+                )}
               </g>
             );
           })}

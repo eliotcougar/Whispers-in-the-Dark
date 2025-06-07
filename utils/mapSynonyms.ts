@@ -110,7 +110,10 @@ export const EDGE_TYPE_SYNONYMS: Record<string, MapEdgeData['type']> = {
   'makeshift_bridge': 'temporary_bridge',
   'temporary crossing': 'temporary_bridge',
   grapple: 'boarding_hook',
-  'grappling_hook': 'boarding_hook'
+  'grappling_hook': 'boarding_hook',
+  shortcut: 'shortcut',
+  bypass: 'shortcut',
+  "secret tunnel": 'shortcut'
 };
 
 export const EDGE_STATUS_SYNONYMS: Record<string, MapEdgeData['status']> = {

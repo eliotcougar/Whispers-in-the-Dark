@@ -378,6 +378,10 @@ body {
   stroke: #ca8a04;
   stroke-dasharray: 5, 2, 2, 2;
 } /* Yellowish, distinct dash */
+.map-edge.shortcut {
+  stroke: #0d9488; /* teal-600 */
+  stroke-dasharray: 2, 6;
+}
 
 .map-tooltip {
   position: absolute;

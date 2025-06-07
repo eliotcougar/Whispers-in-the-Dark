@@ -687,7 +687,12 @@ Key points:
   //   1) sibling features (same parent)
   //   2) features whose parents share the same grandparent
   //   3) a feature and another feature whose parent is the child's grandparent
-  const isEdgeConnectionAllowed = (nodeA: MapNode, nodeB: MapNode): boolean => {
+  const isEdgeConnectionAllowed = (
+      nodeA: MapNode,
+      nodeB: MapNode,
+      edgeType?: MapEdgeData['type']
+  ): boolean => {
+      if (edgeType === 'shortcut') return true;
       if (nodeA.data.nodeType !== 'feature' || nodeB.data.nodeType !== 'feature') {
           return false;
       }
@@ -815,7 +820,11 @@ Key points:
       }
 
       let safetyCounter = 0;
-      while (!isEdgeConnectionAllowed(sourceNode, targetNode) && safetyCounter < 5) {
+      while (
+        edgeAddOp.data?.type !== 'shortcut' &&
+        !isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data?.type) &&
+        safetyCounter < 5
+      ) {
           const sourceParent = sourceNode.data.parentNodeId ? themeNodeIdMap.get(sourceNode.data.parentNodeId) : null;
           const targetParent = targetNode.data.parentNodeId ? themeNodeIdMap.get(targetNode.data.parentNodeId) : null;
 
@@ -842,7 +851,7 @@ Key points:
           safetyCounter++;
       }
 
-      if (!isEdgeConnectionAllowed(sourceNode, targetNode)) {
+      if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data?.type)) {
           console.warn(`MapUpdate: Edge between "${edgeAddOp.sourcePlaceName}" and "${edgeAddOp.targetPlaceName}" violates hierarchy rules even after introducing connectors. Skipping add.`);
           continue;
       }
@@ -872,21 +881,27 @@ Key points:
     const sourceNodeRef = findNodeByIdentifier(edgeUpdateOp.sourcePlaceName);
     const targetNodeRef = findNodeByIdentifier(edgeUpdateOp.targetPlaceName);
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
-    const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
+    const sourceNodeId = sourceNodeRef.id;
+    const targetNodeId = targetNodeRef.id;
     const sourceNode = themeNodeIdMap.get(sourceNodeId);
     const targetNode = themeNodeIdMap.get(targetNodeId);
     if (!sourceNode || !targetNode) return;
-    if (!isEdgeConnectionAllowed(sourceNode, targetNode)) {
-        console.warn(`MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`);
-        return;
-    }
 
     // Find edge to update. If type is specified in newData, it's part of the match criteria.
     // Otherwise, find any edge and update its type.
-    const candidateEdges = (themeEdgesMap.get(sourceNodeId) || []).filter(e =>
+    const candidateEdges = (themeEdgesMap.get(sourceNodeId) || []).filter(
+      e =>
         (e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) ||
         (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)
     );
+
+    const checkType = edgeUpdateOp.newData.type || candidateEdges[0]?.data.type;
+    if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType)) {
+      console.warn(
+        `MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`
+      );
+      return;
+    }
     let edgeToUpdate = candidateEdges.find(e => edgeUpdateOp.newData.type ? e.data.type === edgeUpdateOp.newData.type : true);
     if (!edgeToUpdate) edgeToUpdate = candidateEdges[0];
 

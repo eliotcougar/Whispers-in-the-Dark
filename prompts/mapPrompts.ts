@@ -5,7 +5,7 @@
  */
 
 const VALID_NODE_STATUSES_FOR_MAP_AI = `['undiscovered', 'discovered', 'rumored', 'quest_target']`;
-const VALID_EDGE_TYPES_FOR_MAP_AI = `['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook']`;
+const VALID_EDGE_TYPES_FOR_MAP_AI = `['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook', 'shortcut']`;
 const VALID_EDGE_STATUSES_FOR_MAP_AI = `['open', 'accessible', 'closed', 'locked', 'blocked', 'hidden', 'rumored', 'one_way', 'collapsed', 'removed', 'active', 'inactive']`;
 const VALID_NODE_TYPES_FOR_MAP_AI = `['region', 'location', 'settlement', 'exterior', 'interior', 'room', 'feature']`;
 
@@ -78,6 +78,7 @@ CRITICAL INSTRUCTIONS:
 - NEVER add a node named "Universe" or create edges that reference a place named "Universe". That name is reserved for the root and already exists.
 - You MUST use one of the EXACT string values provided for 'status' (node/edge) or 'type' (edge) fields.
 - Edges may only connect feature nodes that share the same parent, whose parents share a common grandparent, or where one feature's parent is the grandparent of the other (child–grandchild connections).
+- Edges of type 'shortcut' are exempt from these hierarchy restrictions but still must connect feature nodes.
 - If the narrative suggests a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "data" via "nodesToUpdate", rather than adding a new node.
 `;
 

@@ -287,7 +287,17 @@ export interface MapNode {
 
 export interface MapEdgeData {
   description?: string;
-  type?: 'path' | 'road' | 'sea route' | 'door' | 'teleporter' | 'secret_passage' | 'river_crossing' | 'temporary_bridge' | 'boarding_hook';
+  type?:
+    | 'path'
+    | 'road'
+    | 'sea route'
+    | 'door'
+    | 'teleporter'
+    | 'secret_passage'
+    | 'river_crossing'
+    | 'temporary_bridge'
+    | 'boarding_hook'
+    | 'shortcut';
   status?: 'open' | 'accessible' | 'closed' | 'locked' | 'blocked' | 'hidden' | 'rumored' | 'one_way' | 'collapsed' | 'removed' | 'active' | 'inactive'; 
   travelTime?: string; 
   [key: string]: unknown;

@@ -15,7 +15,18 @@ export const VALID_NODE_TYPE_VALUES: ReadonlyArray<NonNullable<MapNodeData['node
   'room',
   'feature'
 ];
-export const VALID_EDGE_TYPE_VALUES: ReadonlyArray<MapEdgeData['type']> = ['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook'];
+export const VALID_EDGE_TYPE_VALUES: ReadonlyArray<MapEdgeData['type']> = [
+  'path',
+  'road',
+  'sea route',
+  'door',
+  'teleporter',
+  'secret_passage',
+  'river_crossing',
+  'temporary_bridge',
+  'boarding_hook',
+  'shortcut'
+];
 export const VALID_EDGE_STATUS_VALUES: ReadonlyArray<MapEdgeData['status']> = ['open', 'accessible', 'closed', 'locked', 'blocked', 'hidden', 'rumored', 'one_way', 'collapsed', 'removed', 'active', 'inactive'];
 
 /**
