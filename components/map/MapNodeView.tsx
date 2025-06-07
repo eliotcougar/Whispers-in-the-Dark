@@ -228,28 +228,28 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       offsets[n.id] = 0;
     });
 
-    const sorted = [...nodes].sort((a, b) => getDepth(a) - getDepth(b));
+    const sorted = [...nodes].sort((a, b) => getDepth(b) - getDepth(a));
 
     for (const node of sorted) {
-      if (node.data.nodeType === 'feature') continue;
       const parentId = node.data.parentNodeId;
       if (!parentId) continue;
       const parent = idToNode.get(parentId);
       if (!parent) continue;
-      if (!isParent(node)) continue; // childless nodes stay centered
+      if (parent.data.nodeType === 'feature') continue;
+      if (!isParent(parent)) continue;
 
       const parentBox = getLabelBox(parent, offsets[parent.id]);
       const nodeBox = getLabelBox(node, offsets[node.id]);
 
       const overlap =
-        nodeBox.x < parentBox.x + parentBox.width &&
-        nodeBox.x + nodeBox.width > parentBox.x &&
-        nodeBox.y < parentBox.y + parentBox.height &&
-        nodeBox.y + nodeBox.height > parentBox.y;
+        parentBox.x < nodeBox.x + nodeBox.width &&
+        parentBox.x + parentBox.width > nodeBox.x &&
+        parentBox.y < nodeBox.y + nodeBox.height &&
+        parentBox.y + parentBox.height > nodeBox.y;
 
       if (overlap) {
-        const delta = parentBox.y + parentBox.height - nodeBox.y;
-        offsets[node.id] += delta + labelOverlapMarginPx;
+        const delta = nodeBox.y + nodeBox.height - parentBox.y;
+        offsets[parent.id] += delta + labelOverlapMarginPx;
       }
     }
 
@@ -411,10 +411,23 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                 key={node.id}
                 transform={`translate(${node.position.x}, ${node.position.y})`}
                 className="map-node"
-                onMouseEnter={handleEnter}
                 onMouseLeave={handleMouseLeaveGeneral}
               >
-                <circle className={nodeClass} r={radius} pointerEvents="none" />
+                <circle
+                  className={nodeClass}
+                  r={radius}
+                  pointerEvents={
+                    node.data.nodeType === 'feature' ? 'visible' : 'none'
+                  }
+                  onMouseEnter={
+                    node.data.nodeType === 'feature' ? handleEnter : undefined
+                  }
+                  onMouseLeave={
+                    node.data.nodeType === 'feature'
+                      ? handleMouseLeaveGeneral
+                      : undefined
+                  }
+                />
                 <circle
                   className="map-node-hover-ring"
                   r={radius}
@@ -453,7 +466,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                   node.data.nodeType === 'feature' || !isHost ? ' feature-label' : ''
                 }`}
                 transform={`translate(${node.position.x}, ${node.position.y})`}
-                pointerEvents="none"
+                pointerEvents="visible"
+                onMouseEnter={e => handleNodeMouseEnter(node, e)}
+                onMouseLeave={handleMouseLeaveGeneral}
               >
                 {labelLines.map((line, index) => (
                   <tspan
