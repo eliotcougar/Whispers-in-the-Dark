@@ -24,11 +24,11 @@ export const formatKnownPlacesForPrompt = (
     return (
       mainNodes
         .map(node => {
-          let detailStr = `"${node.placeName}"`;
+          let detailStr = `\n - "${node.placeName}"`;
           if (node.data.aliases && node.data.aliases.length > 0) {
-            detailStr += ` (aliases: ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
+            detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
           }
-          detailStr += ` - Description: "${node.data.description || 'No description available.'}"`;
+          detailStr += `, "${node.data.description || 'No description available.'}"`;
           return detailStr;
         })
         .join('; ') + '.'
@@ -39,7 +39,7 @@ export const formatKnownPlacesForPrompt = (
       .map(node => {
         let detailStr = `"${node.placeName}"`;
         if (node.data.aliases && node.data.aliases.length > 0) {
-          detailStr += ` (aliases: ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
+          detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
         }
         return detailStr;
       })

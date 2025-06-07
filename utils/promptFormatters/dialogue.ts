@@ -28,11 +28,11 @@ export const formatKnownCharactersForPrompt = (
   }
   if (detailed) {
     const formatSingleCharacterDetailed = (c: Character): string => {
-      let details = `"${c.name}"`;
+      let details = `\n - "${c.name}"`;
       if (c.aliases && c.aliases.length > 0) {
-        details += ` (aliases: ${c.aliases.map(a => `"${a}"`).join(', ')})`;
+        details += ` (aka ${c.aliases.map(a => `"${a}"`).join(', ')})`;
       }
-      details += ` (Status: ${c.presenceStatus}`;
+      details += ` (${c.presenceStatus}`;
       if (c.presenceStatus === 'companion' || c.presenceStatus === 'nearby') {
         details += `, ${c.preciseLocation || (c.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
       } else {
@@ -78,9 +78,9 @@ export const formatKnownCharactersForPrompt = (
  */
 export const formatRecentEventsForPrompt = (logMessages: string[]): string => {
   if (logMessages.length === 0) {
-    return '\n';
+    return '';
   }
-  return '\n- ' + logMessages.join('\n- ') + '\n';
+  return ' - ' + logMessages.join('\n - ') + '\n';
 };
 
 /**
@@ -114,14 +114,14 @@ export const formatDetailedContextForMentionedEntities = (
   let detailedContext = '';
   const formattedMentionedPlaces = formatKnownPlacesForPrompt(mentionedPlaces, true);
   if (formattedMentionedPlaces && formattedMentionedPlaces !== 'None specifically known in this theme yet.') {
-    detailedContext += `\n${placesPrefixIfAny}\n${formattedMentionedPlaces}`;
+    detailedContext += `\n${placesPrefixIfAny}${formattedMentionedPlaces}`;
   }
   const formattedMentionedCharacters = formatKnownCharactersForPrompt(mentionedCharacters, true);
   if (
     formattedMentionedCharacters &&
     formattedMentionedCharacters !== 'None specifically known in this theme yet.'
   ) {
-    detailedContext += `\n${charactersPrefixIfAny}\n${formattedMentionedCharacters}`;
+    detailedContext += `\n${charactersPrefixIfAny}${formattedMentionedCharacters}`;
   }
   return detailedContext.trimStart();
 };
