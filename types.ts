@@ -3,24 +3,27 @@
  * @description Shared TypeScript interfaces and types for the game's data structures.
  */
 
-import { VALID_ITEM_TYPES } from './constants';
+import {
+  VALID_ITEM_TYPES,
+  VALID_PRESENCE_STATUS_VALUES,
+  VALID_NODE_STATUS_VALUES,
+  VALID_NODE_TYPE_VALUES,
+  VALID_EDGE_TYPE_VALUES,
+  VALID_EDGE_STATUS_VALUES,
+  LOADING_REASONS,
+} from './constants';
 import { ALL_THEME_PACK_NAMES } from './themes'; // For ThemePackName
 
 export type ItemType = typeof VALID_ITEM_TYPES[number];
+export type PresenceStatus = typeof VALID_PRESENCE_STATUS_VALUES[number];
 export type ThemePackName = typeof ALL_THEME_PACK_NAMES[number];
 
-// Added LoadingReason type
-export type LoadingReason = 
-  | 'storyteller' 
-  | 'map' 
-  | 'correction' 
-  | 'dialogue_turn' 
-  | 'dialogue_summary' 
-  | 'dialogue_memory_creation'      // Added for memory summarization
-  | 'dialogue_conclusion_summary'   // Added for final dialogue summary/updates
-  | 'initial_load'
-  | 'reality_shift_load' // Added for reality shift loading
-  | null;
+export type LoadingReason = typeof LOADING_REASONS[number] | null;
+
+export type MapNodeStatus = typeof VALID_NODE_STATUS_VALUES[number];
+export type MapNodeType = typeof VALID_NODE_TYPE_VALUES[number];
+export type MapEdgeType = typeof VALID_EDGE_TYPE_VALUES[number];
+export type MapEdgeStatus = typeof VALID_EDGE_STATUS_VALUES[number];
 
 
 export interface KnownUse {
@@ -65,7 +68,7 @@ export interface Character {
   name: string;
   description: string;
   aliases?: string[];
-  presenceStatus: 'distant' | 'nearby' | 'companion' | 'unknown';
+  presenceStatus: PresenceStatus;
   lastKnownLocation: string | null; // General location when not 'nearby' or 'companion', can be a MapNode.placeName or descriptive
   preciseLocation: string | null;    // Specific location in scene if 'nearby' or 'companion'
   dialogueSummaries?: DialogueSummaryRecord[]; // Stores summaries of past dialogues
@@ -264,17 +267,10 @@ export interface MapLayoutConfig {
 export interface MapNodeData {
   description: string; // Description is ALWAYS REQUIRED.
   aliases?: string[];  // Optional, can be updated.
-  status: 'undiscovered' | 'discovered' | 'rumored' | 'quest_target';
+  status: MapNodeStatus;
   visited?: boolean; // Managed by game logic, not AI directly.
   parentNodeId?: string; // ID of parent node for hierarchical placement.
-  nodeType:
-    | 'region'
-    | 'location'
-    | 'settlement'
-    | 'exterior'
-    | 'interior'
-    | 'room'
-    | 'feature';
+  nodeType: MapNodeType;
   /** Pre-calculated radius used by nested circle layouts. */
   visualRadius?: number;
   [key: string]: unknown; // For any other custom data.
@@ -290,19 +286,9 @@ export interface MapNode {
 
 export interface MapEdgeData {
   description?: string;
-  type?:
-    | 'path'
-    | 'road'
-    | 'sea route'
-    | 'door'
-    | 'teleporter'
-    | 'secret_passage'
-    | 'river_crossing'
-    | 'temporary_bridge'
-    | 'boarding_hook'
-    | 'shortcut';
-  status?: 'open' | 'accessible' | 'closed' | 'locked' | 'blocked' | 'hidden' | 'rumored' | 'one_way' | 'collapsed' | 'removed' | 'active' | 'inactive'; 
-  travelTime?: string; 
+  type?: MapEdgeType;
+  status?: MapEdgeStatus;
+  travelTime?: string;
   [key: string]: unknown;
 }
 

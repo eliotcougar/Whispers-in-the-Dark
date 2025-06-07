@@ -78,6 +78,28 @@ Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
 IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "update", providing "newName", and the new "type" and "description" for the thematically appropriate item. Your "logMessage" must creatively explain this transformation. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand". The log message could be: "The strange metal device from another world shimmers and reshapes into a humming metal wand in your grasp!"
 `;
 
+export const MAP_NODE_TYPE_GUIDE = `Map Node Types:
+- region: Broad area containing multiple locations.
+- location: Significant named place within a region.
+- settlement: Inhabited location such as a town or base.
+- district: Subdivision of a settlement or complex, including streets or sectors.
+- exterior: Outside of a single structure or vehicle.
+- interior: Inside of a structure or vehicle.
+- room: Individual enclosed space within an interior.
+- feature: Notable sub-location or landmark within any other node.`;
+
+export const MAP_EDGE_TYPE_GUIDE = `Map Edge Types:
+- path: Narrow walking trail or hallway.
+- road: Major route or street for ground travel.
+- sea route: Travel across open water or space lanes.
+- door: Physical entry like doors, gates, hatches, or airlocks.
+- teleporter: Instant or rapid transit portals and lifts.
+- secret_passage: Hidden or maintenance passageway.
+- river_crossing: Means of crossing water or similar obstacles.
+- temporary_bridge: Deployable link such as a boarding tube or rope bridge.
+- boarding_hook: Grappling device to connect to a moving object.
+- shortcut: Any special connection that bypasses hierarchy rules.`;
+
 export const LOCAL_CONDITIONS_GUIDE = `- You MUST provide "localTime", "localEnvironment", "localPlace" in the response.
 - "localTime" should be a very short phrase (e.g., "Dawn", "Mid-morning", "Twilight", "Deep Night", "Temporal Flux").
 - "localEnvironment" should be a concise sentence describing immediate ambient conditions (e.g., "A gentle breeze rustles leaves.", "The air is stale and smells of decay.", "Rain lashes against the windows.", "A low hum pervades the metallic corridor.").

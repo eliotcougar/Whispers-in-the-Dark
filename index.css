@@ -304,6 +304,7 @@ body {
 .map-node-circle.region { fill-opacity: 0; }
 .map-node-circle.location { fill-opacity: 0.03; }
 .map-node-circle.settlement { fill-opacity: 0.05; }
+.map-node-circle.district { fill-opacity: 0.08; }
 .map-node-circle.exterior { fill-opacity: 0.1; }
 .map-node-circle.interior { fill-opacity: 0.12; }
 .map-node-circle.room { fill-opacity: 0.15; }

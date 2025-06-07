@@ -4,13 +4,25 @@
  * @description Prompt templates and valid value lists for the map update AI.
  */
 
-const VALID_NODE_STATUSES_FOR_MAP_AI = `['undiscovered', 'discovered', 'rumored', 'quest_target']`;
-const VALID_EDGE_TYPES_FOR_MAP_AI = `['path', 'road', 'sea route', 'door', 'teleporter', 'secret_passage', 'river_crossing', 'temporary_bridge', 'boarding_hook', 'shortcut']`;
-const VALID_EDGE_STATUSES_FOR_MAP_AI = `['open', 'accessible', 'closed', 'locked', 'blocked', 'hidden', 'rumored', 'one_way', 'collapsed', 'removed', 'active', 'inactive']`;
-const VALID_NODE_TYPES_FOR_MAP_AI = `['region', 'location', 'settlement', 'exterior', 'interior', 'room', 'feature']`;
+import { MAP_NODE_TYPE_GUIDE, MAP_EDGE_TYPE_GUIDE } from './helperPrompts';
+import {
+  VALID_NODE_STATUS_VALUES,
+  VALID_NODE_TYPE_VALUES,
+  VALID_EDGE_TYPE_VALUES,
+  VALID_EDGE_STATUS_VALUES,
+} from '../constants';
+
+const formatValues = (arr: readonly string[]) => `['${arr.join("', '")}']`;
+
+const VALID_NODE_STATUSES_FOR_MAP_AI = formatValues(VALID_NODE_STATUS_VALUES);
+const VALID_EDGE_TYPES_FOR_MAP_AI = formatValues(VALID_EDGE_TYPE_VALUES);
+const VALID_EDGE_STATUSES_FOR_MAP_AI = formatValues(VALID_EDGE_STATUS_VALUES);
+const VALID_NODE_TYPES_FOR_MAP_AI = formatValues(VALID_NODE_TYPE_VALUES);
 
 export const MAP_UPDATE_SYSTEM_INSTRUCTION = `
 You are an AI assistant specializing in updating a game map based on narrative events.
+${MAP_NODE_TYPE_GUIDE}
+${MAP_EDGE_TYPE_GUIDE}
 Your task is to analyze the provided game context and determine what changes should be made to the map data.
 Respond ONLY with a JSON object adhering to the following structure:
 {
@@ -86,6 +98,8 @@ CRITICAL INSTRUCTIONS:
 
 export const MAP_CHAIN_CORRECTION_SYSTEM_INSTRUCTION = `
 You are an AI assistant specializing in refining map structures in a text adventure game.
+${MAP_NODE_TYPE_GUIDE}
+${MAP_EDGE_TYPE_GUIDE}
 Specifically, you will be given one or more "chains" of nodes: (MainNodeA - FeatureA - FeatureB - MainNodeB).
 FeatureA and FeatureB were temporarily created and need proper names, descriptions, and aliases.
 The edge connecting FeatureA and FeatureB also needs its type, status, and description refined.
@@ -148,6 +162,7 @@ CRITICAL INSTRUCTIONS:
 
 export const MAP_HIERARCHY_SYSTEM_INSTRUCTION = `
 You are an AI assistant generating hierarchical map nodes for a text adventure game.
+${MAP_NODE_TYPE_GUIDE}
 Given context about the player's current location and theme, return a JSON array describing
 locations from the broadest region down to the player's specific position.
 Each entry should have:

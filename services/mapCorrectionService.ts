@@ -20,7 +20,7 @@ import {
   VALID_NODE_STATUS_VALUES,
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
-} from "../utils/mapUpdateValidationUtils";
+} from "../constants";
 import { pruneAndRefineMapConnections } from "../utils/mapPruningUtils";
 import { structuredCloneGameState } from "../utils/cloneUtils";
 import { updateNodeId } from "../utils/mapIdUtils";

@@ -133,8 +133,8 @@ export const handleMapUpdates = async (
     draftState.lastDebugPacket.mapPruningDebugInfo = correctionResult.debugInfo;
   }
 
-  // Upgrade any feature nodes that now have children into regions
-  const upgradeResult = upgradeFeaturesWithChildren(draftState.mapData);
+  // Upgrade any feature nodes that now have children into regions or adjust hierarchy
+  const upgradeResult = await upgradeFeaturesWithChildren(draftState.mapData, themeContextForResponse);
   if (upgradeResult.addedNodes.length > 0 || upgradeResult.addedEdges.length > 0) {
     draftState.mapData = upgradeResult.updatedMapData;
     turnChanges.mapDataChanged = true;

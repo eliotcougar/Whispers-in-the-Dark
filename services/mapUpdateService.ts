@@ -21,7 +21,13 @@ import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constan
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
-import { isValidAIMapUpdatePayload, VALID_NODE_STATUS_VALUES, VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES, VALID_EDGE_STATUS_VALUES } from '../utils/mapUpdateValidationUtils';
+import { isValidAIMapUpdatePayload } from '../utils/mapUpdateValidationUtils';
+import {
+  VALID_NODE_STATUS_VALUES,
+  VALID_NODE_TYPE_VALUES,
+  VALID_EDGE_TYPE_VALUES,
+  VALID_EDGE_STATUS_VALUES,
+} from '../constants';
 import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../utils/mapSynonyms';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
