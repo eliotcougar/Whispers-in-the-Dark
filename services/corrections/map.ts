@@ -3,7 +3,11 @@
  * @description Correction helpers for map and location related data.
  */
 import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge, MinimalModelCallRecord } from '../../types';
-import { MAX_RETRIES } from '../../constants';
+import {
+  MAX_RETRIES,
+  NODE_DESCRIPTION_INSTRUCTION,
+  ALIAS_INSTRUCTION,
+} from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
@@ -112,13 +116,13 @@ Narrative Context:
 Required JSON Structure for corrected map location details:
 {
   "name": "string",
-  "description": "string",
-  "aliases": ["string"]
+  "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
+  "aliases": ["string"] // ${ALIAS_INSTRUCTION}
 }
 
 Respond ONLY with the single, complete, corrected JSON object.`;
 
-  const systemInstructionForFix = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (string, non-empty), and "aliases" (array of strings, can be empty) are provided. Adhere strictly to the JSON format.`;
+  const systemInstructionForFix = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (${NODE_DESCRIPTION_INSTRUCTION}), and "aliases" (${ALIAS_INSTRUCTION}, array, can be empty) are provided. Adhere strictly to the JSON format.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
@@ -165,13 +169,13 @@ Narrative Context:
 Required JSON Structure:
 {
   "name": "${mapNodePlaceName}",
-  "description": "string",
-  "aliases": ["string"]
+  "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
+  "aliases": ["string"] // ${ALIAS_INSTRUCTION}
 }
 
 Respond ONLY with the single, complete JSON object.`;
 
-  const systemInstructionForFix = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating a fitting, non-empty description and aliases (array of strings, can be empty). Adhere strictly to the JSON format.`;
+  const systemInstructionForFix = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating ${NODE_DESCRIPTION_INSTRUCTION} and aliases (${ALIAS_INSTRUCTION}, array, can be empty). Adhere strictly to the JSON format.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);

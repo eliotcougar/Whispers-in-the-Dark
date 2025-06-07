@@ -14,6 +14,9 @@ import {
   AUXILIARY_MODEL_NAME,
   GEMINI_MODEL_NAME,
   MAX_RETRIES,
+  NODE_DESCRIPTION_INSTRUCTION,
+  ALIAS_INSTRUCTION,
+  EDGE_DESCRIPTION_INSTRUCTION,
 } from "../constants";
 import { MAP_CHAIN_CORRECTION_SYSTEM_INSTRUCTION } from "../prompts/mapPrompts";
 import {
@@ -293,7 +296,7 @@ const buildChainRefinementPrompt = (
     `\nOverall Game Context:\n- Theme: "${theme.name}" (Modifier: ${theme.systemInstructionModifier})\n- Current Scene Excerpt: "${context.sceneDescription.substring(0, 200)}..."\n- Recent Log Entries (last 3): "${context.gameLogTail.slice(-3).join(" | ")}"`,
   );
   parts.push(
-    `\nTask:\nBased on ALL the provided context for EACH chain:\n1.  For FeatureA and FeatureB in EACH chain:\n    -   Propose a new, thematic 'placeName' (this goes into 'newData.placeName').\n    -   Write a new, fitting 'description'.\n    -   Suggest relevant 'aliases' (can be an empty array).\n    -   Ensure 'status' remains valid (e.g., 'discovered').\n2.  For the EdgeBetweenFeatures in EACH chain:\n    -   Propose a new 'type' (from valid types).\n    -   Propose a new 'status' (from valid statuses).\n    -   Write a new, fitting 'description'.\n\nRespond with a single AIMapUpdatePayload JSON object containing all these refinements for ALL provided chains.\nUse the current Feature temporary names (provided as 'Update target placeName' for each feature, e.g., "TempFeature_XYZ_A") as the 'placeName' key in your 'nodesToUpdate' objects.\nFor 'edgesToUpdate', use the NEW REFINED NAMES of the feature node(s) as 'sourcePlaceName' and 'targetPlaceName'.`,
+    `\nTask:\nBased on ALL the provided context for EACH chain:\n1.  For FeatureA and FeatureB in EACH chain:\n    -   Propose a new, thematic 'placeName' (this goes into 'newData.placeName').\n    -   Write ${NODE_DESCRIPTION_INSTRUCTION}.\n    -   Suggest ${ALIAS_INSTRUCTION} (can be an empty array).\n    -   Ensure 'status' remains valid (e.g., 'discovered').\n2.  For the EdgeBetweenFeatures in EACH chain:\n    -   Propose a new 'type' (from valid types).\n    -   Propose a new 'status' (from valid statuses).\n    -   Write ${EDGE_DESCRIPTION_INSTRUCTION}.\n\nRespond with a single AIMapUpdatePayload JSON object containing all these refinements for ALL provided chains.\nUse the current Feature temporary names (provided as 'Update target placeName' for each feature, e.g., "TempFeature_XYZ_A") as the 'placeName' key in your 'nodesToUpdate' objects.\nFor 'edgesToUpdate', use the NEW REFINED NAMES of the feature node(s) as 'sourcePlaceName' and 'targetPlaceName'.`,
   );
   return parts.join("\n");
 };

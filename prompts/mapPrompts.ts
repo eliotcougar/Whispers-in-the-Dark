@@ -10,6 +10,9 @@ import {
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
+  NODE_DESCRIPTION_INSTRUCTION,
+  EDGE_DESCRIPTION_INSTRUCTION,
+  ALIAS_INSTRUCTION,
 } from '../constants';
 
 const formatValues = (arr: readonly string[]) => `['${arr.join("', '")}']`;
@@ -30,8 +33,8 @@ Respond ONLY with a JSON object adhering to the following structure:
     {
       "placeName": "string", // Name of the node. For sub-locations this can be a descriptive feature name.
       "data": {
-        "description": "string", // REQUIRED for ALL nodes. Non-empty, creative, thematically appropriate description (ideally <300 characters).
-        "aliases": ["string"],   // REQUIRED for ALL nodes. Array of alternative names/shorthands (can be empty []). Soft limit of 3-4 aliases.
+        "description": "string", // REQUIRED for ALL nodes. ${NODE_DESCRIPTION_INSTRUCTION}.
+        "aliases": ["string"],   // REQUIRED for ALL nodes. ${ALIAS_INSTRUCTION} (can be empty []). Soft limit of 3-4 aliases.
         "status": "string",      // REQUIRED for ALL nodes. MUST be one of: ${VALID_NODE_STATUSES_FOR_MAP_AI}.
         "nodeType": "string",    // REQUIRED. One of: ${VALID_NODE_TYPES_FOR_MAP_AI}. Indicates hierarchy level.
         "parentNodeId": string   // REQUIRED. NAME of parent node for hierarchical placement (use "Universe" only for the root node).
@@ -41,8 +44,8 @@ Respond ONLY with a JSON object adhering to the following structure:
       "placeName": "string", // Existing node's name to identify it.
       "newData": { // Fields to update. All fields are optional.
         "placeName"?: "string", // Optional. If provided, this will be the NEW name for the node.
-        "description"?: "string", // Optional. Can be updated for ANY node. If provided, should be non-empty, creative, <300 chars.
-        "aliases"?: ["string"],   // Optional. Can be updated for ANY node. If provided, array of strings.
+        "description"?: "string", // Optional. ${NODE_DESCRIPTION_INSTRUCTION}
+        "aliases"?: ["string"],   // Optional. ${ALIAS_INSTRUCTION}
         "status"?: "string",      // Optional. MUST be one of: ${VALID_NODE_STATUSES_FOR_MAP_AI}
         "nodeType"?: "string",    // Optional. One of: ${VALID_NODE_TYPES_FOR_MAP_AI}
         "parentNodeId"?: string   // Optional. NAME of parent node for hierarchy. Can be null to clear parent. Parent can be any other node.
@@ -54,7 +57,7 @@ Respond ONLY with a JSON object adhering to the following structure:
     "sourcePlaceName": "string",
     "targetPlaceName": "string",
     "data": {
-      "description"?: "string", // Optional description describing the conditions/traversability of this path.
+      "description"?: "string", // Optional description (${EDGE_DESCRIPTION_INSTRUCTION}).
       "type": "string", // REQUIRED. MUST be one of: ${VALID_EDGE_TYPES_FOR_MAP_AI}
       "status": "string", // REQUIRED. MUST be one of: ${VALID_EDGE_STATUSES_FOR_MAP_AI}
       "travelTime"?: string // Optional, e.g., "short", "1 day".
@@ -64,7 +67,7 @@ Respond ONLY with a JSON object adhering to the following structure:
     "sourcePlaceName": "string",
     "targetPlaceName": "string",
     "newData": { // Fields to update. All are optional.
-      "description"?: "string", // Can be updated if the conditions/traversability improve or worsen.
+      "description"?: "string", // ${EDGE_DESCRIPTION_INSTRUCTION} if conditions change.
       "type"?: "string", // MUST be one of: ${VALID_EDGE_TYPES_FOR_MAP_AI}
       "status"?: "string", // MUST be one of: ${VALID_EDGE_STATUSES_FOR_MAP_AI}
       "travelTime"?: string // Optional, e.g., "short", "1 day".
@@ -78,8 +81,8 @@ CRITICAL INSTRUCTIONS:
 - DO NOT add small items and characters to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Features represent sub-spaces within larger spaces.
 - Node Data for "nodesToAdd":
     - "description", "aliases", and "status" are ALWAYS REQUIRED in the "data" field for ALL added nodes.
-    - "description" must be a non-empty string, ideally under 300 characters.
-    - "aliases" must be an array of strings (e.g., ["The Old Shack", "Hideout"]).
+    - "description" must be ${NODE_DESCRIPTION_INSTRUCTION}.
+    - "aliases" must be an array of strings (${ALIAS_INSTRUCTION}).
     - You MUST provide "nodeType" to indicate hierarchy: ${VALID_NODE_TYPES_FOR_MAP_AI}.
 - Node Data for "nodesToUpdate":
     - "description" and "aliases" can be optionally provided in "newData" to update ANY node.
@@ -111,8 +114,8 @@ Respond ONLY with a single JSON object adhering to the AIMapUpdatePayload struct
       "placeName": "CURRENT_TEMP_FeatureA_Name", // This MUST be the temporary name of FeatureA from the prompt.
       "newData": {
         "placeName": "NEW_THEMATIC_FeatureA_Name", // Your suggested new, thematic name for FeatureA.
-        "description": "string", // REQUIRED non-empty, creative description for FeatureA.
-        "aliases": ["string"],   // REQUIRED array of aliases for FeatureA (can be empty).
+        "description": "string", // REQUIRED: ${NODE_DESCRIPTION_INSTRUCTION} for FeatureA.
+        "aliases": ["string"],   // REQUIRED array of aliases for FeatureA (${ALIAS_INSTRUCTION}).
         "status": "string"       // REQUIRED valid node status (e.g., 'discovered').
       }
     },
@@ -120,8 +123,8 @@ Respond ONLY with a single JSON object adhering to the AIMapUpdatePayload struct
       "placeName": "CURRENT_TEMP_FeatureB_Name", // This MUST be the temporary name of FeatureB from the prompt.
       "newData": {
         "placeName": "NEW_THEMATIC_FeatureB_Name", // Your suggested new, thematic name for FeatureB.
-        "description": "string", // REQUIRED non-empty, creative description for FeatureB.
-        "aliases": ["string"],   // REQUIRED array of aliases for FeatureB (can be empty).
+        "description": "string", // REQUIRED: ${NODE_DESCRIPTION_INSTRUCTION} for FeatureB.
+        "aliases": ["string"],   // REQUIRED array of aliases for FeatureB (${ALIAS_INSTRUCTION}).
         "status": "string"       // REQUIRED valid node status (e.g., 'discovered').
       }
     }
@@ -134,7 +137,7 @@ Respond ONLY with a single JSON object adhering to the AIMapUpdatePayload struct
       "newData": { // For "edgesToUpdate"
         "type": "string",        // REQUIRED valid edge type (e.g., 'path', 'door').
         "status": "string",      // REQUIRED valid edge status (e.g., 'open', 'locked').
-        "description"?: "string" // Optional description for the edge.
+        "description"?: "string" // Optional: ${EDGE_DESCRIPTION_INSTRUCTION}.
       }
       // OR "data" field if using "edgesToAdd" with the same required fields.
     }

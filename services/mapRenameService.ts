@@ -6,7 +6,12 @@
 
 import { AdventureTheme, MapNode, MapEdge } from '../types';
 import { updateNodeId } from '../utils/mapIdUtils';
-import { MAX_RETRIES } from '../constants';
+import {
+  MAX_RETRIES,
+  NODE_DESCRIPTION_INSTRUCTION,
+  ALIAS_INSTRUCTION,
+  EDGE_DESCRIPTION_INSTRUCTION,
+} from '../constants';
 import { callCorrectionAI } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 
@@ -36,15 +41,17 @@ export const renameMapElements_Service = async (
     .map(e => `- ID: ${e.id}, connects ${e.sourceNodeId} -> ${e.targetNodeId}, Type: ${e.data.type}`)
     .join('\n');
 
-  const prompt = `You are an AI assistant tasked with assigning thematic names and descriptions
+const prompt = `You are an AI assistant tasked with assigning thematic names and descriptions
 for newly created map elements in a text adventure game.
 Current Theme: "${currentTheme.name}" (${currentTheme.systemInstructionModifier})
 Scene Snippet: "${context.sceneDescription.substring(0, 150)}"
 Recent Log: "${context.gameLogTail.slice(-3).join(' | ')}"
 New Nodes:\n${nodesList || 'None'}\nNew Edges:\n${edgesList || 'None'}\n
 Respond ONLY with a JSON object of the following form:
-{ "nodes": [ { "id": "string", "placeName": "string", "description": "string", "aliases": ["string"] } ],
-  "edges": [ { "id": "string", "description": "string" } ] }
+{ "nodes": [ { "id": "string", "placeName": "string", "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
+    "aliases": ["string"] // ${ALIAS_INSTRUCTION}
+  } ],
+  "edges": [ { "id": "string", "description": "string" // ${EDGE_DESCRIPTION_INSTRUCTION} } ] }
 Each array can be empty. Keep IDs exactly as provided.`;
 
   const systemInst = 'Rename provided map nodes and edges with thematic names. Return strict JSON.';

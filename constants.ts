@@ -111,3 +111,10 @@ export const NON_DISPLAYABLE_EDGE_STATUSES = [
 export const MAX_DIALOGUE_SUMMARIES_PER_CHARACTER = 5; // Max summaries to store per character
 export const MAX_DIALOGUE_SUMMARIES_IN_PROMPT = 3;   // Max summaries to include in AI prompt
 export const RECENT_LOG_COUNT_FOR_PROMPT = 10; // Number of log messages to include in AI prompts
+
+// Standard instructions for AI-generated text fields
+export const NODE_DESCRIPTION_INSTRUCTION =
+  'a short creative description of the location, <300 chars';
+export const EDGE_DESCRIPTION_INSTRUCTION =
+  'a short creative description, focusing of travel conditions of the path';
+export const ALIAS_INSTRUCTION = 'alternative names, partial names, shorthands';

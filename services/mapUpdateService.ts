@@ -17,7 +17,13 @@ import {
   AIMapUpdatePayload,
   MinimalModelCallRecord
 } from '../types';
-import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constants';
+import {
+  AUXILIARY_MODEL_NAME,
+  MAX_RETRIES,
+  GEMINI_MODEL_NAME,
+  NODE_DESCRIPTION_INSTRUCTION,
+  ALIAS_INSTRUCTION,
+} from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
@@ -341,7 +347,7 @@ ${existingMapContext}
 ---
 Based on the Narrative Context and existing map context, provide a JSON response adhering to the MAP_UPDATE_SYSTEM_INSTRUCTION.
 Key points:
-- If the narrative mentions a main location that is NOT yet on the map, add it, and any necessary parent/grandparent and higher level nodes it requires.
+- For ALL nodes in 'nodesToAdd', you MUST provide 'description' (${NODE_DESCRIPTION_INSTRUCTION}), 'aliases' (${ALIAS_INSTRUCTION}, can be empty), and 'status'.
 - For ALL nodes in 'nodesToAdd', you MUST provide 'description' (non-empty string, <300 chars), 'aliases' (array of strings, can be empty), and 'status'.
   - If any new specific places (feature nodes) within or between main locations are described, add them and specify their parent via \`parentNodeId\`.
 - Check if you can assign a definitive parent node for any orphan nodes (Parent node N/A).
