@@ -510,8 +510,12 @@ Key points:
         }
       }
 
-      const baseNameForId = nodeAddOp.placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-      const newNodeId = `${currentTheme.name}_node_${baseNameForId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
+      const baseNameForId = nodeAddOp.placeName
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_]/g, '');
+      const newNodeId = `node_${baseNameForId}_${Date.now()%10000}_${Math.random()
+        .toString(36)
+        .substring(2, 7)}`;
 
       const {
         description,
