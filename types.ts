@@ -258,6 +258,7 @@ export interface MapLayoutConfig {
   NESTED_ANGLE_PADDING: number;
   LABEL_MARGIN_PX: number;
   LABEL_LINE_HEIGHT_EM: number;
+  LABEL_OVERLAP_MARGIN_PX: number;
 }
 
 export interface MapNodeData {

@@ -10,6 +10,8 @@ import {
   NODE_RADIUS,
   EDGE_HOVER_WIDTH,
   MAX_LABEL_LINES,
+  DEFAULT_LABEL_MARGIN_PX,
+  DEFAULT_LABEL_LINE_HEIGHT_EM,
 } from '../../utils/mapConstants';
 
 const buildShortcutPath = (a: MapNode, b: MapNode): string => {
@@ -35,8 +37,7 @@ interface MapNodeViewProps {
   edges: MapEdge[];
   currentMapNodeId: string | null;
   layoutIdealEdgeLength: number;
-  labelMarginPx: number;
-  labelLineHeightEm: number;
+  labelOverlapMarginPx: number;
 }
 
 /**
@@ -128,8 +129,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   edges,
   currentMapNodeId,
   layoutIdealEdgeLength,
-  labelMarginPx,
-  labelLineHeightEm,
+  labelOverlapMarginPx,
 }) => {
   const interactions = useMapInteractions();
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
@@ -165,12 +165,21 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   const hostNodeIdSet = useMemo(() => new Set(regionCircles.map(rc => rc.node.id)), [regionCircles]);
 
   /**
-   * Calculate extra vertical offset for parent labels when they overlap with
-   * their children's labels. The algorithm starts from the deepest nodes and
-   * works its way up so offsets accumulate properly.
+   * Calculate extra vertical offset for child labels when they overlap with
+   * their parent's label. Offsets cascade from shallowest to deepest nodes.
    */
   const labelOffsetMap = useMemo(() => {
     const idToNode = new Map(nodes.map(n => [n.id, n]));
+
+    const childrenMap = new Map<string, MapNode[]>();
+    nodes.forEach(n => {
+      if (n.data.parentNodeId) {
+        const arr = childrenMap.get(n.data.parentNodeId) || [];
+        arr.push(n);
+        childrenMap.set(n.data.parentNodeId, arr);
+      }
+    });
+
     const depthCache = new Map<string, number>();
     const getDepth = (node: MapNode | undefined): number => {
       if (!node) return 0;
@@ -181,48 +190,66 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       depthCache.set(node.id, depth);
       return depth;
     };
-
     nodes.forEach(n => getDepth(n));
-    const sorted = [...nodes].sort((a, b) => getDepth(b) - getDepth(a));
 
-    const offsets: Record<string, number> = {};
-    sorted.forEach(n => { offsets[n.id] = 0; });
+    const isParent = (n: MapNode) => childrenMap.has(n.id);
 
     const fontSizeFor = (n: MapNode) => (n.data.nodeType === 'feature' ? 7 : 12);
     const linesCache: Record<string, string[]> = {};
     const getLines = (n: MapNode): string[] => {
       if (linesCache[n.id]) return linesCache[n.id];
-      const isHost = nodes.some(ch => ch.data.parentNodeId === n.id);
-      const maxChars = n.data.nodeType === 'feature' || !isHost ? 20 : 25;
+      const maxChars = n.data.nodeType === 'feature' || !isParent(n) ? 20 : 25;
       linesCache[n.id] = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
       return linesCache[n.id];
     };
 
-    const getLabelBox = (n: MapNode): { top: number; bottom: number } => {
-      const radius = getRadiusForNode(n);
-      const lines = getLines(n);
-      const font = fontSizeFor(n);
-      const height = lines.length * font * labelLineHeightEm;
-      const top = n.position.y + radius + labelMarginPx + offsets[n.id];
-      return { top, bottom: top + height };
-    };
+    const labelHeight = (n: MapNode) => getLines(n).length * fontSizeFor(n) * DEFAULT_LABEL_LINE_HEIGHT_EM;
+
+    const offsets: Record<string, number> = {};
+    nodes.forEach(n => { offsets[n.id] = 0; });
+
+    const sorted = [...nodes].sort((a, b) => getDepth(a) - getDepth(b));
 
     for (const node of sorted) {
       const parentId = node.data.parentNodeId;
       if (!parentId) continue;
       const parent = idToNode.get(parentId);
       if (!parent) continue;
-      const childBox = getLabelBox(node);
-      let parentBox = getLabelBox(parent);
-      if (childBox.top < parentBox.bottom) {
-        const shift = parentBox.bottom - childBox.top + labelMarginPx;
-        offsets[parent.id] += shift;
-        parentBox = getLabelBox(parent);
+      if (!isParent(node)) continue; // leaf nodes keep centered labels
+      if (!isParent(parent)) continue;
+
+      const parentBase = getRadiusForNode(parent) + DEFAULT_LABEL_MARGIN_PX + offsets[parent.id];
+      const parentBottom = parentBase + labelHeight(parent);
+      const nodeBase = getRadiusForNode(node) + DEFAULT_LABEL_MARGIN_PX + offsets[node.id];
+      if (nodeBase < parentBottom) {
+        offsets[node.id] += parentBottom - nodeBase + labelOverlapMarginPx;
       }
     }
 
     return offsets;
-  }, [nodes, labelMarginPx, labelLineHeightEm]);
+  }, [nodes, labelOverlapMarginPx]);
+
+  /** Map node depth for rendering order */
+  const depthMap = useMemo(() => {
+    const idToNode = new Map(nodes.map(n => [n.id, n]));
+    const cache = new Map<string, number>();
+    const getDepth = (n: MapNode | undefined): number => {
+      if (!n) return 0;
+      const cached = cache.get(n.id);
+      if (cached !== undefined) return cached;
+      const parent = n.data.parentNodeId ? idToNode.get(n.data.parentNodeId) : undefined;
+      const depth = parent ? getDepth(parent) + 1 : 0;
+      cache.set(n.id, depth);
+      return depth;
+    };
+    nodes.forEach(n => getDepth(n));
+    return cache;
+  }, [nodes]);
+
+  const sortedNodes = useMemo(
+    () => [...nodes].sort((a, b) => (depthMap.get(a.id) ?? 0) - (depthMap.get(b.id) ?? 0)),
+    [nodes, depthMap]
+  );
 
   /** Shows node details in a tooltip. */
   const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
@@ -342,7 +369,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             );
           })}
 
-          {nodes.map(node => {
+          {sortedNodes.map(node => {
             let nodeClass = 'map-node-circle';
             if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
@@ -350,87 +377,15 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
               const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
               nodeClass += ` ${sanitizedStatus}`;
             }
-            const isHost = hostNodeIdSet.has(node.id);
-            const maxCharsPerLine =
-              node.data.nodeType === 'feature' || !isHost ? 20 : 25;
-            const labelLines = splitTextIntoLines(
-              node.placeName,
-              maxCharsPerLine,
-              MAX_LABEL_LINES
-            );
             const radius = getRadiusForNode(node);
-            const fontSize = node.data.nodeType === 'feature' ? 7 : 12;
-            const baseOffsetPx = radius + labelMarginPx + (labelOffsetMap[node.id] || 0);
-            const initialDyOffset = baseOffsetPx / fontSize;
             const handleEnter = (e: React.MouseEvent) => handleNodeMouseEnter(node, e);
-            if (node.data.nodeType === 'feature') {
-              return (
-                <g
-                  key={node.id}
-                  transform={`translate(${node.position.x}, ${node.position.y})`}
-                  className="map-node"
-                  onMouseEnter={handleEnter}
-                  onMouseLeave={handleMouseLeaveGeneral}
-                >
-                  <circle className={nodeClass} r={radius} />
-                  <text className="map-node-label feature-label" pointerEvents="none">
-                    {labelLines.map((line, index) => (
-                      <tspan
-                        key={`${node.id}-line-${index}`}
-                        x="0"
-                        dy={index === 0 ? `${initialDyOffset}em` : `${labelLineHeightEm}em`}
-                      >
-                        {line}
-                      </tspan>
-                    ))}
-                  </text>
-                </g>
-              );
-            }
-
-            if (!isHost) {
-              return (
-                <g
-                  key={node.id}
-                  transform={`translate(${node.position.x}, ${node.position.y})`}
-                  className="map-node"
-                >
-                  <circle className={nodeClass} r={radius} pointerEvents="none" />
-                  <circle
-                    className="map-node-hover-ring"
-                    r={radius}
-                    fill="none"
-                    stroke="transparent"
-                    strokeWidth={8}
-                    pointerEvents="stroke"
-                    onMouseEnter={handleEnter}
-                    onMouseLeave={handleMouseLeaveGeneral}
-                  />
-                  <text
-                    className="map-node-label feature-label"
-                    pointerEvents="all"
-                    onMouseEnter={handleEnter}
-                    onMouseLeave={handleMouseLeaveGeneral}
-                  >
-                    {labelLines.map((line, index) => (
-                      <tspan
-                        key={`${node.id}-line-${index}`}
-                        x="0"
-                        dy={index === 0 ? `${initialDyOffset}em` : `${labelLineHeightEm}em`}
-                      >
-                        {line}
-                      </tspan>
-                    ))}
-                  </text>
-                </g>
-              );
-            }
-
             return (
               <g
                 key={node.id}
                 transform={`translate(${node.position.x}, ${node.position.y})`}
                 className="map-node"
+                onMouseEnter={handleEnter}
+                onMouseLeave={handleMouseLeaveGeneral}
               >
                 <circle className={nodeClass} r={radius} pointerEvents="none" />
                 <circle
@@ -443,23 +398,46 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                   onMouseEnter={handleEnter}
                   onMouseLeave={handleMouseLeaveGeneral}
                 />
-                <text
-                  className="map-node-label"
-                  pointerEvents="all"
-                  onMouseEnter={handleEnter}
-                  onMouseLeave={handleMouseLeaveGeneral}
-                >
-                  {labelLines.map((line, index) => (
-                    <tspan
-                      key={`${node.id}-line-${index}`}
-                      x="0"
-                      dy={index === 0 ? `${initialDyOffset}em` : `${labelLineHeightEm}em`}
-                    >
-                      {line}
-                    </tspan>
-                  ))}
-                </text>
               </g>
+            );
+          })}
+
+          {sortedNodes.map(node => {
+            const isHost = hostNodeIdSet.has(node.id);
+            const maxCharsPerLine =
+              node.data.nodeType === 'feature' || !isHost ? 20 : 25;
+            const labelLines = splitTextIntoLines(
+              node.placeName,
+              maxCharsPerLine,
+              MAX_LABEL_LINES
+            );
+            const radius = getRadiusForNode(node);
+            const fontSize = node.data.nodeType === 'feature' ? 7 : 12;
+            const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] || 0);
+            const initialDyOffset =
+              node.data.nodeType === 'feature' || !isHost
+                ? -(labelLines.length - 1) * 0.5 * DEFAULT_LABEL_LINE_HEIGHT_EM + 0.3
+                : baseOffsetPx / fontSize;
+
+            return (
+              <text
+                key={`label-${node.id}`}
+                className={`map-node-label${
+                  node.data.nodeType === 'feature' || !isHost ? ' feature-label' : ''
+                }`}
+                transform={`translate(${node.position.x}, ${node.position.y})`}
+                pointerEvents="none"
+              >
+                {labelLines.map((line, index) => (
+                  <tspan
+                    key={`${node.id}-line-${index}`}
+                    x="0"
+                    dy={index === 0 ? `${initialDyOffset}em` : `${DEFAULT_LABEL_LINE_HEIGHT_EM}em`}
+                  >
+                    {line}
+                  </tspan>
+                ))}
+              </text>
             );
           })}
         </g>

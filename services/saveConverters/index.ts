@@ -33,6 +33,7 @@ import {
 import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
+  DEFAULT_LABEL_OVERLAP_MARGIN_PX,
 } from '../../utils/mapConstants';
 import { findThemeByName } from '../themeUtils';
 
@@ -146,6 +147,7 @@ export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
   NESTED_ANGLE_PADDING: DEFAULT_NESTED_ANGLE_PADDING,
   LABEL_MARGIN_PX: DEFAULT_LABEL_MARGIN_PX,
   LABEL_LINE_HEIGHT_EM: DEFAULT_LABEL_LINE_HEIGHT_EM,
+  LABEL_OVERLAP_MARGIN_PX: DEFAULT_LABEL_OVERLAP_MARGIN_PX,
 });
 
 /**

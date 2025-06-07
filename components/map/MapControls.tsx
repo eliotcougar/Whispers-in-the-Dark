@@ -10,10 +10,8 @@ interface MapControlsProps {
   setPadding: (val: number) => void;
   anglePadding: number;
   setAnglePadding: (val: number) => void;
-  labelMargin: number;
-  setLabelMargin: (val: number) => void;
-  labelLineHeight: number;
-  setLabelLineHeight: (val: number) => void;
+  overlapMargin: number;
+  setOverlapMargin: (val: number) => void;
   onReset: () => void;
   onRefreshLayout: () => void;
 }
@@ -48,10 +46,8 @@ const MapControls: React.FC<MapControlsProps> = props => {
     setPadding,
     anglePadding,
     setAnglePadding,
-    labelMargin,
-    setLabelMargin,
-    labelLineHeight,
-    setLabelLineHeight,
+    overlapMargin,
+    setOverlapMargin,
     onReset,
     onRefreshLayout,
   } = props;
@@ -81,24 +77,14 @@ const MapControls: React.FC<MapControlsProps> = props => {
             'Extra spacing between siblings'
           )}
           {renderParameterControl(
-            'Label Margin',
-            'labelMargin',
-            labelMargin,
-            setLabelMargin,
+            'Overlap Margin',
+            'overlapMargin',
+            overlapMargin,
+            setOverlapMargin,
             0,
-            20,
+            10,
             1,
-            'Space between node circle and label'
-          )}
-          {renderParameterControl(
-            'Label Line Height',
-            'labelLineHeight',
-            labelLineHeight,
-            setLabelLineHeight,
-            0.8,
-            2,
-            0.01,
-            'Line spacing within node labels'
+            'Extra spacing when labels overlap'
           )}
           <button onClick={onReset} className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
             Reset to Defaults

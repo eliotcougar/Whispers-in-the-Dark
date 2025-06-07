@@ -8,5 +8,6 @@ export const VIEWBOX_WIDTH_INITIAL = 1000;
 export const VIEWBOX_HEIGHT_INITIAL = 750;
 export const EDGE_HOVER_WIDTH = 8;
 export const MAX_LABEL_LINES = 4;
-export const DEFAULT_LABEL_MARGIN_PX = 6;
+export const DEFAULT_LABEL_MARGIN_PX = 10;
 export const DEFAULT_LABEL_LINE_HEIGHT_EM = 1.1;
+export const DEFAULT_LABEL_OVERLAP_MARGIN_PX = 2;
