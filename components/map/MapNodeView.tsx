@@ -203,26 +203,53 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       return linesCache[n.id];
     };
 
-    const labelHeight = (n: MapNode) => getLines(n).length * fontSizeFor(n) * DEFAULT_LABEL_LINE_HEIGHT_EM;
+    const labelHeight = (n: MapNode) =>
+      getLines(n).length * fontSizeFor(n) * DEFAULT_LABEL_LINE_HEIGHT_EM;
+
+    const labelWidth = (n: MapNode) =>
+      Math.max(
+        ...getLines(n).map(line => line.length * fontSizeFor(n) * 0.6)
+      );
+
+    const getLabelBox = (n: MapNode, offset: number) => {
+      const width = labelWidth(n);
+      const height = labelHeight(n);
+      const base = getRadiusForNode(n) + DEFAULT_LABEL_MARGIN_PX + offset;
+      return {
+        x: n.position.x - width / 2,
+        y: n.position.y + base,
+        width,
+        height,
+      };
+    };
 
     const offsets: Record<string, number> = {};
-    nodes.forEach(n => { offsets[n.id] = 0; });
+    nodes.forEach(n => {
+      offsets[n.id] = 0;
+    });
 
     const sorted = [...nodes].sort((a, b) => getDepth(a) - getDepth(b));
 
     for (const node of sorted) {
+      if (node.data.nodeType === 'feature') continue;
       const parentId = node.data.parentNodeId;
       if (!parentId) continue;
       const parent = idToNode.get(parentId);
       if (!parent) continue;
-      if (!isParent(node)) continue; // leaf nodes keep centered labels
-      if (!isParent(parent)) continue;
+      if (!isParent(node)) continue; // childless nodes stay centered
 
-      const parentBase = getRadiusForNode(parent) + DEFAULT_LABEL_MARGIN_PX + offsets[parent.id];
-      const parentBottom = parentBase + labelHeight(parent);
-      const nodeBase = getRadiusForNode(node) + DEFAULT_LABEL_MARGIN_PX + offsets[node.id];
-      if (nodeBase < parentBottom) {
-        offsets[node.id] += parentBottom - nodeBase + labelOverlapMarginPx;
+      const parentBox = getLabelBox(parent, offsets[parent.id]);
+      const nodeBox = getLabelBox(node, offsets[node.id]);
+
+      const overlap =
+        nodeBox.x < parentBox.x + parentBox.width &&
+        nodeBox.x + nodeBox.width > parentBox.x &&
+        nodeBox.y < parentBox.y + parentBox.height &&
+        nodeBox.y + nodeBox.height > parentBox.y;
+
+      if (overlap) {
+        const delta = parentBox.y + parentBox.height - nodeBox.y;
+        offsets[node.id] += delta + labelOverlapMarginPx;
       }
     }
 
