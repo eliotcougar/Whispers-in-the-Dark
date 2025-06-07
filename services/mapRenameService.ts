@@ -4,7 +4,7 @@
  *              newly created map nodes and edges.
  */
 
-import { AdventureTheme, MapNode, MapEdge, MapData } from '../types';
+import { AdventureTheme, MapNode, MapEdge, MapData, RenameMapElementsPayload } from '../types';
 import { updateNodeId } from '../utils/mapIdUtils';
 import {
   MAX_RETRIES,
@@ -12,13 +12,20 @@ import {
   ALIAS_INSTRUCTION,
   EDGE_DESCRIPTION_INSTRUCTION,
 } from '../constants';
-import { callCorrectionAI } from './corrections/base';
+import { dispatchAIRequest } from './modelDispatcher';
+import { CORRECTION_TEMPERATURE } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 
-export interface RenameMapElementsPayload {
-  nodes: { id: string; placeName: string; description: string; aliases?: string[] }[];
-  edges: { id: string; description: string }[];
+export interface RenameMapElementsServiceResult {
+  payload: RenameMapElementsPayload | null;
+  debugInfo: {
+    prompt: string;
+    rawResponse?: string;
+    parsedPayload?: RenameMapElementsPayload;
+    validationError?: string;
+  } | null;
 }
+
 
 /**
  * Calls the auxiliary AI to generate better names/descriptions for new nodes
@@ -30,9 +37,9 @@ export const renameMapElements_Service = async (
   newEdges: MapEdge[],
   currentTheme: AdventureTheme,
   context: { sceneDescription: string; gameLogTail: string[] }
-): Promise<RenameMapElementsPayload | null> => {
+): Promise<RenameMapElementsServiceResult> => {
   if (!isApiConfigured() || (newNodes.length === 0 && newEdges.length === 0)) {
-    return null;
+    return { payload: null, debugInfo: null };
   }
 
   const nodesList = newNodes
@@ -65,17 +72,36 @@ Arrays can be empty if either Nodes or Edges are None. All fields are REQUIRED. 
 
   const systemInst = 'Rename provided map nodes and edges with thematic names. Completely rewrite the placeName, description, and aliases according to the provided context. Return strict JSON.';
 
+  const debugInfo: RenameMapElementsServiceResult['debugInfo'] = { prompt };
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const result = await callCorrectionAI<RenameMapElementsPayload>(prompt, systemInst);
-    if (
-      result &&
-      Array.isArray(result.nodes) &&
-      Array.isArray(result.edges)
-    ) {
-      return result;
+    try {
+      debugInfo.prompt = prompt;
+      const response = await dispatchAIRequest(
+        ['auxiliary', 'gemini-pro'],
+        prompt,
+        systemInst,
+        { responseMimeType: 'application/json', temperature: CORRECTION_TEMPERATURE }
+      );
+      debugInfo.rawResponse = response.text ?? '';
+      let jsonStr = (response.text ?? '').trim();
+      const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
+      const fenceMatch = jsonStr.match(fenceRegex);
+      if (fenceMatch && fenceMatch[1]) {
+        jsonStr = fenceMatch[1].trim();
+      }
+      const result = JSON.parse(jsonStr) as RenameMapElementsPayload;
+      debugInfo.parsedPayload = result;
+      if (result && Array.isArray(result.nodes) && Array.isArray(result.edges)) {
+        return { payload: result, debugInfo };
+      }
+      debugInfo.validationError = 'Parsed JSON missing nodes or edges array';
+    } catch (error) {
+      debugInfo.validationError = `Error: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
-  return null;
+
+  return { payload: null, debugInfo };
 };
 
 /**

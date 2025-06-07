@@ -144,6 +144,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         mapPruningDebugInfo: null,
+        mapRenameDebugInfo: null,
       };
 
       if (aiData.localTime !== undefined) {
