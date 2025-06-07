@@ -256,6 +256,8 @@ export interface MapLayoutConfig {
   IDEAL_EDGE_LENGTH: number;
   NESTED_PADDING: number;
   NESTED_ANGLE_PADDING: number;
+  LABEL_MARGIN_PX: number;
+  LABEL_LINE_HEIGHT_EM: number;
 }
 
 export interface MapNodeData {

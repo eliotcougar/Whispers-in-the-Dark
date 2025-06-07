@@ -10,7 +10,6 @@ import {
   NODE_RADIUS,
   EDGE_HOVER_WIDTH,
   MAX_LABEL_LINES,
-  LABEL_LINE_HEIGHT_EM,
 } from '../../utils/mapConstants';
 
 const buildShortcutPath = (a: MapNode, b: MapNode): string => {
@@ -31,13 +30,13 @@ const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
 };
 
-const LABEL_MARGIN_PX = 6;
-
 interface MapNodeViewProps {
   nodes: MapNode[];
   edges: MapEdge[];
   currentMapNodeId: string | null;
   layoutIdealEdgeLength: number;
+  labelMarginPx: number;
+  labelLineHeightEm: number;
 }
 
 /**
@@ -124,7 +123,14 @@ const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: num
 /**
  * SVG view for rendering map nodes and edges with tooltips.
  */
-const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeId, layoutIdealEdgeLength }) => {
+const MapNodeView: React.FC<MapNodeViewProps> = ({
+  nodes,
+  edges,
+  currentMapNodeId,
+  layoutIdealEdgeLength,
+  labelMarginPx,
+  labelLineHeightEm,
+}) => {
   const interactions = useMapInteractions();
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
@@ -196,8 +202,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
       const radius = getRadiusForNode(n);
       const lines = getLines(n);
       const font = fontSizeFor(n);
-      const height = lines.length * font * LABEL_LINE_HEIGHT_EM;
-      const top = n.position.y + radius + LABEL_MARGIN_PX + offsets[n.id];
+      const height = lines.length * font * labelLineHeightEm;
+      const top = n.position.y + radius + labelMarginPx + offsets[n.id];
       return { top, bottom: top + height };
     };
 
@@ -209,14 +215,14 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
       const childBox = getLabelBox(node);
       let parentBox = getLabelBox(parent);
       if (childBox.top < parentBox.bottom) {
-        const shift = parentBox.bottom - childBox.top + LABEL_MARGIN_PX;
+        const shift = parentBox.bottom - childBox.top + labelMarginPx;
         offsets[parent.id] += shift;
         parentBox = getLabelBox(parent);
       }
     }
 
     return offsets;
-  }, [nodes]);
+  }, [nodes, labelMarginPx, labelLineHeightEm]);
 
   /** Shows node details in a tooltip. */
   const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
@@ -354,7 +360,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
             );
             const radius = getRadiusForNode(node);
             const fontSize = node.data.nodeType === 'feature' ? 7 : 12;
-            const baseOffsetPx = radius + LABEL_MARGIN_PX + (labelOffsetMap[node.id] || 0);
+            const baseOffsetPx = radius + labelMarginPx + (labelOffsetMap[node.id] || 0);
             const initialDyOffset = baseOffsetPx / fontSize;
             const handleEnter = (e: React.MouseEvent) => handleNodeMouseEnter(node, e);
             if (node.data.nodeType === 'feature') {
@@ -372,7 +378,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
                       <tspan
                         key={`${node.id}-line-${index}`}
                         x="0"
-                        dy={index === 0 ? `${initialDyOffset}em` : `${LABEL_LINE_HEIGHT_EM}em`}
+                        dy={index === 0 ? `${initialDyOffset}em` : `${labelLineHeightEm}em`}
                       >
                         {line}
                       </tspan>
@@ -410,7 +416,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
                       <tspan
                         key={`${node.id}-line-${index}`}
                         x="0"
-                        dy={index === 0 ? `${initialDyOffset}em` : `${LABEL_LINE_HEIGHT_EM}em`}
+                        dy={index === 0 ? `${initialDyOffset}em` : `${labelLineHeightEm}em`}
                       >
                         {line}
                       </tspan>
@@ -447,7 +453,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
                     <tspan
                       key={`${node.id}-line-${index}`}
                       x="0"
-                      dy={index === 0 ? `${initialDyOffset}em` : `${LABEL_LINE_HEIGHT_EM}em`}
+                      dy={index === 0 ? `${initialDyOffset}em` : `${labelLineHeightEm}em`}
                     >
                       {line}
                     </tspan>

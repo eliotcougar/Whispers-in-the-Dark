@@ -30,6 +30,10 @@ import {
   DEFAULT_NESTED_PADDING,
   DEFAULT_NESTED_ANGLE_PADDING,
 } from '../../utils/mapLayoutUtils';
+import {
+  DEFAULT_LABEL_MARGIN_PX,
+  DEFAULT_LABEL_LINE_HEIGHT_EM,
+} from '../../utils/mapConstants';
 import { findThemeByName } from '../themeUtils';
 
 /** V1 KnownUse structure for conversion. */
@@ -140,6 +144,8 @@ export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
   IDEAL_EDGE_LENGTH: DEFAULT_IDEAL_EDGE_LENGTH,
   NESTED_PADDING: DEFAULT_NESTED_PADDING,
   NESTED_ANGLE_PADDING: DEFAULT_NESTED_ANGLE_PADDING,
+  LABEL_MARGIN_PX: DEFAULT_LABEL_MARGIN_PX,
+  LABEL_LINE_HEIGHT_EM: DEFAULT_LABEL_LINE_HEIGHT_EM,
 });
 
 /**
