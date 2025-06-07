@@ -278,7 +278,10 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({ nodes, edges, currentMapNodeI
             let nodeClass = 'map-node-circle';
             if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
-            if (node.data.status === 'quest_target') nodeClass += ' quest_target';
+            if (node.data.status) {
+              const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
+              nodeClass += ` ${sanitizedStatus}`;
+            }
             const isHost = hostNodeIdSet.has(node.id);
             const maxCharsPerLine =
               node.data.nodeType === 'feature' || !isHost ? 20 : 25;

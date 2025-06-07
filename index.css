@@ -325,6 +325,15 @@ body {
   stroke-dasharray: 4;
   animation: map-node-quest-pulse 2s infinite;
 }
+.map-node-circle.rumored {
+  stroke: #9ca3af; /* gray-400 */
+  opacity: 0.5;
+}
+.map-node-circle.rumored.feature {
+  fill: #9ca3af; /* gray-400 */
+  stroke: #6b7280; /* gray-500 */
+  opacity: 0.5;
+}
 .map-node-label {
   font-size: 12px; /* Base size for main nodes */
   fill: #e5e7eb; /* gray-200 */
@@ -367,6 +376,11 @@ body {
   stroke: #4b5563;
   opacity: 0.3;
   stroke-dasharray: 1, 5;
+}
+.map-edge.rumored {
+  stroke: #9ca3af; /* gray-400 */
+  opacity: 0.5;
+  stroke-dasharray: 3, 3;
 }
 .map-edge.collapsed,
 .map-edge.removed {
