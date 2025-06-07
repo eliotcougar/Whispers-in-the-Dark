@@ -144,7 +144,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         mapPruningDebugInfo: null,
-        mapRenameDebugInfo: null,
       };
 
       if (aiData.localTime !== undefined) {
@@ -339,9 +338,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),
-        mapUpdateDebugInfo: null,
-        mapPruningDebugInfo: null,
-        mapRenameDebugInfo: null,
       };
       draftState.lastDebugPacket = debugPacket;
       if (isFreeForm) draftState.score -= FREE_FORM_ACTION_COST;
