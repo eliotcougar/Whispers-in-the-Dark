@@ -65,6 +65,7 @@ export const renameMapElements_Service = async (
 const basePrompt = `You are an AI assistant tasked with assigning thematic names and descriptions
 for newly created map elements in a text adventure game.
 Current Theme: "${currentTheme.name}" (${currentTheme.systemInstructionModifier})
+
   const debugInfo: MapRenameDebugInfo = { prompt: basePrompt };
   let promptToSend = basePrompt;
   let validPayload: RenameMapElementsPayload | null = null;
