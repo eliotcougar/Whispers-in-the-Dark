@@ -256,6 +256,9 @@ export interface MapLayoutConfig {
   IDEAL_EDGE_LENGTH: number;
   NESTED_PADDING: number;
   NESTED_ANGLE_PADDING: number;
+  LABEL_MARGIN_PX: number;
+  LABEL_LINE_HEIGHT_EM: number;
+  LABEL_OVERLAP_MARGIN_PX: number;
 }
 
 export interface MapNodeData {
@@ -287,7 +290,17 @@ export interface MapNode {
 
 export interface MapEdgeData {
   description?: string;
-  type?: 'path' | 'road' | 'sea route' | 'door' | 'teleporter' | 'secret_passage' | 'river_crossing' | 'temporary_bridge' | 'boarding_hook';
+  type?:
+    | 'path'
+    | 'road'
+    | 'sea route'
+    | 'door'
+    | 'teleporter'
+    | 'secret_passage'
+    | 'river_crossing'
+    | 'temporary_bridge'
+    | 'boarding_hook'
+    | 'shortcut';
   status?: 'open' | 'accessible' | 'closed' | 'locked' | 'blocked' | 'hidden' | 'rumored' | 'one_way' | 'collapsed' | 'removed' | 'active' | 'inactive'; 
   travelTime?: string; 
   [key: string]: unknown;
@@ -355,6 +368,13 @@ export interface MapChainToRefine {
 }
 // --- End Map Pruning & Refinement Types ---
 
+export interface MinimalModelCallRecord {
+  prompt: string;
+  systemInstruction: string;
+  modelUsed: string;
+  responseText: string;
+}
+
 export interface DebugPacket {
   prompt: string;
   rawResponseText: string | null;
@@ -366,6 +386,7 @@ export interface DebugPacket {
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
+    minimalModelCalls?: MinimalModelCallRecord[];
   } | null;
   mapPruningDebugInfo?: {
     pruningDebugInfo?: { chainsToRefineCount: number };

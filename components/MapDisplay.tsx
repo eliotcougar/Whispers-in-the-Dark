@@ -11,6 +11,11 @@ import {
   DEFAULT_NESTED_ANGLE_PADDING,
   applyNestedCircleLayout,
 } from '../utils/mapLayoutUtils';
+import {
+  DEFAULT_LABEL_MARGIN_PX,
+  DEFAULT_LABEL_LINE_HEIGHT_EM,
+  DEFAULT_LABEL_OVERLAP_MARGIN_PX,
+} from '../utils/mapConstants';
 import MapNodeView from './map/MapNodeView';
 import MapControls from './map/MapControls';
 
@@ -46,6 +51,11 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   const [layoutNestedAnglePadding, setLayoutNestedAnglePadding] = useState(
     initialLayoutConfig?.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
   );
+  const labelMarginPx = DEFAULT_LABEL_MARGIN_PX;
+  const labelLineHeightEm = DEFAULT_LABEL_LINE_HEIGHT_EM;
+  const [labelOverlapMarginPx, setLabelOverlapMarginPx] = useState(
+    initialLayoutConfig?.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX
+  );
 
   useEffect(() => {
     if (initialLayoutConfig) {
@@ -53,6 +63,9 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       setLayoutNestedPadding(initialLayoutConfig.NESTED_PADDING ?? DEFAULT_NESTED_PADDING);
       setLayoutNestedAnglePadding(
         initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
+      );
+      setLabelOverlapMarginPx(
+        initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX
       );
     }
   }, [initialLayoutConfig]);
@@ -63,8 +76,18 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       IDEAL_EDGE_LENGTH: layoutIdealEdgeLength,
       NESTED_PADDING: layoutNestedPadding,
       NESTED_ANGLE_PADDING: layoutNestedAnglePadding,
+      LABEL_MARGIN_PX: labelMarginPx,
+      LABEL_LINE_HEIGHT_EM: labelLineHeightEm,
+      LABEL_OVERLAP_MARGIN_PX: labelOverlapMarginPx,
     }),
-    [layoutIdealEdgeLength, layoutNestedPadding, layoutNestedAnglePadding]
+    [
+      layoutIdealEdgeLength,
+      layoutNestedPadding,
+      layoutNestedAnglePadding,
+      labelMarginPx,
+      labelLineHeightEm,
+      labelOverlapMarginPx,
+    ]
   );
 
   useEffect(() => {
@@ -122,6 +145,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     setLayoutIdealEdgeLength(DEFAULT_IDEAL_EDGE_LENGTH);
     setLayoutNestedPadding(DEFAULT_NESTED_PADDING);
     setLayoutNestedAnglePadding(DEFAULT_NESTED_ANGLE_PADDING);
+    setLabelOverlapMarginPx(DEFAULT_LABEL_OVERLAP_MARGIN_PX);
   };
 
   if (!isVisible) return null;
@@ -136,12 +160,20 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           {currentThemeName ? `Map: ${currentThemeName}` : 'Map'}
         </h1>
         <p className="text-center text-xs text-slate-400 mb-1">Pan by dragging, zoom with the mouse wheel or pinch. Hover for details.</p>
-        <MapNodeView nodes={displayedNodes} edges={currentThemeEdges} currentMapNodeId={currentMapNodeId} layoutIdealEdgeLength={layoutIdealEdgeLength} />
+        <MapNodeView
+          nodes={displayedNodes}
+          edges={currentThemeEdges}
+          currentMapNodeId={currentMapNodeId}
+          layoutIdealEdgeLength={layoutIdealEdgeLength}
+          labelOverlapMarginPx={labelOverlapMarginPx}
+        />
         <MapControls
           padding={layoutNestedPadding}
           setPadding={setLayoutNestedPadding}
           anglePadding={layoutNestedAnglePadding}
           setAnglePadding={setLayoutNestedAnglePadding}
+          overlapMargin={labelOverlapMarginPx}
+          setOverlapMargin={setLabelOverlapMarginPx}
           onReset={handleResetLayoutToDefaults}
           onRefreshLayout={handleRefreshLayout}
         />

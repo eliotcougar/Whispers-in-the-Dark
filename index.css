@@ -325,6 +325,15 @@ body {
   stroke-dasharray: 4;
   animation: map-node-quest-pulse 2s infinite;
 }
+.map-node-circle.rumored {
+  stroke: #9ca3af; /* gray-400 */
+  opacity: 0.5;
+}
+.map-node-circle.rumored.feature {
+  fill: #9ca3af; /* gray-400 */
+  stroke: #6b7280; /* gray-500 */
+  opacity: 0.5;
+}
 .map-node-label {
   font-size: 12px; /* Base size for main nodes */
   fill: #e5e7eb; /* gray-200 */
@@ -368,6 +377,11 @@ body {
   opacity: 0.3;
   stroke-dasharray: 1, 5;
 }
+.map-edge.rumored {
+  stroke: #9ca3af; /* gray-400 */
+  opacity: 0.5;
+  stroke-dasharray: 3, 3;
+}
 .map-edge.collapsed,
 .map-edge.removed {
   stroke: #7f1d1d;
@@ -378,6 +392,10 @@ body {
   stroke: #ca8a04;
   stroke-dasharray: 5, 2, 2, 2;
 } /* Yellowish, distinct dash */
+.map-edge.shortcut {
+  stroke: #0d9488; /* teal-600 */
+  stroke-dasharray: 2, 6;
+}
 
 .map-tooltip {
   position: absolute;

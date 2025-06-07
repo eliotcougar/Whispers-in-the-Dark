@@ -14,7 +14,8 @@ import {
   DialogueSummaryResponse,
   MapNodeData,
   MapEdgeData,
-  AIMapUpdatePayload
+  AIMapUpdatePayload,
+  MinimalModelCallRecord
 } from '../types';
 import { AUXILIARY_MODEL_NAME, MAX_RETRIES, GEMINI_MODEL_NAME } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
@@ -35,6 +36,7 @@ export interface MapUpdateServiceResult {
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
+    minimalModelCalls?: MinimalModelCallRecord[];
   } | null;
 }
 
@@ -81,8 +83,12 @@ const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | nu
       if (Array.isArray(payload.nodesToRemove)) {
         payload.nodesToRemove = payload.nodesToRemove.filter(n => !nameIsUniverse(n.placeName));
       }
-      const filterEdgeArray = (arr: typeof payload.edgesToAdd) =>
-        (arr || []).filter(e => !nameIsUniverse(e.sourcePlaceName) && !nameIsUniverse(e.targetPlaceName));
+      const filterEdgeArray = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
+        arr: T[] | undefined
+      ): T[] =>
+        (arr || []).filter(
+          e => !nameIsUniverse(e.sourcePlaceName) && !nameIsUniverse(e.targetPlaceName)
+        );
       if (Array.isArray(payload.edgesToAdd)) {
         payload.edgesToAdd = filterEdgeArray(payload.edgesToAdd);
       }
@@ -274,6 +280,7 @@ export const updateMapFromAIData_Service = async (
   const currentThemeEdgesFromMapData = currentMapData.edges.filter(e =>
     currentThemeNodeIdsSet.has(e.sourceNodeId) && currentThemeNodeIdsSet.has(e.targetNodeId)
   );
+  const minimalModelCalls: MinimalModelCallRecord[] = [];
   const themeNodeIdMap = new Map<string, MapNode>();
   const themeNodeNameMap = new Map<string, MapNode>();
   const themeNodeAliasMap = new Map<string, MapNode>();
@@ -337,7 +344,7 @@ Key points:
  - If the Player's new 'localPlace' tells that they are at a specific feature node (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
 `;
   let prompt = basePrompt;
-  const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt };
+  const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };
   let validParsedPayload: AIMapUpdatePayload | null = null;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -448,6 +455,18 @@ Key points:
   }
   edgesToAdd_mut = finalEdgesToAdd;
 
+  // If a node is being renamed via nodesToUpdate, ignore any matching
+  // nodesToRemove operation referencing either the old or new name.
+  (validParsedPayload.nodesToUpdate || []).forEach(upd => {
+    const updNames = [upd.placeName.toLowerCase()];
+    if (upd.newData.placeName)
+      updNames.push(upd.newData.placeName.toLowerCase());
+    for (const name of updNames) {
+      const idx = nodesToRemove_mut.findIndex(r => r.placeName.toLowerCase() === name);
+      if (idx !== -1) nodesToRemove_mut.splice(idx, 1);
+    }
+  });
+
   /**
    * Resolves a node reference by either place name or ID.
    * This is used for edges and node updates where the AI might
@@ -491,8 +510,12 @@ Key points:
         }
       }
 
-      const baseNameForId = nodeAddOp.placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-      const newNodeId = `${currentTheme.name}_node_${baseNameForId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
+      const baseNameForId = nodeAddOp.placeName
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_]/g, '');
+      const newNodeId = `node_${baseNameForId}_${Date.now()%10000}_${Math.random()
+        .toString(36)
+        .substring(2, 7)}`;
 
       const {
         description,
@@ -551,7 +574,8 @@ Key points:
               currentMapNodeId: referenceMapNodeId,
               themeNodes: currentThemeNodesFromMapData,
               themeEdges: currentThemeEdgesFromMapData,
-            }
+            },
+            minimalModelCalls
           );
           unresolved.data.parentNodeId = guessed || 'Universe';
         }
@@ -674,45 +698,87 @@ Key points:
       }
   });
 
-  const isEdgeConnectionAllowed = (nodeA: MapNode, nodeB: MapNode): boolean => {
+  // Determines whether two feature nodes can be directly connected based on the
+  // hierarchy rules. Allowed connections are:
+  //   1) sibling features (same parent)
+  //   2) features whose parents share the same grandparent
+  //   3) a feature and another feature whose parent is the child's grandparent
+  const isEdgeConnectionAllowed = (
+      nodeA: MapNode,
+      nodeB: MapNode,
+      edgeType?: MapEdgeData['type']
+  ): boolean => {
+      if (edgeType === 'shortcut') return true;
       if (nodeA.data.nodeType !== 'feature' || nodeB.data.nodeType !== 'feature') {
           return false;
       }
-      const parentA = nodeA.data.parentNodeId ? themeNodeIdMap.get(nodeA.data.parentNodeId) : null;
-      const parentB = nodeB.data.parentNodeId ? themeNodeIdMap.get(nodeB.data.parentNodeId) : null;
+
+      const parentA = nodeA.data.parentNodeId
+        ? themeNodeIdMap.get(nodeA.data.parentNodeId)
+        : null;
+      const parentB = nodeB.data.parentNodeId
+        ? themeNodeIdMap.get(nodeB.data.parentNodeId)
+        : null;
+
       if (!parentA || !parentB) return false;
       if (parentA.id === parentB.id) return true;
-      const grandA = parentA.data.parentNodeId ? themeNodeIdMap.get(parentA.data.parentNodeId) : null;
-      const grandB = parentB.data.parentNodeId ? themeNodeIdMap.get(parentB.data.parentNodeId) : null;
+
+      const grandA = parentA.data.parentNodeId
+        ? themeNodeIdMap.get(parentA.data.parentNodeId)
+        : null;
+      const grandB = parentB.data.parentNodeId
+        ? themeNodeIdMap.get(parentB.data.parentNodeId)
+        : null;
+
       if (grandA && grandB && grandA.id === grandB.id) return true;
-      if (parentA.id === 'Universe' && grandB && grandB.id === 'Universe') return true;
-      if (parentB.id === 'Universe' && grandA && grandA.id === 'Universe') return true;
+
+      // Allow child-to-grandchild feature connections across hierarchy levels
+      if (grandA && parentB.id === grandA.id) return true;
+      if (grandB && parentA.id === grandB.id) return true;
+
+      if (parentA.id === 'Universe' && grandB && grandB.id === 'Universe')
+        return true;
+      if (parentB.id === 'Universe' && grandA && grandA.id === 'Universe')
+        return true;
+
       return false;
   };
 
   const generateUniqueId = (prefix: string) => `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
 
+  const sanitizeConnectorName = (name: string): string => {
+      const cleaned = name
+        .replace(/\bconnector\b/gi, '')
+        .replace(/\bconnecting\b/gi, '')
+        .replace(/\bconnection\b/gi, '')
+        .trim();
+      return cleaned || 'Hidden Way';
+  };
+
   const findOrCreateConnectorFeature = (
       parent: MapNode,
-      targetName: string
+      rawName: string
   ): MapNode => {
+      const targetName = sanitizeConnectorName(rawName);
       const existing = newMapData.nodes.find(n =>
           n.themeName === parent.themeName &&
           n.data.nodeType === 'feature' &&
           n.data.parentNodeId === parent.id &&
-          n.placeName.toLowerCase().includes(targetName.toLowerCase())
+          n.placeName.toLowerCase() === targetName.toLowerCase()
       );
       if (existing) return existing;
-      const newNodeId = generateUniqueId(`${parent.id}_feat_`);
+      const newNodeId = generateUniqueId(
+        `node_${targetName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')}_`
+      );
       const newNode: MapNode = {
           id: newNodeId,
           themeName: parent.themeName,
-          placeName: `${targetName} connector`,
+          placeName: targetName,
           position: { ...parent.position },
           data: {
-              description: `Connector towards ${targetName}`,
-              aliases: [],
-              status: 'discovered',
+              description: `A short path leading toward ${rawName}`,
+              aliases: [`${targetName} approach`],
+              status: parent.data.status || 'discovered',
               nodeType: 'feature',
               parentNodeId: parent.id,
           }
@@ -729,7 +795,8 @@ Key points:
       let targetNodeRef = findNodeByIdentifier(edgeAddOp.targetPlaceName);
 
       if (!sourceNodeRef) {
-          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.sourcePlaceName, {
+          const partner = targetNodeRef ? themeNodeIdMap.get(targetNodeRef.id) || null : null;
+          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.sourcePlaceName, partner, {
             sceneDescription: sceneDesc,
             logMessage: logMsg,
             localPlace,
@@ -737,12 +804,13 @@ Key points:
             currentMapNodeId: referenceMapNodeId,
             themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name),
             themeEdges: newMapData.edges
-          });
+          }, minimalModelCalls);
           if (guess) sourceNodeRef = findNodeByIdentifier(guess);
       }
 
       if (!targetNodeRef) {
-          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.targetPlaceName, {
+          const partner = sourceNodeRef ? themeNodeIdMap.get(sourceNodeRef.id) || null : null;
+          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.targetPlaceName, partner, {
             sceneDescription: sceneDesc,
             logMessage: logMsg,
             localPlace,
@@ -750,7 +818,7 @@ Key points:
             currentMapNodeId: referenceMapNodeId,
             themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name),
             themeEdges: newMapData.edges
-          });
+          }, minimalModelCalls);
           if (guess) targetNodeRef = findNodeByIdentifier(guess);
       }
 
@@ -763,53 +831,57 @@ Key points:
       let targetNode = themeNodeIdMap.get(targetNodeRef.id)!;
 
       if (sourceNode.data.nodeType !== 'feature') {
-          const name = await fetchConnectorFeatureName_Service(sourceNode, targetNode.placeName, {
+          const name = await fetchConnectorFeatureName_Service(sourceNode, targetNode, {
             sceneDescription: sceneDesc,
             logMessage: logMsg,
             currentTheme,
             themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-          });
+          }, minimalModelCalls);
           sourceNode = findOrCreateConnectorFeature(sourceNode, name || targetNode.placeName);
       }
       if (targetNode.data.nodeType !== 'feature') {
-          const name = await fetchConnectorFeatureName_Service(targetNode, sourceNode.placeName, {
+          const name = await fetchConnectorFeatureName_Service(targetNode, sourceNode, {
             sceneDescription: sceneDesc,
             logMessage: logMsg,
             currentTheme,
             themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-          });
+          }, minimalModelCalls);
           targetNode = findOrCreateConnectorFeature(targetNode, name || sourceNode.placeName);
       }
 
       let safetyCounter = 0;
-      while (!isEdgeConnectionAllowed(sourceNode, targetNode) && safetyCounter < 5) {
+      while (
+        edgeAddOp.data?.type !== 'shortcut' &&
+        !isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data?.type) &&
+        safetyCounter < 5
+      ) {
           const sourceParent = sourceNode.data.parentNodeId ? themeNodeIdMap.get(sourceNode.data.parentNodeId) : null;
           const targetParent = targetNode.data.parentNodeId ? themeNodeIdMap.get(targetNode.data.parentNodeId) : null;
 
           if (!sourceParent && !targetParent) break;
 
           if (sourceParent) {
-              const name = await fetchConnectorFeatureName_Service(sourceParent, targetNode.placeName, {
+              const name = await fetchConnectorFeatureName_Service(sourceParent, targetNode, {
                   sceneDescription: sceneDesc,
                   logMessage: logMsg,
                   currentTheme,
                   themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-              });
+              }, minimalModelCalls);
               sourceNode = findOrCreateConnectorFeature(sourceParent, name || targetNode.placeName);
           }
           if (targetParent) {
-              const name = await fetchConnectorFeatureName_Service(targetParent, sourceNode.placeName, {
+              const name = await fetchConnectorFeatureName_Service(targetParent, sourceNode, {
                   sceneDescription: sceneDesc,
                   logMessage: logMsg,
                   currentTheme,
                   themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-              });
+              }, minimalModelCalls);
               targetNode = findOrCreateConnectorFeature(targetParent, name || sourceNode.placeName);
           }
           safetyCounter++;
       }
 
-      if (!isEdgeConnectionAllowed(sourceNode, targetNode)) {
+      if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data?.type)) {
           console.warn(`MapUpdate: Edge between "${edgeAddOp.sourcePlaceName}" and "${edgeAddOp.targetPlaceName}" violates hierarchy rules even after introducing connectors. Skipping add.`);
           continue;
       }
@@ -822,7 +894,13 @@ Key points:
           && e.data.type === edgeAddOp.data?.type
       );
       if (!existingEdgeOfTheSameType) {
-          const newEdge: MapEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeAddOp.data || {} };
+          const edgeData: MapEdgeData = {
+              ...(edgeAddOp.data || {}),
+          };
+          if (!edgeData.status) {
+              edgeData.status = sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored' ? 'rumored' : 'open';
+          }
+          const newEdge: MapEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeData };
           newMapData.edges.push(newEdge);
           let arrSource = themeEdgesMap.get(sourceNodeId);
           if (!arrSource) { arrSource = []; themeEdgesMap.set(sourceNodeId, arrSource); }
@@ -839,21 +917,27 @@ Key points:
     const sourceNodeRef = findNodeByIdentifier(edgeUpdateOp.sourcePlaceName);
     const targetNodeRef = findNodeByIdentifier(edgeUpdateOp.targetPlaceName);
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
-    const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
+    const sourceNodeId = sourceNodeRef.id;
+    const targetNodeId = targetNodeRef.id;
     const sourceNode = themeNodeIdMap.get(sourceNodeId);
     const targetNode = themeNodeIdMap.get(targetNodeId);
     if (!sourceNode || !targetNode) return;
-    if (!isEdgeConnectionAllowed(sourceNode, targetNode)) {
-        console.warn(`MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`);
-        return;
-    }
 
     // Find edge to update. If type is specified in newData, it's part of the match criteria.
     // Otherwise, find any edge and update its type.
-    const candidateEdges = (themeEdgesMap.get(sourceNodeId) || []).filter(e =>
+    const candidateEdges = (themeEdgesMap.get(sourceNodeId) || []).filter(
+      e =>
         (e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) ||
         (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)
     );
+
+    const checkType = edgeUpdateOp.newData.type || candidateEdges[0]?.data.type;
+    if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType)) {
+      console.warn(
+        `MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`
+      );
+      return;
+    }
     let edgeToUpdate = candidateEdges.find(e => edgeUpdateOp.newData.type ? e.data.type === edgeUpdateOp.newData.type : true);
     if (!edgeToUpdate) edgeToUpdate = candidateEdges[0];
 

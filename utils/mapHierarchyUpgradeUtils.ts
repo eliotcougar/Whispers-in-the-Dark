@@ -1,7 +1,7 @@
 /**
  * @file mapHierarchyUpgradeUtils.ts
  * @description Utilities for upgrading feature nodes to higher-level regions
- *              when they acquire child nodes. Introduces connector features and
+ *              when they acquire child nodes. Introduces linking features and
  *              reroutes edges to conform to map layering rules.
  */
 
@@ -34,7 +34,7 @@ export interface FeatureUpgradeResult {
 export const upgradeFeatureToRegion = (
   mapData: MapData,
   featureNodeId: string,
-  connectorName = 'New Connector'
+  connectorName = 'New Approach'
 ): FeatureUpgradeResult => {
   const working: MapData = structuredCloneGameState(mapData);
   const featureIndex = working.nodes.findIndex(n => n.id === featureNodeId);
@@ -52,7 +52,9 @@ export const upgradeFeatureToRegion = (
   featureNode.data.nodeType = 'region';
 
   // Create connector feature as child of new region
-  const connectorId = generateUniqueId(`${featureNodeId}_conn_`);
+  const connectorId = generateUniqueId(
+    `node_${connectorName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')}_`
+  );
   const connectorNode: MapNode = {
     id: connectorId,
     themeName: featureNode.themeName,
@@ -89,7 +91,7 @@ export const upgradeFeatureToRegion = (
       targetNodeId: child.id,
       data: {
         type: 'path',
-        status: 'open',
+        status: featureNode.data.status === 'rumored' ? 'rumored' : 'open',
         description: `Connection from ${connectorName} to ${child.placeName}`,
       },
     };
@@ -116,7 +118,7 @@ export const upgradeFeaturesWithChildren = (
     if (node.data.nodeType === 'feature') {
       const hasChild = working.nodes.some(n => n.data.parentNodeId === node.id);
       if (hasChild) {
-        const res = upgradeFeatureToRegion(working, node.id, 'Temp Connector');
+        const res = upgradeFeatureToRegion(working, node.id, 'Temp Approach');
         working = res.updatedMapData;
         if (res.newNode) {
           addedNodes.push(res.newNode);

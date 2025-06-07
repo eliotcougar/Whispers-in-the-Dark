@@ -123,6 +123,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   Takes narrative context, current `MapData`, and known main place names for the theme.
     *   Uses an auxiliary AI to generate `AIMapUpdatePayload` (node/edge changes).
     *   Applies these changes, creating/updating/deleting `MapNode`s and `MapEdge`s within `MapData`.
+    *   If a node is renamed via `nodesToUpdate`, any `nodesToRemove` entry with that old or new name is ignored.
 *   **Map Data (`FullGameState.mapData`)**: Becomes the single source of truth for all map-related information (nodes, their descriptions, aliases, statuses, connections).
 *   **Knowledge Base**: No longer displays "Places". Character information remains. Location understanding comes from interacting with and viewing the `MapDisplay`.
 
@@ -132,7 +133,7 @@ This map-centric refactor centralizes location data management, making it more r
 
 `MapNode` objects can represent locations at several hierarchical levels. Each node **must specify** a `nodeType` (`region`, `location`, `settlement`, `exterior`, `interior`, `room`, or `feature`) **and a `status`** (`undiscovered`, `discovered`, `rumored`, or `quest_target`). Every node also includes a `parentNodeId` (use `"Universe"` for the root node) indicating its place in the hierarchy. Nodes are laid out near their parent in the map view. The hierarchy is represented solely with `parentNodeId`, replacing the old containment-edge approach. This allows the map to contain nested areas such as rooms within buildings or features within rooms.
 
-Edges represent traversable connections between *feature* nodes only. A valid edge connects sibling features (same parent) or features whose parents share the same grandparent. When the AI proposes an edge that violates these rules, `mapUpdateService` incrementally climbs each node's parent chain, inserting connector feature nodes at every level until a common ancestor is reached. The edge is then rerouted through this chain rather than being skipped.
+Edges represent traversable connections between *feature* nodes only. A valid edge connects sibling features (same parent), features whose parents share the same grandparent, **or a feature with the child of one of its sibling locations** (a child–grandchild connection). Edges with the type `shortcut` are exempt from these hierarchy rules and may link any two feature nodes directly. When the AI proposes a non-shortcut edge that violates the rules, `mapUpdateService` incrementally climbs each node's parent chain, inserting connector feature nodes at every level until a common ancestor is reached. The edge is then rerouted through this chain rather than being skipped. Newly inserted connector features inherit their parent node's status (for example, connectors under rumored nodes remain rumored), and any replacement edges reuse the status from the connection they replace.
 
 ### 2.4. Map Layout and Visualization
 

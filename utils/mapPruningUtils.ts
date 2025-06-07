@@ -75,7 +75,7 @@ export const pruneAndRefineMapConnections = (
         // Found M1 - L - M2 connection. Replace L-M2 with L - L_M2 - M2
         
         const tempFeatureM2_NameSuggestion = `Entrance to ${mainNodeM2.placeName} from ${featureL.placeName}`;
-        const tempFeatureM2_Id = generateUniqueId(`${currentThemeName}_featureM2_`);
+        const tempFeatureM2_Id = generateUniqueId('featureM2_');
         const tempFeatureM2: MapNode = {
           id: tempFeatureM2_Id,
           themeName: currentThemeName,
@@ -84,7 +84,7 @@ export const pruneAndRefineMapConnections = (
           data: {
             description: `A temporary transition point into ${mainNodeM2.placeName}.`,
             aliases: [`Entrance to ${mainNodeM2.placeName}`],
-            status: 'discovered',
+            status: mainNodeM2.data.status || 'discovered',
             nodeType: 'feature',
             parentNodeId: mainNodeM2.id,
             visited: false,
@@ -143,7 +143,7 @@ export const pruneAndRefineMapConnections = (
       
       // Create Feature F_M1 (child of sourceNode)
       const tempFeatureM1_NameSuggestion = `Exit from ${sourceNode.placeName} towards ${targetNode.placeName}`;
-      const featureM1_Id = generateUniqueId(`${currentThemeName}_featureM1_`);
+      const featureM1_Id = generateUniqueId('featureM1_');
       const featureM1: MapNode = {
         id: featureM1_Id,
         themeName: currentThemeName,
@@ -152,7 +152,7 @@ export const pruneAndRefineMapConnections = (
         data: {
           description: `A temporary transition point from ${sourceNode.placeName}.`,
           aliases: [`Exit from ${sourceNode.placeName}`],
-          status: 'discovered',
+          status: sourceNode.data.status || 'discovered',
           nodeType: 'feature',
           parentNodeId: sourceNode.id,
           visited: false,
@@ -164,7 +164,7 @@ export const pruneAndRefineMapConnections = (
 
       // Create Feature F_M2 (child of targetNode)
       const tempFeatureM2_NameSuggestion = `Entrance to ${targetNode.placeName} from ${sourceNode.placeName}`;
-      const featureM2_Id = generateUniqueId(`${currentThemeName}_featureM2_`);
+      const featureM2_Id = generateUniqueId('featureM2_');
       const featureM2: MapNode = {
         id: featureM2_Id,
         themeName: currentThemeName,
@@ -173,7 +173,7 @@ export const pruneAndRefineMapConnections = (
         data: {
           description: `A temporary transition point into ${targetNode.placeName}.`,
           aliases: [`Entrance to ${targetNode.placeName}`],
-          status: 'discovered',
+          status: targetNode.data.status || 'discovered',
           nodeType: 'feature',
           parentNodeId: targetNode.id,
           visited: false,

@@ -5,6 +5,7 @@
  */
 
 import { AdventureTheme, MapNode, MapEdge } from '../types';
+import { updateNodeId } from '../utils/mapIdUtils';
 import { MAX_RETRIES } from '../constants';
 import { callCorrectionAI } from './corrections/base';
 import { isApiConfigured } from './apiClient';
@@ -74,6 +75,7 @@ export const applyRenamePayload = (
       node.placeName = nu.placeName;
       node.data.description = nu.description;
       node.data.aliases = nu.aliases || [];
+      updateNodeId(mapData, node.id, node.placeName);
     }
   });
   payload.edges.forEach(eu => {
