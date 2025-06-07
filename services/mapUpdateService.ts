@@ -780,6 +780,100 @@ Key points:
       return cleaned || 'Hidden Way';
   };
 
+  const addEdgeWithTracking = (
+      a: MapNode,
+      b: MapNode,
+      data: MapEdgeData
+  ): MapEdge => {
+      const id = generateUniqueId(`edge_${a.id}_to_${b.id}_`);
+      const edge: MapEdge = { id, sourceNodeId: a.id, targetNodeId: b.id, data };
+      newMapData.edges.push(edge);
+      newlyAddedEdges.push(edge);
+      let arrA = themeEdgesMap.get(a.id); if (!arrA) { arrA = []; themeEdgesMap.set(a.id, arrA); } arrA.push(edge);
+      let arrB = themeEdgesMap.get(b.id); if (!arrB) { arrB = []; themeEdgesMap.set(b.id, arrB); } arrB.push(edge);
+      return edge;
+  };
+
+  const getNodeDepth = (node: MapNode): number => {
+      let depth = 0; let current: MapNode | undefined = node;
+      while (current.data.parentNodeId) {
+          const parent = themeNodeIdMap.get(current.data.parentNodeId);
+          if (!parent) break;
+          depth++; current = parent;
+      }
+      return depth;
+  };
+
+  const constructFeatureChain = async (
+      a: MapNode,
+      b: MapNode,
+      edgeData: MapEdgeData
+  ): Promise<{finalSource: MapNode; finalTarget: MapNode} | null> => {
+      let nodeA = a;
+      let nodeB = b;
+      const type = edgeData.type || 'path';
+      const status = edgeData.status || 'open';
+      const desc = edgeData.description || 'Temporary connection';
+
+      if (nodeA.data.nodeType !== 'feature') {
+          const name = await fetchConnectorFeatureName_Service(nodeA, nodeB, {
+              sceneDescription: sceneDesc,
+              logMessage: logMsg,
+              currentTheme,
+              themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
+          }, minimalModelCalls);
+          nodeA = findOrCreateConnectorFeature(nodeA, name || nodeB.placeName);
+      }
+      if (nodeB.data.nodeType !== 'feature') {
+          const name = await fetchConnectorFeatureName_Service(nodeB, nodeA, {
+              sceneDescription: sceneDesc,
+              logMessage: logMsg,
+              currentTheme,
+              themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
+          }, minimalModelCalls);
+          nodeB = findOrCreateConnectorFeature(nodeB, name || nodeA.placeName);
+      }
+
+      let depthA = getNodeDepth(nodeA);
+      let depthB = getNodeDepth(nodeB);
+      let attempts = 0;
+      while (!isEdgeConnectionAllowed(nodeA, nodeB, type) && attempts < 10) {
+          if (depthA >= depthB) {
+              const parent = nodeA.data.parentNodeId ? themeNodeIdMap.get(nodeA.data.parentNodeId) : null;
+              if (!parent) break;
+              const name = await fetchConnectorFeatureName_Service(parent, nodeB, {
+                  sceneDescription: sceneDesc,
+                  logMessage: logMsg,
+                  currentTheme,
+                  themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
+              }, minimalModelCalls);
+              const connector = findOrCreateConnectorFeature(parent, name || nodeB.placeName);
+              addEdgeWithTracking(nodeA, connector, { type, status, description: desc });
+              nodeA = connector;
+              depthA = getNodeDepth(nodeA);
+          } else {
+              const parent = nodeB.data.parentNodeId ? themeNodeIdMap.get(nodeB.data.parentNodeId) : null;
+              if (!parent) break;
+              const name = await fetchConnectorFeatureName_Service(parent, nodeA, {
+                  sceneDescription: sceneDesc,
+                  logMessage: logMsg,
+                  currentTheme,
+                  themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
+              }, minimalModelCalls);
+              const connector = findOrCreateConnectorFeature(parent, name || nodeA.placeName);
+              addEdgeWithTracking(nodeB, connector, { type, status, description: desc });
+              nodeB = connector;
+              depthB = getNodeDepth(nodeB);
+          }
+          attempts++;
+      }
+
+      if (!isEdgeConnectionAllowed(nodeA, nodeB, type)) return null;
+
+      addEdgeWithTracking(nodeA, nodeB, { type, status, description: desc });
+      return { finalSource: nodeA, finalTarget: nodeB };
+  };
+
   const findOrCreateConnectorFeature = (
       parent: MapNode,
       rawName: string
@@ -893,7 +987,9 @@ Key points:
                   currentTheme,
                   themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
               }, minimalModelCalls);
-              sourceNode = findOrCreateConnectorFeature(sourceParent, name || targetNode.placeName);
+              const connector = findOrCreateConnectorFeature(sourceParent, name || targetNode.placeName);
+              addEdgeWithTracking(sourceNode, connector, edgeAddOp.data || { type: 'path', status: 'open', description: '' });
+              sourceNode = connector;
           }
           if (targetParent) {
               const name = await fetchConnectorFeatureName_Service(targetParent, sourceNode, {
@@ -902,42 +998,28 @@ Key points:
                   currentTheme,
                   themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
               }, minimalModelCalls);
-              targetNode = findOrCreateConnectorFeature(targetParent, name || sourceNode.placeName);
+              const connector = findOrCreateConnectorFeature(targetParent, name || sourceNode.placeName);
+              addEdgeWithTracking(targetNode, connector, edgeAddOp.data || { type: 'path', status: 'open', description: '' });
+              targetNode = connector;
           }
           safetyCounter++;
       }
 
       if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data?.type)) {
-          console.warn(`MapUpdate: Edge between "${edgeAddOp.sourcePlaceName}" and "${edgeAddOp.targetPlaceName}" violates hierarchy rules even after introducing connectors. Skipping add.`);
-          continue;
+          const chain = await constructFeatureChain(sourceNode, targetNode, edgeAddOp.data || { type: 'path' });
+          if (!chain) {
+            console.warn(`MapUpdate: Edge between "${edgeAddOp.sourcePlaceName}" and "${edgeAddOp.targetPlaceName}" violates hierarchy rules even after introducing connectors. Skipping add.`);
+            continue;
+          } else {
+            // chain function already added final edge
+            continue;
+          }
       }
 
-      const sourceNodeId = sourceNode.id;
-      const targetNodeId = targetNode.id;
-      const newEdgeId = `${sourceNodeId}_to_${targetNodeId}_${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
-      const existingEdgeOfTheSameType = (themeEdgesMap.get(sourceNodeId) || []).find(e =>
-          ((e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) || (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId))
-          && e.data.type === edgeAddOp.data?.type
-      );
-      if (!existingEdgeOfTheSameType) {
-          const edgeData: MapEdgeData = {
-              ...(edgeAddOp.data || {}),
-          };
-          if (!edgeData.status) {
-              edgeData.status = sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored' ? 'rumored' : 'open';
-          }
-          const newEdge: MapEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeData };
-          newMapData.edges.push(newEdge);
-          newlyAddedEdges.push(newEdge);
-          let arrSource = themeEdgesMap.get(sourceNodeId);
-          if (!arrSource) { arrSource = []; themeEdgesMap.set(sourceNodeId, arrSource); }
-          arrSource.push(newEdge);
-          let arrTarget = themeEdgesMap.get(targetNodeId);
-          if (!arrTarget) { arrTarget = []; themeEdgesMap.set(targetNodeId, arrTarget); }
-          arrTarget.push(newEdge);
-      } else {
-           console.warn(`MapUpdate: Edge of type "${edgeAddOp.data?.type}" already exists between "${edgeAddOp.sourcePlaceName}" and "${edgeAddOp.targetPlaceName}". Skipping add.`);
-      }
+      addEdgeWithTracking(sourceNode, targetNode, {
+        ...(edgeAddOp.data || {}),
+        status: edgeAddOp.data?.status || (sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored' ? 'rumored' : 'open')
+      });
   }
 
   (validParsedPayload.edgesToUpdate || []).forEach(edgeUpdateOp => {
