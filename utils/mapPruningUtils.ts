@@ -84,7 +84,7 @@ export const pruneAndRefineMapConnections = (
           data: {
             description: `A temporary transition point into ${mainNodeM2.placeName}.`,
             aliases: [`Entrance to ${mainNodeM2.placeName}`],
-            status: 'discovered',
+            status: mainNodeM2.data.status || 'discovered',
             nodeType: 'feature',
             parentNodeId: mainNodeM2.id,
             visited: false,
@@ -152,7 +152,7 @@ export const pruneAndRefineMapConnections = (
         data: {
           description: `A temporary transition point from ${sourceNode.placeName}.`,
           aliases: [`Exit from ${sourceNode.placeName}`],
-          status: 'discovered',
+          status: sourceNode.data.status || 'discovered',
           nodeType: 'feature',
           parentNodeId: sourceNode.id,
           visited: false,
@@ -173,7 +173,7 @@ export const pruneAndRefineMapConnections = (
         data: {
           description: `A temporary transition point into ${targetNode.placeName}.`,
           aliases: [`Entrance to ${targetNode.placeName}`],
-          status: 'discovered',
+          status: targetNode.data.status || 'discovered',
           nodeType: 'feature',
           parentNodeId: targetNode.id,
           visited: false,

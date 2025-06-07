@@ -778,7 +778,7 @@ Key points:
           data: {
               description: `A short path leading toward ${rawName}`,
               aliases: [`${targetName} approach`],
-              status: 'discovered',
+              status: parent.data.status || 'discovered',
               nodeType: 'feature',
               parentNodeId: parent.id,
           }
@@ -894,7 +894,13 @@ Key points:
           && e.data.type === edgeAddOp.data?.type
       );
       if (!existingEdgeOfTheSameType) {
-          const newEdge: MapEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeAddOp.data || {} };
+          const edgeData: MapEdgeData = {
+              ...(edgeAddOp.data || {}),
+          };
+          if (!edgeData.status) {
+              edgeData.status = sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored' ? 'rumored' : 'open';
+          }
+          const newEdge: MapEdge = { id: newEdgeId, sourceNodeId, targetNodeId, data: edgeData };
           newMapData.edges.push(newEdge);
           let arrSource = themeEdgesMap.get(sourceNodeId);
           if (!arrSource) { arrSource = []; themeEdgesMap.set(sourceNodeId, arrSource); }

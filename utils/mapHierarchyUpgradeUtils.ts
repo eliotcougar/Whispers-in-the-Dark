@@ -91,7 +91,7 @@ export const upgradeFeatureToRegion = (
       targetNodeId: child.id,
       data: {
         type: 'path',
-        status: 'open',
+        status: featureNode.data.status === 'rumored' ? 'rumored' : 'open',
         description: `Connection from ${connectorName} to ${child.placeName}`,
       },
     };
