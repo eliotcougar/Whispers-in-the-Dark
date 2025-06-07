@@ -793,7 +793,8 @@ Key points:
       let targetNodeRef = findNodeByIdentifier(edgeAddOp.targetPlaceName);
 
       if (!sourceNodeRef) {
-          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.sourcePlaceName, {
+          const partner = targetNodeRef ? themeNodeIdMap.get(targetNodeRef.id) || null : null;
+          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.sourcePlaceName, partner, {
             sceneDescription: sceneDesc,
             logMessage: logMsg,
             localPlace,
@@ -806,7 +807,8 @@ Key points:
       }
 
       if (!targetNodeRef) {
-          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.targetPlaceName, {
+          const partner = sourceNodeRef ? themeNodeIdMap.get(sourceNodeRef.id) || null : null;
+          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.targetPlaceName, partner, {
             sceneDescription: sceneDesc,
             logMessage: logMsg,
             localPlace,
@@ -827,7 +829,7 @@ Key points:
       let targetNode = themeNodeIdMap.get(targetNodeRef.id)!;
 
       if (sourceNode.data.nodeType !== 'feature') {
-          const name = await fetchConnectorFeatureName_Service(sourceNode, targetNode.placeName, {
+          const name = await fetchConnectorFeatureName_Service(sourceNode, targetNode, {
             sceneDescription: sceneDesc,
             logMessage: logMsg,
             currentTheme,
@@ -836,7 +838,7 @@ Key points:
           sourceNode = findOrCreateConnectorFeature(sourceNode, name || targetNode.placeName);
       }
       if (targetNode.data.nodeType !== 'feature') {
-          const name = await fetchConnectorFeatureName_Service(targetNode, sourceNode.placeName, {
+          const name = await fetchConnectorFeatureName_Service(targetNode, sourceNode, {
             sceneDescription: sceneDesc,
             logMessage: logMsg,
             currentTheme,
@@ -857,7 +859,7 @@ Key points:
           if (!sourceParent && !targetParent) break;
 
           if (sourceParent) {
-              const name = await fetchConnectorFeatureName_Service(sourceParent, targetNode.placeName, {
+              const name = await fetchConnectorFeatureName_Service(sourceParent, targetNode, {
                   sceneDescription: sceneDesc,
                   logMessage: logMsg,
                   currentTheme,
@@ -866,7 +868,7 @@ Key points:
               sourceNode = findOrCreateConnectorFeature(sourceParent, name || targetNode.placeName);
           }
           if (targetParent) {
-              const name = await fetchConnectorFeatureName_Service(targetParent, sourceNode.placeName, {
+              const name = await fetchConnectorFeatureName_Service(targetParent, sourceNode, {
                   sceneDescription: sceneDesc,
                   logMessage: logMsg,
                   currentTheme,

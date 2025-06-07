@@ -380,7 +380,14 @@ export const fetchLikelyParentNode_Service = async (
           ? context.themeNodes.find(nn => nn.id === node.data.parentNodeId)
           : null;
       const parentName = parent ? parent.placeName : 'Universe';
-      return `- "${node.placeName}" (Type: ${node.data.nodeType}, Status: ${node.data.status}, Parent: ${parentName})`;
+      const aliasStr =
+        node.data.aliases && node.data.aliases.length > 0
+          ? `Aliases: ${node.data.aliases.join(', ')}`
+          : 'No aliases';
+      const descStr = node.data.description || 'No description';
+      return `- "${node.placeName}" (Type: ${node.data.nodeType}, Status: ${
+        node.data.status
+      }, Parent: ${parentName}, Desc: "${descStr}", ${aliasStr})`;
     })
     .join('\n');
 
@@ -392,10 +399,11 @@ Current Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInst
 Proposed Node Details: Name "${proposedNode.placeName}", Type "${proposedNode.nodeType || 'unknown'}", Status "${proposedNode.status || 'unknown'}", Description "${proposedNode.description || 'N/A'}"
 Existing Nodes ordered by proximity to player (shortest hops):
 ${nodeLines}
+Map data above is your main reference. Scene description and log message are just supportive clues.
 Respond ONLY with the name of the best parent node from the list above, or "Universe" if none are suitable.`;
 
   const systemInstr =
-    'Choose the most logical parent node name for a new map node. Respond only with that single name.';
+    'Choose the most logical parent node name for a new map node based on the map data. Respond only with that single name.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
@@ -414,6 +422,7 @@ Respond ONLY with the name of the best parent node from the list above, or "Univ
  */
 export const fetchLikelyExistingNodeForEdge_Service = async (
   missingNodeName: string,
+  partnerNode: MapNode | null,
   context: {
     sceneDescription: string;
     logMessage: string | undefined;
@@ -479,7 +488,14 @@ export const fetchLikelyExistingNodeForEdge_Service = async (
           ? context.themeNodes.find(nn => nn.id === node.data.parentNodeId)
           : null;
       const parentName = parent ? parent.placeName : 'Universe';
-      return `- "${node.placeName}" (Type: ${node.data.nodeType}, Parent: ${parentName})`;
+      const aliasStr =
+        node.data.aliases && node.data.aliases.length > 0
+          ? `Aliases: ${node.data.aliases.join(', ')}`
+          : 'No aliases';
+      const descStr = node.data.description || 'No description';
+      return `- "${node.placeName}" (Type: ${
+        node.data.nodeType
+      }, Parent: ${parentName}, Desc: "${descStr}", ${aliasStr})`;
     })
     .join('\n');
 
@@ -489,11 +505,13 @@ Scene Description: "${context.sceneDescription}"
 Log Message: "${context.logMessage || 'None'}"
 Player Local Place: "${context.localPlace}"
 Current Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
+${partnerNode ? `Known Other Node: "${partnerNode.placeName}" (Desc: "${partnerNode.data.description || 'No description'}", Aliases: ${partnerNode.data.aliases?.join(', ') || 'None'})` : ''}
 Existing Nodes ordered by proximity to player (shortest hops):
 ${nodeLines}
+Map data is the primary reference. Scene description and log message are only additional context.
 Respond ONLY with the name of the best matching node from the list above.`;
 
-  const systemInstr = 'Choose the most probable existing node name and respond only with that single name.';
+  const systemInstr = 'Choose the most probable existing node name based primarily on the map data. Respond only with that single name.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
@@ -511,7 +529,7 @@ Respond ONLY with the name of the best matching node from the list above.`;
  */
 export const fetchConnectorFeatureName_Service = async (
   parentNode: MapNode,
-  targetPlaceName: string,
+  targetNode: MapNode,
   context: {
     sceneDescription: string;
     logMessage: string | undefined;
@@ -530,18 +548,39 @@ export const fetchConnectorFeatureName_Service = async (
   );
   const featureLines =
     features.length > 0
-      ? features.map(f => `- "${f.placeName}"`).join('\n')
+      ? features
+          .map(f => {
+            const aliasStr =
+              f.data.aliases && f.data.aliases.length > 0
+                ? `Aliases: ${f.data.aliases.join(', ')}`
+                : 'No aliases';
+            const descStr = f.data.description || 'No description';
+            return `- "${f.placeName}" (Desc: "${descStr}", ${aliasStr})`;
+          })
+          .join('\n')
       : 'None';
 
-  const prompt = `Select the best existing feature under "${parentNode.placeName}" to connect toward "${targetPlaceName}" or suggest a short new feature name.
+  const parentAlias =
+    parentNode.data.aliases && parentNode.data.aliases.length > 0
+      ? parentNode.data.aliases.join(', ')
+      : 'None';
+  const parentDesc = parentNode.data.description || 'No description';
+  const targetAlias =
+    targetNode.data.aliases && targetNode.data.aliases.length > 0
+      ? targetNode.data.aliases.join(', ')
+      : 'None';
+  const targetDesc = targetNode.data.description || 'No description';
+
+  const prompt = `Select the best existing feature under "${parentNode.placeName}" (Desc: "${parentDesc}", Aliases: ${parentAlias}) to connect toward "${targetNode.placeName}" (Desc: "${targetDesc}", Aliases: ${targetAlias}) or suggest a short new feature name.
 Existing Features:
 ${featureLines}
 Scene Description: "${context.sceneDescription}"
 Log Message: "${context.logMessage || 'None'}"
-Theme: "${context.currentTheme.name}"`;
+Theme: "${context.currentTheme.name}"
+Map data is primary; scene and log are extra context.`;
 
   const systemInstr =
-    'Respond ONLY with the chosen feature name. Avoid generic words like "connector", "connection", "connect", or "link".';
+    'Respond ONLY with the chosen feature name. Base the choice primarily on the map data. Avoid generic words like "connector", "connection", "connect", or "link".';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
