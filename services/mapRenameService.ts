@@ -44,17 +44,17 @@ export const renameMapElements_Service = async (
 const prompt = `You are an AI assistant tasked with assigning thematic names and descriptions
 for newly created map elements in a text adventure game.
 Current Theme: "${currentTheme.name}" (${currentTheme.systemInstructionModifier})
-Scene Snippet: "${context.sceneDescription.substring(0, 150)}"
-Recent Log: "${context.gameLogTail.slice(-3).join(' | ')}"
+Scene Description: "${context.sceneDescription}"
+Recent Events:\n -"${context.gameLogTail.slice(-5).join('\n -')}"
 New Nodes:\n${nodesList || 'None'}\nNew Edges:\n${edgesList || 'None'}\n
 Respond ONLY with a JSON object of the following form:
 { "nodes": [ { "id": "string", "placeName": "string", "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
     "aliases": ["string"] // ${ALIAS_INSTRUCTION}
   } ],
   "edges": [ { "id": "string", "description": "string" // ${EDGE_DESCRIPTION_INSTRUCTION} } ] }
-Each array can be empty. Keep IDs exactly as provided.`;
+Arrays can be empty if either Nodes or Edges are None. All fields are REQUIRED. Keep IDs exactly as provided.`;
 
-  const systemInst = 'Rename provided map nodes and edges with thematic names. Return strict JSON.';
+  const systemInst = 'Rename provided map nodes and edges with thematic names. Completely rewrite the placeName, description, and aliases according to the provided context. Return strict JSON.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const result = await callCorrectionAI<RenameMapElementsPayload>(prompt, systemInst);
