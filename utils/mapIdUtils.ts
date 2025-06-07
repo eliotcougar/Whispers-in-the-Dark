@@ -12,6 +12,16 @@ export const buildNodeId = (placeName: string, suffix?: string): string => {
   return `node_${baseName}_${unique}`;
 };
 
+export const buildEdgeId = (
+  sourceNodeId: string,
+  targetNodeId: string,
+  suffix?: string,
+): string => {
+  const unique =
+    suffix || `${Date.now() % 10000}_${Math.random().toString(36).substring(2, 7)}`;
+  return `${sourceNodeId}_to_${targetNodeId}_${unique}`;
+};
+
 import type { MapData } from '../types';
 
 export const updateNodeId = (
@@ -32,8 +42,19 @@ export const updateNodeId = (
     if (n.data.parentNodeId === oldId) n.data.parentNodeId = newId;
   });
   mapData.edges.forEach(e => {
-    if (e.sourceNodeId === oldId) e.sourceNodeId = newId;
-    if (e.targetNodeId === oldId) e.targetNodeId = newId;
+    let touched = false;
+    if (e.sourceNodeId === oldId) {
+      e.sourceNodeId = newId;
+      touched = true;
+    }
+    if (e.targetNodeId === oldId) {
+      e.targetNodeId = newId;
+      touched = true;
+    }
+    if (touched) {
+      const edgeSuffix = extractRandomSuffix(e.id) || undefined;
+      e.id = buildEdgeId(e.sourceNodeId, e.targetNodeId, edgeSuffix);
+    }
   });
 
   return newId;

@@ -24,11 +24,11 @@ export const formatKnownPlacesForPrompt = (
     return (
       mainNodes
         .map(node => {
-          let detailStr = `"${node.placeName}"`;
+          let detailStr = `\n - "${node.placeName}"`;
           if (node.data.aliases && node.data.aliases.length > 0) {
-            detailStr += ` (aliases: ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
+            detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
           }
-          detailStr += ` - Description: "${node.data.description || 'No description available.'}"`;
+          detailStr += `, "${node.data.description || 'No description available.'}"`;
           return detailStr;
         })
         .join('; ') + '.'
@@ -39,7 +39,7 @@ export const formatKnownPlacesForPrompt = (
       .map(node => {
         let detailStr = `"${node.placeName}"`;
         if (node.data.aliases && node.data.aliases.length > 0) {
-          detailStr += ` (aliases: ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
+          detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
         }
         return detailStr;
       })
@@ -112,18 +112,17 @@ const getFormattedConnectionsForNode = (
     const otherNode = allThemeNodes.find(node => node.id === targetNodeId);
     if (!otherNode) continue;
 
-    let pathString: string;
-    const detailsArray: string[] = [];
     const statusText = bestEdge.data.status || 'open';
-
-    pathString = `- Path to: "${otherNode.placeName}"`;
-    if (statusText !== 'open') detailsArray.push(`status: ${statusText}`);
-    if (bestEdge.data.type) detailsArray.push(`type: ${bestEdge.data.type}`);
-    if (bestEdge.data.travelTime) detailsArray.push(`travel time: ${bestEdge.data.travelTime}`);
-    if (bestEdge.data.description) detailsArray.push(bestEdge.data.description);
-
-    if (detailsArray.length > 0) pathString += ` (${detailsArray.join(', ')})`;
-    pathString += '.';
+    const typeText = bestEdge.data.type || 'path';
+    const details: string[] = [];
+    if (bestEdge.data.travelTime) {
+      details.push(`travel time: ${bestEdge.data.travelTime}`);
+    }
+    if (bestEdge.data.description) {
+      details.push(bestEdge.data.description);
+    }
+    const detailText = details.length > 0 ? ` (${details.join(', ')})` : '';
+    const pathString = `- ${statusText} ${typeText} to "${otherNode.placeName}"${detailText}.`;
     formattedPaths.push(pathString);
     processedTargets.add(targetNodeId);
   }

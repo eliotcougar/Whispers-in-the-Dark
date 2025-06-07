@@ -7,6 +7,8 @@
 import { AdventureTheme, MapNode, MapEdge, MapData, RenameMapElementsPayload } from '../types';
 import { updateNodeId } from '../utils/mapIdUtils';
 import {
+  GEMINI_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
   MAX_RETRIES,
   NODE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
@@ -78,7 +80,7 @@ Arrays can be empty if either Nodes or Edges are None. All fields are REQUIRED. 
     try {
       debugInfo.prompt = prompt;
       const response = await dispatchAIRequest(
-        ['auxiliary', 'gemini-pro'],
+        [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInst,
         { responseMimeType: 'application/json', temperature: CORRECTION_TEMPERATURE }

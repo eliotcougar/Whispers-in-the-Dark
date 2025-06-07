@@ -1,4 +1,7 @@
 
+## First of all
+  - pull the commits to avoid working on outdated code.
+
 ## Testing
 1. Run `npm run typecheck` to verify strict type safety. It can take a long time to complete, be patient.
 2. Run `npm run lint` to check for any linting errors and warnings that must be fixed. It can take a long time to complete, be patient.

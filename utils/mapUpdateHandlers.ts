@@ -14,7 +14,7 @@ import {
   ValidNewCharacterPayload,
   ValidCharacterUpdatePayload
 } from '../types';
-import { updateMapFromAIData_Service } from '../services/mapUpdateService';
+import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/mapUpdateService';
 import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/corrections';
 import { executeMapCorrectionAndRefinement_Service } from '../services/mapCorrectionService';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
@@ -35,6 +35,7 @@ export const handleMapUpdates = async (
   turnChanges: TurnChanges
 ): Promise<string | undefined> => {
   let mapAISuggestedNodeIdentifier: string | undefined = undefined;
+  let mapUpdateResult: MapUpdateServiceResult | null = null;
 
   if ('mapUpdated' in aiData && aiData.mapUpdated || (draftState.localPlace !== baseStateSnapshot.localPlace)) {
     const originalLoadingReason = loadingReason;
@@ -42,7 +43,7 @@ export const handleMapUpdates = async (
     const knownMainMapNodesForTheme: MapNode[] = draftState.mapData.nodes.filter(
       node => node.themeName === themeContextForResponse.name && node.data.nodeType !== 'feature'
     );
-    const mapUpdateResult = await updateMapFromAIData_Service(
+    mapUpdateResult = await updateMapFromAIData_Service(
       aiData,
       draftState.mapData,
       themeContextForResponse,
@@ -72,15 +73,12 @@ export const handleMapUpdates = async (
       }
       mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
 
-      if (mapUpdateResult.debugInfo?.parsedPayload?.nodesToAdd) {
-        for (const nodeAdd of mapUpdateResult.debugInfo.parsedPayload.nodesToAdd) {
-          const isMainNode = nodeAdd.data?.nodeType !== 'feature';
+      if (mapUpdateResult.newlyAddedNodes.length > 0) {
+        for (const added of mapUpdateResult.newlyAddedNodes) {
+          const isMainNode = added.data.nodeType !== 'feature';
           if (isMainNode) {
             const newlyAddedNodeInDraft = draftState.mapData.nodes.find(
-              n =>
-                n.placeName === nodeAdd.placeName &&
-                n.themeName === themeContextForResponse.name &&
-                n.data.nodeType !== 'feature'
+              n => n.id === added.id
             );
             if (
               newlyAddedNodeInDraft &&
@@ -91,7 +89,7 @@ export const handleMapUpdates = async (
               const originalLoadingReasonCorrection = loadingReason;
               setLoadingReason('correction');
               const placeDetails = await fetchFullPlaceDetailsForNewMapNode_Service(
-                nodeAdd.placeName,
+                added.placeName,
                 aiData.logMessage,
                 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
                 themeContextForResponse
@@ -138,15 +136,26 @@ export const handleMapUpdates = async (
   if (upgradeResult.addedNodes.length > 0 || upgradeResult.addedEdges.length > 0) {
     draftState.mapData = upgradeResult.updatedMapData;
     turnChanges.mapDataChanged = true;
+  }
+  const nodesForRename = [
+    ...upgradeResult.addedNodes,
+    ...(mapUpdateResult?.newlyAddedNodes ?? [])
+  ];
+  const edgesForRename = [
+    ...upgradeResult.addedEdges,
+    ...(mapUpdateResult?.newlyAddedEdges ?? [])
+  ];
+  if (nodesForRename.length > 0 || edgesForRename.length > 0) {
     const renameResult = await renameMapElements_Service(
       draftState.mapData,
-      upgradeResult.addedNodes,
-      upgradeResult.addedEdges,
+      nodesForRename,
+      edgesForRename,
       themeContextForResponse,
       { sceneDescription: 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene || '', gameLogTail }
     );
     if (renameResult.payload) {
       applyRenamePayload(draftState.mapData, renameResult.payload);
+      if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
     }
     if (draftState.lastDebugPacket) {
       draftState.lastDebugPacket.mapRenameDebugInfo = renameResult.debugInfo;
