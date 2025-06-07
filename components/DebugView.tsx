@@ -179,9 +179,18 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
                   {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.prompt && renderContent("Map Pruning - Refinement AI Prompt", debugPacket.mapPruningDebugInfo.refinementDebugInfo.prompt, false)}
                   {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.rawResponse && renderContent("Map Pruning - Refinement AI Raw Response", debugPacket.mapPruningDebugInfo.refinementDebugInfo.rawResponse, false)}
                   {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.parsedPayload && renderContent("Map Pruning - Refinement Parsed Payload", debugPacket.mapPruningDebugInfo.refinementDebugInfo.parsedPayload)}
-                  {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.validationError && renderContent("Map Pruning - Refinement Validation Error", debugPacket.mapPruningDebugInfo.refinementDebugInfo.validationError, false)}
-                </>
-              )}
+              {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.validationError && renderContent("Map Pruning - Refinement Validation Error", debugPacket.mapPruningDebugInfo.refinementDebugInfo.validationError, false)}
+            </>
+          )}
+            {debugPacket?.mapRenameDebugInfo && (
+              <>
+                <h3 className="text-lg font-semibold text-sky-400 mt-3 mb-1">Map Rename Details</h3>
+                {renderContent("Map Rename AI Prompt", debugPacket.mapRenameDebugInfo.prompt, false)}
+                {debugPacket.mapRenameDebugInfo.rawResponse && renderContent("Map Rename AI Raw Response", debugPacket.mapRenameDebugInfo.rawResponse, false)}
+                {debugPacket.mapRenameDebugInfo.parsedPayload && renderContent("Map Rename Parsed Payload", debugPacket.mapRenameDebugInfo.parsedPayload)}
+                {debugPacket.mapRenameDebugInfo.validationError && renderContent("Map Rename Validation Error", debugPacket.mapRenameDebugInfo.validationError, false)}
+              </>
+            )}
           </>
         );
       case "Inventory":
