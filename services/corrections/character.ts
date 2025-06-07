@@ -3,7 +3,7 @@
  * @description Correction helpers for character related data.
  */
 import { AdventureTheme, Character, MapNode } from '../../types';
-import { MAX_RETRIES } from '../../constants';
+import { MAX_RETRIES, VALID_PRESENCE_STATUS_VALUES, VALID_PRESENCE_STATUS_VALUES_STRING } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
@@ -52,7 +52,7 @@ Respond ONLY in JSON format with the following structure:
 {
   "description": "string (A detailed, engaging description fitting the scene and theme. MUST be non-empty.)",
   "aliases": ["string"],
-  "presenceStatus": "nearby" | "distant" | "companion" | "unknown",
+  "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING},
   "lastKnownLocation": "string | null",
   "preciseLocation": "string | null"
 }
@@ -71,7 +71,7 @@ Constraints:
       correctedDetails &&
       typeof correctedDetails.description === 'string' && correctedDetails.description.trim() !== '' &&
       Array.isArray(correctedDetails.aliases) && correctedDetails.aliases.every((a): a is string => typeof a === 'string') &&
-      typeof correctedDetails.presenceStatus === 'string' && ['distant', 'nearby', 'companion', 'unknown'].includes(correctedDetails.presenceStatus) &&
+      typeof correctedDetails.presenceStatus === 'string' && VALID_PRESENCE_STATUS_VALUES.includes(correctedDetails.presenceStatus) &&
       (correctedDetails.lastKnownLocation === null || typeof correctedDetails.lastKnownLocation === 'string') &&
       (correctedDetails.preciseLocation === null || typeof correctedDetails.preciseLocation === 'string') &&
       !((correctedDetails.presenceStatus === 'nearby' || correctedDetails.presenceStatus === 'companion') && correctedDetails.preciseLocation === null && correctedDetails.preciseLocation !== '') &&

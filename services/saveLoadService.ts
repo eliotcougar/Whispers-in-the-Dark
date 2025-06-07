@@ -19,7 +19,7 @@ import {
   MapNodeData,
   DialogueSummaryRecord,
 } from '../types';
-import { CURRENT_SAVE_GAME_VERSION, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, VALID_ITEM_TYPES, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_PLAYER_GENDER } from '../constants';
+import { CURRENT_SAVE_GAME_VERSION, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, VALID_ITEM_TYPES, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_PLAYER_GENDER, VALID_PRESENCE_STATUS_VALUES } from '../constants';
 import { ALL_THEME_PACK_NAMES } from '../themes';
 // Corrections helpers are not used during pure save operations.
 // Map layout constants are not needed here; only conversion utilities require them.
@@ -100,7 +100,7 @@ function isValidCharacterForSave(character: unknown): character is Character {
       (Array.isArray(maybe.aliases) &&
         maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) &&
     (maybe.presenceStatus === undefined ||
-      ['distant', 'nearby', 'companion', 'unknown'].includes(maybe.presenceStatus)) &&
+      VALID_PRESENCE_STATUS_VALUES.includes(maybe.presenceStatus)) &&
     (maybe.lastKnownLocation === undefined ||
       maybe.lastKnownLocation === null ||
       typeof maybe.lastKnownLocation === 'string') &&

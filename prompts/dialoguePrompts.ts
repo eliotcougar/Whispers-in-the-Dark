@@ -5,6 +5,7 @@
  */
 
 import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from './helperPrompts';
+import { VALID_PRESENCE_STATUS_VALUES_STRING, ALIAS_INSTRUCTION } from '../constants';
 
 export const DIALOGUE_SYSTEM_INSTRUCTION = `You are an AI assistant guiding a dialogue turn in a text-based adventure game. The player is in conversation with one or more characters. Your role is to:
 1. Generate responses for the NPC(s) involved in the dialogue.
@@ -61,8 +62,8 @@ Respond ONLY in JSON format with the following structure:
   "logMessage": "A concise summary message for the main game log, describing the key outcomes or information gained from the dialogue",
   "options": ["Action 1", "Action 2", "Action 3", "Action 4" /* ALWAYS provide FOUR distinct "options". Tailor them to the full context. */ ],
   "itemChange"?: [ /* ItemChange objects if items were gained, lost, or updated *directly through the dialogue*. Follow standard ItemChange structure. For 'update' or 'gain', the 'item' field is an Item object. */ ],
-  "charactersAdded"?: [ /* { "name", "description", "aliases", "presenceStatus": "distant" | "nearby" | "companion" | "unknown", "lastKnownLocation": "...", "preciseLocation": "..." } if new characters were *introduced or became significant*. */ ],
-  "charactersUpdated"?: [ /* { "name", "newDescription", "newAliases", "addAlias", "newPresenceStatus": "...", "newLastKnownLocation": "...", "newPreciseLocation": "..." } if dialogue provided new information about existing characters or their presence state. */ ],
+  "charactersAdded"?: [ /* { "name", "description", "aliases" (${ALIAS_INSTRUCTION}), "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}, "lastKnownLocation": "...", "preciseLocation": "..." } if new characters were *introduced or became significant*. */ ],
+  "charactersUpdated"?: [ /* { "name", "newDescription", "newAliases" (${ALIAS_INSTRUCTION}), "addAlias"?: string, "newPresenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}, "newLastKnownLocation": "...", "newPreciseLocation": "..." } if dialogue provided new information about existing characters or their presence state. */ ],
   "mainQuest"?: "New quest string if the dialogue changed it.",
   "currentObjective"?: "New objective string if dialogue changed it.",
   "objectiveAchieved"?: boolean, /* Set to true if the dialogue directly resulted in completing the current objective and resulted in a new objective. */

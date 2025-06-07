@@ -33,6 +33,88 @@ export const VALID_ITEM_TYPES = [
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
 
+export const VALID_PRESENCE_STATUS_VALUES = [
+  'distant',
+  'nearby',
+  'companion',
+  'unknown',
+] as const;
+
+export const VALID_PRESENCE_STATUS_VALUES_STRING = VALID_PRESENCE_STATUS_VALUES.map(s => `"${s}"`).join(' | ');
+
+export const LOADING_REASONS = [
+  'storyteller',
+  'map',
+  'correction',
+  'dialogue_turn',
+  'dialogue_summary',
+  'dialogue_memory_creation',
+  'dialogue_conclusion_summary',
+  'initial_load',
+  'reality_shift_load',
+] as const;
+
+// Centralized map node/edge valid values
+
+export const VALID_NODE_STATUS_VALUES = [
+  'undiscovered',
+  'discovered',
+  'rumored',
+  'quest_target',
+] as const;
+
+export const VALID_NODE_TYPE_VALUES = [
+  'region',
+  'location',
+  'settlement',
+  'district',
+  'exterior',
+  'interior',
+  'room',
+  'feature',
+] as const;
+
+export const VALID_EDGE_TYPE_VALUES = [
+  'path',
+  'road',
+  'sea route',
+  'door',
+  'teleporter',
+  'secret_passage',
+  'river_crossing',
+  'temporary_bridge',
+  'boarding_hook',
+  'shortcut',
+] as const;
+
+export const VALID_EDGE_STATUS_VALUES = [
+  'open',
+  'accessible',
+  'closed',
+  'locked',
+  'blocked',
+  'hidden',
+  'rumored',
+  'one_way',
+  'collapsed',
+  'removed',
+  'active',
+  'inactive',
+] as const;
+
+export const NON_DISPLAYABLE_EDGE_STATUSES = [
+  'collapsed',
+  'hidden',
+  'removed',
+];
+
 export const MAX_DIALOGUE_SUMMARIES_PER_CHARACTER = 5; // Max summaries to store per character
 export const MAX_DIALOGUE_SUMMARIES_IN_PROMPT = 3;   // Max summaries to include in AI prompt
 export const RECENT_LOG_COUNT_FOR_PROMPT = 10; // Number of log messages to include in AI prompts
+
+// Standard instructions for AI-generated text fields
+export const NODE_DESCRIPTION_INSTRUCTION =
+  'a short creative description of the location, <300 chars';
+export const EDGE_DESCRIPTION_INSTRUCTION =
+  'a short creative description, focusing of travel conditions of the path';
+export const ALIAS_INSTRUCTION = 'alternative names, partial names, shorthands';

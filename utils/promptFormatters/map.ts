@@ -5,6 +5,7 @@
  */
 
 import { AdventureTheme, MapData, MapNode, MapEdge } from '../../types';
+import { NON_DISPLAYABLE_EDGE_STATUSES } from '../../constants';
 
 /**
  * Formats a list of main map nodes for AI prompts.
@@ -62,12 +63,6 @@ const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
   };
   return status ? scores[status] ?? 0 : 7;
 };
-
-const NON_DISPLAYABLE_EDGE_STATUSES: Array<MapEdge['data']['status'] | undefined> = [
-  'collapsed',
-  'hidden',
-  'removed',
-];
 
 /**
  * Helper function to get formatted connection strings from a perspective node.
@@ -256,7 +251,7 @@ export const formatMapContextForPrompt = (
           if (exitFeature.id === currentNode.id) continue;
           for (const edge of allEdgesForTheme) {
             if (edge.sourceNodeId !== exitFeature.id && edge.targetNodeId !== exitFeature.id) continue;
-            if (NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) continue;
+            if (edge.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) continue;
             const otherEndNodeId = edge.sourceNodeId === exitFeature.id ? edge.targetNodeId : edge.sourceNodeId;
             const entryFeature = allNodesForTheme.find(node => node.id === otherEndNodeId);
             if (

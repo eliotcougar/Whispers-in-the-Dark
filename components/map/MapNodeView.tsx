@@ -55,6 +55,8 @@ const getRadiusForNode = (node: MapNode): number => {
       return NODE_RADIUS * 2.0;
     case 'settlement':
       return NODE_RADIUS * 1.8;
+    case 'district':
+      return NODE_RADIUS * 1.6;
     case 'exterior':
       return NODE_RADIUS * 1.4;
     case 'interior':

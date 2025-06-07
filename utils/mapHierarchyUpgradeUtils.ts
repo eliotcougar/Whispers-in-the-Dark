@@ -5,8 +5,9 @@
  *              reroutes edges to conform to map layering rules.
  */
 
-import { MapData, MapNode, MapEdge } from '../types';
+import { MapData, MapNode, MapEdge, AdventureTheme } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
+import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/map';
 
 /** Generates a roughly unique ID string with an optional prefix. */
 const generateUniqueId = (prefix: string = 'id_'): string => {
@@ -107,26 +108,30 @@ export const upgradeFeatureToRegion = (
  * them to regions. Returns the updated map data and any newly created nodes
  * and edges.
  */
-export const upgradeFeaturesWithChildren = (
-  mapData: MapData
-): { updatedMapData: MapData; addedNodes: MapNode[]; addedEdges: MapEdge[] } => {
+export const upgradeFeaturesWithChildren = async (
+  mapData: MapData,
+  currentTheme: AdventureTheme
+): Promise<{ updatedMapData: MapData; addedNodes: MapNode[]; addedEdges: MapEdge[] }> => {
   let working: MapData = structuredCloneGameState(mapData);
   const addedNodes: MapNode[] = [];
   const addedEdges: MapEdge[] = [];
 
-  working.nodes.forEach(node => {
+  for (const node of working.nodes) {
     if (node.data.nodeType === 'feature') {
-      const hasChild = working.nodes.some(n => n.data.parentNodeId === node.id);
-      if (hasChild) {
-        const res = upgradeFeatureToRegion(working, node.id, 'Temp Approach');
-        working = res.updatedMapData;
-        if (res.newNode) {
-          addedNodes.push(res.newNode);
+      const childNodes = working.nodes.filter(n => n.data.parentNodeId === node.id);
+      if (childNodes.length > 0) {
+        const decision = await decideFeatureHierarchyUpgrade_Service(node, childNodes[0], currentTheme);
+        if (decision === 'convert_child') {
+          childNodes.forEach(c => { c.data.parentNodeId = node.data.parentNodeId; });
+        } else {
+          const res = upgradeFeatureToRegion(working, node.id, 'Temp Approach');
+          working = res.updatedMapData;
+          if (res.newNode) addedNodes.push(res.newNode);
+          addedEdges.push(...res.newEdges);
         }
-        addedEdges.push(...res.newEdges);
       }
     }
-  });
+  }
 
   return { updatedMapData: working, addedNodes, addedEdges };
 };

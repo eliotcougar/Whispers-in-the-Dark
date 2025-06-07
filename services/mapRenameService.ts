@@ -4,9 +4,14 @@
  *              newly created map nodes and edges.
  */
 
-import { AdventureTheme, MapNode, MapEdge } from '../types';
+import { AdventureTheme, MapNode, MapEdge, MapData } from '../types';
 import { updateNodeId } from '../utils/mapIdUtils';
-import { MAX_RETRIES } from '../constants';
+import {
+  MAX_RETRIES,
+  NODE_DESCRIPTION_INSTRUCTION,
+  ALIAS_INSTRUCTION,
+  EDGE_DESCRIPTION_INSTRUCTION,
+} from '../constants';
 import { callCorrectionAI } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 
@@ -20,6 +25,7 @@ export interface RenameMapElementsPayload {
  * and edges.
  */
 export const renameMapElements_Service = async (
+  mapData: MapData,
   newNodes: MapNode[],
   newEdges: MapEdge[],
   currentTheme: AdventureTheme,
@@ -30,24 +36,34 @@ export const renameMapElements_Service = async (
   }
 
   const nodesList = newNodes
-    .map(n => `- ID: ${n.id}, Temp Name: "${n.placeName}", Type: ${n.data.nodeType}`)
+    .map(n => {
+      const parent = n.data.parentNodeId
+        ? mapData.nodes.find(p => p.id === n.data.parentNodeId)
+        : undefined;
+      const parentInfo = parent
+        ? `Parent: "${parent.placeName}" (Desc: "${parent.data.description}")`
+        : 'No parent';
+      return `- ID: ${n.id}, Temp Name: "${n.placeName}", Type: ${n.data.nodeType}, ${parentInfo}`;
+    })
     .join('\n');
   const edgesList = newEdges
     .map(e => `- ID: ${e.id}, connects ${e.sourceNodeId} -> ${e.targetNodeId}, Type: ${e.data.type}`)
     .join('\n');
 
-  const prompt = `You are an AI assistant tasked with assigning thematic names and descriptions
+const prompt = `You are an AI assistant tasked with assigning thematic names and descriptions
 for newly created map elements in a text adventure game.
 Current Theme: "${currentTheme.name}" (${currentTheme.systemInstructionModifier})
-Scene Snippet: "${context.sceneDescription.substring(0, 150)}"
-Recent Log: "${context.gameLogTail.slice(-3).join(' | ')}"
+Scene Description: "${context.sceneDescription}"
+Recent Events:\n -"${context.gameLogTail.slice(-5).join('\n -')}"
 New Nodes:\n${nodesList || 'None'}\nNew Edges:\n${edgesList || 'None'}\n
 Respond ONLY with a JSON object of the following form:
-{ "nodes": [ { "id": "string", "placeName": "string", "description": "string", "aliases": ["string"] } ],
-  "edges": [ { "id": "string", "description": "string" } ] }
-Each array can be empty. Keep IDs exactly as provided.`;
+{ "nodes": [ { "id": "string", "placeName": "string", "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
+    "aliases": ["string"] // ${ALIAS_INSTRUCTION}
+  } ],
+  "edges": [ { "id": "string", "description": "string" // ${EDGE_DESCRIPTION_INSTRUCTION} } ] }
+Arrays can be empty if either Nodes or Edges are None. All fields are REQUIRED. Keep IDs exactly as provided.`;
 
-  const systemInst = 'Rename provided map nodes and edges with thematic names. Return strict JSON.';
+  const systemInst = 'Rename provided map nodes and edges with thematic names. Completely rewrite the placeName, description, and aliases according to the provided context. Return strict JSON.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const result = await callCorrectionAI<RenameMapElementsPayload>(prompt, systemInst);

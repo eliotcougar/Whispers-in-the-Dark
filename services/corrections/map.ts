@@ -3,12 +3,21 @@
  * @description Correction helpers for map and location related data.
  */
 import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge, MinimalModelCallRecord } from '../../types';
-import { MAX_RETRIES } from '../../constants';
+import {
+  MAX_RETRIES,
+  NODE_DESCRIPTION_INSTRUCTION,
+  ALIAS_INSTRUCTION,
+} from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
-import { VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES } from '../../utils/mapUpdateValidationUtils';
-import { NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS } from '../../utils/mapSynonyms';
+import { VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES } from '../../constants';
+import {
+  NODE_TYPE_SYNONYMS,
+  EDGE_TYPE_SYNONYMS,
+  createHeuristicRegexes,
+} from '../../utils/mapSynonyms';
+import { MAP_NODE_TYPE_GUIDE, MAP_EDGE_TYPE_GUIDE } from '../../prompts/helperPrompts';
 
 /**
  * Infers or corrects the player's current local place string.
@@ -107,13 +116,13 @@ Narrative Context:
 Required JSON Structure for corrected map location details:
 {
   "name": "string",
-  "description": "string",
-  "aliases": ["string"]
+  "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
+  "aliases": ["string"] // ${ALIAS_INSTRUCTION}
 }
 
 Respond ONLY with the single, complete, corrected JSON object.`;
 
-  const systemInstructionForFix = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (string, non-empty), and "aliases" (array of strings, can be empty) are provided. Adhere strictly to the JSON format.`;
+  const systemInstructionForFix = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (${NODE_DESCRIPTION_INSTRUCTION}), and "aliases" (${ALIAS_INSTRUCTION}, array, can be empty) are provided. Adhere strictly to the JSON format.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
@@ -160,13 +169,13 @@ Narrative Context:
 Required JSON Structure:
 {
   "name": "${mapNodePlaceName}",
-  "description": "string",
-  "aliases": ["string"]
+  "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
+  "aliases": ["string"] // ${ALIAS_INSTRUCTION}
 }
 
 Respond ONLY with the single, complete JSON object.`;
 
-  const systemInstructionForFix = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating a fitting, non-empty description and aliases (array of strings, can be empty). Adhere strictly to the JSON format.`;
+  const systemInstructionForFix = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating ${NODE_DESCRIPTION_INSTRUCTION} and aliases (${ALIAS_INSTRUCTION}, array, can be empty). Adhere strictly to the JSON format.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
@@ -195,19 +204,15 @@ export const fetchCorrectedNodeType_Service = async (
 
   if (nodeInfo.nodeType) {
     const normalized = synonyms[nodeInfo.nodeType.toLowerCase()] || nodeInfo.nodeType.toLowerCase();
-    if (VALID_NODE_TYPE_VALUES.includes(normalized as MapNodeData['nodeType'])) {
+    if ((VALID_NODE_TYPE_VALUES as readonly string[]).includes(normalized)) {
       return normalized as MapNodeData['nodeType'];
     }
   }
 
-  const heuristics: [RegExp, NonNullable<MapNodeData['nodeType']>][] = [
-    [/region|province|area|zone|territory|forest|woods|jungle|grove|mountain|mountains|range|peak|valley|desert|swamp|marsh|marshland|bog|fen|sea|ocean|open\ssea|open\socean|coast|coastline|shore|island|archipelago|peninsula|plateau|hill|hills|plains|lake|bay|lagoon|fjord/i, 'region'],
-    [/city|town|village|settlement/i, 'settlement'],
-    [/building|tower|house|fort|castle|structure|edifice/i, 'exterior'],
-    [/interior|inside|hallway|corridor/i, 'interior'],
-    [/room|chamber|hall|quarters/i, 'room'],
-    [/river|stream|creek|waterfall|beach|cliff|canyon|gorge|ravine|reef|cave|cavern|grotto/i, 'feature']
-  ];
+  const heuristics = createHeuristicRegexes(
+    NODE_TYPE_SYNONYMS,
+    VALID_NODE_TYPE_VALUES
+  );
 
   for (const [regex, type] of heuristics) {
     if (regex.test(nodeInfo.placeName) || (nodeInfo.description && regex.test(nodeInfo.description))) {
@@ -221,6 +226,7 @@ export const fetchCorrectedNodeType_Service = async (
   }
 
   const prompt = `Determine the most appropriate nodeType for a map location in a text adventure game.
+${MAP_NODE_TYPE_GUIDE}
 Location Name: "${nodeInfo.placeName}"
 Description: "${nodeInfo.description || 'No description provided.'}"
 Valid node types: ${VALID_NODE_TYPE_VALUES.join(', ')}
@@ -231,10 +237,10 @@ Respond ONLY with the single node type.`;
     const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
     if (typeResp) {
       const cleaned = typeResp.trim().toLowerCase();
-      const mapped = synonyms[cleaned] || cleaned;
-      if (VALID_NODE_TYPE_VALUES.includes(mapped as MapNodeData['nodeType'])) {
-        return mapped as MapNodeData['nodeType'];
-      }
+        const mapped = synonyms[cleaned] || cleaned;
+        if ((VALID_NODE_TYPE_VALUES as readonly string[]).includes(mapped)) {
+          return mapped as MapNodeData['nodeType'];
+        }
     }
   }
   return null;
@@ -250,22 +256,15 @@ export const fetchCorrectedEdgeType_Service = async (
 
   if (edgeInfo.type) {
     const normalized = synonyms[edgeInfo.type.toLowerCase()] || edgeInfo.type.toLowerCase();
-    if (VALID_EDGE_TYPE_VALUES.includes(normalized as MapEdgeData['type'])) {
+    if ((VALID_EDGE_TYPE_VALUES as readonly string[]).includes(normalized)) {
       return normalized as MapEdgeData['type'];
     }
   }
 
-  const heuristics: [RegExp, MapEdgeData['type']][] = [
-    [/trail|track|walkway|footpath/i, 'path'],
-    [/road|street|highway|avenue|boulevard|lane|roadway/i, 'road'],
-    [/sea\sroute|seaway|sea\spath|ocean\sroute/i, 'sea route'],
-    [/door|gate|gateway/i, 'door'],
-    [/teleporter|portal|warp/i, 'teleporter'],
-    [/secret\spassage|hidden\spassage|tunnel/i, 'secret_passage'],
-    [/river\scrossing|ford|ferry/i, 'river_crossing'],
-    [/temporary\sbridge|makeshift\sbridge|bridge|temporary\scrossing/i, 'temporary_bridge'],
-    [/boarding\shook|grapple|grappling\shook/i, 'boarding_hook']
-  ];
+  const heuristics = createHeuristicRegexes(
+    EDGE_TYPE_SYNONYMS,
+    VALID_EDGE_TYPE_VALUES
+  );
 
   for (const [regex, type] of heuristics) {
     if ((edgeInfo.type && regex.test(edgeInfo.type)) || (edgeInfo.description && regex.test(edgeInfo.description))) {
@@ -279,6 +278,7 @@ export const fetchCorrectedEdgeType_Service = async (
   }
 
   const prompt = `Determine the most appropriate edge type for a map connection in a text adventure game.
+${MAP_EDGE_TYPE_GUIDE}
 Description: "${edgeInfo.description || 'No description provided.'}"
 Valid edge types: ${VALID_EDGE_TYPE_VALUES.join(', ')}
 Respond ONLY with the single edge type.`;
@@ -288,10 +288,10 @@ Respond ONLY with the single edge type.`;
     const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
     if (typeResp) {
       const cleaned = typeResp.trim().toLowerCase();
-      const mapped = synonyms[cleaned] || cleaned;
-      if (VALID_EDGE_TYPE_VALUES.includes(mapped as MapEdgeData['type'])) {
-        return mapped as MapEdgeData['type'];
-      }
+        const mapped = synonyms[cleaned] || cleaned;
+        if ((VALID_EDGE_TYPE_VALUES as readonly string[]).includes(mapped)) {
+          return mapped as MapEdgeData['type'];
+        }
     }
   }
   return null;
@@ -517,6 +517,40 @@ Respond ONLY with the name of the best matching node from the list above.`;
     const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
     if (resp && resp.trim().length > 0) {
       return resp.trim();
+    }
+  }
+  return null;
+};
+
+/**
+ * Decides how to resolve a feature node that incorrectly has child nodes.
+ * The minimal model chooses between converting the child to a sibling or
+ * upgrading the parent to contain the child.
+ */
+export const decideFeatureHierarchyUpgrade_Service = async (
+  parentFeature: MapNode,
+  childNode: MapNode,
+  currentTheme: AdventureTheme,
+  debugLog?: MinimalModelCallRecord[]
+): Promise<'convert_child' | 'upgrade_parent' | null> => {
+  if (!isApiConfigured()) {
+    console.error('decideFeatureHierarchyUpgrade_Service: API Key not configured.');
+    return null;
+  }
+
+  const prompt = `A feature node has acquired a child which violates the map hierarchy rules.
+Parent Feature: "${parentFeature.placeName}" (Desc: "${parentFeature.data.description}")
+Child Node: "${childNode.placeName}" (Type: ${childNode.data.nodeType})
+Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_parent" to upgrade the parent to a higher-level node.`;
+
+  const systemInstr = 'Respond only with convert_child or upgrade_parent.';
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
+    if (resp) {
+      const cleaned = resp.trim().toLowerCase();
+      if (cleaned.includes('upgrade')) return 'upgrade_parent';
+      if (cleaned.includes('convert') || cleaned.includes('sibling')) return 'convert_child';
     }
   }
   return null;

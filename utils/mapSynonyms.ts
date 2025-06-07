@@ -20,6 +20,12 @@ export const NODE_TYPE_SYNONYMS: Record<string, NonNullable<MapNodeData['nodeTyp
   town: 'settlement',
   village: 'settlement',
   settlement: 'settlement',
+  district: 'district',
+  neighborhood: 'district',
+  quarter: 'district',
+  ward: 'district',
+  street: 'district',
+  avenue: 'district',
   structure: 'exterior',
   edifice: 'exterior',
   building: 'exterior',
@@ -27,12 +33,23 @@ export const NODE_TYPE_SYNONYMS: Record<string, NonNullable<MapNodeData['nodeTyp
   house: 'exterior',
   fort: 'exterior',
   castle: 'exterior',
+  spaceship: 'exterior',
+  starship: 'exterior',
+  spacecraft: 'exterior',
+  hull: 'exterior',
+  hangar: 'exterior',
   interior: 'interior',
   inside: 'interior',
+  deck: 'interior',
+  module: 'interior',
   outside: 'exterior',
   courtyard: 'exterior',
   chamber: 'room',
   hall: 'room',
+  bridge: 'room',
+  cockpit: 'room',
+  cabin: 'room',
+  compartment: 'room',
   landmark: 'feature',
   spot: 'feature',
   forest: 'region',
@@ -80,10 +97,14 @@ export const NODE_TYPE_SYNONYMS: Record<string, NonNullable<MapNodeData['nodeTyp
   reef: 'feature',
   cave: 'feature',
   cavern: 'feature',
-  grotto: 'feature'
+  grotto: 'feature',
+  console: 'feature',
+  terminal: 'feature',
+  airlock: 'feature',
+  hatch: 'feature'
 };
 
-export const EDGE_TYPE_SYNONYMS: Record<string, MapEdgeData['type']> = {
+export const EDGE_TYPE_SYNONYMS: Record<string, NonNullable<MapEdgeData['type']>> = {
   trail: 'path',
   track: 'path',
   walkway: 'path',
@@ -97,18 +118,32 @@ export const EDGE_TYPE_SYNONYMS: Record<string, MapEdgeData['type']> = {
   seaway: 'sea route',
   'sea path': 'sea route',
   'ocean route': 'sea route',
+  'space lane': 'sea route',
+  'space route': 'sea route',
+  'flight path': 'road',
   portal: 'teleporter',
   warp: 'teleporter',
+  'warp gate': 'teleporter',
+  'jump gate': 'teleporter',
+  stargate: 'teleporter',
   gate: 'door',
   gateway: 'door',
+  airlock: 'door',
+  hatch: 'door',
+  bulkhead: 'door',
   'secret passageway': 'secret_passage',
   hidden_passage: 'secret_passage',
+  'maintenance tunnel': 'secret_passage',
   tunnel: 'secret_passage',
   ford: 'river_crossing',
   ferry: 'river_crossing',
   bridge: 'temporary_bridge',
   'makeshift_bridge': 'temporary_bridge',
   'temporary crossing': 'temporary_bridge',
+  'docking tube': 'temporary_bridge',
+  'boarding tube': 'temporary_bridge',
+  maglev: 'road',
+  tram: 'road',
   grapple: 'boarding_hook',
   'grappling_hook': 'boarding_hook',
   shortcut: 'shortcut',
@@ -116,7 +151,7 @@ export const EDGE_TYPE_SYNONYMS: Record<string, MapEdgeData['type']> = {
   "secret tunnel": 'shortcut'
 };
 
-export const EDGE_STATUS_SYNONYMS: Record<string, MapEdgeData['status']> = {
+export const EDGE_STATUS_SYNONYMS: Record<string, NonNullable<MapEdgeData['status']>> = {
   opened: 'open',
   usable: 'accessible',
   available: 'accessible',
@@ -135,3 +170,33 @@ export const EDGE_STATUS_SYNONYMS: Record<string, MapEdgeData['status']> = {
   fallen: 'collapsed',
   deactivated: 'inactive'
 };
+
+function escapeForRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Builds a list of heuristic regular expressions mapping possible phrases to a
+ * canonical value. Used for quick type inference before invoking the AI.
+ */
+export function createHeuristicRegexes<T extends string>(
+  synonymMap: Record<string, T>,
+  canonicalValues: readonly T[]
+): [RegExp, T][] {
+  const phrasesByValue: Record<string, string[]> = {};
+  for (const val of canonicalValues) {
+    phrasesByValue[val] = [escapeForRegExp(val)];
+  }
+  for (const [phrase, canonical] of Object.entries(synonymMap)) {
+    if (!phrasesByValue[canonical]) {
+      phrasesByValue[canonical] = [escapeForRegExp(canonical)];
+    }
+    phrasesByValue[canonical].push(escapeForRegExp(phrase));
+  }
+  const heuristics: [RegExp, T][] = [];
+  for (const [canonical, phrases] of Object.entries(phrasesByValue)) {
+    const pattern = phrases.map(p => p.replace(/\s+/g, '\\s+')).join('|');
+    heuristics.push([new RegExp(pattern, 'i'), canonical as T]);
+  }
+  return heuristics;
+}

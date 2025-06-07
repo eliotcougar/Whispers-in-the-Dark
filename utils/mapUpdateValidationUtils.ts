@@ -4,30 +4,12 @@
  * @description Utilities for validating the AIMapUpdatePayload structure from the map update AI.
  */
 import { AIMapUpdatePayload, MapNodeData, MapEdgeData } from '../types'; // AINodeUpdate is implicitly part of AIMapUpdatePayload
-
-export const VALID_NODE_STATUS_VALUES: ReadonlyArray<MapNodeData['status']> = ['undiscovered', 'discovered', 'rumored', 'quest_target'];
-export const VALID_NODE_TYPE_VALUES: ReadonlyArray<NonNullable<MapNodeData['nodeType']>> = [
-  'region',
-  'location',
-  'settlement',
-  'exterior',
-  'interior',
-  'room',
-  'feature'
-];
-export const VALID_EDGE_TYPE_VALUES: ReadonlyArray<MapEdgeData['type']> = [
-  'path',
-  'road',
-  'sea route',
-  'door',
-  'teleporter',
-  'secret_passage',
-  'river_crossing',
-  'temporary_bridge',
-  'boarding_hook',
-  'shortcut'
-];
-export const VALID_EDGE_STATUS_VALUES: ReadonlyArray<MapEdgeData['status']> = ['open', 'accessible', 'closed', 'locked', 'blocked', 'hidden', 'rumored', 'one_way', 'collapsed', 'removed', 'active', 'inactive'];
+import {
+  VALID_NODE_STATUS_VALUES,
+  VALID_NODE_TYPE_VALUES,
+  VALID_EDGE_TYPE_VALUES,
+  VALID_EDGE_STATUS_VALUES,
+} from '../constants';
 
 /**
  * Validates a MapNodeData object used in map update operations.
@@ -133,20 +115,20 @@ function isValidAIEdgeDataInternal(data: unknown, isEdgeAddContext: boolean): bo
   const edge = data as Record<string, unknown>;
   
   if (isEdgeAddContext) { // Type and status are required for new edges
-    if (typeof edge.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(edge.type as MapEdgeData['type'])) {
+    if (typeof edge.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(edge.type as NonNullable<MapEdgeData['type']>)) {
       console.warn("Validation Error (EdgeData - Add): 'type' is required and invalid. Value:", edge.type, "Valid are:", VALID_EDGE_TYPE_VALUES);
       return false;
     }
-    if (typeof edge.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(edge.status as MapEdgeData['status'])) {
+    if (typeof edge.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(edge.status as NonNullable<MapEdgeData['status']>)) {
       console.warn("Validation Error (EdgeData - Add): 'status' is required and invalid. Value:", edge.status, "Valid are:", VALID_EDGE_STATUS_VALUES);
       return false;
     }
   } else { // For updates, type and status are optional
-    if (edge.type !== undefined && (typeof edge.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(edge.type as MapEdgeData['type']))) {
+    if (edge.type !== undefined && (typeof edge.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(edge.type as NonNullable<MapEdgeData['type']>))) {
         console.warn("Validation Error (EdgeData - Update): Invalid 'type'. Value:", edge.type, "Valid are:", VALID_EDGE_TYPE_VALUES);
         return false;
     }
-    if (edge.status !== undefined && (typeof edge.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(edge.status as MapEdgeData['status']))) {
+    if (edge.status !== undefined && (typeof edge.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(edge.status as NonNullable<MapEdgeData['status']>))) {
         console.warn("Validation Error (EdgeData - Update): Invalid 'status'. Value:", edge.status, "Valid are:", VALID_EDGE_STATUS_VALUES);
         return false;
     }
@@ -257,7 +239,7 @@ function isValidAIEdgeRemovalInternal(edgeRemove: unknown): boolean {
     console.warn("Validation Error (EdgeRemove): 'targetPlaceName' is required. Value:", rem.targetPlaceName);
     return false;
   }
-  if (rem.type !== undefined && (typeof rem.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(rem.type as MapEdgeData['type']))) {
+  if (rem.type !== undefined && (typeof rem.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(rem.type as NonNullable<MapEdgeData['type']>))) {
     console.warn("Validation Error (EdgeRemove): Optional 'type' is invalid. Value:", rem.type);
     return false;
   }
