@@ -833,18 +833,20 @@ Key points:
       if (!parentA || !parentB) return false;
       if (parentA.id === parentB.id) return true;
 
-      const grandA = parentA.data.parentNodeId
-        ? themeNodeIdMap.get(parentA.data.parentNodeId)
+      const grandAId = parentA.data.parentNodeId
+        ? themeNodeIdMap.get(parentA.data.parentNodeId)?.data.parentNodeId ??
+          (parentA.data.parentNodeId === 'Universe' ? 'Universe' : null)
         : null;
-      const grandB = parentB.data.parentNodeId
-        ? themeNodeIdMap.get(parentB.data.parentNodeId)
+      const grandBId = parentB.data.parentNodeId
+        ? themeNodeIdMap.get(parentB.data.parentNodeId)?.data.parentNodeId ??
+          (parentB.data.parentNodeId === 'Universe' ? 'Universe' : null)
         : null;
 
-      if (grandA && grandB && grandA.id === grandB.id) return true;
+      if (grandAId && grandBId && grandAId === grandBId) return true;
 
       // Allow child-to-grandchild feature connections across hierarchy levels
-      if (grandA && parentB.id === grandA.id) return true;
-      if (grandB && parentA.id === grandB.id) return true;
+      if (grandAId && parentB.id === grandAId) return true;
+      if (grandBId && parentA.id === grandBId) return true;
 
       // Allow connections between features whose parents are both direct children of the root
       if (
@@ -853,9 +855,9 @@ Key points:
       )
         return true;
 
-      if (parentA.id === 'Universe' && grandB && grandB.id === 'Universe')
+      if (parentA.id === 'Universe' && grandBId === 'Universe')
         return true;
-      if (parentB.id === 'Universe' && grandA && grandA.id === 'Universe')
+      if (parentB.id === 'Universe' && grandAId === 'Universe')
         return true;
 
       return false;
