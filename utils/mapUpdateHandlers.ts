@@ -21,6 +21,7 @@ import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatc
 import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
 import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
 import { renameMapElements_Service, applyRenamePayload } from '../services/mapRenameService';
+import { existsNonRumoredPath } from './mapGraphUtils';
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
@@ -228,7 +229,15 @@ export const handleMapUpdates = async (
       if (newlyAddedEdgeIds.has(edge.id)) return;
       if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {
         if (edge.data.status === 'rumored' || edge.data.status === 'removed') {
-          edgesToRemoveIndices.push(index);
+          const altExists = existsNonRumoredPath(
+            draftState.mapData,
+            edge.sourceNodeId,
+            edge.targetNodeId,
+            edge.id
+          );
+          if (altExists) {
+            edgesToRemoveIndices.push(index);
+          }
         }
       }
     });

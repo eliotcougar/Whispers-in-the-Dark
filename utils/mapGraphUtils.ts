@@ -3,7 +3,7 @@
  * @description Helper functions for querying and measuring hierarchical map node relationships.
  */
 
-import { MapNode } from '../types';
+import { MapNode, MapData, MapEdgeStatus } from '../types';
 import { NODE_RADIUS } from './mapConstants';
 
 /**
@@ -90,4 +90,46 @@ export const getFamilyDiameter = (
     }
   }
   return max;
+};
+
+/**
+ * Determines if a non-rumored path exists between two nodes.
+ * Traverses the map graph ignoring edges with status 'rumored' or 'removed'.
+ *
+ * @param mapData - Full map data containing all edges.
+ * @param startNodeId - Node ID of the starting point.
+ * @param endNodeId - Node ID of the destination.
+ * @param excludeEdgeId - Optional edge ID to ignore during traversal.
+ * @returns True if a path exists, otherwise false.
+ */
+export const existsNonRumoredPath = (
+  mapData: MapData,
+  startNodeId: string,
+  endNodeId: string,
+  excludeEdgeId?: string
+): boolean => {
+  const visited = new Set<string>();
+  const queue: string[] = [];
+  visited.add(startNodeId);
+  queue.push(startNodeId);
+
+  const isTraversable = (status?: MapEdgeStatus) =>
+    status !== 'rumored' && status !== 'removed';
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (current === endNodeId) return true;
+    for (const edge of mapData.edges) {
+      if (edge.id === excludeEdgeId) continue;
+      if (!isTraversable(edge.data.status)) continue;
+      let next: string | null = null;
+      if (edge.sourceNodeId === current) next = edge.targetNodeId;
+      else if (edge.targetNodeId === current) next = edge.sourceNodeId;
+      if (next && !visited.has(next)) {
+        visited.add(next);
+        queue.push(next);
+      }
+    }
+  }
+  return false;
 };
