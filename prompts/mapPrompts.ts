@@ -101,5 +101,6 @@ CRITICAL INSTRUCTIONS:
 - If the narrative suggests that a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "details" via "nodesToUpdate", rather than adding a new node.
 - When renaming a node using "nodesToUpdate", omit any matching entry in "nodesToRemove" for that node.
 - Feature Nodes can have any number of edges.
-- IMPORTANT: Only delete Nodes that are no longer relevant to the game world. Only delete edges when the Scene description talks about total destruction of the path.
+- CRITICALLY IMPORTANT: Delete Nodes ONLY in EXTREME CASES when the Scene unambiguously implies that they will no longer ever be relevant to the Player.
+- CRITICALLY IMPORTANT: Delete edges ONLY in EXTREME CASES when the Scene description mentions an absolutely certain destruction of the path. In all  other cases, avoid deleting edges and nodes.
 `;
