@@ -880,6 +880,8 @@ Key points:
       processedChainKeys.add(pairKey);
 
       const chainPairs: EdgeChainRequest['pairs'] = [];
+      const sourceChain: MapNode[] = [sourceNode];
+      const targetChain: MapNode[] = [targetNode];
       let nodeA: MapNode = sourceNode;
       let nodeB: MapNode = targetNode;
       let attempts = 0;
@@ -894,10 +896,10 @@ Key points:
           const depthB = getNodeDepth(nodeB);
           if (depthA >= depthB && nodeA.data.parentNodeId) {
               const parentA = themeNodeIdMap.get(nodeA.data.parentNodeId);
-              if (parentA) nodeA = parentA; else break;
+              if (parentA) { nodeA = parentA; sourceChain.push(nodeA); } else break;
           } else if (nodeB.data.parentNodeId) {
               const parentB = themeNodeIdMap.get(nodeB.data.parentNodeId);
-              if (parentB) nodeB = parentB; else break;
+              if (parentB) { nodeB = parentB; targetChain.push(nodeB); } else break;
           } else {
               break;
           }
@@ -913,7 +915,9 @@ Key points:
             originalSource: sourceNode,
             originalTarget: targetNode,
             pairs: chainPairs,
-            edgeData: edgeAddOp.data || { type: 'path', status: 'open' }
+            sourceChain,
+            targetChain,
+            edgeData: edgeAddOp.data || { type: 'path', status: 'open' },
           });
           continue;
       }

@@ -15,7 +15,12 @@ import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { CORRECTION_TEMPERATURE } from './base';
 import { isApiConfigured } from '../apiClient';
-import { VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES } from '../../constants';
+import {
+  VALID_NODE_TYPE_VALUES,
+  VALID_EDGE_TYPE_VALUES,
+  VALID_NODE_STATUS_VALUES,
+  VALID_EDGE_STATUS_VALUES,
+} from '../../constants';
 import {
   NODE_TYPE_SYNONYMS,
   EDGE_TYPE_SYNONYMS,
@@ -536,6 +541,8 @@ export interface EdgeChainRequest {
   originalSource: MapNode;
   originalTarget: MapNode;
   pairs: ChainParentPair[];
+  sourceChain: MapNode[];
+  targetChain: MapNode[];
   edgeData: MapEdgeData;
 }
 
@@ -561,19 +568,24 @@ export const fetchConnectorChains_Service = async (
   if (!isApiConfigured() || requests.length === 0)
     return { payload: null, debugInfo: null };
 
+  const formatValues = (arr: readonly string[]) => `[${arr.map(v => `'${v}'`).join(', ')}]`;
+  const NODE_STATUS_LIST = formatValues(VALID_NODE_STATUS_VALUES);
+  const NODE_TYPE_LIST = formatValues(VALID_NODE_TYPE_VALUES);
+  const EDGE_TYPE_LIST = formatValues(VALID_EDGE_TYPE_VALUES);
+  const EDGE_STATUS_LIST = formatValues(VALID_EDGE_STATUS_VALUES);
+
   const chainBlocks = requests
     .map((r, idx) => {
-      const allParents: MapNode[] = [];
-      r.pairs.forEach(pair => {
-        if (pair.sourceParent.data.nodeType !== 'feature' && !allParents.some(p => p.id === pair.sourceParent.id)) {
-          allParents.push(pair.sourceParent);
-        }
-        if (pair.targetParent.data.nodeType !== 'feature' && !allParents.some(p => p.id === pair.targetParent.id)) {
-          allParents.push(pair.targetParent);
+      const visited = new Set<string>();
+      const orderedParents: MapNode[] = [];
+      [...r.sourceChain, ...r.targetChain.slice().reverse()].forEach(p => {
+        if (p.data.nodeType !== 'feature' && !visited.has(p.id)) {
+          orderedParents.push(p);
+          visited.add(p.id);
         }
       });
 
-      const parentLines = allParents
+      const parentLines = orderedParents
         .map((p, i) => {
           const features = context.themeNodes
             .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
@@ -619,13 +631,17 @@ Return ONLY a JSON object strictly matching this structure:
       }
     }
   ]
-}`;
+}
+Valid node statuses: ${NODE_STATUS_LIST}
+Valid node types: ${NODE_TYPE_LIST}
+Valid edge types: ${EDGE_TYPE_LIST}
+Valid edge statuses: ${EDGE_STATUS_LIST}`;
 
   const systemInstr =
     'Return AIMapUpdatePayload JSON building a single sequential chain of feature nodes for each edge listed. ' +
     'For each parent, either select a logical existing feature child or propose a new temporary feature. ' +
     'Edges must connect feature nodes only and link them in order from the feature under the original source parent to the feature under the original target parent. ' +
-    'Every new node MUST have a unique placeName.';
+    'Every new node MUST have a unique placeName. Use only the valid node/edge status and type values provided in the prompt.';
 
   const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
 

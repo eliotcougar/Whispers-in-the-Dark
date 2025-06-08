@@ -302,8 +302,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (!svgRect) return;
     const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
     const targetNode = nodes.find(n => n.id === edge.targetNodeId);
-    let content = `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
-    if (edge.data.description) content += `\nDescription: ${edge.data.description}`;
+    let content = edge.data.description
+      ? edge.data.description
+      : `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
     if (edge.data.type) content += `\nType: ${edge.data.type}`;
     if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
     if (edge.data.travelTime) content += `\nTravel: ${edge.data.travelTime}`;
