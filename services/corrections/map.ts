@@ -661,8 +661,31 @@ Valid edge statuses: ${EDGE_STATUS_LIST}`;
       if (fenceMatch && fenceMatch[1]) {
         jsonStr = fenceMatch[1].trim();
       }
-      const result = JSON.parse(jsonStr) as AIMapUpdatePayload;
-      debugInfo.parsedPayload = result;
+      const parsed: unknown = JSON.parse(jsonStr);
+      let result: AIMapUpdatePayload | null = null;
+      if (Array.isArray(parsed)) {
+        result = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
+          if (entry && typeof entry === 'object') {
+            const maybeObj = entry as Partial<AIMapUpdatePayload>;
+            if (Array.isArray(maybeObj.nodesToAdd)) {
+              acc.nodesToAdd = [
+                ...(acc.nodesToAdd || []),
+                ...maybeObj.nodesToAdd,
+              ];
+            }
+            if (Array.isArray(maybeObj.edgesToAdd)) {
+              acc.edgesToAdd = [
+                ...(acc.edgesToAdd || []),
+                ...maybeObj.edgesToAdd,
+              ];
+            }
+          }
+          return acc;
+        }, {} as AIMapUpdatePayload);
+      } else if (parsed && typeof parsed === 'object') {
+        result = parsed as AIMapUpdatePayload;
+      }
+      debugInfo.parsedPayload = result as AIMapUpdatePayload;
       if (result && (result.nodesToAdd || result.edgesToAdd)) {
         return { payload: result, debugInfo };
       }
