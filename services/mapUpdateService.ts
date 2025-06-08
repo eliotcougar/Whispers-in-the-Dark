@@ -518,15 +518,21 @@ Key points:
    * This is used for edges and node updates where the AI might
    * provide either identifier form.
    */
-  const findNodeByIdentifier = (identifier: string): MapNode | { id: string; name: string } | undefined => {
+  const findNodeByIdentifier = (
+    identifier?: string,
+  ): MapNode | { id: string; name: string } | undefined => {
+    if (!identifier) return undefined;
     const byName = themeNodeNameMap.get(identifier);
     if (byName) return byName;
     const byId = themeNodeIdMap.get(identifier);
     if (byId) return byId;
     const byAlias = themeNodeAliasMap.get(identifier.toLowerCase());
     if (byAlias) return byAlias;
-    if (newNodesInBatchIdNameMap[identifier]) return newNodesInBatchIdNameMap[identifier];
-    const fromBatch = Object.values(newNodesInBatchIdNameMap).find(entry => entry.id === identifier || entry.name === identifier);
+    if (newNodesInBatchIdNameMap[identifier])
+      return newNodesInBatchIdNameMap[identifier];
+    const fromBatch = Object.values(newNodesInBatchIdNameMap).find(
+      entry => entry.id === identifier || entry.name === identifier,
+    );
     return fromBatch;
   };
 
