@@ -13,7 +13,6 @@ import {
   DEFAULT_PLAYER_GENDER
 } from '../constants';
 import { prepareGameStateForSaving, expandSavedDataToFullState, validateSavedGameState } from './saveLoadService';
-import { convertV2toV3Shape, V2IntermediateSavedGameState } from './saveConverters';
 import { ensureCompleteMapLayoutConfig, ensureCompleteMapNodeDataDefaults } from './saveLoadService';
 import { findThemeByName } from './themeUtils';
 
@@ -53,10 +52,7 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
 
     let dataToValidateAndExpand: SavedGameDataShape | null = null;
 
-    if (parsedObj && parsedObj.saveGameVersion === '2') {
-      console.log('V2 save data detected from localStorage. Attempting conversion to V3...');
-      dataToValidateAndExpand = convertV2toV3Shape(parsedObj as unknown as V2IntermediateSavedGameState);
-    } else if (
+    if (
       parsedObj &&
       (parsedObj.saveGameVersion === CURRENT_SAVE_GAME_VERSION ||
         (typeof parsedObj.saveGameVersion === 'string' && parsedObj.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0])))
