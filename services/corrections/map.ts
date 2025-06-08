@@ -7,9 +7,13 @@ import {
   MAX_RETRIES,
   NODE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
+  GEMINI_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { CORRECTION_TEMPERATURE } from './base';
 import { isApiConfigured } from '../apiClient';
 import { VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES } from '../../constants';
 import {
@@ -535,6 +539,16 @@ export interface EdgeChainRequest {
   edgeData: MapEdgeData;
 }
 
+export interface ConnectorChainsServiceResult {
+  payload: AIMapUpdatePayload | null;
+  debugInfo: {
+    prompt: string;
+    rawResponse?: string;
+    parsedPayload?: AIMapUpdatePayload;
+    validationError?: string;
+  } | null;
+}
+
 export const fetchConnectorChains_Service = async (
   requests: EdgeChainRequest[],
   context: {
@@ -543,8 +557,9 @@ export const fetchConnectorChains_Service = async (
     currentTheme: AdventureTheme;
     themeNodes: MapNode[];
   }
-): Promise<AIMapUpdatePayload | null> => {
-  if (!isApiConfigured() || requests.length === 0) return null;
+): Promise<ConnectorChainsServiceResult> => {
+  if (!isApiConfigured() || requests.length === 0)
+    return { payload: null, debugInfo: null };
 
   const chainBlocks = requests
     .map((r, idx) => {
@@ -584,12 +599,34 @@ Respond ONLY with AIMapUpdatePayload JSON containing nodesToAdd and edgesToAdd.`
   const systemInstr =
     'Return AIMapUpdatePayload JSON suggesting existing or temporary feature nodes for each listed parent so that every chain connects its original source and target.';
 
+  const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const payload = await callCorrectionAI<AIMapUpdatePayload>(prompt, systemInstr);
-    if (payload && (payload.nodesToAdd || payload.edgesToAdd)) {
-      return payload;
+    try {
+      debugInfo.prompt = prompt;
+      const response = await dispatchAIRequest(
+        [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstr,
+        { responseMimeType: 'application/json', temperature: CORRECTION_TEMPERATURE }
+      );
+      debugInfo.rawResponse = response.text ?? '';
+      let jsonStr = (response.text ?? '').trim();
+      const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
+      const fenceMatch = jsonStr.match(fenceRegex);
+      if (fenceMatch && fenceMatch[1]) {
+        jsonStr = fenceMatch[1].trim();
+      }
+      const result = JSON.parse(jsonStr) as AIMapUpdatePayload;
+      debugInfo.parsedPayload = result;
+      if (result && (result.nodesToAdd || result.edgesToAdd)) {
+        return { payload: result, debugInfo };
+      }
+      debugInfo.validationError = 'Parsed JSON missing nodesToAdd or edgesToAdd';
+    } catch (error) {
+      debugInfo.validationError = `Error: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
-  return null;
+  return { payload: null, debugInfo };
 };
 

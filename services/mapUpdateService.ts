@@ -57,6 +57,12 @@ export interface MapUpdateServiceResult {
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
     minimalModelCalls?: MinimalModelCallRecord[];
+    connectorChainsDebugInfo?: {
+      prompt: string;
+      rawResponse?: string;
+      parsedPayload?: AIMapUpdatePayload;
+      validationError?: string;
+    } | null;
   } | null;
 }
 
@@ -948,14 +954,17 @@ Key points:
   });
 
   if (pendingChainRequests.length > 0) {
-      const chainPayload = await fetchConnectorChains_Service(pendingChainRequests, {
+      const chainResult = await fetchConnectorChains_Service(pendingChainRequests, {
         sceneDescription: sceneDesc,
         logMessage: logMsg,
         currentTheme,
         themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
       });
-      if (chainPayload) {
-        (chainPayload.nodesToAdd || []).forEach(nAdd => {
+      if (chainResult.debugInfo) {
+        debugInfo.connectorChainsDebugInfo = chainResult.debugInfo;
+      }
+      if (chainResult.payload) {
+        (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
           const parent = nAdd.data.parentNodeId && nAdd.data.parentNodeId !== 'Universe'
             ? findNodeByIdentifier(nAdd.data.parentNodeId) as MapNode | undefined
             : undefined;
@@ -974,7 +983,7 @@ Key points:
           themeNodeIdMap.set(node.id, node);
           themeNodeNameMap.set(node.placeName, node);
         });
-        (chainPayload.edgesToAdd || []).forEach(eAdd => {
+        (chainResult.payload.edgesToAdd || []).forEach(eAdd => {
           const src = findNodeByIdentifier(eAdd.sourcePlaceName) as MapNode | undefined;
           const tgt = findNodeByIdentifier(eAdd.targetPlaceName) as MapNode | undefined;
           if (src && tgt) {
