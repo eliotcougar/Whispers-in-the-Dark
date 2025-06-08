@@ -18,6 +18,7 @@ import { callMinimalCorrectionAI } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 
+import { extractJsonFromFence } from '../utils/jsonUtils';
 interface GeminiRequestConfig {
   systemInstruction: string;
   responseMimeType: string;
@@ -49,13 +50,10 @@ const callDialogueGeminiAPI = async (
   });
 };
 
-const parseDialogueAIResponse = (responseText: string): DialogueAIResponse | null => {
-  let jsonStr = responseText.trim();
-  const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-  const fenceMatch = jsonStr.match(fenceRegex);
-  if (fenceMatch && fenceMatch[1]) {
-    jsonStr = fenceMatch[1].trim();
-  }
+const parseDialogueAIResponse = (
+  responseText: string
+): DialogueAIResponse | null => {
+  const jsonStr = extractJsonFromFence(responseText);
 
   try {
     const parsed = JSON.parse(jsonStr) as Partial<DialogueAIResponse>;
@@ -80,13 +78,10 @@ const parseDialogueAIResponse = (responseText: string): DialogueAIResponse | nul
   }
 };
 
-const parseDialogueSummaryResponse = (responseText: string): DialogueSummaryResponse | null => {
-    let jsonStr = responseText.trim();
-    const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-    const fenceMatch = jsonStr.match(fenceRegex);
-    if (fenceMatch && fenceMatch[1]) {
-      jsonStr = fenceMatch[1].trim();
-    }
+const parseDialogueSummaryResponse = (
+  responseText: string
+): DialogueSummaryResponse | null => {
+    const jsonStr = extractJsonFromFence(responseText);
 
     try {
       const parsed = JSON.parse(jsonStr) as DialogueSummaryResponse;
