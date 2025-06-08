@@ -345,10 +345,6 @@ export interface MinimalModelCallRecord {
   responseText: string;
 }
 
-export interface RenameMapElementsPayload {
-  nodes: { id: string; placeName: string; description: string; aliases?: string[] }[];
-  edges: { id: string; description: string }[];
-}
 
 export interface DebugPacket {
   prompt: string;
@@ -368,12 +364,6 @@ export interface DebugPacket {
       parsedPayload?: AIMapUpdatePayload;
       validationError?: string;
     } | null;
-  } | null;
-  mapRenameDebugInfo?: {
-    prompt: string;
-    rawResponse?: string;
-    parsedPayload?: RenameMapElementsPayload;
-    validationError?: string;
   } | null;
 }
 
