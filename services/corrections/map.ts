@@ -622,8 +622,10 @@ Return ONLY a JSON object strictly matching this structure:
 }`;
 
   const systemInstr =
-    'Return AIMapUpdatePayload JSON suggesting existing or temporary feature nodes for each listed parent so that every chain connects its original source and target. ' +
-    'Every new node MUST have a unique placeName. Edges may ONLY connect feature nodes.';
+    'Return AIMapUpdatePayload JSON building a single sequential chain of feature nodes for each edge listed. ' +
+    'For each parent, either select a logical existing feature child or propose a new temporary feature. ' +
+    'Edges must connect feature nodes only and link them in order from the feature under the original source parent to the feature under the original target parent. ' +
+    'Every new node MUST have a unique placeName.';
 
   const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
 

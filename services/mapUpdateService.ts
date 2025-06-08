@@ -449,6 +449,7 @@ Key points:
   const renameCandidateNodes: MapNode[] = [];
   const renameCandidateEdges: MapEdge[] = [];
   const pendingChainRequests: EdgeChainRequest[] = [];
+  const processedChainKeys = new Set<string>();
 
   // Refresh lookup maps for the cloned map data
   themeNodeIdMap.clear();
@@ -500,6 +501,20 @@ Key points:
       } else { finalEdgesToAdd.push(edgeAdd); }
   }
   edgesToAdd_mut = finalEdgesToAdd;
+
+  const dedupedEdges: typeof edgesToAdd_mut = [];
+  const edgeKeySet = new Set<string>();
+  for (const e of edgesToAdd_mut) {
+      const src = e.sourcePlaceName.toLowerCase();
+      const tgt = e.targetPlaceName.toLowerCase();
+      const type = e.data?.type || 'path';
+      const key = src < tgt ? `${src}|${tgt}|${type}` : `${tgt}|${src}|${type}`;
+      if (!edgeKeySet.has(key)) {
+          edgeKeySet.add(key);
+          dedupedEdges.push(e);
+      }
+  }
+  edgesToAdd_mut = dedupedEdges;
 
   // If a node is being renamed via nodesToUpdate, ignore any matching
   // nodesToRemove operation referencing either the old or new name.
@@ -857,12 +872,24 @@ Key points:
       const sourceNode = themeNodeIdMap.get(sourceNodeRef.id)!;
       const targetNode = themeNodeIdMap.get(targetNodeRef.id)!;
 
+      const pairKey =
+        sourceNode.id < targetNode.id
+          ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.data?.type || 'path'}`
+          : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.data?.type || 'path'}`;
+      if (processedChainKeys.has(pairKey)) continue;
+      processedChainKeys.add(pairKey);
+
       const chainPairs: EdgeChainRequest['pairs'] = [];
       let nodeA: MapNode = sourceNode;
       let nodeB: MapNode = targetNode;
       let attempts = 0;
+      let lastKey = '';
       while (!isEdgeConnectionAllowed(nodeA, nodeB, edgeAddOp.data?.type) && attempts < 10) {
-          chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
+          const stepKey = `${nodeA.id}|${nodeB.id}`;
+          if (stepKey !== lastKey) {
+            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
+            lastKey = stepKey;
+          }
           const depthA = getNodeDepth(nodeA);
           const depthB = getNodeDepth(nodeB);
           if (depthA >= depthB && nodeA.data.parentNodeId) {
@@ -878,7 +905,10 @@ Key points:
       }
 
       if (!isEdgeConnectionAllowed(nodeA, nodeB, edgeAddOp.data?.type)) {
-          chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
+          const finalKey = `${nodeA.id}|${nodeB.id}`;
+          if (finalKey !== lastKey) {
+            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
+          }
           pendingChainRequests.push({
             originalSource: sourceNode,
             originalTarget: targetNode,
