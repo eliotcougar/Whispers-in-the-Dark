@@ -48,8 +48,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
     setAnglePadding,
     overlapMargin,
     setOverlapMargin,
-    onReset,
-    onRefreshLayout,
+    onReset
   } = props;
 
   return (
@@ -92,9 +91,6 @@ const MapControls: React.FC<MapControlsProps> = props => {
         </div>
       )}
       <div className="map-action-buttons-row">
-        <button onClick={onRefreshLayout} className="map-control-button">
-          Refresh Layout
-        </button>
         <button onClick={() => setExpanded(!expanded)} className="map-control-button">
           {expanded ? 'Hide' : 'Show'} Layout Controls
         </button>
