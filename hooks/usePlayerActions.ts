@@ -143,7 +143,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         parsedResponse: aiData,
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
-        mapRenameDebugInfo: null,
       };
 
       if (aiData.localTime !== undefined) {

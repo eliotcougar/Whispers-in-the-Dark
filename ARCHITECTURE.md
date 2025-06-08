@@ -63,7 +63,6 @@ This layer abstracts external interactions and complex data processing.
         *   Receives narrative context and current `MapData`.
         *   Prompts an auxiliary AI (using `MAP_UPDATE_SYSTEM_INSTRUCTION`) to get an `AIMapUpdatePayload`.
         *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
-    *   `services/mapRenameService.ts`: Assigns thematic names and descriptions to new map nodes and edges.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
     *   `services/aiResponseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections. It now ignores `placesAdded`/`placesUpdated` fields, relying on the `mapUpdated` flag.

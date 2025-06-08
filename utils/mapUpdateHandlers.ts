@@ -19,7 +19,6 @@ import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/correcti
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
 import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
-import { renameMapElements_Service, applyRenamePayload } from '../services/mapRenameService';
 import { existsNonRumoredPath } from './mapGraphUtils';
 
 /**
@@ -116,31 +115,6 @@ export const handleMapUpdates = async (
   if (upgradeResult.addedNodes.length > 0 || upgradeResult.addedEdges.length > 0) {
     draftState.mapData = upgradeResult.updatedMapData;
     turnChanges.mapDataChanged = true;
-  }
-  const gameLogTail = draftState.gameLog.slice(-5);
-  const nodesForRename = [
-    ...upgradeResult.addedNodes,
-    ...(mapUpdateResult?.renameCandidateNodes ?? [])
-  ];
-  const edgesForRename = [
-    ...upgradeResult.addedEdges,
-    ...(mapUpdateResult?.renameCandidateEdges ?? [])
-  ];
-  if (nodesForRename.length > 0 || edgesForRename.length > 0) {
-    const renameResult = await renameMapElements_Service(
-      draftState.mapData,
-      nodesForRename,
-      edgesForRename,
-      themeContextForResponse,
-      { sceneDescription: 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene || '', gameLogTail }
-    );
-    if (renameResult.payload) {
-      applyRenamePayload(draftState.mapData, renameResult.payload);
-      if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
-    }
-    if (draftState.lastDebugPacket) {
-      draftState.lastDebugPacket.mapRenameDebugInfo = renameResult.debugInfo;
-    }
   }
 
   const newlyAddedEdgeIds = new Set(

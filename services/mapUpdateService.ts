@@ -47,10 +47,6 @@ export interface MapUpdateServiceResult {
   newlyAddedNodes: MapNode[];
   /** All edges created as part of this update (both from MapAI and service-generated). */
   newlyAddedEdges: MapEdge[];
-  /** Nodes that were generated via the minimal model and therefore may need renaming. */
-  renameCandidateNodes: MapNode[];
-  /** Edges that were generated via the minimal model and therefore may need renaming. */
-  renameCandidateEdges: MapEdge[];
   debugInfo: {
     prompt: string;
     rawResponse?: string;
@@ -94,10 +90,62 @@ const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | nu
   }
   try {
     const parsed: unknown = JSON.parse(jsonStr);
+    let payload: AIMapUpdatePayload | null = null;
+    if (Array.isArray(parsed)) {
+      payload = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
+        if (entry && typeof entry === 'object') {
+          const maybeObj = entry as Partial<AIMapUpdatePayload>;
+          if (Array.isArray(maybeObj.nodesToAdd)) {
+            acc.nodesToAdd = [
+              ...(acc.nodesToAdd || []),
+              ...maybeObj.nodesToAdd,
+            ];
+          }
+          if (Array.isArray(maybeObj.nodesToUpdate)) {
+            acc.nodesToUpdate = [
+              ...(acc.nodesToUpdate || []),
+              ...maybeObj.nodesToUpdate,
+            ];
+          }
+          if (Array.isArray(maybeObj.nodesToRemove)) {
+            acc.nodesToRemove = [
+              ...(acc.nodesToRemove || []),
+              ...maybeObj.nodesToRemove,
+            ];
+          }
+          if (Array.isArray(maybeObj.edgesToAdd)) {
+            acc.edgesToAdd = [
+              ...(acc.edgesToAdd || []),
+              ...maybeObj.edgesToAdd,
+            ];
+          }
+          if (Array.isArray(maybeObj.edgesToUpdate)) {
+            acc.edgesToUpdate = [
+              ...(acc.edgesToUpdate || []),
+              ...maybeObj.edgesToUpdate,
+            ];
+          }
+          if (Array.isArray(maybeObj.edgesToRemove)) {
+            acc.edgesToRemove = [
+              ...(acc.edgesToRemove || []),
+              ...maybeObj.edgesToRemove,
+            ];
+          }
+          if (
+            maybeObj.suggestedCurrentMapNodeId &&
+            !acc.suggestedCurrentMapNodeId
+          ) {
+            acc.suggestedCurrentMapNodeId = maybeObj.suggestedCurrentMapNodeId;
+          }
+        }
+        return acc;
+      }, {} as AIMapUpdatePayload);
+    } else if (parsed && typeof parsed === 'object') {
+      payload = parsed as AIMapUpdatePayload;
+    }
     // Drop any illegal attempts to add/update/remove the special root node
     // "Universe" and discard edges referring to it before validation.
-    if (parsed && typeof parsed === 'object') {
-      const payload = parsed as AIMapUpdatePayload;
+    if (payload && typeof payload === 'object') {
       const nameIsUniverse = (n: unknown): boolean =>
         typeof n === 'string' && n.trim().toLowerCase() === 'universe';
       if (Array.isArray(payload.nodesToAdd)) {
@@ -125,8 +173,8 @@ const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | nu
         payload.edgesToRemove = filterEdgeArray(payload.edgesToRemove);
       }
     }
-    if (isValidAIMapUpdatePayload(parsed as AIMapUpdatePayload | null)) {
-      return parsed as AIMapUpdatePayload;
+    if (isValidAIMapUpdatePayload(payload)) {
+      return payload;
     }
     console.warn("Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:", parsed);
     return null;
@@ -417,8 +465,6 @@ Key points:
           updatedMapData: null,
           newlyAddedNodes: [],
           newlyAddedEdges: [],
-          renameCandidateNodes: [],
-          renameCandidateEdges: [],
           debugInfo,
         };
       }
@@ -435,8 +481,6 @@ Key points:
       updatedMapData: null,
       newlyAddedNodes: [],
       newlyAddedEdges: [],
-      renameCandidateNodes: [],
-      renameCandidateEdges: [],
       debugInfo,
     }; // Return null if no valid payload after all retries
   }
@@ -446,8 +490,6 @@ Key points:
   const newNodesInBatchIdNameMap: Record<string, { id: string; name: string }> = {};
   const newlyAddedNodes: MapNode[] = [];
   const newlyAddedEdges: MapEdge[] = [];
-  const renameCandidateNodes: MapNode[] = [];
-  const renameCandidateEdges: MapEdge[] = [];
   const pendingChainRequests: EdgeChainRequest[] = [];
   const processedChainKeys = new Set<string>();
 
@@ -824,8 +866,7 @@ Key points:
   const addEdgeWithTracking = (
       a: MapNode,
       b: MapNode,
-      data: MapEdgeData,
-      markForRename = false
+      data: MapEdgeData
   ): MapEdge => {
       const existing = (themeEdgesMap.get(a.id) || []).find(
           e =>
@@ -838,7 +879,6 @@ Key points:
       const edge: MapEdge = { id, sourceNodeId: a.id, targetNodeId: b.id, data };
       newMapData.edges.push(edge);
       newlyAddedEdges.push(edge);
-      if (markForRename) renameCandidateEdges.push(edge);
       let arrA = themeEdgesMap.get(a.id); if (!arrA) { arrA = []; themeEdgesMap.set(a.id, arrA); } arrA.push(edge);
       let arrB = themeEdgesMap.get(b.id); if (!arrB) { arrB = []; themeEdgesMap.set(b.id, arrB); } arrB.push(edge);
       return edge;
@@ -930,8 +970,7 @@ Key points:
           status:
             edgeAddOp.data?.status ||
             (nodeA.data.status === 'rumored' || nodeB.data.status === 'rumored' ? 'rumored' : 'open'),
-        },
-        false
+        }
       );
   }
 
@@ -1020,7 +1059,6 @@ Key points:
           } as MapNode;
           newMapData.nodes.push(node);
           newlyAddedNodes.push(node);
-          renameCandidateNodes.push(node);
           themeNodeIdMap.set(node.id, node);
           themeNodeNameMap.set(node.placeName, node);
         });
@@ -1033,7 +1071,6 @@ Key points:
                 src,
                 tgt,
                 eAdd.data || { type: 'path', status: 'open' },
-                true,
               );
             } else {
               console.warn(
@@ -1052,8 +1089,6 @@ Key points:
     updatedMapData: newMapData,
     newlyAddedNodes,
     newlyAddedEdges,
-    renameCandidateNodes,
-    renameCandidateEdges,
     debugInfo,
   };
 };

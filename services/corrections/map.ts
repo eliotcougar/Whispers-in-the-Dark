@@ -6,6 +6,7 @@ import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge, AIMapUpdate
 import {
   MAX_RETRIES,
   NODE_DESCRIPTION_INSTRUCTION,
+  EDGE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
   GEMINI_MODEL_NAME,
   AUXILIARY_MODEL_NAME,
@@ -463,75 +464,6 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
   return null;
 };
 
-/**
- * Suggests the best feature child under a parent node to serve as a connector
- * when adding an edge. The minimal model can select an existing feature or
- * propose a short new name if none are suitable.
- */
-export const fetchConnectorFeatureName_Service = async (
-  parentNode: MapNode,
-  targetNode: MapNode,
-  context: {
-    sceneDescription: string;
-    logMessage: string | undefined;
-    currentTheme: AdventureTheme;
-    themeNodes: MapNode[];
-  },
-  debugLog?: MinimalModelCallRecord[]
-): Promise<string | null> => {
-  if (!isApiConfigured()) {
-    console.error('fetchConnectorFeatureName_Service: API Key not configured.');
-    return null;
-  }
-
-  const features = context.themeNodes.filter(
-    n => n.data.parentNodeId === parentNode.id && n.data.nodeType === 'feature'
-  );
-  const featureLines =
-    features.length > 0
-      ? features
-          .map(f => {
-            const aliasStr =
-              f.data.aliases && f.data.aliases.length > 0
-                ? `Aliases: ${f.data.aliases.join(', ')}`
-                : 'No aliases';
-            const descStr = f.data.description || 'No description';
-            return `- "${f.placeName}" (Desc: "${descStr}", ${aliasStr})`;
-          })
-          .join('\n')
-      : 'None';
-
-  const parentAlias =
-    parentNode.data.aliases && parentNode.data.aliases.length > 0
-      ? parentNode.data.aliases.join(', ')
-      : 'None';
-  const parentDesc = parentNode.data.description || 'No description';
-  const targetAlias =
-    targetNode.data.aliases && targetNode.data.aliases.length > 0
-      ? targetNode.data.aliases.join(', ')
-      : 'None';
-  const targetDesc = targetNode.data.description || 'No description';
-
-  const prompt = `Select the best existing feature under "${parentNode.placeName}" (Desc: "${parentDesc}", Aliases: ${parentAlias}) to connect toward "${targetNode.placeName}" (Desc: "${targetDesc}", Aliases: ${targetAlias}) or suggest a short new feature name.
-Existing Features:
-${featureLines}
-Scene Description: "${context.sceneDescription}"
-Log Message: "${context.logMessage || 'None'}"
-Theme: "${context.currentTheme.name}"
-Map data is primary; scene and log are extra context.`;
-
-  const systemInstr =
-    'Respond ONLY with the chosen feature name. Base the choice primarily on the map data. Avoid generic words like "connector", "connection", "connect", or "link".';
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
-    if (resp && resp.trim().length > 0) {
-      return resp.trim();
-    }
-  }
-  return null;
-};
-
 export interface ChainParentPair {
   sourceParent: MapNode;
   targetParent: MapNode;
@@ -591,7 +523,7 @@ export const fetchConnectorChains_Service = async (
             .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
             .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
             .join('\n') || ' - None';
-          return `Parent ${i + 1}: "${p.placeName}" (${p.data.nodeType}, ${p.data.status}, ${p.data.description || 'No description'})\n${features}`;
+          return `Parent ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description || 'No description'})\n${features}`;
         })
         .join('\n');
 
@@ -599,49 +531,56 @@ export const fetchConnectorChains_Service = async (
     })
     .join('\n\n');
 
-  const prompt = `Suggest feature chains to connect map edges in a text adventure.
-${MAP_NODE_TYPE_GUIDE}
-${MAP_EDGE_TYPE_GUIDE}
-Scene: "${context.sceneDescription}"
+  const prompt = `Suggest chains of locations (feature nodes) to connect distant map nodes in a text adventure.
+** Context: **
+Scene Description: "${context.sceneDescription}"
 Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
+
+---
+
 Chains:
 ${chainBlocks}
-Return ONLY a JSON object strictly matching this structure:
+`;
+
+  const systemInstr = `Imagine a Player travelling from source to target. For each chain imagine a sequential chain of feature nodes connected with edges.
+CHOOSE ONE for each Parent node in each chain:
+- IF there is a contextually appropriate feature node under a Parent, DO NOT add it again, and use the existing feature node directly in edgesToAdd directly.
+- IF there is 'None', or no appropriate candidate feature node exists under a Parent, ALWAYS use nodesToAdd to add a contextually appropriate node with full information of your choice.
+
+ALWAYS choose between selecting an existing feature node OR adding a new one. NEVER leave a Parent node in the chain without a feature node, connected to neighbor Parent nodes' feature nodes.
+You can ONLY connect feature nodes with edges.
+New edges MUST inherit the original chain edge type and status.
+Every new node MUST have a unique placeName. Use only the valid node/edge status and type values.
+Edges MUST connect ALL feature nodes under ALL Parents in a single chain from the feature under the source parent to the feature under the target parent.
+
+${MAP_EDGE_TYPE_GUIDE}
+    Return a JSON representing a single sequential chain of feature nodes and edges for each requested chain. 
+    Return ONLY a JSON object strictly matching this structure:
 {
   "nodesToAdd": [
     {
-      "placeName": "string",
+      "placeName": "string", /* A contextually relevant location name, based on Theme and Scene Description
       "data": {
-        "description": "string",
-        "aliases": ["string"],
-        "status": "string",
-        "nodeType": "feature",
+        "description": "string", /* ${NODE_DESCRIPTION_INSTRUCTION} */
+        "aliases": ["string"], /* ${ALIAS_INSTRUCTION} */
+        "status": "string", /* ${NODE_STATUS_LIST} */
+        "nodeType": "feature", /* ONLY add 'feature' type nodes! */
         "parentNodeId": "string"
       }
     }
   ],
   "edgesToAdd": [
     {
-      "sourcePlaceName": "string",
-      "targetPlaceName": "string",
+      "sourcePlaceName": "string", /* MUST ALWAYS reference a 'feature' type node! */
+      "targetPlaceName": "string", /* MUST ALWAYS reference a 'feature' type node! */
       "data": {
-        "description"?: "string",
-        "type": "string",
-        "status": "string"
+        "description": "string", /* ${EDGE_DESCRIPTION_INSTRUCTION} */
+        "type": "string", /* ${EDGE_TYPE_LIST} */
+        "status": "string" /* ${EDGE_STATUS_LIST} */
       }
     }
   ]
-}
-Valid node statuses: ${NODE_STATUS_LIST}
-Valid node types: ${NODE_TYPE_LIST}
-Valid edge types: ${EDGE_TYPE_LIST}
-Valid edge statuses: ${EDGE_STATUS_LIST}`;
-
-  const systemInstr =
-    'Return AIMapUpdatePayload JSON building a single sequential chain of feature nodes for each edge listed. ' +
-    'For each parent, either select a logical existing feature child or propose a new temporary feature. ' +
-    'Edges must connect feature nodes only and link them in order from the feature under the original source parent to the feature under the original target parent. ' +
-    'Every new node MUST have a unique placeName. Use only the valid node/edge status and type values provided in the prompt.';
+}`;
 
   const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
 
@@ -661,8 +600,31 @@ Valid edge statuses: ${EDGE_STATUS_LIST}`;
       if (fenceMatch && fenceMatch[1]) {
         jsonStr = fenceMatch[1].trim();
       }
-      const result = JSON.parse(jsonStr) as AIMapUpdatePayload;
-      debugInfo.parsedPayload = result;
+      const parsed: unknown = JSON.parse(jsonStr);
+      let result: AIMapUpdatePayload | null = null;
+      if (Array.isArray(parsed)) {
+        result = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
+          if (entry && typeof entry === 'object') {
+            const maybeObj = entry as Partial<AIMapUpdatePayload>;
+            if (Array.isArray(maybeObj.nodesToAdd)) {
+              acc.nodesToAdd = [
+                ...(acc.nodesToAdd || []),
+                ...maybeObj.nodesToAdd,
+              ];
+            }
+            if (Array.isArray(maybeObj.edgesToAdd)) {
+              acc.edgesToAdd = [
+                ...(acc.edgesToAdd || []),
+                ...maybeObj.edgesToAdd,
+              ];
+            }
+          }
+          return acc;
+        }, {} as AIMapUpdatePayload);
+      } else if (parsed && typeof parsed === 'object') {
+        result = parsed as AIMapUpdatePayload;
+      }
+      debugInfo.parsedPayload = result as AIMapUpdatePayload;
       if (result && (result.nodesToAdd || result.edgesToAdd)) {
         return { payload: result, debugInfo };
       }

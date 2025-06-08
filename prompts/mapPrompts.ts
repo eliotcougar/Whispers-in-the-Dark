@@ -41,6 +41,8 @@ Respond ONLY with a JSON object adhering to the following structure:
       }
     }
   ],
+  "nodesToUpdate": [
+    {
       "placeName": "string", // Existing node's name to identify it.
       "newData": { // Fields to update. All fields are optional.
         "placeName"?: "string", // Optional. If provided, this will be the NEW name for the node.
