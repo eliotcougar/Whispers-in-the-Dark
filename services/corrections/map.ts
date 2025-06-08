@@ -594,7 +594,32 @@ Scene: "${context.sceneDescription}"
 Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
 Chains:
 ${chainBlocks}
-Respond ONLY with AIMapUpdatePayload JSON containing nodesToAdd and edgesToAdd.`;
+Return ONLY a JSON object strictly matching this structure:
+{
+  "nodesToAdd": [
+    {
+      "placeName": "string",
+      "data": {
+        "description": "string",
+        "aliases": ["string"],
+        "status": "string",
+        "nodeType": "feature",
+        "parentNodeId": "string"
+      }
+    }
+  ],
+  "edgesToAdd": [
+    {
+      "sourcePlaceName": "string",
+      "targetPlaceName": "string",
+      "data": {
+        "description"?: "string",
+        "type": "string",
+        "status": "string"
+      }
+    }
+  ]
+}`;
 
   const systemInstr =
     'Return AIMapUpdatePayload JSON suggesting existing or temporary feature nodes for each listed parent so that every chain connects its original source and target.';

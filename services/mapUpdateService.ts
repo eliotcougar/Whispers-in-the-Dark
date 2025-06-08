@@ -971,8 +971,9 @@ Key points:
       }
       if (chainResult.payload) {
         (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
-          const parent = nAdd.data.parentNodeId && nAdd.data.parentNodeId !== 'Universe'
-            ? findNodeByIdentifier(nAdd.data.parentNodeId) as MapNode | undefined
+          const nodeData = nAdd.data || { status: 'discovered', nodeType: 'feature', parentNodeId: 'Universe', description: '', aliases: [] };
+          const parent = nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
+            ? (findNodeByIdentifier(nodeData.parentNodeId) as MapNode | undefined)
             : undefined;
           const parentId = parent ? parent.id : undefined;
           const newId = generateUniqueId(`node_${nAdd.placeName.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}_`);
@@ -980,8 +981,8 @@ Key points:
             id: newId,
             themeName: currentTheme.name,
             placeName: nAdd.placeName,
-            position: parent ? { ...parent.position } : { x:0, y:0 },
-            data: { ...nAdd.data, parentNodeId: parentId }
+            position: parent ? { ...parent.position } : { x: 0, y: 0 },
+            data: { ...nodeData, parentNodeId: parentId }
           } as MapNode;
           newMapData.nodes.push(node);
           newlyAddedNodes.push(node);
