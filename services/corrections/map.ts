@@ -548,25 +548,27 @@ export const fetchConnectorChains_Service = async (
 
   const chainBlocks = requests
     .map((r, idx) => {
-      const pairsText = r.pairs
-        .map((pair, pIdx) => {
-          const featuresA = context.themeNodes
-            .filter(n => n.data.parentNodeId === pair.sourceParent.id && n.data.nodeType === 'feature')
-            .map(f => `    - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
-            .join('\n') || '    - None';
-          const featuresB = context.themeNodes
-            .filter(n => n.data.parentNodeId === pair.targetParent.id && n.data.nodeType === 'feature')
-            .map(f => `    - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
-            .join('\n') || '    - None';
-          return `  Pair ${pIdx + 1}:
-  Parent 1: "${pair.sourceParent.placeName}" (${pair.sourceParent.data.nodeType}, ${pair.sourceParent.data.status}, ${pair.sourceParent.data.description || 'No description'})
-${featuresA}
-  Parent 2: "${pair.targetParent.placeName}" (${pair.targetParent.data.nodeType}, ${pair.targetParent.data.status}, ${pair.targetParent.data.description || 'No description'})
-${featuresB}`;
+      const allParents: MapNode[] = [];
+      r.pairs.forEach(pair => {
+        if (!allParents.some(p => p.id === pair.sourceParent.id)) {
+          allParents.push(pair.sourceParent);
+        }
+        if (!allParents.some(p => p.id === pair.targetParent.id)) {
+          allParents.push(pair.targetParent);
+        }
+      });
+
+      const parentLines = allParents
+        .map((p, i) => {
+          const features = context.themeNodes
+            .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
+            .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
+            .join('\n') || ' - None';
+          return `Parent ${i + 1}: "${p.placeName}" (${p.data.nodeType}, ${p.data.status}, ${p.data.description || 'No description'})\n${features}`;
         })
         .join('\n');
-      return `Chain ${idx + 1}: Edge "${r.originalSource.placeName}" -> "${r.originalTarget.placeName}" (Type: ${r.edgeData.type || 'path'}, Status: ${r.edgeData.status || 'open'}, Desc: ${r.edgeData.description || 'None'})
-${pairsText}`;
+
+      return `Chain ${idx + 1}: original edge "${r.originalSource.placeName}" -> "${r.originalTarget.placeName}" (Type: ${r.edgeData.type || 'path'}, Status: ${r.edgeData.status || 'open'}, Desc: ${r.edgeData.description || 'None'})\n${parentLines}`;
     })
     .join('\n\n');
 
@@ -579,7 +581,8 @@ Chains:
 ${chainBlocks}
 Respond ONLY with AIMapUpdatePayload JSON containing nodesToAdd and edgesToAdd.`;
 
-  const systemInstr = 'Return AIMapUpdatePayload JSON suggesting existing or temporary feature nodes for each pair so that the chain connects the original source and target.';
+  const systemInstr =
+    'Return AIMapUpdatePayload JSON suggesting existing or temporary feature nodes for each listed parent so that every chain connects its original source and target.';
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const payload = await callCorrectionAI<AIMapUpdatePayload>(prompt, systemInstr);
