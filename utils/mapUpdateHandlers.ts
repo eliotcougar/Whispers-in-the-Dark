@@ -21,6 +21,7 @@ import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatc
 import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
 import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
 import { renameMapElements_Service, applyRenamePayload } from '../services/mapRenameService';
+import { existsNonRumoredPath } from './mapGraphUtils';
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
@@ -139,11 +140,11 @@ export const handleMapUpdates = async (
   }
   const nodesForRename = [
     ...upgradeResult.addedNodes,
-    ...(mapUpdateResult?.newlyAddedNodes ?? [])
+    ...(mapUpdateResult?.renameCandidateNodes ?? [])
   ];
   const edgesForRename = [
     ...upgradeResult.addedEdges,
-    ...(mapUpdateResult?.newlyAddedEdges ?? [])
+    ...(mapUpdateResult?.renameCandidateEdges ?? [])
   ];
   if (nodesForRename.length > 0 || edgesForRename.length > 0) {
     const renameResult = await renameMapElements_Service(
@@ -161,6 +162,13 @@ export const handleMapUpdates = async (
       draftState.lastDebugPacket.mapRenameDebugInfo = renameResult.debugInfo;
     }
   }
+
+  const newlyAddedEdgeIds = new Set(
+    [
+      ...upgradeResult.addedEdges,
+      ...(mapUpdateResult?.newlyAddedEdges ?? []),
+    ].map(e => e.id)
+  );
 
   const themeName = themeContextForResponse.name;
   const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as ValidNewCharacterPayload[];
@@ -218,9 +226,18 @@ export const handleMapUpdates = async (
     const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
     const edgesToRemoveIndices: number[] = [];
     draftState.mapData.edges.forEach((edge, index) => {
+      if (newlyAddedEdgeIds.has(edge.id)) return;
       if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {
         if (edge.data.status === 'rumored' || edge.data.status === 'removed') {
-          edgesToRemoveIndices.push(index);
+          const altExists = existsNonRumoredPath(
+            draftState.mapData,
+            edge.sourceNodeId,
+            edge.targetNodeId,
+            edge.id
+          );
+          if (altExists) {
+            edgesToRemoveIndices.push(index);
+          }
         }
       }
     });

@@ -14,7 +14,8 @@
   "dependencies": {
     "@google/genai": "^1.4.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "ts-prune": "^0.10.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",
