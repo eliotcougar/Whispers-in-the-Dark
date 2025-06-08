@@ -802,12 +802,34 @@ Key points:
       return cleaned || 'Hidden Way';
   };
 
+  const ensureUniqueConnectorName = (parent: MapNode, baseName: string): string => {
+      let candidate = baseName;
+      let counter = 2;
+      // avoid duplicates across the entire theme to prevent confusion when resolving by name
+      const lower = (n: string) => n.toLowerCase();
+      while (
+          newMapData.nodes.some(
+              n => n.themeName === parent.themeName && lower(n.placeName) === lower(candidate)
+          )
+      ) {
+          candidate = `${baseName} ${counter++}`;
+      }
+      return candidate;
+  };
+
   const addEdgeWithTracking = (
       a: MapNode,
       b: MapNode,
       data: MapEdgeData,
       markForRename = false
   ): MapEdge => {
+      const existing = (themeEdgesMap.get(a.id) || []).find(
+          e =>
+              ((e.sourceNodeId === a.id && e.targetNodeId === b.id) ||
+                  (e.sourceNodeId === b.id && e.targetNodeId === a.id)) &&
+              e.data.type === data.type
+      );
+      if (existing) return existing;
       const id = generateUniqueId(`edge_${a.id}_to_${b.id}_`);
       const edge: MapEdge = { id, sourceNodeId: a.id, targetNodeId: b.id, data };
       newMapData.edges.push(edge);
@@ -903,14 +925,15 @@ Key points:
       rawName: string,
       markForRename = true
   ): MapNode => {
-      const targetName = sanitizeConnectorName(rawName);
+      const baseName = sanitizeConnectorName(rawName);
       const existing = newMapData.nodes.find(n =>
           n.themeName === parent.themeName &&
           n.data.nodeType === 'feature' &&
           n.data.parentNodeId === parent.id &&
-          n.placeName.toLowerCase() === targetName.toLowerCase()
+          n.placeName.toLowerCase() === baseName.toLowerCase()
       );
       if (existing) return existing;
+      const targetName = ensureUniqueConnectorName(parent, baseName);
       const newNodeId = generateUniqueId(
         `node_${targetName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')}_`
       );
