@@ -533,31 +533,33 @@ export const fetchConnectorChains_Service = async (
 
   const prompt = `Suggest chains of locations (feature nodes) to connect distant map nodes in a text adventure.
 ** Context: **
-Scene: "${context.sceneDescription}"
+Scene Description: "${context.sceneDescription}"
 Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
 
 ---
 
 Chains:
 ${chainBlocks}
+`;
 
-Imagine a Player travelling from source to target. For each chain imagine a sequential chain of feature nodes connected with edges.
-If no good candidate feature node exists under a Parent, use nodesToAdd to add a contextually appropriate node.
-If such contextually appropriate node exists, do not add it again, and use the existing feature node in edgesToAdd directly.
-ALWAYS choose between selecting an existing feature node OR adding a new one. NEVER skip a Parent node in the chain.
-You can ONLY connect feature nodes with edges. Every new node MUST have a unique placeName.
+  const systemInstr = `Imagine a Player travelling from source to target. For each chain imagine a sequential chain of feature nodes connected with edges.
+CHOOSE ONE for each Parent node in each chain:
+- IF there is a contextually appropriate feature node under a Parent, DO NOT add it again, and use the existing feature node directly in edgesToAdd directly.
+- IF there is 'None', or no appropriate candidate feature node exists under a Parent, ALWAYS use nodesToAdd to add a contextually appropriate node with full information of your choice.
+
+ALWAYS choose between selecting an existing feature node OR adding a new one. NEVER leave a Parent node in the chain without a feature node, connected to neighbor Parent nodes' feature nodes.
+You can ONLY connect feature nodes with edges.
 New edges MUST inherit the original chain edge type and status.
+Every new node MUST have a unique placeName. Use only the valid node/edge status and type values.
+Edges MUST connect ALL feature nodes under ALL Parents in a single chain from the feature under the source parent to the feature under the target parent.
 
-${MAP_NODE_TYPE_GUIDE}
-${MAP_EDGE_TYPE_GUIDE}`;
-
-  const systemInstr =
-    'Return a JSON representing a single sequential chain of feature nodes and edges for each requested chain. ' +
-    `Return ONLY a JSON object strictly matching this structure:
+${MAP_EDGE_TYPE_GUIDE}
+    Return a JSON representing a single sequential chain of feature nodes and edges for each requested chain. 
+    Return ONLY a JSON object strictly matching this structure:
 {
   "nodesToAdd": [
     {
-      "placeName": "string",
+      "placeName": "string", /* A contextually relevant location name, based on Theme and Scene Description
       "data": {
         "description": "string", /* ${NODE_DESCRIPTION_INSTRUCTION} */
         "aliases": ["string"], /* ${ALIAS_INSTRUCTION} */
@@ -569,8 +571,8 @@ ${MAP_EDGE_TYPE_GUIDE}`;
   ],
   "edgesToAdd": [
     {
-      "sourcePlaceName": "string", /* MUST reference a 'feature' type node! */
-      "targetPlaceName": "string", /* MUST reference a 'feature' type node! */
+      "sourcePlaceName": "string", /* MUST ALWAYS reference a 'feature' type node! */
+      "targetPlaceName": "string", /* MUST ALWAYS reference a 'feature' type node! */
       "data": {
         "description": "string", /* ${EDGE_DESCRIPTION_INSTRUCTION} */
         "type": "string", /* ${EDGE_TYPE_LIST} */
@@ -578,10 +580,7 @@ ${MAP_EDGE_TYPE_GUIDE}`;
       }
     }
   ]
-}` +
-    'For each parent, either select a logical existing feature child or use nodesToAdd to propose a new feature child. ' +
-    'Edges MUST connect feature nodes under Parents in each chain only and link them with edges in order from the feature under the original source parent to the feature under the original target parent. ' +
-    'Every new node MUST have a unique placeName. Use only the valid node/edge status and type values provided in the prompt.';
+}`;
 
   const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
 
