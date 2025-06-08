@@ -135,8 +135,10 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
 
-  const isSmallNodeType = (type: string | undefined) =>
+  const isSmallFontType = (type: string | undefined) =>
     type === 'feature' || type === 'room' || type === 'interior';
+
+  const hasCenteredLabel = (type: string | undefined) => type === 'feature';
 
 
 
@@ -170,11 +172,11 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
     const isParent = (n: MapNode) => childrenMap.has(n.id);
 
-    const fontSizeFor = (n: MapNode) => (isSmallNodeType(n.data.nodeType) ? 7 : 12);
+    const fontSizeFor = (n: MapNode) => (isSmallFontType(n.data.nodeType) ? 7 : 12);
     const linesCache: Record<string, string[]> = {};
     const getLines = (n: MapNode): string[] => {
       if (linesCache[n.id]) return linesCache[n.id];
-      const maxChars = isSmallNodeType(n.data.nodeType) || !isParent(n) ? 20 : 25;
+      const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
       linesCache[n.id] = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
       return linesCache[n.id];
     };
@@ -409,17 +411,17 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
           {sortedNodes.map(node => {
             const maxCharsPerLine =
-              isSmallNodeType(node.data.nodeType) ? 20 : 25;
+              isSmallFontType(node.data.nodeType) ? 20 : 25;
             const labelLines = splitTextIntoLines(
               node.placeName,
               maxCharsPerLine,
               MAX_LABEL_LINES
             );
             const radius = getRadiusForNode(node);
-            const fontSize = isSmallNodeType(node.data.nodeType) ? 7 : 12;
+            const fontSize = isSmallFontType(node.data.nodeType) ? 7 : 12;
             const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] || 0);
             const initialDyOffset =
-              isSmallNodeType(node.data.nodeType)
+              hasCenteredLabel(node.data.nodeType)
                 ? -(labelLines.length - 1) * 0.5 * DEFAULT_LABEL_LINE_HEIGHT_EM + 0.3
                 : baseOffsetPx / fontSize;
 
@@ -427,7 +429,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
               <text
                 key={`label-${node.id}`}
                 className={`map-node-label${
-                  isSmallNodeType(node.data.nodeType)
+                  isSmallFontType(node.data.nodeType)
                     ? node.data.nodeType === 'feature'
                       ? ' feature-label'
                       : node.data.nodeType === 'room'
