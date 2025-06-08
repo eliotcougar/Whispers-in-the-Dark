@@ -172,16 +172,6 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
             ) : (
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>
             )}
-             {debugPacket?.mapPruningDebugInfo && (
-                <>
-                  <h3 className="text-lg font-semibold text-sky-400 mt-3 mb-1">Map Pruning/Refinement Details</h3>
-                  {renderContent("Map Pruning - Chains to Refine Count", debugPacket.mapPruningDebugInfo.pruningDebugInfo?.chainsToRefineCount, false)}
-                  {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.prompt && renderContent("Map Pruning - Refinement AI Prompt", debugPacket.mapPruningDebugInfo.refinementDebugInfo.prompt, false)}
-                  {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.rawResponse && renderContent("Map Pruning - Refinement AI Raw Response", debugPacket.mapPruningDebugInfo.refinementDebugInfo.rawResponse, false)}
-                  {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.parsedPayload && renderContent("Map Pruning - Refinement Parsed Payload", debugPacket.mapPruningDebugInfo.refinementDebugInfo.parsedPayload)}
-              {debugPacket.mapPruningDebugInfo.refinementDebugInfo?.validationError && renderContent("Map Pruning - Refinement Validation Error", debugPacket.mapPruningDebugInfo.refinementDebugInfo.validationError, false)}
-            </>
-          )}
             {debugPacket?.mapRenameDebugInfo && (
               <>
                 <h3 className="text-lg font-semibold text-sky-400 mt-3 mb-1">Map Rename Details</h3>

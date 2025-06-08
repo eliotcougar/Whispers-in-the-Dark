@@ -63,7 +63,6 @@ This layer abstracts external interactions and complex data processing.
         *   Receives narrative context and current `MapData`.
         *   Prompts an auxiliary AI (using `MAP_UPDATE_SYSTEM_INSTRUCTION`) to get an `AIMapUpdatePayload`.
         *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
-    *   `services/mapCorrectionService.ts`: Prunes and refines map connection chains using AI after updates.
     *   `services/mapRenameService.ts`: Assigns thematic names and descriptions to new map nodes and edges.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
@@ -75,7 +74,6 @@ This layer abstracts external interactions and complex data processing.
 *   **Utility Functions:**
     *   `utils/promptFormatters.ts`: Now formats `MapNode[]` instead of `Place[]` for AI prompts regarding locations.
     *   `utils/mapNodeMatcher.ts`: `selectBestMatchingMapNode` now operates on `MapNode[]`.
-    *   `utils/mapPruningUtils.ts`: Introduces temporary feature nodes to restructure problematic main node connections before refinement.
     *   `utils/mapHierarchyUpgradeUtils.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.
     *   `utils/mapLayoutUtils.ts`: Performs nested circle and force-directed layout for map visualization.
 
@@ -117,7 +115,6 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   If `mapUpdated` is true or `localPlace` significantly changes, calls `mapUpdateService`.
     *   Receives `AIMapUpdatePayload` from `mapUpdateService`.
     *   Updates `FullGameState.mapData` based on this payload.
-    *   Refines problematic connection chains via `mapCorrectionService` which prunes temporary leaves and applies AI suggestions.
     *   If a new *main* `MapNode` is added by `mapUpdateService` and lacks full description/aliases (as per `MAP_UPDATE_SYSTEM_INSTRUCTION`), `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to populate them.
 *   **`mapUpdateService`**:
     *   Takes narrative context, current `MapData`, and known main place names for the theme.
