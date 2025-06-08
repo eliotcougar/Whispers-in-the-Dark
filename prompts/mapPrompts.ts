@@ -24,10 +24,8 @@ const VALID_NODE_TYPES_FOR_MAP_AI = formatValues(VALID_NODE_TYPE_VALUES);
 
 export const MAP_UPDATE_SYSTEM_INSTRUCTION = `
 You are an AI assistant specializing in updating a game map based on narrative events.
-${MAP_NODE_TYPE_GUIDE}
-${MAP_EDGE_TYPE_GUIDE}
 Your task is to analyze the provided game context and determine what changes should be made to the map data.
-Respond ONLY with a JSON object adhering to the following structure:
+Respond ONLY with a single JSON object adhering to the following structure:
 {
   "nodesToAdd": [
     {
@@ -79,6 +77,9 @@ Respond ONLY with a JSON object adhering to the following structure:
   "suggestedCurrentMapNodeId"?: "string" /* Optional: If map updates together with the context imply a new player location, provide its ID or placeName. */
 }
 
+${MAP_NODE_TYPE_GUIDE}
+${MAP_EDGE_TYPE_GUIDE}
+
 CRITICAL INSTRUCTIONS:
 - DO NOT add small items and characters to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Features represent sub-spaces within larger spaces.
 - Node Data for "nodesToAdd":
@@ -96,85 +97,9 @@ CRITICAL INSTRUCTIONS:
 - You MUST use one of the EXACT string values provided for 'status' (node/edge) or 'type' (edge) fields.
 - Edges may only connect feature nodes that share the same parent, whose parents share a common grandparent, or where one feature's parent is the grandparent of the other (child–grandchild connections).
   - Edges of type 'shortcut' are exempt from these hierarchy restrictions but still must connect feature nodes.
-  - When you introduce connector features to satisfy hierarchy rules, give them the same status as their parent node. Any edges created to replace a prior connection should keep that connection's status unless explicitly updated.
-- If the narrative suggests a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "data" via "nodesToUpdate", rather than adding a new node.
+  - When you add intermediate feature nodes to satisfy hierarchy rules, ALWAYS assign to them the same status as their parent node. Any edges created to replace a prior connection should keep that connection's status unless explicitly updated.
+- If the narrative suggests that a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "details" via "nodesToUpdate", rather than adding a new node.
 - When renaming a node using "nodesToUpdate", omit any matching entry in "nodesToRemove" for that node.
+- Feature Nodes can have any number of edges.
+- IMPORTANT: Only delete Nodes that are no longer relevant to the game world. Only delete edges when the Scene description talks about total destruction of the path.
 `;
-
-export const MAP_CHAIN_CORRECTION_SYSTEM_INSTRUCTION = `
-You are an AI assistant specializing in refining map structures in a text adventure game.
-${MAP_NODE_TYPE_GUIDE}
-${MAP_EDGE_TYPE_GUIDE}
-Specifically, you will be given one or more "chains" of nodes: (MainNodeA - FeatureA - FeatureB - MainNodeB).
-FeatureA and FeatureB were temporarily created and need proper names, descriptions, and aliases.
-The edge connecting FeatureA and FeatureB also needs its type, status, and description refined.
-
-Respond ONLY with a single JSON object adhering to the AIMapUpdatePayload structure:
-{
-  "nodesToUpdate": [
-    {
-      "placeName": "CURRENT_TEMP_FeatureA_Name", // This MUST be the temporary name of FeatureA from the prompt.
-      "newData": {
-        "placeName": "NEW_THEMATIC_FeatureA_Name", // Your suggested new, thematic name for FeatureA.
-        "description": "string", // REQUIRED: ${NODE_DESCRIPTION_INSTRUCTION} for FeatureA.
-        "aliases": ["string"],   // REQUIRED array of aliases for FeatureA (${ALIAS_INSTRUCTION}).
-        "status": "string"       // REQUIRED valid node status (e.g., 'discovered').
-      }
-    },
-    {
-      "placeName": "CURRENT_TEMP_FeatureB_Name", // This MUST be the temporary name of FeatureB from the prompt.
-      "newData": {
-        "placeName": "NEW_THEMATIC_FeatureB_Name", // Your suggested new, thematic name for FeatureB.
-        "description": "string", // REQUIRED: ${NODE_DESCRIPTION_INSTRUCTION} for FeatureB.
-        "aliases": ["string"],   // REQUIRED array of aliases for FeatureB (${ALIAS_INSTRUCTION}).
-        "status": "string"       // REQUIRED valid node status (e.g., 'discovered').
-      }
-    }
-    // ... one entry for each feature node in EACH chain provided ...
-  ],
-  "edgesToUpdate": [ // Or "edgesToAdd" if you deem it more appropriate to create a new edge instead of updating.
-    {
-      "sourcePlaceName": "NEW_THEMATIC_FeatureA_Name", // The NEW name you just assigned to FeatureA.
-      "targetPlaceName": "NEW_THEMATIC_FeatureB_Name", // The NEW name you just assigned to FeatureB.
-      "newData": { // For "edgesToUpdate"
-        "type": "string",        // REQUIRED valid edge type (e.g., 'path', 'door').
-        "status": "string",      // REQUIRED valid edge status (e.g., 'open', 'locked').
-        "description"?: "string" // Optional: ${EDGE_DESCRIPTION_INSTRUCTION}.
-      }
-      // OR "data" field if using "edgesToAdd" with the same required fields.
-    }
-    // ... one entry for the edge connecting the two FEATURES in EACH chain provided ...
-  ]
-  // "nodesToAdd", "nodesToRemove", "edgesToRemove", "suggestedCurrentMapNodeId" are NOT expected for this task.
-}
-
-CRITICAL INSTRUCTIONS:
-- For EACH chain provided in the prompt:
-    1.  Identify FeatureA and FeatureB using their current temporary 'placeName' as specified in the prompt (e.g., "TempFeature_XYZ_A").
-    2.  In your 'nodesToUpdate' array, create one entry for FeatureA and one for FeatureB.
-        -   The outer 'placeName' for these entries MUST be the CURRENT temporary name of the feature.
-        -   Inside 'newData', provide a NEW thematic 'placeName', a 'description', 'aliases', and 'status'. All are required.
-    3.  In your 'edgesToUpdate' (or 'edgesToAdd') array, create one entry for the edge connecting these two features.
-        -   'sourcePlaceName' and 'targetPlaceName' MUST be the NEW thematic names you assigned to FeatureA and FeatureB in step 2.
-        -   Inside 'newData' (or 'data' if 'edgesToAdd'), provide 'type', 'status', and optionally 'description'. All are required except optional description.
-- Ensure all provided string values for 'status' (node/edge) and 'type' (edge) are from the valid lists:
-  - Node Statuses: ${VALID_NODE_STATUSES_FOR_MAP_AI}
-  - Edge Types: ${VALID_EDGE_TYPES_FOR_MAP_AI}
-  - Edge Statuses: ${VALID_EDGE_STATUSES_FOR_MAP_AI}
-- Base your refinements on the context of MainNodeA, MainNodeB, the feature suggestions, the edge details, and the overall game context.
-- The goal is to make these temporary connections feel like natural, integrated parts of the map.
-`;
-
-export const MAP_HIERARCHY_SYSTEM_INSTRUCTION = `
-You are an AI assistant generating hierarchical map nodes for a text adventure game.
-${MAP_NODE_TYPE_GUIDE}
-Given context about the player's current location and theme, return a JSON array describing
-locations from the broadest region down to the player's specific position.
-Each entry should have:
-  "placeName": string,
-  "description": string,
-  "aliases": ["string"],
-  "nodeType": ${VALID_NODE_TYPES_FOR_MAP_AI},
-  "status": ${VALID_NODE_STATUSES_FOR_MAP_AI},
-  "parentPlaceName"?: string|null
-The first entry must have parentPlaceName null. Respond ONLY with the JSON array.`;
