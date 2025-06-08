@@ -163,8 +163,6 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       });
   }, [nodes, layoutIdealEdgeLength]);
 
-  /** IDs of nodes that act as parents. */
-  const hostNodeIdSet = useMemo(() => new Set(regionCircles.map(rc => rc.node.id)), [regionCircles]);
 
   /**
    * Calculate extra vertical offset for child labels when they overlap with
@@ -446,9 +444,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           })}
 
           {sortedNodes.map(node => {
-            const isHost = hostNodeIdSet.has(node.id);
             const maxCharsPerLine =
-              node.data.nodeType === 'feature' || !isHost ? 20 : 25;
+              node.data.nodeType === 'feature' ? 20 : 25;
             const labelLines = splitTextIntoLines(
               node.placeName,
               maxCharsPerLine,
@@ -458,7 +455,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             const fontSize = node.data.nodeType === 'feature' ? 7 : 12;
             const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] || 0);
             const initialDyOffset =
-              node.data.nodeType === 'feature' || !isHost
+              node.data.nodeType === 'feature'
                 ? -(labelLines.length - 1) * 0.5 * DEFAULT_LABEL_LINE_HEIGHT_EM + 0.3
                 : baseOffsetPx / fontSize;
 
@@ -466,7 +463,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
               <text
                 key={`label-${node.id}`}
                 className={`map-node-label${
-                  node.data.nodeType === 'feature' || !isHost ? ' feature-label' : ''
+                  node.data.nodeType === 'feature' ? ' feature-label' : ''
                 }`}
                 transform={`translate(${node.position.x}, ${node.position.y})`}
                 pointerEvents="visible"
