@@ -124,8 +124,3 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
   }
 };
 
-/** Clears any saved game data from localStorage. */
-export const clearGameStateFromLocalStorage = (): void => {
-  try { localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY); }
-  catch (error) { console.error('Error clearing game state from localStorage:', error); }
-};

@@ -442,21 +442,6 @@ export type SavedGameDataShape = Pick<
 export type GameStateStack = [FullGameState, FullGameState?];
 
 
-export interface ProcessedGameContext {
-  inventory: Item[];
-  mainQuest: string | null;
-  currentObjective: string | null;
-  mapData: MapData; // Main map nodes of the current theme will be used for place context
-  currentThemeName: string | null; 
-  currentThemeObject: AdventureTheme | null; // Added
-  allCharacters: Character[];
-  localTime: string | null;
-  localEnvironment: string | null;
-  localPlace: string | null;
-  sceneDescription: string; 
-  actionOptions: string[];    
-  // allPlaces removed
-}
 
 // Payload for a validated character update, used in parsing
 export type ValidCharacterUpdatePayload = {
