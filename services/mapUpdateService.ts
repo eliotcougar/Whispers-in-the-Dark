@@ -818,10 +818,10 @@ Key points:
       nodeB: MapNode,
       edgeType?: MapEdgeData['type']
   ): boolean => {
-      if (edgeType === 'shortcut') return true;
       if (nodeA.data.nodeType !== 'feature' || nodeB.data.nodeType !== 'feature') {
           return false;
       }
+      if (edgeType === 'shortcut') return true;
 
       const parentAId = nodeA.data.parentNodeId ?? 'Universe';
       const parentBId = nodeB.data.parentNodeId ?? 'Universe';
