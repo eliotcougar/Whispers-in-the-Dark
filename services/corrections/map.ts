@@ -502,34 +502,55 @@ export const fetchConnectorChains_Service = async (
 
   const formatValues = (arr: readonly string[]) => `[${arr.map(v => `'${v}'`).join(', ')}]`;
   const NODE_STATUS_LIST = formatValues(VALID_NODE_STATUS_VALUES);
-  const NODE_TYPE_LIST = formatValues(VALID_NODE_TYPE_VALUES);
   const EDGE_TYPE_LIST = formatValues(VALID_EDGE_TYPE_VALUES);
   const EDGE_STATUS_LIST = formatValues(VALID_EDGE_STATUS_VALUES);
 
-  const chainBlocks = requests
-    .map((r, idx) => {
+  const buildGraph = () => {
+    const nodeMap = new Map<string, MapNode>();
+    const edgeMap = new Map<string, { source: MapNode; target: MapNode; data: MapEdgeData }>();
+    const chainLines: string[] = [];
+
+    requests.forEach((r, idx) => {
       const visited = new Set<string>();
       const orderedParents: MapNode[] = [];
       [...r.sourceChain, ...r.targetChain.slice().reverse()].forEach(p => {
         if (p.data.nodeType !== 'feature' && !visited.has(p.id)) {
           orderedParents.push(p);
           visited.add(p.id);
+          nodeMap.set(p.id, p);
         }
       });
 
-      const parentLines = orderedParents
-        .map((p, i) => {
-          const features = context.themeNodes
-            .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
-            .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
-            .join('\n') || ' - None';
-          return `Parent ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description || 'No description'})\n${features}`;
-        })
-        .join('\n');
+      for (let i = 0; i < orderedParents.length - 1; i++) {
+        const a = orderedParents[i];
+        const b = orderedParents[i + 1];
+        const key = a.id < b.id ? `${a.id}|${b.id}` : `${b.id}|${a.id}`;
+        if (!edgeMap.has(key)) edgeMap.set(key, { source: a, target: b, data: r.edgeData });
+      }
 
-      return `Chain ${idx + 1}: original edge "${r.originalSource.placeName}" -> "${r.originalTarget.placeName}" (Type: ${r.edgeData.type || 'path'}, Status: ${r.edgeData.status || 'open'}, Desc: ${r.edgeData.description || 'None'})\n${parentLines}`;
-    })
-    .join('\n\n');
+      chainLines.push(`Chain ${idx + 1}: ${orderedParents.map(p => `"${p.placeName}"`).join(' -> ')}`);
+    });
+
+    const nodeLines = Array.from(nodeMap.values())
+      .map((p, i) => {
+        const features = context.themeNodes
+          .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
+          .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
+          .join('\n') || ' - None';
+        return `Node ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description || 'No description'})\n${features}`;
+      })
+      .join('\n');
+
+    const edgeLines = Array.from(edgeMap.values())
+      .map((e, i) => {
+        return `Edge ${i + 1}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${e.data.type || 'path'}, Status: ${e.data.status || 'open'}, Desc: ${e.data.description || 'None'})`;
+      })
+      .join('\n');
+
+    return `Nodes:\n${nodeLines}\n\nEdges:\n${edgeLines}\n\nChains:\n${chainLines.join('\n')}`;
+  };
+
+  const graphBlock = buildGraph();
 
   const prompt = `Suggest chains of locations (feature nodes) to connect distant map nodes in a text adventure.
 ** Context: **
@@ -538,23 +559,23 @@ Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionM
 
 ---
 
-Chains:
-${chainBlocks}
+Graph:
+${graphBlock}
 `;
 
-  const systemInstr = `Imagine a Player travelling from source to target. For each chain imagine a sequential chain of feature nodes connected with edges.
-CHOOSE ONE for each Parent node in each chain:
-- IF there is a contextually appropriate feature node under a Parent, DO NOT add it again, and use the existing feature node directly in edgesToAdd directly.
-- IF there is 'None', or no appropriate candidate feature node exists under a Parent, ALWAYS use nodesToAdd to add a contextually appropriate node with full information of your choice.
+  const systemInstr = `Imagine a Player travelling along the provided graph edges. For each node in the graph imagine a feature node used to connect to its neighbours.
+CHOOSE ONE for each node:
+- IF there is a contextually appropriate feature node under that node, DO NOT add it again, and use the existing feature node directly in edgesToAdd.
+- IF there is 'None', or no appropriate candidate feature node exists under that node, ALWAYS use nodesToAdd to add a contextually appropriate node with full information of your choice.
 
-ALWAYS choose between selecting an existing feature node OR adding a new one. NEVER leave a Parent node in the chain without a feature node, connected to neighbor Parent nodes' feature nodes.
+ALWAYS choose between selecting an existing feature node OR adding a new one. NEVER leave a graph node without a feature node, connected to neighbour graph nodes' feature nodes.
 You can ONLY connect feature nodes with edges.
 New edges MUST inherit the original chain edge type and status.
 Every new node MUST have a unique placeName. Use only the valid node/edge status and type values.
-Edges MUST connect ALL feature nodes under ALL Parents in a single chain from the feature under the source parent to the feature under the target parent.
+Edges MUST connect ALL feature nodes along each chain path using the shared feature nodes for common Parents.
 
 ${MAP_EDGE_TYPE_GUIDE}
-    Return a JSON representing a single sequential chain of feature nodes and edges for each requested chain. 
+    Return a JSON representing a single sequential chain of feature nodes and edges for each requested chain.
     Return ONLY a JSON object strictly matching this structure:
 {
   "nodesToAdd": [
