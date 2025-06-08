@@ -591,7 +591,7 @@ export const fetchConnectorChains_Service = async (
             .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
             .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
             .join('\n') || ' - None';
-          return `Parent ${i + 1}: "${p.placeName}" (${p.data.nodeType}, ${p.data.status}, ${p.data.description || 'No description'})\n${features}`;
+          return `Parent ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description || 'No description'})\n${features}`;
         })
         .join('\n');
 
@@ -599,14 +599,29 @@ export const fetchConnectorChains_Service = async (
     })
     .join('\n\n');
 
-  const prompt = `Suggest feature chains to connect map edges in a text adventure.
-${MAP_NODE_TYPE_GUIDE}
-${MAP_EDGE_TYPE_GUIDE}
+  const prompt = `Suggest chains of locations (feature nodes) to connect distant map nodes in a text adventure.
+** Context: **
 Scene: "${context.sceneDescription}"
 Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
+
+---
+
 Chains:
 ${chainBlocks}
-Return ONLY a JSON object strictly matching this structure:
+
+Imagine a Player travelling from source to target. For each chain imagine a sequential chain of feature nodes connected with edges.
+If no good candidate feature node exists under a Parent, use nodesToAdd to add a contextually appropriate node.
+If such contextually appropriate node exists, do not add it again, and use the existing feature node in edgesToAdd directly.
+ALWAYS choose between selecting an existing feature node OR adding a new one. NEVER skip a Parent node in the chain.
+You can ONLY connect feature nodes with edges. Every new node MUST have a unique placeName.
+New edges MUST inherit the original chain edge type and status.
+
+${MAP_NODE_TYPE_GUIDE}
+${MAP_EDGE_TYPE_GUIDE}`;
+
+  const systemInstr =
+    'Return a JSON representing a single sequential chain of feature nodes and edges for each requested chain. ' +
+    `Return ONLY a JSON object strictly matching this structure:
 {
   "nodesToAdd": [
     {
@@ -614,8 +629,8 @@ Return ONLY a JSON object strictly matching this structure:
       "data": {
         "description": "string",
         "aliases": ["string"],
-        "status": "string",
-        "nodeType": "feature",
+        "status": "string", /* ${NODE_STATUS_LIST} */
+        "nodeType": "feature", /* ${NODE_TYPE_LIST} */
         "parentNodeId": "string"
       }
     }
@@ -626,21 +641,14 @@ Return ONLY a JSON object strictly matching this structure:
       "targetPlaceName": "string",
       "data": {
         "description"?: "string",
-        "type": "string",
-        "status": "string"
+        "type": "string", /* ${EDGE_TYPE_LIST} */
+        "status": "string" /* ${EDGE_STATUS_LIST} */
       }
     }
   ]
-}
-Valid node statuses: ${NODE_STATUS_LIST}
-Valid node types: ${NODE_TYPE_LIST}
-Valid edge types: ${EDGE_TYPE_LIST}
-Valid edge statuses: ${EDGE_STATUS_LIST}`;
-
-  const systemInstr =
-    'Return AIMapUpdatePayload JSON building a single sequential chain of feature nodes for each edge listed. ' +
-    'For each parent, either select a logical existing feature child or propose a new temporary feature. ' +
-    'Edges must connect feature nodes only and link them in order from the feature under the original source parent to the feature under the original target parent. ' +
+}` +
+    'For each parent, either select a logical existing feature child or use nodesToAdd to propose a new feature child. ' +
+    'Edges MUST connect feature nodes under Parents in each chain only and link them with edges in order from the feature under the original source parent to the feature under the original target parent. ' +
     'Every new node MUST have a unique placeName. Use only the valid node/edge status and type values provided in the prompt.';
 
   const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
