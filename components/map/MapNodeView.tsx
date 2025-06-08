@@ -65,7 +65,7 @@ const getRadiusForNode = (node: MapNode): number => {
     case 'feature':
       return NODE_RADIUS * 0.6;
     default:
-      return NODE_RADIUS;
+      return NODE_RADIUS * 0.6;
   }
 };
 
