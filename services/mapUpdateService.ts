@@ -994,7 +994,18 @@ Key points:
           const src = findNodeByIdentifier(eAdd.sourcePlaceName) as MapNode | undefined;
           const tgt = findNodeByIdentifier(eAdd.targetPlaceName) as MapNode | undefined;
           if (src && tgt) {
-            addEdgeWithTracking(src, tgt, eAdd.data || { type: 'path', status: 'open' }, true);
+            if (isEdgeConnectionAllowed(src, tgt, eAdd.data?.type)) {
+              addEdgeWithTracking(
+                src,
+                tgt,
+                eAdd.data || { type: 'path', status: 'open' },
+                true,
+              );
+            } else {
+              console.warn(
+                `Connector chain edge between "${src.placeName}" and "${tgt.placeName}" violates hierarchy rules. Skipping.`,
+              );
+            }
           }
         });
       }
