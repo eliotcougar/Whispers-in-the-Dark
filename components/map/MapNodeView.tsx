@@ -460,7 +460,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
         <div className="map-tooltip" style={{ top: tooltip.y, left: tooltip.x }}>
           {tooltip.content.split('\n').map((line, index) => (
             <React.Fragment key={index}>
-              {line}
+              {index === 0 ? <strong>{line}</strong> : line}
               {index < tooltip.content.split('\n').length - 1 && <br />}
             </React.Fragment>
           ))}
