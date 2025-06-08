@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useRef, useMemo } from 'react';
 import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types'; 
-import { highlightEntitiesInText, HighlightableEntity } from '../utils/highlightHelper';
+import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
 interface DialogueDisplayProps {
   isVisible: boolean;
@@ -65,35 +65,10 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
     }
   }, [isLoading, isDialogueExiting, options.length, isVisible, history.length]);
 
-  const entitiesForHighlighting = useMemo((): HighlightableEntity[] => {
-    const items: HighlightableEntity[] = inventory.map(item => ({ 
-      name: item.name, 
-      type: 'item',
-      description: item.isActive && item.activeDescription ? item.activeDescription : item.description,
-    }));
-    
-    // Derive places from mapData (main nodes)
-    const places: HighlightableEntity[] = currentThemeName
-      ? mapData
-          .filter(node => node.themeName === currentThemeName)
-          .map(node => ({
-            name: node.placeName,
-            type: 'place',
-            description: node.data.description || 'A location of interest.',
-            aliases: node.data.aliases || []
-          }))
-      : [];
-
-    const Chars: HighlightableEntity[] = currentThemeName
-      ? allCharacters.filter(c => c.themeName === currentThemeName).map(c => ({ 
-          name: c.name, 
-          type: 'character',
-          description: c.description,
-          aliases: c.aliases 
-        }))
-      : [];
-    return [...items, ...places, ...Chars];
-  }, [inventory, mapData, allCharacters, currentThemeName]);
+  const entitiesForHighlighting = useMemo(
+    () => buildHighlightableEntities(inventory, mapData, allCharacters, currentThemeName),
+    [inventory, mapData, allCharacters, currentThemeName]
+  );
 
 
   if (!isVisible) return null;

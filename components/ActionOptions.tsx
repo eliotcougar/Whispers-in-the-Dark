@@ -7,7 +7,7 @@
 
 import React, { useMemo } from 'react';
 import { Item, Character, MapNode } from '../types'; 
-import { highlightEntitiesInText, HighlightableEntity } from '../utils/highlightHelper';
+import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
 interface ActionOptionsProps {
   options: string[];
@@ -33,35 +33,10 @@ const ActionOptions: React.FC<ActionOptionsProps> = ({
   currentThemeName 
 }) => {
 
-  const entitiesForHighlighting = useMemo((): HighlightableEntity[] => {
-    const items: HighlightableEntity[] = inventory.map(item => ({ 
-      name: item.name, 
-      type: 'item',
-      description: item.isActive && item.activeDescription ? item.activeDescription : item.description,
-    }));
-
-    // Derive places from mapData (main nodes)
-    const places: HighlightableEntity[] = currentThemeName
-      ? mapData
-          .filter(node => node.themeName === currentThemeName)
-          .map(node => ({
-            name: node.placeName,
-            type: 'place',
-            description: node.data.description || 'A location of interest.',
-            aliases: node.data.aliases || []
-          }))
-      : [];
-      
-    const characters: HighlightableEntity[] = currentThemeName
-      ? allCharacters.filter(c => c.themeName === currentThemeName).map(c => ({ 
-          name: c.name, 
-          type: 'character',
-          description: c.description,
-          aliases: c.aliases
-        }))
-      : [];
-    return [...items, ...places, ...characters];
-  }, [inventory, mapData, allCharacters, currentThemeName]);
+  const entitiesForHighlighting = useMemo(
+    () => buildHighlightableEntities(inventory, mapData, allCharacters, currentThemeName),
+    [inventory, mapData, allCharacters, currentThemeName]
+  );
 
 
   return (
