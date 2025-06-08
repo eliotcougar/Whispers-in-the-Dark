@@ -547,7 +547,7 @@ export const fetchConnectorChains_Service = async (
       })
       .join('\n');
 
-    return `Nodes:\n${nodeLines}\n\nEdges:\n${edgeLines}\n\nChains:\n${chainLines.join('\n')}`;
+    return `Parent Nodes:\n${nodeLines}\n\nEdges:\n${edgeLines}\n\nChains:\n${chainLines.join('\n')}`;
   };
 
   const graphBlock = buildGraph();
@@ -563,20 +563,20 @@ Graph:
 ${graphBlock}
 `;
 
-  const systemInstr = `Imagine a Player travelling along the provided graph edges. For each node in the graph imagine a feature node used to connect to its neighbours.
-CHOOSE ONE for each node:
-- IF there is a contextually appropriate feature node under that node, DO NOT add it again, and use the existing feature node directly in edgesToAdd.
-- IF there is 'None', or no appropriate candidate feature node exists under that node, ALWAYS use nodesToAdd to add a contextually appropriate node with full information of your choice.
+  const systemInstr = `Imagine a Player travelling along the provided chains. For each Parent Node in the graph imagine locations within them that may connect them to their neighbours.
+CHOOSE ONE for each Parent Node:
+- IF there is a contextually appropriate feature node already present under that Parent Node, use it directly in edgesToAdd.
+- IF there is 'None', or no appropriate candidate feature node exists under that Parent Node, you MUST use nodesToAdd to add a contextually appropriate feature node with full information, based on Context.
 
-ALWAYS choose between selecting an existing feature node OR adding a new one. NEVER leave a graph node without a feature node, connected to neighbour graph nodes' feature nodes.
-You can ONLY connect feature nodes with edges.
+ALWAYS choose between selecting an existing feature node OR adding a new one. NEVER leave a Parent Node without a feature node connected to neighbour Parent Nodes' feature nodes.
+You can add edges ONLY between feature nodes. NEVER try to connect feature nodes to Parent Nodes directly. NEVER try to connect Parent Nodes to each other.
 New edges MUST inherit the original chain edge type and status.
 Every new node MUST have a unique placeName. Use only the valid node/edge status and type values.
-Edges MUST connect ALL feature nodes along each chain path using the shared feature nodes for common Parents.
+Edges MUST connect ALL feature nodes along each chain path using the shared feature nodes for common Parent Nodes.
 
 ${MAP_EDGE_TYPE_GUIDE}
-    Return a JSON representing a single sequential chain of feature nodes and edges for each requested chain.
-    Return ONLY a JSON object strictly matching this structure:
+Return a single JSON object representing a single set of feature nodes and edges between them.
+Return ONLY a JSON object strictly matching this structure:
 {
   "nodesToAdd": [
     {
@@ -586,7 +586,7 @@ ${MAP_EDGE_TYPE_GUIDE}
         "aliases": ["string"], /* ${ALIAS_INSTRUCTION} */
         "status": "string", /* ${NODE_STATUS_LIST} */
         "nodeType": "feature", /* ONLY add 'feature' type nodes! */
-        "parentNodeId": "string"
+        "parentNodeId": "string" /* Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent */
       }
     }
   ],
