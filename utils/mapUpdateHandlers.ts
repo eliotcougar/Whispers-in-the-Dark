@@ -16,7 +16,6 @@ import {
 } from '../types';
 import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/mapUpdateService';
 import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/corrections';
-import { executeMapCorrectionAndRefinement_Service } from '../services/mapCorrectionService';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
 import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
@@ -111,26 +110,6 @@ export const handleMapUpdates = async (
     }
   }
 
-  const originalLoadingReason = loadingReason;
-  setLoadingReason('correction');
-  const gameLogTail = draftState.gameLog.slice(-5);
-  const correctionResult = await executeMapCorrectionAndRefinement_Service(
-    draftState.mapData,
-    themeContextForResponse,
-    {
-      sceneDescription: ('sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene) || '',
-      gameLogTail
-    }
-  );
-  setLoadingReason(originalLoadingReason);
-
-  if (correctionResult.mapDataChanged) {
-    draftState.mapData = correctionResult.refinedMapData;
-    turnChanges.mapDataChanged = true;
-  }
-  if (draftState.lastDebugPacket) {
-    draftState.lastDebugPacket.mapPruningDebugInfo = correctionResult.debugInfo;
-  }
 
   // Upgrade any feature nodes that now have children into regions or adjust hierarchy
   const upgradeResult = await upgradeFeaturesWithChildren(draftState.mapData, themeContextForResponse);
@@ -138,6 +117,7 @@ export const handleMapUpdates = async (
     draftState.mapData = upgradeResult.updatedMapData;
     turnChanges.mapDataChanged = true;
   }
+  const gameLogTail = draftState.gameLog.slice(-5);
   const nodesForRename = [
     ...upgradeResult.addedNodes,
     ...(mapUpdateResult?.renameCandidateNodes ?? [])

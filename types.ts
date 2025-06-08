@@ -337,22 +337,6 @@ export interface AIMapUpdatePayload {
 }
 // --- End Map Update Service Payload ---
 
-// --- Map Pruning & Refinement Types ---
-export interface MapChainFeatureInfo {
-  nodeId: string;         // ID of the feature node
-  isTemporary: boolean;   // Was this feature created by the pruning utility?
-  nameSuggestion?: string; // Suggested name by pruning utility (e.g. "Exit from [MainNodeA_Name]")
-}
-
-export interface MapChainToRefine {
-  mainNodeA_Id: string;
-  mainNodeB_Id: string;
-  featureA_Info: MapChainFeatureInfo; // Feature child of mainNodeA
-  featureB_Info: MapChainFeatureInfo; // Feature child of mainNodeB
-  edgeBetweenFeatures_Id: string; // ID of the edge connecting featureA and featureB (if it exists and needs refinement)
-  originalDirectEdgeId: string; // ID of the original direct edge between mainNodeA and mainNodeB that was removed
-}
-// --- End Map Pruning & Refinement Types ---
 
 export interface MinimalModelCallRecord {
   prompt: string;
@@ -378,15 +362,6 @@ export interface DebugPacket {
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
     minimalModelCalls?: MinimalModelCallRecord[];
-  } | null;
-  mapPruningDebugInfo?: {
-    pruningDebugInfo?: { chainsToRefineCount: number };
-    refinementDebugInfo?: {
-      prompt?: string;
-      rawResponse?: string;
-      parsedPayload?: AIMapUpdatePayload;
-      validationError?: string;
-    };
   } | null;
   mapRenameDebugInfo?: {
     prompt: string;

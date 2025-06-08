@@ -143,7 +143,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         parsedResponse: aiData,
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
-        mapPruningDebugInfo: null,
         mapRenameDebugInfo: null,
       };
 
