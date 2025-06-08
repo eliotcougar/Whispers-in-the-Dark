@@ -6,6 +6,7 @@ import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge, AIMapUpdate
 import {
   MAX_RETRIES,
   NODE_DESCRIPTION_INSTRUCTION,
+  EDGE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
   GEMINI_MODEL_NAME,
   AUXILIARY_MODEL_NAME,
@@ -463,75 +464,6 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
   return null;
 };
 
-/**
- * Suggests the best feature child under a parent node to serve as a connector
- * when adding an edge. The minimal model can select an existing feature or
- * propose a short new name if none are suitable.
- */
-export const fetchConnectorFeatureName_Service = async (
-  parentNode: MapNode,
-  targetNode: MapNode,
-  context: {
-    sceneDescription: string;
-    logMessage: string | undefined;
-    currentTheme: AdventureTheme;
-    themeNodes: MapNode[];
-  },
-  debugLog?: MinimalModelCallRecord[]
-): Promise<string | null> => {
-  if (!isApiConfigured()) {
-    console.error('fetchConnectorFeatureName_Service: API Key not configured.');
-    return null;
-  }
-
-  const features = context.themeNodes.filter(
-    n => n.data.parentNodeId === parentNode.id && n.data.nodeType === 'feature'
-  );
-  const featureLines =
-    features.length > 0
-      ? features
-          .map(f => {
-            const aliasStr =
-              f.data.aliases && f.data.aliases.length > 0
-                ? `Aliases: ${f.data.aliases.join(', ')}`
-                : 'No aliases';
-            const descStr = f.data.description || 'No description';
-            return `- "${f.placeName}" (Desc: "${descStr}", ${aliasStr})`;
-          })
-          .join('\n')
-      : 'None';
-
-  const parentAlias =
-    parentNode.data.aliases && parentNode.data.aliases.length > 0
-      ? parentNode.data.aliases.join(', ')
-      : 'None';
-  const parentDesc = parentNode.data.description || 'No description';
-  const targetAlias =
-    targetNode.data.aliases && targetNode.data.aliases.length > 0
-      ? targetNode.data.aliases.join(', ')
-      : 'None';
-  const targetDesc = targetNode.data.description || 'No description';
-
-  const prompt = `Select the best existing feature under "${parentNode.placeName}" (Desc: "${parentDesc}", Aliases: ${parentAlias}) to connect toward "${targetNode.placeName}" (Desc: "${targetDesc}", Aliases: ${targetAlias}) or suggest a short new feature name.
-Existing Features:
-${featureLines}
-Scene Description: "${context.sceneDescription}"
-Log Message: "${context.logMessage || 'None'}"
-Theme: "${context.currentTheme.name}"
-Map data is primary; scene and log are extra context.`;
-
-  const systemInstr =
-    'Respond ONLY with the chosen feature name. Base the choice primarily on the map data. Avoid generic words like "connector", "connection", "connect", or "link".';
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
-    if (resp && resp.trim().length > 0) {
-      return resp.trim();
-    }
-  }
-  return null;
-};
-
 export interface ChainParentPair {
   sourceParent: MapNode;
   targetParent: MapNode;
@@ -627,20 +559,20 @@ ${MAP_EDGE_TYPE_GUIDE}`;
     {
       "placeName": "string",
       "data": {
-        "description": "string",
-        "aliases": ["string"],
+        "description": "string", /* ${NODE_DESCRIPTION_INSTRUCTION} */
+        "aliases": ["string"], /* ${ALIAS_INSTRUCTION} */
         "status": "string", /* ${NODE_STATUS_LIST} */
-        "nodeType": "feature", /* ${NODE_TYPE_LIST} */
+        "nodeType": "feature", /* ONLY add 'feature' type nodes! */
         "parentNodeId": "string"
       }
     }
   ],
   "edgesToAdd": [
     {
-      "sourcePlaceName": "string",
-      "targetPlaceName": "string",
+      "sourcePlaceName": "string", /* MUST reference a 'feature' type node! */
+      "targetPlaceName": "string", /* MUST reference a 'feature' type node! */
       "data": {
-        "description"?: "string",
+        "description": "string", /* ${EDGE_DESCRIPTION_INSTRUCTION} */
         "type": "string", /* ${EDGE_TYPE_LIST} */
         "status": "string" /* ${EDGE_STATUS_LIST} */
       }
