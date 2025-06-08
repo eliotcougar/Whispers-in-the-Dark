@@ -565,10 +565,10 @@ export const fetchConnectorChains_Service = async (
     .map((r, idx) => {
       const allParents: MapNode[] = [];
       r.pairs.forEach(pair => {
-        if (!allParents.some(p => p.id === pair.sourceParent.id)) {
+        if (pair.sourceParent.data.nodeType !== 'feature' && !allParents.some(p => p.id === pair.sourceParent.id)) {
           allParents.push(pair.sourceParent);
         }
-        if (!allParents.some(p => p.id === pair.targetParent.id)) {
+        if (pair.targetParent.data.nodeType !== 'feature' && !allParents.some(p => p.id === pair.targetParent.id)) {
           allParents.push(pair.targetParent);
         }
       });
