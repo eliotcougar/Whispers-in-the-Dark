@@ -162,6 +162,13 @@ export const handleMapUpdates = async (
     }
   }
 
+  const newlyAddedEdgeIds = new Set(
+    [
+      ...upgradeResult.addedEdges,
+      ...(mapUpdateResult?.newlyAddedEdges ?? []),
+    ].map(e => e.id)
+  );
+
   const themeName = themeContextForResponse.name;
   const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as ValidNewCharacterPayload[];
   const charactersUpdatedFromAI = ('charactersUpdated' in aiData && aiData.charactersUpdated ? aiData.charactersUpdated : []) as ValidCharacterUpdatePayload[];
@@ -218,6 +225,7 @@ export const handleMapUpdates = async (
     const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
     const edgesToRemoveIndices: number[] = [];
     draftState.mapData.edges.forEach((edge, index) => {
+      if (newlyAddedEdgeIds.has(edge.id)) return;
       if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {
         if (edge.data.status === 'rumored' || edge.data.status === 'removed') {
           edgesToRemoveIndices.push(index);
