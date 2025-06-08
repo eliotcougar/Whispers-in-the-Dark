@@ -810,53 +810,49 @@ Key points:
 
   // Determines whether two feature nodes can be directly connected based on the
   // hierarchy rules. Allowed connections are:
-  //   1) sibling features (same parent)
-  //   2) features whose parents share the same grandparent
-  //   3) a feature and another feature whose parent is the child's grandparent
+  //   1) sibling features (same parent, including direct children of 'Universe')
+  //   2) features whose parents share the same grandparent (including the root 'Universe')
+  //   3) a feature and another feature whose parent is the child's grandparent (again including 'Universe')
   const isEdgeConnectionAllowed = (
       nodeA: MapNode,
       nodeB: MapNode,
       edgeType?: MapEdgeData['type']
   ): boolean => {
-      if (edgeType === 'shortcut') return true;
       if (nodeA.data.nodeType !== 'feature' || nodeB.data.nodeType !== 'feature') {
           return false;
       }
+      if (edgeType === 'shortcut') return true;
 
-      const parentA = nodeA.data.parentNodeId
-        ? themeNodeIdMap.get(nodeA.data.parentNodeId)
-        : null;
-      const parentB = nodeB.data.parentNodeId
-        ? themeNodeIdMap.get(nodeB.data.parentNodeId)
-        : null;
+      const parentAId = nodeA.data.parentNodeId ?? 'Universe';
+      const parentBId = nodeB.data.parentNodeId ?? 'Universe';
+      const parentA = parentAId === 'Universe' ? null : themeNodeIdMap.get(parentAId);
+      const parentB = parentBId === 'Universe' ? null : themeNodeIdMap.get(parentBId);
 
-      if (!parentA || !parentB) return false;
-      if (parentA.id === parentB.id) return true;
+      if (!parentA && parentAId !== 'Universe') return false;
+      if (!parentB && parentBId !== 'Universe') return false;
+      if (parentAId === parentBId) return true;
 
-      const grandA = parentA.data.parentNodeId
-        ? themeNodeIdMap.get(parentA.data.parentNodeId)
-        : null;
-      const grandB = parentB.data.parentNodeId
-        ? themeNodeIdMap.get(parentB.data.parentNodeId)
-        : null;
+      const grandAId = parentAId === 'Universe'
+        ? 'Universe'
+        : themeNodeIdMap.get(parentAId)?.data.parentNodeId ?? 'Universe';
+      const grandBId = parentBId === 'Universe'
+        ? 'Universe'
+        : themeNodeIdMap.get(parentBId)?.data.parentNodeId ?? 'Universe';
 
-      if (grandA && grandB && grandA.id === grandB.id) return true;
+      if (grandAId && grandBId && grandAId === grandBId) return true;
 
       // Allow child-to-grandchild feature connections across hierarchy levels
-      if (grandA && parentB.id === grandA.id) return true;
-      if (grandB && parentA.id === grandB.id) return true;
+      if (grandAId && parentBId === grandAId) return true;
+      if (grandBId && parentAId === grandBId) return true;
 
       // Allow connections between features whose parents are both direct children of the root
-      if (
-        parentA.data.parentNodeId === 'Universe' &&
-        parentB.data.parentNodeId === 'Universe'
-      )
-        return true;
-
-      if (parentA.id === 'Universe' && grandB && grandB.id === 'Universe')
-        return true;
-      if (parentB.id === 'Universe' && grandA && grandA.id === 'Universe')
-        return true;
+      if (parentAId !== 'Universe' && parentBId !== 'Universe') {
+        const parentAParent = themeNodeIdMap.get(parentAId)?.data.parentNodeId ?? 'Universe';
+        const parentBParent = themeNodeIdMap.get(parentBId)?.data.parentNodeId ?? 'Universe';
+        if (parentAParent === 'Universe' && parentBParent === 'Universe') return true;
+      }
+      if (parentAId === 'Universe' && grandBId === 'Universe') return true;
+      if (parentBId === 'Universe' && grandAId === 'Universe') return true;
 
       return false;
   };

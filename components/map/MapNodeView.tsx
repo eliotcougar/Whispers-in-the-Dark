@@ -261,14 +261,14 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
     let content = `${node.placeName}`;
-    if (node.data.nodeType) content += `\nType: ${node.data.nodeType}`;
-    if (node.data.description) content += `\nDescription: ${node.data.description}`;
-    if (node.data.aliases && node.data.aliases.length > 0) content += `\nAliases: ${node.data.aliases.join(', ')}`;
+    //if (node.data.nodeType) content += `\nType: ${node.data.nodeType}`;
+    if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
+    if (node.data.description) content += `\n${node.data.description}`;
     if (node.data.status) content += `\nStatus: ${node.data.status}`;
-    if (node.data.parentNodeId && node.data.parentNodeId !== 'Universe') {
+    /*if (node.data.parentNodeId && node.data.parentNodeId !== 'Universe') {
       const parentNode = nodes.find(n => n.id === node.data.parentNodeId);
       content += `\n(Parent: ${parentNode?.placeName || 'Unknown Location'})`;
-    }
+    }*/
     setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15 });
   };
 
@@ -281,9 +281,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     let content = edge.data.description
       ? edge.data.description
       : `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
-    if (edge.data.type) content += `\nType: ${edge.data.type}`;
+    /*if (edge.data.type) content += `\n${edge.data.type}`;*/
+    if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
     if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
-    if (edge.data.travelTime) content += `\nTravel: ${edge.data.travelTime}`;
     setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15 });
   };
 

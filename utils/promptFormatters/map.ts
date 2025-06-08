@@ -28,6 +28,7 @@ export const formatKnownPlacesForPrompt = (
           if (node.data.aliases && node.data.aliases.length > 0) {
             detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
           }
+          detailStr += `, ${node.data.status == 'rumored' ? 'rumored' : ''}`;
           detailStr += `, "${node.data.description || 'No description available.'}"`;
           return detailStr;
         })
