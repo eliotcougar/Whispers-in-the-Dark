@@ -2,16 +2,25 @@
  * @file services/corrections/map.ts
  * @description Correction helpers for map and location related data.
  */
-import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge, MinimalModelCallRecord } from '../../types';
+import { AdventureTheme, MapNode, MapNodeData, MapEdgeData, MapEdge, AIMapUpdatePayload, MinimalModelCallRecord } from '../../types';
 import {
   MAX_RETRIES,
   NODE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
+  GEMINI_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { CORRECTION_TEMPERATURE } from './base';
 import { isApiConfigured } from '../apiClient';
-import { VALID_NODE_TYPE_VALUES, VALID_EDGE_TYPE_VALUES } from '../../constants';
+import {
+  VALID_NODE_TYPE_VALUES,
+  VALID_EDGE_TYPE_VALUES,
+  VALID_NODE_STATUS_VALUES,
+  VALID_EDGE_STATUS_VALUES,
+} from '../../constants';
 import {
   NODE_TYPE_SYNONYMS,
   EDGE_TYPE_SYNONYMS,
@@ -420,108 +429,6 @@ Respond ONLY with the name of the best parent node from the list above, or "Univ
  * ordered by hop distance from the player's current location before being
  * presented to the minimal model.
  */
-export const fetchLikelyExistingNodeForEdge_Service = async (
-  missingNodeName: string,
-  partnerNode: MapNode | null,
-  context: {
-    sceneDescription: string;
-    logMessage: string | undefined;
-    localPlace: string;
-    currentTheme: AdventureTheme;
-    currentMapNodeId: string | null;
-    themeNodes: MapNode[];
-    themeEdges: MapEdge[];
-  },
-  debugLog?: MinimalModelCallRecord[]
-): Promise<string | null> => {
-  if (!isApiConfigured()) {
-    console.error('fetchLikelyExistingNodeForEdge_Service: API Key not configured.');
-    return null;
-  }
-
-  const nodeMap = new Map<string, MapNode>();
-  context.themeNodes.forEach(n => nodeMap.set(n.id, n));
-
-  const adjacency = new Map<string, Set<string>>();
-  context.themeNodes.forEach(n => adjacency.set(n.id, new Set<string>()));
-  context.themeEdges.forEach(e => {
-    if (adjacency.has(e.sourceNodeId) && adjacency.has(e.targetNodeId)) {
-      adjacency.get(e.sourceNodeId)!.add(e.targetNodeId);
-      adjacency.get(e.targetNodeId)!.add(e.sourceNodeId);
-    }
-  });
-  context.themeNodes.forEach(n => {
-    const pid = n.data.parentNodeId;
-    if (pid && pid !== 'Universe' && adjacency.has(pid)) {
-      adjacency.get(n.id)!.add(pid);
-      adjacency.get(pid)!.add(n.id);
-    }
-  });
-
-  const distMap = new Map<string, number>();
-  if (context.currentMapNodeId && adjacency.has(context.currentMapNodeId)) {
-    const queue: string[] = [context.currentMapNodeId];
-    distMap.set(context.currentMapNodeId, 0);
-    while (queue.length > 0) {
-      const id = queue.shift()!;
-      const d = distMap.get(id)!;
-      adjacency.get(id)!.forEach(neigh => {
-        if (!distMap.has(neigh)) {
-          distMap.set(neigh, d + 1);
-          queue.push(neigh);
-        }
-      });
-    }
-  }
-
-  const nodesWithDist = context.themeNodes.map(n => {
-    const dist = distMap.has(n.id) ? distMap.get(n.id)! : Number.MAX_SAFE_INTEGER;
-    return { node: n, dist };
-  });
-
-  nodesWithDist.sort((a, b) => a.dist - b.dist);
-
-  const nodeLines = nodesWithDist
-    .map(({ node }) => {
-      const parent =
-        node.data.parentNodeId && node.data.parentNodeId !== 'Universe'
-          ? context.themeNodes.find(nn => nn.id === node.data.parentNodeId)
-          : null;
-      const parentName = parent ? parent.placeName : 'Universe';
-      const aliasStr =
-        node.data.aliases && node.data.aliases.length > 0
-          ? `Aliases: ${node.data.aliases.join(', ')}`
-          : 'No aliases';
-      const descStr = node.data.description || 'No description';
-      return `- "${node.placeName}" (Type: ${
-        node.data.nodeType
-      }, Parent: ${parentName}, Desc: "${descStr}", ${aliasStr})`;
-    })
-    .join('\n');
-
-  const prompt = `Resolve an unknown map node name for an edge connection in a text adventure game.
-Missing Name: "${missingNodeName}"
-Scene Description: "${context.sceneDescription}"
-Log Message: "${context.logMessage || 'None'}"
-Player Local Place: "${context.localPlace}"
-Current Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
-${partnerNode ? `Known Other Node: "${partnerNode.placeName}" (Desc: "${partnerNode.data.description || 'No description'}", Aliases: ${partnerNode.data.aliases?.join(', ') || 'None'})` : ''}
-Existing Nodes ordered by proximity to player (shortest hops):
-${nodeLines}
-Map data is the primary reference. Scene description and log message are only additional context.
-Respond ONLY with the name of the best matching node from the list above.`;
-
-  const systemInstr = 'Choose the most probable existing node name based primarily on the map data. Respond only with that single name.';
-
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
-    if (resp && resp.trim().length > 0) {
-      return resp.trim();
-    }
-  }
-  return null;
-};
-
 /**
  * Decides how to resolve a feature node that incorrectly has child nodes.
  * The minimal model chooses between converting the child to a sibling or
@@ -624,3 +531,146 @@ Map data is primary; scene and log are extra context.`;
   }
   return null;
 };
+
+export interface ChainParentPair {
+  sourceParent: MapNode;
+  targetParent: MapNode;
+}
+
+export interface EdgeChainRequest {
+  originalSource: MapNode;
+  originalTarget: MapNode;
+  pairs: ChainParentPair[];
+  sourceChain: MapNode[];
+  targetChain: MapNode[];
+  edgeData: MapEdgeData;
+}
+
+export interface ConnectorChainsServiceResult {
+  payload: AIMapUpdatePayload | null;
+  debugInfo: {
+    prompt: string;
+    rawResponse?: string;
+    parsedPayload?: AIMapUpdatePayload;
+    validationError?: string;
+  } | null;
+}
+
+export const fetchConnectorChains_Service = async (
+  requests: EdgeChainRequest[],
+  context: {
+    sceneDescription: string;
+    logMessage: string | undefined;
+    currentTheme: AdventureTheme;
+    themeNodes: MapNode[];
+  }
+): Promise<ConnectorChainsServiceResult> => {
+  if (!isApiConfigured() || requests.length === 0)
+    return { payload: null, debugInfo: null };
+
+  const formatValues = (arr: readonly string[]) => `[${arr.map(v => `'${v}'`).join(', ')}]`;
+  const NODE_STATUS_LIST = formatValues(VALID_NODE_STATUS_VALUES);
+  const NODE_TYPE_LIST = formatValues(VALID_NODE_TYPE_VALUES);
+  const EDGE_TYPE_LIST = formatValues(VALID_EDGE_TYPE_VALUES);
+  const EDGE_STATUS_LIST = formatValues(VALID_EDGE_STATUS_VALUES);
+
+  const chainBlocks = requests
+    .map((r, idx) => {
+      const visited = new Set<string>();
+      const orderedParents: MapNode[] = [];
+      [...r.sourceChain, ...r.targetChain.slice().reverse()].forEach(p => {
+        if (p.data.nodeType !== 'feature' && !visited.has(p.id)) {
+          orderedParents.push(p);
+          visited.add(p.id);
+        }
+      });
+
+      const parentLines = orderedParents
+        .map((p, i) => {
+          const features = context.themeNodes
+            .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
+            .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
+            .join('\n') || ' - None';
+          return `Parent ${i + 1}: "${p.placeName}" (${p.data.nodeType}, ${p.data.status}, ${p.data.description || 'No description'})\n${features}`;
+        })
+        .join('\n');
+
+      return `Chain ${idx + 1}: original edge "${r.originalSource.placeName}" -> "${r.originalTarget.placeName}" (Type: ${r.edgeData.type || 'path'}, Status: ${r.edgeData.status || 'open'}, Desc: ${r.edgeData.description || 'None'})\n${parentLines}`;
+    })
+    .join('\n\n');
+
+  const prompt = `Suggest feature chains to connect map edges in a text adventure.
+${MAP_NODE_TYPE_GUIDE}
+${MAP_EDGE_TYPE_GUIDE}
+Scene: "${context.sceneDescription}"
+Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
+Chains:
+${chainBlocks}
+Return ONLY a JSON object strictly matching this structure:
+{
+  "nodesToAdd": [
+    {
+      "placeName": "string",
+      "data": {
+        "description": "string",
+        "aliases": ["string"],
+        "status": "string",
+        "nodeType": "feature",
+        "parentNodeId": "string"
+      }
+    }
+  ],
+  "edgesToAdd": [
+    {
+      "sourcePlaceName": "string",
+      "targetPlaceName": "string",
+      "data": {
+        "description"?: "string",
+        "type": "string",
+        "status": "string"
+      }
+    }
+  ]
+}
+Valid node statuses: ${NODE_STATUS_LIST}
+Valid node types: ${NODE_TYPE_LIST}
+Valid edge types: ${EDGE_TYPE_LIST}
+Valid edge statuses: ${EDGE_STATUS_LIST}`;
+
+  const systemInstr =
+    'Return AIMapUpdatePayload JSON building a single sequential chain of feature nodes for each edge listed. ' +
+    'For each parent, either select a logical existing feature child or propose a new temporary feature. ' +
+    'Edges must connect feature nodes only and link them in order from the feature under the original source parent to the feature under the original target parent. ' +
+    'Every new node MUST have a unique placeName. Use only the valid node/edge status and type values provided in the prompt.';
+
+  const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      debugInfo.prompt = prompt;
+      const response = await dispatchAIRequest(
+        [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstr,
+        { responseMimeType: 'application/json', temperature: CORRECTION_TEMPERATURE }
+      );
+      debugInfo.rawResponse = response.text ?? '';
+      let jsonStr = (response.text ?? '').trim();
+      const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
+      const fenceMatch = jsonStr.match(fenceRegex);
+      if (fenceMatch && fenceMatch[1]) {
+        jsonStr = fenceMatch[1].trim();
+      }
+      const result = JSON.parse(jsonStr) as AIMapUpdatePayload;
+      debugInfo.parsedPayload = result;
+      if (result && (result.nodesToAdd || result.edgesToAdd)) {
+        return { payload: result, debugInfo };
+      }
+      debugInfo.validationError = 'Parsed JSON missing nodesToAdd or edgesToAdd';
+    } catch (error) {
+      debugInfo.validationError = `Error: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+  return { payload: null, debugInfo };
+};
+

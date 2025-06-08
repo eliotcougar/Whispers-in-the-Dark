@@ -311,15 +311,13 @@ body {
 .map-node-circle.current {
   fill: #facc15; /* yellow-400 */
   stroke: #eab308; /* yellow-500 */
-  stroke-width: 10px;
-  fill-opacity: 0.15;
+  stroke-width: 6px;
 }
 .map-node-circle.current.feature {
   /* Current feature node style */
   fill: #fde047; /* yellow-300 */
   stroke: #facc15; /* yellow-400 */
-  stroke-width: 10px;
-  fill-opacity: 0.15;
+  stroke-width: 6px;
 }
 .map-node-circle.quest_target {
   stroke: #fb923c; /* orange-400 */
@@ -347,8 +345,10 @@ body {
   font-weight: bold;
   pointer-events: none;
 }
-.map-node-label.feature-label {
-  font-size: 7px; /* Smaller font for feature nodes */
+.map-node-label.feature-label,
+.map-node-label.room-label,
+.map-node-label.interior-label {
+  font-size: 7px; /* Smaller font for small nodes */
   stroke-width: 0.6px; /* Proportionally thinner outline */
 }
 .map-edge {

@@ -168,6 +168,32 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
                 {debugPacket.mapUpdateDebugInfo.validationError && renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false)}
                 {debugPacket.mapUpdateDebugInfo.minimalModelCalls &&
                   renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls)}
+                {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo && (
+                  <>
+                    {renderContent(
+                      "Connector Chains Prompt",
+                      debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.prompt,
+                      false
+                    )}
+                    {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.rawResponse &&
+                      renderContent(
+                        "Connector Chains Raw Response",
+                        debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.rawResponse,
+                        false
+                      )}
+                    {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.parsedPayload &&
+                      renderContent(
+                        "Connector Chains Parsed Payload",
+                        debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.parsedPayload
+                      )}
+                    {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.validationError &&
+                      renderContent(
+                        "Connector Chains Validation Error",
+                        debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.validationError,
+                        false
+                      )}
+                  </>
+                )}
               </>
             ) : (
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>

@@ -36,7 +36,6 @@ interface MapNodeViewProps {
   nodes: MapNode[];
   edges: MapEdge[];
   currentMapNodeId: string | null;
-  layoutIdealEdgeLength: number;
   labelOverlapMarginPx: number;
 }
 
@@ -66,7 +65,7 @@ const getRadiusForNode = (node: MapNode): number => {
     case 'feature':
       return NODE_RADIUS * 0.6;
     default:
-      return NODE_RADIUS;
+      return NODE_RADIUS * 0.6;
   }
 };
 
@@ -130,41 +129,18 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   nodes,
   edges,
   currentMapNodeId,
-  layoutIdealEdgeLength,
   labelOverlapMarginPx,
 }) => {
   const interactions = useMapInteractions();
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
 
-  /**
-   * Parent nodes that contain other nodes. Used for drawing large region
-   * circles around groups of nodes.
-   */
-  const regionCircles = useMemo(() => {
-    return nodes
-      .filter(parent => nodes.some(n => n.data.parentNodeId === parent.id))
-      .map(parent => {
-        if (parent.data.visualRadius) {
-          return { node: parent, radius: parent.data.visualRadius };
-        }
-        const children = nodes.filter(n => n.data.parentNodeId === parent.id);
-        const maxDistance = children.length > 0
-          ? Math.max(
-              ...children.map(c =>
-                Math.hypot(c.position.x - parent.position.x, c.position.y - parent.position.y)
-              )
-            )
-          : 0;
-        return {
-          node: parent,
-          radius: Math.max(layoutIdealEdgeLength, maxDistance + NODE_RADIUS * 1.5),
-        };
-      });
-  }, [nodes, layoutIdealEdgeLength]);
+  const isSmallFontType = (type: string | undefined) =>
+    type === 'feature' || type === 'room' || type === 'interior';
 
-  /** IDs of nodes that act as parents. */
-  const hostNodeIdSet = useMemo(() => new Set(regionCircles.map(rc => rc.node.id)), [regionCircles]);
+  const hasCenteredLabel = (type: string | undefined) => type === 'feature';
+
+
 
   /**
    * Calculate extra vertical offset for child labels when they overlap with
@@ -196,11 +172,11 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
     const isParent = (n: MapNode) => childrenMap.has(n.id);
 
-    const fontSizeFor = (n: MapNode) => (n.data.nodeType === 'feature' ? 7 : 12);
+    const fontSizeFor = (n: MapNode) => (isSmallFontType(n.data.nodeType) ? 7 : 12);
     const linesCache: Record<string, string[]> = {};
     const getLines = (n: MapNode): string[] => {
       if (linesCache[n.id]) return linesCache[n.id];
-      const maxChars = n.data.nodeType === 'feature' || !isParent(n) ? 20 : 25;
+      const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
       linesCache[n.id] = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
       return linesCache[n.id];
     };
@@ -302,8 +278,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (!svgRect) return;
     const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
     const targetNode = nodes.find(n => n.id === edge.targetNodeId);
-    let content = `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
-    if (edge.data.description) content += `\nDescription: ${edge.data.description}`;
+    let content = edge.data.description
+      ? edge.data.description
+      : `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
     if (edge.data.type) content += `\nType: ${edge.data.type}`;
     if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
     if (edge.data.travelTime) content += `\nTravel: ${edge.data.travelTime}`;
@@ -338,18 +315,6 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
         preserveAspectRatio="xMidYMid meet"
       >
         <g>
-          {regionCircles.map(rc => (
-            <circle
-              key={`region-circle-${rc.node.id}`}
-              cx={rc.node.position.x}
-              cy={rc.node.position.y}
-              r={rc.radius}
-              fill="none"
-              stroke="#888888"
-              strokeWidth="1px"
-              opacity="0.3"
-            />
-          ))}
 
           {edges.map(edge => {
             const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
@@ -445,19 +410,18 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           })}
 
           {sortedNodes.map(node => {
-            const isHost = hostNodeIdSet.has(node.id);
             const maxCharsPerLine =
-              node.data.nodeType === 'feature' || !isHost ? 20 : 25;
+              isSmallFontType(node.data.nodeType) ? 20 : 25;
             const labelLines = splitTextIntoLines(
               node.placeName,
               maxCharsPerLine,
               MAX_LABEL_LINES
             );
             const radius = getRadiusForNode(node);
-            const fontSize = node.data.nodeType === 'feature' ? 7 : 12;
+            const fontSize = isSmallFontType(node.data.nodeType) ? 7 : 12;
             const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] || 0);
             const initialDyOffset =
-              node.data.nodeType === 'feature' || !isHost
+              hasCenteredLabel(node.data.nodeType)
                 ? -(labelLines.length - 1) * 0.5 * DEFAULT_LABEL_LINE_HEIGHT_EM + 0.3
                 : baseOffsetPx / fontSize;
 
@@ -465,7 +429,13 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
               <text
                 key={`label-${node.id}`}
                 className={`map-node-label${
-                  node.data.nodeType === 'feature' || !isHost ? ' feature-label' : ''
+                  isSmallFontType(node.data.nodeType)
+                    ? node.data.nodeType === 'feature'
+                      ? ' feature-label'
+                      : node.data.nodeType === 'room'
+                        ? ' room-label'
+                        : ' interior-label'
+                    : ''
                 }`}
                 transform={`translate(${node.position.x}, ${node.position.y})`}
                 pointerEvents="visible"

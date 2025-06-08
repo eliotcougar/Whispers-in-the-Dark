@@ -362,6 +362,12 @@ export interface DebugPacket {
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
     minimalModelCalls?: MinimalModelCallRecord[];
+    connectorChainsDebugInfo?: {
+      prompt: string;
+      rawResponse?: string;
+      parsedPayload?: AIMapUpdatePayload;
+      validationError?: string;
+    } | null;
   } | null;
   mapRenameDebugInfo?: {
     prompt: string;

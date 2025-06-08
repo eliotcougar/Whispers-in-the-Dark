@@ -37,7 +37,7 @@ import {
 import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../utils/mapSynonyms';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
-import { fetchLikelyParentNode_Service, fetchLikelyExistingNodeForEdge_Service, fetchConnectorFeatureName_Service } from './corrections/map';
+import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service } from './corrections/map';
 
 // Local type definition for Place, matching what useGameLogic might prepare
 
@@ -57,6 +57,12 @@ export interface MapUpdateServiceResult {
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
     minimalModelCalls?: MinimalModelCallRecord[];
+    connectorChainsDebugInfo?: {
+      prompt: string;
+      rawResponse?: string;
+      parsedPayload?: AIMapUpdatePayload;
+      validationError?: string;
+    } | null;
   } | null;
 }
 
@@ -442,6 +448,8 @@ Key points:
   const newlyAddedEdges: MapEdge[] = [];
   const renameCandidateNodes: MapNode[] = [];
   const renameCandidateEdges: MapEdge[] = [];
+  const pendingChainRequests: EdgeChainRequest[] = [];
+  const processedChainKeys = new Set<string>();
 
   // Refresh lookup maps for the cloned map data
   themeNodeIdMap.clear();
@@ -494,6 +502,20 @@ Key points:
   }
   edgesToAdd_mut = finalEdgesToAdd;
 
+  const dedupedEdges: typeof edgesToAdd_mut = [];
+  const edgeKeySet = new Set<string>();
+  for (const e of edgesToAdd_mut) {
+      const src = e.sourcePlaceName.toLowerCase();
+      const tgt = e.targetPlaceName.toLowerCase();
+      const type = e.data?.type || 'path';
+      const key = src < tgt ? `${src}|${tgt}|${type}` : `${tgt}|${src}|${type}`;
+      if (!edgeKeySet.has(key)) {
+          edgeKeySet.add(key);
+          dedupedEdges.push(e);
+      }
+  }
+  edgesToAdd_mut = dedupedEdges;
+
   // If a node is being renamed via nodesToUpdate, ignore any matching
   // nodesToRemove operation referencing either the old or new name.
   (validParsedPayload.nodesToUpdate || []).forEach(upd => {
@@ -511,15 +533,21 @@ Key points:
    * This is used for edges and node updates where the AI might
    * provide either identifier form.
    */
-  const findNodeByIdentifier = (identifier: string): MapNode | { id: string; name: string } | undefined => {
+  const findNodeByIdentifier = (
+    identifier?: string,
+  ): MapNode | { id: string; name: string } | undefined => {
+    if (!identifier) return undefined;
     const byName = themeNodeNameMap.get(identifier);
     if (byName) return byName;
     const byId = themeNodeIdMap.get(identifier);
     if (byId) return byId;
     const byAlias = themeNodeAliasMap.get(identifier.toLowerCase());
     if (byAlias) return byAlias;
-    if (newNodesInBatchIdNameMap[identifier]) return newNodesInBatchIdNameMap[identifier];
-    const fromBatch = Object.values(newNodesInBatchIdNameMap).find(entry => entry.id === identifier || entry.name === identifier);
+    if (newNodesInBatchIdNameMap[identifier])
+      return newNodesInBatchIdNameMap[identifier];
+    const fromBatch = Object.values(newNodesInBatchIdNameMap).find(
+      entry => entry.id === identifier || entry.name === identifier,
+    );
     return fromBatch;
   };
 
@@ -793,30 +821,6 @@ Key points:
 
   const generateUniqueId = (prefix: string) => `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
 
-  const sanitizeConnectorName = (name: string): string => {
-      const cleaned = name
-        .replace(/\bconnector\b/gi, '')
-        .replace(/\bconnecting\b/gi, '')
-        .replace(/\bconnection\b/gi, '')
-        .trim();
-      return cleaned || 'Hidden Way';
-  };
-
-  const ensureUniqueConnectorName = (parent: MapNode, baseName: string): string => {
-      let candidate = baseName;
-      let counter = 2;
-      // avoid duplicates across the entire theme to prevent confusion when resolving by name
-      const lower = (n: string) => n.toLowerCase();
-      while (
-          newMapData.nodes.some(
-              n => n.themeName === parent.themeName && lower(n.placeName) === lower(candidate)
-          )
-      ) {
-          candidate = `${baseName} ${counter++}`;
-      }
-      return candidate;
-  };
-
   const addEdgeWithTracking = (
       a: MapNode,
       b: MapNode,
@@ -841,240 +845,91 @@ Key points:
   };
 
   const getNodeDepth = (node: MapNode): number => {
-      let depth = 0; let current: MapNode | undefined = node;
+      let depth = 0;
+      let current: MapNode | undefined = node;
       while (current.data.parentNodeId) {
           const parent = themeNodeIdMap.get(current.data.parentNodeId);
           if (!parent) break;
-          depth++; current = parent;
+          depth++;
+          current = parent;
       }
       return depth;
   };
 
-  const constructFeatureChain = async (
-      a: MapNode,
-      b: MapNode,
-      edgeData: MapEdgeData
-  ): Promise<{finalSource: MapNode; finalTarget: MapNode} | null> => {
-      let nodeA = a;
-      let nodeB = b;
-      const type = edgeData.type || 'path';
-      const status = edgeData.status || 'open';
-      const desc = edgeData.description || 'Temporary connection';
 
-      if (nodeA.data.nodeType !== 'feature') {
-          const name = await fetchConnectorFeatureName_Service(nodeA, nodeB, {
-              sceneDescription: sceneDesc,
-              logMessage: logMsg,
-              currentTheme,
-              themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-          }, minimalModelCalls);
-          nodeA = findOrCreateConnectorFeature(nodeA, name || nodeB.placeName, true);
-      }
-      if (nodeB.data.nodeType !== 'feature') {
-          const name = await fetchConnectorFeatureName_Service(nodeB, nodeA, {
-              sceneDescription: sceneDesc,
-              logMessage: logMsg,
-              currentTheme,
-              themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-          }, minimalModelCalls);
-          nodeB = findOrCreateConnectorFeature(nodeB, name || nodeA.placeName, true);
+
+
+  // Process Edges (uses findNodeByIdentifier which checks newMapData nodes directly)
+  for (const edgeAddOp of edgesToAdd_mut) {
+      const sourceNodeRef = findNodeByIdentifier(edgeAddOp.sourcePlaceName);
+      const targetNodeRef = findNodeByIdentifier(edgeAddOp.targetPlaceName);
+
+      if (!sourceNodeRef || !targetNodeRef) {
+          console.warn(`MapUpdate: Skipping edge add due to missing source ("${edgeAddOp.sourcePlaceName}") or target ("${edgeAddOp.targetPlaceName}") node.`);
+          continue;
       }
 
-      let depthA = getNodeDepth(nodeA);
-      let depthB = getNodeDepth(nodeB);
+      const sourceNode = themeNodeIdMap.get(sourceNodeRef.id)!;
+      const targetNode = themeNodeIdMap.get(targetNodeRef.id)!;
+
+      const pairKey =
+        sourceNode.id < targetNode.id
+          ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.data?.type || 'path'}`
+          : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.data?.type || 'path'}`;
+      if (processedChainKeys.has(pairKey)) continue;
+      processedChainKeys.add(pairKey);
+
+      const chainPairs: EdgeChainRequest['pairs'] = [];
+      const sourceChain: MapNode[] = [sourceNode];
+      const targetChain: MapNode[] = [targetNode];
+      let nodeA: MapNode = sourceNode;
+      let nodeB: MapNode = targetNode;
       let attempts = 0;
-      while (!isEdgeConnectionAllowed(nodeA, nodeB, type) && attempts < 10) {
-          if (depthA >= depthB) {
-              const parent = nodeA.data.parentNodeId ? themeNodeIdMap.get(nodeA.data.parentNodeId) : null;
-              if (!parent) break;
-              const name = await fetchConnectorFeatureName_Service(parent, nodeB, {
-                  sceneDescription: sceneDesc,
-                  logMessage: logMsg,
-                  currentTheme,
-                  themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-              }, minimalModelCalls);
-              const connector = findOrCreateConnectorFeature(parent, name || nodeB.placeName, true);
-              addEdgeWithTracking(nodeA, connector, { type, status, description: desc }, true);
-              nodeA = connector;
-              depthA = getNodeDepth(nodeA);
+      let lastKey = '';
+      while (!isEdgeConnectionAllowed(nodeA, nodeB, edgeAddOp.data?.type) && attempts < 10) {
+          const stepKey = `${nodeA.id}|${nodeB.id}`;
+          if (stepKey !== lastKey) {
+            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
+            lastKey = stepKey;
+          }
+          const depthA = getNodeDepth(nodeA);
+          const depthB = getNodeDepth(nodeB);
+          if (depthA >= depthB && nodeA.data.parentNodeId) {
+              const parentA = themeNodeIdMap.get(nodeA.data.parentNodeId);
+              if (parentA) { nodeA = parentA; sourceChain.push(nodeA); } else break;
+          } else if (nodeB.data.parentNodeId) {
+              const parentB = themeNodeIdMap.get(nodeB.data.parentNodeId);
+              if (parentB) { nodeB = parentB; targetChain.push(nodeB); } else break;
           } else {
-              const parent = nodeB.data.parentNodeId ? themeNodeIdMap.get(nodeB.data.parentNodeId) : null;
-              if (!parent) break;
-              const name = await fetchConnectorFeatureName_Service(parent, nodeA, {
-                  sceneDescription: sceneDesc,
-                  logMessage: logMsg,
-                  currentTheme,
-                  themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-              }, minimalModelCalls);
-              const connector = findOrCreateConnectorFeature(parent, name || nodeA.placeName, true);
-              addEdgeWithTracking(nodeB, connector, { type, status, description: desc }, true);
-              nodeB = connector;
-              depthB = getNodeDepth(nodeB);
+              break;
           }
           attempts++;
       }
 
-      if (!isEdgeConnectionAllowed(nodeA, nodeB, type)) return null;
-
-      addEdgeWithTracking(nodeA, nodeB, { type, status, description: desc }, true);
-      return { finalSource: nodeA, finalTarget: nodeB };
-  };
-
-  const findOrCreateConnectorFeature = (
-      parent: MapNode,
-      rawName: string,
-      markForRename = true
-  ): MapNode => {
-      const baseName = sanitizeConnectorName(rawName);
-      const existing = newMapData.nodes.find(n =>
-          n.themeName === parent.themeName &&
-          n.data.nodeType === 'feature' &&
-          n.data.parentNodeId === parent.id &&
-          n.placeName.toLowerCase() === baseName.toLowerCase()
-      );
-      if (existing) return existing;
-      const targetName = ensureUniqueConnectorName(parent, baseName);
-      const newNodeId = generateUniqueId(
-        `node_${targetName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')}_`
-      );
-      const newNode: MapNode = {
-          id: newNodeId,
-          themeName: parent.themeName,
-          placeName: targetName,
-          position: { ...parent.position },
-          data: {
-              description: `A short path leading toward ${rawName}`,
-              aliases: [`${targetName} approach`],
-              status: parent.data.status || 'discovered',
-              nodeType: 'feature',
-              parentNodeId: parent.id,
+      if (!isEdgeConnectionAllowed(nodeA, nodeB, edgeAddOp.data?.type)) {
+          const finalKey = `${nodeA.id}|${nodeB.id}`;
+          if (finalKey !== lastKey) {
+            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
           }
-      };
-      newMapData.nodes.push(newNode);
-      newlyAddedNodes.push(newNode);
-      if (markForRename) renameCandidateNodes.push(newNode);
-      themeNodeIdMap.set(newNode.id, newNode);
-      themeNodeNameMap.set(newNode.placeName, newNode);
-      return newNode;
-  };
-
-  // Process Edges (uses findNodeByIdentifier which checks newMapData nodes directly)
-  for (const edgeAddOp of edgesToAdd_mut) {
-      let sourceNodeRef = findNodeByIdentifier(edgeAddOp.sourcePlaceName);
-      let targetNodeRef = findNodeByIdentifier(edgeAddOp.targetPlaceName);
-
-      if (!sourceNodeRef) {
-          const partner = targetNodeRef ? themeNodeIdMap.get(targetNodeRef.id) || null : null;
-          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.sourcePlaceName, partner, {
-            sceneDescription: sceneDesc,
-            logMessage: logMsg,
-            localPlace,
-            currentTheme,
-            currentMapNodeId: referenceMapNodeId,
-            themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name),
-            themeEdges: newMapData.edges
-          }, minimalModelCalls);
-          if (guess) sourceNodeRef = findNodeByIdentifier(guess);
-      }
-
-      if (!targetNodeRef) {
-          const partner = sourceNodeRef ? themeNodeIdMap.get(sourceNodeRef.id) || null : null;
-          const guess = await fetchLikelyExistingNodeForEdge_Service(edgeAddOp.targetPlaceName, partner, {
-            sceneDescription: sceneDesc,
-            logMessage: logMsg,
-            localPlace,
-            currentTheme,
-            currentMapNodeId: referenceMapNodeId,
-            themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name),
-            themeEdges: newMapData.edges
-          }, minimalModelCalls);
-          if (guess) targetNodeRef = findNodeByIdentifier(guess);
-      }
-
-      if (!sourceNodeRef || !targetNodeRef) {
-          console.warn(`MapUpdate: Skipping edge add due to missing source ("${edgeAddOp.sourcePlaceName}") or target ("${edgeAddOp.targetPlaceName}") node for new edge.`);
+          pendingChainRequests.push({
+            originalSource: sourceNode,
+            originalTarget: targetNode,
+            pairs: chainPairs,
+            sourceChain,
+            targetChain,
+            edgeData: edgeAddOp.data || { type: 'path', status: 'open' },
+          });
           continue;
       }
 
-      let sourceNode = themeNodeIdMap.get(sourceNodeRef.id)!;
-      let targetNode = themeNodeIdMap.get(targetNodeRef.id)!;
-
-      if (sourceNode.data.nodeType !== 'feature') {
-          const name = await fetchConnectorFeatureName_Service(sourceNode, targetNode, {
-            sceneDescription: sceneDesc,
-            logMessage: logMsg,
-            currentTheme,
-            themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-          }, minimalModelCalls);
-          sourceNode = findOrCreateConnectorFeature(sourceNode, name || targetNode.placeName, true);
-      }
-      if (targetNode.data.nodeType !== 'feature') {
-          const name = await fetchConnectorFeatureName_Service(targetNode, sourceNode, {
-            sceneDescription: sceneDesc,
-            logMessage: logMsg,
-            currentTheme,
-            themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-          }, minimalModelCalls);
-          targetNode = findOrCreateConnectorFeature(targetNode, name || sourceNode.placeName, true);
-      }
-
-      let safetyCounter = 0;
-      while (
-        edgeAddOp.data?.type !== 'shortcut' &&
-        !isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data?.type) &&
-        safetyCounter < 5
-      ) {
-          const sourceParent = sourceNode.data.parentNodeId ? themeNodeIdMap.get(sourceNode.data.parentNodeId) : null;
-          const targetParent = targetNode.data.parentNodeId ? themeNodeIdMap.get(targetNode.data.parentNodeId) : null;
-
-          if (!sourceParent && !targetParent) break;
-
-          if (sourceParent) {
-              const name = await fetchConnectorFeatureName_Service(sourceParent, targetNode, {
-                  sceneDescription: sceneDesc,
-                  logMessage: logMsg,
-                  currentTheme,
-                  themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-              }, minimalModelCalls);
-              const connector = findOrCreateConnectorFeature(sourceParent, name || targetNode.placeName, true);
-              addEdgeWithTracking(sourceNode, connector, edgeAddOp.data || { type: 'path', status: 'open', description: '' }, true);
-              sourceNode = connector;
-          }
-          if (targetParent) {
-              const name = await fetchConnectorFeatureName_Service(targetParent, sourceNode, {
-                  sceneDescription: sceneDesc,
-                  logMessage: logMsg,
-                  currentTheme,
-                  themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-              }, minimalModelCalls);
-              const connector = findOrCreateConnectorFeature(targetParent, name || sourceNode.placeName, true);
-              addEdgeWithTracking(targetNode, connector, edgeAddOp.data || { type: 'path', status: 'open', description: '' }, true);
-              targetNode = connector;
-          }
-          safetyCounter++;
-      }
-
-      if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data?.type)) {
-          const chain = await constructFeatureChain(sourceNode, targetNode, edgeAddOp.data || { type: 'path' });
-          if (!chain) {
-            console.warn(`MapUpdate: Edge between "${edgeAddOp.sourcePlaceName}" and "${edgeAddOp.targetPlaceName}" violates hierarchy rules even after introducing connectors. Skipping add.`);
-            continue;
-          } else {
-            // chain function already added final edge
-            continue;
-          }
-      }
-
       addEdgeWithTracking(
-        sourceNode,
-        targetNode,
+        nodeA,
+        nodeB,
         {
           ...(edgeAddOp.data || {}),
           status:
             edgeAddOp.data?.status ||
-            (sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored'
-              ? 'rumored'
-              : 'open'),
+            (nodeA.data.status === 'rumored' || nodeB.data.status === 'rumored' ? 'rumored' : 'open'),
         },
         false
       );
@@ -1137,6 +992,58 @@ Key points:
       });
       newMapData.edges = remainingEdges;
   });
+
+  if (pendingChainRequests.length > 0) {
+      const chainResult = await fetchConnectorChains_Service(pendingChainRequests, {
+        sceneDescription: sceneDesc,
+        logMessage: logMsg,
+        currentTheme,
+        themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
+      });
+      if (chainResult.debugInfo) {
+        debugInfo.connectorChainsDebugInfo = chainResult.debugInfo;
+      }
+      if (chainResult.payload) {
+        (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
+          const nodeData = nAdd.data || { status: 'discovered', nodeType: 'feature', parentNodeId: 'Universe', description: '', aliases: [] };
+          const parent = nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
+            ? (findNodeByIdentifier(nodeData.parentNodeId) as MapNode | undefined)
+            : undefined;
+          const parentId = parent ? parent.id : undefined;
+          const newId = generateUniqueId(`node_${nAdd.placeName.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}_`);
+          const node: MapNode = {
+            id: newId,
+            themeName: currentTheme.name,
+            placeName: nAdd.placeName,
+            position: parent ? { ...parent.position } : { x: 0, y: 0 },
+            data: { ...nodeData, parentNodeId: parentId }
+          } as MapNode;
+          newMapData.nodes.push(node);
+          newlyAddedNodes.push(node);
+          renameCandidateNodes.push(node);
+          themeNodeIdMap.set(node.id, node);
+          themeNodeNameMap.set(node.placeName, node);
+        });
+        (chainResult.payload.edgesToAdd || []).forEach(eAdd => {
+          const src = findNodeByIdentifier(eAdd.sourcePlaceName) as MapNode | undefined;
+          const tgt = findNodeByIdentifier(eAdd.targetPlaceName) as MapNode | undefined;
+          if (src && tgt) {
+            if (isEdgeConnectionAllowed(src, tgt, eAdd.data?.type)) {
+              addEdgeWithTracking(
+                src,
+                tgt,
+                eAdd.data || { type: 'path', status: 'open' },
+                true,
+              );
+            } else {
+              console.warn(
+                `Connector chain edge between "${src.placeName}" and "${tgt.placeName}" violates hierarchy rules. Skipping.`,
+              );
+            }
+          }
+        });
+      }
+  }
 
   // --- End of Temporary Feature Upgrade (parent-child edges cleaned up) ---
 
