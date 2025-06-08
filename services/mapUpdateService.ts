@@ -94,10 +94,62 @@ const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | nu
   }
   try {
     const parsed: unknown = JSON.parse(jsonStr);
+    let payload: AIMapUpdatePayload | null = null;
+    if (Array.isArray(parsed)) {
+      payload = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
+        if (entry && typeof entry === 'object') {
+          const maybeObj = entry as Partial<AIMapUpdatePayload>;
+          if (Array.isArray(maybeObj.nodesToAdd)) {
+            acc.nodesToAdd = [
+              ...(acc.nodesToAdd || []),
+              ...maybeObj.nodesToAdd,
+            ];
+          }
+          if (Array.isArray(maybeObj.nodesToUpdate)) {
+            acc.nodesToUpdate = [
+              ...(acc.nodesToUpdate || []),
+              ...maybeObj.nodesToUpdate,
+            ];
+          }
+          if (Array.isArray(maybeObj.nodesToRemove)) {
+            acc.nodesToRemove = [
+              ...(acc.nodesToRemove || []),
+              ...maybeObj.nodesToRemove,
+            ];
+          }
+          if (Array.isArray(maybeObj.edgesToAdd)) {
+            acc.edgesToAdd = [
+              ...(acc.edgesToAdd || []),
+              ...maybeObj.edgesToAdd,
+            ];
+          }
+          if (Array.isArray(maybeObj.edgesToUpdate)) {
+            acc.edgesToUpdate = [
+              ...(acc.edgesToUpdate || []),
+              ...maybeObj.edgesToUpdate,
+            ];
+          }
+          if (Array.isArray(maybeObj.edgesToRemove)) {
+            acc.edgesToRemove = [
+              ...(acc.edgesToRemove || []),
+              ...maybeObj.edgesToRemove,
+            ];
+          }
+          if (
+            maybeObj.suggestedCurrentMapNodeId &&
+            !acc.suggestedCurrentMapNodeId
+          ) {
+            acc.suggestedCurrentMapNodeId = maybeObj.suggestedCurrentMapNodeId;
+          }
+        }
+        return acc;
+      }, {} as AIMapUpdatePayload);
+    } else if (parsed && typeof parsed === 'object') {
+      payload = parsed as AIMapUpdatePayload;
+    }
     // Drop any illegal attempts to add/update/remove the special root node
     // "Universe" and discard edges referring to it before validation.
-    if (parsed && typeof parsed === 'object') {
-      const payload = parsed as AIMapUpdatePayload;
+    if (payload && typeof payload === 'object') {
       const nameIsUniverse = (n: unknown): boolean =>
         typeof n === 'string' && n.trim().toLowerCase() === 'universe';
       if (Array.isArray(payload.nodesToAdd)) {
@@ -125,8 +177,8 @@ const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | nu
         payload.edgesToRemove = filterEdgeArray(payload.edgesToRemove);
       }
     }
-    if (isValidAIMapUpdatePayload(parsed as AIMapUpdatePayload | null)) {
-      return parsed as AIMapUpdatePayload;
+    if (isValidAIMapUpdatePayload(payload)) {
+      return payload;
     }
     console.warn("Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:", parsed);
     return null;
