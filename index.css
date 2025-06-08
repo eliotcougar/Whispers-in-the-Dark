@@ -347,8 +347,10 @@ body {
   font-weight: bold;
   pointer-events: none;
 }
-.map-node-label.feature-label {
-  font-size: 7px; /* Smaller font for feature nodes */
+.map-node-label.feature-label,
+.map-node-label.room-label,
+.map-node-label.interior-label {
+  font-size: 7px; /* Smaller font for small nodes */
   stroke-width: 0.6px; /* Proportionally thinner outline */
 }
 .map-edge {

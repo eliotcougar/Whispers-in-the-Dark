@@ -164,7 +164,6 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           nodes={displayedNodes}
           edges={currentThemeEdges}
           currentMapNodeId={currentMapNodeId}
-          layoutIdealEdgeLength={layoutIdealEdgeLength}
           labelOverlapMarginPx={labelOverlapMarginPx}
         />
         <MapControls
