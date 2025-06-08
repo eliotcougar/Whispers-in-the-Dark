@@ -116,9 +116,13 @@ export const applyRenamePayload = (
   payload.nodes.forEach(nu => {
     const node = mapData.nodes.find(n => n.id === nu.id);
     if (node) {
+      const oldName = node.placeName;
       node.placeName = nu.placeName;
       node.data.description = nu.description;
       node.data.aliases = nu.aliases || [];
+      if (oldName && !node.data.aliases.includes(oldName)) {
+        node.data.aliases.push(oldName);
+      }
       updateNodeId(mapData, node.id, node.placeName);
     }
   });
