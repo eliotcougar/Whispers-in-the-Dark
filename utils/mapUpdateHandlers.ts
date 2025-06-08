@@ -139,11 +139,11 @@ export const handleMapUpdates = async (
   }
   const nodesForRename = [
     ...upgradeResult.addedNodes,
-    ...(mapUpdateResult?.newlyAddedNodes ?? [])
+    ...(mapUpdateResult?.renameCandidateNodes ?? [])
   ];
   const edgesForRename = [
     ...upgradeResult.addedEdges,
-    ...(mapUpdateResult?.newlyAddedEdges ?? [])
+    ...(mapUpdateResult?.renameCandidateEdges ?? [])
   ];
   if (nodesForRename.length > 0 || edgesForRename.length > 0) {
     const renameResult = await renameMapElements_Service(
