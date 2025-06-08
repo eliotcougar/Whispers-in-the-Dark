@@ -16,6 +16,7 @@ import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { CORRECTION_TEMPERATURE } from './base';
 import { isApiConfigured } from '../apiClient';
+import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import {
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
@@ -615,13 +616,12 @@ Return ONLY a JSON object strictly matching this structure:
         { responseMimeType: 'application/json', temperature: CORRECTION_TEMPERATURE }
       );
       debugInfo.rawResponse = response.text ?? '';
-      let jsonStr = (response.text ?? '').trim();
-      const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-      const fenceMatch = jsonStr.match(fenceRegex);
-      if (fenceMatch && fenceMatch[1]) {
-        jsonStr = fenceMatch[1].trim();
+      const jsonStr = extractJsonFromFence(response.text ?? '');
+      const parsed: unknown = safeParseJson(jsonStr);
+      if (!parsed) {
+        debugInfo.validationError = 'Failed to parse JSON';
+        return { payload: null, debugInfo };
       }
-      const parsed: unknown = JSON.parse(jsonStr);
       let result: AIMapUpdatePayload | null = null;
       if (Array.isArray(parsed)) {
         result = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {

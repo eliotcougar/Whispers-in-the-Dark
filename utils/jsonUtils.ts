@@ -17,3 +17,18 @@ export const extractJsonFromFence = (raw: string): string => {
   }
   return jsonStr;
 };
+
+/**
+ * Attempts to parse the provided JSON string. Returns the parsed object
+ * or `null` if parsing fails.
+ */
+export function safeParseJson<T>(jsonStr: string): T | null {
+  try {
+    return JSON.parse(jsonStr) as T;
+  } catch {
+    return null;
+  }
+}
+
+// Backwards compatibility for old imports
+export const sanitizeJsonString = extractJsonFromFence;

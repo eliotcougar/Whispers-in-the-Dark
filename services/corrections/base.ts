@@ -7,6 +7,7 @@ import { dispatchAIRequest, dispatchAIRequestWithModelInfo } from '../modelDispa
 import { MinimalModelCallRecord } from '../../types';
 import { isApiConfigured } from '../apiClient';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
+import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 
 /** Temperature used for all correction related AI calls. */
 export const CORRECTION_TEMPERATURE = 0.75;
@@ -34,13 +35,10 @@ export const callCorrectionAI = async <T = unknown>(
         temperature: CORRECTION_TEMPERATURE,
       }
     );
-    let jsonStr = (response.text ?? '').trim();
-    const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-    const fenceMatch = jsonStr.match(fenceRegex);
-    if (fenceMatch && fenceMatch[1]) {
-      jsonStr = fenceMatch[1].trim();
-    }
-    return JSON.parse(jsonStr) as T;
+    const jsonStr = extractJsonFromFence(response.text ?? '');
+    const parsed = safeParseJson<T>(jsonStr);
+    if (parsed) return parsed;
+    throw new Error('JSON parse failed');
   } catch (error) {
     console.error(`callCorrectionAI: Error during single AI call or parsing for prompt starting with "${prompt.substring(0, 100)}...":`, error);
     if (isServerOrClientError(error)) {
