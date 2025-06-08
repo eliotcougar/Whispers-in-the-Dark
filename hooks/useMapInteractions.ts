@@ -5,6 +5,7 @@
 
 import { useState, useRef } from 'react';
 import { VIEWBOX_WIDTH_INITIAL, VIEWBOX_HEIGHT_INITIAL } from '../utils/mapConstants';
+import { getSVGCoordinates } from '../utils/svgUtils';
 
 export interface UseMapInteractionsResult {
   viewBox: string;
@@ -42,19 +43,12 @@ export const useMapInteractions = (
     if (!isDragging || !lastScreenDragPoint || !svgRef.current) return;
 
     const svgEl = svgRef.current;
-    const ctm = svgEl.getScreenCTM();
-    if (!ctm) return;
-    const ctmInverse = ctm.inverse();
-
-    const svgDomPoint = svgEl.createSVGPoint();
-
-    svgDomPoint.x = lastScreenDragPoint.x;
-    svgDomPoint.y = lastScreenDragPoint.y;
-    const prevSVGPoint = svgDomPoint.matrixTransform(ctmInverse);
-
-    svgDomPoint.x = e.clientX;
-    svgDomPoint.y = e.clientY;
-    const currentSVGPoint = svgDomPoint.matrixTransform(ctmInverse);
+    const prevSVGPoint = getSVGCoordinates(
+      svgEl,
+      lastScreenDragPoint.x,
+      lastScreenDragPoint.y
+    );
+    const currentSVGPoint = getSVGCoordinates(svgEl, e.clientX, e.clientY);
 
     const deltaViewBoxX = prevSVGPoint.x - currentSVGPoint.x;
     const deltaViewBoxY = prevSVGPoint.y - currentSVGPoint.y;
@@ -96,13 +90,7 @@ export const useMapInteractions = (
     if (newVw < minDim || newVw > maxDim || newVh < minDim || newVh > maxDim) return;
 
     const svgEl = svgRef.current;
-    const ctm = svgEl.getScreenCTM();
-    if (!ctm) return;
-    const ctmInverse = ctm.inverse();
-    const svgDomPoint = svgEl.createSVGPoint();
-    svgDomPoint.x = e.clientX;
-    svgDomPoint.y = e.clientY;
-    const svgPoint = svgDomPoint.matrixTransform(ctmInverse);
+    const svgPoint = getSVGCoordinates(svgEl, e.clientX, e.clientY);
 
     const newVx = svgPoint.x - (svgPoint.x - vx) * (newVw / vw);
     const newVy = svgPoint.y - (svgPoint.y - vy) * (newVh / vh);
@@ -141,18 +129,16 @@ export const useMapInteractions = (
     if (e.touches.length === 1 && isDragging && lastScreenDragPoint) {
       const touch = e.touches[0];
       const svgEl = svgRef.current;
-      const ctm = svgEl.getScreenCTM();
-      if (!ctm) return;
-      const ctmInverse = ctm.inverse();
-      const svgDomPoint = svgEl.createSVGPoint();
-
-      svgDomPoint.x = lastScreenDragPoint.x;
-      svgDomPoint.y = lastScreenDragPoint.y;
-      const prevSVGPoint = svgDomPoint.matrixTransform(ctmInverse);
-
-      svgDomPoint.x = touch.clientX;
-      svgDomPoint.y = touch.clientY;
-      const currentSVGPoint = svgDomPoint.matrixTransform(ctmInverse);
+      const prevSVGPoint = getSVGCoordinates(
+        svgEl,
+        lastScreenDragPoint.x,
+        lastScreenDragPoint.y
+      );
+      const currentSVGPoint = getSVGCoordinates(
+        svgEl,
+        touch.clientX,
+        touch.clientY
+      );
 
       const deltaViewBoxX = prevSVGPoint.x - currentSVGPoint.x;
       const deltaViewBoxY = prevSVGPoint.y - currentSVGPoint.y;
@@ -196,13 +182,7 @@ export const useMapInteractions = (
       const clientMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
       const svgEl = svgRef.current;
-      const ctm = svgEl.getScreenCTM();
-      if (!ctm) return;
-      const ctmInverse = ctm.inverse();
-      const svgDomPoint = svgEl.createSVGPoint();
-      svgDomPoint.x = clientMidX;
-      svgDomPoint.y = clientMidY;
-      const svgPinchCenter = svgDomPoint.matrixTransform(ctmInverse);
+      const svgPinchCenter = getSVGCoordinates(svgEl, clientMidX, clientMidY);
 
       const newVx = svgPinchCenter.x - (svgPinchCenter.x - vx) * (newVw / vw);
       const newVy = svgPinchCenter.y - (svgPinchCenter.y - vy) * (newVh / vh);

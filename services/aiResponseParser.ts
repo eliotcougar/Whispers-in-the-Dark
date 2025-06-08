@@ -20,7 +20,7 @@ import {
     fetchCorrectedDialogueSetup_Service,
 } from './corrections';
 
-import { sanitizeJsonString } from './parsers/jsonSanitizer';
+import { extractJsonFromFence } from '../utils/jsonUtils';
 
 /** Interface describing contextual data required by the parsing helpers. */
 interface ParserContext {
@@ -503,7 +503,7 @@ export async function parseAIResponse(
     currentThemeMapData: MapData = { nodes: [], edges: [] },
     currentInventoryForCorrection: Item[] = []
 ): Promise<GameStateFromAI | null> {
-    const jsonStr = sanitizeJsonString(responseText);
+    const jsonStr = extractJsonFromFence(responseText);
 
     const allRelevantMainMapNodesForCorrection: MapNode[] = currentThemeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
 

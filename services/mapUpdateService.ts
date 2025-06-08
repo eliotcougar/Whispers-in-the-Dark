@@ -38,6 +38,7 @@ import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STAT
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service } from './corrections/map';
+import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 
 // Local type definition for Place, matching what useGameLogic might prepare
 
@@ -81,15 +82,13 @@ const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promi
 /**
  * Parses the AI's map update response into an AIMapUpdatePayload structure.
  */
-const parseAIMapUpdateResponse = (responseText: string): AIMapUpdatePayload | null => {
-  let jsonStr = responseText.trim();
-  const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-  const fenceMatch = jsonStr.match(fenceRegex);
-  if (fenceMatch && fenceMatch[1]) {
-    jsonStr = fenceMatch[1].trim();
-  }
+const parseAIMapUpdateResponse = (
+  responseText: string,
+): AIMapUpdatePayload | null => {
+  const jsonStr = extractJsonFromFence(responseText);
+  const parsed: unknown = safeParseJson(jsonStr);
   try {
-    const parsed: unknown = JSON.parse(jsonStr);
+    if (parsed === null) throw new Error('JSON parse failed');
     let payload: AIMapUpdatePayload | null = null;
     if (Array.isArray(parsed)) {
       payload = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {

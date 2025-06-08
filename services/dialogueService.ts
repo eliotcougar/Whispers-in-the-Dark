@@ -18,6 +18,7 @@ import { callMinimalCorrectionAI } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
 
+import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 interface GeminiRequestConfig {
   systemInstruction: string;
   responseMimeType: string;
@@ -49,16 +50,13 @@ const callDialogueGeminiAPI = async (
   });
 };
 
-const parseDialogueAIResponse = (responseText: string): DialogueAIResponse | null => {
-  let jsonStr = responseText.trim();
-  const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-  const fenceMatch = jsonStr.match(fenceRegex);
-  if (fenceMatch && fenceMatch[1]) {
-    jsonStr = fenceMatch[1].trim();
-  }
-
+const parseDialogueAIResponse = (
+  responseText: string
+): DialogueAIResponse | null => {
+  const jsonStr = extractJsonFromFence(responseText);
+  const parsed = safeParseJson<Partial<DialogueAIResponse>>(jsonStr);
   try {
-    const parsed = JSON.parse(jsonStr) as Partial<DialogueAIResponse>;
+    if (!parsed) throw new Error('JSON parse failed');
     if (
       !parsed ||
       !Array.isArray(parsed.npcResponses) || !parsed.npcResponses.every(r => r && typeof r.speaker === 'string' && typeof r.line === 'string') ||
@@ -80,16 +78,13 @@ const parseDialogueAIResponse = (responseText: string): DialogueAIResponse | nul
   }
 };
 
-const parseDialogueSummaryResponse = (responseText: string): DialogueSummaryResponse | null => {
-    let jsonStr = responseText.trim();
-    const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-    const fenceMatch = jsonStr.match(fenceRegex);
-    if (fenceMatch && fenceMatch[1]) {
-      jsonStr = fenceMatch[1].trim();
-    }
-
+const parseDialogueSummaryResponse = (
+  responseText: string
+): DialogueSummaryResponse | null => {
+    const jsonStr = extractJsonFromFence(responseText);
+    const parsed = safeParseJson<DialogueSummaryResponse>(jsonStr);
     try {
-      const parsed = JSON.parse(jsonStr) as DialogueSummaryResponse;
+      if (!parsed) throw new Error('JSON parse failed');
       return parsed;
     } catch (e) {
       console.warn("Failed to parse dialogue summary JSON response from AI:", e);
