@@ -15,7 +15,6 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
 } from '../utils/mapConstants';
-import { structuredCloneGameState } from '../utils/cloneUtils';
 
 /** Returns the default configuration for the map layout force algorithm. */
 export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
@@ -40,7 +39,18 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
   /** Updates the map layout configuration in the game state stack. */
   const handleMapLayoutConfigChange = useCallback(
     (newConfig: MapLayoutConfig) => {
-      setGameStateStack((prev) => [{ ...prev[0], mapLayoutConfig: newConfig }, prev[1]]);
+      setGameStateStack(prev => {
+        const current = prev[0].mapLayoutConfig;
+        if (
+          current.IDEAL_EDGE_LENGTH === newConfig.IDEAL_EDGE_LENGTH &&
+          current.NESTED_PADDING === newConfig.NESTED_PADDING &&
+          current.NESTED_ANGLE_PADDING === newConfig.NESTED_ANGLE_PADDING &&
+          current.LABEL_OVERLAP_MARGIN_PX === newConfig.LABEL_OVERLAP_MARGIN_PX
+        ) {
+          return prev;
+        }
+        return [{ ...prev[0], mapLayoutConfig: newConfig }, prev[1]];
+      });
     },
     [setGameStateStack]
   );
@@ -57,9 +67,9 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
   const handleMapNodesPositionChange = useCallback(
     (updatedNodes: MapNode[]) => {
       setGameStateStack(prev => {
-        const draft = structuredCloneGameState(prev[0]);
+        const baseState = prev[0];
         let changed = false;
-        const nodeMap = new Map(draft.mapData.nodes.map(n => [n.id, n]));
+        const nodeMap = new Map(baseState.mapData.nodes.map(n => [n.id, { ...n }]));
         updatedNodes.forEach(n => {
           const existing = nodeMap.get(n.id);
           if (existing) {
@@ -79,8 +89,9 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
           }
         });
         if (!changed) return prev;
-        draft.mapData.nodes = Array.from(nodeMap.values());
-        return [draft, prev[1]];
+        const newMapData = { ...baseState.mapData, nodes: Array.from(nodeMap.values()) };
+        const newState = { ...baseState, mapData: newMapData };
+        return [newState, prev[1]];
       });
     },
     [setGameStateStack]
