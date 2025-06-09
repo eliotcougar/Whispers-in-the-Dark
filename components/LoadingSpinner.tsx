@@ -22,19 +22,19 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
   
   switch (loadingReason) {
     case 'initial_load':
-      textMessage = "Loading game data...";
+      textMessage = "Loading...";
       break;
     case 'reality_shift_load':
       textMessage = "Reality is shifting...";
       break;
     case 'storyteller':
-      textMessage = "The Dungeon Master is thinking...";
+      textMessage = "Dungeon Master is thinking...";
       break;
     case 'map':
-      textMessage = "Updating the map...";
+      textMessage = "Dungeon Master is drawing the map...";
       break;
     case 'correction':
-      textMessage = "Fixing mistakes...";
+      textMessage = "Dungeon Master is fixing mistakes...";
       break;
     case 'dialogue_turn':
       textMessage = "The conversation continues...";
@@ -43,14 +43,14 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
       textMessage = "Concluding dialogue...";
       break;
     case 'dialogue_memory_creation': 
-      textMessage = "Processing dialogue memories..."; 
+      textMessage = "Forming memories...";
       break;
     case 'dialogue_conclusion_summary': 
-      textMessage = "Finalizing conversation results..."; 
+      textMessage = "Returning to the world...";
       break;
     default:
       if (loadingReason === null) { 
-          textMessage = "The Dungeon Master is thinking...";
+          textMessage = "Hmmmmmm...";
       }
       break;
   }

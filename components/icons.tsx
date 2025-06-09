@@ -5,13 +5,6 @@
  */
 import React from 'react';
 
-/** Renders a restart arrow icon. */
-export const RestartIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-  </svg>
-);
-
 /** Icon used for performing a manual reality shift. */
 export const RealityShiftIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={className}>
@@ -19,19 +12,6 @@ export const RealityShiftIcon: React.FC<{ className?: string }> = ({ className =
   </svg>
 );
 
-/** Icon for saving game progress. */
-export const SaveIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-  </svg>
-);
-
-/** Icon for loading a saved game. */
-export const LoadIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-  </svg>
-);
 
 /** Icon showing an in-game currency coin. */
 export const CoinIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
@@ -104,13 +84,6 @@ export const LogIcon: React.FC = () => (
 </svg>
 );
 
-/** Icon used to view memory-related information. */
-export const MemoryIcon: React.FC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 inline-block text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M7 2a1 1 0 00-.707 1.707L7 4.414v3.272a1 1 0 102 0V4.414l.707-.707A1 1 0 009 2H7zm0 14a1 1 0 00.707-1.707L7 13.586V10.31a1 1 0 10-2 0v3.272l-.707.707A1 1 0 007 16h2a1 1 0 100-2H7zM3.293 7.293a1 1 0 010-1.414L4.586 4.586a1 1 0 011.414 0l1.293 1.293a1 1 0 01-1.414 1.414L4.586 5.707 3.293 7.021a1 1 0 010 .273zM12.979 15.293a1 1 0 010-1.414L14.272 12.586a1 1 0 011.414 0l1.293 1.293a1 1 0 01-1.414 1.414L14.272 13.707l-1.293 1.293a1 1 0 010 .273zM5 10a1 1 0 110-2h10a1 1 0 110 2H5z" clipRule="evenodd" />
-    <path d="M7 6a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zM7 12a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" />
-  </svg>
-);
 
 /** Icon representing a companion character. */
 export const CompanionIcon: React.FC<{ className?: string }> = ({ className = "h-4 w-4 inline-block mr-1 text-green-400" }) => (

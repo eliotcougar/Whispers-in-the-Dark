@@ -354,6 +354,101 @@ export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined):
     });
 }
 
+/**
+ * Normalizes and validates parsed save data from a given source.
+ */
+export function normalizeLoadedSaveData(
+  parsedObj: Record<string, unknown>,
+  sourceLabel: string
+): SavedGameDataShape | null {
+  let dataToValidateAndExpand: SavedGameDataShape | null = null;
+  if (
+    parsedObj &&
+    (parsedObj.saveGameVersion === CURRENT_SAVE_GAME_VERSION ||
+      (typeof parsedObj.saveGameVersion === 'string' &&
+        parsedObj.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0])))
+  ) {
+    if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
+      console.warn(
+        `Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${String(parsedObj.saveGameVersion)}' from ${sourceLabel}. Attempting to treat as current version (V3) for validation.`
+      );
+    }
+    dataToValidateAndExpand = parsedObj as SavedGameDataShape;
+    ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
+    ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
+  } else if (parsedObj) {
+    console.warn(
+      `Unknown save version '${String(parsedObj.saveGameVersion)}' from ${sourceLabel}. This might fail validation.`
+    );
+    dataToValidateAndExpand = parsedObj as SavedGameDataShape;
+    if (dataToValidateAndExpand) {
+      ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
+      ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
+    }
+  }
+
+  if (
+    dataToValidateAndExpand &&
+    !dataToValidateAndExpand.currentThemeObject &&
+    dataToValidateAndExpand.currentThemeName
+  ) {
+    dataToValidateAndExpand.currentThemeObject = findThemeByName(
+      dataToValidateAndExpand.currentThemeName
+    );
+    if (!dataToValidateAndExpand.currentThemeObject) {
+      console.warn(
+        `Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during ${sourceLabel} load. Game state might be incomplete.`
+      );
+    }
+  }
+
+  if (dataToValidateAndExpand) {
+    const gtRaw = (parsedObj as { globalTurnNumber?: unknown }).globalTurnNumber;
+    if (typeof gtRaw === 'string') {
+      const parsed = parseInt(gtRaw, 10);
+      dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
+    } else if (gtRaw === undefined || gtRaw === null) {
+      dataToValidateAndExpand.globalTurnNumber = 0;
+    }
+  }
+
+  if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
+    dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({
+      ...item,
+      isJunk: item.isJunk ?? false,
+    }));
+    dataToValidateAndExpand.score = dataToValidateAndExpand.score ?? 0;
+    dataToValidateAndExpand.stabilityLevel = dataToValidateAndExpand.stabilityLevel ?? DEFAULT_STABILITY_LEVEL;
+    dataToValidateAndExpand.chaosLevel = dataToValidateAndExpand.chaosLevel ?? DEFAULT_CHAOS_LEVEL;
+    dataToValidateAndExpand.localTime = dataToValidateAndExpand.localTime ?? null;
+    dataToValidateAndExpand.localEnvironment = dataToValidateAndExpand.localEnvironment ?? null;
+    dataToValidateAndExpand.localPlace = dataToValidateAndExpand.localPlace ?? null;
+    dataToValidateAndExpand.allCharacters = dataToValidateAndExpand.allCharacters.map((c: unknown) => {
+      const char = c as Character;
+      return {
+        ...char,
+        aliases: char.aliases || [],
+        presenceStatus: char.presenceStatus || 'unknown',
+        lastKnownLocation: char.lastKnownLocation ?? null,
+        preciseLocation: char.preciseLocation || null,
+        dialogueSummaries: char.dialogueSummaries || [],
+      };
+    });
+    dataToValidateAndExpand.enabledThemePacks = dataToValidateAndExpand.enabledThemePacks ?? [
+      ...DEFAULT_ENABLED_THEME_PACKS,
+    ];
+    dataToValidateAndExpand.playerGender = dataToValidateAndExpand.playerGender ?? DEFAULT_PLAYER_GENDER;
+    dataToValidateAndExpand.turnsSinceLastShift = dataToValidateAndExpand.turnsSinceLastShift ?? 0;
+    dataToValidateAndExpand.globalTurnNumber = dataToValidateAndExpand.globalTurnNumber ?? 0;
+    dataToValidateAndExpand.mainQuest = dataToValidateAndExpand.mainQuest ?? null;
+    dataToValidateAndExpand.isCustomGameMode = dataToValidateAndExpand.isCustomGameMode ?? false;
+
+    return dataToValidateAndExpand;
+  }
+
+  return null;
+}
+
 
 export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDataShape => {
   const {
@@ -494,81 +589,21 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
       try {
         if (event.target && typeof event.target.result === 'string') {
           const parsedData: unknown = JSON.parse(event.target.result);
-          let dataToValidateAndExpand: SavedGameDataShape | null = null;
-
-          const parsedObj = parsedData as Record<string, unknown>;
-          if (parsedObj && (parsedObj.saveGameVersion === CURRENT_SAVE_GAME_VERSION || (typeof parsedObj.saveGameVersion === 'string' && parsedObj.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0])))) {
-            if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
-                console.warn(`Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${String(parsedObj.saveGameVersion)}' from file. Attempting to treat as current version (V3) for validation.`);
-            }
-            dataToValidateAndExpand = parsedObj as SavedGameDataShape;
-            ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
-            ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
-          } else if (parsedObj) {
-            console.warn(`Unknown save version '${String(parsedObj.saveGameVersion)}' from file. This might fail validation.`);
-            dataToValidateAndExpand = parsedObj as SavedGameDataShape;
-            if (dataToValidateAndExpand) {
-                ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
-                ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
-            }
-          }
-
-          if (dataToValidateAndExpand && !dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
-            dataToValidateAndExpand.currentThemeObject = findThemeByName(dataToValidateAndExpand.currentThemeName);
-            if (!dataToValidateAndExpand.currentThemeObject) {
-               console.warn(`Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during file load. Game state might be incomplete.`);
-            }
-          }
-
-        if (dataToValidateAndExpand) {
-          const gt = (dataToValidateAndExpand as { globalTurnNumber?: unknown }).globalTurnNumber;
-          if (typeof gt === 'string') {
-            const parsed = parseInt(gt, 10);
-            dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
-          } else if (gt === undefined || gt === null) {
-            dataToValidateAndExpand.globalTurnNumber = 0;
-          }
-        }
-
-        if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
-            dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({ ...item, isJunk: item.isJunk ?? false }));
-            dataToValidateAndExpand.score = dataToValidateAndExpand.score ?? 0;
-            dataToValidateAndExpand.stabilityLevel = dataToValidateAndExpand.stabilityLevel ?? DEFAULT_STABILITY_LEVEL;
-            dataToValidateAndExpand.chaosLevel = dataToValidateAndExpand.chaosLevel ?? DEFAULT_CHAOS_LEVEL;
-            dataToValidateAndExpand.localTime = dataToValidateAndExpand.localTime ?? null;
-            dataToValidateAndExpand.localEnvironment = dataToValidateAndExpand.localEnvironment ?? null;
-            dataToValidateAndExpand.localPlace = dataToValidateAndExpand.localPlace ?? null;
-              dataToValidateAndExpand.allCharacters = dataToValidateAndExpand.allCharacters.map((c: unknown) => {
-                const char = c as Character;
-                return {
-                  ...char,
-                  aliases: char.aliases || [],
-                  presenceStatus: char.presenceStatus || 'unknown',
-                  lastKnownLocation: char.lastKnownLocation ?? null,
-                  preciseLocation: char.preciseLocation || null,
-                  dialogueSummaries: char.dialogueSummaries || [],
-                };
-              });
-            dataToValidateAndExpand.enabledThemePacks = dataToValidateAndExpand.enabledThemePacks ?? [...DEFAULT_ENABLED_THEME_PACKS];
-            dataToValidateAndExpand.playerGender = dataToValidateAndExpand.playerGender ?? DEFAULT_PLAYER_GENDER;
-            dataToValidateAndExpand.turnsSinceLastShift = dataToValidateAndExpand.turnsSinceLastShift ?? 0;
-            dataToValidateAndExpand.globalTurnNumber = dataToValidateAndExpand.globalTurnNumber ?? 0; 
-            dataToValidateAndExpand.mainQuest = dataToValidateAndExpand.mainQuest ?? null;
-            dataToValidateAndExpand.isCustomGameMode = dataToValidateAndExpand.isCustomGameMode ?? false; 
-
-            resolve(expandSavedDataToFullState(dataToValidateAndExpand));
+          const processed = normalizeLoadedSaveData(parsedData as Record<string, unknown>, 'file');
+          if (processed) {
+            resolve(expandSavedDataToFullState(processed));
             return;
           }
         }
-        console.warn("File save data is invalid or version mismatch for V3. Not loading.");
+        console.warn('File save data is invalid or version mismatch for V3. Not loading.');
         resolve(null);
       } catch (error) {
-        console.error("Error loading game state from file:", error);
+        console.error('Error loading game state from file:', error);
         resolve(null);
       }
     };
     reader.onerror = () => {
-      console.error("Error reading file.");
+      console.error('Error reading file.');
       resolve(null);
     };
     reader.readAsText(file);

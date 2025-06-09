@@ -4,6 +4,7 @@
  * @description Utility for highlighting entities within text snippets.
  */
 import React from 'react';
+import { Item, Character, MapNode } from '../types';
 // Item and Character types are fine. Place-like entities will be mapped to HighlightableEntity.
 // No direct type change needed here as long as the calling components map MapNode data to HighlightableEntity structure.
 
@@ -107,5 +108,47 @@ export const highlightEntitiesInText = (
     results.push(text.substring(lastIndex));
   }
   
-  return results.length > 0 ? results : [text]; 
+  return results.length > 0 ? results : [text];
+};
+
+/**
+ * Builds a list of highlightable entities from inventory items, map nodes and
+ * characters for the current theme.
+ */
+export const buildHighlightableEntities = (
+  inventory: Item[],
+  mapData: MapNode[],
+  allCharacters: Character[],
+  currentThemeName: string | null
+): HighlightableEntity[] => {
+  const items: HighlightableEntity[] = inventory.map(item => ({
+    name: item.name,
+    type: 'item',
+    description:
+      item.isActive && item.activeDescription ? item.activeDescription : item.description,
+  }));
+
+  const places: HighlightableEntity[] = currentThemeName
+    ? mapData
+        .filter(node => node.themeName === currentThemeName)
+        .map(node => ({
+          name: node.placeName,
+          type: 'place',
+          description: node.data.description || 'A location of interest.',
+          aliases: node.data.aliases || [],
+        }))
+    : [];
+
+  const characters: HighlightableEntity[] = currentThemeName
+    ? allCharacters
+        .filter(c => c.themeName === currentThemeName)
+        .map(c => ({
+          name: c.name,
+          type: 'character',
+          description: c.description,
+          aliases: c.aliases,
+        }))
+    : [];
+
+  return [...items, ...places, ...characters];
 };
