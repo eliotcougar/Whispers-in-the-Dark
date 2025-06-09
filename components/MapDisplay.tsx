@@ -65,16 +65,16 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
 
   useEffect(() => {
     if (!initialLayoutConfig) return;
-    setLayoutIdealEdgeLength(initialLayoutConfig.IDEAL_EDGE_LENGTH);
-    setLayoutNestedPadding(
-      initialLayoutConfig.NESTED_PADDING ?? DEFAULT_NESTED_PADDING
-    );
-    setLayoutNestedAnglePadding(
-      initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
-    );
-    setLabelOverlapMarginPx(
-      initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX
-    );
+    const edge = initialLayoutConfig.IDEAL_EDGE_LENGTH;
+    const pad = initialLayoutConfig.NESTED_PADDING ?? DEFAULT_NESTED_PADDING;
+    const angle =
+      initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING;
+    const overlap =
+      initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX;
+    setLayoutIdealEdgeLength(prev => (prev === edge ? prev : edge));
+    setLayoutNestedPadding(prev => (prev === pad ? prev : pad));
+    setLayoutNestedAnglePadding(prev => (prev === angle ? prev : angle));
+    setLabelOverlapMarginPx(prev => (prev === overlap ? prev : overlap));
   }, [initialLayoutConfig]);
 
   /** Current layout configuration derived from state sliders. */
