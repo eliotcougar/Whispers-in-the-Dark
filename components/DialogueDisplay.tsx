@@ -6,6 +6,7 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types'; 
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
+import LoadingSpinner from './LoadingSpinner';
 
 interface DialogueDisplayProps {
   isVisible: boolean;
@@ -77,35 +78,8 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
   const optionsDisabled = isLoading || isDialogueExiting;
 
   const renderOptionsArea = () => {
-    if (isDialogueExiting) {
-      let exitingText = "Finalizing conversation...";
-      if (loadingReason === 'dialogue_memory_creation') {
-        exitingText = "Memories are forming...";
-      } else if (loadingReason === 'dialogue_conclusion_summary') {
-        exitingText = "Conversation is concluding...";
-      } else if (loadingReason === 'dialogue_summary') {
-         exitingText = "Concluding dialogue..."; // Generic summary
-      }
-
-      return (
-        <div className="flex flex-col items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sky-400 mb-2"></div>
-          <p className="text-lg text-slate-300 italic">{exitingText}</p>
-        </div>
-      );
-    }
-    
-    if (isLoading) { 
-      let loadingText = "Waiting for response...";
-      if (loadingReason === 'dialogue_turn') {
-        loadingText = "The conversation continues...";
-      }
-      return (
-        <div className="flex flex-col items-center justify-center py-4 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sky-400 mb-2"></div>
-          <p className="text-slate-400 italic">{loadingText}</p>
-        </div>
-      );
+    if (isDialogueExiting || isLoading) {
+      return <LoadingSpinner loadingReason={loadingReason} />;
     }
 
     if (options.length > 0) {
