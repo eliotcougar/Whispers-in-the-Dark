@@ -196,12 +196,17 @@ export const formatTravelPlanLine = (
   const destRumored = destination?.data.status === 'rumored';
   const firstEdge = path[1];
   const nextNodeStep = path[2];
-  const furtherNodeStep = path[4];
+  const furtherNodeStep = path.length > 4 ? path[4] : undefined;
   if (firstEdge.step !== 'edge' || nextNodeStep.step !== 'node') return null;
   const nextNode = mapData.nodes.find(n => n.id === nextNodeStep.id);
   const nextName = nextNode?.placeName ?? nextNodeStep.id;
-  const furtherNode = furtherNodeStep ? mapData.nodes.find(n => n.id === furtherNodeStep.id) : null;
-  const furtherName = furtherNode?.placeName ?? furtherNodeStep.id;
+  const furtherNode =
+    furtherNodeStep && furtherNodeStep.step === 'node'
+      ? mapData.nodes.find(n => n.id === furtherNodeStep.id)
+      : null;
+  const furtherName = furtherNodeStep
+    ? furtherNode?.placeName ?? furtherNodeStep.id
+    : '';
   const nextRumored = nextNode?.data.status === 'rumored';
   const furtherRumored = furtherNode?.data.status === 'rumored';
 
