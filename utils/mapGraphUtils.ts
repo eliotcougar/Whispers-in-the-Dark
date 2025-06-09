@@ -100,7 +100,7 @@ export const findClosestAllowedParent = (
 ): string | undefined => {
   let current = startingParent;
   const childLevel = getNodeTypeLevel(childType);
-  while (current && getNodeTypeLevel(current.data.nodeType) > childLevel) {
+  while (current && getNodeTypeLevel(current.data.nodeType) >= childLevel) {
     if (!current.data.parentNodeId) return undefined;
     current = nodeMap.get(current.data.parentNodeId);
   }
