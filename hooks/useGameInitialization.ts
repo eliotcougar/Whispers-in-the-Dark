@@ -388,23 +388,135 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
   ]);
 
   /** Retry helper used when an error occurred in the main logic. */
-  const handleRetry = useCallback(() => {
+  const handleRetry = useCallback(async () => {
     setError(null);
     const currentFullState = getCurrentGameState();
+
+    // If no theme has been initialized yet, retry initial load
     if (!currentFullState.currentThemeName) {
-      void loadInitialGame({ isRestart: true, customGameFlag: currentFullState.isCustomGameMode ?? false });
-    } else {
+      await loadInitialGame({
+        isRestart: true,
+        customGameFlag: currentFullState.isCustomGameMode ?? false,
+      });
+      return;
+    }
+
+    const lastPrompt = currentFullState.lastDebugPacket?.prompt;
+    const currentThemeObj = currentFullState.currentThemeObject;
+
+    // Fallback to generic retry if prompt or theme data is missing
+    if (!lastPrompt || !currentThemeObj) {
       const genericRetryState = {
         ...currentFullState,
-        actionOptions: ['Look around.', 'Ponder the situation.', 'Try to move on.', 'Check your inventory.'],
+        actionOptions: [
+          'Look around.',
+          'Ponder the situation.',
+          'Try to move on.',
+          'Check your inventory.',
+        ],
         lastActionLog: 'Attempting to re-establish connection with the narrative flow...',
         dialogueState: null,
       } as FullGameState;
       commitGameState(genericRetryState);
       setIsLoading(false);
       setLoadingReason(null);
+      return;
     }
-  }, [getCurrentGameState, loadInitialGame, commitGameState, setError, setIsLoading, setLoadingReason]);
+
+    setIsLoading(true);
+    setLoadingReason('storyteller');
+    setParseErrorCounter(0);
+
+    const baseStateSnapshot = structuredCloneGameState(currentFullState);
+    let draftState = structuredCloneGameState(currentFullState);
+    const debugPacket = {
+      prompt: lastPrompt,
+      rawResponseText: null,
+      parsedResponse: null,
+      timestamp: new Date().toISOString(),
+    };
+    draftState.lastDebugPacket = debugPacket;
+
+    try {
+      const response = await executeAIMainTurn(
+        lastPrompt,
+        currentThemeObj.systemInstructionModifier,
+      );
+      if (draftState.lastDebugPacket)
+        draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+
+      const currentThemeCharacters = draftState.allCharacters.filter(
+        (c) => c.themeName === currentThemeObj.name,
+      );
+      const currentThemeMapDataForParse = {
+        nodes: draftState.mapData.nodes.filter(
+          (n) => n.themeName === currentThemeObj.name,
+        ),
+        edges: draftState.mapData.edges.filter((e) => {
+          const sourceNode = draftState.mapData.nodes.find(
+            (node) => node.id === e.sourceNodeId,
+          );
+          const targetNode = draftState.mapData.nodes.find(
+            (node) => node.id === e.targetNodeId,
+          );
+          return (
+            sourceNode?.themeName === currentThemeObj.name &&
+            targetNode?.themeName === currentThemeObj.name
+          );
+        }),
+      };
+
+      const parsedData = await parseAIResponse(
+        response.text ?? '',
+        playerGenderProp,
+        currentThemeObj,
+        () => setParseErrorCounter(1),
+        currentFullState.lastActionLog || undefined,
+        currentFullState.currentScene,
+        currentThemeCharacters,
+        currentThemeMapDataForParse,
+        currentFullState.inventory,
+      );
+
+      await processAiResponse(parsedData, currentThemeObj, draftState, {
+        baseStateSnapshot,
+        scoreChangeFromAction: 0,
+      });
+
+      draftState.turnsSinceLastShift += 1;
+      draftState.globalTurnNumber += 1;
+    } catch (e: unknown) {
+      console.error('Error retrying last main AI request:', e);
+      const errMsg = e instanceof Error ? e.message : String(e);
+      setError(`Retry failed: ${errMsg}.`);
+      draftState = structuredCloneGameState(baseStateSnapshot);
+      draftState.lastActionLog =
+        'Retry failed. The outcome remains uncertain.';
+      draftState.actionOptions = [
+        'Look around.',
+        'Ponder the situation.',
+        'Check your inventory.',
+        'Try to move on.',
+      ];
+      draftState.dialogueState = null;
+      if (draftState.lastDebugPacket)
+        draftState.lastDebugPacket.error = errMsg;
+    } finally {
+      commitGameState(draftState);
+      setIsLoading(false);
+      setLoadingReason(null);
+    }
+  }, [
+    getCurrentGameState,
+    loadInitialGame,
+    commitGameState,
+    setError,
+    setIsLoading,
+    setLoadingReason,
+    setParseErrorCounter,
+    processAiResponse,
+    playerGenderProp,
+  ]);
 
   return {
     gatherCurrentGameStateForSave,

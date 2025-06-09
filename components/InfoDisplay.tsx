@@ -116,6 +116,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                   <li>Added &quot;Custom Game&quot; option to the Main Menu: You can now choose a specific theme to start in, and random reality shifts will be disabled for that playthrough.</li>
                   <li>Manual shifts in Custom Game give you full control over your destination.</li>
                   <li>Removed error-triggered reality shifts entirely.</li>
+                  <li>Retry button nor really performs a retry.</li>
                   <li></li>
                 </ul>
                 <h3 className="text-xl font-medium text-sky-400 mb-2">Version 1.2.2 (bugfix)</h3>

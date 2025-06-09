@@ -37,7 +37,7 @@ import {
 import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../utils/mapSynonyms';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
-import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service } from './corrections/map';
+import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service, ConnectorChainsServiceResult } from './corrections/map';
 import { findClosestAllowedParent } from '../utils/mapGraphUtils';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 import { addProgressSymbol } from '../utils/loadingProgress';
@@ -1110,12 +1110,28 @@ Key points:
   };
 
   while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
-      const chainResult = await fetchConnectorChains_Service(chainRequests, chainContext);
-      if (chainResult.debugInfo) {
-        debugInfo.connectorChainsDebugInfo = chainResult.debugInfo;
+      let chainResult: ConnectorChainsServiceResult | null = null;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        console.log(
+          `Connector Chains Refinement: Round ${refineAttempts + 1}/${MAX_CHAIN_REFINEMENT_ROUNDS}, Attempt ${
+            attempt + 1
+          }/${MAX_RETRIES}`,
+        );
+        chainResult = await fetchConnectorChains_Service(chainRequests, chainContext);
+        if (chainResult.debugInfo) {
+          debugInfo.connectorChainsDebugInfo = chainResult.debugInfo;
+        }
+        if (chainResult.payload) {
+          break;
+        }
+        console.warn(
+          `Connector Chains Refinement (Round ${refineAttempts + 1}, Attempt ${
+            attempt + 1
+          }): invalid or empty response. Retrying.`,
+        );
       }
-      chainRequests = [];
-      if (chainResult.payload) {
+      if (chainResult && chainResult.payload) {
+        chainRequests = [];
         (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
           const nodeData = nAdd.data || { status: 'discovered', nodeType: 'feature', parentNodeId: 'Universe', description: '', aliases: [] };
           const parent = nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
@@ -1158,6 +1174,13 @@ Key points:
             }
           }
         });
+      } else {
+        console.warn(
+          `Connector Chains Refinement failed after ${MAX_RETRIES} attempts for round ${
+            refineAttempts + 1
+          }. Giving up on these chain requests.`,
+        );
+        break;
       }
       refineAttempts++;
   }
