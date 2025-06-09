@@ -36,7 +36,7 @@ export const useMapInteractions = (
   const [lastPinchDistance, setLastPinchDistance] = useState<number | null>(null);
 
   useEffect(() => {
-    setViewBox(initialViewBox);
+    setViewBox(prev => (prev === initialViewBox ? prev : initialViewBox));
   }, [initialViewBox]);
 
   /** Starts drag panning. */

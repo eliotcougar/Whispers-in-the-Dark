@@ -58,16 +58,27 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
     (updatedNodes: MapNode[]) => {
       setGameStateStack(prev => {
         const draft = structuredCloneGameState(prev[0]);
+        let changed = false;
         const nodeMap = new Map(draft.mapData.nodes.map(n => [n.id, n]));
         updatedNodes.forEach(n => {
           const existing = nodeMap.get(n.id);
           if (existing) {
-            existing.position = { ...n.position };
-            if (n.data.visualRadius !== undefined) {
-              existing.data.visualRadius = n.data.visualRadius;
+            const posDiff =
+              existing.position.x !== n.position.x ||
+              existing.position.y !== n.position.y;
+            const vrDiff =
+              n.data.visualRadius !== undefined &&
+              existing.data.visualRadius !== n.data.visualRadius;
+            if (posDiff || vrDiff) {
+              existing.position = { ...n.position };
+              if (n.data.visualRadius !== undefined) {
+                existing.data.visualRadius = n.data.visualRadius;
+              }
+              changed = true;
             }
           }
         });
+        if (!changed) return prev;
         draft.mapData.nodes = Array.from(nodeMap.values());
         return [draft, prev[1]];
       });
