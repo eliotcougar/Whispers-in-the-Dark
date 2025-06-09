@@ -421,13 +421,13 @@ const App: React.FC = () => {
           <div className="w-full max-w-3xl my-4">
             <ErrorDisplay
               message={error}
-              onRetry={isLoading ? undefined : handleRetry}
+              onRetry={isLoading ? undefined : () => { void handleRetry(); }}
             />
           </div>
         )}
          {error && !hasGameBeenInitialized && (
             <div className="w-full max-w-3xl my-4">
-                <ErrorDisplay message={error} onRetry={handleRetry} />
+                <ErrorDisplay message={error} onRetry={() => { void handleRetry(); }} />
             </div>
         )}
 
