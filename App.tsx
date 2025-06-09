@@ -375,7 +375,6 @@ const App: React.FC = () => {
     if (!destinationNodeId || !currentMapNodeId) return null;
     return findTravelPath(mapData, currentMapNodeId, destinationNodeId);
   }, [destinationNodeId, currentMapNodeId, mapData]);
-  void travelPath;
   const prevMapVisibleRef = useRef(false);
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {
@@ -591,6 +590,7 @@ const App: React.FC = () => {
         debugPacket={lastDebugPacket}
         gameStateStack={gameStateStack}
         onUndoTurn={handleUndoTurn}
+        travelPath={travelPath}
       />
 
       <TitleMenu

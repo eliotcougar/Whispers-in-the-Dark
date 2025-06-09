@@ -442,6 +442,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                   <polygon
                     className="map-destination-marker"
                     points="0,-14 10,0 0,14 -10,0"
+                    pointerEvents="none"
                   />
                 )}
               </g>
