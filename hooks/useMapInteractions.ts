@@ -3,7 +3,7 @@
  * @description Hook providing pan and zoom handlers for the map display.
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { VIEWBOX_WIDTH_INITIAL, VIEWBOX_HEIGHT_INITIAL } from '../utils/mapConstants';
 import { getSVGCoordinates } from '../utils/svgUtils';
 
@@ -22,13 +22,22 @@ export interface UseMapInteractionsResult {
 
 /** Provides pan and zoom interaction handlers for a map SVG element. */
 export const useMapInteractions = (
-  initialViewBox: string = `${-VIEWBOX_WIDTH_INITIAL / 2} ${-VIEWBOX_HEIGHT_INITIAL / 2} ${VIEWBOX_WIDTH_INITIAL} ${VIEWBOX_HEIGHT_INITIAL}`
+  initialViewBox: string = `${-VIEWBOX_WIDTH_INITIAL / 2} ${-VIEWBOX_HEIGHT_INITIAL / 2} ${VIEWBOX_WIDTH_INITIAL} ${VIEWBOX_HEIGHT_INITIAL}`,
+  onViewBoxChange?: (viewBox: string) => void
 ): UseMapInteractionsResult => {
   const [viewBox, setViewBox] = useState(initialViewBox);
+  const updateViewBox = (box: string) => {
+    setViewBox(box);
+    if (onViewBoxChange) onViewBoxChange(box);
+  };
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [lastScreenDragPoint, setLastScreenDragPoint] = useState<{ x: number; y: number } | null>(null);
   const [lastPinchDistance, setLastPinchDistance] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (onViewBoxChange) onViewBoxChange(initialViewBox);
+  }, [onViewBoxChange, initialViewBox]);
 
   /** Starts drag panning. */
   const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -54,7 +63,7 @@ export const useMapInteractions = (
     const deltaViewBoxY = prevSVGPoint.y - currentSVGPoint.y;
 
     const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
-    setViewBox(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
+    updateViewBox(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
     setLastScreenDragPoint({ x: e.clientX, y: e.clientY });
   };
 
@@ -95,7 +104,7 @@ export const useMapInteractions = (
     const newVx = svgPoint.x - (svgPoint.x - vx) * (newVw / vw);
     const newVy = svgPoint.y - (svgPoint.y - vy) * (newVh / vh);
 
-    setViewBox(`${newVx} ${newVy} ${newVw} ${newVh}`);
+    updateViewBox(`${newVx} ${newVy} ${newVw} ${newVh}`);
   };
 
   /** Returns the distance between two touch points. */
@@ -144,7 +153,7 @@ export const useMapInteractions = (
       const deltaViewBoxY = prevSVGPoint.y - currentSVGPoint.y;
 
       const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
-      setViewBox(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
+      updateViewBox(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
       setLastScreenDragPoint({ x: touch.clientX, y: touch.clientY });
     } else if (e.touches.length === 2 && lastPinchDistance !== null) {
       const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
@@ -187,7 +196,7 @@ export const useMapInteractions = (
       const newVx = svgPinchCenter.x - (svgPinchCenter.x - vx) * (newVw / vw);
       const newVy = svgPinchCenter.y - (svgPinchCenter.y - vy) * (newVh / vh);
 
-      setViewBox(`${newVx} ${newVy} ${newVw} ${newVh}`);
+      updateViewBox(`${newVx} ${newVy} ${newVw} ${newVh}`);
       setLastPinchDistance(currentDistance);
     }
   };

@@ -44,5 +44,13 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
     [setGameStateStack]
   );
 
-  return { handleMapLayoutConfigChange };
+  /** Stores the current map viewBox (pan/zoom) in the game state. */
+  const handleMapViewBoxChange = useCallback(
+    (newViewBox: string) => {
+      setGameStateStack(prev => [{ ...prev[0], mapViewBox: newViewBox }, prev[1]]);
+    },
+    [setGameStateStack]
+  );
+
+  return { handleMapLayoutConfigChange, handleMapViewBoxChange };
 };

@@ -37,6 +37,8 @@ interface MapNodeViewProps {
   edges: MapEdge[];
   currentMapNodeId: string | null;
   labelOverlapMarginPx: number;
+  initialViewBox: string;
+  onViewBoxChange: (viewBox: string) => void;
 }
 
 /**
@@ -130,8 +132,10 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   edges,
   currentMapNodeId,
   labelOverlapMarginPx,
+  initialViewBox,
+  onViewBoxChange,
 }) => {
-  const interactions = useMapInteractions();
+  const interactions = useMapInteractions(initialViewBox, onViewBoxChange);
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
 

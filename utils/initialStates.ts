@@ -25,6 +25,7 @@ import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
+  DEFAULT_VIEWBOX,
 } from './mapConstants';
 
 
@@ -56,9 +57,10 @@ export const getInitialGameStates = (): FullGameState => {
     themeHistory: {},
     pendingNewThemeNameAfterShift: null,
     allCharacters: [],
-    mapData: { nodes: [], edges: [] }, 
-    currentMapNodeId: null, 
+    mapData: { nodes: [], edges: [] },
+    currentMapNodeId: null,
     mapLayoutConfig: getDefaultMapLayoutConfig(),
+    mapViewBox: DEFAULT_VIEWBOX,
     score: 0,
     localTime: "Unknown",
     localEnvironment: "Unknown",

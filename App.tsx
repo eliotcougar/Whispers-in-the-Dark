@@ -4,7 +4,7 @@
  * @description Main application component wiring together UI and game logic.
  */
 
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import { FullGameState, ThemePackName } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import SceneDisplay from './components/SceneDisplay';
@@ -125,7 +125,9 @@ const App: React.FC = () => {
     gameStateStack,
     handleMapLayoutConfigChange, 
     loadingReason,
-    handleUndoTurn, 
+    handleUndoTurn,
+    mapViewBox,
+    handleMapViewBoxChange,
   } = gameLogic;
 
   useEffect(() => {
@@ -364,6 +366,18 @@ const App: React.FC = () => {
     setIsCustomGameSetupVisible(false);
     startCustomGame(themeName);
   };
+
+  const mapInitialViewBox = useMemo(() => {
+    const parts = mapViewBox.split(' ').map(parseFloat);
+    if (parts.length === 4) {
+      const [, , vw, vh] = parts;
+      const node = mapData.nodes.find(n => n.id === currentMapNodeId);
+      if (node && !isNaN(vw) && !isNaN(vh)) {
+        return `${node.position.x - vw / 2} ${node.position.y - vh / 2} ${vw} ${vh}`;
+      }
+    }
+    return mapViewBox;
+  }, [mapViewBox, mapData.nodes, currentMapNodeId]);
 
 
   if (!appReady) {
@@ -640,8 +654,10 @@ const App: React.FC = () => {
             mapData={mapData} 
             currentThemeName={currentTheme?.name || null}
             currentMapNodeId={currentMapNodeId}
-            initialLayoutConfig={mapLayoutConfig} 
-            onLayoutConfigChange={handleMapLayoutConfigChange} 
+           initialLayoutConfig={mapLayoutConfig}
+            initialViewBox={mapInitialViewBox}
+            onLayoutConfigChange={handleMapLayoutConfigChange}
+            onViewBoxChange={handleMapViewBoxChange}
             isVisible={isMapVisible}
             onClose={() => setIsMapVisible(false)}
           />
