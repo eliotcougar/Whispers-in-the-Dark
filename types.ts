@@ -162,6 +162,7 @@ export interface DialogueSummaryResponse {
   localPlace?: string; 
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
+  mapHint?: string; // Optional hint about distant quest-related locations for MapAI
 }
 // --- End Dialogue Mode Types ---
 
@@ -198,6 +199,7 @@ export interface GameStateFromAI {
   dialogueSetup?: DialogueSetupPayload;
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
+  mapHint?: string; // Optional hint about distant quest-related locations for MapAI
   // placesAdded and placesUpdated are removed from storyteller responsibility
 }
 

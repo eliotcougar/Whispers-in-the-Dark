@@ -348,6 +348,7 @@ export const updateMapFromAIData_Service = async (
   const sceneDesc = 'sceneDescription' in aiResponse ? aiResponse.sceneDescription : "";
   const logMsg = aiResponse.logMessage || "";
   const localPlace = aiResponse.localPlace || "Unknown";
+  const mapHint = aiResponse.mapHint || "";
   const referenceMapNodeId =
     'currentMapNodeId' in aiResponse && aiResponse.currentMapNodeId
       ? aiResponse.currentMapNodeId
@@ -406,6 +407,7 @@ Narrative Context for Map Update:
 - ${previousMapNodeContext}
 - Scene Description: "${sceneDesc}"
 - Log Message (outcome of last action): "${logMsg}"
+- Map Hint from Storyteller: "${mapHint}"
 - All Known Main Locations for this Theme (these are expected to be main map nodes): ${allKnownMainPlacesString}.
 - Your task is to analyze this narrative context and suggest additions, updates, or removals to the map data.
 
