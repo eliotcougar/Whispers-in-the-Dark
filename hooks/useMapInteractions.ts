@@ -36,8 +36,8 @@ export const useMapInteractions = (
   const [lastPinchDistance, setLastPinchDistance] = useState<number | null>(null);
 
   useEffect(() => {
-    if (onViewBoxChange) onViewBoxChange(initialViewBox);
-  }, [onViewBoxChange, initialViewBox]);
+    setViewBox(initialViewBox);
+  }, [initialViewBox]);
 
   /** Starts drag panning. */
   const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
