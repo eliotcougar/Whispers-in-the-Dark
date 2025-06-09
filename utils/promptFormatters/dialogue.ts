@@ -188,36 +188,36 @@ export const formatTravelPlanLine = (
   currentNodeId: string | null,
   destinationNodeId: string | null
 ): string | null => {
-  if (!currentNodeId || !destinationNodeId || currentNodeId === destinationNodeId) {
-    return null;
-  }
-
+  if (!currentNodeId || !destinationNodeId || currentNodeId === destinationNodeId) return null;
   const path = findTravelPath(mapData, currentNodeId, destinationNodeId);
   if (!path || path.length < 3) return null;
-
-  const getNode = (id: string) => mapData.nodes.find(n => n.id === id) || null;
-  const getName = (id: string) => getNode(id)?.placeName ?? id;
-  const isRumored = (id: string) => getNode(id)?.data.status === 'rumored';
-
-  const destinationName = getName(destinationNodeId);
-  const destRumored = isRumored(destinationNodeId);
-
+  const destination = mapData.nodes.find(n => n.id === destinationNodeId);
+  const destName = destination?.placeName ?? destinationNodeId;
+  const destRumored = destination?.data.status === 'rumored';
   const firstEdge = path[1];
   const nextNodeStep = path[2];
   const furtherNodeStep = path.length > 4 ? path[4] : undefined;
-
-  const nextName = getName(nextNodeStep.id);
-  const nextRumored = isRumored(nextNodeStep.id);
-    ? `Player wants to reach a rumored place - ${destinationName}.`
-    : `Player wants to travel to ${destinationName}.`;
-    const ids = firstEdge.id.slice('hierarchy:'.length).split('->');
-    const fromName = getName(ids[0] || '');
-    const toName = getName(ids[1] || '');
-
-  if (furtherNodeStep && furtherNodeStep.step === 'node') {
-    const furtherName = getName(furtherNodeStep.id);
-    const furtherRumored = isRumored(furtherNodeStep.id);
-
+  const furtherNode =
+    furtherNodeStep && furtherNodeStep.step === 'node'
+      ? mapData.nodes.find(n => n.id === furtherNodeStep.id)
+      : null;
+    const idParts = firstEdge.id.split(':');
+    const pair = idParts.length > 1 ? idParts[1] : '';
+    const [from = '', to = ''] = pair.split('->');
+    const fromName = from
+      ? mapData.nodes.find(n => n.id === from)?.placeName ?? from
+      : '';
+    const toName = to
+      ? mapData.nodes.find(n => n.id === to)?.placeName ?? to
+      : '';
+  if (furtherNode) {
+    const furtherName = furtherNode.placeName ?? furtherNode.id;
+    const furtherRumored = furtherNode.data.status === 'rumored';
+    line += `, then continues towards ${furtherRumored ? 'a rumored place - ' + furtherName : furtherName}.`;
+  } else {
+    line += '.';
+  }
+  const nextName = nextNode?.placeName ?? nextNodeStep.id;
   const furtherNode = furtherNodeStep ? mapData.nodes.find(n => n.id === furtherNodeStep.id) : null;
   const furtherName = furtherNode?.placeName ?? furtherNodeStep.id;
   const nextRumored = nextNode?.data.status === 'rumored';
