@@ -15,6 +15,7 @@ import {
 } from '../../types';
 import { formatInventoryForPrompt } from './inventory';
 import { formatKnownPlacesForPrompt, formatMapContextForPrompt } from './map';
+import { findTravelPath } from '../mapPathfinding';
 
 /**
  * Formats a list of known characters for AI prompts.
@@ -180,6 +181,53 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
 };
 
 /**
+ * Creates a short travel plan line describing the next step toward the destination.
+ */
+export const formatTravelPlanLine = (
+  mapData: MapData,
+  currentNodeId: string | null,
+  destinationNodeId: string | null
+): string | null => {
+  if (!currentNodeId || !destinationNodeId || currentNodeId === destinationNodeId) return null;
+  const path = findTravelPath(mapData, currentNodeId, destinationNodeId);
+  if (!path || path.length < 3) return null;
+  const destination = mapData.nodes.find(n => n.id === destinationNodeId);
+  const destName = destination?.placeName ?? destinationNodeId;
+  const destRumored = destination?.data.status === 'rumored';
+  const firstEdge = path[1];
+  const nextNodeStep = path[2];
+  const furtherNodeStep = path[4];
+  if (firstEdge.step !== 'edge' || nextNodeStep.step !== 'node') return null;
+  const nextNode = mapData.nodes.find(n => n.id === nextNodeStep.id);
+  const nextName = nextNode?.placeName ?? nextNodeStep.id;
+  const furtherNode = furtherNodeStep ? mapData.nodes.find(n => n.id === furtherNodeStep.id) : null;
+  const furtherName = furtherNode?.placeName ?? furtherNodeStep.id;
+  const nextRumored = nextNode?.data.status === 'rumored';
+  const furtherRumored = furtherNode?.data.status === 'rumored';
+
+  let line = destRumored
+    ? `Player wants to reach a rumored place - ${destName}.`
+    : `Player wants to travel to ${destName}.`;
+
+  if (firstEdge.id.startsWith('hierarchy:')) {
+    const [from, to] = firstEdge.id.split(':')[1].split('->');
+    const fromName = mapData.nodes.find(n => n.id === from)?.placeName ?? from;
+    const toName = mapData.nodes.find(n => n.id === to)?.placeName ?? to;
+    line += ` The journey leads towards ${toName} in the general area of ${fromName}, and then towards ${furtherRumored ? 'a rumored place - ' + furtherName : furtherName}.`;
+  } else {
+    const edge = mapData.edges.find(e => e.id === firstEdge.id);
+    const edgeStatus = edge?.data.status ?? 'open';
+    const edgeName = edge?.data.description || edge?.data.type || 'path';
+    if (edgeStatus === 'rumored') {
+      line += ` There is a rumor a path exists from here to ${nextRumored ? 'a rumored place - ' + nextName : nextName}.`;
+    } else {
+      line += ` The path leads through ${edgeName} towards ${nextRumored ? 'a rumored place - ' + nextName : nextName}.`;
+    }
+  }
+  return line;
+};
+
+/**
  * Formats the prompt for returning to a previously visited theme.
  */
 export const formatReturnToThemePostShiftPrompt = (
@@ -241,7 +289,8 @@ export const formatMainGameTurnPrompt = (
   playerGender: string,
   themeHistory: ThemeHistoryState,
   currentMapNodeDetails: MapNode | null,
-  fullMapData: MapData
+  fullMapData: MapData,
+  destinationNodeId: string | null
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
@@ -260,6 +309,12 @@ export const formatMainGameTurnPrompt = (
     currentTheme,
     allNodesForCurrentTheme,
     allEdgesForCurrentTheme
+  );
+
+  const travelPlanLine = formatTravelPlanLine(
+    fullMapData,
+    currentMapNodeDetails?.id || null,
+    destinationNodeId
   );
 
   const detailedEntityContext = formatDetailedContextForMentionedEntities(
@@ -293,6 +348,7 @@ ${recentEventsContext}
 Current Theme: "${currentTheme.name}"
 Previous Scene: "${currentScene}"
 Player Action: "${playerAction}"
+${travelPlanLine ? travelPlanLine : ''}
 
 Based on the Previous Scene and Player Action, and taking into account the provided context (including map context):
 Generate the next scene description, options, item changes, log message, etc.

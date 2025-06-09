@@ -89,6 +89,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       chaosLevel: chaosLevelProp,
       mapData: currentFullState.mapData || { nodes: [], edges: [] },
       currentMapNodeId: currentFullState.currentMapNodeId || null,
+      destinationNodeId: currentFullState.destinationNodeId || null,
       mapLayoutConfig: currentFullState.mapLayoutConfig || getDefaultMapLayoutConfig(),
       mapViewBox: currentFullState.mapViewBox,
       isCustomGameMode: currentFullState.isCustomGameMode ?? false,
@@ -133,6 +134,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
         const mapDataToApply = savedStateToLoad.mapData || { nodes: [], edges: [] };
         const currentMapNodeIdToApply = savedStateToLoad.currentMapNodeId || null;
+        const destinationToApply = savedStateToLoad.destinationNodeId || null;
         const mapLayoutConfigToApply = savedStateToLoad.mapLayoutConfig || getDefaultMapLayoutConfig();
         if (typeof mapLayoutConfigToApply.NESTED_PADDING !== 'number') {
           mapLayoutConfigToApply.NESTED_PADDING = getDefaultMapLayoutConfig().NESTED_PADDING;
@@ -146,6 +148,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           currentThemeObject: themeForLoadedState,
           mapData: mapDataToApply,
           currentMapNodeId: currentMapNodeIdToApply,
+          destinationNodeId: destinationToApply,
           mapLayoutConfig: mapLayoutConfigToApply,
           mapViewBox: savedStateToLoad.mapViewBox || DEFAULT_VIEWBOX,
           isCustomGameMode: savedStateToLoad.isCustomGameMode ?? false,

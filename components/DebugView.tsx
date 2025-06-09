@@ -5,6 +5,7 @@
  */
 import React, { useState } from 'react';
 import { GameStateStack, DebugPacket, MapNode } from '../types';
+import { TravelStep } from '../utils/mapPathfinding';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
 interface DebugViewProps {
@@ -13,14 +14,32 @@ interface DebugViewProps {
   debugPacket: DebugPacket | null;
   gameStateStack: GameStateStack;
   onUndoTurn: () => void; // New prop for undoing turn
+  travelPath: TravelStep[] | null;
 }
 
-type DebugTab = "GameState" | "MainAI" | "MapLocationAI" | "Inventory" | "Characters" | "MapDataFull" | "ThemeHistory" | "GameLog" | "MiscState";
+type DebugTab =
+  | "GameState"
+  | "MainAI"
+  | "MapLocationAI"
+  | "Inventory"
+  | "Characters"
+  | "MapDataFull"
+  | "ThemeHistory"
+  | "GameLog"
+  | "TravelPath"
+  | "MiscState";
 
 /**
  * Developer-only panel for inspecting and manipulating game state.
  */
-const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, gameStateStack, onUndoTurn }) => {
+const DebugView: React.FC<DebugViewProps> = ({
+  isVisible,
+  onClose,
+  debugPacket,
+  gameStateStack,
+  onUndoTurn,
+  travelPath,
+}) => {
   const [activeTab, setActiveTab] = useState<DebugTab>("GameState");
   const [showMainAIRaw, setShowMainAIRaw] = useState<boolean>(true);
   const [showMapAIRaw, setShowMapAIRaw] = useState<boolean>(true);
@@ -103,6 +122,7 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
     { name: "MapDataFull", label: "Map Data (Full)" },
     { name: "ThemeHistory", label: "Theme History" },
     { name: "GameLog", label: "Game Log" },
+    { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
   ];
 
@@ -210,6 +230,30 @@ const DebugView: React.FC<DebugViewProps> = ({ isVisible, onClose, debugPacket, 
         return renderContent("Current Theme History", currentState?.themeHistory, true, "max-h-[70vh]");
       case "GameLog":
         return renderContent("Current Game Log", currentState?.gameLog, true, "max-h-[70vh]");
+      case "TravelPath": {
+        if (!travelPath || travelPath.length === 0) {
+          return <p className="italic text-slate-400">No destination set.</p>;
+        }
+        const mapData = currentState?.mapData;
+        const expanded = travelPath.map(step => {
+          if (step.step === 'node') {
+            const node = mapData?.nodes.find(n => n.id === step.id);
+            return { step: 'node', data: node || { id: step.id, missing: true } };
+          }
+          if (step.id.startsWith('hierarchy:')) {
+            const [from, to] = step.id.split(':')[1].split('->');
+            return { step: 'hierarchy', from, to };
+          }
+          const edge = mapData?.edges.find(e => e.id === step.id);
+          return { step: 'edge', data: edge || { id: step.id, missing: true } };
+        });
+        return (
+          <>
+            {renderContent('Travel Path (IDs)', travelPath)}
+            {renderContent('Expanded Path Data', expanded, true, 'max-h-[70vh]')}
+          </>
+        );
+      }
       case "MiscState":
         return renderContent("Miscellaneous State Values", {
             currentThemeName: currentState?.currentThemeName,

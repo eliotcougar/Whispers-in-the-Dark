@@ -228,7 +228,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
     'inventory', 'gameLog', 'lastActionLog', 'themeHistory',
     'pendingNewThemeNameAfterShift',
-    'allCharacters', 'mapData', 'currentMapNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
+    'allCharacters', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
     'turnsSinceLastShift', 'globalTurnNumber', 'isCustomGameMode'
   ];
@@ -245,6 +245,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
         'localEnvironment',
         'localPlace',
         'currentMapNodeId',
+        'destinationNodeId',
       ];
       if (
         !(
@@ -272,6 +273,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (!Array.isArray(obj.allCharacters) || !obj.allCharacters.every(isValidCharacterForSave)) { console.warn('Invalid save data (V3): allCharacters.'); return false; }
   if (!isValidMapData(obj.mapData)) { console.warn('Invalid save data (V3): mapData.'); return false; }
   if (obj.currentMapNodeId !== null && typeof obj.currentMapNodeId !== 'string') { console.warn('Invalid save data (V3): currentMapNodeId type.'); return false; }
+  if (obj.destinationNodeId !== null && typeof obj.destinationNodeId !== 'string') { console.warn('Invalid save data (V3): destinationNodeId type.'); return false; }
   if (!isValidMapLayoutConfig(obj.mapLayoutConfig)) { console.warn('Invalid save data (V3): mapLayoutConfig.'); return false; }
   if (typeof obj.mapViewBox !== 'string') { console.warn('Invalid save data (V3): mapViewBox type.'); return false; }
   if (typeof obj.score !== 'number') { console.warn('Invalid save data (V3): score type.'); return false; }
@@ -408,11 +410,12 @@ export function normalizeLoadedSaveData(
     const gtRaw = (parsedObj as { globalTurnNumber?: unknown }).globalTurnNumber;
     if (typeof gtRaw === 'string') {
       const parsed = parseInt(gtRaw, 10);
-      dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
-    } else if (gtRaw === undefined || gtRaw === null) {
-      dataToValidateAndExpand.globalTurnNumber = 0;
-    }
+    dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
+  } else if (gtRaw === undefined || gtRaw === null) {
+    dataToValidateAndExpand.globalTurnNumber = 0;
   }
+  dataToValidateAndExpand.destinationNodeId = dataToValidateAndExpand.destinationNodeId ?? null;
+}
 
   if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
     dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({
@@ -505,6 +508,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     })),
     mapData: mapDataForSave,
     currentMapNodeId: gameState.currentMapNodeId || null,
+    destinationNodeId: gameState.destinationNodeId || null,
     mapLayoutConfig: gameState.mapLayoutConfig || getDefaultMapLayoutConfig(),
     mapViewBox: gameState.mapViewBox ?? DEFAULT_VIEWBOX,
     score: gameState.score ?? 0,
@@ -553,6 +557,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     })),
     mapData: mapDataFromLoad,
     currentMapNodeId: savedData.currentMapNodeId || null,
+    destinationNodeId: savedData.destinationNodeId || null,
     mapLayoutConfig: savedData.mapLayoutConfig,
     mapViewBox: savedData.mapViewBox || DEFAULT_VIEWBOX,
     isCustomGameMode: savedData.isCustomGameMode ?? false,

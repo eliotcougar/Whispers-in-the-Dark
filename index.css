@@ -333,6 +333,24 @@ body {
   stroke: #6b7280; /* gray-500 */
   opacity: 0.5;
 }
+.map-destination-marker {
+  fill: #facc15;
+  stroke: #fef08a;
+  stroke-width: 1.5px;
+  pointer-events: none;
+}
+.map-set-destination-button {
+  display: block;
+  margin-bottom: 0.25rem;
+  width: 100%;
+  background-color: #d97706; /* amber-600 */
+  color: #fff;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+.map-set-destination-button:hover {
+  background-color: #f59e0b; /* amber-500 */
+}
 .map-node-label {
   font-size: 12px; /* Base size for main nodes */
   fill: #e5e7eb; /* gray-200 */

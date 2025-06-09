@@ -36,6 +36,8 @@ interface MapNodeViewProps {
   nodes: MapNode[];
   edges: MapEdge[];
   currentMapNodeId: string | null;
+  destinationNodeId: string | null;
+  onSelectDestination: (nodeId: string) => void;
   labelOverlapMarginPx: number;
   initialViewBox: string;
   onViewBoxChange: (viewBox: string) => void;
@@ -131,13 +133,16 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   nodes,
   edges,
   currentMapNodeId,
+  destinationNodeId,
+  onSelectDestination,
   labelOverlapMarginPx,
   initialViewBox,
   onViewBoxChange,
 }) => {
   const interactions = useMapInteractions(initialViewBox, onViewBoxChange);
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
-  const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number } | null>(null);
+  const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number; nodeId?: string } | null>(null);
+  const [isTooltipLocked, setIsTooltipLocked] = useState(false);
 
   const isSmallFontType = (type: string | undefined) =>
     type === 'feature' || type === 'room' || type === 'interior';
@@ -262,6 +267,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
   /** Shows node details in a tooltip. */
   const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
+    if (isTooltipLocked) return;
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
     let content = `${node.placeName}`;
@@ -273,11 +279,24 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       const parentNode = nodes.find(n => n.id === node.data.parentNodeId);
       content += `\n(Parent: ${parentNode?.placeName || 'Unknown Location'})`;
     }*/
-    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15 });
+    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15, nodeId: node.id });
+  };
+
+  const handleNodeClick = (node: MapNode, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const svgRect = svgRef.current?.getBoundingClientRect();
+    if (!svgRect) return;
+    let content = `${node.placeName}`;
+    if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
+    if (node.data.description) content += `\n${node.data.description}`;
+    if (node.data.status) content += `\nStatus: ${node.data.status}`;
+    setIsTooltipLocked(true);
+    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15, nodeId: node.id });
   };
 
   /** Shows edge details in a tooltip. */
   const handleEdgeMouseEnter = (edge: MapEdge, event: React.MouseEvent) => {
+    if (isTooltipLocked) return;
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
     const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
@@ -292,7 +311,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   };
 
   /** Hides the tooltip. */
-  const handleMouseLeaveGeneral = () => { setTooltip(null); };
+  const handleMouseLeaveGeneral = () => {
+    if (!isTooltipLocked) setTooltip(null);
+  };
 
   if (nodes.length === 0) {
     return (
@@ -308,6 +329,13 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
         ref={svgRef}
         viewBox={viewBox}
         className="map-svg-container"
+        onClick={e => {
+          const target = e.target as Element;
+          if (!target.closest('.map-node') && !target.closest('.map-edge-group')) {
+            setIsTooltipLocked(false);
+            setTooltip(null);
+          }
+        }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -383,6 +411,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                 transform={`translate(${node.position.x}, ${node.position.y})`}
                 className="map-node"
                 onMouseLeave={handleMouseLeaveGeneral}
+                onClick={e => handleNodeClick(node, e)}
               >
                 <circle
                   className={nodeClass}
@@ -412,6 +441,19 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
               </g>
             );
           })}
+
+          {destinationNodeId && (() => {
+            const dest = nodes.find(n => n.id === destinationNodeId);
+            if (!dest) return null;
+            return (
+              <polygon
+                className="map-destination-marker"
+                points="0,-14 10,0 0,14 -10,0"
+                transform={`translate(${dest.position.x}, ${dest.position.y})`}
+                pointerEvents="none"
+              />
+            );
+          })()}
 
           {sortedNodes.map(node => {
             const maxCharsPerLine =
@@ -461,7 +503,22 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
         </g>
       </svg>
       {tooltip && (
-        <div className="map-tooltip" style={{ top: tooltip.y, left: tooltip.x }}>
+        <div
+          className="map-tooltip"
+          style={{ top: tooltip.y, left: tooltip.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
+        >
+          {isTooltipLocked && tooltip.nodeId && (
+            <button
+              onClick={() => {
+                onSelectDestination(tooltip.nodeId!);
+                setIsTooltipLocked(false);
+                setTooltip(null);
+              }}
+              className="map-set-destination-button"
+            >
+              Set Destination
+            </button>
+          )}
           {tooltip.content.split('\n').map((line, index) => (
             <React.Fragment key={index}>
               {index === 0 ? <strong>{line}</strong> : line}
