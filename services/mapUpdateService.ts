@@ -878,7 +878,9 @@ Key points:
       return false;
   }
 
-  const generateUniqueId = (prefix: string) => `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
+  function generateUniqueId(prefix: string): string {
+      return `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
+  }
 
   function addEdgeWithTracking(
       a: MapNode,
