@@ -64,17 +64,35 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   );
 
   useEffect(() => {
-    if (initialLayoutConfig) {
-      setLayoutIdealEdgeLength(initialLayoutConfig.IDEAL_EDGE_LENGTH);
-      setLayoutNestedPadding(initialLayoutConfig.NESTED_PADDING ?? DEFAULT_NESTED_PADDING);
-      setLayoutNestedAnglePadding(
-        initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
-      );
-      setLabelOverlapMarginPx(
-        initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX
-      );
+    if (!initialLayoutConfig) return;
+    const {
+      IDEAL_EDGE_LENGTH,
+      NESTED_PADDING,
+      NESTED_ANGLE_PADDING,
+      LABEL_OVERLAP_MARGIN_PX,
+    } = initialLayoutConfig;
+    if (IDEAL_EDGE_LENGTH !== layoutIdealEdgeLength) {
+      setLayoutIdealEdgeLength(IDEAL_EDGE_LENGTH);
     }
-  }, [initialLayoutConfig]);
+    const nestedPadding = NESTED_PADDING ?? DEFAULT_NESTED_PADDING;
+    if (nestedPadding !== layoutNestedPadding) {
+      setLayoutNestedPadding(nestedPadding);
+    }
+    const anglePadding = NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING;
+    if (anglePadding !== layoutNestedAnglePadding) {
+      setLayoutNestedAnglePadding(anglePadding);
+    }
+    const overlapMargin = LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX;
+    if (overlapMargin !== labelOverlapMarginPx) {
+      setLabelOverlapMarginPx(overlapMargin);
+    }
+  }, [
+    initialLayoutConfig,
+    layoutIdealEdgeLength,
+    layoutNestedPadding,
+    layoutNestedAnglePadding,
+    labelOverlapMarginPx,
+  ]);
 
   /** Current layout configuration derived from state sliders. */
   const currentConfigToPropagate = useMemo(
