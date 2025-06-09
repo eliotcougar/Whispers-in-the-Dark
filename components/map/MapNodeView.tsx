@@ -438,16 +438,22 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                   onMouseEnter={handleEnter}
                   onMouseLeave={handleMouseLeaveGeneral}
                 />
-                {destinationNodeId === node.id && (
-                  <polygon
-                    className="map-destination-marker"
-                    points="0,-14 10,0 0,14 -10,0"
-                    pointerEvents="none"
-                  />
-                )}
               </g>
             );
           })}
+
+          {destinationNodeId && (() => {
+            const dest = nodes.find(n => n.id === destinationNodeId);
+            if (!dest) return null;
+            return (
+              <polygon
+                className="map-destination-marker"
+                points="0,-14 10,0 0,14 -10,0"
+                transform={`translate(${dest.position.x}, ${dest.position.y})`}
+                pointerEvents="none"
+              />
+            );
+          })()}
 
           {sortedNodes.map(node => {
             const maxCharsPerLine =

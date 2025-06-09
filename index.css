@@ -337,6 +337,7 @@ body {
   fill: #facc15;
   stroke: #fef08a;
   stroke-width: 1.5px;
+  pointer-events: none;
 }
 .map-set-destination-button {
   display: block;
