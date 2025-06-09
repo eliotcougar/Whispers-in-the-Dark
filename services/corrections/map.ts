@@ -17,6 +17,7 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { CORRECTION_TEMPERATURE } from './base';
 import { isApiConfigured } from '../apiClient';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { addProgressSymbol } from '../../utils/loadingProgress';
 import {
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
@@ -498,6 +499,7 @@ export const fetchConnectorChains_Service = async (
     themeNodes: MapNode[];
   }
 ): Promise<ConnectorChainsServiceResult> => {
+  addProgressSymbol('▒▒');
   if (!isApiConfigured() || requests.length === 0)
     return { payload: null, debugInfo: null };
 

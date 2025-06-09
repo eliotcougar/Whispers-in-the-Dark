@@ -39,6 +39,9 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service } from './corrections/map';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
+import { addProgressSymbol } from '../utils/loadingProgress';
+
+const MAX_CHAIN_REFINEMENT_ROUNDS = 2;
 
 // Local type definition for Place, matching what useGameLogic might prepare
 
@@ -68,6 +71,7 @@ export interface MapUpdateServiceResult {
  * the raw response.
  */
 const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promise<GenerateContentResponse> => {
+  addProgressSymbol('▓▓');
   return dispatchAIRequest(
     [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
@@ -891,6 +895,53 @@ Key points:
       return depth;
   };
 
+  const buildChainRequest = (
+      sourceNode: MapNode,
+      targetNode: MapNode,
+      edgeData: MapEdgeData,
+  ): EdgeChainRequest => {
+      const chainPairs: EdgeChainRequest['pairs'] = [];
+      const sourceChain: MapNode[] = [sourceNode];
+      const targetChain: MapNode[] = [targetNode];
+      let nodeA: MapNode = sourceNode;
+      let nodeB: MapNode = targetNode;
+      let attempts = 0;
+      let lastKey = '';
+      while (!isEdgeConnectionAllowed(nodeA, nodeB, edgeData.type) && attempts < 10) {
+          const stepKey = `${nodeA.id}|${nodeB.id}`;
+          if (stepKey !== lastKey) {
+            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
+            lastKey = stepKey;
+          }
+          const depthA = getNodeDepth(nodeA);
+          const depthB = getNodeDepth(nodeB);
+          if (depthA >= depthB && nodeA.data.parentNodeId) {
+              const parentA = themeNodeIdMap.get(nodeA.data.parentNodeId);
+              if (parentA) { nodeA = parentA; sourceChain.push(nodeA); } else break;
+          } else if (nodeB.data.parentNodeId) {
+              const parentB = themeNodeIdMap.get(nodeB.data.parentNodeId);
+              if (parentB) { nodeB = parentB; targetChain.push(nodeB); } else break;
+          } else {
+              break;
+          }
+          attempts++;
+      }
+      if (!isEdgeConnectionAllowed(nodeA, nodeB, edgeData.type)) {
+          const finalKey = `${nodeA.id}|${nodeB.id}`;
+          if (finalKey !== lastKey) {
+            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
+          }
+      }
+      return {
+          originalSource: sourceNode,
+          originalTarget: targetNode,
+          pairs: chainPairs,
+          sourceChain,
+          targetChain,
+          edgeData,
+      };
+  };
+
 
 
 
@@ -1027,16 +1078,21 @@ Key points:
       newMapData.edges = remainingEdges;
   });
 
-  if (pendingChainRequests.length > 0) {
-      const chainResult = await fetchConnectorChains_Service(pendingChainRequests, {
-        sceneDescription: sceneDesc,
-        logMessage: logMsg,
-        currentTheme,
-        themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
-      });
+  let chainRequests = pendingChainRequests;
+  let refineAttempts = 0;
+  const chainContext = {
+      sceneDescription: sceneDesc,
+      logMessage: logMsg,
+      currentTheme,
+      themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name)
+  };
+
+  while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
+      const chainResult = await fetchConnectorChains_Service(chainRequests, chainContext);
       if (chainResult.debugInfo) {
         debugInfo.connectorChainsDebugInfo = chainResult.debugInfo;
       }
+      chainRequests = [];
       if (chainResult.payload) {
         (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
           const nodeData = nAdd.data || { status: 'discovered', nodeType: 'feature', parentNodeId: 'Universe', description: '', aliases: [] };
@@ -1061,6 +1117,11 @@ Key points:
           const src = findNodeByIdentifier(eAdd.sourcePlaceName) as MapNode | undefined;
           const tgt = findNodeByIdentifier(eAdd.targetPlaceName) as MapNode | undefined;
           if (src && tgt) {
+            const pairKey = src.id < tgt.id
+              ? `${src.id}|${tgt.id}|${eAdd.data?.type || 'path'}`
+              : `${tgt.id}|${src.id}|${eAdd.data?.type || 'path'}`;
+            if (processedChainKeys.has(pairKey)) return;
+            processedChainKeys.add(pairKey);
             if (isEdgeConnectionAllowed(src, tgt, eAdd.data?.type)) {
               addEdgeWithTracking(
                 src,
@@ -1069,12 +1130,14 @@ Key points:
               );
             } else {
               console.warn(
-                `Connector chain edge between "${src.placeName}" and "${tgt.placeName}" violates hierarchy rules. Skipping.`,
+                `Connector chain edge between "${src.placeName}" and "${tgt.placeName}" violates hierarchy rules. Reprocessing.`,
               );
+              chainRequests.push(buildChainRequest(src, tgt, eAdd.data || { type: 'path', status: 'open' }));
             }
           }
         });
       }
+      refineAttempts++;
   }
 
   // --- End of Temporary Feature Upgrade (parent-child edges cleaned up) ---

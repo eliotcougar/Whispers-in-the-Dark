@@ -24,8 +24,9 @@ import TitleMenu from './components/TitleMenu';
 import DialogueDisplay from './components/DialogueDisplay';
 import DebugView from './components/DebugView';
 import ItemChangeAnimator from './components/ItemChangeAnimator';
-import MapDisplay from './components/MapDisplay'; 
-import CustomGameSetupScreen from './components/CustomGameSetupScreen'; 
+import MapDisplay from './components/MapDisplay';
+import CustomGameSetupScreen from './components/CustomGameSetupScreen';
+import { useLoadingProgress } from './hooks/useLoadingProgress';
 
 import {
   saveGameStateToFile,
@@ -52,6 +53,7 @@ const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 
 const App: React.FC = () => {
+  const { clearProgress } = useLoadingProgress();
   const [playerGender, setPlayerGender] = useState<string>(DEFAULT_PLAYER_GENDER);
   const [enabledThemePacks, setEnabledThemePacks] = useState<ThemePackName[]>([...DEFAULT_ENABLED_THEME_PACKS]);
   const [stabilityLevel, setStabilityLevel] = useState<number>(DEFAULT_STABILITY_LEVEL);
@@ -76,6 +78,7 @@ const App: React.FC = () => {
     // Load initial data and update settings; no async operations needed here.
     loadInitialData();
   }, []);
+
 
   const handleSettingsUpdateFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>) => {
     if (loadedSettings.playerGender !== undefined) setPlayerGender(loadedSettings.playerGender);
@@ -124,6 +127,12 @@ const App: React.FC = () => {
     loadingReason,
     handleUndoTurn, 
   } = gameLogic;
+
+  useEffect(() => {
+    if (!isLoading) {
+      clearProgress();
+    }
+  }, [isLoading, clearProgress]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const prevGameLogLength = useRef(gameLog.length);

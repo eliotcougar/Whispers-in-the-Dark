@@ -8,6 +8,7 @@ import { MinimalModelCallRecord } from '../../types';
 import { isApiConfigured } from '../apiClient';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { addProgressSymbol } from '../../utils/loadingProgress';
 
 /** Temperature used for all correction related AI calls. */
 export const CORRECTION_TEMPERATURE = 0.75;
@@ -25,6 +26,7 @@ export const callCorrectionAI = async <T = unknown>(
   prompt: string,
   systemInstruction: string
 ): Promise<T | null> => {
+  addProgressSymbol('●');
   try {
     const response = await dispatchAIRequest(
       [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
@@ -57,6 +59,7 @@ export const callMinimalCorrectionAI = async (
   systemInstruction: string,
   debugLog?: MinimalModelCallRecord[]
 ): Promise<string | null> => {
+  addProgressSymbol('○');
   if (!isApiConfigured()) {
     console.error('callMinimalCorrectionAI: API Key not configured.');
     return null;
