@@ -59,6 +59,7 @@ export const getInitialGameStates = (): FullGameState => {
     allCharacters: [],
     mapData: { nodes: [], edges: [] },
     currentMapNodeId: null,
+    destinationNodeId: null,
     mapLayoutConfig: getDefaultMapLayoutConfig(),
     mapViewBox: DEFAULT_VIEWBOX,
     score: 0,

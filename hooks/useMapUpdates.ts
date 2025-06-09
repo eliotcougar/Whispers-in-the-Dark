@@ -97,5 +97,13 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
     [setGameStateStack]
   );
 
-  return { handleMapLayoutConfigChange, handleMapViewBoxChange, handleMapNodesPositionChange };
+  /** Stores the currently selected destination node ID. */
+  const handleSelectDestinationNode = useCallback(
+    (nodeId: string | null) => {
+      setGameStateStack(prev => [{ ...prev[0], destinationNodeId: nodeId }, prev[1]]);
+    },
+    [setGameStateStack]
+  );
+
+  return { handleMapLayoutConfigChange, handleMapViewBoxChange, handleMapNodesPositionChange, handleSelectDestinationNode };
 };

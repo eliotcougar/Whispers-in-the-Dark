@@ -127,6 +127,8 @@ const App: React.FC = () => {
     handleMapLayoutConfigChange,
     loadingReason,
     handleUndoTurn,
+    destinationNodeId,
+    handleSelectDestinationNode,
     mapViewBox,
     handleMapViewBoxChange,
     handleMapNodesPositionChange,
@@ -370,7 +372,6 @@ const App: React.FC = () => {
   };
 
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
-  const [destinationNodeId, setDestinationNodeId] = useState<string | null>(null);
   const travelPath: TravelStep[] | null = React.useMemo(() => {
     if (!destinationNodeId || !currentMapNodeId) return null;
     return findTravelPath(mapData, currentMapNodeId, destinationNodeId);
@@ -674,7 +675,7 @@ const App: React.FC = () => {
             currentThemeName={currentTheme?.name || null}
             currentMapNodeId={currentMapNodeId}
             destinationNodeId={destinationNodeId}
-            onSelectDestination={setDestinationNodeId}
+            onSelectDestination={id => handleSelectDestinationNode(id)}
            initialLayoutConfig={mapLayoutConfig}
            initialViewBox={mapInitialViewBox}
             onNodesPositioned={handleMapNodesPositionChange}

@@ -386,6 +386,7 @@ export interface FullGameState {
   allCharacters: Character[];
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
+  destinationNodeId: string | null; // Optional destination node ID
   mapLayoutConfig: MapLayoutConfig;
   mapViewBox: string;
   score: number;
@@ -428,6 +429,7 @@ export type SavedGameDataShape = Pick<
   | 'allCharacters'
   | 'mapData'
   | 'currentMapNodeId'
+  | 'destinationNodeId'
   | 'mapLayoutConfig'
   | 'mapViewBox'
   | 'score'
