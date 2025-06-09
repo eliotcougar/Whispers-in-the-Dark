@@ -43,10 +43,10 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
       textMessage = "Concluding dialogue...";
       break;
     case 'dialogue_memory_creation': 
-      textMessage = "Processing dialogue memories..."; 
+      textMessage = "Forming memories...";
       break;
     case 'dialogue_conclusion_summary': 
-      textMessage = "Finalizing conversation results..."; 
+      textMessage = "Returning to the world...";
       break;
     default:
       if (loadingReason === null) { 

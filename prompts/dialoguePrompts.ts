@@ -9,15 +9,15 @@ import { VALID_PRESENCE_STATUS_VALUES_STRING, ALIAS_INSTRUCTION } from '../const
 
 export const DIALOGUE_SYSTEM_INSTRUCTION = `You are an AI assistant guiding a dialogue turn in a text-based adventure game. The player is in conversation with one or more characters. Your role is to:
 1. Generate responses for the NPC(s) involved in the dialogue.
-2. Provide up to 8 first-person dialogue options for the player. The last option MUST be a way for the player to end the dialogue (e.g., "I should get going.", "That's all I needed to know.", "Let's talk another time.").
+2. Provide from 4 to 8 first-person dialogue options for the player. The last option MUST be a way for the player to end the dialogue (e.g., "I should get going.", "That's all I needed to know.", "Let's talk another time.").
 3. Optionally, indicate if the dialogue is ending from the NPC's side or if the list of participants changes.
 4. Optionally add or remove participants of the dialogue, based on context.
 
 Respond ONLY in JSON format with the following structure:
 {
   "npcResponses": [
-    { "speaker": "CharacterName1", "line": "What CharacterName1 says this turn." },
-    { "speaker": "CharacterName2", "line": "What CharacterName2 says this turn, if they speak." },
+    { "speaker": "CharacterName1", "line": "What CharacterName1 says this turn." }, /* REQUIRED. */
+    { "speaker": "CharacterName2", "line": "What CharacterName2 says this turn, if they speak." }, /* Optional. */
     ...
     /* Include one entry for each NPC who may speaks this turn. It can be one or multiple NPCs. Speaker MUST be one of the current dialogue participants. Lines must be non-empty. */
   ],
@@ -30,19 +30,6 @@ Respond ONLY in JSON format with the following structure:
   "dialogueEnds"?: boolean, /* Optional. Set to true if the NPC(s) clearly signal the end of the conversation, or if the conversation obviously reached its logical end. */
   "updatedParticipants"?: ["CharacterName1", "NewCharacterJoining", ...] /* Optional. Cannot be empty. Provide the new full list of participants if someone joins or leaves the conversation. If omitted, participants remain the same. DO NOT add Player's Character to the list. */
 }
-
-Context Provided in Prompt:
-- Current Theme Name & System Instruction Modifier (for thematic consistency)
-- Current Main Quest & Objective
-- Current Scene Description (main game scene, main game context)
-- Local Time, Environment, Place (for environmental context)
-- Known Map Nodes (representing Main Locations, with names, aliases, descriptions)
-- Known Characters (for general awareness, characters will have presence info)
-- Player's Inventory
-- Player's Gender
-- Dialogue History (what has been said so far in this conversation)
-- Player's Last Utterance (the choice Player just made)
-- Dialogue Participants (list of character names currently in the dialogue)
 
 Instructions:
 - NPC responses should be in character, relevant to the ongoing dialogue.
@@ -88,18 +75,6 @@ Local Time, Environment & Place:
 If the dialogue resulted in a change to the local time, environment, or player's specific place, update "localTime", "localEnvironment", and "localPlace" accordingly.
 ${LOCAL_CONDITIONS_GUIDE}
 These fields MUST be provided if the dialogue caused a change, for example, Player moved to a new place, time passed, or weather changed; otherwise, they can be omitted if no change occurred. If provided, they must follow the specified format.
-
-Context Provided in Prompt:
-- Current Theme Name & System Instruction Modifier (for thematic consistency)
-- Current Main Quest & Objective (before the dialogue)
-- Current Scene Description (main game context when dialogue started)
-- Local Time, Environment, Place (environmental context before the dialogue)
-- Known Locations with names, aliases, descriptions from MapNode.data)
-- Known Characters (before the dialogue)
-- Player's Inventory (before the dialogue)
-- Player's Gender
-- Full Dialogue Log (transcript of the conversation)
-- Dialogue Participants (list of character names who were in the dialogue)
 
 Instructions:
 - Analyze the Dialogue Log carefully. Identify any explicit agreements, revelations, exchanges, or decisions made.
