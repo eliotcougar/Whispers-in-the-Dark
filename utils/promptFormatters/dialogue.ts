@@ -196,10 +196,14 @@ export const formatTravelPlanLine = (
   const destRumored = destination?.data.status === 'rumored';
   const firstEdge = path[1];
   const nextNodeStep = path[2];
+  const furtherNodeStep = path[4];
   if (firstEdge.step !== 'edge' || nextNodeStep.step !== 'node') return null;
   const nextNode = mapData.nodes.find(n => n.id === nextNodeStep.id);
   const nextName = nextNode?.placeName ?? nextNodeStep.id;
+  const furtherNode = furtherNodeStep ? mapData.nodes.find(n => n.id === furtherNodeStep.id) : null;
+  const furtherName = furtherNode?.placeName ?? furtherNodeStep.id;
   const nextRumored = nextNode?.data.status === 'rumored';
+  const furtherRumored = furtherNode?.data.status === 'rumored';
 
   let line = destRumored
     ? `Player wants to reach a rumored place - ${destName}.`
@@ -209,7 +213,7 @@ export const formatTravelPlanLine = (
     const [from, to] = firstEdge.id.split(':')[1].split('->');
     const fromName = mapData.nodes.find(n => n.id === from)?.placeName ?? from;
     const toName = mapData.nodes.find(n => n.id === to)?.placeName ?? to;
-    line += ` The journey leads towards ${toName} in the general area of ${fromName}, and then towards ${nextRumored ? 'a rumored place - ' + nextName : nextName}.`;
+    line += ` The journey leads towards ${toName} in the general area of ${fromName}, and then towards ${furtherRumored ? 'a rumored place - ' + furtherName : furtherName}.`;
   } else {
     const edge = mapData.edges.find(e => e.id === firstEdge.id);
     const edgeStatus = edge?.data.status ?? 'open';
