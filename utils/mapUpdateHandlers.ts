@@ -192,6 +192,10 @@ export const handleMapUpdates = async (
           if (altExists) {
             edgesToRemoveIndices.push(index);
           }
+          else {
+            edge.data.status = 'open';
+            if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+          }
         }
       }
     });

@@ -59,7 +59,7 @@ Respond ONLY in JSON format with the following structure:
   "localPlace"?: "New concise string if player's specific location changed due to dialogue (e.g. journey completed during talk, arrival confirmed).",
   "mapUpdated"?: boolean, /* Optional. Set to true if this dialogue's outcome (e.g., revealing a new map node/location via logMessage, changing a map node's status) warrants an update to the game map. You DO NOT output specific map node/edge changes. */
   "currentMapNodeId"?: string /* Optional. If dialogue implies player is at a specific Map Node (Location/Feature), provide its 'placeName' or ID. Omit if no strong suggestion. */,
-  "mapHint"?: string /* Optional short hint describing distant quest-related locations and travel directions from the player's current position. */
+  "mapHint"?: string /* Optional hint (up to 500 chars) describing distant quest-related and objective-related locations, their surroundings, and travel directions from the player's current position. */
 }
 
 - For "charactersAdded" and "charactersUpdated", ensure all relevant fields including "presenceStatus", "lastKnownLocation", and "preciseLocation" are considered and provided if the dialogue yields such information. Default "presenceStatus" to 'distant' or 'unknown' if not specified but character is introduced.
