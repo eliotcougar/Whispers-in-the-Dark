@@ -286,7 +286,7 @@ ${mapContext}
 
 ${detailedEntityContext}
 
-Recent Events to keep in mind (provided ONLY for extra context, these actions have already been processed):
+Recent Events to keep in mind (provided ONLY for extra context, these actions have already been processed and MUST NEVER affect items changes to avoid double counting):
 ${recentEventsContext}
 ---
 
@@ -294,7 +294,7 @@ Current Theme: "${currentTheme.name}"
 Previous Scene: "${currentScene}"
 Player Action: "${playerAction}"
 
-Based on the Previous Scene and Player Action, and taking into account the provided historical and environmental context (including map context and possible exits):
+Based on the Previous Scene and Player Action, and taking into account the provided context (including map context):
 Generate the next scene description, options, item changes, log message, etc.
 Compare the new Local Place of the character to the precise locations of relevant characters, and update their presence state accordingly.
 For example, leaving character's location makes them "distant", entering character's location makes them 'nearby' if they are still there, or 'unknown', is they moved while the player was not there.

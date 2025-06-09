@@ -58,7 +58,8 @@ Respond ONLY in JSON format with the following structure:
   "localEnvironment"?: "New brief sentence if environment/weather changed due to dialogue (e.g. magical effect during conversation).",
   "localPlace"?: "New concise string if player's specific location changed due to dialogue (e.g. journey completed during talk, arrival confirmed).",
   "mapUpdated"?: boolean, /* Optional. Set to true if this dialogue's outcome (e.g., revealing a new map node/location via logMessage, changing a map node's status) warrants an update to the game map. You DO NOT output specific map node/edge changes. */
-  "currentMapNodeId"?: string /* Optional. If dialogue implies player is at a specific Map Node (Location/Feature), provide its 'placeName' or ID. Omit if no strong suggestion. */
+  "currentMapNodeId"?: string /* Optional. If dialogue implies player is at a specific Map Node (Location/Feature), provide its 'placeName' or ID. Omit if no strong suggestion. */,
+  "mapHint"?: string /* Optional hint (up to 500 chars) describing distant quest-related and objective-related locations, their surroundings, and travel directions from the player's current position. */
 }
 
 - For "charactersAdded" and "charactersUpdated", ensure all relevant fields including "presenceStatus", "lastKnownLocation", and "preciseLocation" are considered and provided if the dialogue yields such information. Default "presenceStatus" to 'distant' or 'unknown' if not specified but character is introduced.
@@ -80,6 +81,7 @@ Instructions:
 - Analyze the Dialogue Log carefully. Identify any explicit agreements, revelations, exchanges, or decisions made.
 - "charactersAdded"/"charactersUpdated": Only add/update if the dialogue provided new, concrete information for description, aliases, presence status, or locations.
 - If the dialogue implies a new location was revealed or an existing one changed, set "mapUpdated": true and include details in the "logMessage". The map service will handle actual map changes.
+- If distant quest-related locations were mentioned, summarize their relative position and travel directions in "mapHint" so the Map AI can ensure they exist on the map.
 - "logMessage": This should be a brief, informative message suitable for the main game log, summarizing the dialogue's impact.
 - "mainQuest"/"currentObjective"/"objectiveAchieved": Only change these if the dialogue undeniably led to a quest/objective update or completion.
 `;

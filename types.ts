@@ -162,6 +162,7 @@ export interface DialogueSummaryResponse {
   localPlace?: string; 
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
+  mapHint?: string; // Optional hint about distant quest-related locations for MapAI
 }
 // --- End Dialogue Mode Types ---
 
@@ -198,6 +199,7 @@ export interface GameStateFromAI {
   dialogueSetup?: DialogueSetupPayload;
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
+  mapHint?: string; // Optional hint about distant quest-related locations for MapAI
   // placesAdded and placesUpdated are removed from storyteller responsibility
 }
 
@@ -384,7 +386,8 @@ export interface FullGameState {
   allCharacters: Character[];
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
-  mapLayoutConfig: MapLayoutConfig; 
+  mapLayoutConfig: MapLayoutConfig;
+  mapViewBox: string;
   score: number;
   localTime: string | null;
   localEnvironment: string | null;
@@ -424,8 +427,9 @@ export type SavedGameDataShape = Pick<
   | 'pendingNewThemeNameAfterShift'
   | 'allCharacters'
   | 'mapData'
-  | 'currentMapNodeId' 
-  | 'mapLayoutConfig' 
+  | 'currentMapNodeId'
+  | 'mapLayoutConfig'
+  | 'mapViewBox'
   | 'score'
   | 'localTime'
   | 'localEnvironment'

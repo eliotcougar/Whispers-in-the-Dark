@@ -65,7 +65,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setGameStateStack([newState, newState]);
   }, []);
 
-  const { handleMapLayoutConfigChange } = useMapUpdates({ setGameStateStack });
+  const {
+    handleMapLayoutConfigChange,
+    handleMapViewBoxChange,
+    handleMapNodesPositionChange,
+  } = useMapUpdates({ setGameStateStack });
 
   const {
     triggerRealityShift,
@@ -198,6 +202,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     mapData: currentFullState.mapData,
     currentMapNodeId: currentFullState.currentMapNodeId,
     mapLayoutConfig: currentFullState.mapLayoutConfig || getDefaultMapLayoutConfig(),
+    mapViewBox: currentFullState.mapViewBox,
     score: currentFullState.score,
     freeFormActionText,
     setFreeFormActionText,
@@ -236,6 +241,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     hasGameBeenInitialized,
     handleStartNewGameFromButton,
     handleMapLayoutConfigChange,
+    handleMapViewBoxChange,
+    handleMapNodesPositionChange,
     handleUndoTurn,
   };
 };

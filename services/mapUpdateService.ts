@@ -38,6 +38,7 @@ import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STAT
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service } from './corrections/map';
+import { findClosestAllowedParent } from '../utils/mapGraphUtils';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 import { addProgressSymbol } from '../utils/loadingProgress';
 
@@ -347,6 +348,7 @@ export const updateMapFromAIData_Service = async (
   const sceneDesc = 'sceneDescription' in aiResponse ? aiResponse.sceneDescription : "";
   const logMsg = aiResponse.logMessage || "";
   const localPlace = aiResponse.localPlace || "Unknown";
+  const mapHint = aiResponse.mapHint || "";
   const referenceMapNodeId =
     'currentMapNodeId' in aiResponse && aiResponse.currentMapNodeId
       ? aiResponse.currentMapNodeId
@@ -405,6 +407,7 @@ Narrative Context for Map Update:
 - ${previousMapNodeContext}
 - Scene Description: "${sceneDesc}"
 - Log Message (outcome of last action): "${logMsg}"
+- Map Hint from Storyteller: "${mapHint}"
 - All Known Main Locations for this Theme (these are expected to be main map nodes): ${allKnownMainPlacesString}.
 - Your task is to analyze this narrative context and suggest additions, updates, or removals to the map data.
 
@@ -604,17 +607,18 @@ Key points:
     const nextQueue: typeof unresolvedQueue = [];
     for (const nodeAddOp of unresolvedQueue) {
       let resolvedParentId: string | undefined = undefined;
+      let sameTypeParent: MapNode | null = null;
       if (nodeAddOp.data?.parentNodeId) {
         if (nodeAddOp.data.parentNodeId === 'Universe') {
           resolvedParentId = undefined;
         } else {
           const parent = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
           if (parent) {
-            resolvedParentId = parent.id;
             const childType = nodeAddOp.data.nodeType ?? 'feature';
             if (parent.data.nodeType === childType) {
-              resolvedParentId = parent.data.parentNodeId;
+              sameTypeParent = parent;
             }
+            resolvedParentId = findClosestAllowedParent(parent, childType, themeNodeIdMap);
           } else {
             nextQueue.push(nodeAddOp);
             continue;
@@ -666,6 +670,22 @@ Key points:
         newNode.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), newNode));
       }
       newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
+
+      if (sameTypeParent) {
+        const edgeData: MapEdgeData = {
+          type: 'path',
+          status:
+            newNode.data.status === 'rumored' || sameTypeParent.data.status === 'rumored'
+              ? 'rumored'
+              : 'open',
+          description: `Path between ${nodeAddOp.placeName} and ${sameTypeParent.placeName}`,
+        };
+        if (isEdgeConnectionAllowed(newNode, sameTypeParent, 'path')) {
+          addEdgeWithTracking(newNode, sameTypeParent, edgeData);
+        } else {
+          pendingChainRequests.push(buildChainRequest(newNode, sameTypeParent, edgeData));
+        }
+      }
     }
 
     if (nextQueue.length === unresolvedQueue.length) {
@@ -816,11 +836,11 @@ Key points:
   //   1) sibling features (same parent, including direct children of 'Universe')
   //   2) features whose parents share the same grandparent (including the root 'Universe')
   //   3) a feature and another feature whose parent is the child's grandparent (again including 'Universe')
-  const isEdgeConnectionAllowed = (
+  function isEdgeConnectionAllowed(
       nodeA: MapNode,
       nodeB: MapNode,
       edgeType?: MapEdgeData['type']
-  ): boolean => {
+  ): boolean {
       if (nodeA.data.nodeType !== 'feature' || nodeB.data.nodeType !== 'feature') {
           return false;
       }
@@ -858,15 +878,17 @@ Key points:
       if (parentBId === 'Universe' && grandAId === 'Universe') return true;
 
       return false;
-  };
+  }
 
-  const generateUniqueId = (prefix: string) => `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
+  function generateUniqueId(prefix: string): string {
+      return `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
+  }
 
-  const addEdgeWithTracking = (
+  function addEdgeWithTracking(
       a: MapNode,
       b: MapNode,
       data: MapEdgeData
-  ): MapEdge => {
+  ): MapEdge {
       const existing = (themeEdgesMap.get(a.id) || []).find(
           e =>
               ((e.sourceNodeId === a.id && e.targetNodeId === b.id) ||
@@ -881,9 +903,9 @@ Key points:
       let arrA = themeEdgesMap.get(a.id); if (!arrA) { arrA = []; themeEdgesMap.set(a.id, arrA); } arrA.push(edge);
       let arrB = themeEdgesMap.get(b.id); if (!arrB) { arrB = []; themeEdgesMap.set(b.id, arrB); } arrB.push(edge);
       return edge;
-  };
+  }
 
-  const getNodeDepth = (node: MapNode): number => {
+  function getNodeDepth(node: MapNode): number {
       let depth = 0;
       let current: MapNode | undefined = node;
       while (current.data.parentNodeId) {
@@ -893,13 +915,13 @@ Key points:
           current = parent;
       }
       return depth;
-  };
+  }
 
-  const buildChainRequest = (
+  function buildChainRequest(
       sourceNode: MapNode,
       targetNode: MapNode,
       edgeData: MapEdgeData,
-  ): EdgeChainRequest => {
+  ): EdgeChainRequest {
       const chainPairs: EdgeChainRequest['pairs'] = [];
       const sourceChain: MapNode[] = [sourceNode];
       const targetChain: MapNode[] = [targetNode];
@@ -940,7 +962,7 @@ Key points:
           targetChain,
           edgeData,
       };
-  };
+  }
 
 
 

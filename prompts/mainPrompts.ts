@@ -72,7 +72,8 @@ Respond ONLY in JSON format with the following structure:
     ]
   },
   "mapUpdated"?: boolean, /* Optional. Set to true if this turn's events MIGHT warrant an update to the game map. (e.g., new significant Location is mentioned that isn't a Known Location, or the Location accessibility changes, or player moves significantly) */
-  "currentMapNodeId"?: string /* Optional. If narrative implies that player IS AT or HAS MOVED TO one of the places in the "Locations Nearby" list OR remained at the old location, provide its Name. Omit if player is between locations, their location is vague, or the location is newly revealed, and set 'mapUpdated': true instead. */
+  "currentMapNodeId"?: string /* Optional. If narrative implies that player IS AT or HAS MOVED TO one of the places in the "Locations Nearby" list OR remained at the old location, provide its Name. Omit if player is between locations, their location is vague, or the location is newly revealed, and set 'mapUpdated': true instead. */,
+  "mapHint"?: string /* Optional hint (up to 500 chars) describing distant quest-related and objective-related locations, their surroundings, and travel directions from the player's current position. */
 }
 
 Local Time, Environment & Place Guide:
@@ -88,6 +89,7 @@ Player Input and Contextual Information:
 - Known Locations and Known Characters in Current Theme lists will be provided in the prompt context if any exist for the current theme.
 - If "localPlace" corresponds to a location in "Locations Nearby" list OR remained at the old location, always set "currentMapNodeId" to the name of that location.
 - If "sceneDescription" or "logMessage" mentions a new significant NAMED location or feature that is NOT in 'Known Locations' list (nor by one of its aliases), describe it and set "mapUpdated": true. The map service will handle adding it.
+- If new distant quest-related and objective-related locations are mentioned but don't exist on the map, provide a short description of them, their surroundings, and how to reach them in "mapHint" for the Map AI.
 - If "sceneDescription" or "logMessage" mentions a new Character (i.e., not in 'Known Characters in Current Theme' list), you MUST add it using "charactersAdded". If an existing Character's description, aliases, or presence change significantly, use "charactersUpdated".
 - Pay close attention to 'Active: true' items and their available actions. Node
 

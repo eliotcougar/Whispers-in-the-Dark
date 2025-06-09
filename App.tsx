@@ -99,33 +99,36 @@ const App: React.FC = () => {
   });
 
   const {
-    currentTheme, 
+    currentTheme,
     currentScene, mainQuest, currentObjective, actionOptions,
-    inventory, gameLog, isLoading, error, lastActionLog, themeHistory, mapData, 
+    inventory, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
     currentMapNodeId, mapLayoutConfig,
-    allCharacters, 
+    allCharacters,
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
     handleItemInteraction, handleRetry, executeManualRealityShift,
-    completeManualShiftWithSelectedTheme, 
-    cancelManualShiftThemeSelection,    
-    isAwaitingManualShiftThemeSelection, 
-    startCustomGame, 
+    completeManualShiftWithSelectedTheme,
+    cancelManualShiftThemeSelection,
+    isAwaitingManualShiftThemeSelection,
+    startCustomGame,
     gatherCurrentGameState, applyLoadedGameState, setError: setLogicError,
     setIsLoading: setLogicIsLoading, hasGameBeenInitialized, handleStartNewGameFromButton,
     localTime, localEnvironment, localPlace,
-    dialogueState, 
+    dialogueState,
     handleDialogueOptionSelect,
     handleForceExitDialogue,
     isDialogueExiting,
     lastDebugPacket,
     lastTurnChanges,
     turnsSinceLastShift,
-    isCustomGameMode, 
+    isCustomGameMode,
     gameStateStack,
-    handleMapLayoutConfigChange, 
+    handleMapLayoutConfigChange,
     loadingReason,
-    handleUndoTurn, 
+    handleUndoTurn,
+    mapViewBox,
+    handleMapViewBoxChange,
+    handleMapNodesPositionChange,
   } = gameLogic;
 
   useEffect(() => {
@@ -145,20 +148,20 @@ const App: React.FC = () => {
   const [isKnowledgeBaseVisible, setIsKnowledgeBaseVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [isInfoVisible, setIsInfoVisible] = useState(false);
-  const [isMapVisible, setIsMapVisible] = useState(false); 
+  const [isMapVisible, setIsMapVisible] = useState(false);
   const [userRequestedTitleMenuOpen, setUserRequestedTitleMenuOpen] = useState(false);
   const [isThemeMemoryVisible, setIsThemeMemoryVisible] = useState(false);
   const [isDebugViewVisible, setIsDebugViewVisible] = useState(false);
-  const [isCustomGameSetupVisible, setIsCustomGameSetupVisible] = useState(false); 
-  const [isManualShiftThemeSelectionVisible, setIsManualShiftThemeSelectionVisible] = useState(false); 
+  const [isCustomGameSetupVisible, setIsCustomGameSetupVisible] = useState(false);
+  const [isManualShiftThemeSelectionVisible, setIsManualShiftThemeSelectionVisible] = useState(false);
 
   const [shiftConfirmOpen, setShiftConfirmOpen] = useState(false);
   const [newGameFromMenuConfirmOpen, setNewGameFromMenuConfirmOpen] = useState(false);
   const [loadGameFromMenuConfirmOpen, setLoadGameFromMenuConfirmOpen] = useState(false);
-  const [newCustomGameConfirmOpen, setNewCustomGameConfirmOpen] = useState(false); 
+  const [newCustomGameConfirmOpen, setNewCustomGameConfirmOpen] = useState(false);
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
-  
+
   const isAnyModalOrDialogueActive = isVisualizerVisible || isKnowledgeBaseVisible || isSettingsVisible || isInfoVisible || isMapVisible || isThemeMemoryVisible || isDebugViewVisible || !!dialogueState || effectiveIsTitleMenuOpen || shiftConfirmOpen || newGameFromMenuConfirmOpen || loadGameFromMenuConfirmOpen || isCustomGameSetupVisible || newCustomGameConfirmOpen || isManualShiftThemeSelectionVisible;
 
 
@@ -166,7 +169,7 @@ const App: React.FC = () => {
     if (isAnyModalOrDialogueActive) {
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = ''; 
+      document.body.style.overflow = '';
     }
     return () => {
       document.body.style.overflow = '';
@@ -198,16 +201,16 @@ const App: React.FC = () => {
     return () => { if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current); };
   }, [
     gatherCurrentGameState, isLoading, hasGameBeenInitialized, appReady, dialogueState,
-    currentTheme, currentScene, actionOptions, mainQuest, currentObjective, 
-    inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId, mapLayoutConfig, 
-    allCharacters, score, 
-    localTime, localEnvironment, localPlace, playerGender, enabledThemePacks, 
+    currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
+    inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId, mapLayoutConfig,
+    allCharacters, score,
+    localTime, localEnvironment, localPlace, playerGender, enabledThemePacks,
     stabilityLevel, chaosLevel, turnsSinceLastShift, isCustomGameMode, isAwaitingManualShiftThemeSelection,
   ]);
 
 
   const handleSaveToFile = useCallback(() => {
-    if (isLoading || !currentTheme || !!dialogueState) { 
+    if (isLoading || !currentTheme || !!dialogueState) {
       setLogicError("Cannot save to file while loading, in dialogue, or without an active game.");
       return;
     }
@@ -237,8 +240,8 @@ const App: React.FC = () => {
       if (loadedFullState) {
         await applyLoadedGameState({ savedStateToLoad: loadedFullState });
         setUserRequestedTitleMenuOpen(false);
-        setIsCustomGameSetupVisible(false); 
-        setIsManualShiftThemeSelectionVisible(false); 
+        setIsCustomGameSetupVisible(false);
+        setIsManualShiftThemeSelectionVisible(false);
         saveGameStateToLocalStorage(loadedFullState);
       } else {
         setLogicError("Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file. Current game remains unchanged.");
@@ -264,7 +267,7 @@ const App: React.FC = () => {
   }, []);
 
   const confirmShift = () => {
-    executeManualRealityShift(); 
+    executeManualRealityShift();
     setShiftConfirmOpen(false);
   };
 
@@ -365,6 +368,29 @@ const App: React.FC = () => {
     startCustomGame(themeName);
   };
 
+  const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
+  const prevMapVisibleRef = useRef(false);
+  useEffect(() => {
+    if (isMapVisible && !prevMapVisibleRef.current) {
+      const parts = mapViewBox.split(' ').map(parseFloat);
+      if (parts.length === 4) {
+        const [, , vw, vh] = parts;
+        const node = mapData.nodes.find(n => n.id === currentMapNodeId);
+        if (node && !isNaN(vw) && !isNaN(vh)) {
+          setMapInitialViewBox(
+            `${node.position.x - vw / 2} ${node.position.y - vh / 2} ${vw} ${vh}`
+          );
+        } else {
+          setMapInitialViewBox(mapViewBox);
+        }
+      } else {
+        setMapInitialViewBox(mapViewBox);
+      }
+    }
+    if (!isMapVisible) prevMapVisibleRef.current = false;
+    else prevMapVisibleRef.current = true;
+  }, [isMapVisible, mapViewBox, currentMapNodeId, mapData.nodes]);
+
 
   if (!appReady) {
     return (
@@ -395,7 +421,7 @@ const App: React.FC = () => {
           <div className="w-full max-w-3xl my-4">
             <ErrorDisplay
               message={error}
-              onRetry={isLoading ? undefined : handleRetry} 
+              onRetry={isLoading ? undefined : handleRetry}
             />
           </div>
         )}
@@ -410,14 +436,14 @@ const App: React.FC = () => {
             {hasGameBeenInitialized && (
               <MainToolbar
                 score={score}
-                isLoading={isLoading || !!dialogueState} 
+                isLoading={isLoading || !!dialogueState}
                 currentThemeName={currentTheme?.name || null}
                 currentSceneExists={!!currentScene}
                 onOpenInfo={() => setIsInfoVisible(true)}
                 onOpenVisualizer={() => setIsVisualizerVisible(true)}
                 onOpenKnowledgeBase={() => setIsKnowledgeBaseVisible(true)}
                 onOpenThemeMemory={() => setIsThemeMemoryVisible(true)}
-                onOpenMap={() => setIsMapVisible(true)} 
+                onOpenMap={() => setIsMapVisible(true)}
                 onOpenTitleMenu={() => setUserRequestedTitleMenuOpen(true)}
                 onManualRealityShift={() => setShiftConfirmOpen(true)}
                 turnsSinceLastShift={turnsSinceLastShift}
@@ -440,7 +466,7 @@ const App: React.FC = () => {
               currentObjective={hasGameBeenInitialized ? currentObjective : null}
               lastActionLog={hasGameBeenInitialized ? lastActionLog : null}
               inventory={inventory}
-              mapData={mapData.nodes} 
+              mapData={mapData.nodes}
               allCharacters={allCharacters}
               currentThemeName={currentTheme?.name || null}
               objectiveAnimationType={objectiveAnimationType}
@@ -453,9 +479,9 @@ const App: React.FC = () => {
                 <ActionOptions
                   options={actionOptions}
                   onActionSelect={handleActionSelect}
-                  disabled={isLoading || !!dialogueState} 
+                  disabled={isLoading || !!dialogueState}
                   inventory={inventory}
-                  mapData={mapData.nodes} 
+                  mapData={mapData.nodes}
                   allCharacters={allCharacters}
                   currentThemeName={currentTheme?.name || null}
                 />
@@ -503,14 +529,14 @@ const App: React.FC = () => {
               items={inventory}
               onItemInteract={handleItemInteraction}
               onDiscardJunkItem={gameLogic.handleDiscardJunkItem}
-              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible } 
+              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
             />
           </div>
         </main>
 
         <ItemChangeAnimator
           lastTurnChanges={lastTurnChanges}
-          isGameBusy={isAnyModalOrDialogueActive || isLoading} 
+          isGameBusy={isAnyModalOrDialogueActive || isLoading}
         />
 
         <footer className={`w-full max-w-screen-xl mt-12 text-center text-slate-500 text-sm ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
@@ -543,13 +569,13 @@ const App: React.FC = () => {
         options={dialogueState?.options || []}
         onOptionSelect={handleDialogueOptionSelectSafe}
         participants={dialogueState?.participants || []}
-        isLoading={isLoading} 
-        isDialogueExiting={isDialogueExiting} 
+        isLoading={isLoading}
+        isDialogueExiting={isDialogueExiting}
         inventory={inventory}
-        mapData={mapData.nodes} 
+        mapData={mapData.nodes}
         allCharacters={allCharacters}
         currentThemeName={currentTheme?.name || null}
-        loadingReason={loadingReason} 
+        loadingReason={loadingReason}
       />
 
       <DebugView
@@ -557,14 +583,14 @@ const App: React.FC = () => {
         onClose={() => setIsDebugViewVisible(false)}
         debugPacket={lastDebugPacket}
         gameStateStack={gameStateStack}
-        onUndoTurn={handleUndoTurn} 
+        onUndoTurn={handleUndoTurn}
       />
 
       <TitleMenu
         isVisible={effectiveIsTitleMenuOpen}
         onClose={() => setUserRequestedTitleMenuOpen(false)}
         onNewGame={handleNewGameFromMenu}
-        onCustomGame={handleOpenCustomGameSetup} 
+        onCustomGame={handleOpenCustomGameSetup}
         onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
         onLoadGame={handleLoadGameFromMenu}
         onOpenSettings={openSettingsFromMenu}
@@ -605,15 +631,15 @@ const App: React.FC = () => {
         }}
         playerGender={playerGender}
         onPlayerGenderChange={setPlayerGender}
-        isCustomGameMode={isCustomGameMode} 
+        isCustomGameMode={isCustomGameMode}
       />
 
 
-      {hasGameBeenInitialized && currentTheme && ( 
+      {hasGameBeenInitialized && currentTheme && (
         <>
           <ImageVisualizer
             currentSceneDescription={currentScene}
-            currentTheme={currentTheme} 
+            currentTheme={currentTheme}
             mapData={mapData.nodes}
             allCharacters={allCharacters}
             localTime={localTime}
@@ -627,7 +653,7 @@ const App: React.FC = () => {
           />
           <KnowledgeBase
             allCharacters={allCharacters}
-            currentTheme={currentTheme} 
+            currentTheme={currentTheme}
             isVisible={isKnowledgeBaseVisible}
             onClose={() => setIsKnowledgeBaseVisible(false)}
           />
@@ -637,11 +663,14 @@ const App: React.FC = () => {
             onClose={() => setIsThemeMemoryVisible(false)}
           />
            <MapDisplay
-            mapData={mapData} 
+            mapData={mapData}
             currentThemeName={currentTheme?.name || null}
             currentMapNodeId={currentMapNodeId}
-            initialLayoutConfig={mapLayoutConfig} 
-            onLayoutConfigChange={handleMapLayoutConfigChange} 
+           initialLayoutConfig={mapLayoutConfig}
+           initialViewBox={mapInitialViewBox}
+            onNodesPositioned={handleMapNodesPositionChange}
+           onLayoutConfigChange={handleMapLayoutConfigChange}
+           onViewBoxChange={handleMapViewBoxChange}
             isVisible={isMapVisible}
             onClose={() => setIsMapVisible(false)}
           />
@@ -693,7 +722,7 @@ const App: React.FC = () => {
             onCancel={() => setShiftConfirmOpen(false)}
             confirmText="Shift Reality"
             confirmButtonClass="bg-purple-600 hover:bg-purple-500"
-            isCustomModeShift={isCustomGameMode} 
+            isCustomModeShift={isCustomGameMode}
           />
         </>
       )}
