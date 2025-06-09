@@ -74,6 +74,13 @@ export const VALID_NODE_TYPE_VALUES = [
   'feature',
 ] as const;
 
+// Hierarchy levels for node types (lower index = higher level)
+export const NODE_TYPE_LEVELS: Record<(typeof VALID_NODE_TYPE_VALUES)[number], number> =
+  VALID_NODE_TYPE_VALUES.reduce((acc, type, idx) => {
+    acc[type] = idx;
+    return acc;
+  }, {} as Record<(typeof VALID_NODE_TYPE_VALUES)[number], number>);
+
 export const VALID_EDGE_TYPE_VALUES = [
   'path',
   'road',

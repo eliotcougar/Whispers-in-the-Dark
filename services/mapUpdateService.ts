@@ -38,6 +38,7 @@ import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STAT
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service } from './corrections/map';
+import { findClosestAllowedParent } from '../utils/mapGraphUtils';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 import { addProgressSymbol } from '../utils/loadingProgress';
 
@@ -610,11 +611,8 @@ Key points:
         } else {
           const parent = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
           if (parent) {
-            resolvedParentId = parent.id;
             const childType = nodeAddOp.data.nodeType ?? 'feature';
-            if (parent.data.nodeType === childType) {
-              resolvedParentId = parent.data.parentNodeId;
-            }
+            resolvedParentId = findClosestAllowedParent(parent, childType, themeNodeIdMap);
           } else {
             nextQueue.push(nodeAddOp);
             continue;

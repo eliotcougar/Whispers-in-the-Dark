@@ -4,6 +4,7 @@
  */
 
 import { MapNode, MapData, MapEdgeStatus } from '../types';
+import { NODE_TYPE_LEVELS } from '../constants';
 
 /**
  * Returns the parent MapNode for the given node if one exists.
@@ -78,4 +79,30 @@ export const existsNonRumoredPath = (
     }
   }
   return false;
+};
+
+/** Returns numeric hierarchy level for a node type. Lower number = higher level. */
+export const getNodeTypeLevel = (
+  type: MapNode['data']['nodeType'] | undefined,
+): number => {
+  if (!type) return -1;
+  return NODE_TYPE_LEVELS[type];
+};
+
+/**
+ * Climb up the hierarchy to find the closest ancestor that can parent a node
+ * of the specified type. Returns the ancestor's ID or undefined for root.
+ */
+export const findClosestAllowedParent = (
+  startingParent: MapNode | undefined,
+  childType: MapNode['data']['nodeType'],
+  nodeMap: Map<string, MapNode>
+): string | undefined => {
+  let current = startingParent;
+  const childLevel = getNodeTypeLevel(childType);
+  while (current && getNodeTypeLevel(current.data.nodeType) > childLevel) {
+    if (!current.data.parentNodeId) return undefined;
+    current = nodeMap.get(current.data.parentNodeId);
+  }
+  return current ? current.id : undefined;
 };
