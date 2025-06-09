@@ -201,8 +201,9 @@ export const formatTravelPlanLine = (
     furtherNodeStep && furtherNodeStep.step === 'node'
       ? mapData.nodes.find(n => n.id === furtherNodeStep.id)
       : null;
-    const [, pair] = firstEdge.id.split(':');
-    const [from, to] = pair ? pair.split('->') : [null, null];
+    const idParts = firstEdge.id.split(':');
+    const pair = idParts.length > 1 ? idParts[1] : '';
+    const [from = '', to = ''] = pair.split('->');
     const fromName = from
       ? mapData.nodes.find(n => n.id === from)?.placeName ?? from
       : '';
