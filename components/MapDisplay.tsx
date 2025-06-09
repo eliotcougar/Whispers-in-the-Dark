@@ -27,6 +27,7 @@ interface MapDisplayProps {
   initialLayoutConfig: MapLayoutConfig;
   initialViewBox: string;
   onViewBoxChange: (newViewBox: string) => void;
+  onNodesPositioned: (nodes: MapNode[]) => void;
   onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
   isVisible: boolean;
   onClose: () => void;
@@ -42,6 +43,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   initialLayoutConfig,
   initialViewBox,
   onViewBoxChange,
+  onNodesPositioned,
   onLayoutConfigChange,
   isVisible,
   onClose,
@@ -129,7 +131,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       anglePadding: layoutNestedAnglePadding,
     });
     setDisplayedNodes(laidOut);
-  }, [currentThemeNodes, layoutNestedPadding, layoutNestedAnglePadding]);
+    onNodesPositioned(laidOut);
+  }, [currentThemeNodes, layoutNestedPadding, layoutNestedAnglePadding, onNodesPositioned]);
 
   useEffect(() => {
     if (isVisible) {

@@ -65,7 +65,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setGameStateStack([newState, newState]);
   }, []);
 
-  const { handleMapLayoutConfigChange, handleMapViewBoxChange } = useMapUpdates({ setGameStateStack });
+  const {
+    handleMapLayoutConfigChange,
+    handleMapViewBoxChange,
+    handleMapNodesPositionChange,
+  } = useMapUpdates({ setGameStateStack });
 
   const {
     triggerRealityShift,
@@ -238,6 +242,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleStartNewGameFromButton,
     handleMapLayoutConfigChange,
     handleMapViewBoxChange,
+    handleMapNodesPositionChange,
     handleUndoTurn,
   };
 };

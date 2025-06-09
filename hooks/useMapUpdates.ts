@@ -4,7 +4,7 @@
  */
 
 import { useCallback, Dispatch, SetStateAction } from 'react';
-import { GameStateStack, MapLayoutConfig } from '../types';
+import { GameStateStack, MapLayoutConfig, MapNode } from '../types';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
   DEFAULT_NESTED_PADDING,
@@ -15,6 +15,7 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
 } from '../utils/mapConstants';
+import { structuredCloneGameState } from '../utils/cloneUtils';
 
 /** Returns the default configuration for the map layout force algorithm. */
 export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
@@ -52,5 +53,27 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
     [setGameStateStack]
   );
 
-  return { handleMapLayoutConfigChange, handleMapViewBoxChange };
+  /** Stores node positions back into the game state's map data. */
+  const handleMapNodesPositionChange = useCallback(
+    (updatedNodes: MapNode[]) => {
+      setGameStateStack(prev => {
+        const draft = structuredCloneGameState(prev[0]);
+        const nodeMap = new Map(draft.mapData.nodes.map(n => [n.id, n]));
+        updatedNodes.forEach(n => {
+          const existing = nodeMap.get(n.id);
+          if (existing) {
+            existing.position = { ...n.position };
+            if (n.data.visualRadius !== undefined) {
+              existing.data.visualRadius = n.data.visualRadius;
+            }
+          }
+        });
+        draft.mapData.nodes = Array.from(nodeMap.values());
+        return [draft, prev[1]];
+      });
+    },
+    [setGameStateStack]
+  );
+
+  return { handleMapLayoutConfigChange, handleMapViewBoxChange, handleMapNodesPositionChange };
 };

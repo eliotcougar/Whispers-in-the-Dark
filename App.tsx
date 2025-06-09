@@ -123,11 +123,12 @@ const App: React.FC = () => {
     turnsSinceLastShift,
     isCustomGameMode, 
     gameStateStack,
-    handleMapLayoutConfigChange, 
+    handleMapLayoutConfigChange,
     loadingReason,
     handleUndoTurn,
     mapViewBox,
     handleMapViewBoxChange,
+    handleMapNodesPositionChange,
   } = gameLogic;
 
   useEffect(() => {
@@ -655,9 +656,10 @@ const App: React.FC = () => {
             currentThemeName={currentTheme?.name || null}
             currentMapNodeId={currentMapNodeId}
            initialLayoutConfig={mapLayoutConfig}
-            initialViewBox={mapInitialViewBox}
-            onLayoutConfigChange={handleMapLayoutConfigChange}
-            onViewBoxChange={handleMapViewBoxChange}
+           initialViewBox={mapInitialViewBox}
+            onNodesPositioned={handleMapNodesPositionChange}
+           onLayoutConfigChange={handleMapLayoutConfigChange}
+           onViewBoxChange={handleMapViewBoxChange}
             isVisible={isMapVisible}
             onClose={() => setIsMapVisible(false)}
           />
