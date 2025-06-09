@@ -201,9 +201,14 @@ export const formatTravelPlanLine = (
     furtherNodeStep && furtherNodeStep.step === 'node'
       ? mapData.nodes.find(n => n.id === furtherNodeStep.id)
       : null;
-    line += ` The journey leads towards ${toName} in the general area of ${fromName}, and then towards ${nextRumored ? 'a rumored place - ' + nextName : nextName}`;
-      line += ` There is a rumor a path exists from here to ${nextRumored ? 'a rumored place - ' + nextName : nextName}`;
-      line += ` The path leads through ${edgeName} towards ${nextRumored ? 'a rumored place - ' + nextName : nextName}`;
+    const [, pair] = firstEdge.id.split(':');
+    const [from, to] = pair ? pair.split('->') : [null, null];
+    const fromName = from
+      ? mapData.nodes.find(n => n.id === from)?.placeName ?? from
+      : '';
+    const toName = to
+      ? mapData.nodes.find(n => n.id === to)?.placeName ?? to
+      : '';
   if (furtherNode) {
     const furtherName = furtherNode.placeName ?? furtherNode.id;
     const furtherRumored = furtherNode.data.status === 'rumored';

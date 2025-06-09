@@ -241,7 +241,8 @@ const DebugView: React.FC<DebugViewProps> = ({
             return { step: 'node', data: node || { id: step.id, missing: true } };
           }
           if (step.id.startsWith('hierarchy:')) {
-            const [from, to] = step.id.split(':')[1].split('->');
+            const [, pair] = step.id.split(':');
+            const [from, to] = pair ? pair.split('->') : [null, null];
             return { step: 'hierarchy', from, to };
           }
           const edge = mapData?.edges.find(e => e.id === step.id);
