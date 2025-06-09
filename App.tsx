@@ -27,6 +27,7 @@ import ItemChangeAnimator from './components/ItemChangeAnimator';
 import MapDisplay from './components/MapDisplay';
 import CustomGameSetupScreen from './components/CustomGameSetupScreen';
 import { useLoadingProgress } from './hooks/useLoadingProgress';
+import { findTravelPath, TravelStep } from './utils/mapPathfinding';
 
 import {
   saveGameStateToFile,
@@ -369,6 +370,12 @@ const App: React.FC = () => {
   };
 
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
+  const [destinationNodeId, setDestinationNodeId] = useState<string | null>(null);
+  const travelPath: TravelStep[] | null = React.useMemo(() => {
+    if (!destinationNodeId || !currentMapNodeId) return null;
+    return findTravelPath(mapData, currentMapNodeId, destinationNodeId);
+  }, [destinationNodeId, currentMapNodeId, mapData]);
+  void travelPath;
   const prevMapVisibleRef = useRef(false);
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {
@@ -662,10 +669,12 @@ const App: React.FC = () => {
             isVisible={isThemeMemoryVisible}
             onClose={() => setIsThemeMemoryVisible(false)}
           />
-           <MapDisplay
+          <MapDisplay
             mapData={mapData}
             currentThemeName={currentTheme?.name || null}
             currentMapNodeId={currentMapNodeId}
+            destinationNodeId={destinationNodeId}
+            onSelectDestination={setDestinationNodeId}
            initialLayoutConfig={mapLayoutConfig}
            initialViewBox={mapInitialViewBox}
             onNodesPositioned={handleMapNodesPositionChange}

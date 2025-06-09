@@ -24,6 +24,8 @@ interface MapDisplayProps {
   mapData: MapData;
   currentThemeName: string | null;
   currentMapNodeId: string | null;
+  destinationNodeId: string | null;
+  onSelectDestination: (nodeId: string) => void;
   initialLayoutConfig: MapLayoutConfig;
   initialViewBox: string;
   onViewBoxChange: (newViewBox: string) => void;
@@ -40,6 +42,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   mapData,
   currentThemeName,
   currentMapNodeId,
+  destinationNodeId,
+  onSelectDestination,
   initialLayoutConfig,
   initialViewBox,
   onViewBoxChange,
@@ -172,6 +176,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           nodes={displayedNodes}
           edges={currentThemeEdges}
           currentMapNodeId={currentMapNodeId}
+          destinationNodeId={destinationNodeId}
+          onSelectDestination={onSelectDestination}
           labelOverlapMarginPx={labelOverlapMarginPx}
           initialViewBox={initialViewBox}
           onViewBoxChange={onViewBoxChange}
