@@ -70,6 +70,27 @@ export const findTravelPath = (
     }
   }
 
+  const nodesByParent: Record<string, typeof mapData.nodes> = {};
+  for (const node of mapData.nodes) {
+    const parentId = node.data.parentNodeId;
+    if (!parentId) continue;
+    if (!nodesByParent[parentId]) nodesByParent[parentId] = [];
+    nodesByParent[parentId].push(node);
+  }
+
+  for (const siblingGroup of Object.values(nodesByParent)) {
+    for (const node of siblingGroup) {
+      if (node.data.nodeType !== 'feature') continue;
+      for (const sibling of siblingGroup) {
+        if (sibling.id === node.id || sibling.data.nodeType === 'feature') continue;
+        const idForward = `hierarchy:${node.id}->${sibling.id}`;
+        const idBackward = `hierarchy:${sibling.id}->${node.id}`;
+        addAdj(node.id, sibling.id, idForward, HIERARCHY_EDGE_TRAVEL_COST);
+        addAdj(sibling.id, node.id, idBackward, HIERARCHY_EDGE_TRAVEL_COST);
+      }
+    }
+  }
+
   const distances = new Map<string, number>();
   const prev = new Map<string, { from: string; edgeId: string }>();
   const queue: QueueItem[] = [{ nodeId: startNodeId, cost: 0 }];

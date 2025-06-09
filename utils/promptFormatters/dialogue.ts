@@ -196,9 +196,21 @@ export const formatTravelPlanLine = (
   const destRumored = destination?.data.status === 'rumored';
   const firstEdge = path[1];
   const nextNodeStep = path[2];
-  const furtherNodeStep = path[4];
-  if (firstEdge.step !== 'edge' || nextNodeStep.step !== 'node') return null;
-  const nextNode = mapData.nodes.find(n => n.id === nextNodeStep.id);
+  const furtherNodeStep = path.length > 4 ? path[4] : undefined;
+  const furtherNode =
+    furtherNodeStep && furtherNodeStep.step === 'node'
+      ? mapData.nodes.find(n => n.id === furtherNodeStep.id)
+      : null;
+    line += ` The journey leads towards ${toName} in the general area of ${fromName}, and then towards ${nextRumored ? 'a rumored place - ' + nextName : nextName}`;
+      line += ` There is a rumor a path exists from here to ${nextRumored ? 'a rumored place - ' + nextName : nextName}`;
+      line += ` The path leads through ${edgeName} towards ${nextRumored ? 'a rumored place - ' + nextName : nextName}`;
+  if (furtherNode) {
+    const furtherName = furtherNode.placeName ?? furtherNode.id;
+    const furtherRumored = furtherNode.data.status === 'rumored';
+    line += `, then continues towards ${furtherRumored ? 'a rumored place - ' + furtherName : furtherName}.`;
+  } else {
+    line += '.';
+  }
   const nextName = nextNode?.placeName ?? nextNodeStep.id;
   const furtherNode = furtherNodeStep ? mapData.nodes.find(n => n.id === furtherNodeStep.id) : null;
   const furtherName = furtherNode?.placeName ?? furtherNodeStep.id;
