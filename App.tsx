@@ -4,7 +4,7 @@
  * @description Main application component wiring together UI and game logic.
  */
 
-import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { FullGameState, ThemePackName } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import SceneDisplay from './components/SceneDisplay';
@@ -368,17 +368,28 @@ const App: React.FC = () => {
     startCustomGame(themeName);
   };
 
-  const mapInitialViewBox = useMemo(() => {
-    const parts = mapViewBox.split(' ').map(parseFloat);
-    if (parts.length === 4) {
-      const [, , vw, vh] = parts;
-      const node = mapData.nodes.find(n => n.id === currentMapNodeId);
-      if (node && !isNaN(vw) && !isNaN(vh)) {
-        return `${node.position.x - vw / 2} ${node.position.y - vh / 2} ${vw} ${vh}`;
+  const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
+  const prevMapVisibleRef = useRef(false);
+  useEffect(() => {
+    if (isMapVisible && !prevMapVisibleRef.current) {
+      const parts = mapViewBox.split(' ').map(parseFloat);
+      if (parts.length === 4) {
+        const [, , vw, vh] = parts;
+        const node = mapData.nodes.find(n => n.id === currentMapNodeId);
+        if (node && !isNaN(vw) && !isNaN(vh)) {
+          setMapInitialViewBox(
+            `${node.position.x - vw / 2} ${node.position.y - vh / 2} ${vw} ${vh}`
+          );
+        } else {
+          setMapInitialViewBox(mapViewBox);
+        }
+      } else {
+        setMapInitialViewBox(mapViewBox);
       }
     }
-    return mapViewBox;
-  }, [mapViewBox, mapData.nodes, currentMapNodeId]);
+    if (!isMapVisible) prevMapVisibleRef.current = false;
+    else prevMapVisibleRef.current = true;
+  }, [isMapVisible, mapViewBox, currentMapNodeId, mapData.nodes]);
 
 
   if (!appReady) {
