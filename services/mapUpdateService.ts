@@ -39,6 +39,7 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service } from './corrections/map';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
+import { addProgressSymbol } from '../utils/loadingProgress';
 
 // Local type definition for Place, matching what useGameLogic might prepare
 
@@ -68,6 +69,7 @@ export interface MapUpdateServiceResult {
  * the raw response.
  */
 const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promise<GenerateContentResponse> => {
+  addProgressSymbol('▓▓');
   return dispatchAIRequest(
     [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,

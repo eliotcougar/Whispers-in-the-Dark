@@ -11,12 +11,14 @@ import { ai } from './geminiClient';
 import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
+import { addProgressSymbol } from '../utils/loadingProgress';
 
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
     fullPrompt: string,
     themeSystemInstructionModifier: string | undefined // Retain as string for direct use
 ): Promise<GenerateContentResponse> => {
+    addProgressSymbol('██');
     if (!isApiConfigured()) {
       console.error("API Key not configured for Gemini Service.");
       return Promise.reject(new Error("API Key not configured."));
