@@ -25,6 +25,7 @@ import { ALL_THEME_PACK_NAMES } from '../themes';
 // Map layout constants are not needed here; only conversion utilities require them.
 
 import { getDefaultMapLayoutConfig } from "../hooks/useMapUpdates";
+import { DEFAULT_VIEWBOX } from '../utils/mapConstants';
 import { findThemeByName } from "./themeUtils";
 
 
@@ -227,9 +228,9 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
     'inventory', 'gameLog', 'lastActionLog', 'themeHistory',
     'pendingNewThemeNameAfterShift',
-    'allCharacters', 'mapData', 'currentMapNodeId', 'mapLayoutConfig', 'score', 'stabilityLevel', 'chaosLevel',
+    'allCharacters', 'mapData', 'currentMapNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
-    'turnsSinceLastShift', 'globalTurnNumber', 'isCustomGameMode' 
+    'turnsSinceLastShift', 'globalTurnNumber', 'isCustomGameMode'
   ];
   for (const field of fields) {
     if (!(field in obj)) {
@@ -272,6 +273,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (!isValidMapData(obj.mapData)) { console.warn('Invalid save data (V3): mapData.'); return false; }
   if (obj.currentMapNodeId !== null && typeof obj.currentMapNodeId !== 'string') { console.warn('Invalid save data (V3): currentMapNodeId type.'); return false; }
   if (!isValidMapLayoutConfig(obj.mapLayoutConfig)) { console.warn('Invalid save data (V3): mapLayoutConfig.'); return false; }
+  if (typeof obj.mapViewBox !== 'string') { console.warn('Invalid save data (V3): mapViewBox type.'); return false; }
   if (typeof obj.score !== 'number') { console.warn('Invalid save data (V3): score type.'); return false; }
   if (typeof obj.stabilityLevel !== 'number') { console.warn('Invalid save data (V3): stabilityLevel type.'); return false; }
   if (typeof obj.chaosLevel !== 'number') { console.warn('Invalid save data (V3): chaosLevel type.'); return false; }
@@ -440,6 +442,10 @@ export function normalizeLoadedSaveData(
     dataToValidateAndExpand.playerGender = dataToValidateAndExpand.playerGender ?? DEFAULT_PLAYER_GENDER;
     dataToValidateAndExpand.turnsSinceLastShift = dataToValidateAndExpand.turnsSinceLastShift ?? 0;
     dataToValidateAndExpand.globalTurnNumber = dataToValidateAndExpand.globalTurnNumber ?? 0;
+    dataToValidateAndExpand.mapViewBox =
+      typeof dataToValidateAndExpand.mapViewBox === 'string'
+        ? dataToValidateAndExpand.mapViewBox
+        : DEFAULT_VIEWBOX;
     dataToValidateAndExpand.mainQuest = dataToValidateAndExpand.mainQuest ?? null;
     dataToValidateAndExpand.isCustomGameMode = dataToValidateAndExpand.isCustomGameMode ?? false;
 
@@ -500,6 +506,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     mapData: mapDataForSave,
     currentMapNodeId: gameState.currentMapNodeId || null,
     mapLayoutConfig: gameState.mapLayoutConfig || getDefaultMapLayoutConfig(),
+    mapViewBox: gameState.mapViewBox ?? DEFAULT_VIEWBOX,
     score: gameState.score ?? 0,
     stabilityLevel: gameState.stabilityLevel ?? DEFAULT_STABILITY_LEVEL,
     chaosLevel: gameState.chaosLevel ?? DEFAULT_CHAOS_LEVEL,
@@ -547,7 +554,8 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     mapData: mapDataFromLoad,
     currentMapNodeId: savedData.currentMapNodeId || null,
     mapLayoutConfig: savedData.mapLayoutConfig,
-    isCustomGameMode: savedData.isCustomGameMode ?? false, 
+    mapViewBox: savedData.mapViewBox || DEFAULT_VIEWBOX,
+    isCustomGameMode: savedData.isCustomGameMode ?? false,
     globalTurnNumber: savedData.globalTurnNumber ?? 0, 
     isAwaitingManualShiftThemeSelection: false, 
     dialogueState: null,

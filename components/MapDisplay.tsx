@@ -25,6 +25,8 @@ interface MapDisplayProps {
   currentThemeName: string | null;
   currentMapNodeId: string | null;
   initialLayoutConfig: MapLayoutConfig;
+  initialViewBox: string;
+  onViewBoxChange: (newViewBox: string) => void;
   onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
   isVisible: boolean;
   onClose: () => void;
@@ -38,6 +40,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   currentThemeName,
   currentMapNodeId,
   initialLayoutConfig,
+  initialViewBox,
+  onViewBoxChange,
   onLayoutConfigChange,
   isVisible,
   onClose,
@@ -165,6 +169,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           edges={currentThemeEdges}
           currentMapNodeId={currentMapNodeId}
           labelOverlapMarginPx={labelOverlapMarginPx}
+          initialViewBox={initialViewBox}
+          onViewBoxChange={onViewBoxChange}
         />
         <MapControls
           padding={layoutNestedPadding}
