@@ -3,7 +3,7 @@ import { findTravelPath } from './mapPathfinding';
 
 export const generateUniqueId = (base: string): string => {
   const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-  const unique = `_${Math.random().toString(36).substring(2,6)}`;
+  const unique = `${Math.random().toString(36).substring(2,6)}`;
   return `${sanitized}_${unique}`;
 };
 
