@@ -1,10 +1,7 @@
-export const generateUniqueId = (
-  prefix = 'id_',
-  suffix?: string,
-): string => {
-  const unique =
-    suffix || `${Math.random().toString(36).substring(2,6)}`;
-  return `${prefix}${unique}`;
+export const generateUniqueId = (base: string): string => {
+  const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+  const unique = `${Date.now() % 10000}_${Math.random().toString(36).substring(2,6)}`;
+  return `${sanitized}_${unique}`;
 };
 
 import { MapNode, MapData, Character } from '../types';
@@ -107,35 +104,22 @@ export const extractRandomSuffix = (id: string): string | null => {
   return match ? match[1] : null;
 };
 
-export const buildNodeId = (
-  placeName: string,
-  suffix?: string,
-): string => {
-  const base = placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-  return generateUniqueId(`node_${base}_`, suffix);
+export const buildNodeId = (placeName: string): string => {
+  return generateUniqueId(`node_${placeName}_`);
 };
 
 export const buildEdgeId = (
   sourceNodeId: string,
   targetNodeId: string,
-  suffix?: string,
 ): string => {
-  return generateUniqueId(`${sourceNodeId}_to_${targetNodeId}_`, suffix);
+  return generateUniqueId(`${sourceNodeId}_to_${targetNodeId}_`);
 };
 
-export const buildCharacterId = (
-  charName: string,
-  suffix?: string,
-): string => {
-  const base = charName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-  return generateUniqueId(`char_${base}_`, suffix);
+export const buildCharacterId = (charName: string): string => {
+  return generateUniqueId(`char_${charName}_`);
 };
 
-export const buildItemId = (
-  itemName: string,
-  suffix?: string,
-): string => {
-  const base = itemName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-  return generateUniqueId(`item_${base}_`, suffix);
+export const buildItemId = (itemName: string): string => {
+  return generateUniqueId(`item_${itemName}_`);
 };
 
