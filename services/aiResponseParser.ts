@@ -214,6 +214,15 @@ async function processItemChanges(
         let currentItemPayload = ic.item;
         let currentInvalidPayload = ic.invalidPayload;
 
+        if (
+            ic.action === 'gain' &&
+            currentItemPayload &&
+            typeof currentItemPayload === 'object' &&
+            !('holderId' in currentItemPayload)
+        ) {
+            (currentItemPayload as Item).holderId = PLAYER_HOLDER_ID;
+        }
+
         switch (ic.action) {
             case 'gain':
                 if (!isValidItem(currentItemPayload, 'gain')) {
