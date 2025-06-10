@@ -415,15 +415,7 @@ Narrative Context for Map Update:
 ${existingMapContext}
 ---
 Based on the Narrative Context and existing map context, provide a JSON response adhering to the MAP_UPDATE_SYSTEM_INSTRUCTION.
-Key points:
-- For ALL nodes in 'nodesToAdd', you MUST provide 'description' (${NODE_DESCRIPTION_INSTRUCTION}), 'aliases' (${ALIAS_INSTRUCTION}, can be empty), and 'status'.
-- For ALL nodes in 'nodesToAdd', you MUST provide 'description' (non-empty string, <300 chars), 'aliases' (array of strings, can be empty), and 'status'.
-  - If any new specific places (feature nodes) within or between main locations are described, add them and specify their parent via \`parentNodeId\`.
-- Check if you can assign a definitive parent node for any orphan nodes (Parent node N/A).
-- All nodes MUST represent physical locations.
-- If connections (paths, doors, etc.) are revealed or changed, update edges.
- - If new details are revealed about a location (main or feature), update description and/or aliases.
- - If the Player's new 'localPlace' tells that they are at a specific feature node (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
+
 `;
   let prompt = basePrompt;
   const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };

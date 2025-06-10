@@ -143,10 +143,10 @@ Suggested Initial Inventory to be granted: "${theme.initialItems}" (Adjust the n
 
 Last player's action was unremarkable, something very common, what people do in the described situation.
 
-Creatively enerate the variation of the mainQuest and currentObjective, based on the suggested Quest and Objective, but noticeably different.
+Creatively generate the variation of the mainQuest and currentObjective, based on the suggested Quest and Objective, but noticeably different.
 Creatively generate the initial scene description, action options, items (variation based on 'Initial Inventory to be granted') and logMessage.
 Creatively add possible important quest item(s), if any, based on your generated Quest and Objective.
-Set "mapUpdated": true if your generated Scene, Quest or Objective mention specific locations that should be on the map.
+ALWAYS SET "mapUpdated": true.
 Of all the optional variables, your response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
 Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
   return prompt;
