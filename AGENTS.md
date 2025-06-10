@@ -19,6 +19,7 @@
   - "Alias" - alternative names, partial names, shorthands for various entities like Places and Characters.
 
 CURRENT_SAVE_GAME_VERSION string should always be a single incremental number, for example "1", "2", "3", etc...
+ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,6)}
 
 ## Main Game Flow:
  - Wait for Player's Input.

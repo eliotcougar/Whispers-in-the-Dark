@@ -100,26 +100,26 @@ export const getEntityById = (
 };
 
 export const extractRandomSuffix = (id: string): string | null => {
-  const match = id.match(/_([a-z0-9]{4})$/i);
+  const match = id.match(/([a-z0-9]{4})$/i);
   return match ? match[1] : null;
 };
 
 export const buildNodeId = (placeName: string): string => {
-  return generateUniqueId(`node_${placeName}_`);
+  return generateUniqueId(`node_${placeName}`);
 };
 
 export const buildEdgeId = (
   sourceNodeId: string,
   targetNodeId: string,
 ): string => {
-  return generateUniqueId(`${sourceNodeId}_to_${targetNodeId}_`);
+  return generateUniqueId(`${sourceNodeId}_to_${targetNodeId}`);
 };
 
 export const buildCharacterId = (charName: string): string => {
-  return generateUniqueId(`char_${charName}_`);
+  return generateUniqueId(`char_${charName}`);
 };
 
 export const buildItemId = (itemName: string): string => {
-  return generateUniqueId(`item_${itemName}_`);
+  return generateUniqueId(`item_${itemName}`);
 };
 
