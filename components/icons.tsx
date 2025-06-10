@@ -12,7 +12,6 @@ export const RealityShiftIcon: React.FC<{ className?: string }> = ({ className =
   </svg>
 );
 
-
 /** Icon showing an in-game currency coin. */
 export const CoinIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={className}>
@@ -58,8 +57,18 @@ export const ScrollIcon: React.FC<{ className?: string }> = ({ className = "w-5 
 
 /** Icon used to open the map view. */
 export const MapIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-.553-.894L15 2m-6 5l6-3m0 0l6 3m-6-3v10" />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className}>
+    {/* Left panel */}
+    <polygon points="3,20 3,5 9,3 9,18" fill="none" stroke="currentColor" strokeWidth="1.2" />
+    {/* Center panel */}
+    <polygon points="9,18 9,3 15,5 15,20" fill="none" stroke="currentColor" strokeWidth="1.2" />
+    {/* Right panel */}
+    <polygon points="15,20 15,5 21,7 21,22" fill="none" stroke="currentColor" strokeWidth="1.2" />
+    {/* Fold lines */}
+    <line x1="9" y1="3" x2="9" y2="18" stroke="#b6c2d1" strokeWidth="0.8" />
+    <line x1="15" y1="5" x2="15" y2="20" stroke="#b6c2d1" strokeWidth="0.8" />
+    {/* Outline */}
+    <polyline points="3,20 3,5 9,3 15,5 21,7 21,22 15,20 9,18 3,20" fill="none" stroke="currentColor" strokeWidth="1.2" />
   </svg>
 );
 
@@ -84,7 +93,6 @@ export const LogIcon: React.FC = () => (
 </svg>
 );
 
-
 /** Icon representing a companion character. */
 export const CompanionIcon: React.FC<{ className?: string }> = ({ className = "h-4 w-4 inline-block mr-1 text-green-400" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>
@@ -98,5 +106,53 @@ export const NearbyNPCIcon: React.FC<{ className?: string }> = ({ className = "h
     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
     <path d="M6.605 13.688a.5.5 0 01.707-.707 4.5 4.5 0 006.364 0 .5.5 0 01.707.707 5.5 5.5 0 01-7.778 0z" />
     <path d="M3.732 11.268a.5.5 0 01.707-.707 7.5 7.5 0 0010.607 0 .5.5 0 01.707.707 8.5 8.5 0 01-11.02 0 .502.502 0 01-.001-.001zM1.121 8.146a.5.5 0 01.707-.707c3.453-3.453 9.013-3.453 12.466 0a.5.5 0 01-.707.707c-2.94-2.94-7.819-2.94-10.759 0a.5.5 0 01-.707-.707A.5.5 0 011.12 8.146z" />
+  </svg>
+);
+
+/** Small icon of an isometric box for map item indicators. */
+export const MapItemBoxIcon: React.FC<{ className?: string; size?: number }> = ({ className = '', size = 12 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    className={className}
+    width={size}
+    height={size}
+  >
+    {/* Top face */}
+    <polygon points="12,3 21,7.5 12,12 3,7.5" fill="#f8e7c0" stroke="currentColor" strokeLinejoin="round" />
+    {/* Left face */}
+    <polygon points="3,7.5 12,12 12,21 3,16.5" fill="#e2c48d" stroke="currentColor" strokeLinejoin="round" />
+    {/* Right face */}
+    <polygon points="21,7.5 12,12 12,21 21,16.5" fill="#e2c48d" stroke="currentColor" strokeLinejoin="round" />
+    {/* Box outline */}
+    <polyline points="12,3 21,7.5 21,16.5 12,21 3,16.5 3,7.5 12,3" fill="none" stroke="currentColor" strokeLinejoin="round" />
+
+  </svg>
+);
+
+/** Small wheel icon for vehicle indicators on the map. */
+export const MapWheelIcon: React.FC<{ className?: string; size?: number }> = ({ className = '', size = 12 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    className={className}
+    width={size}
+    height={size}
+  >
+    {/* Rim */}
+    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+    {/* Central hub */}
+    <circle cx="12" cy="12" r="4" fill="currentColor" strokeWidth="0" />
+    {/* 4 Spokes */}
+    <g stroke="currentColor" strokeWidth="2">
+      <line x1="12" y1="12" x2="12" y2="2" />
+      <line x1="12" y1="12" x2="20.142" y2="17.071" />
+      <line x1="12" y1="12" x2="12" y2="22" />
+      <line x1="12" y1="12" x2="3.858" y2="17.071" />
+    </g>
   </svg>
 );

@@ -361,8 +361,10 @@ ${mapContext}
 
 ${detailedEntityContext}
 
-Recent Events to keep in mind (provided ONLY for extra context, these actions have already been processed and MUST NEVER affect items changes to avoid double counting):
+Recent Events to keep in mind (for context and continuity):
 ${recentEventsContext}
+ - A bit later you look around and consider your next move.
+IMPORTANT: Recent Events are provided ONLY for extra context, these actions have already been processed by the game and should NEVER cause item actions to avoid double counting.
 ---
 
 Current Theme: "${currentTheme.name}"

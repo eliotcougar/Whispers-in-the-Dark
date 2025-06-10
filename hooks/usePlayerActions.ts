@@ -471,15 +471,15 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   );
 
   /**
-   * Removes a junk item from the inventory and records the change in state.
+   * Drops an item from the inventory at the current location and optionally logs a message.
    */
-  const handleDiscardJunkItem = useCallback(
-    (itemName: string) => {
+  const handleDropItem = useCallback(
+    (itemName: string, logMessageOverride?: string) => {
       const currentFullState = getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 
       const itemToDiscard = currentFullState.inventory.find((item) => item.name === itemName && item.holderId === PLAYER_HOLDER_ID);
-      if (!itemToDiscard || !itemToDiscard.isJunk) return;
+      if (!itemToDiscard) return;
 
       const draftState = structuredCloneGameState(currentFullState);
       const currentLocationId = currentFullState.currentMapNodeId || 'unknown';
@@ -503,6 +503,70 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         mapDataChanged: false,
       };
       draftState.lastTurnChanges = turnChangesForDiscard;
+
+      let logMessage = logMessageOverride;
+      if (!logMessage) {
+        const placeName =
+          currentFullState.mapData.nodes.find(n => n.id === currentLocationId)?.placeName ||
+          currentFullState.localPlace ||
+          'Unknown Place';
+        if (itemToDiscard.type === 'vehicle' && !itemToDiscard.isActive) {
+          logMessage = `You left your ${itemName} parked at ${placeName}.`;
+        } else {
+          logMessage = `You left your ${itemName} at ${placeName}.`;
+        }
+      }
+
+      if (logMessage) {
+        draftState.gameLog = addLogMessageToList(draftState.gameLog, logMessage, MAX_LOG_MESSAGES);
+        draftState.lastActionLog = logMessage;
+      }
+      commitGameState(draftState);
+    },
+    [getCurrentGameState, commitGameState, isLoading]
+  );
+
+  /**
+   * Picks up an item from the current location without triggering a turn.
+   */
+  const handleTakeLocationItem = useCallback(
+    (itemName: string) => {
+      const currentFullState = getCurrentGameState();
+      if (isLoading || currentFullState.dialogueState) return;
+
+      const currentLocationId = currentFullState.currentMapNodeId;
+      if (!currentLocationId) return;
+
+      const itemToTake = currentFullState.inventory.find(
+        (item) => item.name === itemName && item.holderId === currentLocationId
+      );
+      if (!itemToTake) return;
+
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map((item) =>
+        item.name === itemName && item.holderId === currentLocationId
+          ? { ...item, holderId: PLAYER_HOLDER_ID }
+          : item
+      );
+
+      const itemChangeRecord: ItemChangeRecord = {
+        type: 'gain',
+        gainedItem: { ...itemToTake, holderId: PLAYER_HOLDER_ID },
+      };
+      const turnChangesForTake: TurnChanges = {
+        itemChanges: [itemChangeRecord],
+        characterChanges: [],
+        objectiveAchieved: false,
+        objectiveTextChanged: false,
+        mainQuestTextChanged: false,
+        localTimeChanged: false,
+        localEnvironmentChanged: false,
+        localPlaceChanged: false,
+        currentMapNodeIdChanged: false,
+        scoreChangedBy: 0,
+        mapDataChanged: false,
+      };
+      draftState.lastTurnChanges = turnChangesForTake;
       commitGameState(draftState);
     },
     [getCurrentGameState, commitGameState, isLoading]
@@ -546,7 +610,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     executePlayerAction,
     handleActionSelect,
     handleItemInteraction,
-    handleDiscardJunkItem,
+    handleDropItem,
+    handleTakeLocationItem,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   };

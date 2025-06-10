@@ -210,11 +210,31 @@ export const ACTION_AND_WASTELAND_THEMES: AdventureTheme[] = [
   }
 ];
 
+export const TESTING_THEMES: AdventureTheme[] = [
+  {
+    name: "Test-Theme for many locations",
+    systemInstructionModifier: "The world of modern fantasy in the United Kingdom. It is intended for testing locations. Create many Map Nodes of all types and statuses, and connected with edges.",
+    initialMainQuest: "Move from place to place until the test is complete.",
+    initialCurrentObjective: "Move somewhere",
+    initialSceneDescriptionSeed: "You are in London, a bustling city filled with magic and mystery. The streets are alive with the sounds of people, vehicles, and the occasional magical creature. Your task is to explore various locations, interact with characters, and uncover secrets.",
+    initialItems: "a magical compass that points to the nearest interesting location, a notebook for recording your findings, and a charm that protects you from minor magical mishaps."
+  },
+  {
+    name: "Sci-Fi Future Test Theme for junk items",
+    systemInstructionModifier: "The setting is a futuristic city filled with advanced technology and junk. It is intended for testing junk items. Create many Map Nodes of all types and statuses, and connected with edges.",
+    initialMainQuest: "Collect junk items from various locations in the futuristic city.",
+    initialCurrentObjective: "Find a junkyard to start collecting items.",
+    initialSceneDescriptionSeed: "You find yourself in a sprawling futuristic city, where towering skyscrapers touch the clouds and neon lights flicker in the night. The streets are filled with people, robots, and flying vehicles. Your task is to explore the city, gather junk items, and discover their potential uses.",
+    initialItems: "Pickup truck, a malfunctioning robot, a pile of circuit boards, and a toolset."
+  }
+]
+
 export const THEME_PACKS = {
   "Fantasy & Myth": FANTASY_AND_MYTH_THEMES,
   "Science Fiction & Future": SCIENCE_FICTION_AND_FUTURE_THEMES,
   "Horror & Dark Mystery": HORROR_AND_DARK_MYSTERY_THEMES,
   "Action & Wasteland": ACTION_AND_WASTELAND_THEMES,
+  "Testing": TESTING_THEMES
 };
 
 export type ThemePackName = keyof typeof THEME_PACKS;

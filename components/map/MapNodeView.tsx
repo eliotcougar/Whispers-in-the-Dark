@@ -13,6 +13,7 @@ import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
 } from '../../utils/mapConstants';
+import { MapItemBoxIcon, MapWheelIcon } from '../icons';
 
 const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   const x1 = a.position.x;
@@ -37,8 +38,12 @@ interface MapNodeViewProps {
   edges: MapEdge[];
   currentMapNodeId: string | null;
   destinationNodeId: string | null;
+  /** Mapping of nodeId to presence of useful items and vehicles */
+  itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
   onSelectDestination: (nodeId: string) => void;
   labelOverlapMarginPx: number;
+  /** Fraction of node diameter for item icon size */
+  itemIconScale: number;
   initialViewBox: string;
   onViewBoxChange: (viewBox: string) => void;
 }
@@ -134,8 +139,10 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   edges,
   currentMapNodeId,
   destinationNodeId,
+  itemPresenceByNode,
   onSelectDestination,
   labelOverlapMarginPx,
+  itemIconScale,
   initialViewBox,
   onViewBoxChange,
 }) => {
@@ -454,6 +461,38 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
               />
             );
           })()}
+
+          {sortedNodes.map(node => {
+          const presence = itemPresenceByNode?.[node.id];
+          if (!presence) return null;
+          const radius = getRadiusForNode(node);
+          const offset = radius + DEFAULT_LABEL_MARGIN_PX * 1.5;
+          const iconSize = NODE_RADIUS * 2 * itemIconScale;
+          return (
+            <g key={`${node.id}-icons`}>
+              {presence.hasUseful && (() => {
+                const angle = (20 * Math.PI) / 180;
+                const x = node.position.x + offset * Math.sin(angle);
+                const y = node.position.y - offset * Math.cos(angle);
+                return (
+                    <g transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`} pointerEvents="none">
+                      <MapItemBoxIcon className="text-green-400" size={iconSize} />
+                    </g>
+                );
+              })()}
+              {presence.hasVehicle && (() => {
+                const angle = (340 * Math.PI) / 180;
+                const x = node.position.x + offset * Math.sin(angle);
+                const y = node.position.y - offset * Math.cos(angle);
+                return (
+                    <g transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`} pointerEvents="none">
+                      <MapWheelIcon className="text-green-400" size={iconSize} />
+                    </g>
+                );
+              })()}
+            </g>
+          );
+        })}
 
           {sortedNodes.map(node => {
             const maxCharsPerLine =

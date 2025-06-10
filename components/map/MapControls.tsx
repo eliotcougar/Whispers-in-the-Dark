@@ -12,6 +12,8 @@ interface MapControlsProps {
   setAnglePadding: (val: number) => void;
   overlapMargin: number;
   setOverlapMargin: (val: number) => void;
+  itemIconScale: number;
+  setItemIconScale: (val: number) => void;
   onReset: () => void;
   onRefreshLayout: () => void;
 }
@@ -48,6 +50,8 @@ const MapControls: React.FC<MapControlsProps> = props => {
     setAnglePadding,
     overlapMargin,
     setOverlapMargin,
+    itemIconScale,
+    setItemIconScale,
     onReset
   } = props;
 
@@ -84,6 +88,16 @@ const MapControls: React.FC<MapControlsProps> = props => {
             10,
             1,
             'Extra spacing when labels overlap'
+          )}
+          {renderParameterControl(
+            'Icon Size',
+            'itemIconScale',
+            itemIconScale,
+            setItemIconScale,
+            0.2,
+            1.0,
+            0.1,
+            'Relative size of item markers'
           )}
           <button onClick={onReset} className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
             Reset to Defaults

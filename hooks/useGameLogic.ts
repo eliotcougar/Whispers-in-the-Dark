@@ -3,7 +3,7 @@
  * @description Central hook that coordinates game state and orchestrates other hooks.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ThemePackName, FullGameState, GameStateStack, LoadingReason } from '../types';
 import { getInitialGameStates } from '../utils/initialStates';
 import { useDialogueFlow } from './useDialogueFlow';
@@ -98,7 +98,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     processAiResponse,
     handleActionSelect,
     handleItemInteraction,
-    handleDiscardJunkItem,
+    handleDropItem,
+    handleTakeLocationItem,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   } = usePlayerActions({
@@ -187,6 +188,20 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const currentFullState = getCurrentGameState();
 
+  const itemPresenceByNode = useMemo(() => {
+    const map: Record<string, { hasUseful: boolean; hasVehicle: boolean }> = {};
+    const nodeIds = new Set(currentFullState.mapData.nodes.map(n => n.id));
+    currentFullState.inventory.forEach(item => {
+      if (nodeIds.has(item.holderId)) {
+        const entry = map[item.holderId] || { hasUseful: false, hasVehicle: false };
+        if (!item.isJunk) entry.hasUseful = true;
+        if (item.type === 'vehicle') entry.hasVehicle = true;
+        map[item.holderId] = entry;
+      }
+    });
+    return map;
+  }, [currentFullState.inventory, currentFullState.mapData.nodes]);
+
   return {
     currentTheme: currentFullState.currentThemeObject,
     currentScene: currentFullState.currentScene,
@@ -194,6 +209,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     mainQuest: currentFullState.mainQuest,
     currentObjective: currentFullState.currentObjective,
     inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+    itemsHere: currentFullState.currentMapNodeId
+      ? currentFullState.inventory.filter(i => i.holderId === currentFullState.currentMapNodeId)
+      : [],
+    itemPresenceByNode,
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,
     isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),
@@ -230,7 +249,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
     handleActionSelect,
     handleItemInteraction,
-    handleDiscardJunkItem,
+    handleDropItem,
+    handleTakeLocationItem,
     handleRetry,
     executeRestartGame,
     executeManualRealityShift,

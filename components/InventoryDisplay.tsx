@@ -10,7 +10,7 @@ import { InventoryIcon, TrashIcon } from './icons.tsx';
 interface InventoryDisplayProps {
   items: Item[];
   onItemInteract: (item: Item, interactionType: 'generic' | 'specific' | 'inspect', knownUse?: KnownUse) => void;
-  onDiscardJunkItem: (itemName: string) => void; 
+  onDropItem: (itemName: string) => void;
   disabled: boolean;
 }
 
@@ -41,7 +41,7 @@ export const ItemTypeDisplay: React.FC<{ type: Item['type'] }> = ({ type }) => {
 /**
  * Shows the player's inventory and handles item interactions.
  */
-const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemInteract, onDiscardJunkItem, disabled }) => {
+const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemInteract, onDropItem, disabled }) => {
   const [newlyAddedItemNames, setNewlyAddedItemNames] = useState<Set<string>>(new Set());
   const prevItemsRef = useRef<Item[]>(items);
   const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
@@ -275,12 +275,45 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                         <TrashIcon /> Discard
                       </button>
                   )}
+
+                  {!item.isJunk && !isConfirmingDiscard && item.type != 'vehicle' && (
+                     <button
+                        key={`${item.name}-drop`}
+                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                          setConfirmingDiscardItemName(item.name);
+                          event.currentTarget.blur();
+                        }}
+                        disabled={disabled}
+                        className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
+                                   disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
+                                   transition-colors duration-150 ease-in-out"
+                        aria-label={`Drop ${item.name}`}
+                      >
+                        Drop
+                      </button>
+                  )}
+                  {!item.isJunk && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
+                     <button
+                        key={`${item.name}-drop`}
+                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                          setConfirmingDiscardItemName(item.name);
+                          event.currentTarget.blur();
+                        }}
+                        disabled={disabled}
+                        className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
+                                   disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
+                                   transition-colors duration-150 ease-in-out"
+                        aria-label={`Park ${item.name} here`}
+                      >
+                        Park Here
+                      </button>
+                  )}
                   {isConfirmingDiscard && (
                     <div className="grid grid-cols-2 gap-2 mt-2">
                        <button
-                        key={`${item.name}-confirm-discard`}
+                        key={`${item.name}-confirm-drop`}
                         onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                          onDiscardJunkItem(item.name);
+                          onDropItem(item.name);
                           setConfirmingDiscardItemName(null);
                           event.currentTarget.blur();
                         }}
@@ -288,9 +321,9 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                         className="w-full text-sm bg-red-600 hover:bg-red-500 text-white font-semibold py-1.5 px-3 rounded shadow
                                    disabled:bg-slate-500 disabled:cursor-not-allowed
                                    transition-colors duration-150 ease-in-out"
-                        aria-label={`Confirm discard of ${item.name}`}
+                        aria-label={`Confirm drop of ${item.name}`}
                       >
-                        Confirm Discard
+                        {item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
                       </button>
                       <button
                         key={`${item.name}-cancel-discard`}
