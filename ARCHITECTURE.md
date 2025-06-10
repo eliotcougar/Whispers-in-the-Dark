@@ -58,7 +58,7 @@ This layer abstracts external interactions and complex data processing.
 *   **AI Interaction Services:**
     *   `services/geminiClient.ts`: Initializes the Google Gemini API client.
     *   `services/gameAIService.ts`: Handles main game turn AI calls and theme summarization.
-    *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries. Dialogue context uses `MapNode[]` for place information and can summarize conversations so NPCs remember past talks.
+    *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
     *   `services/mapUpdateService.ts`:
         *   Receives narrative context and current `MapData`.
@@ -66,14 +66,13 @@ This layer abstracts external interactions and complex data processing.
         *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
-   *   `services/aiResponseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections. The parser relies on the `mapUpdated` flag instead of the older `placesAdded` or `placesUpdated` fields.
+    *   `services/aiResponseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
     *   `services/validationUtils.ts`: General data structure validation.
     *   `utils/mapUpdateValidationUtils.ts`: Specific validation for `AIMapUpdatePayload`.
 *   **Persistence Service:**
    *   `services/saveLoadService.ts`: Handles saving and loading the entire `FullGameState`, including `mapData` and `currentMapNodeId`, and converts older save versions when necessary.
 *   **Utility Functions:**
-   *   `utils/promptFormatters.ts` and the files under `utils/promptFormatters/`: format inventory, map context, and dialogue prompts using `MapNode[]` data.
-   *   Main turn prompts list items on the ground if any share the current map node's ID.
+   *   `utils/promptFormatters.ts` and the files under `utils/promptFormatters/`: format inventory, map context, and main turn.
    *   `utils/aiErrorUtils.ts`: Interprets errors from the Gemini API.
    *   `utils/cloneUtils.ts`: Deep clone helpers for game state objects.
    *   `utils/entityUtils.ts`: Entity lookup helpers plus `generateUniqueId`, `buildNodeId`, `buildEdgeId`, and `buildCharacterId` for deterministic IDs.
@@ -138,15 +137,13 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   Applies these changes, creating/updating/deleting `MapNode`s and `MapEdge`s within `MapData`.
     *   If a node is renamed via `nodesToUpdate`, any `nodesToRemove` entry with that old or new name is ignored.
 *   **Map Data (`FullGameState.mapData`)**: Becomes the single source of truth for all map-related information (nodes, their descriptions, aliases, statuses, connections).
-*   **Knowledge Base**: Focuses on characters. Location understanding comes from interacting with and viewing the `MapDisplay`.
-
-This map-centric refactor centralizes location data management, making it more robust and scalable, with the `mapUpdateService` acting as a specialized agent for interpreting narrative cues into concrete map changes.
+*   **Knowledge Base**: Focuses on characters currently.
 
 ### 2.3. Hierarchical Map System
 
 `MapNode` objects can represent locations at several hierarchical levels. Each node **must specify** a `nodeType` (`region`, `location`, `settlement`, `exterior`, `interior`, `room`, or `feature`) **and a `status`** (`undiscovered`, `discovered`, `rumored`, or `quest_target`). Every node also includes a `parentNodeId` (use `"Universe"` for the root node) indicating its place in the hierarchy. Nodes are laid out near their parent in the map view. The hierarchy is represented solely with `parentNodeId`, replacing the old containment-edge approach. This allows the map to contain nested areas such as rooms within buildings or features within rooms.
 
-Edges represent traversable connections between *feature* nodes only. A valid edge connects sibling features (same parent), features whose parents share the same grandparent, **or a feature with the child of one of its sibling locations** (a child–grandchild connection). Edges with the type `shortcut` are exempt from these hierarchy rules and may link any two feature nodes directly. When the AI proposes a non-shortcut edge that violates the rules, `mapUpdateService` incrementally climbs each node's parent chain, inserting connector feature nodes at every level until a common ancestor is reached. The edge is then rerouted through this chain rather than being skipped. Newly inserted connector features inherit their parent node's status (for example, connectors under rumored nodes remain rumored), and any replacement edges reuse the status from the connection they replace.
+Edges represent potentially traversable connections between *feature* nodes only. A valid edge connects sibling features (same parent), features whose parents share the same grandparent, **or a feature with the child of one of its sibling locations** (a child–grandchild connection). Edges with the type `shortcut` are exempt from these hierarchy rules and may link any two feature nodes directly. When the AI proposes a non-shortcut edge that violates the rules, `mapUpdateService` incrementally climbs each node's parent chain, inserting connector feature nodes at every level until a common ancestor is reached. The edge is then rerouted through this chain rather than being skipped. Newly inserted connector features inherit their parent node's status (for example, connectors under rumored nodes remain rumored), and any replacement edges reuse the status from the connection they replace.
 
 ### 2.4. Map Layout and Visualization
 

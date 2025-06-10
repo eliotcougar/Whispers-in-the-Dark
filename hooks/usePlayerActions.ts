@@ -32,7 +32,7 @@ import {
   buildItemChangeRecords,
   applyAllItemChanges,
 } from '../utils/gameLogicUtils';
-import { formatMainGameTurnPrompt } from '../utils/promptFormatters/dialogue';
+import { formatMainGameTurnPrompt } from '../utils/promptFormatters';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
 

@@ -19,7 +19,7 @@ import {
   formatNewGameFirstTurnPrompt,
   formatNewThemePostShiftPrompt,
   formatReturnToThemePostShiftPrompt,
-} from '../utils/promptFormatters/dialogue';
+} from '../utils/promptFormatters';
 import {
   getInitialGameStates,
   getInitialGameStatesWithSettings
