@@ -18,11 +18,9 @@ import {
   MinimalModelCallRecord
 } from '../types';
 import {
-  AUXILIARY_MODEL_NAME,
-  MAX_RETRIES,
   GEMINI_MODEL_NAME,
-  NODE_DESCRIPTION_INSTRUCTION,
-  ALIAS_INSTRUCTION,
+  AUXILIARY_MODEL_NAME,
+  MAX_RETRIES
 } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { dispatchAIRequest } from './modelDispatcher';
@@ -32,7 +30,7 @@ import {
   VALID_NODE_STATUS_VALUES,
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
-  VALID_EDGE_STATUS_VALUES,
+  VALID_EDGE_STATUS_VALUES
 } from '../constants';
 import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../utils/mapSynonyms';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -41,6 +39,7 @@ import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_S
 import { findClosestAllowedParent } from '../utils/mapGraphUtils';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 import { addProgressSymbol } from '../utils/loadingProgress';
+import { generateUniqueId, findMapNodeByIdentifier, buildNodeId } from '../utils/entityUtils';
 
 const MAX_CHAIN_REFINEMENT_ROUNDS = 2;
 
@@ -414,15 +413,7 @@ Narrative Context for Map Update:
 ${existingMapContext}
 ---
 Based on the Narrative Context and existing map context, provide a JSON response adhering to the MAP_UPDATE_SYSTEM_INSTRUCTION.
-Key points:
-- For ALL nodes in 'nodesToAdd', you MUST provide 'description' (${NODE_DESCRIPTION_INSTRUCTION}), 'aliases' (${ALIAS_INSTRUCTION}, can be empty), and 'status'.
-- For ALL nodes in 'nodesToAdd', you MUST provide 'description' (non-empty string, <300 chars), 'aliases' (array of strings, can be empty), and 'status'.
-  - If any new specific places (feature nodes) within or between main locations are described, add them and specify their parent via \`parentNodeId\`.
-- Check if you can assign a definitive parent node for any orphan nodes (Parent node N/A).
-- All nodes MUST represent physical locations.
-- If connections (paths, doors, etc.) are revealed or changed, update edges.
- - If new details are revealed about a location (main or feature), update description and/or aliases.
- - If the Player's new 'localPlace' tells that they are at a specific feature node (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
+
 `;
   let prompt = basePrompt;
   const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };
@@ -576,28 +567,7 @@ Key points:
     }
   });
 
-  /**
-   * Resolves a node reference by either place name or ID.
-   * This is used for edges and node updates where the AI might
-   * provide either identifier form.
-   */
-  const findNodeByIdentifier = (
-    identifier?: string,
-  ): MapNode | { id: string; name: string } | undefined => {
-    if (!identifier) return undefined;
-    const byName = themeNodeNameMap.get(identifier);
-    if (byName) return byName;
-    const byId = themeNodeIdMap.get(identifier);
-    if (byId) return byId;
-    const byAlias = themeNodeAliasMap.get(identifier.toLowerCase());
-    if (byAlias) return byAlias;
-    if (newNodesInBatchIdNameMap[identifier])
-      return newNodesInBatchIdNameMap[identifier];
-    const fromBatch = Object.values(newNodesInBatchIdNameMap).find(
-      entry => entry.id === identifier || entry.name === identifier,
-    );
-    return fromBatch;
-  };
+
 
   // --- Hierarchical Node Addition ---
   let unresolvedQueue: AIMapUpdatePayload['nodesToAdd'] = [...(nodesToAddOps_mut || [])];
@@ -612,7 +582,12 @@ Key points:
         if (nodeAddOp.data.parentNodeId === 'Universe') {
           resolvedParentId = undefined;
         } else {
-          const parent = findNodeByIdentifier(nodeAddOp.data.parentNodeId) as MapNode | undefined;
+          const parent = findMapNodeByIdentifier(
+            nodeAddOp.data.parentNodeId,
+            newMapData.nodes,
+            newMapData,
+            referenceMapNodeId
+          ) as MapNode | undefined;
           if (parent) {
             const childType = nodeAddOp.data.nodeType ?? 'feature';
             if (parent.data.nodeType === childType) {
@@ -626,12 +601,8 @@ Key points:
         }
       }
 
-      const baseNameForId = nodeAddOp.placeName
-        .replace(/\s+/g, '_')
-        .replace(/[^a-zA-Z0-9_]/g, '');
-      const newNodeId = `node_${baseNameForId}_${Date.now()%10000}_${Math.random()
-        .toString(36)
-        .substring(2, 7)}`;
+      // Use buildNodeId helper for consistent node id generation
+      const newNodeId = buildNodeId(nodeAddOp.placeName);
 
       const {
         description,
@@ -728,7 +699,12 @@ Key points:
 
   // Process Node Updates (after all adds, so placeName changes are based on initial state of batch)
   (validParsedPayload.nodesToUpdate || []).forEach(nodeUpdateOp => {
-    const node = findNodeByIdentifier(nodeUpdateOp.placeName) as MapNode | undefined;
+    const node = findMapNodeByIdentifier(
+      nodeUpdateOp.placeName,
+      newMapData.nodes,
+      newMapData,
+      referenceMapNodeId
+    ) as MapNode | undefined;
 
     if (node) {
 
@@ -743,7 +719,12 @@ Key points:
                     resolvedParentIdOnUpdate = undefined;
                 } else {
                     // Allow parent to be ANY node
-                    const parentNode = findNodeByIdentifier(nodeUpdateOp.newData.parentNodeId) as MapNode | undefined;
+                    const parentNode = findMapNodeByIdentifier(
+                      nodeUpdateOp.newData.parentNodeId,
+                      newMapData.nodes,
+                      newMapData,
+                      referenceMapNodeId
+                    ) as MapNode | undefined;
                     if (parentNode) {
                         resolvedParentIdOnUpdate = parentNode.id;
                         const intendedType = nodeUpdateOp.newData.nodeType ?? node.data.nodeType;
@@ -807,7 +788,12 @@ Key points:
 
   // Process Node Removals
   nodesToRemove_mut.forEach(nodeRemoveOp => {
-      const node = findNodeByIdentifier(nodeRemoveOp.placeName) as MapNode | undefined;
+      const node = findMapNodeByIdentifier(
+        nodeRemoveOp.placeName,
+        newMapData.nodes,
+        newMapData,
+        referenceMapNodeId
+      ) as MapNode | undefined;
       if (node) {
           const removedNodeId = node.id;
           const index = newMapData.nodes.findIndex(n => n.id === removedNodeId);
@@ -880,9 +866,6 @@ Key points:
       return false;
   }
 
-  function generateUniqueId(prefix: string): string {
-      return `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
-  }
 
   function addEdgeWithTracking(
       a: MapNode,
@@ -967,10 +950,20 @@ Key points:
 
 
 
-  // Process Edges (uses findNodeByIdentifier which checks newMapData nodes directly)
+  // Process Edges (uses findMapNodeByIdentifier to resolve nodes in the updated map)
   for (const edgeAddOp of edgesToAdd_mut) {
-      const sourceNodeRef = findNodeByIdentifier(edgeAddOp.sourcePlaceName);
-      const targetNodeRef = findNodeByIdentifier(edgeAddOp.targetPlaceName);
+      const sourceNodeRef = findMapNodeByIdentifier(
+        edgeAddOp.sourcePlaceName,
+        newMapData.nodes,
+        newMapData,
+        referenceMapNodeId
+      );
+      const targetNodeRef = findMapNodeByIdentifier(
+        edgeAddOp.targetPlaceName,
+        newMapData.nodes,
+        newMapData,
+        referenceMapNodeId
+      );
 
       if (!sourceNodeRef || !targetNodeRef) {
           console.warn(`MapUpdate: Skipping edge add due to missing source ("${edgeAddOp.sourcePlaceName}") or target ("${edgeAddOp.targetPlaceName}") node.`);
@@ -1043,8 +1036,18 @@ Key points:
   }
 
   (validParsedPayload.edgesToUpdate || []).forEach(edgeUpdateOp => {
-    const sourceNodeRef = findNodeByIdentifier(edgeUpdateOp.sourcePlaceName);
-    const targetNodeRef = findNodeByIdentifier(edgeUpdateOp.targetPlaceName);
+    const sourceNodeRef = findMapNodeByIdentifier(
+      edgeUpdateOp.sourcePlaceName,
+      newMapData.nodes,
+      newMapData,
+      referenceMapNodeId
+    );
+    const targetNodeRef = findMapNodeByIdentifier(
+      edgeUpdateOp.targetPlaceName,
+      newMapData.nodes,
+      newMapData,
+      referenceMapNodeId
+    );
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
     const sourceNodeId = sourceNodeRef.id;
     const targetNodeId = targetNodeRef.id;
@@ -1078,8 +1081,18 @@ Key points:
   });
 
   edgesToRemove_mut.forEach(edgeRemoveOp => {
-      const sourceNodeRef = findNodeByIdentifier(edgeRemoveOp.sourcePlaceName);
-      const targetNodeRef = findNodeByIdentifier(edgeRemoveOp.targetPlaceName);
+      const sourceNodeRef = findMapNodeByIdentifier(
+        edgeRemoveOp.sourcePlaceName,
+        newMapData.nodes,
+        newMapData,
+        referenceMapNodeId
+      );
+      const targetNodeRef = findMapNodeByIdentifier(
+        edgeRemoveOp.targetPlaceName,
+        newMapData.nodes,
+        newMapData,
+        referenceMapNodeId
+      );
       if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge removal due to missing source ("${edgeRemoveOp.sourcePlaceName}") or target ("${edgeRemoveOp.targetPlaceName}") node.`); return; }
       const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
       const removalType = edgeRemoveOp.type;
@@ -1134,9 +1147,15 @@ Key points:
         chainRequests = [];
         (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
           const nodeData = nAdd.data || { status: 'discovered', nodeType: 'feature', parentNodeId: 'Universe', description: '', aliases: [] };
-          const parent = nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
-            ? (findNodeByIdentifier(nodeData.parentNodeId) as MapNode | undefined)
-            : undefined;
+          const parent =
+            nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
+              ? (findMapNodeByIdentifier(
+                  nodeData.parentNodeId,
+                  newMapData.nodes,
+                  newMapData,
+                  referenceMapNodeId
+                ) as MapNode | undefined)
+              : undefined;
           const parentId = parent ? parent.id : undefined;
           const newId = generateUniqueId(`node_${nAdd.placeName.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}_`);
           const node: MapNode = {
@@ -1152,8 +1171,20 @@ Key points:
           themeNodeNameMap.set(node.placeName, node);
         });
         (chainResult.payload.edgesToAdd || []).forEach(eAdd => {
-          const src = findNodeByIdentifier(eAdd.sourcePlaceName) as MapNode | undefined;
-          const tgt = findNodeByIdentifier(eAdd.targetPlaceName) as MapNode | undefined;
+          const src =
+            (findMapNodeByIdentifier(
+              eAdd.sourcePlaceName,
+              newMapData.nodes,
+              newMapData,
+              referenceMapNodeId
+            ) as MapNode | undefined);
+          const tgt =
+            (findMapNodeByIdentifier(
+              eAdd.targetPlaceName,
+              newMapData.nodes,
+              newMapData,
+              referenceMapNodeId
+            ) as MapNode | undefined);
           if (src && tgt) {
             const pairKey = src.id < tgt.id
               ? `${src.id}|${tgt.id}|${eAdd.data?.type || 'path'}`

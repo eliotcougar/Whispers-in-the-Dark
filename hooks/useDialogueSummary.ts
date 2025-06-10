@@ -18,7 +18,7 @@ import {
   summarizeDialogueForUpdates,
   summarizeDialogueForMemory,
 } from '../services/dialogueService';
-import { MAX_LOG_MESSAGES, MAX_DIALOGUE_SUMMARIES_PER_CHARACTER } from '../constants';
+import { MAX_LOG_MESSAGES, MAX_DIALOGUE_SUMMARIES_PER_CHARACTER, PLAYER_HOLDER_ID } from '../constants';
 import { addLogMessageToList } from '../utils/gameLogicUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
@@ -130,7 +130,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       localPlace: workingGameState.localPlace,
       mapDataForTheme: mapDataForSummary,
       knownCharactersInTheme: workingGameState.allCharacters.filter((c) => c.themeName === currentThemeObj.name),
-      inventory: workingGameState.inventory,
+      inventory: workingGameState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
       playerGender: playerGenderProp,
       dialogueLog: finalHistory,
       dialogueParticipants: finalParticipants,

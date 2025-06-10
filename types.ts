@@ -42,9 +42,10 @@ export interface Item {
   isActive?: boolean; // Defaults to false if undefined
   knownUses?: KnownUse[]; // Discovered specific ways to use the item
   isJunk?: boolean; // Flag for unimportant items
+  holderId: string; // ID of the entity holding this item or 'player'
   // --- Fields for "update" action payloads ---
-  newName?: string; 
-  addKnownUse?: KnownUse; 
+  newName?: string;
+  addKnownUse?: KnownUse;
 }
 
 // This ItemChange is from the AI's perspective, and will be processed into ItemChangeRecord
@@ -64,6 +65,7 @@ export interface DialogueSummaryRecord {
 }
 
 export interface Character {
+  id: string;
   themeName: string;
   name: string;
   description: string;

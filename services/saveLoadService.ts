@@ -19,7 +19,7 @@ import {
   MapNodeData,
   DialogueSummaryRecord,
 } from '../types';
-import { CURRENT_SAVE_GAME_VERSION, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, VALID_ITEM_TYPES, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_PLAYER_GENDER, VALID_PRESENCE_STATUS_VALUES } from '../constants';
+import { CURRENT_SAVE_GAME_VERSION, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, VALID_ITEM_TYPES, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_PLAYER_GENDER, VALID_PRESENCE_STATUS_VALUES, PLAYER_HOLDER_ID } from '../constants';
 import { ALL_THEME_PACK_NAMES } from '../themes';
 // Corrections helpers are not used during pure save operations.
 // Map layout constants are not needed here; only conversion utilities require them.
@@ -27,6 +27,7 @@ import { ALL_THEME_PACK_NAMES } from '../themes';
 import { getDefaultMapLayoutConfig } from "../hooks/useMapUpdates";
 import { DEFAULT_VIEWBOX } from '../utils/mapConstants';
 import { findThemeByName } from "./themeUtils";
+import { buildCharacterId } from '../utils/entityUtils';
 
 
 // --- Validation Helpers for SavedGameDataShape (V3) ---
@@ -50,6 +51,7 @@ function isValidItemForSave(item: unknown): item is Item {
     typeof maybe.type === 'string' &&
     (VALID_ITEM_TYPES as readonly string[]).includes(maybe.type) &&
     typeof maybe.description === 'string' &&
+    typeof maybe.holderId === 'string' &&
     (maybe.activeDescription === undefined || typeof maybe.activeDescription === 'string') &&
     (maybe.isActive === undefined || typeof maybe.isActive === 'boolean') &&
     (maybe.isJunk === undefined || typeof maybe.isJunk === 'boolean') &&
@@ -92,6 +94,8 @@ function isValidCharacterForSave(character: unknown): character is Character {
   if (!character || typeof character !== 'object') return false;
   const maybe = character as Partial<Character>;
   return (
+    typeof maybe.id === 'string' &&
+    maybe.id.trim() !== '' &&
     typeof maybe.themeName === 'string' &&
     typeof maybe.name === 'string' &&
     maybe.name.trim() !== '' &&
@@ -421,6 +425,7 @@ export function normalizeLoadedSaveData(
     dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({
       ...item,
       isJunk: item.isJunk ?? false,
+      holderId: item.holderId || PLAYER_HOLDER_ID,
     }));
     dataToValidateAndExpand.score = dataToValidateAndExpand.score ?? 0;
     dataToValidateAndExpand.stabilityLevel = dataToValidateAndExpand.stabilityLevel ?? DEFAULT_STABILITY_LEVEL;
@@ -432,6 +437,7 @@ export function normalizeLoadedSaveData(
       const char = c as Character;
       return {
         ...char,
+        id: char.id || buildCharacterId(char.name),
         aliases: char.aliases || [],
         presenceStatus: char.presenceStatus || 'unknown',
         lastKnownLocation: char.lastKnownLocation ?? null,
@@ -496,8 +502,8 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   const savedData: SavedGameDataShape = {
     ...restOfGameState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
-    currentThemeObject: gameState.currentThemeObject, 
-    inventory: gameState.inventory.map(item => ({ ...item, isJunk: item.isJunk ?? false })),
+    currentThemeObject: gameState.currentThemeObject,
+    inventory: gameState.inventory.map(item => ({ ...item, isJunk: item.isJunk ?? false, holderId: item.holderId || PLAYER_HOLDER_ID })),
     allCharacters: gameState.allCharacters.map(c => ({
       ...c, 
       aliases: c.aliases || [], 

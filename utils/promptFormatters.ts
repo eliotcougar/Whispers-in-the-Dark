@@ -6,5 +6,5 @@
 
 export * from './promptFormatters/inventory';
 export * from './promptFormatters/map';
-export * from './promptFormatters/dialogue';
+export * from './promptFormatters/main';
 

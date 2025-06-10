@@ -93,13 +93,18 @@ CRITICAL INSTRUCTIONS:
     - If you provide "newData.placeName", that will be the node's new primary name.
       - When adding a new main location via "nodesToAdd", the "placeName" MUST correspond to a location name that the storyteller AI has indicated as significant.
     - You MUST include "parentNodeId" to specify the parent for every node except the root. The hierarchy relies solely on parentNodeId.
-- Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. Avoid creating duplicate nodes.
+- Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. NEVER create duplicates of existing nodes or edges.
 - NEVER add a node named "Universe" or create edges that reference a place named "Universe". That name is reserved for the root and already exists.
-- You MUST use one of the EXACT string values provided for 'status' (node/edge) or 'type' (edge) fields.
-- Edges may only connect feature nodes that share the same parent, whose parents share a common grandparent, or where one feature's parent is the grandparent of the other (child–grandchild connections).
-  - Edges of type 'shortcut' are exempt from these hierarchy restrictions but still must connect feature nodes.
-  - When you add intermediate feature nodes to satisfy hierarchy rules, ALWAYS assign to them the same status as their parent node. Any edges created to replace a prior connection should keep that connection's status unless explicitly updated.
+- Edges only allowed to connect nodes of type='feature' that have the same parent (siblings), that have the same grandparent (grandchildren), or where one feature's parent is the grandparent of the other (child–grandchild), or edges of type='shortcut'.
+- Edges of type 'shortcut' are exempt from these hierarchy restrictions but still must connect feature nodes.
+- When you add intermediate feature nodes to satisfy hierarchy rules, ALWAYS assign to them the same status as their parent node. Any edges created to replace a prior connection should keep that connection's status unless explicitly updated.
 - If the narrative suggests that a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "details" via "nodesToUpdate", rather than adding a new node.
+- If any new specific places (feature nodes) within or between main locations are described, add them and specify their parent via 'parentNodeId'.
+- Check if you can assign a definitive parent node to any orphan nodes (Parent node: N/A).
+- All nodes MUST represent physical locations.
+- If connections (paths, doors, etc.) are revealed or changed, update edges.
+- If new details are revealed about a location (main or feature), update description and/or aliases.
+- If the Player's new 'localPlace' tells that they are at a specific feature node (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
 - When renaming a node using "nodesToUpdate", omit any matching entry in "nodesToRemove" for that node.
 - Feature Nodes can have any number of edges.
 - CRITICALLY IMPORTANT: Delete Nodes ONLY in EXTREME CASES when the Scene unambiguously implies that they will no longer ever be relevant to the Player.

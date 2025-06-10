@@ -22,6 +22,7 @@ export const DEFAULT_STABILITY_LEVEL = 20; // Number of turns before chaos can o
 export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift
 export const DEFAULT_ENABLED_THEME_PACKS = [...ALL_THEME_PACK_NAMES];
 export const DEFAULT_PLAYER_GENDER = "Male";
+export const PLAYER_HOLDER_ID = "player";
 
 export const FREE_FORM_ACTION_MAX_LENGTH = 70;
 export const FREE_FORM_ACTION_COST = 5;

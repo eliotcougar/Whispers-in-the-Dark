@@ -25,13 +25,14 @@ import {
   FREE_FORM_ACTION_COST,
   MAX_LOG_MESSAGES,
   RECENT_LOG_COUNT_FOR_PROMPT,
+  PLAYER_HOLDER_ID,
 } from '../constants';
 import {
   addLogMessageToList,
   buildItemChangeRecords,
   applyAllItemChanges,
 } from '../utils/gameLogicUtils';
-import { formatMainGameTurnPrompt } from '../utils/promptFormatters/dialogue';
+import { formatMainGameTurnPrompt } from '../utils/promptFormatters';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
 
@@ -209,7 +210,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           const currentChange = { ...change };
           if (currentChange.action === 'lose' && typeof currentChange.item === 'string') {
             const itemNameFromAI = currentChange.item;
-            const exactMatchInInventory = baseStateSnapshot.inventory.find((invItem) => invItem.name === itemNameFromAI);
+            const exactMatchInInventory = baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID).find((invItem) => invItem.name === itemNameFromAI);
             if (!exactMatchInInventory) {
               const originalLoadingReason = loadingReason;
               setLoadingReason('correction');
@@ -218,7 +219,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
                 itemNameFromAI,
                 aiData.logMessage,
                 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
-                baseStateSnapshot.inventory.map((item) => item.name),
+                baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID).map((item) => item.name),
                 themeContextForResponse
               );
               if (correctedName) currentChange.item = correctedName;
@@ -230,7 +231,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       } else {
         correctedAndVerifiedItemChanges.push(...aiItemChangesFromParser);
       }
-      turnChanges.itemChanges = buildItemChangeRecords(correctedAndVerifiedItemChanges, baseStateSnapshot.inventory);
+      const baseInventoryForPlayer = baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID);
+      turnChanges.itemChanges = buildItemChangeRecords(correctedAndVerifiedItemChanges, baseInventoryForPlayer);
       draftState.inventory = applyAllItemChanges(correctedAndVerifiedItemChanges, options.forceEmptyInventory ? [] : baseStateSnapshot.inventory);
 
       if (themeContextForResponse) {
@@ -312,10 +314,16 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
         : null;
 
+      const locationItems = currentFullState.inventory.filter(
+        i =>
+          i.holderId !== PLAYER_HOLDER_ID &&
+          i.holderId === currentFullState.currentMapNodeId
+      );
       const prompt = formatMainGameTurnPrompt(
         currentFullState.currentScene,
         action,
-        currentFullState.inventory,
+        currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+        locationItems,
         currentFullState.mainQuest,
         currentFullState.currentObjective,
         currentThemeObj,
@@ -365,7 +373,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           currentFullState.currentScene,
           currentThemeCharacters,
           currentThemeMapDataForParse,
-          currentFullState.inventory
+          currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
 
         await processAiResponse(parsedData, currentThemeObj, draftState, { baseStateSnapshot, scoreChangeFromAction });
@@ -470,11 +478,16 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const currentFullState = getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 
-      const itemToDiscard = currentFullState.inventory.find((item) => item.name === itemName);
+      const itemToDiscard = currentFullState.inventory.find((item) => item.name === itemName && item.holderId === PLAYER_HOLDER_ID);
       if (!itemToDiscard || !itemToDiscard.isJunk) return;
 
       const draftState = structuredCloneGameState(currentFullState);
-      draftState.inventory = draftState.inventory.filter((item) => item.name !== itemName);
+      const currentLocationId = currentFullState.currentMapNodeId || 'unknown';
+      draftState.inventory = draftState.inventory.map((item) =>
+        item.name === itemName && item.holderId === PLAYER_HOLDER_ID
+          ? { ...item, holderId: currentLocationId }
+          : item
+      );
       const itemChangeRecord: ItemChangeRecord = { type: 'loss', lostItem: { ...itemToDiscard } };
       const turnChangesForDiscard: TurnChanges = {
         itemChanges: [itemChangeRecord],

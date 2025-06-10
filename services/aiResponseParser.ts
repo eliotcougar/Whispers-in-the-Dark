@@ -21,6 +21,8 @@ import {
 } from './corrections';
 
 import { extractJsonFromFence } from '../utils/jsonUtils';
+import { buildCharacterId } from '../utils/entityUtils';
+import { PLAYER_HOLDER_ID } from '../constants';
 
 /** Interface describing contextual data required by the parsing helpers. */
 interface ParserContext {
@@ -106,6 +108,7 @@ async function handleDialogueSetup(
                 if (isValidNewCharacterPayload(cAdd)) {
                     charactersForDialogueContext.push({
                         ...cAdd,
+                        id: buildCharacterId(cAdd.name),
                         themeName: '',
                         presenceStatus: cAdd.presenceStatus || 'unknown',
                         lastKnownLocation: cAdd.lastKnownLocation === undefined ? null : cAdd.lastKnownLocation,
@@ -117,6 +120,7 @@ async function handleDialogueSetup(
                 if (isValidCharacterUpdate(cUpd)) {
                     const existing = context.allRelevantCharacters.find(ex => ex.name === cUpd.name);
                     charactersForDialogueContext.push({
+                        id: buildCharacterId(cUpd.name),
                         name: cUpd.name,
                         description: cUpd.newDescription || existing?.description || 'Updated character',
                         aliases: cUpd.newAliases || existing?.aliases || [],
@@ -210,6 +214,15 @@ async function processItemChanges(
         let currentItemPayload = ic.item;
         let currentInvalidPayload = ic.invalidPayload;
 
+        if (
+            ic.action === 'gain' &&
+            currentItemPayload &&
+            typeof currentItemPayload === 'object' &&
+            !('holderId' in currentItemPayload)
+        ) {
+            (currentItemPayload as Item).holderId = PLAYER_HOLDER_ID;
+        }
+
         switch (ic.action) {
             case 'gain':
                 if (!isValidItem(currentItemPayload, 'gain')) {
@@ -234,6 +247,7 @@ async function processItemChanges(
                     currentItemPayload.addKnownUse = undefined;
                     currentItemPayload.isJunk = currentItemPayload.isJunk ?? false;
                     currentItemPayload.isActive = currentItemPayload.isActive ?? false;
+                    currentItemPayload.holderId = typeof currentItemPayload.holderId === 'string' && currentItemPayload.holderId.trim() !== '' ? currentItemPayload.holderId : PLAYER_HOLDER_ID;
                 }
                 break;
             case 'update': {
@@ -285,6 +299,7 @@ async function processItemChanges(
                 if (currentItemPayload && typeof currentItemPayload !== 'string') {
                     currentItemPayload.isJunk = currentItemPayload.isJunk ?? false;
                     currentItemPayload.isActive = currentItemPayload.isActive ?? false;
+                    currentItemPayload.holderId = typeof currentItemPayload.holderId === 'string' && currentItemPayload.holderId.trim() !== '' ? currentItemPayload.holderId : PLAYER_HOLDER_ID;
                 }
                 break;
             }
@@ -331,6 +346,7 @@ async function handleCharacterChanges(
             if (isValidNewCharacterPayload(originalCharAdd)) {
                 finalCharactersAdded.push({
                     ...(originalCharAdd as Character),
+                    id: buildCharacterId(originalCharAdd.name),
                     presenceStatus: originalCharAdd.presenceStatus || 'unknown',
                     lastKnownLocation: originalCharAdd.lastKnownLocation === undefined ? null : originalCharAdd.lastKnownLocation,
                     preciseLocation: originalCharAdd.preciseLocation === undefined ? null : originalCharAdd.preciseLocation,
@@ -355,7 +371,7 @@ async function handleCharacterChanges(
                         preciseLocation: correctedDetails.preciseLocation,
                     };
                     if (isValidNewCharacterPayload(correctedCharAddPayload)) {
-                        finalCharactersAdded.push({ ...correctedCharAddPayload, themeName: '' } as Character);
+                        finalCharactersAdded.push({ ...correctedCharAddPayload, id: buildCharacterId(correctedCharAddPayload.name), themeName: '' } as Character);
                         console.log(`parseAIResponse ('charactersAdded'): Successfully corrected character:`, correctedCharAddPayload.name);
                     } else {
                         console.warn(`parseAIResponse ('charactersAdded'): Corrected character "${originalName || 'Unknown Name'}" still invalid. Discarding. Corrected Data:`, correctedCharAddPayload);
@@ -446,6 +462,7 @@ async function handleCharacterChanges(
             console.warn(`parseAIResponse ('charactersUpdated'): Target character "${targetName}" for update not found. Converting to an add operation.`);
 
             const newCharDataFromUpdate: Character = {
+                id: buildCharacterId(targetName),
                 name: targetName,
                 description: charUpdatePayload.newDescription || `Details for ${targetName} are emerging.`,
                 aliases: charUpdatePayload.newAliases || (charUpdatePayload.addAlias ? [charUpdatePayload.addAlias] : []),

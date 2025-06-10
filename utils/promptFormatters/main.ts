@@ -143,10 +143,10 @@ Suggested Initial Inventory to be granted: "${theme.initialItems}" (Adjust the n
 
 Last player's action was unremarkable, something very common, what people do in the described situation.
 
-Creatively enerate the variation of the mainQuest and currentObjective, based on the suggested Quest and Objective, but noticeably different.
+Creatively generate the variation of the mainQuest and currentObjective, based on the suggested Quest and Objective, but noticeably different.
 Creatively generate the initial scene description, action options, items (variation based on 'Initial Inventory to be granted') and logMessage.
 Creatively add possible important quest item(s), if any, based on your generated Quest and Objective.
-Set "mapUpdated": true if your generated Scene, Quest or Objective mention specific locations that should be on the map.
+ALWAYS SET "mapUpdated": true.
 Of all the optional variables, your response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
 Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
   return prompt;
@@ -282,6 +282,7 @@ export const formatMainGameTurnPrompt = (
   currentScene: string,
   playerAction: string,
   inventory: Item[],
+  locationItems: Item[],
   mainQuest: string | null,
   currentObjective: string | null,
   currentTheme: AdventureTheme,
@@ -298,6 +299,8 @@ export const formatMainGameTurnPrompt = (
   destinationNodeId: string | null
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
+  const locationItemsPrompt =
+    locationItems.length > 0 ? formatInventoryForPrompt(locationItems) : '';
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
   const charactersContext = formatKnownCharactersForPrompt(currentThemeCharacters, true);
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
@@ -322,6 +325,15 @@ export const formatMainGameTurnPrompt = (
     destinationNodeId
   );
 
+  let travelPlanOrUnknown = '';
+  if (travelPlanLine) {
+    travelPlanOrUnknown = travelPlanLine;
+  } else if (destinationNodeId) {
+    const destNode = fullMapData.nodes.find(n => n.id === destinationNodeId);
+    const placeName = destNode?.placeName || destinationNodeId;
+    travelPlanOrUnknown = `Player wants to reach ${placeName}, but does not know how to get there.`;
+  }
+
   const detailedEntityContext = formatDetailedContextForMentionedEntities(
     currentThemeMainMapNodes,
     currentThemeCharacters,
@@ -340,6 +352,7 @@ Previous Local Place: "${localPlace || 'Undetermined Location'}"
 Main Quest: "${mainQuest || 'Not set'}"
 Current Objective: "${currentObjective || 'Not set'}"
 Current Inventory:\n - ${inventoryPrompt}
+${locationItemsPrompt ? `There are items at this location:\n - ${locationItemsPrompt}` : ''}
 Known Locations: ${placesContext}
 Known Characters: ${charactersContext}
 
@@ -355,7 +368,7 @@ ${recentEventsContext}
 Current Theme: "${currentTheme.name}"
 Previous Scene: "${currentScene}"
 Player Action: "${playerAction}"
-${travelPlanLine ? travelPlanLine : ''}
+${travelPlanOrUnknown ? travelPlanOrUnknown : ''}
 `;
   return prompt;
 };

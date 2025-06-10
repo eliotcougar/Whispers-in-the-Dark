@@ -27,5 +27,7 @@ An AI-powered text adventure built with React and TypeScript. The game uses Goog
 - Dynamic map with nodes and edges that update based on the narrative.
 - Dialogue system with memory summaries so characters remember past talks.
 - Manual and random "Reality Shifts" that change the current theme.
+- Items can reside in any character inventory or map location, and all such
+  items are included when viewing or saving the full game state.
 - Save/Load to local files plus automatic local storage saves.
 - Map display, knowledge base, image visualizer and more.
