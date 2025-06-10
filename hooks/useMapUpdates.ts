@@ -14,6 +14,7 @@ import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
+  DEFAULT_ITEM_ICON_SCALE,
 } from '../utils/mapConstants';
 
 /** Returns the default configuration for the map layout force algorithm. */
@@ -24,6 +25,7 @@ export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
   LABEL_MARGIN_PX: DEFAULT_LABEL_MARGIN_PX,
   LABEL_LINE_HEIGHT_EM: DEFAULT_LABEL_LINE_HEIGHT_EM,
   LABEL_OVERLAP_MARGIN_PX: DEFAULT_LABEL_OVERLAP_MARGIN_PX,
+  ITEM_ICON_SCALE: DEFAULT_ITEM_ICON_SCALE,
 });
 
 export interface UseMapUpdatesProps {
@@ -45,7 +47,8 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
           current.IDEAL_EDGE_LENGTH === newConfig.IDEAL_EDGE_LENGTH &&
           current.NESTED_PADDING === newConfig.NESTED_PADDING &&
           current.NESTED_ANGLE_PADDING === newConfig.NESTED_ANGLE_PADDING &&
-          current.LABEL_OVERLAP_MARGIN_PX === newConfig.LABEL_OVERLAP_MARGIN_PX
+          current.LABEL_OVERLAP_MARGIN_PX === newConfig.LABEL_OVERLAP_MARGIN_PX &&
+          current.ITEM_ICON_SCALE === newConfig.ITEM_ICON_SCALE
         ) {
           return prev;
         }

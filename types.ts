@@ -266,6 +266,8 @@ export interface MapLayoutConfig {
   LABEL_MARGIN_PX: number;
   LABEL_LINE_HEIGHT_EM: number;
   LABEL_OVERLAP_MARGIN_PX: number;
+  /** Fraction of node diameter used for item icon size */
+  ITEM_ICON_SCALE: number;
 }
 
 export interface MapNodeData {

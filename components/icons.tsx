@@ -102,16 +102,34 @@ export const NearbyNPCIcon: React.FC<{ className?: string }> = ({ className = "h
 );
 
 /** Small icon of an isometric box for map item indicators. */
-export const MapItemBoxIcon: React.FC<{ className?: string }> = ({ className = "w-3 h-3" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" className={className}>
+export const MapItemBoxIcon: React.FC<{ className?: string; size?: number }> = ({ className = '', size = 12 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    stroke="currentColor"
+    strokeWidth="1"
+    className={className}
+    width={size}
+    height={size}
+  >
     <path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5v-9z" fill="currentColor" />
     <path d="M12 3v9m0-9l9 4.5M12 12L3 7.5" stroke="currentColor" strokeWidth="1" />
   </svg>
 );
 
 /** Small wheel icon for vehicle indicators on the map. */
-export const MapWheelIcon: React.FC<{ className?: string }> = ({ className = "w-3 h-3" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}>
+export const MapWheelIcon: React.FC<{ className?: string; size?: number }> = ({ className = '', size = 12 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1"
+    className={className}
+    width={size}
+    height={size}
+  >
     <circle cx="12" cy="12" r="9" fill="currentColor" />
     <circle cx="12" cy="12" r="4" fill="none" />
     <line x1="12" y1="3" x2="12" y2="21" />

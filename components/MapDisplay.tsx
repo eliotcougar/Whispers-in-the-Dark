@@ -15,6 +15,7 @@ import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
+  DEFAULT_ITEM_ICON_SCALE,
 } from '../utils/mapConstants';
 import MapNodeView from './map/MapNodeView';
 import MapControls from './map/MapControls';
@@ -68,6 +69,9 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   const [labelOverlapMarginPx, setLabelOverlapMarginPx] = useState(
     initialLayoutConfig?.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX
   );
+  const [itemIconScale, setItemIconScale] = useState(
+    initialLayoutConfig?.ITEM_ICON_SCALE ?? DEFAULT_ITEM_ICON_SCALE
+  );
 
   useEffect(() => {
     if (!initialLayoutConfig) return;
@@ -77,10 +81,13 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING;
     const overlap =
       initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX;
+    const iconScale =
+      initialLayoutConfig.ITEM_ICON_SCALE ?? DEFAULT_ITEM_ICON_SCALE;
     setLayoutIdealEdgeLength(prev => (prev === edge ? prev : edge));
     setLayoutNestedPadding(prev => (prev === pad ? prev : pad));
     setLayoutNestedAnglePadding(prev => (prev === angle ? prev : angle));
     setLabelOverlapMarginPx(prev => (prev === overlap ? prev : overlap));
+    setItemIconScale(prev => (prev === iconScale ? prev : iconScale));
   }, [initialLayoutConfig]);
 
   /** Current layout configuration derived from state sliders. */
@@ -92,6 +99,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       LABEL_MARGIN_PX: labelMarginPx,
       LABEL_LINE_HEIGHT_EM: labelLineHeightEm,
       LABEL_OVERLAP_MARGIN_PX: labelOverlapMarginPx,
+      ITEM_ICON_SCALE: itemIconScale,
     }),
     [
       layoutIdealEdgeLength,
@@ -100,6 +108,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       labelMarginPx,
       labelLineHeightEm,
       labelOverlapMarginPx,
+      itemIconScale,
     ]
   );
 
@@ -160,6 +169,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     setLayoutNestedPadding(DEFAULT_NESTED_PADDING);
     setLayoutNestedAnglePadding(DEFAULT_NESTED_ANGLE_PADDING);
     setLabelOverlapMarginPx(DEFAULT_LABEL_OVERLAP_MARGIN_PX);
+    setItemIconScale(DEFAULT_ITEM_ICON_SCALE);
   };
 
   if (!isVisible) return null;
@@ -182,6 +192,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           itemPresenceByNode={itemPresenceByNode}
           onSelectDestination={onSelectDestination}
           labelOverlapMarginPx={labelOverlapMarginPx}
+          itemIconScale={itemIconScale}
           initialViewBox={initialViewBox}
           onViewBoxChange={onViewBoxChange}
         />
@@ -192,6 +203,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           setAnglePadding={setLayoutNestedAnglePadding}
           overlapMargin={labelOverlapMarginPx}
           setOverlapMargin={setLabelOverlapMarginPx}
+          itemIconScale={itemIconScale}
+          setItemIconScale={setItemIconScale}
           onReset={handleResetLayoutToDefaults}
           onRefreshLayout={handleRefreshLayout}
         />

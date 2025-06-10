@@ -12,3 +12,5 @@ export const MAX_LABEL_LINES = 4;
 export const DEFAULT_LABEL_MARGIN_PX = 10;
 export const DEFAULT_LABEL_LINE_HEIGHT_EM = 1.1;
 export const DEFAULT_LABEL_OVERLAP_MARGIN_PX = 2;
+/** Default size for item icons as a fraction of node diameter */
+export const DEFAULT_ITEM_ICON_SCALE = 0.15;
