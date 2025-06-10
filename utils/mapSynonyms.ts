@@ -153,8 +153,12 @@ export const EDGE_TYPE_SYNONYMS: Record<string, NonNullable<MapEdgeData['type']>
 
 export const EDGE_STATUS_SYNONYMS: Record<string, NonNullable<MapEdgeData['status']>> = {
   opened: 'open',
+  active: 'open',
+  functional: 'open',
+  discovered: 'accessible',
   usable: 'accessible',
   available: 'accessible',
+  undiscovered: 'accessible',
   shut: 'closed',
   sealed: 'locked',
   barred: 'locked',

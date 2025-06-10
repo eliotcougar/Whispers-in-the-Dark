@@ -1157,7 +1157,7 @@ Based on the Narrative Context and existing map context, provide a JSON response
                 ) as MapNode | undefined)
               : undefined;
           const parentId = parent ? parent.id : undefined;
-          const newId = generateUniqueId(`node_${nAdd.placeName.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}_`);
+          const newId = generateUniqueId(`node_${nAdd.placeName}_`);
           const node: MapNode = {
             id: newId,
             themeName: currentTheme.name,

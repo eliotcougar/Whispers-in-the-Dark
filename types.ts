@@ -35,7 +35,8 @@ export interface KnownUse {
 }
 
 export interface Item {
-  name: string; 
+  id: string;
+  name: string;
   type: ItemType;
   description: string; // Default/inactive description
   activeDescription?: string; // Optional: Description when item.isActive is true

@@ -1,14 +1,11 @@
-export const generateUniqueId = (
-  prefix = 'id_',
-  suffix?: string,
-): string => {
-  const unique =
-    suffix || `${Date.now() % 10000}_${Math.random().toString(36).substring(2,6)}`;
-  return `${prefix}${unique}`;
-};
-
-import { MapNode, MapData, Character } from '../types';
+import { MapNode, MapData, Character, Item, FullGameState } from '../types';
 import { findTravelPath } from './mapPathfinding';
+
+export const generateUniqueId = (base: string): string => {
+  const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+  const unique = `${Math.random().toString(36).substring(2,6)}`;
+  return `${sanitized}_${unique}`;
+};
 
 /** Helper to calculate the hop distance between two nodes using pathfinding. */
 const getHopDistance = (
@@ -92,42 +89,74 @@ export const findCharacterByIdentifier = (
   return idMatch;
 };
 
+export const findItemByIdentifier = (
+  identifier: string | undefined | null,
+  items: Item[],
+  getAll = false,
+): Item | Item[] | undefined => {
+  if (!identifier) return getAll ? [] : undefined;
+
+  const idMatch = items.find(i => i.id === identifier);
+  if (!getAll && idMatch) return idMatch;
+
+  const lower = identifier.toLowerCase();
+  const nameMatches = items.filter(i => i.name.toLowerCase() === lower);
+
+  if (getAll) {
+    const results: Item[] = [];
+    if (idMatch) results.push(idMatch);
+    results.push(...nameMatches);
+    return results;
+  }
+
+  if (nameMatches.length > 0) return nameMatches[0];
+  return idMatch;
+};
+
 export const getEntityById = (
   id: string,
-  mapData: MapData,
-  characters: Character[]
-): MapNode | Character | undefined => {
-  const node = mapData.nodes.find(n => n.id === id);
-  if (node) return node;
-  return characters.find(c => c.id === id);
+  state: FullGameState,
+): MapNode | Character | Item | undefined => {
+  if (!id) return undefined;
+
+  if (id.startsWith('node_')) {
+    return state.mapData.nodes.find(n => n.id === id);
+  }
+  if (id.startsWith('char_')) {
+    return state.allCharacters.find(c => c.id === id);
+  }
+  if (id.startsWith('item_')) {
+    return state.inventory.find(i => i.id === id);
+  }
+
+  return (
+    state.mapData.nodes.find(n => n.id === id) ||
+    state.allCharacters.find(c => c.id === id) ||
+    state.inventory.find(i => i.id === id)
+  );
 };
 
 export const extractRandomSuffix = (id: string): string | null => {
-  const match = id.match(/_(\d+_[a-z0-9]{4})$/i);
+  const match = id.match(/([a-z0-9]{4})$/i);
   return match ? match[1] : null;
 };
 
-export const buildNodeId = (
-  placeName: string,
-  suffix?: string,
-): string => {
-  const base = placeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-  return generateUniqueId(`node_${base}_`, suffix);
+export const buildNodeId = (placeName: string): string => {
+  return generateUniqueId(`node_${placeName}`);
 };
 
 export const buildEdgeId = (
   sourceNodeId: string,
   targetNodeId: string,
-  suffix?: string,
 ): string => {
-  return generateUniqueId(`${sourceNodeId}_to_${targetNodeId}_`, suffix);
+  return generateUniqueId(`${sourceNodeId}_to_${targetNodeId}`);
 };
 
-export const buildCharacterId = (
-  charName: string,
-  suffix?: string,
-): string => {
-  const base = charName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-  return generateUniqueId(`char_${base}_`, suffix);
+export const buildCharacterId = (charName: string): string => {
+  return generateUniqueId(`char_${charName}`);
+};
+
+export const buildItemId = (itemName: string): string => {
+  return generateUniqueId(`item_${itemName}`);
 };
 

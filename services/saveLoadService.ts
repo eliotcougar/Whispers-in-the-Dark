@@ -27,7 +27,7 @@ import { ALL_THEME_PACK_NAMES } from '../themes';
 import { getDefaultMapLayoutConfig } from "../hooks/useMapUpdates";
 import { DEFAULT_VIEWBOX } from '../utils/mapConstants';
 import { findThemeByName } from "./themeUtils";
-import { buildCharacterId } from '../utils/entityUtils';
+import { buildCharacterId, buildItemId } from '../utils/entityUtils';
 
 
 // --- Validation Helpers for SavedGameDataShape (V3) ---
@@ -47,6 +47,7 @@ function isValidItemForSave(item: unknown): item is Item {
   if (!item || typeof item !== 'object') return false;
   const maybe = item as Partial<Item>;
   return (
+    typeof maybe.id === 'string' &&
     typeof maybe.name === 'string' &&
     typeof maybe.type === 'string' &&
     (VALID_ITEM_TYPES as readonly string[]).includes(maybe.type) &&
@@ -424,6 +425,7 @@ export function normalizeLoadedSaveData(
   if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
     dataToValidateAndExpand.inventory = dataToValidateAndExpand.inventory.map((item: Item) => ({
       ...item,
+      id: item.id || buildItemId(item.name),
       isJunk: item.isJunk ?? false,
       holderId: item.holderId || PLAYER_HOLDER_ID,
     }));

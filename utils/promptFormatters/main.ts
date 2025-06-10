@@ -81,7 +81,7 @@ export const formatRecentEventsForPrompt = (logMessages: string[]): string => {
   if (logMessages.length === 0) {
     return '';
   }
-  return ' - ' + logMessages.join('\n - ') + '\n';
+  return ' - ' + logMessages.join('\n - ');
 };
 
 /**

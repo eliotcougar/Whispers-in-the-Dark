@@ -13,7 +13,7 @@ import {
   ItemChangeRecord, CharacterChangeRecord,
   ValidCharacterUpdatePayload, ValidNewCharacterPayload
 } from '../types';
-import { buildCharacterId } from './entityUtils';
+import { buildCharacterId, buildItemId, findItemByIdentifier } from './entityUtils';
 
 /**
  * Applies a single item change action to the current inventory.
@@ -30,7 +30,10 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
 
   if (action === 'gain') {
     const newItemFromAI = itemPayloadFromChange as Item;
+    const existingItem = findItemByIdentifier(newItemFromAI.id || newItemFromAI.name, newInventory) as Item | undefined;
+    const id = existingItem ? existingItem.id : (newItemFromAI as Partial<Item>).id || buildItemId(newItemFromAI.name);
     const newItemToAdd: Item = {
+        id,
         name: newItemFromAI.name,
         type: newItemFromAI.type,
         description: newItemFromAI.description,
@@ -40,27 +43,29 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
         knownUses: newItemFromAI.knownUses || [],
         holderId: newItemFromAI.holderId
       };
-    const existingItemIndex = newInventory.findIndex(i => i.name === newItemToAdd.name);
-    if (existingItemIndex !== -1) {
-      newInventory[existingItemIndex] = newItemToAdd; 
+    if (existingItem) {
+      const idx = newInventory.findIndex(i => i.id === existingItem.id);
+      newInventory[idx] = newItemToAdd;
     } else {
-      newInventory.push(newItemToAdd); 
+      newInventory.push(newItemToAdd);
     }
   } else if (action === 'lose') {
-    const itemName = itemPayloadFromChange as string;
-    newInventory = newInventory.filter(i => i.name !== itemName);
+    const identifier = itemPayloadFromChange as string;
+    const itemToRemove = findItemByIdentifier(identifier, newInventory) as Item | undefined;
+    if (itemToRemove) {
+      newInventory = newInventory.filter(i => i.id !== itemToRemove.id);
+    }
   } else if (action === 'update') {
     const updatePayload = itemPayloadFromChange as Item;
-    const originalName = updatePayload.name; 
-
-    const itemIndexInNewInventory = newInventory.findIndex(i => i.name === originalName);
-    if (itemIndexInNewInventory === -1) { // Should not happen if validated upstream
-        console.warn(`applyItemChangeAction ('update'): Item "${originalName}" not found in inventory for update.`);
+    const identifier = updatePayload.id || updatePayload.name;
+    const existingItem = findItemByIdentifier(identifier, newInventory) as Item | undefined;
+    if (!existingItem) {
+        console.warn(`applyItemChangeAction ('update'): Item "${identifier}" not found in inventory for update.`);
         return newInventory; // Return original inventory if item to update isn't found
     }
-    
-    const existingItem = newInventory[itemIndexInNewInventory];
+    const itemIndexInNewInventory = newInventory.findIndex(i => i.id === existingItem.id);
     const updatedItem: Item = { ...existingItem };
+    (itemPayloadFromChange as Item).id = existingItem.id;
 
     if (updatePayload.type !== undefined) updatedItem.type = updatePayload.type;
     if (updatePayload.description !== undefined) updatedItem.description = updatePayload.description;
@@ -88,7 +93,7 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
       updatedItem.knownUses = currentKnownUses;
     }
 
-    if (updatePayload.newName && updatePayload.newName.trim() !== '' && updatePayload.newName !== originalName) {
+    if (updatePayload.newName && updatePayload.newName.trim() !== '' && updatePayload.newName !== existingItem.name) {
       updatedItem.name = updatePayload.newName;
     }
     
@@ -161,7 +166,12 @@ export const buildItemChangeRecords = (
 
     if (change.action === 'gain' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
       const gainedItemData = itemPayload;
+      if (!gainedItemData.id) {
+        gainedItemData.id = buildItemId(gainedItemData.name);
+      }
+      change.item = gainedItemData;
       const cleanGainedItem: Item = {
+        id: gainedItemData.id,
         name: gainedItemData.name, type: gainedItemData.type, description: gainedItemData.description,
         activeDescription: gainedItemData.activeDescription,
         isActive: gainedItemData.isActive ?? false,
@@ -171,17 +181,19 @@ export const buildItemChangeRecords = (
       };
       record = { type: 'gain', gainedItem: cleanGainedItem };
     } else if (change.action === 'lose' && typeof itemPayload === 'string') {
-      const itemName = itemPayload;
-      const lostItem = currentInventory.find(i => i.name === itemName);
-      if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } }; 
+      const identifier = itemPayload;
+      const lostItem = findItemByIdentifier(identifier, currentInventory) as Item | undefined;
+      if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };
     } else if (change.action === 'update' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
       const updatePayload = itemPayload;
-      const originalItemName = updatePayload.name;
-      const oldItem = currentInventory.find(i => i.name === originalItemName);
+      const identifier = updatePayload.id || updatePayload.name;
+      const oldItem = findItemByIdentifier(identifier, currentInventory) as Item | undefined;
 
       if (oldItem) {
-        const oldItemCopy = { ...oldItem }; 
+        const oldItemCopy = { ...oldItem };
+        itemPayload.id = oldItemCopy.id;
         const newItemData: Item = {
+          id: oldItemCopy.id,
           name: updatePayload.newName || oldItemCopy.name,
           type: updatePayload.type !== undefined ? updatePayload.type : oldItemCopy.type,
           description: updatePayload.description !== undefined ? updatePayload.description : oldItemCopy.description,

@@ -24,11 +24,11 @@ export const formatKnownPlacesForPrompt = (
     return (
       mainNodes
         .map(node => {
-          let detailStr = `\n - "${node.placeName}"`;
+          let detailStr = `\n - ${node.id} - "${node.placeName}"`;
           if (node.data.aliases && node.data.aliases.length > 0) {
             detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
           }
-          detailStr += `, ${node.data.status == 'rumored' ? 'rumored' : ''}`;
+          detailStr += `${node.data.status == 'rumored' ? ', rumored' : ''}`;
           detailStr += `, "${node.data.description || 'No description available.'}"`;
           return detailStr;
         })
@@ -38,7 +38,7 @@ export const formatKnownPlacesForPrompt = (
   return (
     mainNodes
       .map(node => {
-        let detailStr = `"${node.placeName}"`;
+        let detailStr = `${node.id} - "${node.placeName}"`;
         if (node.data.aliases && node.data.aliases.length > 0) {
           detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
         }
@@ -214,7 +214,7 @@ export const formatMapContextForPrompt = (
     return '';
   }
 
-  let context = `You are currently at: "${currentNode.placeName}".`;
+  let context = `You are currently at: ${currentNode.id} - "${currentNode.placeName}".`;
   if (currentNode.data.description) {
     context += ` - ${currentNode.data.description}.`;
   }

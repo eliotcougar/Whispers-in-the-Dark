@@ -1,6 +1,7 @@
 
 ## First of all
-  - pull the commits to avoid working on outdated code.
+  - IMPORTANT: pull the commits to avoid working on outdated code.
+  - CRITICALLY IMPORTANT: ALWAYS exclude /dist/* and /node_modules/* from grep and other lookup and search commands.
 
 ## Testing
 1. Run `npm run typecheck` to verify strict type safety. It can take a long time to complete, be patient.
@@ -19,6 +20,7 @@
   - "Alias" - alternative names, partial names, shorthands for various entities like Places and Characters.
 
 CURRENT_SAVE_GAME_VERSION string should always be a single incremental number, for example "1", "2", "3", etc...
+ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,6)}
 
 ## Main Game Flow:
  - Wait for Player's Input.
