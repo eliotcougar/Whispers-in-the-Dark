@@ -79,7 +79,7 @@ export const upgradeFeatureToRegion = (
   const createdEdges: MapEdge[] = [];
 
   childNodes.forEach(child => {
-    const edgeId = generateUniqueId(`edge_${connectorId}_to_${child.id}_`);
+    const edgeId = generateUniqueId(`edge_${connectorId}_to_${child.id}`);
     const newEdge: MapEdge = {
       id: edgeId,
       sourceNodeId: connectorId,

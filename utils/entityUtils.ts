@@ -1,11 +1,11 @@
+import { MapNode, MapData, Character, Item, FullGameState } from '../types';
+import { findTravelPath } from './mapPathfinding';
+
 export const generateUniqueId = (base: string): string => {
   const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-import { MapNode, MapData, Character, Item, FullGameState } from '../types';
+  const unique = `_${Math.random().toString(36).substring(2,6)}`;
   return `${sanitized}_${unique}`;
 };
-
-import { MapNode, MapData, Character } from '../types';
-import { findTravelPath } from './mapPathfinding';
 
 /** Helper to calculate the hop distance between two nodes using pathfinding. */
 const getHopDistance = (

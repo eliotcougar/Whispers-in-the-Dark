@@ -1,6 +1,7 @@
 
 ## First of all
-  - pull the commits to avoid working on outdated code.
+  - IMPORTANT: pull the commits to avoid working on outdated code.
+  - CRITICALLY IMPORTANT: ALWAYS exclude /dist/* and /node_modules/* from grep and other lookup and search commands.
 
 ## Testing
 1. Run `npm run typecheck` to verify strict type safety. It can take a long time to complete, be patient.
