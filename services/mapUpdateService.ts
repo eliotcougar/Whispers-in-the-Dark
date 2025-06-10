@@ -957,13 +957,13 @@ Based on the Narrative Context and existing map context, provide a JSON response
         newMapData.nodes,
         newMapData,
         referenceMapNodeId
-      );
+      ) as MapNode | undefined;
       const targetNodeRef = findMapNodeByIdentifier(
         edgeAddOp.targetPlaceName,
         newMapData.nodes,
         newMapData,
         referenceMapNodeId
-      );
+      ) as MapNode | undefined;
 
       if (!sourceNodeRef || !targetNodeRef) {
           console.warn(`MapUpdate: Skipping edge add due to missing source ("${edgeAddOp.sourcePlaceName}") or target ("${edgeAddOp.targetPlaceName}") node.`);
@@ -1041,13 +1041,13 @@ Based on the Narrative Context and existing map context, provide a JSON response
       newMapData.nodes,
       newMapData,
       referenceMapNodeId
-    );
+    ) as MapNode | undefined;
     const targetNodeRef = findMapNodeByIdentifier(
       edgeUpdateOp.targetPlaceName,
       newMapData.nodes,
       newMapData,
       referenceMapNodeId
-    );
+    ) as MapNode | undefined;
      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge update due to missing source ("${edgeUpdateOp.sourcePlaceName}") or target ("${edgeUpdateOp.targetPlaceName}") node.`); return; }
     const sourceNodeId = sourceNodeRef.id;
     const targetNodeId = targetNodeRef.id;
@@ -1086,13 +1086,13 @@ Based on the Narrative Context and existing map context, provide a JSON response
         newMapData.nodes,
         newMapData,
         referenceMapNodeId
-      );
+      ) as MapNode | undefined;
       const targetNodeRef = findMapNodeByIdentifier(
         edgeRemoveOp.targetPlaceName,
         newMapData.nodes,
         newMapData,
         referenceMapNodeId
-      );
+      ) as MapNode | undefined;
       if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge removal due to missing source ("${edgeRemoveOp.sourcePlaceName}") or target ("${edgeRemoveOp.targetPlaceName}") node.`); return; }
       const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
       const removalType = edgeRemoveOp.type;
