@@ -39,7 +39,7 @@ import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_S
 import { findClosestAllowedParent } from '../utils/mapGraphUtils';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 import { addProgressSymbol } from '../utils/loadingProgress';
-import { generateUniqueId } from '../utils/entityUtils';
+import { generateUniqueId, buildNodeId } from '../utils/entityUtils';
 
 const MAX_CHAIN_REFINEMENT_ROUNDS = 2;
 
@@ -617,12 +617,8 @@ Based on the Narrative Context and existing map context, provide a JSON response
         }
       }
 
-      const baseNameForId = nodeAddOp.placeName
-        .replace(/\s+/g, '_')
-        .replace(/[^a-zA-Z0-9_]/g, '');
-      const newNodeId = `node_${baseNameForId}_${Date.now()%10000}_${Math.random()
-        .toString(36)
-        .substring(2, 7)}`;
+      // Use buildNodeId helper for consistent node id generation
+      const newNodeId = buildNodeId(nodeAddOp.placeName);
 
       const {
         description,
