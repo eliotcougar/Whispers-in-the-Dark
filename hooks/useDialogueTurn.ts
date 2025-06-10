@@ -11,6 +11,7 @@ import {
   LoadingReason,
 } from '../types';
 import { fetchDialogueTurn } from '../services/dialogueService';
+import { PLAYER_HOLDER_ID } from '../constants';
 
 export interface UseDialogueTurnProps {
   getCurrentGameState: () => FullGameState;
@@ -82,7 +83,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.localPlace,
           currentThemeMapNodes,
           stateAfterPlayerChoice.allCharacters.filter((c) => c.themeName === currentThemeObj.name),
-          stateAfterPlayerChoice.inventory,
+          stateAfterPlayerChoice.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
           playerGenderProp,
           historyWithPlayerChoice,
           option,

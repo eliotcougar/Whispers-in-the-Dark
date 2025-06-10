@@ -12,6 +12,7 @@ import { useMapUpdates, getDefaultMapLayoutConfig } from './useMapUpdates';
 import { usePlayerActions } from './usePlayerActions';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { PLAYER_HOLDER_ID } from '../constants';
 
 export interface UseGameLogicProps {
   playerGenderProp: string;
@@ -192,7 +193,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     actionOptions: currentFullState.actionOptions,
     mainQuest: currentFullState.mainQuest,
     currentObjective: currentFullState.currentObjective,
-    inventory: currentFullState.inventory,
+    inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,
     isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),

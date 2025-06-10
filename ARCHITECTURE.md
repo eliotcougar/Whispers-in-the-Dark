@@ -19,12 +19,12 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   `App.tsx`: The root component, orchestrating the overall UI and integrating the `useGameLogic` hook.
     *   `SceneDisplay.tsx`: Renders the main narrative, quest, objective, and local context, using `MapNode` data for highlighting locations.
     *   `ActionOptions.tsx`: Displays clickable action choices, using `MapNode` data for highlighting.
-    *   `InventoryDisplay.tsx`: Manages the player's inventory, item interactions, and junk discarding.
+    *   `InventoryDisplay.tsx`: Manages the player's inventory, item interactions, and junk discarding. Items dropped are not removed; their `holderId` is set to the current map node so they remain in the world.
     *   `GameLogDisplay.tsx`: Shows a history of game events.
     *   `DialogueDisplay.tsx`: Handles the UI for conversations with NPCs, using `MapNode` data for highlighting.
     *   `MapDisplay.tsx`: Visualizes the `MapData` for the current theme. Includes pan/zoom interactions and exposes layout tuning via `MapControls`.
     *   `MapNodeView.tsx`: Renders individual nodes within the map SVG.
-    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `ThemeMemoryDisplay.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` now primarily focuses on Characters, with location information being map-centric.
+    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `ThemeMemoryDisplay.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on characters, with location details coming from the map.
     *   `LoadingSpinner.tsx`, `ErrorDisplay.tsx`: Provide feedback during loading or error states.
     *   `MainToolbar.tsx`: Contains buttons for primary game actions and information display, including opening the map.
 
@@ -41,8 +41,9 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
         *   If `mapUpdateService` indicates a new main map node was added without full details, `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to complete its data.
     *   Manages the "Reality Shift" mechanic (via `useRealityShift`), theme selection, and dialogue mode.
     *   Provides undo functionality by swapping the two-element `GameStateStack`.
-    *   Determines `currentMapNodeId` based on AI suggestions or by using `selectBestMatchingMapNode` (which now uses `MapNode[]`).
+    *   Determines `currentMapNodeId` based on AI suggestions or by using `selectBestMatchingMapNode`, which operates on `MapNode[]`.
     *   Delegates to sub hooks: `usePlayerActions`, `useDialogueFlow`, `useMapUpdates`, and `useGameInitialization`.
+    *   The player's inventory is derived from all items whose `holderId` equals `PLAYER_HOLDER_ID`. Dropped items keep existing data but have their `holderId` set to the current map node so they persist on the ground. Main turn prompts include any such location items so the AI can describe them.
 *   **Key Functions:**
     *   `executePlayerAction()`: Core function for a standard game turn.
     *   `loadInitialGame()`: Sets up a new game or loads an existing one.
@@ -57,7 +58,7 @@ This layer abstracts external interactions and complex data processing.
 *   **AI Interaction Services:**
     *   `services/geminiClient.ts`: Initializes the Google Gemini API client.
     *   `services/gameAIService.ts`: Handles main game turn AI calls and theme summarization.
-    *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries. Dialogue context now uses `MapNode[]` for place information and it can summarize conversations so NPCs remember past talks.
+    *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries. Dialogue context uses `MapNode[]` for place information and can summarize conversations so NPCs remember past talks.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
     *   `services/mapUpdateService.ts`:
         *   Receives narrative context and current `MapData`.
@@ -65,23 +66,39 @@ This layer abstracts external interactions and complex data processing.
         *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
-    *   `services/aiResponseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections. It now ignores `placesAdded`/`placesUpdated` fields, relying on the `mapUpdated` flag.
+   *   `services/aiResponseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections. The parser relies on the `mapUpdated` flag instead of the older `placesAdded` or `placesUpdated` fields.
     *   `services/validationUtils.ts`: General data structure validation.
     *   `utils/mapUpdateValidationUtils.ts`: Specific validation for `AIMapUpdatePayload`.
 *   **Persistence Service:**
-    *   `services/saveLoadService.ts`: Handles saving/loading. `FullGameState` now includes `mapData` and `currentMapNodeId`. The `allPlaces` list is removed from `SavedGameDataShape`. Conversion logic from older save versions updates them to use `mapData`.
+   *   `services/saveLoadService.ts`: Handles saving and loading the entire `FullGameState`, including `mapData` and `currentMapNodeId`, and converts older save versions when necessary.
 *   **Utility Functions:**
-    *   `utils/promptFormatters.ts`: Now formats `MapNode[]` instead of `Place[]` for AI prompts regarding locations.
-    *   `utils/mapNodeMatcher.ts`: `selectBestMatchingMapNode` now operates on `MapNode[]`.
-    *   `utils/mapHierarchyUpgradeUtils.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.
-    *   `utils/mapLayoutUtils.ts`: Performs nested circle and force-directed layout for map visualization.
+   *   `utils/promptFormatters.ts` and the files under `utils/promptFormatters/`: format inventory, map context, and dialogue prompts using `MapNode[]` data.
+   *   Main turn prompts list items on the ground if any share the current map node's ID.
+   *   `utils/aiErrorUtils.ts`: Interprets errors from the Gemini API.
+   *   `utils/cloneUtils.ts`: Deep clone helpers for game state objects.
+   *   `utils/entityUtils.ts`: Entity lookup helpers plus `generateUniqueId`, `buildNodeId`, `buildEdgeId`, and `buildCharacterId` for deterministic IDs.
+   *   `utils/gameLogicUtils.ts`: Applies item and character changes, manages logs, and selects the next theme.
+   *   `utils/highlightHelper.tsx`: Builds highlight information for entity names in text.
+   *   `utils/initialStates.ts`: Produces the default `FullGameState` objects.
+   *   `utils/jsonUtils.ts`: Extracts JSON from AI responses and provides safe parsing.
+   *   `utils/loadingProgress.ts`: Tracks progress text for asynchronous operations.
+   *   `utils/mapConstants.ts`: Constants used when rendering the map.
+   *   `utils/mapGraphUtils.ts`: Helpers for navigating the map hierarchy.
+   *   `utils/mapHierarchyUpgradeUtils.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.
+   *   `utils/mapLayoutUtils.ts`: Performs a nested circle layout for map visualization.
+   *   `utils/mapNodeMatcher.ts`: Contains `selectBestMatchingMapNode` for fuzzy location lookups.
+   *   `utils/mapPathfinding.ts`: Calculates travel paths between nodes.
+   *   `utils/mapUpdateHandlers.ts`: Applies AI map update payloads to `MapData`.
+   *   `utils/mapUpdateValidationUtils.ts`: Validates `AIMapUpdatePayload` structures.
+   *   `utils/mapSynonyms.ts` and `utils/matcherData.ts`: Provide regex helpers and keyword lists used when parsing player text.
+   *   `utils/svgUtils.ts`: Converts screen coordinates to the map's SVG space.
 
 ### 1.4. Data Layer
 
 *   **Type Definitions:**
-    *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. The `Place` type is deprecated as a primary game state element for locations.
+    *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. Items include a `holderId` for their owner and `Character` objects have a unique `id` similar to `MapNode.id`.
 *   **Constants & Configuration:**
-    *   `constants.ts`: Global constants, model names, and system prompts, including `MAP_UPDATE_SYSTEM_INSTRUCTION`.
+    *   `constants.ts`: Global constants, model names, and system prompts, including `MAP_UPDATE_SYSTEM_INSTRUCTION`. `PLAYER_HOLDER_ID` marks items belonging to the player.
 *   **Theme Definitions:**
     *   `themes.ts`: Defines adventure themes.
     *   `CustomGameSetupScreen.tsx` allows starting a game from a user-chosen theme.
@@ -109,7 +126,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
 
 ### 2.2. Location Data Flow
 
-*   **Storyteller AI (`gameAIService`)**: Provides `sceneDescription`, `logMessage`, `localPlace`, and a `mapUpdated: boolean` flag. It no longer directly outputs `placesAdded` or `placesUpdated`.
+*   **Storyteller AI (`gameAIService`)**: Provides `sceneDescription`, `logMessage`, `localPlace`, and a `mapUpdated` flag.
 *   **`useGameLogic`**:
     *   If `mapUpdated` is true or `localPlace` significantly changes, calls `mapUpdateService`.
     *   Receives `AIMapUpdatePayload` from `mapUpdateService`.
@@ -121,7 +138,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   Applies these changes, creating/updating/deleting `MapNode`s and `MapEdge`s within `MapData`.
     *   If a node is renamed via `nodesToUpdate`, any `nodesToRemove` entry with that old or new name is ignored.
 *   **Map Data (`FullGameState.mapData`)**: Becomes the single source of truth for all map-related information (nodes, their descriptions, aliases, statuses, connections).
-*   **Knowledge Base**: No longer displays "Places". Character information remains. Location understanding comes from interacting with and viewing the `MapDisplay`.
+*   **Knowledge Base**: Focuses on characters. Location understanding comes from interacting with and viewing the `MapDisplay`.
 
 This map-centric refactor centralizes location data management, making it more robust and scalable, with the `mapUpdateService` acting as a specialized agent for interpreting narrative cues into concrete map changes.
 
@@ -133,8 +150,8 @@ Edges represent traversable connections between *feature* nodes only. A valid ed
 
 ### 2.4. Map Layout and Visualization
 
-The `MapDisplay` component renders `MapData` using a hierarchical force‑directed algorithm defined in `mapLayoutUtils.ts`.
+The `MapDisplay` component visualizes nodes and edges stored in `MapData`. A nested circle layout is calculated with `applyNestedCircleLayout` from `mapLayoutUtils.ts` whenever the map view opens or layout sliders change.
 
-* A bottom‑up nested circle pass allocates enough space for each node's children before a force layout step.
-* Layout parameters (`K_REPULSION`, `IDEAL_EDGE_LENGTH`, etc.) are persisted in `mapLayoutConfig` and can be tweaked through the `MapControls` UI.
+* Each parent node encloses its children, positioned around the circumference of a circle sized to avoid overlaps.
+* Layout parameters (`IDEAL_EDGE_LENGTH`, `NESTED_PADDING`, `NESTED_ANGLE_PADDING`, and label spacing values) are stored in `mapLayoutConfig` and can be tuned through `MapControls`.
 * `useMapInteractions` enables panning and zooming the SVG view.

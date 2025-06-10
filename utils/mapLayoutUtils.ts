@@ -1,10 +1,10 @@
 
 /**
  * @file mapLayoutUtils.ts
- * @description Utilities for performing force-directed layout of game maps.
- * The nested circle algorithm allocates extra padding so that child node
- * circles and labels fit comfortably inside their parent.
-*/
+ * @description Utilities for computing a nested circle layout for map nodes.
+ * The algorithm allocates extra padding so that child node circles and labels
+ * fit comfortably inside their parent.
+ */
 
 import { MapNode } from '../types';
 import { structuredCloneGameState } from './cloneUtils';

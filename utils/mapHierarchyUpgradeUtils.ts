@@ -8,11 +8,7 @@
 import { MapData, MapNode, MapEdge, AdventureTheme } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
 import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/map';
-
-/** Generates a roughly unique ID string with an optional prefix. */
-const generateUniqueId = (prefix: string = 'id_'): string => {
-  return `${prefix}${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
-};
+import { generateUniqueId } from './entityUtils';
 
 /**
  * Upgrades a feature node into a region and creates a new connector feature.

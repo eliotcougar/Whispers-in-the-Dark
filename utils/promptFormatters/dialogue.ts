@@ -282,6 +282,7 @@ export const formatMainGameTurnPrompt = (
   currentScene: string,
   playerAction: string,
   inventory: Item[],
+  locationItems: Item[],
   mainQuest: string | null,
   currentObjective: string | null,
   currentTheme: AdventureTheme,
@@ -298,6 +299,8 @@ export const formatMainGameTurnPrompt = (
   destinationNodeId: string | null
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
+  const locationItemsPrompt =
+    locationItems.length > 0 ? formatInventoryForPrompt(locationItems) : '';
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
   const charactersContext = formatKnownCharactersForPrompt(currentThemeCharacters, true);
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
@@ -340,6 +343,7 @@ Previous Local Place: "${localPlace || 'Undetermined Location'}"
 Main Quest: "${mainQuest || 'Not set'}"
 Current Objective: "${currentObjective || 'Not set'}"
 Current Inventory:\n - ${inventoryPrompt}
+${locationItemsPrompt ? `There are items at this location:\n - ${locationItemsPrompt}` : ''}
 Known Locations: ${placesContext}
 Known Characters: ${charactersContext}
 

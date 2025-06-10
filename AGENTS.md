@@ -41,3 +41,6 @@ CURRENT_SAVE_GAME_VERSION string should always be a single incremental number, f
 
 ## Teach the user:
  - The user is learning programming. Take an opportunity to shortly teach the user about the logic behind the changes you make in the general chat (not in the code).
+
+## Reference
+ - Read `ARCHITECTURE.md` for a general overview of the code structure before making significant changes.

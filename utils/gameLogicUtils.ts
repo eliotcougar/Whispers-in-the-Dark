@@ -13,6 +13,7 @@ import {
   ItemChangeRecord, CharacterChangeRecord,
   ValidCharacterUpdatePayload, ValidNewCharacterPayload
 } from '../types';
+import { buildCharacterId } from './entityUtils';
 
 /**
  * Applies a single item change action to the current inventory.
@@ -36,7 +37,8 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
         activeDescription: newItemFromAI.activeDescription,
         isActive: newItemFromAI.isActive ?? false,
         isJunk: newItemFromAI.isJunk ?? false,
-        knownUses: newItemFromAI.knownUses || [] 
+        knownUses: newItemFromAI.knownUses || [],
+        holderId: newItemFromAI.holderId
       };
     const existingItemIndex = newInventory.findIndex(i => i.name === newItemToAdd.name);
     if (existingItemIndex !== -1) {
@@ -72,6 +74,10 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
     
     if (updatePayload.knownUses !== undefined) {
       updatedItem.knownUses = updatePayload.knownUses;
+    }
+
+    if (updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '') {
+      updatedItem.holderId = updatePayload.holderId;
     }
 
     if (updatePayload.addKnownUse) {
@@ -160,7 +166,8 @@ export const buildItemChangeRecords = (
         activeDescription: gainedItemData.activeDescription,
         isActive: gainedItemData.isActive ?? false,
         isJunk: gainedItemData.isJunk ?? false,
-        knownUses: gainedItemData.knownUses || []
+        knownUses: gainedItemData.knownUses || [],
+        holderId: gainedItemData.holderId
       };
       record = { type: 'gain', gainedItem: cleanGainedItem };
     } else if (change.action === 'lose' && typeof itemPayload === 'string') {
@@ -182,6 +189,7 @@ export const buildItemChangeRecords = (
           isActive: updatePayload.isActive !== undefined ? updatePayload.isActive : (oldItemCopy.isActive ?? false),
           isJunk: updatePayload.isJunk !== undefined ? updatePayload.isJunk : (oldItemCopy.isJunk ?? false),
           knownUses: Array.isArray(updatePayload.knownUses) ? updatePayload.knownUses : (oldItemCopy.knownUses || []),
+          holderId: updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '' ? updatePayload.holderId : oldItemCopy.holderId,
         };
         if (updatePayload.addKnownUse) {
           const currentKnownUses = [...(newItemData.knownUses || [])];
@@ -238,6 +246,7 @@ export const buildCharacterChangeRecords = (
   (charactersAddedFromAI || []).forEach(cAdd => {
     const newChar: Character = {
       ...cAdd,
+      id: buildCharacterId(cAdd.name),
       themeName: currentThemeName,
       aliases: cAdd.aliases || [],
       presenceStatus: cAdd.presenceStatus || 'unknown',
@@ -293,6 +302,7 @@ export const applyAllCharacterChanges = (
     if (!newAllCharacters.some(c => c.name === cAdd.name && c.themeName === currentThemeName)) {
       const newChar: Character = {
         ...cAdd,
+        id: buildCharacterId(cAdd.name),
         themeName: currentThemeName,
         aliases: cAdd.aliases || [],
         presenceStatus: cAdd.presenceStatus || 'unknown',

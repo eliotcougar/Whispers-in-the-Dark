@@ -42,6 +42,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
         console.warn(`isValidItem (context: ${context || 'default'}): 'description' is missing or invalid.`, item);
         return false;
     }
+    if (typeof obj.holderId !== 'string' || obj.holderId.trim() === '') {
+        console.warn(`isValidItem (context: ${context || 'default'}): 'holderId' is missing or invalid.`, item);
+        return false;
+    }
   }
 
   // Fields required for 'update' if it's a transformation (newName is present)
@@ -84,6 +88,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
   }
   if (obj.isJunk !== undefined && typeof obj.isJunk !== 'boolean') {
     console.warn("isValidItem: 'isJunk' is present but invalid.", item);
+    return false;
+  }
+  if (obj.holderId !== undefined && (typeof obj.holderId !== 'string' || obj.holderId.trim() === '')) {
+    console.warn("isValidItem: 'holderId' is present but invalid.", item);
     return false;
   }
   if (obj.knownUses !== undefined && !(Array.isArray(obj.knownUses) && obj.knownUses.every(isValidKnownUse))) {

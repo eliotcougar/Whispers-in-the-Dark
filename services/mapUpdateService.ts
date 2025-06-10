@@ -41,6 +41,7 @@ import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_S
 import { findClosestAllowedParent } from '../utils/mapGraphUtils';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 import { addProgressSymbol } from '../utils/loadingProgress';
+import { generateUniqueId } from '../utils/entityUtils';
 
 const MAX_CHAIN_REFINEMENT_ROUNDS = 2;
 
@@ -880,9 +881,6 @@ Key points:
       return false;
   }
 
-  function generateUniqueId(prefix: string): string {
-      return `${prefix}${Date.now()%10000}_${Math.random().toString(36).substring(2,7)}`;
-  }
 
   function addEdgeWithTracking(
       a: MapNode,

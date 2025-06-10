@@ -12,7 +12,7 @@ import {
 import { executeAIMainTurn } from '../services/gameAIService';
 import { parseAIResponse } from '../services/aiResponseParser';
 import { getThemesFromPacks } from '../themes';
-import { CURRENT_SAVE_GAME_VERSION } from '../constants';
+import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../constants';
 import { findThemeByName } from '../services/themeUtils';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
@@ -236,14 +236,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         const currentThemeCharacters = draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name);
         prompt = formatReturnToThemePostShiftPrompt(
           themeObjToLoad,
-          draftState.inventory,
+          draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
           playerGenderProp,
           draftState.themeHistory[themeObjToLoad.name],
           draftState.mapData,
           currentThemeCharacters
         );
       } else if (isTransitioningFromShift) {
-        prompt = formatNewThemePostShiftPrompt(themeObjToLoad, draftState.inventory, playerGenderProp);
+        prompt = formatNewThemePostShiftPrompt(themeObjToLoad, draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID), playerGenderProp);
       } else {
         prompt = formatNewGameFirstTurnPrompt(themeObjToLoad, playerGenderProp);
       }
@@ -270,7 +270,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           undefined,
           draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name),
           currentThemeMapDataForParse,
-          draftState.inventory
+          draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
 
         await processAiResponse(parsedData, themeObjToLoad, draftState, {
@@ -478,7 +478,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         currentFullState.currentScene,
         currentThemeCharacters,
         currentThemeMapDataForParse,
-        currentFullState.inventory,
+        currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
       );
 
       await processAiResponse(parsedData, currentThemeObj, draftState, {
