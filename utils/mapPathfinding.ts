@@ -79,8 +79,10 @@ export const findTravelPath = (
   }
 
   for (const siblings of siblingsMap.values()) {
-    const features = siblings.filter(n => n.data.nodeType === 'feature');
-    const others = siblings.filter(n => n.data.nodeType !== 'feature');
+    const isFeatureNode = (n: (typeof siblings)[number]): boolean =>
+      n.data.nodeType === 'feature' || n.data.isFeature === true;
+    const features = siblings.filter(isFeatureNode);
+    const others = siblings.filter(n => !isFeatureNode(n));
     for (const f of features) {
       for (const o of others) {
         const id1 = `hierarchy:${f.id}->${o.id}`;
