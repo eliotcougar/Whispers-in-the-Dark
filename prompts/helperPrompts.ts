@@ -6,61 +6,92 @@
 
 import { VALID_ITEM_TYPES_STRING } from '../constants'; // Import needed constant
 
-export const ITEMS_GUIDE = `- "itemChange" is ALWAYS an array. If no item change, send an empty array: "itemChange": [].
- Structure for individual ItemChange objects within the array:
-  - "action": "gain": "item" is an Item object: { "name": "item_name", "type": ${VALID_ITEM_TYPES_STRING}, "description": "item_description", "activeDescription"?: "description_when_active", "isActive"?: false, "isJunk"?: boolean, "knownUses"?: [{ "actionName": "Action Text", "promptEffect": "Meaningful phrase describing the effect sent to AI (MUST NOT BE EMPTY)", "description": "Hint to the player on item use", "appliesWhenActive"?: boolean, "appliesWhenInactive"?: boolean }] }. Ensure "name", "type", "promptEffect", "description" are always present and valid. "isJunk" is optional (defaults to false); set to true if the item is largely unimportant or has served its ONLY purpose (e.g., a used quest item, common debris). Important: "status effects" can never be marked as junk. The "newName" and "addKnownUse" fields of the Item object should NOT be used for "gain".
-  - "action": "lose": "item" is the item's FULL name, including any notes in brackets (string).
-    - Appropriately handle spending single-use items and state toggles ("isActive": true/false).
-    - Using some "single-use" items (food, water, medicine, etc) MAY add or remove appropriate "status effects".
-  - "action": "update": "item" is an Item object.
-    - The "name" field of this Item object is the FULL *original name* of the item to update. This is REQUIRED.
-    - Other fields ("type", "description", "activeDescription", "isActive", "isJunk", "knownUses") are OPTIONAL. If provided, they describe the item *after* the update. If not provided, the item's existing values for these fields are retained.
-    - Use "newName" field in this Item object if transforming the item to a new name. If "newName" is provided, you SHOULD also provide "type" and "description" for the NEW item.
-    - Use "knownUses" (an array) to replace all existing known uses. Send an empty array to clear all known uses. Each KnownUse object must have a non-empty "actionName" and non-empty "promptEffect".
-    - Use "addKnownUse" to add a single new known use. It must have a non-empty "actionName" and non-empty "promptEffect".
-    - "isJunk" (optional boolean): Set to true if the item becomes junk, false if it becomes important again. IMPORTANT: "status effects" can never be marked as junk.
-    - Example for simple update (only changing "isActive", other properties like type/description are inherited from the existing "Old Torch"): 
-      { "action": "update",
-        "item": { "name": "Old Torch", "isActive": true }
-      }
-    - Example for transformation (providing all details for the new item): 
-      { "action": "update",
-        "item": {
-          "name": "Scrap Metal",
-          "newName": "Makeshift Shiv",
-          "type": "weapon",
-          "description": "A sharp piece of metal.",
-          "isJunk": false
-        }
-      }
-    - Example for adding a known use (type/description etc. inherited): 
-      { "action": "update",
-        "item": {
-          "name": "Mystic Orb",
-          "addKnownUse": {
-            "actionName": "Peer into the Orb",
-            "promptEffect": "Player peers into the Mystic Orb",
-            "description": "Try to see the beyond",
-            "AppliesWhenActive": true
+export const ITEMS_GUIDE = `- "itemChange" is ALWAYS an array. If no items change this turn, send an empty array: "itemChange": [].
+Structure for individual ItemChange objects within the array:
+- Example for gaining a new item:
+  { "action": "gain",
+    item: {
+      "name": "Old Lantern", /* REQUIRED: Full name of the item. */
+      "type": "equipment", /* REQUIRED. MUST be one of ${VALID_ITEM_TYPES_STRING} */
+      "description": "A dusty old lantern that still flickers faintly.", /* REQUIRED: Short description of the item. */
+      "activeDescription"?: "The lantern is lit and casts a warm glow.", /* Optional: Description when the item is active. REQUIRED for toggle-able items.*/
+      "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
+      "isJunk"?: false, /* Optional: true if the item is largely unimportant or has served its ONLY purpose (e.g., a used quest item, common debris). Defaults to false if not provided. IMPORTANT: "status effects" can never be marked as junk. */
+      "knownUses"?: /* Optional: Array of KnownUse objects describing how the item can be used. If not provided, the item has no known uses yet.
+        [
+          { 
+            "actionName": "Light the Lantern", /* REQUIRED: User-facing text for the action button. */
+            "promptEffect": "Light the lantern to illuminate the area.", /* REQUIRED: Non-empty text sent to the game AI when this action is chosen, e.g., "Player lights the lantern, illuminating the area." */
+            "description": "Use this to light your way in dark places.", /* REQUIRED: A small hint or detail for the player, shown as a tooltip, e.g., "Use this to light your way in dark places." */
+            "appliesWhenActive"?: true, /* Optional: If true, this use is shown when item.isActive is true. Defaults to false if not provided. */
+            "appliesWhenInactive"?: false /* Optional: If true, this use is shown when item.isActive is false or undefined. Defaults to false if not provided. */
           }
-        }
-      }
-    - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
-  Each KnownUse object requires:
-    - "actionName": string (User-facing text for the action button).
-    - "promptEffect": string (CRITICAL: Non-empty text sent to the game AI when this action is chosen. This defines the game effect).
-    - "description": string (A small hint or detail for the player, shown as a tooltip).
-    - "appliesWhenActive?": boolean (Optional: If true, use shown when item.isActive is true).
-    - "appliesWhenInactive?": boolean (Optional: If true, use shown when item.isActive is false/undefined).
-  If neither "appliesWhenActive" nor "appliesWhenInactive" is provided, the use is always shown.
-  If both are provided, it applies if (isActive AND appliesWhenActive) OR (!isActive AND appliesWhenInactive).
-  IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
-    - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
-    - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
-  IMPORTANT: NEVER add "Inspect" knownUse - there is a dedicated button for it in the game.
+        ]
+    }
+  }
 
-  If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, use "itemChange" "update" (e.g., with "addKnownUse").
-  If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, consider "itemChange" "update" for "addKnownUse" in addition to main outcome.
+- Example for losing an item:
+  { "action": "lose",
+    item:{
+      "id": "item_old_lantern_flickering_7fr4", /* REQUIRED: Unique identifier for the item being lost. Choose from the provided Player inventory. */
+      "name": "Old Lantern (flickering)" /* REQUIRED: Full name of the item being lost, including any notes in brackets. Choose from the provided Player inventory. */
+    }
+  }
+
+- Example for simple update (only changing "isActive", other properties like type/description are inherited from the existing "Old Torch"): 
+  { "action": "update",
+      item: {
+        "id": "item_plasma_torch_7fr4", /* REQUIRED: Unique identifier for the item. Choose from the provided context. */
+        "name": "Plasma Torch", /* REQUIRED: Full name of the item to update.  Choose from the provided context. */  
+        "isActive": true /* REQUIRED: true if the item is now active (e.g., a lit torch), false if it is inactive (e.g., an unlit torch). Defaults to false if not provided. */
+      }
+  }
+
+- Example for transformation or crafting (providing all details for the new item): 
+  { "action": "update",
+    "item": {
+      "id": "item_scrap_metal_7fr4", /* REQUIRED: Unique identifier for the item. Choose from the provided context. */
+      "name": "Scrap Metal", /* REQUIRED: Full name of the item to update. Choose from the provided context. */
+      "newName": "Makeshift Shiv", /* REQUIRED: New name for the transformed item, e.g., "Makeshift Shiv" */
+      "type": "weapon", /* REQUIRED: New type for the transformed item, e.g., "weapon". MUST be one of ${VALID_ITEM_TYPES_STRING} */
+      "description": "A sharp piece of metal.", /* REQUIRED: New description for the transformed item, e.g., "A sharp piece of metal." */
+      "isJunk"?: false /* Optional: Set to true if the item becomes junk, false if it becomes important again. Defaults to false if not provided. IMPORTANT: "status effects" can never be marked as junk. */
+      "knownUses"?: [
+        { 
+          "actionName": "Cut", /* REQUIRED: User-facing text for the action button. */
+          "promptEffect": "Cut something.", /* REQUIRED: Non-empty text sent to the game AI when this action is chosen, e.g., "Player lights the lantern, illuminating the area." */
+          "description": "Use this to cut things.", /* REQUIRED: A small hint or detail for the player, shown as a tooltip, e.g., "Use this to light your way in dark places." */
+          "appliesWhenActive"?: false, /* Optional: If true, this use is shown when item.isActive is true. Defaults to false if not provided. */
+          "appliesWhenInactive"?: false /* Optional: If true, this use is shown when item.isActive is false or undefined. Defaults to false if not provided. */
+        }
+      ]
+    }
+  }
+
+- Example for adding a known use (type/description etc. inherited): 
+  { "action": "update",
+    "item": {
+      "id": "item_mystic_orb_7fr4", /* REQUIRED: Unique identifier for the item. Choose from the provided context. */
+      "name": "Mystic Orb", /* REQUIRED: Full name of the item to update. Choose from the provided context. */
+      "addKnownUse": { /* REQUIRED: New known use to add to the item. */
+        "actionName": "Peer into the Orb", /* REQUIRED: User-facing text for the action button. */
+        "promptEffect": "Peer into the Mystic Orb, trying to glimpse the future.", /* REQUIRED: Non-empty text sent to the game AI when this action is chosen. */
+        "description": "Try to see the beyond", /* REQUIRED: A small hint or detail for the player, shown as a tooltip. */
+        "AppliesWhenActive": true /* Optional: If true, this use is shown when item.isActive is true. Defaults to false if not provided. */
+      }
+    }
+  }
+
+  - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
+  - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effects".
+  - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
+IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
+  - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
+  - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
+IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park" known uses - there are dedicated buttons for those in the game.
+
+If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, use "itemChange" "update" (e.g., with "addKnownUse").
+If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, consider "itemChange" "update" for "addKnownUse" in addition to main outcome.
 
 
 Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
