@@ -40,10 +40,10 @@ const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTa
                     event.currentTarget.blur();
                   }}
                   disabled={disabled}
-                  className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
-                  aria-label={`Take ${item.name}`}
+                  className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
+                  aria-label={item.type === 'vehicle' ? `Enter ${item.name}` : `Take ${item.name}`}
                 >
-                  Take
+                  {item.type === 'vehicle' ? 'Enter Vehicle' : 'Take'}
                 </button>
               </div>
             </li>

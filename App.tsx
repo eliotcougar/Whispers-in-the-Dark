@@ -541,7 +541,7 @@ const App: React.FC = () => {
             <InventoryDisplay
               items={inventory}
               onItemInteract={handleItemInteraction}
-              onDiscardJunkItem={gameLogic.handleDiscardJunkItem}
+              onDropItem={gameLogic.handleDropItem}
               disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
             />
           </div>

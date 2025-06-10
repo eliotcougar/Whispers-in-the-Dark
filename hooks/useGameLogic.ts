@@ -98,7 +98,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     processAiResponse,
     handleActionSelect,
     handleItemInteraction,
-    handleDiscardJunkItem,
+    handleDropItem,
     handleTakeLocationItem,
     handleFreeFormActionSubmit,
     handleUndoTurn,
@@ -234,7 +234,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
     handleActionSelect,
     handleItemInteraction,
-    handleDiscardJunkItem,
+    handleDropItem,
     handleTakeLocationItem,
     handleRetry,
     executeRestartGame,
