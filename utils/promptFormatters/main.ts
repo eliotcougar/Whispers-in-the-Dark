@@ -29,7 +29,7 @@ export const formatKnownCharactersForPrompt = (
   }
   if (detailed) {
     const formatSingleCharacterDetailed = (c: Character): string => {
-      let details = `\n - "${c.name}"`;
+      let details = ` - ${c.id} - "${c.name}"`;
       if (c.aliases && c.aliases.length > 0) {
         details += ` (aka ${c.aliases.map(a => `"${a}"`).join(', ')})`;
       }
@@ -39,10 +39,10 @@ export const formatKnownCharactersForPrompt = (
       } else {
         details += `, Last Location: ${c.lastKnownLocation || 'Unknown'}`;
       }
-      details += `) - Description: "${c.description}"`;
+      details += `), "${c.description}"`;
       return details;
     };
-    return characters.map(formatSingleCharacterDetailed).join('; ') + '.';
+    return characters.map(formatSingleCharacterDetailed).join(';\n') + '.';
   }
   const companions = characters.filter(c => c.presenceStatus === 'companion');
   const nearbyCharacters = characters.filter(c => c.presenceStatus === 'nearby');
@@ -52,23 +52,15 @@ export const formatKnownCharactersForPrompt = (
 
   const promptParts: string[] = [];
   if (companions.length > 0) {
-    const companionStrings = companions.map(c => `"${c.name}" (${c.preciseLocation || 'with player'})`);
+    const companionStrings = companions.map(c => `${c.id} - "${c.name}"`);
     promptParts.push(`Companions traveling with the Player: ${companionStrings.join(', ')}.`);
   }
   if (nearbyCharacters.length > 0) {
-    const nearbyStrings = nearbyCharacters.map(c => `"${c.name}" (${c.preciseLocation || 'in the vicinity'})`);
+    const nearbyStrings = nearbyCharacters.map(c => `${c.id} - "${c.name}"`);
     promptParts.push(`Characters Player can interact with (nearby): ${nearbyStrings.join(', ')}.`);
   }
   if (otherKnownCharacters.length > 0) {
-    const otherStrings = otherKnownCharacters.map(c => {
-      let statusDetail = `Status: ${c.presenceStatus}`;
-      if (c.lastKnownLocation && c.lastKnownLocation !== 'Unknown') {
-        statusDetail += `, Last known location: ${c.lastKnownLocation}`;
-      } else {
-        statusDetail += `, Location Unknown`;
-      }
-      return `"${c.name}" (${statusDetail})`;
-    });
+    const otherStrings = otherKnownCharacters.map(c => `${c.id} - "${c.name}"`);
     promptParts.push(`Other known characters: ${otherStrings.join(', ')}.`);
   }
   return promptParts.length > 0 ? promptParts.join('\n') : 'None specifically known in this theme yet.';
@@ -115,14 +107,14 @@ export const formatDetailedContextForMentionedEntities = (
   let detailedContext = '';
   const formattedMentionedPlaces = formatKnownPlacesForPrompt(mentionedPlaces, true);
   if (formattedMentionedPlaces && formattedMentionedPlaces !== 'None specifically known in this theme yet.') {
-    detailedContext += `\n${placesPrefixIfAny}${formattedMentionedPlaces}`;
+    detailedContext += `${placesPrefixIfAny}\n${formattedMentionedPlaces}\n`;
   }
   const formattedMentionedCharacters = formatKnownCharactersForPrompt(mentionedCharacters, true);
   if (
     formattedMentionedCharacters &&
     formattedMentionedCharacters !== 'None specifically known in this theme yet.'
   ) {
-    detailedContext += `\n${charactersPrefixIfAny}${formattedMentionedCharacters}`;
+    detailedContext += `${charactersPrefixIfAny}\n${formattedMentionedCharacters}`;
   }
   return detailedContext.trimStart();
 };
@@ -338,33 +330,39 @@ export const formatMainGameTurnPrompt = (
     currentThemeMainMapNodes,
     currentThemeCharacters,
     `${currentScene} ${playerAction}`,
-    'Details on relevant map nodes (locations/features) mentioned in current scene or action:',
-    'Details on relevant characters mentioned in current scene or action:'
+    '### Details on relevant locations mentioned in current scene or action:',
+    '### Details on relevant characters mentioned in current scene or action:'
   );
 
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
 
-** Context:
+## Context:
 Player's Character Gender: "${playerGender}"
 Previous Local Time: "${localTime || 'Unknown'}"
 Previous Local Environment: "${localEnvironment || 'Undetermined'}"
 Previous Local Place: "${localPlace || 'Undetermined Location'}"
 Main Quest: "${mainQuest || 'Not set'}"
 Current Objective: "${currentObjective || 'Not set'}"
-Current Inventory:\n - ${inventoryPrompt}
-${locationItemsPrompt ? `There are items at this location:\n - ${locationItemsPrompt}` : ''}
-Known Locations: ${placesContext}
-Known Characters: ${charactersContext}
 
-Current Map Context (including your location, possible exits, nearby paths, and other nearby locations):
+### Current Inventory:
+${inventoryPrompt} ${locationItemsPrompt ? `There are items at this location:\n - ${locationItemsPrompt}` : ''}
+
+### Known Locations:
+${placesContext}
+
+### Known Characters:
+${charactersContext}
+
+### Current Map Context (including your location, possible exits, nearby paths, and other nearby locations):
 ${mapContext}
 
 ${detailedEntityContext}
 
-Recent Events to keep in mind (for context and continuity):
+### Recent Events to keep in mind (for context and continuity):
 ${recentEventsContext}
  - A bit later you look around and consider your next move.
 IMPORTANT: Recent Events are provided ONLY for extra context, these actions have already been processed by the game and should NEVER cause item actions to avoid double counting.
+
 ---
 
 Current Theme: "${currentTheme.name}"

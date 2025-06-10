@@ -8,6 +8,7 @@ import {
   GameStateFromAI,
   DialogueSummaryResponse,
   Item,
+  ItemReference,
   KnownUse,
   AdventureTheme,
   FullGameState,
@@ -208,21 +209,29 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (themeContextForResponse) {
         for (const change of aiItemChangesFromParser) {
           const currentChange = { ...change };
-          if (currentChange.action === 'lose' && typeof currentChange.item === 'string') {
-            const itemNameFromAI = currentChange.item;
-            const exactMatchInInventory = baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID).find((invItem) => invItem.name === itemNameFromAI);
+          if (currentChange.action === 'lose' && currentChange.item) {
+            const itemRef = currentChange.item as ItemReference;
+            const itemNameFromAI = itemRef.name;
+            const exactMatchInInventory = baseStateSnapshot.inventory
+              .filter(i => i.holderId === PLAYER_HOLDER_ID)
+              .find(invItem =>
+                (itemRef.id && invItem.id === itemRef.id) ||
+                (itemRef.name && invItem.name === itemRef.name)
+              );
             if (!exactMatchInInventory) {
               const originalLoadingReason = loadingReason;
               setLoadingReason('correction');
               const correctedName = await fetchCorrectedName_Service(
                 'item',
-                itemNameFromAI,
+                itemNameFromAI || '',
                 aiData.logMessage,
                 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
                 baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID).map((item) => item.name),
                 themeContextForResponse
               );
-              if (correctedName) currentChange.item = correctedName;
+              if (correctedName) {
+                currentChange.item = { id: correctedName, name: correctedName };
+              }
               setLoadingReason(originalLoadingReason);
             }
           }

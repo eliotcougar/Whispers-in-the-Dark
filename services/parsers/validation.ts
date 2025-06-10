@@ -4,6 +4,7 @@
  */
 import {
   Item,
+  ItemReference,
   KnownUse,
   ValidCharacterUpdatePayload,
   ValidNewCharacterPayload,
@@ -104,6 +105,15 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
   }
   
   return true;
+}
+
+export function isValidItemReference(obj: unknown): obj is ItemReference {
+  if (!obj || typeof obj !== 'object') return false;
+  const maybe = obj as Partial<ItemReference>;
+  return (
+    typeof maybe.id === 'string' && maybe.id.trim() !== '' &&
+    typeof maybe.name === 'string' && maybe.name.trim() !== ''
+  );
 }
 
 

@@ -24,7 +24,7 @@ export const formatKnownPlacesForPrompt = (
     return (
       mainNodes
         .map(node => {
-          let detailStr = `\n - ${node.id} - "${node.placeName}"`;
+          let detailStr = ` - ${node.id} - "${node.placeName}"`;
           if (node.data.aliases && node.data.aliases.length > 0) {
             detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
           }
@@ -32,7 +32,7 @@ export const formatKnownPlacesForPrompt = (
           detailStr += `, "${node.data.description || 'No description available.'}"`;
           return detailStr;
         })
-        .join('; ') + '.'
+        .join(';\n') + '.'
     );
   }
   return (
@@ -123,7 +123,7 @@ const getFormattedConnectionsForNode = (
       details.push(bestEdge.data.description);
     }
     const detailText = details.length > 0 ? ` (${details.join(', ')})` : '';
-    const pathString = `- ${statusText} ${typeText} to "${otherNode.placeName}"${detailText}.`;
+    const pathString = ` - ${statusText} ${typeText} to "${otherNode.placeName}"${detailText}.`;
     formattedPaths.push(pathString);
     processedTargets.add(targetNodeId);
   }
@@ -214,11 +214,10 @@ export const formatMapContextForPrompt = (
     return '';
   }
 
-  let context = `You are currently at: ${currentNode.id} - "${currentNode.placeName}".`;
+  let context = ` - You are currently at ${currentNode.id} - "${currentNode.placeName}".`;
   if (currentNode.data.description) {
-    context += ` - ${currentNode.data.description}.`;
+    context += ` ${currentNode.data.description}.`;
   }
-  if (currentNode.data.status) context += ` Status: ${currentNode.data.status}.`;
 
   const parentNodeForCurrent =
     currentNode.data.nodeType === 'feature' && currentNode.data.parentNodeId && currentNode.data.parentNodeId !== 'Universe'
@@ -268,7 +267,7 @@ export const formatMapContextForPrompt = (
                 const edgeStatus = edge.data.status || 'open';
                 const edgeType = edge.data.type || 'path';
                 exitStrings.push(
-                  `- '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
+                  ` - '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
                 );
               }
             }
@@ -277,9 +276,9 @@ export const formatMapContextForPrompt = (
       }
       if (exitStrings.length > 0) {
         exitsContext =
-          'Possible Exits from Current Main Area (' + areaMainNode.placeName + "):\n" + exitStrings.join('\n');
+          '\nPossible Exits from Current Main Area (' + areaMainNode.placeName + "):\n" + exitStrings.join('\n');
       } else {
-        exitsContext = `No mapped exits from the current main area ("${areaMainNode.placeName}") to other major areas are known.`;
+        exitsContext = `\nNo mapped exits from the current main area ("${areaMainNode.placeName}") to other major areas are known.`;
       }
     } else if (areaMainNode && (areaMainNode.data.nodeType === 'feature')) {
       exitsContext = `You are at a detailed feature ("${areaMainNode.placeName}"). Connections to other major areas are listed below if available.`;
@@ -336,6 +335,6 @@ export const formatMapContextForPrompt = (
     }
   }
 
-  return context.trim();
+  return context;
 };
 

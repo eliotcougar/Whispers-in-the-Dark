@@ -3,11 +3,12 @@
  * @description Utilities for validating and parsing AI storyteller responses.
  */
 
-import { GameStateFromAI, Item, ItemChange, Character, MapData,
+import { GameStateFromAI, Item, ItemChange, ItemReference, Character, MapData,
     ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload,
     MapNode, AdventureTheme } from '../types';
 import {
     isValidItem,
+    isValidItemReference,
     isValidCharacterUpdate,
     isValidNewCharacterPayload,
     isDialogueSetupPayloadStructurallyValid
@@ -242,12 +243,14 @@ async function processItemChanges(
                         currentItemPayload = null;
                     }
                 }
-                if (currentItemPayload && typeof currentItemPayload !== 'string') {
-                    currentItemPayload.newName = undefined;
-                    currentItemPayload.addKnownUse = undefined;
-                    currentItemPayload.isJunk = currentItemPayload.isJunk ?? false;
-                    currentItemPayload.isActive = currentItemPayload.isActive ?? false;
-                    currentItemPayload.holderId = typeof currentItemPayload.holderId === 'string' && currentItemPayload.holderId.trim() !== '' ? currentItemPayload.holderId : PLAYER_HOLDER_ID;
+                if (currentItemPayload) {
+                    const itemObj = currentItemPayload as Item;
+                    itemObj.newName = undefined;
+                    itemObj.addKnownUse = undefined;
+                    itemObj.isJunk = itemObj.isJunk ?? false;
+                    itemObj.isActive = itemObj.isActive ?? false;
+                    itemObj.holderId = typeof itemObj.holderId === 'string' && itemObj.holderId.trim() !== '' ? itemObj.holderId : PLAYER_HOLDER_ID;
+                    currentItemPayload = itemObj;
                 }
                 break;
             case 'update': {
@@ -296,30 +299,29 @@ async function processItemChanges(
                         currentItemPayload = null;
                     }
                 }
-                if (currentItemPayload && typeof currentItemPayload !== 'string') {
-                    currentItemPayload.isJunk = currentItemPayload.isJunk ?? false;
-                    currentItemPayload.isActive = currentItemPayload.isActive ?? false;
-                    currentItemPayload.holderId = typeof currentItemPayload.holderId === 'string' && currentItemPayload.holderId.trim() !== '' ? currentItemPayload.holderId : PLAYER_HOLDER_ID;
+                if (currentItemPayload) {
+                    const itemObj = currentItemPayload as Item;
+                    itemObj.isJunk = itemObj.isJunk ?? false;
+                    itemObj.isActive = itemObj.isActive ?? false;
+                    itemObj.holderId = typeof itemObj.holderId === 'string' && itemObj.holderId.trim() !== '' ? itemObj.holderId : PLAYER_HOLDER_ID;
+                    currentItemPayload = itemObj;
                 }
                 break;
             }
             case 'lose':
-                if (typeof currentItemPayload === 'string') {
+                if (isValidItemReference(currentItemPayload)) {
                     currentInvalidPayload = undefined;
-                } else if (
-                    currentItemPayload &&
-                    typeof currentItemPayload === 'object' &&
-                    'name' in currentItemPayload &&
-                    typeof (currentItemPayload as { name?: unknown }).name === 'string' &&
-                    (currentItemPayload as { name: string }).name.trim() !== ''
-                ) {
-                    currentItemPayload = (currentItemPayload as { name: string }).name.trim();
-                    currentInvalidPayload = undefined;
-                    console.warn(`parseAIResponse ('${ic.action}'): Item payload was object, extracted name: "${currentItemPayload}".`);
+                } else if (currentItemPayload && typeof currentItemPayload === 'object') {
+                    const maybe = currentItemPayload as Partial<ItemReference>;
+                    currentItemPayload = {
+                        id: typeof maybe.id === 'string' ? maybe.id : undefined,
+                        name: typeof maybe.name === 'string' ? maybe.name : undefined,
+                    } as ItemReference;
+                    currentInvalidPayload = currentItemPayload;
                 } else {
                     currentInvalidPayload = currentItemPayload;
                     currentItemPayload = null;
-                    console.warn(`parseAIResponse ('${ic.action}'): Invalid item payload (expected string name). Marked as invalid.`);
+                    console.warn(`parseAIResponse ('${ic.action}'): Invalid item payload.`);
                 }
                 break;
         }

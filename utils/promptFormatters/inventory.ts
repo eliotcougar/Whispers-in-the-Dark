@@ -13,7 +13,7 @@ export const formatInventoryForPrompt = (inventory: Item[]): string => {
   if (inventory.length === 0) return "Empty.";
   return inventory
     .map(item => {
-      let itemStr = `${item.id} - "${item.name}" (Type: "${item.type}", Description: "${
+      let itemStr = ` - ${item.id} - "${item.name}" (Type: "${item.type}", Description: "${
         item.isActive && item.activeDescription
           ? item.activeDescription
           : item.description
@@ -44,6 +44,6 @@ export const formatInventoryForPrompt = (inventory: Item[]): string => {
       }
       return itemStr;
     })
-    .join("\n - ");
+    .join(";\n");
 };
 
