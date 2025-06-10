@@ -103,7 +103,7 @@ const App: React.FC = () => {
   const {
     currentTheme,
     currentScene, mainQuest, currentObjective, actionOptions,
-    inventory, itemsHere, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
+    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
     currentMapNodeId, mapLayoutConfig,
     allCharacters,
     score, freeFormActionText, setFreeFormActionText,
@@ -681,6 +681,7 @@ const App: React.FC = () => {
             currentThemeName={currentTheme?.name || null}
             currentMapNodeId={currentMapNodeId}
             destinationNodeId={destinationNodeId}
+            itemPresenceByNode={itemPresenceByNode}
             onSelectDestination={id => handleSelectDestinationNode(id)}
            initialLayoutConfig={mapLayoutConfig}
            initialViewBox={mapInitialViewBox}

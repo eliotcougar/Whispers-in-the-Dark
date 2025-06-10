@@ -25,6 +25,7 @@ interface MapDisplayProps {
   currentThemeName: string | null;
   currentMapNodeId: string | null;
   destinationNodeId: string | null;
+  itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
   onSelectDestination: (nodeId: string) => void;
   initialLayoutConfig: MapLayoutConfig;
   initialViewBox: string;
@@ -43,6 +44,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   currentThemeName,
   currentMapNodeId,
   destinationNodeId,
+  itemPresenceByNode,
   onSelectDestination,
   initialLayoutConfig,
   initialViewBox,
@@ -177,6 +179,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           edges={currentThemeEdges}
           currentMapNodeId={currentMapNodeId}
           destinationNodeId={destinationNodeId}
+          itemPresenceByNode={itemPresenceByNode}
           onSelectDestination={onSelectDestination}
           labelOverlapMarginPx={labelOverlapMarginPx}
           initialViewBox={initialViewBox}

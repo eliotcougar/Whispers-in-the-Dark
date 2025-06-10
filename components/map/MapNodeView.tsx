@@ -13,6 +13,7 @@ import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
 } from '../../utils/mapConstants';
+import { MapItemBoxIcon, MapWheelIcon } from '../icons';
 
 const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   const x1 = a.position.x;
@@ -37,6 +38,8 @@ interface MapNodeViewProps {
   edges: MapEdge[];
   currentMapNodeId: string | null;
   destinationNodeId: string | null;
+  /** Mapping of nodeId to presence of useful items and vehicles */
+  itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
   onSelectDestination: (nodeId: string) => void;
   labelOverlapMarginPx: number;
   initialViewBox: string;
@@ -134,6 +137,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   edges,
   currentMapNodeId,
   destinationNodeId,
+  itemPresenceByNode,
   onSelectDestination,
   labelOverlapMarginPx,
   initialViewBox,
@@ -454,6 +458,37 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
               />
             );
           })()}
+
+          {sortedNodes.map(node => {
+            const presence = itemPresenceByNode?.[node.id];
+            if (!presence) return null;
+            const radius = getRadiusForNode(node);
+            const offset = radius + DEFAULT_LABEL_MARGIN_PX * 0.6;
+            return (
+              <g key={`${node.id}-icons`}>
+                {presence.hasUseful && (() => {
+                  const angle = (15 * Math.PI) / 180;
+                  const x = node.position.x + offset * Math.sin(angle);
+                  const y = node.position.y - offset * Math.cos(angle);
+                  return (
+                    <g transform={`translate(${x}, ${y})`} pointerEvents="none">
+                      <MapItemBoxIcon className="text-green-400" />
+                    </g>
+                  );
+                })()}
+                {presence.hasVehicle && (() => {
+                  const angle = (345 * Math.PI) / 180;
+                  const x = node.position.x + offset * Math.sin(angle);
+                  const y = node.position.y - offset * Math.cos(angle);
+                  return (
+                    <g transform={`translate(${x}, ${y})`} pointerEvents="none">
+                      <MapWheelIcon className="text-green-400" />
+                    </g>
+                  );
+                })()}
+              </g>
+            );
+          })}
 
           {sortedNodes.map(node => {
             const maxCharsPerLine =
