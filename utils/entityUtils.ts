@@ -1,6 +1,6 @@
 export const generateUniqueId = (base: string): string => {
   const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-  const unique = `${Date.now() % 10000}_${Math.random().toString(36).substring(2,6)}`;
+  const unique = `${Math.random().toString(36).substring(2,6)}`;
   return `${sanitized}_${unique}`;
 };
 
@@ -100,7 +100,7 @@ export const getEntityById = (
 };
 
 export const extractRandomSuffix = (id: string): string | null => {
-  const match = id.match(/_(\d+_[a-z0-9]{4})$/i);
+  const match = id.match(/_([a-z0-9]{4})$/i);
   return match ? match[1] : null;
 };
 
