@@ -51,14 +51,14 @@ export interface Item {
 
 // This ItemChange is from the AI's perspective, and will be processed into ItemChangeRecord
 export interface ItemReference {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
 }
 
 export interface ItemChange {
   // For "gain" or "update", 'item' is an Item object.
-  // For "lose", 'item' provides at least an id and name.
-  item: string | Item | ItemReference | null;
+  // For "lose", 'item' provides at least an id and name (if available).
+  item: Item | ItemReference | null;
   action: "gain" | "lose" | "update";
   invalidPayload?: unknown; // If the 'item' field was unparseable/invalid from AI
 }

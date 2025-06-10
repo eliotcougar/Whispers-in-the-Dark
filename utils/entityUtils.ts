@@ -90,27 +90,46 @@ export const findCharacterByIdentifier = (
 };
 
 export const findItemByIdentifier = (
-  identifier: string | undefined | null,
+  identifiers: (string | null | undefined)[],
   items: Item[],
   getAll = false,
-): Item | Item[] | undefined => {
-  if (!identifier) return getAll ? [] : undefined;
-
-  const idMatch = items.find(i => i.id === identifier);
-  if (!getAll && idMatch) return idMatch;
-
-  const lower = identifier.toLowerCase();
-  const nameMatches = items.filter(i => i.name.toLowerCase() === lower);
-
-  if (getAll) {
-    const results: Item[] = [];
-    if (idMatch) results.push(idMatch);
-    results.push(...nameMatches);
-    return results;
+): Item | Item[] | null => {
+  if (!Array.isArray(identifiers) || identifiers.length === 0) {
+    return getAll ? [] : null;
   }
 
-  if (nameMatches.length > 0) return nameMatches[0];
-  return idMatch;
+  const [id, name] = identifiers;
+  const results: Item[] = [];
+
+  if (id) {
+    const idMatch = items.find(i => i.id === id);
+    if (idMatch) {
+      if (name && idMatch.name !== name) {
+        console.warn(
+          `findItemByIdentifier: Provided name "${name}" does not match item name "${idMatch.name}" for id "${id}".`,
+        );
+      }
+      if (!getAll) return idMatch;
+      results.push(idMatch);
+    }
+  }
+
+  if (!id || getAll) {
+    if (name) {
+      const nameMatches = items.filter(i => i.name === name && (!id || i.id !== id));
+      if (getAll) {
+        results.push(...nameMatches);
+      } else if (nameMatches.length > 0) {
+        return nameMatches[0];
+      }
+    }
+  }
+
+  // Aliases placeholder - none exist currently
+  if (getAll) {
+    return results;
+  }
+  return null;
 };
 
 export const getEntityById = (

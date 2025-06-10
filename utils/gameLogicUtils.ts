@@ -30,7 +30,7 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
 
   if (action === 'gain') {
     const newItemFromAI = itemPayloadFromChange as Item;
-    const existingItem = findItemByIdentifier(newItemFromAI.id || newItemFromAI.name, newInventory) as Item | undefined;
+    const existingItem = findItemByIdentifier([newItemFromAI.id, newItemFromAI.name], newInventory) as Item | null;
     const id = existingItem ? existingItem.id : (newItemFromAI as Partial<Item>).id || buildItemId(newItemFromAI.name);
     const newItemToAdd: Item = {
         id,
@@ -50,18 +50,17 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
       newInventory.push(newItemToAdd);
     }
   } else if (action === 'lose') {
-    const ref = itemPayloadFromChange as ItemReference | string;
-    const identifier = typeof ref === 'string' ? ref : (ref.id || ref.name);
-    const itemToRemove = findItemByIdentifier(identifier, newInventory) as Item | undefined;
+    const ref = itemPayloadFromChange as ItemReference;
+    const itemToRemove = findItemByIdentifier([ref.id, ref.name], newInventory) as Item | null;
     if (itemToRemove) {
       newInventory = newInventory.filter(i => i.id !== itemToRemove.id);
     }
   } else if (action === 'update') {
     const updatePayload = itemPayloadFromChange as Item;
-    const identifier = updatePayload.id || updatePayload.name;
-    const existingItem = findItemByIdentifier(identifier, newInventory) as Item | undefined;
+    const existingItem = findItemByIdentifier([updatePayload.id, updatePayload.name], newInventory) as Item | null;
     if (!existingItem) {
-        console.warn(`applyItemChangeAction ('update'): Item "${identifier}" not found in inventory for update.`);
+        const identifierForLog = updatePayload.id || updatePayload.name || 'unknown';
+        console.warn(`applyItemChangeAction ('update'): Item "${identifierForLog}" not found in inventory for update.`);
         return newInventory; // Return original inventory if item to update isn't found
     }
     const itemIndexInNewInventory = newInventory.findIndex(i => i.id === existingItem.id);
@@ -182,14 +181,12 @@ export const buildItemChangeRecords = (
       };
       record = { type: 'gain', gainedItem: cleanGainedItem };
     } else if (change.action === 'lose') {
-      const ref = itemPayload as ItemReference | string;
-      const identifier = typeof ref === 'string' ? ref : (ref.id || ref.name);
-      const lostItem = findItemByIdentifier(identifier, currentInventory) as Item | undefined;
+      const ref = itemPayload as ItemReference;
+      const lostItem = findItemByIdentifier([ref.id, ref.name], currentInventory) as Item | null;
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };
     } else if (change.action === 'update' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
       const updatePayload = itemPayload as Item;
-      const identifier = updatePayload.id || updatePayload.name;
-      const oldItem = findItemByIdentifier(identifier, currentInventory) as Item | undefined;
+      const oldItem = findItemByIdentifier([updatePayload.id, updatePayload.name], currentInventory) as Item | null;
 
       if (oldItem) {
         const oldItemCopy = { ...oldItem };

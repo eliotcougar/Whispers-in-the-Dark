@@ -209,20 +209,21 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (themeContextForResponse) {
         for (const change of aiItemChangesFromParser) {
           const currentChange = { ...change };
-          if (currentChange.action === 'lose') {
-            const itemRef: ItemReference = typeof currentChange.item === 'string'
-              ? { name: currentChange.item, id: currentChange.item }
-              : (currentChange.item as ItemReference);
+          if (currentChange.action === 'lose' && currentChange.item) {
+            const itemRef = currentChange.item as ItemReference;
             const itemNameFromAI = itemRef.name;
             const exactMatchInInventory = baseStateSnapshot.inventory
               .filter(i => i.holderId === PLAYER_HOLDER_ID)
-              .find(invItem => invItem.name === itemNameFromAI || invItem.id === itemRef.id);
+              .find(invItem =>
+                (itemRef.id && invItem.id === itemRef.id) ||
+                (itemRef.name && invItem.name === itemRef.name)
+              );
             if (!exactMatchInInventory) {
               const originalLoadingReason = loadingReason;
               setLoadingReason('correction');
               const correctedName = await fetchCorrectedName_Service(
                 'item',
-                itemNameFromAI,
+                itemNameFromAI || '',
                 aiData.logMessage,
                 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
                 baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID).map((item) => item.name),

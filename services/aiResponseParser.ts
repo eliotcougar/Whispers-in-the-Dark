@@ -243,7 +243,7 @@ async function processItemChanges(
                         currentItemPayload = null;
                     }
                 }
-                if (currentItemPayload && typeof currentItemPayload !== 'string') {
+                if (currentItemPayload) {
                     const itemObj = currentItemPayload as Item;
                     itemObj.newName = undefined;
                     itemObj.addKnownUse = undefined;
@@ -299,7 +299,7 @@ async function processItemChanges(
                         currentItemPayload = null;
                     }
                 }
-                if (currentItemPayload && typeof currentItemPayload !== 'string') {
+                if (currentItemPayload) {
                     const itemObj = currentItemPayload as Item;
                     itemObj.isJunk = itemObj.isJunk ?? false;
                     itemObj.isActive = itemObj.isActive ?? false;
@@ -309,26 +309,19 @@ async function processItemChanges(
                 break;
             }
             case 'lose':
-                if (typeof currentItemPayload === 'string') {
+                if (isValidItemReference(currentItemPayload)) {
                     currentInvalidPayload = undefined;
-                    currentItemPayload = { id: currentItemPayload, name: currentItemPayload } as ItemReference;
-                } else if (isValidItemReference(currentItemPayload)) {
-                    currentInvalidPayload = undefined;
-                } else if (
-                    currentItemPayload &&
-                    typeof currentItemPayload === 'object' &&
-                    'name' in currentItemPayload &&
-                    typeof (currentItemPayload as { name?: unknown }).name === 'string' &&
-                    (currentItemPayload as { name: string }).name.trim() !== ''
-                ) {
-                    const name = (currentItemPayload as { name: string }).name.trim();
-                    currentItemPayload = { id: name, name } as ItemReference;
-                    currentInvalidPayload = undefined;
-                    console.warn(`parseAIResponse ('${ic.action}'): Item payload lacked id, using name only: "${name}".`);
+                } else if (currentItemPayload && typeof currentItemPayload === 'object') {
+                    const maybe = currentItemPayload as Partial<ItemReference>;
+                    currentItemPayload = {
+                        id: typeof maybe.id === 'string' ? maybe.id : undefined,
+                        name: typeof maybe.name === 'string' ? maybe.name : undefined,
+                    } as ItemReference;
+                    currentInvalidPayload = currentItemPayload;
                 } else {
                     currentInvalidPayload = currentItemPayload;
                     currentItemPayload = null;
-                    console.warn(`parseAIResponse ('${ic.action}'): Invalid item payload (expected id and name). Marked as invalid.`);
+                    console.warn(`parseAIResponse ('${ic.action}'): Invalid item payload.`);
                 }
                 break;
         }
