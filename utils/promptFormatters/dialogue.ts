@@ -196,12 +196,17 @@ export const formatTravelPlanLine = (
   const destRumored = destination?.data.status === 'rumored';
   const firstEdge = path[1];
   const nextNodeStep = path[2];
-  const furtherNodeStep = path[4];
+  const furtherNodeStep = path.length > 4 ? path[4] : undefined;
   if (firstEdge.step !== 'edge' || nextNodeStep.step !== 'node') return null;
   const nextNode = mapData.nodes.find(n => n.id === nextNodeStep.id);
   const nextName = nextNode?.placeName ?? nextNodeStep.id;
-  const furtherNode = furtherNodeStep ? mapData.nodes.find(n => n.id === furtherNodeStep.id) : null;
-  const furtherName = furtherNode?.placeName ?? furtherNodeStep.id;
+  const furtherNode =
+    furtherNodeStep && furtherNodeStep.step === 'node'
+      ? mapData.nodes.find(n => n.id === furtherNodeStep.id)
+      : null;
+  const furtherName = furtherNodeStep
+    ? furtherNode?.placeName ?? furtherNodeStep.id
+    : '';
   const nextRumored = nextNode?.data.status === 'rumored';
   const furtherRumored = furtherNode?.data.status === 'rumored';
 
@@ -325,7 +330,9 @@ export const formatMainGameTurnPrompt = (
     'Details on relevant characters mentioned in current scene or action:'
   );
 
-  const prompt = `** Context:
+  const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
+
+** Context:
 Player's Character Gender: "${playerGender}"
 Previous Local Time: "${localTime || 'Unknown'}"
 Previous Local Environment: "${localEnvironment || 'Undetermined'}"
@@ -349,18 +356,7 @@ Current Theme: "${currentTheme.name}"
 Previous Scene: "${currentScene}"
 Player Action: "${playerAction}"
 ${travelPlanLine ? travelPlanLine : ''}
-
-Based on the Previous Scene and Player Action, and taking into account the provided context (including map context):
-Generate the next scene description, options, item changes, log message, etc.
-Compare the new Local Place of the character to the precise locations of relevant characters, and update their presence state accordingly.
-For example, leaving character's location makes them "distant", entering character's location makes them 'nearby' if they are still there, or 'unknown', is they moved while the player was not there.
-If a Companion leaves the Player, or the Player leaves a Companion, their presence status changes to 'nearby' or, sometimes, 'distant', depending on context.
-The response MUST include "localTime", "localEnvironment", and "localPlace".
-If "mainQuest" or "currentObjective" change, they MUST be provided. Otherwise, they are optional.
-If "localPlace" corresponds to a location in "Locations Nearby", always set "currentMapNodeId" to the name of that location.
-If the narrative implies any changes to the map (new details, locations, connections, status changes), set "mapUpdated": true.
-Adhere to all rules in the SYSTEM_INSTRUCTION for character and presence management using "charactersAdded" and "charactersUpdated", and for item management using "itemChange".
-Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
+`;
   return prompt;
 };
 

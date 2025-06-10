@@ -157,6 +157,12 @@ export const handleMapUpdates = async (
 
   draftState.currentMapNodeId = finalChosenNodeId;
   if (draftState.currentMapNodeId !== oldMapNodeId) turnChanges.currentMapNodeIdChanged = true;
+  if (
+    draftState.currentMapNodeId &&
+    draftState.currentMapNodeId === draftState.destinationNodeId
+  ) {
+    draftState.destinationNodeId = null;
+  }
 
   if (draftState.currentMapNodeId) {
     const currentNodeIndex = draftState.mapData.nodes.findIndex(n => n.id === draftState.currentMapNodeId);
