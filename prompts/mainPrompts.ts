@@ -91,7 +91,13 @@ Player Input and Contextual Information:
 - If "sceneDescription" or "logMessage" mentions a new significant NAMED location or feature that is NOT in 'Known Locations' list (nor by one of its aliases), describe it and set "mapUpdated": true. The map service will handle adding it.
 - If new distant quest-related and objective-related locations are mentioned but don't exist on the map, provide a short description of them, their surroundings, and how to reach them in "mapHint" for the Map AI.
 - If "sceneDescription" or "logMessage" mentions a new Character (i.e., not in 'Known Characters in Current Theme' list), you MUST add it using "charactersAdded". If an existing Character's description, aliases, or presence change significantly, use "charactersUpdated".
-- Pay close attention to 'Active: true' items and their available actions. Node
+- Pay close attention to 'Active: true' items and their available actions.
+- Compare the new Local Place of the character to the precise locations of relevant characters, and update their presence state accordingly.
+For example, leaving character's location makes them "distant", entering character's location makes them 'nearby' if they are still there, or 'unknown', is they moved while the player was not there.
+If a Companion leaves the Player, or the Player leaves a Companion, their presence status changes to 'nearby' or, sometimes, 'distant', depending on context.
+- The response MUST include "localTime", "localEnvironment", and "localPlace".
+- If "mainQuest" or "currentObjective" change, they MUST be provided. Otherwise, they are optional.
+- If the narrative implies any changes to the map (new details, locations, connections, status changes), set "mapUpdated": true.
 
 CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" indicates an item was gained, lost, used, or changed, the "itemChange" array MUST ALSO accurately reflect this with valid ItemChange objects. For "gain", ensure "item" has "name", "type", "description". For "update", ensure "name" (original name) is correct. If transforming ("newName" is used), "type", "description" MUST be present for the new item.
 CRITICALLY IMPORTANT: Names and Aliases (of items, places, characters, etc) cannot contain a comma.
