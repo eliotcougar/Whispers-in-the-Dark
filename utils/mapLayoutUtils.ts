@@ -12,7 +12,7 @@ import { NODE_RADIUS } from './mapConstants';
 
 export const DEFAULT_IDEAL_EDGE_LENGTH = 140;
 export const DEFAULT_NESTED_PADDING = 10;
-export const DEFAULT_NESTED_ANGLE_PADDING = 0.25;
+export const DEFAULT_NESTED_ANGLE_PADDING = 0.15;
 
 /**
  * Each parent node encloses its children while children are positioned on the

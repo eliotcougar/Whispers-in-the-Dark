@@ -466,12 +466,12 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           const presence = itemPresenceByNode?.[node.id];
           if (!presence) return null;
           const radius = getRadiusForNode(node);
-          const offset = radius + DEFAULT_LABEL_MARGIN_PX * 0.6;
-          const iconSize = radius * 2 * itemIconScale;
+          const offset = radius + DEFAULT_LABEL_MARGIN_PX * 1.5;
+          const iconSize = NODE_RADIUS * 2 * itemIconScale;
           return (
             <g key={`${node.id}-icons`}>
               {presence.hasUseful && (() => {
-                const angle = (15 * Math.PI) / 180;
+                const angle = (20 * Math.PI) / 180;
                 const x = node.position.x + offset * Math.sin(angle);
                 const y = node.position.y - offset * Math.cos(angle);
                 return (
@@ -481,7 +481,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                 );
               })()}
               {presence.hasVehicle && (() => {
-                const angle = (345 * Math.PI) / 180;
+                const angle = (340 * Math.PI) / 180;
                 const x = node.position.x + offset * Math.sin(angle);
                 const y = node.position.y - offset * Math.cos(angle);
                 return (

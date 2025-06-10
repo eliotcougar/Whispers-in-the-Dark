@@ -276,7 +276,7 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                       </button>
                   )}
 
-                  {!item.isJunk && !isConfirmingDiscard && (
+                  {!item.isJunk && !isConfirmingDiscard && item.type != 'vehicle' && (
                      <button
                         key={`${item.name}-drop`}
                         onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
@@ -287,9 +287,25 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                         className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
                                    disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                                    transition-colors duration-150 ease-in-out"
-                        aria-label={item.type === 'vehicle' && !item.isActive ? `Park ${item.name} here` : `Drop ${item.name}`}
+                        aria-label={`Drop ${item.name}`}
                       >
-                        {item.type === 'vehicle' && !item.isActive ? 'Park Here' : 'Drop'}
+                        Drop
+                      </button>
+                  )}
+                  {!item.isJunk && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
+                     <button
+                        key={`${item.name}-drop`}
+                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                          setConfirmingDiscardItemName(item.name);
+                          event.currentTarget.blur();
+                        }}
+                        disabled={disabled}
+                        className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
+                                   disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
+                                   transition-colors duration-150 ease-in-out"
+                        aria-label={`Park ${item.name} here`}
+                      >
+                        Park Here
                       </button>
                   )}
                   {isConfirmingDiscard && (

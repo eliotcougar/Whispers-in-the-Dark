@@ -94,9 +94,9 @@ const MapControls: React.FC<MapControlsProps> = props => {
             'itemIconScale',
             itemIconScale,
             setItemIconScale,
-            0.05,
             0.2,
-            0.01,
+            1.0,
+            0.1,
             'Relative size of item markers'
           )}
           <button onClick={onReset} className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
