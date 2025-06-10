@@ -10,6 +10,7 @@ import { useGameLogic } from './hooks/useGameLogic';
 import SceneDisplay from './components/SceneDisplay';
 import ActionOptions from './components/ActionOptions';
 import InventoryDisplay from './components/InventoryDisplay';
+import LocationItemsDisplay from './components/LocationItemsDisplay';
 import GameLogDisplay from './components/GameLogDisplay';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorDisplay from './components/ErrorDisplay';
@@ -102,12 +103,12 @@ const App: React.FC = () => {
   const {
     currentTheme,
     currentScene, mainQuest, currentObjective, actionOptions,
-    inventory, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
+    inventory, itemsHere, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
     currentMapNodeId, mapLayoutConfig,
     allCharacters,
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    handleItemInteraction, handleRetry, executeManualRealityShift,
+    handleItemInteraction, handleTakeLocationItem, handleRetry, executeManualRealityShift,
     completeManualShiftWithSelectedTheme,
     cancelManualShiftThemeSelection,
     isAwaitingManualShiftThemeSelection,
@@ -532,6 +533,11 @@ const App: React.FC = () => {
           </div>
 
           <div className="lg:col-span-2 space-y-6 flex flex-col">
+            <LocationItemsDisplay
+              items={itemsHere}
+              onTakeItem={handleTakeLocationItem}
+              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+            />
             <InventoryDisplay
               items={inventory}
               onItemInteract={handleItemInteraction}

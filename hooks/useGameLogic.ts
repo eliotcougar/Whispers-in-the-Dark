@@ -99,6 +99,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleActionSelect,
     handleItemInteraction,
     handleDiscardJunkItem,
+    handleTakeLocationItem,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   } = usePlayerActions({
@@ -194,6 +195,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     mainQuest: currentFullState.mainQuest,
     currentObjective: currentFullState.currentObjective,
     inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+    itemsHere: currentFullState.currentMapNodeId
+      ? currentFullState.inventory.filter(i => i.holderId === currentFullState.currentMapNodeId)
+      : [],
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,
     isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),
@@ -231,6 +235,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleActionSelect,
     handleItemInteraction,
     handleDiscardJunkItem,
+    handleTakeLocationItem,
     handleRetry,
     executeRestartGame,
     executeManualRealityShift,

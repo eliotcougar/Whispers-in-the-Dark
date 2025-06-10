@@ -509,6 +509,52 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   );
 
   /**
+   * Picks up an item from the current location without triggering a turn.
+   */
+  const handleTakeLocationItem = useCallback(
+    (itemName: string) => {
+      const currentFullState = getCurrentGameState();
+      if (isLoading || currentFullState.dialogueState) return;
+
+      const currentLocationId = currentFullState.currentMapNodeId;
+      if (!currentLocationId) return;
+
+      const itemToTake = currentFullState.inventory.find(
+        (item) => item.name === itemName && item.holderId === currentLocationId
+      );
+      if (!itemToTake) return;
+
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map((item) =>
+        item.name === itemName && item.holderId === currentLocationId
+          ? { ...item, holderId: PLAYER_HOLDER_ID }
+          : item
+      );
+
+      const itemChangeRecord: ItemChangeRecord = {
+        type: 'gain',
+        gainedItem: { ...itemToTake, holderId: PLAYER_HOLDER_ID },
+      };
+      const turnChangesForTake: TurnChanges = {
+        itemChanges: [itemChangeRecord],
+        characterChanges: [],
+        objectiveAchieved: false,
+        objectiveTextChanged: false,
+        mainQuestTextChanged: false,
+        localTimeChanged: false,
+        localEnvironmentChanged: false,
+        localPlaceChanged: false,
+        currentMapNodeIdChanged: false,
+        scoreChangedBy: 0,
+        mapDataChanged: false,
+      };
+      draftState.lastTurnChanges = turnChangesForTake;
+      commitGameState(draftState);
+    },
+    [getCurrentGameState, commitGameState, isLoading]
+  );
+
+  /**
    * Executes the player's typed free-form action if allowed.
    */
   const handleFreeFormActionSubmit = useCallback(() => {
@@ -547,6 +593,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleActionSelect,
     handleItemInteraction,
     handleDiscardJunkItem,
+    handleTakeLocationItem,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   };
