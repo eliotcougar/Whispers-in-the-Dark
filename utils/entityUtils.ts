@@ -3,7 +3,7 @@ export const generateUniqueId = (
   suffix?: string,
 ): string => {
   const unique =
-    suffix || `${Date.now() % 10000}_${Math.random().toString(36).substring(2,6)}`;
+    suffix || `${Math.random().toString(36).substring(2,6)}`;
   return `${prefix}${unique}`;
 };
 
