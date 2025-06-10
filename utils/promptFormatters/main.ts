@@ -325,6 +325,15 @@ export const formatMainGameTurnPrompt = (
     destinationNodeId
   );
 
+  let travelPlanOrUnknown = '';
+  if (travelPlanLine) {
+    travelPlanOrUnknown = travelPlanLine;
+  } else if (destinationNodeId) {
+    const destNode = fullMapData.nodes.find(n => n.id === destinationNodeId);
+    const placeName = destNode?.placeName || destinationNodeId;
+    travelPlanOrUnknown = `Player wants to reach ${placeName}, but does not know how to get there.`;
+  }
+
   const detailedEntityContext = formatDetailedContextForMentionedEntities(
     currentThemeMainMapNodes,
     currentThemeCharacters,
@@ -359,7 +368,7 @@ ${recentEventsContext}
 Current Theme: "${currentTheme.name}"
 Previous Scene: "${currentScene}"
 Player Action: "${playerAction}"
-${travelPlanLine ? travelPlanLine : ''}
+${travelPlanOrUnknown ? travelPlanOrUnknown : ''}
 `;
   return prompt;
 };
