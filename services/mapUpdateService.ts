@@ -18,9 +18,9 @@ import {
   MinimalModelCallRecord
 } from '../types';
 import {
+  GEMINI_MODEL_NAME,
   AUXILIARY_MODEL_NAME,
-  MAX_RETRIES,
-import { generateUniqueId, findMapNodeByIdentifier } from '../utils/entityUtils';
+  MAX_RETRIES
 } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { dispatchAIRequest } from './modelDispatcher';
@@ -30,7 +30,7 @@ import {
   VALID_NODE_STATUS_VALUES,
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
-  VALID_EDGE_STATUS_VALUES,
+  VALID_EDGE_STATUS_VALUES
 } from '../constants';
 import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../utils/mapSynonyms';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -39,7 +39,7 @@ import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_S
 import { findClosestAllowedParent } from '../utils/mapGraphUtils';
 import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
 import { addProgressSymbol } from '../utils/loadingProgress';
-import { generateUniqueId, buildNodeId } from '../utils/entityUtils';
+import { generateUniqueId, findMapNodeByIdentifier, buildNodeId } from '../utils/entityUtils';
 
 const MAX_CHAIN_REFINEMENT_ROUNDS = 2;
 
