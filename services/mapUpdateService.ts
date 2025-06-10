@@ -20,9 +20,7 @@ import {
 import {
   AUXILIARY_MODEL_NAME,
   MAX_RETRIES,
-  GEMINI_MODEL_NAME,
-  NODE_DESCRIPTION_INSTRUCTION,
-  ALIAS_INSTRUCTION,
+  GEMINI_MODEL_NAME
 } from '../constants';
 import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
 import { dispatchAIRequest } from './modelDispatcher';
