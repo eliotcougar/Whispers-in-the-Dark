@@ -8,6 +8,7 @@ import {
   GameStateFromAI,
   DialogueSummaryResponse,
   Item,
+  ItemReference,
   KnownUse,
   AdventureTheme,
   FullGameState,
@@ -208,9 +209,14 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (themeContextForResponse) {
         for (const change of aiItemChangesFromParser) {
           const currentChange = { ...change };
-          if (currentChange.action === 'lose' && typeof currentChange.item === 'string') {
-            const itemNameFromAI = currentChange.item;
-            const exactMatchInInventory = baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID).find((invItem) => invItem.name === itemNameFromAI);
+          if (currentChange.action === 'lose') {
+            const itemRef: ItemReference = typeof currentChange.item === 'string'
+              ? { name: currentChange.item, id: currentChange.item }
+              : (currentChange.item as ItemReference);
+            const itemNameFromAI = itemRef.name;
+            const exactMatchInInventory = baseStateSnapshot.inventory
+              .filter(i => i.holderId === PLAYER_HOLDER_ID)
+              .find(invItem => invItem.name === itemNameFromAI || invItem.id === itemRef.id);
             if (!exactMatchInInventory) {
               const originalLoadingReason = loadingReason;
               setLoadingReason('correction');
@@ -222,7 +228,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
                 baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID).map((item) => item.name),
                 themeContextForResponse
               );
-              if (correctedName) currentChange.item = correctedName;
+              if (correctedName) {
+                currentChange.item = { id: correctedName, name: correctedName };
+              }
               setLoadingReason(originalLoadingReason);
             }
           }

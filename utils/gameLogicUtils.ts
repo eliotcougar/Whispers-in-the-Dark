@@ -9,7 +9,7 @@
  */
 
 import {
-  Item, ItemChange, AdventureTheme, Character,
+  Item, ItemChange, ItemReference, AdventureTheme, Character,
   ItemChangeRecord, CharacterChangeRecord,
   ValidCharacterUpdatePayload, ValidNewCharacterPayload
 } from '../types';
@@ -50,7 +50,8 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
       newInventory.push(newItemToAdd);
     }
   } else if (action === 'lose') {
-    const identifier = itemPayloadFromChange as string;
+    const ref = itemPayloadFromChange as ItemReference | string;
+    const identifier = typeof ref === 'string' ? ref : (ref.id || ref.name);
     const itemToRemove = findItemByIdentifier(identifier, newInventory) as Item | undefined;
     if (itemToRemove) {
       newInventory = newInventory.filter(i => i.id !== itemToRemove.id);
@@ -165,7 +166,7 @@ export const buildItemChangeRecords = (
     let record: ItemChangeRecord | null = null;
 
     if (change.action === 'gain' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
-      const gainedItemData = itemPayload;
+      const gainedItemData = itemPayload as Item;
       if (!gainedItemData.id) {
         gainedItemData.id = buildItemId(gainedItemData.name);
       }
@@ -180,12 +181,13 @@ export const buildItemChangeRecords = (
         holderId: gainedItemData.holderId
       };
       record = { type: 'gain', gainedItem: cleanGainedItem };
-    } else if (change.action === 'lose' && typeof itemPayload === 'string') {
-      const identifier = itemPayload;
+    } else if (change.action === 'lose') {
+      const ref = itemPayload as ItemReference | string;
+      const identifier = typeof ref === 'string' ? ref : (ref.id || ref.name);
       const lostItem = findItemByIdentifier(identifier, currentInventory) as Item | undefined;
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };
     } else if (change.action === 'update' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
-      const updatePayload = itemPayload;
+      const updatePayload = itemPayload as Item;
       const identifier = updatePayload.id || updatePayload.name;
       const oldItem = findItemByIdentifier(identifier, currentInventory) as Item | undefined;
 
