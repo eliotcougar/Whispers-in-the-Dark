@@ -14,11 +14,10 @@ Spatio-temporal Continuity update:
     - Automatic conversion of erroneous Item Map Nodes to normal Items.
     + Item retreival from World Inventory.
     + Visual indication of items on the map.
-    - Storyteller AI can place items.
-    - Storyteller AI can give/take items to/from known/new NPCs and move them around.
-    - Map AI can place items.
-    - NPCs can have items in their inventory.
-    - Giving/taking items to/from NPCs during dialogue.
+    - Storyteller AI can place items -> NPCs can have items in their inventory. Limited to current Place and Nearby NPCs.
+    - Giving/taking items to/from NPCs during dialogue -> NPCs can have items in their inventory.
+    - (Debated) Storyteller AI can give/take items to/from known/new NPCs and move them around.
+    - Map AI can place new items on the map.
   + Map view. Graph.
     + Drag.
     + Zoom.
