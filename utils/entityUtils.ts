@@ -1,51 +1,41 @@
 import { MapNode, MapData, Character, Item, FullGameState } from '../types';
 import { findTravelPath } from './mapPathfinding';
 
-  id: string | undefined | null,
-  name: string | undefined | null,
-  getAll = false,
-  if (!id && !name) return getAll ? [] : undefined;
-  const idMatch = id ? nodes.find(n => n.id === id) : undefined;
-  const searchName = name || id;
-  const lower = searchName ? searchName.toLowerCase() : '';
-  const nameMatches = lower
-    ? nodes.filter(n => n.placeName.toLowerCase() === lower)
-    : [];
-    searchName && n.data.aliases && n.data.aliases.some(a => a.toLowerCase() === lower)
-  id: string | undefined | null,
-  name: string | undefined | null,
-  getAll = false,
-  if (!id && !name) return getAll ? [] : undefined;
-  const idMatch = id ? characters.find(c => c.id === id) : undefined;
-  const searchName = name || id;
-  const lower = searchName ? searchName.toLowerCase() : '';
-  const nameMatches = lower
-    ? characters.filter(c => c.name.toLowerCase() === lower)
-    : [];
-    searchName && c.aliases && c.aliases.some(a => a.toLowerCase() === lower)
-  id: string | undefined | null,
-  name: string | undefined | null,
-  if (!id && !name) return getAll ? [] : undefined;
-  const idMatch = id ? items.find(i => i.id === id) : undefined;
+export const generateUniqueId = (base: string): string => {
+  const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+  const unique = `_${Math.random().toString(36).substring(2,6)}`;
+  return `${sanitized}_${unique}`;
+};
 
-  const searchName = name || id;
-  const lower = searchName ? searchName.toLowerCase() : '';
-  const nameMatches = lower ? items.filter(i => i.name.toLowerCase() === lower) : [];
-  
-  const prefix = id.split('_')[0];
-  switch (prefix) {
-    case 'node':
-      return state.mapData.nodes.find(n => n.id === id);
-    case 'char':
-      return state.allCharacters.find(c => c.id === id);
-    case 'item':
-      return state.inventory.find(i => i.id === id);
-    default:
-      return (
-        state.mapData.nodes.find(n => n.id === id) ||
-        state.allCharacters.find(c => c.id === id) ||
-        state.inventory.find(i => i.id === id)
-      );
+/** Helper to calculate the hop distance between two nodes using pathfinding. */
+const getHopDistance = (
+  mapData: MapData | undefined,
+  fromId: string | null | undefined,
+  toId: string
+): number => {
+  if (!mapData || !fromId) return Infinity;
+  const path = findTravelPath(mapData, fromId, toId);
+  if (!path) return Infinity;
+  return path.filter(p => p.step === 'edge').length;
+};
+
+export const findMapNodeByIdentifier = (
+  identifier: string | undefined | null,
+  nodes: MapNode[],
+  mapData?: MapData,
+  currentNodeId?: string | null,
+  getAll = false
+): MapNode | MapNode[] | undefined => {
+  if (!identifier) return getAll ? [] : undefined;
+
+  const idMatch = nodes.find(n => n.id === identifier);
+  if (!getAll && idMatch) return idMatch;
+
+  const lower = identifier.toLowerCase();
+  const nameMatches = nodes.filter(n => n.placeName.toLowerCase() === lower);
+  const aliasMatches = nodes.filter(n =>
+    n.data.aliases && n.data.aliases.some(a => a.toLowerCase() === lower)
+  ).filter(n => !nameMatches.includes(n));
 
   const sortByDistance = (arr: MapNode[]) => {
     if (!mapData || !currentNodeId) return arr;
