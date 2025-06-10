@@ -13,7 +13,7 @@ const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTa
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
+    <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700">
       <h3 className="text-xl font-bold text-amber-400 mb-2 border-b-2 border-amber-700 pb-2 flex items-center">
         <InventoryIcon /> Items Here
       </h3>

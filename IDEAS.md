@@ -10,18 +10,18 @@ Using items is a mess, they have their own states.
 Spatio-temporal Continuity update:
   + Map data structure.
   + Selection of relevant map nodes for context.
-  - Items can be left at map nodes and retrieved later. (Items in World Inventory with location tags, Automatic linkage of Item type leaves to items in world.)
-    - Item retreival from World Inventory and Map Item leaves.
+  + Items can be left at map nodes and retrieved later. (Items in World Inventory with location tags)
+    - Automatic conversion of Item Map Nodes to normal Items.
+    + Item retreival from World Inventory.
     - Visual indication of known or rumored items.
   + Map view. Graph.
     + Drag.
     + Zoom.
     + View nodes details.
     + View links details.
-    - Ability to click the main node to hide all its leaves. Still count for context.
   - Mobile Locations (Ships, Airships, Spaseships, Cars, ...) - inherently linked to Vehicle-type items.
   + Reduce the variety of node and edge types. Cleanup.
-  - More node hierarchies (Area, Settlement, Building, Room)
+  + More node hierarchies (Area, Settlement, Building, Room)
   + Correction services for "Validation Error (NodeData - Update): Invalid 'status'. Value:"  "removed"
 
 Ink and Quill update
