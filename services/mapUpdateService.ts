@@ -584,6 +584,7 @@ Based on the Narrative Context and existing map context, provide a JSON response
         } else {
           const parent = findMapNodeByIdentifier(
             nodeAddOp.data.parentNodeId,
+            nodeAddOp.data.parentNodeId,
             newMapData.nodes,
             newMapData,
             referenceMapNodeId
@@ -701,6 +702,7 @@ Based on the Narrative Context and existing map context, provide a JSON response
   (validParsedPayload.nodesToUpdate || []).forEach(nodeUpdateOp => {
     const node = findMapNodeByIdentifier(
       nodeUpdateOp.placeName,
+      nodeUpdateOp.placeName,
       newMapData.nodes,
       newMapData,
       referenceMapNodeId
@@ -720,6 +722,7 @@ Based on the Narrative Context and existing map context, provide a JSON response
                 } else {
                     // Allow parent to be ANY node
                     const parentNode = findMapNodeByIdentifier(
+                      nodeUpdateOp.newData.parentNodeId,
                       nodeUpdateOp.newData.parentNodeId,
                       newMapData.nodes,
                       newMapData,
@@ -789,6 +792,7 @@ Based on the Narrative Context and existing map context, provide a JSON response
   // Process Node Removals
   nodesToRemove_mut.forEach(nodeRemoveOp => {
       const node = findMapNodeByIdentifier(
+        nodeRemoveOp.placeName,
         nodeRemoveOp.placeName,
         newMapData.nodes,
         newMapData,
@@ -954,11 +958,13 @@ Based on the Narrative Context and existing map context, provide a JSON response
   for (const edgeAddOp of edgesToAdd_mut) {
       const sourceNodeRef = findMapNodeByIdentifier(
         edgeAddOp.sourcePlaceName,
+        edgeAddOp.sourcePlaceName,
         newMapData.nodes,
         newMapData,
         referenceMapNodeId
       ) as MapNode | undefined;
       const targetNodeRef = findMapNodeByIdentifier(
+        edgeAddOp.targetPlaceName,
         edgeAddOp.targetPlaceName,
         newMapData.nodes,
         newMapData,
@@ -1038,11 +1044,13 @@ Based on the Narrative Context and existing map context, provide a JSON response
   (validParsedPayload.edgesToUpdate || []).forEach(edgeUpdateOp => {
     const sourceNodeRef = findMapNodeByIdentifier(
       edgeUpdateOp.sourcePlaceName,
+      edgeUpdateOp.sourcePlaceName,
       newMapData.nodes,
       newMapData,
       referenceMapNodeId
     ) as MapNode | undefined;
     const targetNodeRef = findMapNodeByIdentifier(
+      edgeUpdateOp.targetPlaceName,
       edgeUpdateOp.targetPlaceName,
       newMapData.nodes,
       newMapData,
@@ -1083,11 +1091,13 @@ Based on the Narrative Context and existing map context, provide a JSON response
   edgesToRemove_mut.forEach(edgeRemoveOp => {
       const sourceNodeRef = findMapNodeByIdentifier(
         edgeRemoveOp.sourcePlaceName,
+        edgeRemoveOp.sourcePlaceName,
         newMapData.nodes,
         newMapData,
         referenceMapNodeId
       ) as MapNode | undefined;
       const targetNodeRef = findMapNodeByIdentifier(
+        edgeRemoveOp.targetPlaceName,
         edgeRemoveOp.targetPlaceName,
         newMapData.nodes,
         newMapData,
@@ -1151,6 +1161,7 @@ Based on the Narrative Context and existing map context, provide a JSON response
             nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
               ? (findMapNodeByIdentifier(
                   nodeData.parentNodeId,
+                  nodeData.parentNodeId,
                   newMapData.nodes,
                   newMapData,
                   referenceMapNodeId
@@ -1174,12 +1185,14 @@ Based on the Narrative Context and existing map context, provide a JSON response
           const src =
             (findMapNodeByIdentifier(
               eAdd.sourcePlaceName,
+              eAdd.sourcePlaceName,
               newMapData.nodes,
               newMapData,
               referenceMapNodeId
             ) as MapNode | undefined);
           const tgt =
             (findMapNodeByIdentifier(
+              eAdd.targetPlaceName,
               eAdd.targetPlaceName,
               newMapData.nodes,
               newMapData,
