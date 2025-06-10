@@ -131,3 +131,11 @@ export const buildCharacterId = (
   return generateUniqueId(`char_${base}_`, suffix);
 };
 
+export const buildItemId = (
+  itemName: string,
+  suffix?: string,
+): string => {
+  const base = itemName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+  return generateUniqueId(`item_${base}_`, suffix);
+};
+

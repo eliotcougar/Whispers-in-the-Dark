@@ -75,7 +75,7 @@ This layer abstracts external interactions and complex data processing.
    *   `utils/promptFormatters.ts` and the files under `utils/promptFormatters/`: format inventory, map context, and main turn.
    *   `utils/aiErrorUtils.ts`: Interprets errors from the Gemini API.
    *   `utils/cloneUtils.ts`: Deep clone helpers for game state objects.
-   *   `utils/entityUtils.ts`: Entity lookup helpers plus `generateUniqueId`, `buildNodeId`, `buildEdgeId`, and `buildCharacterId` for deterministic IDs.
+  *   `utils/entityUtils.ts`: Entity lookup helpers plus `generateUniqueId`, `buildNodeId`, `buildEdgeId`, `buildCharacterId`, and `buildItemId` for deterministic IDs.
    *   `utils/gameLogicUtils.ts`: Applies item and character changes, manages logs, and selects the next theme.
    *   `utils/highlightHelper.tsx`: Builds highlight information for entity names in text.
    *   `utils/initialStates.ts`: Produces the default `FullGameState` objects.
