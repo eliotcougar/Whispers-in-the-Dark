@@ -58,7 +58,7 @@ const callDialogueGeminiAPI = async (
 /**
  * Fetches the next dialogue turn from the AI based on the current game state.
  */
-export const fetchDialogueTurn = async (
+export const executeDialogueTurn = async (
   currentTheme: AdventureTheme,
   currentQuest: string | null,
   currentObjective: string | null,
@@ -114,7 +114,7 @@ export const fetchDialogueTurn = async (
 /**
  * Summarizes a completed dialogue to derive game state updates.
  */
-export const summarizeDialogueForUpdates = async (
+export const executeDialogueSummary = async (
   summaryContext: DialogueSummaryContext,
 ): Promise<DialogueSummaryResponse | null> => {
   if (!isApiConfigured()) {
@@ -147,7 +147,7 @@ export const summarizeDialogueForUpdates = async (
 /**
  * Generates a detailed narrative summary of a dialogue for character memory.
  */
-export const summarizeDialogueForMemory = async (
+export const executeMemorySummary = async (
   context: DialogueMemorySummaryContext,
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
