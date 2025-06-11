@@ -9,7 +9,7 @@ import {
   ThemePackName,
   LoadingReason,
 } from '../types';
-import { executeAIMainTurn } from '../services/gameAIService';
+import { executeAIMainTurn } from '../services/storyteller/api';
 import { parseAIResponse } from '../services/aiResponseParser';
 import { getThemesFromPacks } from '../themes';
 import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../constants';
