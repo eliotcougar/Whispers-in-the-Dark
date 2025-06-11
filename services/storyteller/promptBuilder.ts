@@ -23,42 +23,18 @@ import {
 } from '../../utils/promptFormatters';
 
 /**
- * Simple string substitution helper. Replaces occurrences of `${key}`
- * in the template with the corresponding value from vars.
- */
-export const applySubstitutions = (
-  template: string,
-  vars: Record<string, string>
-): string => {
-  let result = template;
-  for (const [key, value] of Object.entries(vars)) {
-    const regex = new RegExp(`\\$\\{${key}\\}`, 'g');
-    result = result.replace(regex, value);
-  }
-  return result;
-};
-
-/**
  * Build the initial prompt for starting a new game.
  */
 export const buildNewGameFirstTurnPrompt = (
   theme: AdventureTheme,
   playerGender: string
 ): string => {
-  const vars = {
-    themeName: theme.name,
-    playerGender,
-    initialScene: theme.initialSceneDescriptionSeed,
-    initialMainQuest: theme.initialMainQuest,
-    initialObjective: theme.initialCurrentObjective,
-    initialItems: theme.initialItems,
-  };
-  const template = `Start a new adventure in the theme "\${themeName}".
-Player's Character Gender: "\${playerGender}"
-Suggested Initial Scene: "\${initialScene}" (Adjust to add variely)
-Suggested Initial Main Quest: "\${initialMainQuest}" (Adjust to add variely)
-Suggested Initial Current Objective: "\${initialObjective}" (Adjust to add variely)
-Suggested Initial Inventory to be granted: "\${initialItems}" (Adjust the names and descriptions to add variely)
+  const prompt = `Start a new adventure in the theme "${theme.name}".
+Player's Character Gender: "${playerGender}"
+Suggested Initial Scene: "${theme.initialSceneDescriptionSeed}" (Adjust to add variely)
+Suggested Initial Main Quest: "${theme.initialMainQuest}" (Adjust to add variely)
+Suggested Initial Current Objective: "${theme.initialCurrentObjective}" (Adjust to add variely)
+Suggested Initial Inventory to be granted: "${theme.initialItems}" (Adjust the names and descriptions to add variely)
 
 Last player's action was unremarkable, something very common, what people do in the described situation.
 
@@ -68,7 +44,7 @@ Creatively add possible important quest item(s), if any, based on your generated
 ALWAYS SET "mapUpdated": true.
 Of all the optional variables, your response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
 Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
-  return applySubstitutions(template, vars);
+  return prompt;
 };
 
 /**
@@ -80,23 +56,15 @@ export const buildNewThemePostShiftPrompt = (
   playerGender: string
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
-  const vars = {
-    themeName: theme.name,
-    playerGender,
-    initialScene: theme.initialSceneDescriptionSeed,
-    initialMainQuest: theme.initialMainQuest,
-    initialObjective: theme.initialCurrentObjective,
-    inventoryPrompt,
-  };
-  const template = `The player is entering a NEW theme "\${themeName}" after a reality shift.
-Player's Character Gender: "\${playerGender}"
-Initial Scene: "\${initialScene}" (Adapt this to an arrival scene, describing the disorienting transition).
-Main Quest: "\${initialMainQuest}" (Adjust to add variely)
-Current Objective: "\${initialObjective}" (Adjust to add variely)
+  const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
+Player's Character Gender: "${playerGender}"
+Initial Scene: "${theme.initialSceneDescriptionSeed}" (Adapt this to an arrival scene, describing the disorienting transition).
+Main Quest: "${theme.initialMainQuest}" (Adjust to add variely)
+Current Objective: "${theme.initialCurrentObjective}" (Adjust to add variely)
 
-Player's Current Inventory (brought from previous reality or last visit):\n - \${inventoryPrompt}
+Player's Current Inventory (brought from previous reality or last visit):\n - ${inventoryPrompt}
 IMPORTANT:
-- EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "\${themeName}".
+- EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
 - If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName", "type", and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
 - If no items are anachronistic, no transformation is needed.
 
@@ -104,7 +72,7 @@ Generate the scene description for a disoriented arrival, and provide appropriat
 The response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
 Set "mapUpdated": true if your generated Scene, Quest or Objective mention specific locations that should be on a map.
 Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
-  return applySubstitutions(template, vars);
+  return prompt;
 };
 
 /**
@@ -124,37 +92,27 @@ export const buildReturnToThemePostShiftPrompt = (
   );
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
   const charactersContext = formatKnownCharactersForPrompt(allCharactersForTheme, false);
-  const vars = {
-    themeName: theme.name,
-    playerGender,
-    summary: themeMemory.summary,
-    mainQuest: themeMemory.mainQuest,
-    currentObjective: themeMemory.currentObjective,
-    inventoryPrompt,
-    placesContext,
-    charactersContext,
-  };
-  const template = `The player is CONTINUING their adventure by re-entering the theme "\${themeName}" after a reality shift.
-Player's Character Gender: "\${playerGender}"
-The Adventure Summary: "\${summary}"
-Main Quest: "\${mainQuest}"
-Current Objective: "\${currentObjective}"
+  const prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
+Player's Character Gender: "${playerGender}"
+The Adventure Summary: "${themeMemory.summary}"
+Main Quest: "${themeMemory.mainQuest}"
+Current Objective: "${themeMemory.currentObjective}"
 
-Player's Current Inventory (brought from previous reality or last visit):\n - \${inventoryPrompt}
+Player's Current Inventory (brought from previous reality or last visit):\n - ${inventoryPrompt}
 IMPORTANT:
-- EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "\${themeName}".
+- EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
 - If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName", "type", and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
 - CRITICALLY IMPORTANT: ALWAYS transform some items into important quest items you must have already had in this reality, based on Main Quest, Current Objective, or the Adventure Summary even if they are NOT anachronistic, using an "itemChange" "update" action with "newName", "type", "description". Creatively explain this transformation in the "logMessage".
 
-Known Locations: \${placesContext}
-Known Characters (including presence): \${charactersContext}
+Known Locations: ${placesContext}
+Known Characters (including presence): ${charactersContext}
 
 Describe the scene as they re-enter, potentially in a state of confusion from the shift, making it feel like a continuation or a new starting point consistent with the Adventure Summary and current quest/objective.
 Provide appropriate action options for the player to orient themselves.
 The response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
 Set "mapUpdated": true if your generated Scene, Quest or Objective mention specific locations that should be on a map or if existing map information needs updating based on the re-entry context.
 Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
-  return applySubstitutions(template, vars);
+  return prompt;
 };
 
 /**
@@ -223,61 +181,41 @@ export const buildMainGameTurnPrompt = (
     '### Details on relevant locations mentioned in current scene or action:',
     '### Details on relevant characters mentioned in current scene or action:'
   );
-
-  const vars = {
-    playerGender,
-    localTime: localTime || 'Unknown',
-    localEnvironment: localEnvironment || 'Undetermined',
-    localPlace: localPlace || 'Undetermined Location',
-    mainQuest: mainQuest || 'Not set',
-    currentObjective: currentObjective || 'Not set',
-    inventorySection,
-    placesContext,
-    charactersContext,
-    mapContext,
-    detailedEntityContext,
-    recentEventsContext,
-    currentThemeName: currentTheme.name,
-    currentScene,
-    playerAction,
-    travelPlanOrUnknown,
-  };
-
-  const template = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
+  const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
 
 ## Context:
-Player's Character Gender: "\${playerGender}"
-Previous Local Time: "\${localTime}"
-Previous Local Environment: "\${localEnvironment}"
-Previous Local Place: "\${localPlace}"
-Main Quest: "\${mainQuest}"
-Current Objective: "\${currentObjective}"
+Player's Character Gender: "${playerGender}"
+Previous Local Time: "${localTime || 'Unknown'}"
+Previous Local Environment: "${localEnvironment || 'Undetermined'}"
+Previous Local Place: "${localPlace || 'Undetermined Location'}"
+Main Quest: "${mainQuest || 'Not set'}"
+Current Objective: "${currentObjective || 'Not set'}"
 
 ### Current Inventory:
-\${inventorySection}
+${inventorySection}
 
 ### Known Locations:
-\${placesContext}
+${placesContext}
 
 ### Known Characters:
-\${charactersContext}
+${charactersContext}
 
 ### Current Map Context (including your location, possible exits, nearby paths, and other nearby locations):
-\${mapContext}
+${mapContext}
 
-\${detailedEntityContext}
+${detailedEntityContext}
 
 ### Recent Events to keep in mind (for context and continuity):
-\${recentEventsContext}
+${recentEventsContext}
  - A bit later you look around and consider your next move.
 IMPORTANT: Recent Events are provided ONLY for extra context, these actions have already been processed by the game and should NEVER cause item actions to avoid double counting.
 
 ---
 
-Current Theme: "\${currentThemeName}"
-Previous Scene: "\${currentScene}"
-Player Action: "\${playerAction}"
-\${travelPlanOrUnknown ? travelPlanOrUnknown : ''}`;
+Current Theme: "${currentTheme.name}"
+Previous Scene: "${currentScene}"
+Player Action: "${playerAction}"
+${travelPlanOrUnknown ? travelPlanOrUnknown : ''}`;
 
-  return applySubstitutions(template, vars);
+  return prompt;
 };
