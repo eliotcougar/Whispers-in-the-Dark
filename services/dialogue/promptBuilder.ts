@@ -3,13 +3,9 @@
  * @description Helper functions for constructing dialogue-related prompts.
  */
 import {
-  AdventureTheme,
-  DialogueHistoryEntry,
-  Item,
-  Character,
-  MapNode,
   DialogueSummaryContext,
   DialogueMemorySummaryContext,
+  DialogueTurnContext,
 } from '../../types';
 import { MAX_DIALOGUE_SUMMARIES_IN_PROMPT } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
@@ -18,21 +14,24 @@ import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
  * Builds the prompt used to fetch the next dialogue turn.
  */
 export const buildDialogueTurnPrompt = (
-  currentTheme: AdventureTheme,
-  currentQuest: string | null,
-  currentObjective: string | null,
-  currentScene: string,
-  localTime: string | null,
-  localEnvironment: string | null,
-  localPlace: string | null,
-  knownMainMapNodesInTheme: MapNode[],
-  knownCharactersInTheme: Character[],
-  inventory: Item[],
-  playerGender: string,
-  dialogueHistory: DialogueHistoryEntry[],
-  playerLastUtterance: string,
-  dialogueParticipants: string[],
+  context: DialogueTurnContext,
 ): string => {
+  const {
+    currentTheme,
+    currentQuest,
+    currentObjective,
+    currentScene,
+    localTime,
+    localEnvironment,
+    localPlace,
+    knownMainMapNodesInTheme,
+    knownCharactersInTheme,
+    inventory,
+    playerGender,
+    dialogueHistory,
+    playerLastUtterance,
+    dialogueParticipants,
+  } = context;
   let historyToUseInPrompt = [...dialogueHistory];
   if (
     historyToUseInPrompt.length > 0 &&
