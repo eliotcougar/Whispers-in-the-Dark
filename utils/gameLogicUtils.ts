@@ -9,11 +9,155 @@
  */
 
 import {
-  Item, ItemChange, ItemReference, AdventureTheme, Character,
+  Item, ItemChange, ItemReference, GiveItemPayload, AdventureTheme, Character,
   ItemChangeRecord, CharacterChangeRecord,
   ValidCharacterUpdatePayload, ValidNewCharacterPayload
 } from '../types';
 import { buildCharacterId, buildItemId, findItemByIdentifier } from './entityUtils';
+import { PLAYER_HOLDER_ID } from '../constants';
+
+/**
+ * Core helper for manipulating items between holders. All item-related actions
+ * ultimately use this function. The resulting action is determined by the
+ * combination of `fromId`, `toId`, and the provided payload.
+ */
+const applyItemActionCore = (
+  currentInventory: Item[],
+  fromId: string | null,
+  toId: string | null,
+  payload: Item | ItemReference | GiveItemPayload,
+): Item[] => {
+  let newInventory = [...currentInventory];
+
+  if (fromId === null && toId === PLAYER_HOLDER_ID) {
+    // Gain new item
+    const itemData = payload as Item;
+    const existing = findItemByIdentifier([itemData.id, itemData.name], newInventory) as Item | null;
+    const id = existing ? existing.id : (itemData as Partial<Item>).id || buildItemId(itemData.name);
+    const finalItem: Item = {
+      id,
+      name: itemData.name,
+      type: itemData.type,
+      description: itemData.description,
+      activeDescription: itemData.activeDescription,
+      isActive: itemData.isActive ?? false,
+      isJunk: itemData.isJunk ?? false,
+      knownUses: itemData.knownUses || [],
+      holderId: PLAYER_HOLDER_ID,
+    };
+    if (existing) {
+      const idx = newInventory.findIndex(i => i.id === existing.id);
+      newInventory[idx] = finalItem;
+    } else {
+      newInventory.push(finalItem);
+    }
+    return newInventory;
+  }
+
+  if (fromId === null && toId) {
+    // Put new item elsewhere (no player animation)
+    const itemData = payload as Item;
+    const existing = findItemByIdentifier([itemData.id, itemData.name], newInventory) as Item | null;
+    const id = existing ? existing.id : (itemData as Partial<Item>).id || buildItemId(itemData.name);
+    const finalItem: Item = {
+      id,
+      name: itemData.name,
+      type: itemData.type,
+      description: itemData.description,
+      activeDescription: itemData.activeDescription,
+      isActive: itemData.isActive ?? false,
+      isJunk: itemData.isJunk ?? false,
+      knownUses: itemData.knownUses || [],
+      holderId: toId,
+    };
+    if (existing) {
+      const idx = newInventory.findIndex(i => i.id === existing.id);
+      newInventory[idx] = finalItem;
+    } else {
+      newInventory.push(finalItem);
+    }
+    return newInventory;
+  }
+
+  if (fromId === PLAYER_HOLDER_ID && toId === null) {
+    // Lose item
+    const ref = payload as ItemReference;
+    const itemToRemove = findItemByIdentifier([ref.id, ref.name], newInventory) as Item | null;
+    if (itemToRemove) newInventory = newInventory.filter(i => i.id !== itemToRemove.id);
+    return newInventory;
+  }
+
+  if (fromId !== null && toId !== null && fromId === toId) {
+    // Update item in-place
+    const updatePayload = payload as Item;
+    const existingItem = findItemByIdentifier([updatePayload.id, updatePayload.name], newInventory) as Item | null;
+    if (!existingItem) {
+      const identifierForLog = updatePayload.id || updatePayload.name || 'unknown';
+      console.warn(`applyItemActionCore ('update'): Item "${identifierForLog}" not found in inventory.`);
+      return newInventory;
+    }
+    const idx = newInventory.findIndex(i => i.id === existingItem.id);
+    const updated: Item = { ...existingItem };
+    (payload as Item).id = existingItem.id;
+    if (updatePayload.type !== undefined) updated.type = updatePayload.type;
+    if (updatePayload.description !== undefined) updated.description = updatePayload.description;
+    if (updatePayload.activeDescription !== undefined) {
+      updated.activeDescription = updatePayload.activeDescription === null ? undefined : updatePayload.activeDescription;
+    }
+    if (updatePayload.isActive !== undefined) updated.isActive = updatePayload.isActive;
+    if (updatePayload.isJunk !== undefined) updated.isJunk = updatePayload.isJunk;
+    if (updatePayload.knownUses !== undefined) updated.knownUses = updatePayload.knownUses;
+    if (updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '') {
+      updated.holderId = updatePayload.holderId;
+    }
+    if (updatePayload.addKnownUse) {
+      const currentUses = updated.knownUses ? [...updated.knownUses] : [];
+      const kuIndex = currentUses.findIndex(ku => ku.actionName === updatePayload.addKnownUse!.actionName);
+      if (kuIndex !== -1) currentUses[kuIndex] = updatePayload.addKnownUse;
+      else currentUses.push(updatePayload.addKnownUse);
+      updated.knownUses = currentUses;
+    }
+    if (updatePayload.newName && updatePayload.newName.trim() !== '' && updatePayload.newName !== existingItem.name) {
+      updated.name = updatePayload.newName;
+    }
+    newInventory[idx] = updated;
+    return newInventory;
+  }
+
+  if (fromId && toId && fromId !== toId) {
+    // Give item from one holder to another
+    const givePayload = payload as GiveItemPayload;
+    const itemToMove = findItemByIdentifier([givePayload.id, givePayload.name], newInventory) as Item | null;
+    if (!itemToMove) {
+      console.warn(`applyItemActionCore ('give'): Item not found for transfer.`);
+      return newInventory;
+    }
+    if (givePayload.fromId && itemToMove.holderId !== givePayload.fromId) {
+      console.warn(`applyItemActionCore ('give'): Source holder mismatch for item ${itemToMove.name}.`);
+    }
+    const idx = newInventory.findIndex(i => i.id === itemToMove.id);
+    newInventory[idx] = { ...itemToMove, holderId: givePayload.toId };
+    return newInventory;
+  }
+
+  console.warn('applyItemActionCore: Unrecognized parameters', { fromId, toId, payload });
+  return newInventory;
+};
+
+export const gainItem = (inv: Item[], item: Item): Item[] =>
+  applyItemActionCore(inv, null, PLAYER_HOLDER_ID, item);
+
+export const putItem = (inv: Item[], item: Item): Item[] =>
+  applyItemActionCore(inv, null, item.holderId, item);
+
+export const loseItem = (inv: Item[], ref: ItemReference): Item[] =>
+  applyItemActionCore(inv, PLAYER_HOLDER_ID, null, ref);
+
+export const updateItem = (inv: Item[], item: Item): Item[] =>
+  applyItemActionCore(inv, item.holderId, item.holderId, item);
+
+export const giveItem = (inv: Item[], payload: GiveItemPayload): Item[] =>
+  applyItemActionCore(inv, payload.fromId, payload.toId, payload);
 
 /**
  * Applies a single item change action to the current inventory.
@@ -23,83 +167,22 @@ import { buildCharacterId, buildItemId, findItemByIdentifier } from './entityUti
  * @param currentInventory - The current array of items in the player's inventory.
  * @param itemChange - The item change object received from the AI, specifying the action and item.
  * @returns A new array representing the updated inventory.
- */
+*/
 export const applyItemChangeAction = (currentInventory: Item[], itemChange: ItemChange): Item[] => {
-  let newInventory = [...currentInventory];
-  const { item: itemPayloadFromChange, action } = itemChange;
-
-  if (action === 'gain') {
-    const newItemFromAI = itemPayloadFromChange as Item;
-    const existingItem = findItemByIdentifier([newItemFromAI.id, newItemFromAI.name], newInventory) as Item | null;
-    const id = existingItem ? existingItem.id : (newItemFromAI as Partial<Item>).id || buildItemId(newItemFromAI.name);
-    const newItemToAdd: Item = {
-        id,
-        name: newItemFromAI.name,
-        type: newItemFromAI.type,
-        description: newItemFromAI.description,
-        activeDescription: newItemFromAI.activeDescription,
-        isActive: newItemFromAI.isActive ?? false,
-        isJunk: newItemFromAI.isJunk ?? false,
-        knownUses: newItemFromAI.knownUses || [],
-        holderId: newItemFromAI.holderId
-      };
-    if (existingItem) {
-      const idx = newInventory.findIndex(i => i.id === existingItem.id);
-      newInventory[idx] = newItemToAdd;
-    } else {
-      newInventory.push(newItemToAdd);
-    }
-  } else if (action === 'lose') {
-    const ref = itemPayloadFromChange as ItemReference;
-    const itemToRemove = findItemByIdentifier([ref.id, ref.name], newInventory) as Item | null;
-    if (itemToRemove) {
-      newInventory = newInventory.filter(i => i.id !== itemToRemove.id);
-    }
-  } else if (action === 'update') {
-    const updatePayload = itemPayloadFromChange as Item;
-    const existingItem = findItemByIdentifier([updatePayload.id, updatePayload.name], newInventory) as Item | null;
-    if (!existingItem) {
-        const identifierForLog = updatePayload.id || updatePayload.name || 'unknown';
-        console.warn(`applyItemChangeAction ('update'): Item "${identifierForLog}" not found in inventory for update.`);
-        return newInventory; // Return original inventory if item to update isn't found
-    }
-    const itemIndexInNewInventory = newInventory.findIndex(i => i.id === existingItem.id);
-    const updatedItem: Item = { ...existingItem };
-    (itemPayloadFromChange as Item).id = existingItem.id;
-
-    if (updatePayload.type !== undefined) updatedItem.type = updatePayload.type;
-    if (updatePayload.description !== undefined) updatedItem.description = updatePayload.description;
-    
-    if (updatePayload.activeDescription !== undefined) {
-      updatedItem.activeDescription = updatePayload.activeDescription === null ? undefined : updatePayload.activeDescription;
-    }
-    
-    if (updatePayload.isActive !== undefined) updatedItem.isActive = updatePayload.isActive;
-    if (updatePayload.isJunk !== undefined) updatedItem.isJunk = updatePayload.isJunk;
-    
-    if (updatePayload.knownUses !== undefined) {
-      updatedItem.knownUses = updatePayload.knownUses;
-    }
-
-    if (updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '') {
-      updatedItem.holderId = updatePayload.holderId;
-    }
-
-    if (updatePayload.addKnownUse) {
-      const currentKnownUses = updatedItem.knownUses ? [...updatedItem.knownUses] : [];
-      const kuIndex = currentKnownUses.findIndex(ku => ku.actionName === updatePayload.addKnownUse!.actionName);
-      if (kuIndex !== -1) currentKnownUses[kuIndex] = updatePayload.addKnownUse; 
-      else currentKnownUses.push(updatePayload.addKnownUse); 
-      updatedItem.knownUses = currentKnownUses;
-    }
-
-    if (updatePayload.newName && updatePayload.newName.trim() !== '' && updatePayload.newName !== existingItem.name) {
-      updatedItem.name = updatePayload.newName;
-    }
-    
-    newInventory[itemIndexInNewInventory] = updatedItem;
+  switch (itemChange.action) {
+    case "gain":
+      return gainItem(currentInventory, itemChange.item as Item);
+    case "put":
+      return putItem(currentInventory, itemChange.item as Item);
+    case "give":
+      return giveItem(currentInventory, itemChange.item as GiveItemPayload);
+    case "lose":
+      return loseItem(currentInventory, itemChange.item as ItemReference);
+    case "update":
+      return updateItem(currentInventory, itemChange.item as Item);
+    default:
+      return currentInventory;
   }
-  return newInventory;
 };
 
 /**
@@ -180,6 +263,14 @@ export const buildItemChangeRecords = (
         holderId: gainedItemData.holderId
       };
       record = { type: 'gain', gainedItem: cleanGainedItem };
+    } else if (change.action === 'give' && typeof itemPayload === 'object') {
+      const givePayload = itemPayload as GiveItemPayload;
+      const oldItem = findItemByIdentifier([givePayload.id, givePayload.name], currentInventory) as Item | null;
+      if (oldItem) {
+        const oldItemCopy = { ...oldItem };
+        const newItemData: Item = { ...oldItemCopy, holderId: givePayload.toId };
+        record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };
+      }
     } else if (change.action === 'lose') {
       const ref = itemPayload as ItemReference;
       const lostItem = findItemByIdentifier([ref.id, ref.name], currentInventory) as Item | null;

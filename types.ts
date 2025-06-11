@@ -55,11 +55,22 @@ export interface ItemReference {
   name?: string;
 }
 
+export interface GiveItemPayload {
+  id?: string;
+  name?: string;
+  fromId: string;
+  fromName?: string;
+  toId: string;
+  toName?: string;
+}
+
 export interface ItemChange {
   // For "gain" or "update", 'item' is an Item object.
   // For "lose", 'item' provides at least an id and name (if available).
-  item: Item | ItemReference | null;
-  action: "gain" | "lose" | "update";
+  // For "put", 'item' is an Item object with holderId specifying destination.
+  // For "give", 'item' contains transfer details.
+  item: Item | ItemReference | GiveItemPayload | null;
+  action: "gain" | "lose" | "update" | "put" | "give";
   invalidPayload?: unknown; // If the 'item' field was unparseable/invalid from AI
 }
 
