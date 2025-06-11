@@ -19,7 +19,7 @@ import {
   formatNewGameFirstTurnPrompt,
   formatNewThemePostShiftPrompt,
   formatReturnToThemePostShiftPrompt,
-} from '../utils/promptFormatters';
+} from '../services/storyteller';
 import {
   getInitialGameStates,
   getInitialGameStatesWithSettings
