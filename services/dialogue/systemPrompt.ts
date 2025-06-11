@@ -69,7 +69,7 @@ Respond ONLY in JSON format with the following structure:
 Items:
 If the dialogue resulted in taking, giving, picking up, leaving behind, obtaining or consuming any Items, changing their properties or amounts, moving them elsewhere, or transferring them between characters, use "itemChange" actions "gain", "lose", "put", "give"/"take", or "update".
 ${ITEMS_GUIDE}
-These fields MUST be provided if the Player's Inventory clearly changed during the dialogue..
+These fields MUST be provided if the Player's Inventory clearly changed during the dialogue.
 
 Local Time, Environment & Place:
 If the dialogue resulted in a change to the local time, environment, or player's specific place, update "localTime", "localEnvironment", and "localPlace" accordingly.
