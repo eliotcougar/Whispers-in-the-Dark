@@ -9,10 +9,10 @@ import {
   Item, Character, MapNode, DialogueMemorySummaryContext, AdventureTheme
 } from '../types';
 import { GEMINI_MODEL_NAME, MAX_RETRIES } from '../constants';
-import { 
-    DIALOGUE_SYSTEM_INSTRUCTION, 
-    DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION
-} from '../prompts/dialoguePrompts';
+import {
+  DIALOGUE_SYSTEM_INSTRUCTION,
+  DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION,
+} from './dialogue/systemPrompt';
 import { ai } from './geminiClient';
 import { recordModelCall } from '../utils/modelUsageTracker';
 import { callMinimalCorrectionAI } from './corrections/base';
