@@ -10,7 +10,7 @@ import {
   DialogueData,
   LoadingReason,
 } from '../types';
-import { fetchDialogueTurn } from '../services/dialogueService';
+import { executeDialogueTurn } from '../services/dialogue';
 import { PLAYER_HOLDER_ID } from '../constants';
 
 export interface UseDialogueTurnProps {
@@ -73,7 +73,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
           node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
         );
-        const turnData = await fetchDialogueTurn(
+        const turnData = await executeDialogueTurn(
           currentThemeObj,
           stateAfterPlayerChoice.mainQuest,
           stateAfterPlayerChoice.currentObjective,

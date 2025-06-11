@@ -58,7 +58,7 @@ This layer abstracts external interactions and complex data processing.
 *   **AI Interaction Services:**
     *   `services/geminiClient.ts`: Initializes the Google Gemini API client.
     *   `services/storyteller/api.ts`: Handles main game turn AI calls and theme summarization.
-    *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries.
+    *   `services/dialogue/`: Utilities for dialogue AI calls.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
     *   `services/cartographer/` (Cartographer service):
         *   `api.ts` orchestrates map update requests.
