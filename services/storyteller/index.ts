@@ -11,3 +11,4 @@ export * from '../mapUpdateService';
 export * from '../modelDispatcher';
 export * from '../geminiClient';
 export * from '../apiClient';
+export * from './promptBuilder';
