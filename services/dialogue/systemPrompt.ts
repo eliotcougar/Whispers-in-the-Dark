@@ -1,11 +1,10 @@
-
 /**
- * @file dialoguePrompts.ts
- * @description Prompt templates for guiding NPC dialogue generation.
+ * @file systemPrompt.ts
+ * @description System instructions for dialogue-related AI calls.
  */
 
-import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from './helperPrompts';
-import { VALID_PRESENCE_STATUS_VALUES_STRING, ALIAS_INSTRUCTION } from '../constants';
+import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from '../../prompts/helperPrompts';
+import { VALID_PRESENCE_STATUS_VALUES_STRING, ALIAS_INSTRUCTION } from '../../constants';
 
 export const DIALOGUE_SYSTEM_INSTRUCTION = `You are an AI assistant guiding a dialogue turn in a text-based adventure game. The player is in conversation with one or more characters. Your role is to:
 1. Generate responses for the NPC(s) involved in the dialogue.
@@ -17,7 +16,7 @@ Respond ONLY in JSON format with the following structure:
 {
   "npcResponses": [
     { "speaker": "CharacterName1", "line": "What CharacterName1 says this turn." }, /* REQUIRED. */
-    { "speaker": "CharacterName2", "line": "What CharacterName2 says this turn, if they speak." }, /* Optional. */
+    { "speaker": "CharacterName2", "line": "What CharacterName2 says this turn,if they speak." }, /* Optional. */
     ...
     /* Include one entry for each NPC who may speaks this turn. It can be one or multiple NPCs. Speaker MUST be one of the current dialogue participants. Lines must be non-empty. */
   ],
@@ -70,7 +69,7 @@ Respond ONLY in JSON format with the following structure:
 Items:
 If the dialogue resulted in taking, giving, picking up, leaving behind, obtaining or consuming any Items, changing their properties or amounts, moving them elsewhere, or transferring them between characters, use "itemChange" actions "gain", "lose", "put", "give"/"take", or "update".
 ${ITEMS_GUIDE}
-These fields MUST be provided if the Player's Inventory clearly changed during the dialogue..
+These fields MUST be provided if the Player's Inventory clearly changed during the dialogue.
 
 Local Time, Environment & Place:
 If the dialogue resulted in a change to the local time, environment, or player's specific place, update "localTime", "localEnvironment", and "localPlace" accordingly.

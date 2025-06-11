@@ -15,9 +15,9 @@ import {
   DialogueMemorySummaryContext,
 } from '../types';
 import {
-  summarizeDialogueForUpdates,
-  summarizeDialogueForMemory,
-} from '../services/dialogueService';
+  executeDialogueSummary,
+  executeMemorySummary,
+} from '../services/dialogue';
 import { MAX_LOG_MESSAGES, MAX_DIALOGUE_SUMMARIES_PER_CHARACTER, PLAYER_HOLDER_ID } from '../constants';
 import { addLogMessageToList } from '../utils/gameLogicUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -92,7 +92,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       dialogueParticipants: finalParticipants,
       dialogueLog: finalHistory,
     };
-    const characterMemoryText = await summarizeDialogueForMemory(memorySummaryContext);
+    const characterMemoryText = await executeMemorySummary(memorySummaryContext);
 
     const newSummaryRecord: DialogueSummaryRecord = {
       summaryText: characterMemoryText || 'A conversation took place, but the details are hazy.',
@@ -137,7 +137,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       themeName: currentThemeObj.name,
       currentThemeObject: currentThemeObj,
     };
-    const summaryUpdatePayload = await summarizeDialogueForUpdates(summaryContextForUpdates);
+    const summaryUpdatePayload = await executeDialogueSummary(summaryContextForUpdates);
 
     const participantsForLog = [...finalParticipants];
     const dialogueBlock =
