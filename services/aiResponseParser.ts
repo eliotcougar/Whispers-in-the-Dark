@@ -22,7 +22,7 @@ import {
 } from './corrections';
 
 import { extractJsonFromFence } from '../utils/jsonUtils';
-import { buildCharacterId } from '../utils/entityUtils';
+import { buildCharacterId, findItemByIdentifier } from '../utils/entityUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
 
 /** Interface describing contextual data required by the parsing helpers. */
@@ -252,6 +252,18 @@ async function processItemChanges(
                     itemObj.isActive = itemObj.isActive ?? false;
                     itemObj.holderId = typeof itemObj.holderId === 'string' && itemObj.holderId.trim() !== '' ? itemObj.holderId : PLAYER_HOLDER_ID;
                     currentItemPayload = itemObj;
+
+                    const existing = findItemByIdentifier([itemObj.id, itemObj.name], context.currentInventoryForCorrection) as Item | null;
+                    if (ic.action === 'gain' && existing && existing.holderId !== PLAYER_HOLDER_ID) {
+                        ic.action = 'give';
+                        currentItemPayload = {
+                            id: existing.id,
+                            name: existing.name,
+                            fromId: existing.holderId,
+                            toId: PLAYER_HOLDER_ID,
+                        } as GiveItemPayload;
+                        currentInvalidPayload = undefined;
+                    }
                 }
                 break;
             case 'update': {

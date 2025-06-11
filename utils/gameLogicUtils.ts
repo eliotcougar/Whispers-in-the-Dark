@@ -30,9 +30,28 @@ const applyItemActionCore = (
   let newInventory = [...currentInventory];
 
   if (fromId === null && toId === PLAYER_HOLDER_ID) {
-    // Gain new item
+    // Gain new item. If an item with the same id or name exists elsewhere,
+    // treat this as taking that item (transfer) rather than duplicating it.
     const itemData = payload as Item;
     const existing = findItemByIdentifier([itemData.id, itemData.name], newInventory) as Item | null;
+
+    if (existing && existing.holderId !== PLAYER_HOLDER_ID) {
+      const idx = newInventory.findIndex(i => i.id === existing.id);
+      const updated: Item = {
+        ...existing,
+        name: itemData.name,
+        type: itemData.type,
+        description: itemData.description,
+        activeDescription: itemData.activeDescription,
+        isActive: itemData.isActive ?? existing.isActive ?? false,
+        isJunk: itemData.isJunk ?? existing.isJunk ?? false,
+        knownUses: itemData.knownUses || existing.knownUses || [],
+        holderId: PLAYER_HOLDER_ID,
+      };
+      newInventory[idx] = updated;
+      return newInventory;
+    }
+
     const id = existing ? existing.id : (itemData as Partial<Item>).id || buildItemId(itemData.name);
     const finalItem: Item = {
       id,
@@ -256,17 +275,33 @@ export const buildItemChangeRecords = (
       if (!gainedItemData.id) {
         gainedItemData.id = buildItemId(gainedItemData.name);
       }
-      change.item = gainedItemData;
-      const cleanGainedItem: Item = {
-        id: gainedItemData.id,
-        name: gainedItemData.name, type: gainedItemData.type, description: gainedItemData.description,
-        activeDescription: gainedItemData.activeDescription,
-        isActive: gainedItemData.isActive ?? false,
-        isJunk: gainedItemData.isJunk ?? false,
-        knownUses: gainedItemData.knownUses || [],
-        holderId: gainedItemData.holderId
-      };
-      record = { type: 'gain', gainedItem: cleanGainedItem };
+      const existing = findItemByIdentifier([gainedItemData.id, gainedItemData.name], currentInventory) as Item | null;
+      if (existing && existing.holderId !== PLAYER_HOLDER_ID) {
+        const oldItemCopy = { ...existing };
+        const newItemData: Item = { ...oldItemCopy, holderId: PLAYER_HOLDER_ID };
+        change.item = {
+          id: existing.id,
+          name: existing.name,
+          fromId: existing.holderId,
+          toId: PLAYER_HOLDER_ID,
+        } as unknown as GiveItemPayload;
+        change.action = 'give';
+        record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };
+      } else {
+        change.item = gainedItemData;
+        const cleanGainedItem: Item = {
+          id: gainedItemData.id,
+          name: gainedItemData.name,
+          type: gainedItemData.type,
+          description: gainedItemData.description,
+          activeDescription: gainedItemData.activeDescription,
+          isActive: gainedItemData.isActive ?? false,
+          isJunk: gainedItemData.isJunk ?? false,
+          knownUses: gainedItemData.knownUses || [],
+          holderId: gainedItemData.holderId,
+        };
+        record = { type: 'gain', gainedItem: cleanGainedItem };
+      }
     } else if (change.action === 'give' && typeof itemPayload === 'object') {
       const givePayload = itemPayload as GiveItemPayload;
       const oldItem = findItemByIdentifier([givePayload.id, givePayload.name], currentInventory) as Item | null;
