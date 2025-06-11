@@ -12,6 +12,7 @@ import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 import { isServerOrClientError } from '../utils/aiErrorUtils';
 import { addProgressSymbol } from '../utils/loadingProgress';
+import { recordModelCall } from '../utils/modelUsageTracker';
 
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
@@ -31,6 +32,7 @@ export const executeAIMainTurn = async (
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
+            recordModelCall(GEMINI_MODEL_NAME);
             const response = await ai!.models.generateContent({
                 model: GEMINI_MODEL_NAME,
                 contents: fullPrompt,

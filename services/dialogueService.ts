@@ -14,6 +14,7 @@ import {
     DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION
 } from '../prompts/dialoguePrompts';
 import { ai } from './geminiClient';
+import { recordModelCall } from '../utils/modelUsageTracker';
 import { callMinimalCorrectionAI } from './corrections/base';
 import { isApiConfigured } from './apiClient';
 import { formatKnownPlacesForPrompt } from '../utils/promptFormatters/map';
@@ -43,6 +44,7 @@ const callDialogueGeminiAPI = async (
   if (disableThinking) {
     config.thinkingConfig = { thinkingBudget: 0 };
   }
+  recordModelCall(GEMINI_MODEL_NAME);
   return ai!.models.generateContent({
     model: GEMINI_MODEL_NAME, // Will use gemini-2.5-flash-preview-04-17
     contents: prompt,

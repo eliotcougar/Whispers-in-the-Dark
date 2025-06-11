@@ -10,6 +10,12 @@ import { ALL_THEME_PACK_NAMES } from './themes';
 export const GEMINI_MODEL_NAME = "gemini-2.5-flash-preview-05-20";
 export const AUXILIARY_MODEL_NAME = "gemini-2.0-flash"; // Updated for better capability
 export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string outputs
+
+// Per-minute rate limits for each model
+export const GEMINI_RATE_LIMIT_PER_MINUTE = 10;
+export const AUXILIARY_RATE_LIMIT_PER_MINUTE = 15;
+export const MINIMAL_RATE_LIMIT_PER_MINUTE = 30;
+
 export const MAX_RETRIES = 3; // Max retries for most API calls
 export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the game log
 
