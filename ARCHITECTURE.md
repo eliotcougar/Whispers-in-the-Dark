@@ -57,8 +57,18 @@ This layer abstracts external interactions and complex data processing.
 
 *   **AI Interaction Services:**
     *   `services/geminiClient.ts`: Initializes the Google Gemini API client.
-    *   `services/storyteller/api.ts`: Handles main game turn AI calls and theme summarization.
-    *   `services/dialogue/`: Utilities for dialogue AI calls.
+    *   `services/storyteller/` (Storyteller service):
+        *   `api.ts` orchestrates main turn calls and theme summarization.
+        *   `promptBuilder.ts` builds storyteller prompts.
+        *   `responseParser.ts` validates and extracts storyteller JSON.
+        *   `systemPrompt.ts` contains storyteller instructions.
+        *   `index.ts` re-exports these utilities.
+    *   `services/dialogue/` (Dialogue service):
+        *   `api.ts` handles dialogue turns, summaries, and memory summaries.
+        *   `promptBuilder.ts` builds dialogue prompts.
+        *   `responseParser.ts` parses dialogue responses.
+        *   `systemPrompt.ts` contains dialogue instructions.
+        *   `index.ts` re-exports these utilities.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
     *   `services/cartographer/` (Cartographer service):
         *   `api.ts` orchestrates map update requests.
@@ -69,6 +79,7 @@ This layer abstracts external interactions and complex data processing.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
     *   `services/storyteller/responseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
+    *   `services/dialogue/responseParser.ts`: Parses dialogue AI JSON for turns and summaries.
     *   `services/validationUtils.ts`: General data structure validation.
     *   `utils/mapUpdateValidationUtils.ts`: Specific validation for `AIMapUpdatePayload`.
 *   **Persistence Service:**
