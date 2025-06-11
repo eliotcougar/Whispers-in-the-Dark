@@ -97,7 +97,8 @@ This layer abstracts external interactions and complex data processing.
 *   **Type Definitions:**
     *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. Items include a `holderId` for their owner and `Character` objects have a unique `id` similar to `MapNode.id`.
 *   **Constants & Configuration:**
-    *   `constants.ts`: Global constants, model names, and system prompts, including `MAP_UPDATE_SYSTEM_INSTRUCTION`. `PLAYER_HOLDER_ID` marks items belonging to the player.
+    *   `constants.ts`: Global constants and model names. `PLAYER_HOLDER_ID` marks items belonging to the player.
+    *   `services/cartographer/systemPrompt.ts`: Defines `MAP_UPDATE_SYSTEM_INSTRUCTION` (exported as `SYSTEM_INSTRUCTION`).
 *   **Theme Definitions:**
     *   `themes.ts`: Defines adventure themes.
     *   `CustomGameSetupScreen.tsx` allows starting a game from a user-chosen theme.
