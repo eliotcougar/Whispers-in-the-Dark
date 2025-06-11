@@ -47,7 +47,9 @@ export const handleMapUpdates = async (
       draftState.mapData,
       themeContextForResponse,
       knownMainMapNodesForTheme,
-      baseStateSnapshot.currentMapNodeId
+      baseStateSnapshot.currentMapNodeId,
+      draftState.inventory,
+      draftState.allCharacters
     );
     setLoadingReason(originalLoadingReason);
 

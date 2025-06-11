@@ -7,7 +7,6 @@ import { MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../../constants';
 import { isValidItem } from '../parsers/validation';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
-import { PLAYER_HOLDER_ID } from '../../constants';
 
 /**
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
@@ -140,29 +139,13 @@ export const fetchCorrectedItemAction_Service = async (
     return null;
   }
 
-  // Basic heuristic check before engaging the AI
+  // Basic check before engaging the AI
   try {
     const parsed = JSON.parse(malformedItemChangeString) as Record<string, unknown>;
     if (parsed && typeof parsed === 'object') {
       const rawAction = parsed['action'];
       if (typeof rawAction === 'string' && ['gain', 'lose', 'update', 'put', 'give', 'take'].includes(rawAction)) {
         return rawAction as ItemChange['action'];
-      }
-
-      const itemObj = parsed['item'];
-      if (itemObj && typeof itemObj === 'object') {
-        const maybe = itemObj as Record<string, unknown>;
-        const fromId = typeof maybe['fromId'] === 'string' ? maybe['fromId'] : undefined;
-        const toId = typeof maybe['toId'] === 'string' ? maybe['toId'] : undefined;
-        const holderId = typeof maybe['holderId'] === 'string' ? maybe['holderId'] : undefined;
-
-        if (fromId && toId) {
-          return 'give';
-        }
-
-        if (!fromId && !toId && holderId && holderId.toLowerCase() !== PLAYER_HOLDER_ID) {
-          return 'put';
-        }
       }
     }
   } catch {
