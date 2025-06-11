@@ -15,7 +15,9 @@ import {
   MapNodeData,
   MapEdgeData,
   AIMapUpdatePayload,
-  MinimalModelCallRecord
+  MinimalModelCallRecord,
+  Item,
+  Character
 } from '../types';
 import {
   GEMINI_MODEL_NAME,
@@ -337,7 +339,9 @@ export const updateMapFromAIData_Service = async (
   currentMapData: MapData,
   currentTheme: AdventureTheme,
   allKnownMainMapNodesForTheme: MapNode[],
-  previousMapNodeId: string | null
+  previousMapNodeId: string | null,
+  inventoryItems: Item[],
+  knownCharacters: Character[]
 ): Promise<MapUpdateServiceResult | null> => {
   if (!isApiConfigured()) {
     console.error("API Key not configured for Map Update Service.");
@@ -376,6 +380,42 @@ export const updateMapFromAIData_Service = async (
     themeEdgesMap.get(e.sourceNodeId)!.push(e);
     themeEdgesMap.get(e.targetNodeId)!.push(e);
   });
+
+  const normalizeName = (text: string): string =>
+    text.toLowerCase().replace(/[{}().,!?;:"[\]]/g, '').replace(/\s+/g, ' ').trim();
+
+  const tokenize = (text: string): string[] =>
+    normalizeName(text)
+      .split(' ')
+      .filter(t => t.length > 0);
+
+  const itemNameTokens = inventoryItems.map(i => ({
+    norm: normalizeName(i.name),
+    tokens: tokenize(i.name)
+  }));
+  const charNameTokens: { norm: string; tokens: string[] }[] = [];
+  knownCharacters.forEach(c => {
+    charNameTokens.push({ norm: normalizeName(c.name), tokens: tokenize(c.name) });
+    (c.aliases || []).forEach(a => {
+      charNameTokens.push({ norm: normalizeName(a), tokens: tokenize(a) });
+    });
+  });
+
+  const nameMatchesItemOrChar = (name: string): boolean => {
+    const norm = normalizeName(name);
+    const tokens = tokenize(name);
+    const checkTokens = (candidate: { norm: string; tokens: string[] }): boolean => {
+      if (candidate.norm === norm) return true;
+      const intersection = tokens.filter(t => candidate.tokens.includes(t));
+      const ratioA = intersection.length / tokens.length;
+      const ratioB = intersection.length / candidate.tokens.length;
+      return intersection.length > 0 && ratioA >= 0.6 && ratioB >= 0.6;
+    };
+    return (
+      itemNameTokens.some(checkTokens) ||
+      charNameTokens.some(checkTokens)
+    );
+  };
 
   let previousMapNodeContext = "Player's Previous Map Node: Unknown or N/A.";
   if (previousMapNodeId) {
@@ -518,8 +558,14 @@ Based on the Narrative Context and existing map context, provide a JSON response
   const edgesToRemove_mut = [...(validParsedPayload.edgesToRemove || [])];
 
   const finalNodesToAddOps: typeof nodesToAddOps_mut = [];
+  const ignoredNodeNames = new Set<string>();
   if (nodesToAddOps_mut) {
     for (const nodeAdd of nodesToAddOps_mut) {
+        if (nameMatchesItemOrChar(nodeAdd.placeName)) {
+            console.warn(`MapUpdate: Skipping node add "${nodeAdd.placeName}" that resembles an item or character.`);
+            ignoredNodeNames.add(nodeAdd.placeName);
+            continue;
+        }
         const removeIndex = nodesToRemove_mut.findIndex(nr => nr.placeName.toLowerCase() === nodeAdd.placeName.toLowerCase());
         if (removeIndex !== -1) {
             nodesToRemove_mut.splice(removeIndex, 1);
@@ -554,6 +600,12 @@ Based on the Narrative Context and existing map context, provide a JSON response
       }
   }
   edgesToAdd_mut = dedupedEdges;
+
+  if (ignoredNodeNames.size > 0) {
+    edgesToAdd_mut = edgesToAdd_mut.filter(
+      e => !ignoredNodeNames.has(e.sourcePlaceName) && !ignoredNodeNames.has(e.targetPlaceName)
+    );
+  }
 
   // If a node is being renamed via nodesToUpdate, ignore any matching
   // nodesToRemove operation referencing either the old or new name.
