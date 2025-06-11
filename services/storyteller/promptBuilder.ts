@@ -32,16 +32,16 @@ export const buildNewGameFirstTurnPrompt = (
 ): string => {
   const prompt = `Start a new adventure in the theme "${theme.name}".
 Player's Character Gender: "${playerGender}"
-Suggested Initial Scene: "${theme.initialSceneDescriptionSeed}" (Adjust to add variely)
-Suggested Initial Main Quest: "${theme.initialMainQuest}" (Adjust to add variely)
-Suggested Initial Current Objective: "${theme.initialCurrentObjective}" (Adjust to add variely)
-Suggested Initial Inventory to be granted: "${theme.initialItems}" (Adjust the names and descriptions to add variely)
+Suggested Initial Scene: "${theme.initialSceneDescriptionSeed}" (adjust for variety)
+Suggested Initial Main Quest: "${theme.initialMainQuest}" (adjust for variety)
+Suggested Initial Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
+Suggested Initial Inventory to be granted: "${theme.initialItems}" (adjust names and descriptions for variety)
 
-Last player's action was unremarkable, something very common, what people do in the described situation.
+The player's last action was unremarkable—something common anyone would do in this situation.
 
-Creatively generate the variation of the mainQuest and currentObjective, based on the suggested Quest and Objective, but noticeably different.
-Creatively generate the initial scene description, action options, items (variation based on 'Initial Inventory to be granted') and logMessage.
-Creatively add possible important quest item(s), if any, based on your generated Quest and Objective.
+Creatively generate variations of the main quest and current objective based on the suggestions, but make them noticeably different.
+Creatively generate the initial scene description, action options, and items (variations based on 'Initial Inventory to be granted'), along with a logMessage.
+Creatively add any important quest item(s), if any, based on your generated quest and objective.
 ALWAYS SET "mapUpdated": true.
 Of all the optional variables, your response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
 Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
@@ -60,9 +60,9 @@ export const buildNewThemePostShiftPrompt = (
   const inventoryPrompt = formatInventoryForPrompt(inventory);
   const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
-Initial Scene: "${theme.initialSceneDescriptionSeed}" (Adapt this to an arrival scene, describing the disorienting transition).
-Main Quest: "${theme.initialMainQuest}" (Adjust to add variely)
-Current Objective: "${theme.initialCurrentObjective}" (Adjust to add variely)
+Initial Scene: "${theme.initialSceneDescriptionSeed}" (adapt to an arrival scene describing the disorienting transition).
+Main Quest: "${theme.initialMainQuest}" (adjust for variety)
+Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
 
 Player's Current Inventory (brought from previous reality or last visit):\n - ${inventoryPrompt}
 IMPORTANT:
@@ -212,7 +212,7 @@ ${detailedEntityContext}
 ### Recent Events to keep in mind (for context and continuity):
 ${recentEventsContext}
  - A bit later you look around and consider your next move.
-IMPORTANT: Recent Events are provided ONLY for extra context, these actions have already been processed by the game and should NEVER cause item actions to avoid double counting.
+IMPORTANT: Recent events are provided only for additional context. These actions have already been processed by the game and should NEVER trigger item actions again, to avoid double counting.
 
 ---
 
