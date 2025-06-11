@@ -26,6 +26,7 @@ import {
  * Build the initial prompt for starting a new game.
  */
 export const buildNewGameFirstTurnPrompt = (
+
   theme: AdventureTheme,
   playerGender: string
 ): string => {
@@ -51,6 +52,7 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
  * Build the prompt for entering a completely new theme after a reality shift.
  */
 export const buildNewThemePostShiftPrompt = (
+
   theme: AdventureTheme,
   inventory: Item[],
   playerGender: string
@@ -79,6 +81,7 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
  * Build the prompt for returning to a previously visited theme after a shift.
  */
 export const buildReturnToThemePostShiftPrompt = (
+
   theme: AdventureTheme,
   inventory: Item[],
   playerGender: string,
@@ -181,6 +184,7 @@ export const buildMainGameTurnPrompt = (
     '### Details on relevant locations mentioned in current scene or action:',
     '### Details on relevant characters mentioned in current scene or action:'
   );
+
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
 
 ## Context:
