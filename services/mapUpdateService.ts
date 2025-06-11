@@ -24,7 +24,7 @@ import {
   AUXILIARY_MODEL_NAME,
   MAX_RETRIES
 } from '../constants';
-import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
+import { SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION } from './cartographer/systemPrompt';
 import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 import { isValidAIMapUpdatePayload } from '../utils/mapUpdateValidationUtils';
