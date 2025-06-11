@@ -79,7 +79,7 @@ export const executeDialogueTurn = async (
     return Promise.reject(new Error('API Key not configured.'));
   }
 
-  const prompt = buildDialogueTurnPrompt(
+  const prompt = buildDialogueTurnPrompt({
     currentTheme,
     currentQuest,
     currentObjective,
@@ -94,7 +94,7 @@ export const executeDialogueTurn = async (
     dialogueHistory,
     playerLastUtterance,
     dialogueParticipants,
-  );
+  });
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {

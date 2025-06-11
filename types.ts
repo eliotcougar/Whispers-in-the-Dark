@@ -117,10 +117,28 @@ export interface DialogueSetupPayload {
 }
 
 export interface DialogueAIResponse { // AI response for a single turn *during* dialogue
-  npcResponses: DialogueTurnResponsePart[]; 
-  playerOptions: string[]; 
-  dialogueEnds?: boolean; 
-  updatedParticipants?: string[]; 
+  npcResponses: DialogueTurnResponsePart[];
+  playerOptions: string[];
+  dialogueEnds?: boolean;
+  updatedParticipants?: string[];
+}
+
+// Context object for building a dialogue turn prompt
+export interface DialogueTurnContext {
+  currentTheme: AdventureTheme;
+  currentQuest: string | null;
+  currentObjective: string | null;
+  currentScene: string;
+  localTime: string | null;
+  localEnvironment: string | null;
+  localPlace: string | null;
+  knownMainMapNodesInTheme: MapNode[];
+  knownCharactersInTheme: Character[];
+  inventory: Item[];
+  playerGender: string;
+  dialogueHistory: DialogueHistoryEntry[];
+  playerLastUtterance: string;
+  dialogueParticipants: string[];
 }
 
 export interface DialogueSummaryContext {
