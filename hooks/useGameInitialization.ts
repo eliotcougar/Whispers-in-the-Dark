@@ -9,17 +9,17 @@ import {
   ThemePackName,
   LoadingReason,
 } from '../types';
-import { executeAIMainTurn } from '../services/gameAIService';
-import { parseAIResponse } from '../services/aiResponseParser';
+import {
+  executeAIMainTurn,
+  parseAIResponse,
+  buildNewGameFirstTurnPrompt,
+  buildNewThemePostShiftPrompt,
+  buildReturnToThemePostShiftPrompt
+} from '../services/storyteller';
 import { getThemesFromPacks } from '../themes';
 import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../constants';
 import { findThemeByName } from '../services/themeUtils';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
-import {
-  formatNewGameFirstTurnPrompt,
-  formatNewThemePostShiftPrompt,
-  formatReturnToThemePostShiftPrompt,
-} from '../services/storyteller';
 import {
   getInitialGameStates,
   getInitialGameStatesWithSettings
@@ -234,7 +234,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       let prompt = '';
       if (isTransitioningFromShift && draftState.themeHistory[themeObjToLoad.name]) {
         const currentThemeCharacters = draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name);
-        prompt = formatReturnToThemePostShiftPrompt(
+        prompt = buildReturnToThemePostShiftPrompt(
           themeObjToLoad,
           draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
           playerGenderProp,
@@ -243,9 +243,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           currentThemeCharacters
         );
       } else if (isTransitioningFromShift) {
-        prompt = formatNewThemePostShiftPrompt(themeObjToLoad, draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID), playerGenderProp);
+        prompt = buildNewThemePostShiftPrompt(
+          themeObjToLoad,
+          draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+          playerGenderProp
+        );
       } else {
-        prompt = formatNewGameFirstTurnPrompt(themeObjToLoad, playerGenderProp);
+        prompt = buildNewGameFirstTurnPrompt(themeObjToLoad, playerGenderProp);
       }
       draftState.lastDebugPacket = { prompt, rawResponseText: null, parsedResponse: null, timestamp: new Date().toISOString() };
 

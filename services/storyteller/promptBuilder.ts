@@ -1,29 +1,32 @@
 /**
  * @file promptBuilder.ts
- * @description Storyteller prompt construction helpers.
+ * @description Utilities for constructing storyteller prompts using named placeholders.
  */
 
 import {
-  Item,
   AdventureTheme,
-  ThemeMemory,
+  Item,
+  Character,
   MapData,
   MapNode,
-  Character,
+  ThemeMemory,
   ThemeHistoryState,
 } from '../../types';
-
 import {
   formatInventoryForPrompt,
   formatKnownPlacesForPrompt,
+  formatMapContextForPrompt,
   formatKnownCharactersForPrompt,
   formatRecentEventsForPrompt,
   formatDetailedContextForMentionedEntities,
-  formatMapContextForPrompt,
   formatTravelPlanLine,
 } from '../../utils/promptFormatters';
 
-export const formatNewGameFirstTurnPrompt = (
+/**
+ * Build the initial prompt for starting a new game.
+ */
+export const buildNewGameFirstTurnPrompt = (
+
   theme: AdventureTheme,
   playerGender: string
 ): string => {
@@ -45,7 +48,11 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
   return prompt;
 };
 
-export const formatNewThemePostShiftPrompt = (
+/**
+ * Build the prompt for entering a completely new theme after a reality shift.
+ */
+export const buildNewThemePostShiftPrompt = (
+
   theme: AdventureTheme,
   inventory: Item[],
   playerGender: string
@@ -70,7 +77,11 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
   return prompt;
 };
 
-export const formatReturnToThemePostShiftPrompt = (
+/**
+ * Build the prompt for returning to a previously visited theme after a shift.
+ */
+export const buildReturnToThemePostShiftPrompt = (
+
   theme: AdventureTheme,
   inventory: Item[],
   playerGender: string,
@@ -80,10 +91,7 @@ export const formatReturnToThemePostShiftPrompt = (
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
   const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
-    n =>
-      n.themeName === theme.name &&
-      n.data.nodeType !== 'feature' &&
-      n.data.nodeType !== 'room'
+    n => n.themeName === theme.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
   );
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
   const charactersContext = formatKnownCharactersForPrompt(allCharactersForTheme, false);
@@ -110,7 +118,10 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
   return prompt;
 };
 
-export const formatMainGameTurnPrompt = (
+/**
+ * Build the prompt for a main game turn.
+ */
+export const buildMainGameTurnPrompt = (
   currentScene: string,
   playerAction: string,
   inventory: Item[],
@@ -131,8 +142,8 @@ export const formatMainGameTurnPrompt = (
   destinationNodeId: string | null
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
-  const locationItemsPrompt =
-    locationItems.length > 0 ? formatInventoryForPrompt(locationItems) : '';
+  const locationItemsPrompt = locationItems.length > 0 ? formatInventoryForPrompt(locationItems) : '';
+  const inventorySection = `${inventoryPrompt}${locationItemsPrompt ? `\nThere are items at this location:\n${locationItemsPrompt}` : ''}`;
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
   const charactersContext = formatKnownCharactersForPrompt(currentThemeCharacters, true);
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
@@ -185,7 +196,7 @@ Main Quest: "${mainQuest || 'Not set'}"
 Current Objective: "${currentObjective || 'Not set'}"
 
 ### Current Inventory:
-${inventoryPrompt} ${locationItemsPrompt ? `\nThere are items at this location:\n${locationItemsPrompt}` : ''}
+${inventorySection}
 
 ### Known Locations:
 ${placesContext}
@@ -209,5 +220,6 @@ Current Theme: "${currentTheme.name}"
 Previous Scene: "${currentScene}"
 Player Action: "${playerAction}"
 ${travelPlanOrUnknown ? travelPlanOrUnknown : ''}`;
+
   return prompt;
 };

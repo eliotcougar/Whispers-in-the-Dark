@@ -13,7 +13,7 @@ import {
   ThemeMemory
 } from '../types';
 import { getThemesFromPacks } from '../themes';
-import { summarizeThemeAdventure_Service } from '../services/gameAIService';
+import { summarizeThemeAdventure_Service } from '../services/storyteller';
 import { selectNextThemeName } from '../utils/gameLogicUtils';
 import { getInitialGameStates } from '../utils/initialStates';
 

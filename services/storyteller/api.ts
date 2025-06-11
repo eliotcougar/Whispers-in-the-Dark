@@ -1,18 +1,18 @@
 
 /**
- * @file gameAIService.ts
+ * @file api.ts
  * @description Wrapper functions for the main storytelling AI interactions.
  */
 import { GenerateContentResponse } from "@google/genai";
-import { AdventureTheme } from '../types';
-import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../constants';
-import { SYSTEM_INSTRUCTION } from '../prompts/mainPrompts';
-import { ai } from './geminiClient';
-import { dispatchAIRequest } from './modelDispatcher';
-import { isApiConfigured } from './apiClient';
-import { isServerOrClientError } from '../utils/aiErrorUtils';
-import { addProgressSymbol } from '../utils/loadingProgress';
-import { recordModelCall } from '../utils/modelUsageTracker';
+import { AdventureTheme } from '../../types';
+import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../../constants';
+import { SYSTEM_INSTRUCTION } from './systemPrompt';
+import { ai } from '../geminiClient';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { isApiConfigured } from '../apiClient';
+import { isServerOrClientError } from '../../utils/aiErrorUtils';
+import { addProgressSymbol } from '../../utils/loadingProgress';
+import { recordModelCall } from '../../utils/modelUsageTracker';
 
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (

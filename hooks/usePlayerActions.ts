@@ -18,10 +18,13 @@ import {
   LoadingReason,
   TurnChanges,
 } from '../types';
-import { executeAIMainTurn } from '../services/gameAIService';
+import {
+  executeAIMainTurn,
+  parseAIResponse,
+  buildMainGameTurnPrompt
+} from '../services/storyteller';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import { fetchCorrectedName_Service } from '../services/corrections';
-import { parseAIResponse } from '../services/aiResponseParser';
 import {
   FREE_FORM_ACTION_COST,
   MAX_LOG_MESSAGES,
@@ -33,7 +36,6 @@ import {
   buildItemChangeRecords,
   applyAllItemChanges,
 } from '../utils/gameLogicUtils';
-import { formatMainGameTurnPrompt } from '../services/storyteller';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
 
@@ -342,7 +344,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           i.holderId !== PLAYER_HOLDER_ID &&
           i.holderId === currentFullState.currentMapNodeId
       );
-      const prompt = formatMainGameTurnPrompt(
+      const prompt = buildMainGameTurnPrompt(
         currentFullState.currentScene,
         action,
         currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
