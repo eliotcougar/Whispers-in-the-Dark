@@ -33,7 +33,7 @@ const applyItemActionCore = (
     // Gain new item. If an item with the same id or name exists elsewhere,
     // treat this as taking that item (transfer) rather than duplicating it.
     const itemData = payload as Item;
-    const existing = findItemByIdentifier([itemData.id, itemData.name], newInventory) as Item | null;
+    const existing = findItemByIdentifier([itemData.id, itemData.name], newInventory, false, true) as Item | null;
 
     if (existing && existing.holderId !== PLAYER_HOLDER_ID) {
       const idx = newInventory.findIndex(i => i.id === existing.id);
@@ -76,7 +76,7 @@ const applyItemActionCore = (
   if (fromId === null && toId) {
     // Put new item elsewhere (no player animation)
     const itemData = payload as Item;
-    const existing = findItemByIdentifier([itemData.id, itemData.name], newInventory) as Item | null;
+    const existing = findItemByIdentifier([itemData.id, itemData.name], newInventory, false, true) as Item | null;
     const id = existing ? existing.id : (itemData as Partial<Item>).id || buildItemId(itemData.name);
     const finalItem: Item = {
       id,
@@ -101,7 +101,7 @@ const applyItemActionCore = (
   if (fromId === PLAYER_HOLDER_ID && toId === null) {
     // Lose item
     const ref = payload as ItemReference;
-    const itemToRemove = findItemByIdentifier([ref.id, ref.name], newInventory) as Item | null;
+    const itemToRemove = findItemByIdentifier([ref.id, ref.name], newInventory, false, true) as Item | null;
     if (itemToRemove) newInventory = newInventory.filter(i => i.id !== itemToRemove.id);
     return newInventory;
   }
@@ -109,7 +109,7 @@ const applyItemActionCore = (
   if (fromId !== null && toId !== null && fromId === toId) {
     // Update item in-place
     const updatePayload = payload as Item;
-    const existingItem = findItemByIdentifier([updatePayload.id, updatePayload.name], newInventory) as Item | null;
+    const existingItem = findItemByIdentifier([updatePayload.id, updatePayload.name], newInventory, false, true) as Item | null;
     if (!existingItem) {
       const identifierForLog = updatePayload.id || updatePayload.name || 'unknown';
       console.warn(`applyItemActionCore ('update'): Item "${identifierForLog}" not found in inventory.`);
@@ -150,7 +150,7 @@ const applyItemActionCore = (
       console.warn('applyItemActionCore ("give"): Missing fromId or toId.', givePayload);
       return newInventory;
     }
-    const itemToMove = findItemByIdentifier([givePayload.id, givePayload.name], newInventory) as Item | null;
+    const itemToMove = findItemByIdentifier([givePayload.id, givePayload.name], newInventory, false, true) as Item | null;
     if (!itemToMove) {
       console.warn(`applyItemActionCore ('give'): Item not found for transfer.`);
       return newInventory;
@@ -275,7 +275,7 @@ export const buildItemChangeRecords = (
       if (!gainedItemData.id) {
         gainedItemData.id = buildItemId(gainedItemData.name);
       }
-      const existing = findItemByIdentifier([gainedItemData.id, gainedItemData.name], currentInventory) as Item | null;
+      const existing = findItemByIdentifier([gainedItemData.id, gainedItemData.name], currentInventory, false, true) as Item | null;
       if (existing && existing.holderId !== PLAYER_HOLDER_ID) {
         const oldItemCopy = { ...existing };
         const newItemData: Item = { ...oldItemCopy, holderId: PLAYER_HOLDER_ID };
@@ -304,7 +304,7 @@ export const buildItemChangeRecords = (
       }
     } else if (change.action === 'give' && typeof itemPayload === 'object') {
       const givePayload = itemPayload as GiveItemPayload;
-      const oldItem = findItemByIdentifier([givePayload.id, givePayload.name], currentInventory) as Item | null;
+      const oldItem = findItemByIdentifier([givePayload.id, givePayload.name], currentInventory, false, true) as Item | null;
       if (oldItem) {
         const oldItemCopy = { ...oldItem };
         const newItemData: Item = { ...oldItemCopy, holderId: givePayload.toId };
@@ -312,11 +312,11 @@ export const buildItemChangeRecords = (
       }
     } else if (change.action === 'lose') {
       const ref = itemPayload as ItemReference;
-      const lostItem = findItemByIdentifier([ref.id, ref.name], currentInventory) as Item | null;
+      const lostItem = findItemByIdentifier([ref.id, ref.name], currentInventory, false, true) as Item | null;
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };
     } else if (change.action === 'update' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
       const updatePayload = itemPayload as Item;
-      const oldItem = findItemByIdentifier([updatePayload.id, updatePayload.name], currentInventory) as Item | null;
+      const oldItem = findItemByIdentifier([updatePayload.id, updatePayload.name], currentInventory, false, true) as Item | null;
 
       if (oldItem) {
         const oldItemCopy = { ...oldItem };

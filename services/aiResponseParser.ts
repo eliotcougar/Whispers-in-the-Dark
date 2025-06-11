@@ -253,7 +253,7 @@ async function processItemChanges(
                     itemObj.holderId = typeof itemObj.holderId === 'string' && itemObj.holderId.trim() !== '' ? itemObj.holderId : PLAYER_HOLDER_ID;
                     currentItemPayload = itemObj;
 
-                    const existing = findItemByIdentifier([itemObj.id, itemObj.name], context.currentInventoryForCorrection) as Item | null;
+                    const existing = findItemByIdentifier([itemObj.id, itemObj.name], context.currentInventoryForCorrection, false, true) as Item | null;
                     if (ic.action === 'gain' && existing && existing.holderId !== PLAYER_HOLDER_ID) {
                         ic.action = 'give';
                         currentItemPayload = {
