@@ -160,6 +160,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
+        playerActionText: undefined,
       }).then(() => {
         commitGameState(draftState);
         setIsLoading(false);

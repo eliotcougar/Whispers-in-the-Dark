@@ -42,6 +42,7 @@ export interface ProcessAiResponseOptions {
   baseStateSnapshot: FullGameState;
   isFromDialogueSummary?: boolean;
   scoreChangeFromAction?: number;
+  playerActionText?: string;
 }
 
 export type ProcessAiResponseFn = (
@@ -104,7 +105,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       draftState,
       options
     ) => {
-      const { baseStateSnapshot, isFromDialogueSummary = false, scoreChangeFromAction = 0 } = options;
+      const { baseStateSnapshot, isFromDialogueSummary = false, scoreChangeFromAction = 0, playerActionText } = options;
 
       const turnChanges: TurnChanges = {
         itemChanges: [],
@@ -233,6 +234,19 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
                 currentChange.item = { id: correctedName, name: correctedName };
               }
               setLoadingReason(originalLoadingReason);
+            }
+
+            const dropText = `${aiData.logMessage || ''} ${'sceneDescription' in aiData ? aiData.sceneDescription : ''} ${playerActionText || ''}`.toLowerCase();
+            const dropIndicators = ['drop', 'dropped', 'leave', 'left', 'put down', 'set down', 'place', 'placed'];
+            if (dropIndicators.some(word => dropText.includes(word))) {
+              const invItem = baseStateSnapshot.inventory.find(i =>
+                i.holderId === PLAYER_HOLDER_ID &&
+                ((itemRef.id && i.id === itemRef.id) || (itemRef.name && i.name.toLowerCase() === itemRef.name.toLowerCase()))
+              );
+              if (invItem) {
+                currentChange.action = 'put';
+                currentChange.item = { ...invItem, holderId: baseStateSnapshot.currentMapNodeId || 'unknown' } as Item;
+              }
             }
           }
           correctedAndVerifiedItemChanges.push(currentChange);
@@ -385,7 +399,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
 
-        await processAiResponse(parsedData, currentThemeObj, draftState, { baseStateSnapshot, scoreChangeFromAction });
+        await processAiResponse(parsedData, currentThemeObj, draftState, { baseStateSnapshot, scoreChangeFromAction, playerActionText: action });
       } catch (e: unknown) {
         encounteredError = true;
         console.error('Error executing player action:', e);

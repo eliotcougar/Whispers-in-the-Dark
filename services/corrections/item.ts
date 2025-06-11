@@ -7,6 +7,7 @@ import { MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../../constants';
 import { isValidItem } from '../parsers/validation';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
+import { PLAYER_HOLDER_ID } from '../../constants';
 
 /**
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
@@ -139,9 +140,38 @@ export const fetchCorrectedItemAction_Service = async (
     return null;
   }
 
+  // Basic heuristic check before engaging the AI
+  try {
+    const parsed = JSON.parse(malformedItemChangeString) as Record<string, unknown>;
+    if (parsed && typeof parsed === 'object') {
+      const rawAction = parsed['action'];
+      if (typeof rawAction === 'string' && ['gain', 'lose', 'update', 'put', 'give', 'take'].includes(rawAction)) {
+        return rawAction as ItemChange['action'];
+      }
+
+      const itemObj = parsed['item'];
+      if (itemObj && typeof itemObj === 'object') {
+        const maybe = itemObj as Record<string, unknown>;
+        const fromId = typeof maybe['fromId'] === 'string' ? maybe['fromId'] : undefined;
+        const toId = typeof maybe['toId'] === 'string' ? maybe['toId'] : undefined;
+        const holderId = typeof maybe['holderId'] === 'string' ? maybe['holderId'] : undefined;
+
+        if (fromId && toId) {
+          return 'give';
+        }
+
+        if (!fromId && !toId && holderId && holderId.toLowerCase() !== PLAYER_HOLDER_ID) {
+          return 'put';
+        }
+      }
+    }
+  } catch {
+    /* ignore parse error */
+  }
+
   const prompt = `
 Role: You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
-Valid 'action' types are: "gain", "lose", "update".
+Valid 'action' types are: "gain", "lose", "update", "put", "give", "take".
 
 Malformed ItemChange Object:
 \`\`\`json
@@ -153,23 +183,26 @@ Narrative Context:
 - Scene Description: "${sceneDescription || 'Not specified, infer from log.'}"
 - Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
 
-Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "lose", or "update") that was intended.
+Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "lose", "update", "put", "give", or "take") that was intended.
 - "gain": Player acquired a new item.
 - "lose": Player lost an item or it was consumed.
 - "update": An existing item's properties changed.
+- "put": A new item appeared somewhere other than the player's inventory.
+- "give": An existing item changed holders.
+- "take": Same as "give" but may be phrased from the taker's perspective.
 
 Respond ONLY with the single corrected action string.
 If no action can be confidently determined, respond with an empty string.`;
 
-  const systemInstructionForFix = `Determine the correct item 'action' ("gain", "lose", "update") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
+  const systemInstructionForFix = `Determine the correct item 'action' ("gain", "lose", "update", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const correctedActionResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
     if (correctedActionResponse !== null) {
       const action = correctedActionResponse.trim().toLowerCase();
-      if (action === 'gain' || action === 'lose' || action === 'update') {
+      if (['gain', 'lose', 'update', 'put', 'give', 'take'].includes(action)) {
         console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, action, `.`);
-        return action;
+        return action as ItemChange['action'];
       } else if (action === '') {
         console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
         return null;

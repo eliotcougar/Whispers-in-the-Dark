@@ -7,6 +7,10 @@
 import { VALID_ITEM_TYPES_STRING } from '../constants'; // Import needed constant
 
 export const ITEMS_GUIDE = `- "itemChange" is ALWAYS an array. If no items change this turn, send an empty array: "itemChange": [].
+Valid actions are 'gain', 'lose', 'update', 'put', 'give', and 'take'.
+CRITICALLY IMPORTANT: Use 'put' or 'gain' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory.
+CRITICALLY IMPORTANT: Use 'give' or 'take' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
+CRITICALLY IMPORTANT: Use 'lose' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from play.
 Structure for individual ItemChange objects within the array:
 - Example for gaining a new item:
   { "action": "gain",
@@ -30,11 +34,41 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
-- Example for losing an item:
+- Example for putting a new item into another inventory or location:
+  { "action": "put",
+    item: {
+      "name": "Rusty Key",
+      "type": "key",
+      "description": "Opens an old door.",
+      "holderId": "char_guard_4f3a" /* ID of the character or map node to hold the item */
+    }
+  }
+
+- Example for losing, destroying, completely removing the item from the world:
   { "action": "lose",
     item:{
       "id": "item_old_lantern_flickering_7fr4", /* REQUIRED: Unique identifier for the item being lost. Choose from the provided Player inventory. */
       "name": "Old Lantern (flickering)" /* REQUIRED: Full name of the item being lost, including any notes in brackets. Choose from the provided Player inventory. */
+    }
+  }
+
+- Example for giving an existing item from one holder to another, or for placing it in the current location:
+  { "action": "give",
+    item: {
+      "id": "item_iron_sword_ab12",
+      "name": "Iron Sword",
+      "fromId": "player",
+      "toId": "char_guard_4f3a"
+    }
+  }
+
+- "take" is an alias for "give". It has the same structure and is used when the player takes an existing item from somewhere or someone. Example:
+  { "action": "take",
+    item: {
+      "id": "item_coin_pouch_8f2c",
+      "name": "Coin Pouch",
+      "fromId": "npc_bandit_8f2c",
+      "toId": "player"
     }
   }
 

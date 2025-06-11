@@ -276,6 +276,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         await processAiResponse(parsedData, themeObjToLoad, draftState, {
           baseStateSnapshot: baseStateSnapshotForInitialTurn,
           forceEmptyInventory: !isTransitioningFromShift && isRestart,
+          playerActionText: undefined,
         });
 
 
@@ -484,6 +485,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       await processAiResponse(parsedData, currentThemeObj, draftState, {
         baseStateSnapshot,
         scoreChangeFromAction: 0,
+        playerActionText: undefined,
       });
 
       draftState.turnsSinceLastShift += 1;

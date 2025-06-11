@@ -3,7 +3,7 @@
  * @description Utilities for validating and parsing AI storyteller responses.
  */
 
-import { GameStateFromAI, Item, ItemChange, ItemReference, Character, MapData,
+import { GameStateFromAI, Item, ItemChange, ItemReference, GiveItemPayload, Character, MapData,
     ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload,
     MapNode, AdventureTheme } from '../types';
 import {
@@ -22,7 +22,7 @@ import {
 } from './corrections';
 
 import { extractJsonFromFence } from '../utils/jsonUtils';
-import { buildCharacterId } from '../utils/entityUtils';
+import { buildCharacterId, findItemByIdentifier } from '../utils/entityUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
 
 /** Interface describing contextual data required by the parsing helpers. */
@@ -195,7 +195,7 @@ async function processItemChanges(
             continue;
         }
 
-        if (typeof ic.action !== 'string' || !['gain', 'lose', 'update'].includes(ic.action)) {
+        if (typeof ic.action !== 'string' || !['gain', 'lose', 'update', 'put', 'give', 'take'].includes(ic.action)) {
             console.warn("parseAIResponse ('itemChange'): Invalid itemChange 'action'. Attempting correction.", ic);
             const correctedAction = await fetchCorrectedItemAction_Service(
                 context.logMessageFromPayload || baseData.logMessage,
@@ -203,7 +203,7 @@ async function processItemChanges(
                 JSON.stringify(ic),
                 context.currentTheme
             );
-            if (correctedAction && ['gain', 'lose', 'update'].includes(correctedAction)) {
+            if (correctedAction && ['gain', 'lose', 'update', 'put', 'give', 'take'].includes(correctedAction)) {
                 ic.action = correctedAction;
                 console.log(`parseAIResponse ('itemChange'): Corrected itemChange action to: "${correctedAction}"`, ic);
             } else {
@@ -216,7 +216,7 @@ async function processItemChanges(
         let currentInvalidPayload = ic.invalidPayload;
 
         if (
-            ic.action === 'gain' &&
+            (ic.action === 'gain' || ic.action === 'put') &&
             currentItemPayload &&
             typeof currentItemPayload === 'object' &&
             !('holderId' in currentItemPayload)
@@ -226,10 +226,11 @@ async function processItemChanges(
 
         switch (ic.action) {
             case 'gain':
+            case 'put':
                 if (!isValidItem(currentItemPayload, 'gain')) {
                     console.warn(`parseAIResponse ('gain'): Invalid item structure. Attempting correction.`, currentItemPayload);
                     const corrected = await fetchCorrectedItemPayload_Service(
-                        ic.action,
+                        'gain',
                         context.logMessageFromPayload || baseData.logMessage,
                         context.sceneDescriptionFromPayload || baseData.sceneDescription,
                         JSON.stringify(currentItemPayload),
@@ -251,6 +252,18 @@ async function processItemChanges(
                     itemObj.isActive = itemObj.isActive ?? false;
                     itemObj.holderId = typeof itemObj.holderId === 'string' && itemObj.holderId.trim() !== '' ? itemObj.holderId : PLAYER_HOLDER_ID;
                     currentItemPayload = itemObj;
+
+                    const existing = findItemByIdentifier([itemObj.id, itemObj.name], context.currentInventoryForCorrection, false, true) as Item | null;
+                    if (ic.action === 'gain' && existing && existing.holderId !== PLAYER_HOLDER_ID) {
+                        ic.action = 'give';
+                        currentItemPayload = {
+                            id: existing.id,
+                            name: existing.name,
+                            fromId: existing.holderId,
+                            toId: PLAYER_HOLDER_ID,
+                        } as GiveItemPayload;
+                        currentInvalidPayload = undefined;
+                    }
                 }
                 break;
             case 'update': {
@@ -308,6 +321,29 @@ async function processItemChanges(
                 }
                 break;
             }
+            case 'give':
+            case 'take':
+                if (currentItemPayload && typeof currentItemPayload === 'object') {
+                    const maybe = currentItemPayload as Partial<GiveItemPayload>;
+                    if ((maybe.id || maybe.name) && typeof maybe.toId === 'string' && typeof maybe.fromId === 'string') {
+                        currentItemPayload = {
+                            id: typeof maybe.id === 'string' ? maybe.id : undefined,
+                            name: typeof maybe.name === 'string' ? maybe.name : undefined,
+                            fromId: maybe.fromId,
+                            fromName: typeof maybe.fromName === 'string' ? maybe.fromName : undefined,
+                            toId: maybe.toId,
+                            toName: typeof maybe.toName === 'string' ? maybe.toName : undefined,
+                        } as GiveItemPayload;
+                        currentInvalidPayload = undefined;
+                    } else {
+                        currentInvalidPayload = currentItemPayload;
+                        currentItemPayload = null;
+                    }
+                } else {
+                    currentInvalidPayload = currentItemPayload;
+                    currentItemPayload = null;
+                }
+                break;
             case 'lose':
                 if (isValidItemReference(currentItemPayload)) {
                     currentInvalidPayload = undefined;

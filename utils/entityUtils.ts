@@ -93,6 +93,7 @@ export const findItemByIdentifier = (
   identifiers: (string | null | undefined)[],
   items: Item[],
   getAll = false,
+  ignoreCase = false,
 ): Item | Item[] | null => {
   if (!Array.isArray(identifiers) || identifiers.length === 0) {
     return getAll ? [] : null;
@@ -100,13 +101,16 @@ export const findItemByIdentifier = (
 
   const [id, name] = identifiers;
   const results: Item[] = [];
+  const nameToCheck = typeof name === 'string' ? name : undefined;
+  const cmp = (a: string, b: string) =>
+    ignoreCase ? a.toLowerCase() === b.toLowerCase() : a === b;
 
   if (id) {
     const idMatch = items.find(i => i.id === id);
     if (idMatch) {
-      if (name && idMatch.name !== name) {
+      if (nameToCheck && !cmp(idMatch.name, nameToCheck)) {
         console.warn(
-          `findItemByIdentifier: Provided name "${name}" does not match item name "${idMatch.name}" for id "${id}".`,
+          `findItemByIdentifier: Provided name "${nameToCheck}" does not match item name "${idMatch.name}" for id "${id}".`,
         );
       }
       if (!getAll) return idMatch;
@@ -115,14 +119,25 @@ export const findItemByIdentifier = (
   }
 
   if (!id || getAll) {
-    if (name) {
-      const nameMatches = items.filter(i => i.name === name && (!id || i.id !== id));
+    if (nameToCheck) {
+      const nameMatches = items.filter(i => cmp(i.name, nameToCheck) && (!id || i.id !== id));
       if (getAll) {
         results.push(...nameMatches);
       } else if (nameMatches.length > 0) {
         return nameMatches[0];
       }
     }
+  }
+
+  if (!getAll && ignoreCase && nameToCheck) {
+    const normalized = nameToCheck.toLowerCase().replace(/\s+/g, ' ').trim();
+    const stripped = normalized.replace(/\([^)]*\)/g, '').trim();
+    const fuzzy = items.find(i => {
+      const n = i.name.toLowerCase().replace(/\s+/g, ' ').trim();
+      const ns = n.replace(/\([^)]*\)/g, '').trim();
+      return n === normalized || ns === stripped;
+    });
+    if (fuzzy) return fuzzy;
   }
 
   // Aliases placeholder - none exist currently
