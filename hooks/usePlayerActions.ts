@@ -33,7 +33,7 @@ import {
   buildItemChangeRecords,
   applyAllItemChanges,
 } from '../utils/gameLogicUtils';
-import { formatMainGameTurnPrompt } from '../utils/promptFormatters';
+import { formatMainGameTurnPrompt } from '../services/storyteller';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
 
