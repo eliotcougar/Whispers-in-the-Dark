@@ -235,28 +235,24 @@ export const formatMapContextForPrompt = (
     };
   }
 
-  const locationParts: string[] = [
-    ` - You are currently at ${currentNode.id} - "${currentNode.placeName}".`,
-  ];
+  let locationContext = ` - You are currently at ${currentNode.id} - "${currentNode.placeName}".`;
   if (currentNode.data.description) {
-    locationParts.push(`${currentNode.data.description}.`);
+    locationContext += ` ${currentNode.data.description}.`;
   }
 
   const parentNodeForCurrent =
-    currentNode.data.nodeType === 'feature' &&
-    currentNode.data.parentNodeId &&
-    currentNode.data.parentNodeId !== 'Universe'
+    currentNode.data.nodeType === 'feature' && currentNode.data.parentNodeId && currentNode.data.parentNodeId !== 'Universe'
       ? allNodesForTheme.find(n => n.id === currentNode.data.parentNodeId)
       : null;
 
   if (parentNodeForCurrent) {
     if (parentNodeForCurrent.data.nodeType === 'feature') {
-      locationParts.push(`This is a feature of "${parentNodeForCurrent.placeName}".`);
+      locationContext += ` This is a feature of "${parentNodeForCurrent.placeName}".`;
     } else {
-      locationParts.push(`This is part of the larger known location: "${parentNodeForCurrent.placeName}".`);
+      locationContext += ` This is part of the larger known location: "${parentNodeForCurrent.placeName}".`;
     }
   }
-  const locationContext = locationParts.join(' ') + '\n';
+  locationContext += '\n';
 
   const areaMainNodeId =
     currentNode.data.nodeType === 'feature'
@@ -267,41 +263,45 @@ export const formatMapContextForPrompt = (
     const areaMainNode = allNodesForTheme.find(node => node.id === areaMainNodeId);
     if (areaMainNode && !(areaMainNode.data.nodeType === 'feature')) {
       const exitFeatureNodesInCurrentArea = allNodesForTheme.filter(
-        node => node.data.nodeType === 'feature' && node.data.parentNodeId === areaMainNode.id
+        node => node.data.nodeType === "feature" && node.data.parentNodeId === areaMainNode.id
       );
-      const exitLines: string[] = [];
-      for (const exitFeature of exitFeatureNodesInCurrentArea) {
-        if (exitFeature.id === currentNode.id) continue;
-        for (const edge of allEdgesForTheme) {
-          if (edge.sourceNodeId !== exitFeature.id && edge.targetNodeId !== exitFeature.id) continue;
-          if (edge.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) continue;
-          const otherEndNodeId = edge.sourceNodeId === exitFeature.id ? edge.targetNodeId : edge.sourceNodeId;
-          const entryFeature = allNodesForTheme.find(node => node.id === otherEndNodeId);
-          if (
-            entryFeature &&
-            entryFeature.data.nodeType === 'feature' &&
-            entryFeature.data.parentNodeId &&
-            entryFeature.data.parentNodeId !== areaMainNode.id &&
-            entryFeature.data.parentNodeId !== 'Universe'
-          ) {
-            const otherAreaMainNode = allNodesForTheme.find(
-              node => node.id === entryFeature.data.parentNodeId && !(node.data.nodeType === 'feature')
-            );
-            if (otherAreaMainNode) {
-              const edgeStatus = edge.data.status || 'open';
-              const edgeType = edge.data.type || 'path';
-              exitLines.push(
-                ` - '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
+      const exitStrings: string[] = [];
+      if (exitFeatureNodesInCurrentArea.length > 0) {
+        for (const exitFeature of exitFeatureNodesInCurrentArea) {
+          if (exitFeature.id === currentNode.id) continue;
+          for (const edge of allEdgesForTheme) {
+            if (edge.sourceNodeId !== exitFeature.id && edge.targetNodeId !== exitFeature.id) continue;
+            if (edge.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) continue;
+            const otherEndNodeId = edge.sourceNodeId === exitFeature.id ? edge.targetNodeId : edge.sourceNodeId;
+            const entryFeature = allNodesForTheme.find(node => node.id === otherEndNodeId);
+            if (
+              entryFeature &&
+              entryFeature.data.nodeType === 'feature' &&
+              entryFeature.data.parentNodeId &&
+              entryFeature.data.parentNodeId !== areaMainNode.id &&
+              entryFeature.data.parentNodeId !== 'Universe'
+            ) {
+              const otherAreaMainNode = allNodesForTheme.find(
+                node => node.id === entryFeature.data.parentNodeId && !(node.data.nodeType === "feature")
               );
+              if (otherAreaMainNode) {
+                const edgeStatus = edge.data.status || 'open';
+                const edgeType = edge.data.type || 'path';
+                exitStrings.push(
+                  ` - '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
+                );
+              }
             }
           }
         }
       }
-
-      exitsContext = exitLines.length > 0
-        ? [`Possible Exits from Current Main Area (${areaMainNode.placeName}):`, ...exitLines].join('\n')
-        : `No mapped exits from the current main area ("${areaMainNode.placeName}") to other major areas are known.`;
-    } else if (areaMainNode && areaMainNode.data.nodeType === 'feature') {
+      if (exitStrings.length > 0) {
+        exitsContext =
+          '\nPossible Exits from Current Main Area (' + areaMainNode.placeName + "):\n" + exitStrings.join('\n');
+      } else {
+        exitsContext = `\nNo mapped exits from the current main area ("${areaMainNode.placeName}") to other major areas are known.`;
+      }
+    } else if (areaMainNode && (areaMainNode.data.nodeType === 'feature')) {
       exitsContext = `You are at a detailed feature ("${areaMainNode.placeName}"). Connections to other major areas are listed below if available.`;
     }
   } else {
@@ -334,22 +334,24 @@ export const formatMapContextForPrompt = (
 
   let pathsCurrentContext = '';
   if (pathsFromCurrentNode.length > 0) {
-    pathsCurrentContext = [
-      `Paths leading directly from your current spot (${currentNode.placeName}):`,
-      ...pathsFromCurrentNode,
-    ].join('\n');
+    pathsCurrentContext =
+      'Paths leading directly from your current spot (' + currentNode.placeName + "):\n" + pathsFromCurrentNode.join('\n');
   }
 
   let pathsParentContext = '';
   if (pathsFromParentNode.length > 0 && parentNodeForCurrent) {
-    const lines = [
-      `Additional paths and features within or connected to "${parentNodeForCurrent.placeName}":`,
-      ...pathsFromParentNode,
-    ];
-    pathsParentContext = lines.join('\n');
+    if (pathsCurrentContext) pathsParentContext += '\n\n';
+    pathsParentContext +=
+      `Additional paths and features within or connected to "${parentNodeForCurrent.placeName}":\n` +
+      pathsFromParentNode.join('\n');
   }
-  if (pathsCurrentContext) pathsCurrentContext += '\n';
-  if (pathsParentContext) pathsParentContext += '\n';
+  if (pathsCurrentContext || pathsParentContext) {
+    if (!pathsParentContext) {
+      pathsCurrentContext += '\n';
+    } else {
+      pathsParentContext += '\n';
+    }
+  }
 
   let nearbyContext = '';
   const nearbyNodeIds = getNearbyNodeIds(currentNode.id, 2, allNodesForTheme, allEdgesForTheme);
