@@ -25,6 +25,7 @@ import {
   MAX_RETRIES
 } from '../constants';
 import { SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION } from './cartographer/systemPrompt';
+import { buildMapUpdatePrompt } from './cartographer/promptBuilder';
 import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';
 import { isValidAIMapUpdatePayload } from '../utils/mapUpdateValidationUtils';
@@ -441,23 +442,16 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
     : "No main places are pre-defined for this theme.";
 
 
-  const basePrompt = `
-Narrative Context for Map Update:
-- Current Theme: "${currentTheme.name}"
-- System Modifier for Theme: ${currentTheme.systemInstructionModifier}
-- Player's Current Location Description (localPlace): "${localPlace}"
-- ${previousMapNodeContext}
-- Scene Description: "${sceneDesc}"
-- Log Message (outcome of last action): "${logMsg}"
-- Map Hint from Storyteller: "${mapHint}"
-- All Known Main Locations for this Theme (these are expected to be main map nodes): ${allKnownMainPlacesString}.
-- Your task is to analyze this narrative context and suggest additions, updates, or removals to the map data.
-
-${existingMapContext}
----
-Based on the Narrative Context and existing map context, provide a JSON response adhering to the MAP_UPDATE_SYSTEM_INSTRUCTION.
-
-`;
+  const basePrompt = buildMapUpdatePrompt(
+    sceneDesc,
+    logMsg,
+    localPlace,
+    mapHint,
+    currentTheme,
+    previousMapNodeContext,
+    existingMapContext,
+    allKnownMainPlacesString,
+  );
   let prompt = basePrompt;
   const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };
   let validParsedPayload: AIMapUpdatePayload | null = null;
