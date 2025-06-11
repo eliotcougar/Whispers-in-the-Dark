@@ -6,7 +6,7 @@
 import { GenerateContentResponse } from "@google/genai";
 import { AdventureTheme } from '../types';
 import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../constants';
-import { SYSTEM_INSTRUCTION } from '../prompts/mainPrompts';
+import { SYSTEM_INSTRUCTION } from './storyteller/systemPrompt';
 import { ai } from './geminiClient';
 import { dispatchAIRequest } from './modelDispatcher';
 import { isApiConfigured } from './apiClient';

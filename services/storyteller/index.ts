@@ -5,6 +5,7 @@
 
 export * from '../gameAIService';
 export * from '../dialogueService';
+export * from "./systemPrompt";
 export * from '../aiResponseParser';
 export * from '../mapUpdateService';
 export * from '../modelDispatcher';
