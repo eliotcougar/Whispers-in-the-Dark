@@ -3,7 +3,7 @@
  * @description Re-exports utilities for interacting with the Storyteller AI.
  */
 
-export * from '../gameAIService';
+export * from './api';
 export * from '../dialogueService';
 export * from "./systemPrompt";
 export * from '../aiResponseParser';

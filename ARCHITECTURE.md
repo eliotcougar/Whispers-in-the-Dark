@@ -57,7 +57,7 @@ This layer abstracts external interactions and complex data processing.
 
 *   **AI Interaction Services:**
     *   `services/geminiClient.ts`: Initializes the Google Gemini API client.
-    *   `services/gameAIService.ts`: Handles main game turn AI calls and theme summarization.
+    *   `services/storyteller/api.ts`: Handles main game turn AI calls and theme summarization.
     *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
     *   `services/mapUpdateService.ts`:
@@ -125,7 +125,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
 
 ### 2.2. Location Data Flow
 
-*   **Storyteller AI (`gameAIService`)**: Provides `sceneDescription`, `logMessage`, `localPlace`, and a `mapUpdated` flag.
+*   **Storyteller AI (`storyteller/api`)**: Provides `sceneDescription`, `logMessage`, `localPlace`, and a `mapUpdated` flag.
 *   **`useGameLogic`**:
     *   If `mapUpdated` is true or `localPlace` significantly changes, calls `mapUpdateService`.
     *   Receives `AIMapUpdatePayload` from `mapUpdateService`.

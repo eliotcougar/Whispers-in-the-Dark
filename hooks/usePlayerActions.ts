@@ -18,7 +18,7 @@ import {
   LoadingReason,
   TurnChanges,
 } from '../types';
-import { executeAIMainTurn } from '../services/gameAIService';
+import { executeAIMainTurn } from '../services/storyteller/api';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import { fetchCorrectedName_Service } from '../services/corrections';
 import { parseAIResponse } from '../services/aiResponseParser';
