@@ -60,10 +60,12 @@ This layer abstracts external interactions and complex data processing.
     *   `services/storyteller/api.ts`: Handles main game turn AI calls and theme summarization.
     *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
-    *   `services/cartographer/api.ts` (Cartographer service):
-        *   Receives narrative context and current `MapData`.
-        *   Prompts an auxiliary AI (using `MAP_UPDATE_SYSTEM_INSTRUCTION`) to get an `AIMapUpdatePayload`.
-        *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
+    *   `services/cartographer/` (Cartographer service):
+        *   `api.ts` orchestrates map update requests.
+        *   `promptBuilder.ts` constructs the AI prompt.
+        *   `responseParser.ts` validates and extracts the AI payload.
+        *   `systemPrompt.ts` holds `MAP_UPDATE_SYSTEM_INSTRUCTION`.
+        *   `index.ts` re-exports these utilities.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
     *   `services/storyteller/responseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
