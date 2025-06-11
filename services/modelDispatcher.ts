@@ -8,6 +8,7 @@ import { ai } from './geminiClient';
 import { isApiConfigured } from './apiClient';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import { MinimalModelCallRecord } from '../types';
+import { recordModelCall } from '../utils/modelUsageTracker';
 
 /** Determines if a model supports separate system instructions. */
 const supportsSystemInstruction = (model: string): boolean => !model.startsWith('gemma-');
@@ -44,6 +45,7 @@ export const dispatchAIRequest = async (
         cfg.systemInstruction = systemInstruction;
       }
 
+      recordModelCall(model);
       const response = await ai.models.generateContent({
         model,
         contents,
@@ -85,6 +87,7 @@ export const dispatchAIRequestWithModelInfo = async (
       if (modelSupportsSystem && systemInstruction) {
         cfg.systemInstruction = systemInstruction;
       }
+      recordModelCall(model);
 
       const response = await ai.models.generateContent({
         model,

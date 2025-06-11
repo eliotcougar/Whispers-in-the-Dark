@@ -4,6 +4,7 @@
  * @description Top-level toolbar with action buttons.
  */
 import React from 'react';
+import ModelUsageIndicators from './ModelUsageIndicators';
 import {
   CoinIcon,
   VisualizeIcon, BookOpenIcon, MenuIcon, InfoIcon, RealityShiftIcon, ScrollIcon, MapIcon // Added MapIcon
@@ -54,7 +55,7 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
           <span className="text-amber-400 font-semibold text-lg">{score}</span>
         </div>
         {currentThemeName && (
-          <div 
+          <div
             className="flex items-center p-2 border border-indigo-500 rounded-md shadow-md"
             title={`Turns since last reality shift: ${turnsSinceLastShift}`}
             aria-label={`Turns since last reality shift: ${turnsSinceLastShift}`}
@@ -65,6 +66,9 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
             <span className="text-indigo-400 font-semibold text-lg">{turnsSinceLastShift}</span>
           </div>
         )}
+        <div className="p-2 border border-slate-500 rounded-md shadow-md">
+          <ModelUsageIndicators />
+        </div>
       </div>
 
 
