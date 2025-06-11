@@ -289,7 +289,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         if (!isTransitioningFromShift || draftState.globalTurnNumber === 0) {
           draftState.globalTurnNumber = 1;
         }
-      } catch (e: unknown) {
+      } catch (e) {
         console.error('Error loading initial game:', e);
         if (isServerOrClientError(e)) {
           draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
@@ -494,7 +494,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       draftState.turnsSinceLastShift += 1;
       draftState.globalTurnNumber += 1;
-    } catch (e: unknown) {
+    } catch (e) {
       console.error('Error retrying last main AI request:', e);
       const errMsg = e instanceof Error ? e.message : String(e);
       setError(`Retry failed: ${errMsg}.`);

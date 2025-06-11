@@ -402,7 +402,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         );
 
         await processAiResponse(parsedData, currentThemeObj, draftState, { baseStateSnapshot, scoreChangeFromAction, playerActionText: action });
-      } catch (e: unknown) {
+      } catch (e) {
         encounteredError = true;
         console.error('Error executing player action:', e);
         if (isServerOrClientError(e)) {
