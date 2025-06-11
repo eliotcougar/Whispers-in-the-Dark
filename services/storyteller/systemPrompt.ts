@@ -1,11 +1,10 @@
-
 /**
- * @file mainPrompts.ts
- * @description Core system prompt templates for the main storytelling flow.
+ * @file systemPrompt.ts
+ * @description System instruction for the main storyteller AI.
  */
 
-import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from './helperPrompts';
-import { VALID_PRESENCE_STATUS_VALUES_STRING, ALIAS_INSTRUCTION } from '../constants';
+import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from '../../prompts/helperPrompts';
+import { VALID_PRESENCE_STATUS_VALUES_STRING, ALIAS_INSTRUCTION } from '../../constants';
 
 export const SYSTEM_INSTRUCTION = `You are the Dungeon Master for a text-based adventure game. Your role is to describe scenes, provide action/dialogue choices, manage inventory, player goals, track known characters (including their presence, general location, and precise location in scene), and maintain local time/environment/place.
 
