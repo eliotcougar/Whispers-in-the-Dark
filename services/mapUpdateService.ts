@@ -177,6 +177,9 @@ const parseAIMapUpdateResponse = (
       if (Array.isArray(payload.edgesToRemove)) {
         payload.edgesToRemove = filterEdgeArray(payload.edgesToRemove);
       }
+
+      // Normalize any synonym values before validation so parsing succeeds
+      normalizeStatusAndTypeSynonyms(payload);
     }
     if (isValidAIMapUpdatePayload(payload)) {
       return payload;
