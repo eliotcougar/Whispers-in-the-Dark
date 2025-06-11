@@ -1,29 +1,29 @@
 /**
- * @file aiResponseParser.ts
+ * @file responseParser.ts
  * @description Utilities for validating and parsing AI storyteller responses.
  */
 
 import { GameStateFromAI, Item, ItemChange, ItemReference, GiveItemPayload, Character, MapData,
     ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload,
-    MapNode, AdventureTheme } from '../types';
+    MapNode, AdventureTheme } from '../../types';
 import {
     isValidItem,
     isValidItemReference,
     isValidCharacterUpdate,
     isValidNewCharacterPayload,
     isDialogueSetupPayloadStructurallyValid
-} from './parsers/validation';
+} from '../parsers/validation';
 import {
     fetchCorrectedItemAction_Service,
     fetchCorrectedItemPayload_Service,
     fetchCorrectedName_Service,
     fetchCorrectedCharacterDetails_Service,
     fetchCorrectedDialogueSetup_Service,
-} from './corrections';
+} from '../corrections';
 
-import { extractJsonFromFence } from '../utils/jsonUtils';
-import { buildCharacterId, findItemByIdentifier } from '../utils/entityUtils';
-import { PLAYER_HOLDER_ID } from '../constants';
+import { extractJsonFromFence } from '../../utils/jsonUtils';
+import { buildCharacterId, findItemByIdentifier } from '../../utils/entityUtils';
+import { PLAYER_HOLDER_ID } from '../../constants';
 
 /** Interface describing contextual data required by the parsing helpers. */
 interface ParserContext {

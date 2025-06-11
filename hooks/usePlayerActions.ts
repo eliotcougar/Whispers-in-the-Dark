@@ -21,7 +21,7 @@ import {
 import { executeAIMainTurn } from '../services/storyteller/api';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import { fetchCorrectedName_Service } from '../services/corrections';
-import { parseAIResponse } from '../services/aiResponseParser';
+import { parseAIResponse } from '../services/storyteller/responseParser';
 import {
   FREE_FORM_ACTION_COST,
   MAX_LOG_MESSAGES,

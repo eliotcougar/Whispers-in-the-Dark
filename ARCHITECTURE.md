@@ -66,7 +66,7 @@ This layer abstracts external interactions and complex data processing.
         *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
-    *   `services/aiResponseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
+    *   `services/storyteller/responseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
     *   `services/validationUtils.ts`: General data structure validation.
     *   `utils/mapUpdateValidationUtils.ts`: Specific validation for `AIMapUpdatePayload`.
 *   **Persistence Service:**
