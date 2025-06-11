@@ -10,7 +10,7 @@ import {
   LoadingReason,
 } from '../types';
 import { executeAIMainTurn } from '../services/storyteller/api';
-import { parseAIResponse } from '../services/aiResponseParser';
+import { parseAIResponse } from '../services/storyteller/responseParser';
 import { getThemesFromPacks } from '../themes';
 import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../constants';
 import { findThemeByName } from '../services/themeUtils';
