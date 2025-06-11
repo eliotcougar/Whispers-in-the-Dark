@@ -345,7 +345,7 @@ Main Quest: "${mainQuest || 'Not set'}"
 Current Objective: "${currentObjective || 'Not set'}"
 
 ### Current Inventory:
-${inventoryPrompt} ${locationItemsPrompt ? `There are items at this location:\n - ${locationItemsPrompt}` : ''}
+${inventoryPrompt} ${locationItemsPrompt ? `\nThere are items at this location:\n${locationItemsPrompt}` : ''}
 
 ### Known Locations:
 ${placesContext}

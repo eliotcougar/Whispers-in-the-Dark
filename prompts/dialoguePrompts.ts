@@ -68,8 +68,7 @@ Respond ONLY in JSON format with the following structure:
 - "preciseLocation" (on Character object, updated via "charactersUpdated") details location/activity in current scene if "presenceStatus" is 'nearby' or 'companion'.
 
 Items:
-If the dialogue resulted in obtaining or losing any Items, moving them elsewhere, or transferring them between characters, use "itemChange" actions "gain", "lose", "put", "give"/"take", or "update".
-Use "put" when an item is dropped or stored somewhere; use "lose" only if the item is destroyed or consumed.
+If the dialogue resulted in taking, giving, picking up, leaving behind, obtaining or consuming any Items, changing their properties or amounts, moving them elsewhere, or transferring them between characters, use "itemChange" actions "gain", "lose", "put", "give"/"take", or "update".
 ${ITEMS_GUIDE}
 These fields MUST be provided if the Player's Inventory clearly changed during the dialogue..
 
