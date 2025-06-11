@@ -1,10 +1,9 @@
-
 /**
- * @file mapPrompts.ts
- * @description Prompt templates and valid value lists for the map update AI.
+ * @file systemPrompt.ts
+ * @description System instruction for the cartographer AI.
  */
 
-import { MAP_NODE_TYPE_GUIDE, MAP_EDGE_TYPE_GUIDE } from './helperPrompts';
+import { MAP_NODE_TYPE_GUIDE, MAP_EDGE_TYPE_GUIDE } from '../../prompts/helperPrompts';
 import {
   VALID_NODE_STATUS_VALUES,
   VALID_NODE_TYPE_VALUES,
@@ -13,7 +12,7 @@ import {
   NODE_DESCRIPTION_INSTRUCTION,
   EDGE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
-} from '../constants';
+} from '../../constants';
 
 const formatValues = (arr: readonly string[]) => `['${arr.join("', '")}']`;
 
@@ -22,7 +21,7 @@ const VALID_EDGE_TYPES_FOR_MAP_AI = formatValues(VALID_EDGE_TYPE_VALUES);
 const VALID_EDGE_STATUSES_FOR_MAP_AI = formatValues(VALID_EDGE_STATUS_VALUES);
 const VALID_NODE_TYPES_FOR_MAP_AI = formatValues(VALID_NODE_TYPE_VALUES);
 
-export const MAP_UPDATE_SYSTEM_INSTRUCTION = `
+export const SYSTEM_INSTRUCTION = `
 You are an AI assistant specializing in updating a game map based on narrative events.
 Your task is to analyze the provided game context and determine what changes should be made to the map data.
 You may receive a "Map Hint" string from the storyteller describing distant quest locations, their surroundings, and how to reach them. Use these hints to ensure those locations exist on the map, adding them and their nearby context if absent.

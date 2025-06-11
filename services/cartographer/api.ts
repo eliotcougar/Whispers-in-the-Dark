@@ -1,8 +1,6 @@
-
 /**
- * @file mapUpdateService.ts
- * @description This service handles communication with an auxiliary AI model
- * to update the game's map data based on narrative events.
+ * @file api.ts
+ * @description Utilities for communicating with the cartographer AI and applying map updates.
  */
 import { GenerateContentResponse } from "@google/genai";
 import {
@@ -18,30 +16,31 @@ import {
   MinimalModelCallRecord,
   Item,
   Character
-} from '../types';
+} from '../../types';
 import {
   GEMINI_MODEL_NAME,
   AUXILIARY_MODEL_NAME,
   MAX_RETRIES
-} from '../constants';
-import { MAP_UPDATE_SYSTEM_INSTRUCTION } from '../prompts/mapPrompts';
-import { dispatchAIRequest } from './modelDispatcher';
-import { isApiConfigured } from './apiClient';
-import { isValidAIMapUpdatePayload } from '../utils/mapUpdateValidationUtils';
+} from '../../constants';
+import { SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION } from './systemPrompt';
+import { buildMapUpdatePrompt } from './promptBuilder';
+import { parseAIMapUpdateResponse } from './responseParser';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { isApiConfigured } from '../apiClient';
+import { isValidAIMapUpdatePayload } from '../../utils/mapUpdateValidationUtils';
 import {
   VALID_NODE_STATUS_VALUES,
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES
-} from '../constants';
-import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../utils/mapSynonyms';
-import { structuredCloneGameState } from '../utils/cloneUtils';
-import { isServerOrClientError } from '../utils/aiErrorUtils';
-import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service, ConnectorChainsServiceResult } from './corrections/map';
-import { findClosestAllowedParent } from '../utils/mapGraphUtils';
-import { extractJsonFromFence, safeParseJson } from '../utils/jsonUtils';
-import { addProgressSymbol } from '../utils/loadingProgress';
-import { generateUniqueId, findMapNodeByIdentifier, buildNodeId } from '../utils/entityUtils';
+} from '../../constants';
+import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../../utils/mapSynonyms';
+import { structuredCloneGameState } from '../../utils/cloneUtils';
+import { isServerOrClientError } from '../../utils/aiErrorUtils';
+import { fetchLikelyParentNode_Service, EdgeChainRequest, fetchConnectorChains_Service, ConnectorChainsServiceResult } from '../corrections/map';
+import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
+import { addProgressSymbol } from '../../utils/loadingProgress';
+import { generateUniqueId, findMapNodeByIdentifier, buildNodeId } from '../../utils/entityUtils';
 
 const MAX_CHAIN_REFINEMENT_ROUNDS = 2;
 
@@ -88,110 +87,6 @@ const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promi
 /**
  * Parses the AI's map update response into an AIMapUpdatePayload structure.
  */
-const parseAIMapUpdateResponse = (
-  responseText: string,
-): AIMapUpdatePayload | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed: unknown = safeParseJson(jsonStr);
-  try {
-    if (parsed === null) throw new Error('JSON parse failed');
-    let payload: AIMapUpdatePayload | null = null;
-    if (Array.isArray(parsed)) {
-      payload = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
-        if (entry && typeof entry === 'object') {
-          const maybeObj = entry as Partial<AIMapUpdatePayload>;
-          if (Array.isArray(maybeObj.nodesToAdd)) {
-            acc.nodesToAdd = [
-              ...(acc.nodesToAdd || []),
-              ...maybeObj.nodesToAdd,
-            ];
-          }
-          if (Array.isArray(maybeObj.nodesToUpdate)) {
-            acc.nodesToUpdate = [
-              ...(acc.nodesToUpdate || []),
-              ...maybeObj.nodesToUpdate,
-            ];
-          }
-          if (Array.isArray(maybeObj.nodesToRemove)) {
-            acc.nodesToRemove = [
-              ...(acc.nodesToRemove || []),
-              ...maybeObj.nodesToRemove,
-            ];
-          }
-          if (Array.isArray(maybeObj.edgesToAdd)) {
-            acc.edgesToAdd = [
-              ...(acc.edgesToAdd || []),
-              ...maybeObj.edgesToAdd,
-            ];
-          }
-          if (Array.isArray(maybeObj.edgesToUpdate)) {
-            acc.edgesToUpdate = [
-              ...(acc.edgesToUpdate || []),
-              ...maybeObj.edgesToUpdate,
-            ];
-          }
-          if (Array.isArray(maybeObj.edgesToRemove)) {
-            acc.edgesToRemove = [
-              ...(acc.edgesToRemove || []),
-              ...maybeObj.edgesToRemove,
-            ];
-          }
-          if (
-            maybeObj.suggestedCurrentMapNodeId &&
-            !acc.suggestedCurrentMapNodeId
-          ) {
-            acc.suggestedCurrentMapNodeId = maybeObj.suggestedCurrentMapNodeId;
-          }
-        }
-        return acc;
-      }, {} as AIMapUpdatePayload);
-    } else if (parsed && typeof parsed === 'object') {
-      payload = parsed as AIMapUpdatePayload;
-    }
-    // Drop any illegal attempts to add/update/remove the special root node
-    // "Universe" and discard edges referring to it before validation.
-    if (payload && typeof payload === 'object') {
-      const nameIsUniverse = (n: unknown): boolean =>
-        typeof n === 'string' && n.trim().toLowerCase() === 'universe';
-      if (Array.isArray(payload.nodesToAdd)) {
-        payload.nodesToAdd = payload.nodesToAdd.filter(n => !nameIsUniverse(n.placeName));
-      }
-      if (Array.isArray(payload.nodesToUpdate)) {
-        payload.nodesToUpdate = payload.nodesToUpdate.filter(n => !nameIsUniverse(n.placeName));
-      }
-      if (Array.isArray(payload.nodesToRemove)) {
-        payload.nodesToRemove = payload.nodesToRemove.filter(n => !nameIsUniverse(n.placeName));
-      }
-      const filterEdgeArray = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
-        arr: T[] | undefined
-      ): T[] =>
-        (arr || []).filter(
-          e => !nameIsUniverse(e.sourcePlaceName) && !nameIsUniverse(e.targetPlaceName)
-        );
-      if (Array.isArray(payload.edgesToAdd)) {
-        payload.edgesToAdd = filterEdgeArray(payload.edgesToAdd);
-      }
-      if (Array.isArray(payload.edgesToUpdate)) {
-        payload.edgesToUpdate = filterEdgeArray(payload.edgesToUpdate);
-      }
-      if (Array.isArray(payload.edgesToRemove)) {
-        payload.edgesToRemove = filterEdgeArray(payload.edgesToRemove);
-      }
-
-      // Normalize any synonym values before validation so parsing succeeds
-      normalizeStatusAndTypeSynonyms(payload);
-    }
-    if (isValidAIMapUpdatePayload(payload)) {
-      return payload;
-    }
-    console.warn("Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:", parsed);
-    return null;
-  } catch (e) {
-    console.error("Failed to parse map update JSON response from AI:", e);
-    console.debug("Original map update response text:", responseText);
-    return null;
-  }
-};
 
 /**
  * Converts node/edge update operations that merely set a
@@ -441,23 +336,16 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
     : "No main places are pre-defined for this theme.";
 
 
-  const basePrompt = `
-Narrative Context for Map Update:
-- Current Theme: "${currentTheme.name}"
-- System Modifier for Theme: ${currentTheme.systemInstructionModifier}
-- Player's Current Location Description (localPlace): "${localPlace}"
-- ${previousMapNodeContext}
-- Scene Description: "${sceneDesc}"
-- Log Message (outcome of last action): "${logMsg}"
-- Map Hint from Storyteller: "${mapHint}"
-- All Known Main Locations for this Theme (these are expected to be main map nodes): ${allKnownMainPlacesString}.
-- Your task is to analyze this narrative context and suggest additions, updates, or removals to the map data.
-
-${existingMapContext}
----
-Based on the Narrative Context and existing map context, provide a JSON response adhering to the MAP_UPDATE_SYSTEM_INSTRUCTION.
-
-`;
+  const basePrompt = buildMapUpdatePrompt(
+    sceneDesc,
+    logMsg,
+    localPlace,
+    mapHint,
+    currentTheme,
+    previousMapNodeContext,
+    existingMapContext,
+    allKnownMainPlacesString,
+  );
   let prompt = basePrompt;
   const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };
   let validParsedPayload: AIMapUpdatePayload | null = null;

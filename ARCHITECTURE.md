@@ -36,9 +36,9 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   Handles player actions by constructing prompts for the AI based on the current game state.
     *   Orchestrates calls to AI services (main game turn, dialogue turns, summarization, corrections, map updates).
     *   Processes AI responses: parses JSON, validates data, and constructs a new `FullGameState`.
-        *   If the storyteller AI's response includes `mapUpdated: true` or if `localPlace` changes significantly, it triggers the `mapUpdateService`.
-        *   Applies the `AIMapUpdatePayload` returned by `mapUpdateService` to `FullGameState.mapData`.
-        *   If `mapUpdateService` indicates a new main map node was added without full details, `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to complete its data.
+        *   If the storyteller AI's response includes `mapUpdated: true` or if `localPlace` changes significantly, it triggers the cartographer service.
+        *   Applies the `AIMapUpdatePayload` returned by the cartographer service to `FullGameState.mapData`.
+        *   If the cartographer service indicates a new main map node was added without full details, `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to complete its data.
     *   Manages the "Reality Shift" mechanic (via `useRealityShift`), theme selection, and dialogue mode.
     *   Provides undo functionality by swapping the two-element `GameStateStack`.
     *   Determines `currentMapNodeId` based on AI suggestions or by using `selectBestMatchingMapNode`, which operates on `MapNode[]`.
@@ -60,10 +60,12 @@ This layer abstracts external interactions and complex data processing.
     *   `services/storyteller/api.ts`: Handles main game turn AI calls and theme summarization.
     *   `services/dialogueService.ts`: Manages AI calls for dialogue turns and summaries.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
-    *   `services/mapUpdateService.ts`:
-        *   Receives narrative context and current `MapData`.
-        *   Prompts an auxiliary AI (using `MAP_UPDATE_SYSTEM_INSTRUCTION`) to get an `AIMapUpdatePayload`.
-        *   Parses, validates (using `mapUpdateValidationUtils.ts`), and applies this payload to the `MapData`, resolving place names to node IDs or creating new nodes/edges.
+    *   `services/cartographer/` (Cartographer service):
+        *   `api.ts` orchestrates map update requests.
+        *   `promptBuilder.ts` constructs the AI prompt.
+        *   `responseParser.ts` validates and extracts the AI payload.
+        *   `systemPrompt.ts` holds `MAP_UPDATE_SYSTEM_INSTRUCTION`.
+        *   `index.ts` re-exports these utilities.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
 *   **Data Processing & Validation:**
     *   `services/storyteller/responseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
@@ -97,7 +99,8 @@ This layer abstracts external interactions and complex data processing.
 *   **Type Definitions:**
     *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. Items include a `holderId` for their owner and `Character` objects have a unique `id` similar to `MapNode.id`.
 *   **Constants & Configuration:**
-    *   `constants.ts`: Global constants, model names, and system prompts, including `MAP_UPDATE_SYSTEM_INSTRUCTION`. `PLAYER_HOLDER_ID` marks items belonging to the player.
+    *   `constants.ts`: Global constants and model names. `PLAYER_HOLDER_ID` marks items belonging to the player.
+    *   `services/cartographer/systemPrompt.ts`: Defines `MAP_UPDATE_SYSTEM_INSTRUCTION` (exported as `SYSTEM_INSTRUCTION`).
 *   **Theme Definitions:**
     *   `themes.ts`: Defines adventure themes.
     *   `CustomGameSetupScreen.tsx` allows starting a game from a user-chosen theme.
@@ -117,8 +120,8 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
 1.  **`Initializing`**: Application startup, loads local storage.
 2.  **`TitleScreen`**: Active if no game is initialized.
 3.  **`Gameplay_MainLoop`**: Core gameplay.
-    *   The storyteller AI response's `mapUpdated: true` flag or a significant change in `localPlace` triggers the `mapUpdateService`.
-    *   `currentMapNodeId` is updated based on `mapUpdateService` suggestions, explicit AI storyteller suggestions, or `selectBestMatchingMapNode`.
+    *   The storyteller AI response's `mapUpdated: true` flag or a significant change in `localPlace` triggers the cartographer service.
+    *   `currentMapNodeId` is updated based on the cartographer service's suggestions, explicit AI storyteller suggestions, or `selectBestMatchingMapNode`.
 4.  **`Gameplay_Dialogue`**: Player in conversation. Map context provided to dialogue AI is derived from `MapData`.
 5.  **`ModalView_X`**: Full-screen modals (MapDisplay, Settings, etc.).
 6.  **`ErrorState`**: Handles errors.
@@ -127,11 +130,11 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
 
 *   **Storyteller AI (`storyteller/api`)**: Provides `sceneDescription`, `logMessage`, `localPlace`, and a `mapUpdated` flag.
 *   **`useGameLogic`**:
-    *   If `mapUpdated` is true or `localPlace` significantly changes, calls `mapUpdateService`.
-    *   Receives `AIMapUpdatePayload` from `mapUpdateService`.
+    *   If `mapUpdated` is true or `localPlace` significantly changes, calls the cartographer service.
+    *   Receives `AIMapUpdatePayload` from the cartographer service.
     *   Updates `FullGameState.mapData` based on this payload.
-    *   If a new *main* `MapNode` is added by `mapUpdateService` and lacks full description/aliases (as per `MAP_UPDATE_SYSTEM_INSTRUCTION`), `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to populate them.
-*   **`mapUpdateService`**:
+    *   If a new *main* `MapNode` is added by the cartographer service and lacks full description/aliases (as per `MAP_UPDATE_SYSTEM_INSTRUCTION`), `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to populate them.
+*   **Cartographer service**:
     *   Takes narrative context, current `MapData`, and known main place names for the theme.
     *   Uses an auxiliary AI to generate `AIMapUpdatePayload` (node/edge changes).
     *   Applies these changes, creating/updating/deleting `MapNode`s and `MapEdge`s within `MapData`.
@@ -143,7 +146,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
 
 `MapNode` objects can represent locations at several hierarchical levels. Each node **must specify** a `nodeType` (`region`, `location`, `settlement`, `exterior`, `interior`, `room`, or `feature`) **and a `status`** (`undiscovered`, `discovered`, `rumored`, or `quest_target`). Every node also includes a `parentNodeId` (use `"Universe"` for the root node) indicating its place in the hierarchy. Nodes are laid out near their parent in the map view. The hierarchy is represented solely with `parentNodeId`, replacing the old containment-edge approach. This allows the map to contain nested areas such as rooms within buildings or features within rooms.
 
-Edges represent potentially traversable connections between *feature* nodes only. A valid edge connects sibling features (same parent), features whose parents share the same grandparent, **or a feature with the child of one of its sibling locations** (a child–grandchild connection). Edges with the type `shortcut` are exempt from these hierarchy rules and may link any two feature nodes directly. When the AI proposes a non-shortcut edge that violates the rules, `mapUpdateService` incrementally climbs each node's parent chain, inserting connector feature nodes at every level until a common ancestor is reached. The edge is then rerouted through this chain rather than being skipped. Newly inserted connector features inherit their parent node's status (for example, connectors under rumored nodes remain rumored), and any replacement edges reuse the status from the connection they replace.
+Edges represent potentially traversable connections between *feature* nodes only. A valid edge connects sibling features (same parent), features whose parents share the same grandparent, **or a feature with the child of one of its sibling locations** (a child–grandchild connection). Edges with the type `shortcut` are exempt from these hierarchy rules and may link any two feature nodes directly. When the AI proposes a non-shortcut edge that violates the rules, the cartographer service incrementally climbs each node's parent chain, inserting connector feature nodes at every level until a common ancestor is reached. The edge is then rerouted through this chain rather than being skipped. Newly inserted connector features inherit their parent node's status (for example, connectors under rumored nodes remain rumored), and any replacement edges reuse the status from the connection they replace.
 
 ### 2.4. Map Layout and Visualization
 
