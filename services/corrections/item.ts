@@ -145,7 +145,10 @@ export const fetchCorrectedItemAction_Service = async (
     const parsed = JSON.parse(malformedItemChangeString) as Record<string, unknown>;
     if (parsed && typeof parsed === 'object') {
       const rawAction = parsed['action'];
-      if (typeof rawAction === 'string' && ['gain', 'lose', 'update', 'put', 'give', 'take'].includes(rawAction)) {
+      if (
+        typeof rawAction === 'string' &&
+        ['gain', 'lose', 'update', 'put', 'give', 'take'].includes(rawAction)
+      ) {
         return rawAction as ItemChange['action'];
       }
 
@@ -155,13 +158,94 @@ export const fetchCorrectedItemAction_Service = async (
         const fromId = typeof maybe['fromId'] === 'string' ? maybe['fromId'] : undefined;
         const toId = typeof maybe['toId'] === 'string' ? maybe['toId'] : undefined;
         const holderId = typeof maybe['holderId'] === 'string' ? maybe['holderId'] : undefined;
+        const hasId = typeof maybe['id'] === 'string';
+
+        const context = `${(logMessage || '').toLowerCase()} ${(sceneDescription || '').toLowerCase()}`;
+        const contains = (words: string[]): boolean => words.some(w => context.includes(w));
+        const loseHints = [
+          'consume',
+          'consumed',
+          'eat',
+          'ate',
+          'drink',
+          'drank',
+          'destroy',
+          'destroyed',
+          'broke',
+          'broken',
+          'shatter',
+          'shattered',
+          'burn',
+          'burned',
+          'lost forever',
+          'discard',
+          'discarded',
+          'threw away',
+          'thrown away'
+        ];
+        const giveHints = [
+          'give',
+          'gave',
+          'hand',
+          'handed',
+          'pass',
+          'passed',
+          'drop',
+          'dropped',
+          'leave',
+          'left',
+          'place',
+          'placed',
+          'put down',
+          'set down',
+          'store',
+          'stored',
+          'deposit',
+          'offered',
+          'sell',
+          'sold'
+        ];
+        const takeHints = [
+          'take',
+          'took',
+          'grab',
+          'grabbed',
+          'pick up',
+          'picked up',
+          'snatch',
+          'snatched',
+          'steal',
+          'stole',
+          'retrieve',
+          'retrieved',
+          'collect',
+          'collected',
+          'loot',
+          'looted'
+        ];
+
+        if (contains(loseHints)) {
+          return 'lose';
+        }
 
         if (fromId && toId) {
+          return toId === PLAYER_HOLDER_ID ? 'take' : 'give';
+        }
+
+        if (contains(takeHints) && toId === PLAYER_HOLDER_ID) {
+          return hasId ? 'take' : 'gain';
+        }
+
+        if (contains(giveHints) && (fromId === PLAYER_HOLDER_ID || holderId !== PLAYER_HOLDER_ID)) {
           return 'give';
         }
 
         if (!fromId && !toId && holderId && holderId.toLowerCase() !== PLAYER_HOLDER_ID) {
-          return 'put';
+          return hasId ? 'give' : 'put';
+        }
+
+        if (toId === PLAYER_HOLDER_ID) {
+          return hasId ? 'take' : 'gain';
         }
       }
     }
