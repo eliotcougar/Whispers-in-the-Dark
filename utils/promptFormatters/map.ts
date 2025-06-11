@@ -5,6 +5,14 @@
  */
 
 import { AdventureTheme, MapData, MapNode, MapEdge } from '../../types';
+
+export interface FormattedMapContext {
+  location: string;
+  exits: string;
+  pathsFromCurrent: string;
+  pathsFromParent: string;
+  nearby: string;
+}
 import { NON_DISPLAYABLE_EDGE_STATUSES } from '../../constants';
 
 /**
@@ -204,19 +212,32 @@ export const formatMapContextForPrompt = (
   currentTheme: AdventureTheme | null,
   allNodesForTheme: MapNode[],
   allEdgesForTheme: MapEdge[]
-): string => {
+): FormattedMapContext => {
   if (!currentMapNodeId || !currentTheme) {
-    return "Player's precise map location is currently unknown or they are between known locations.";
+    return {
+      location:
+        "Player's precise map location is currently unknown or they are between known locations.",
+      exits: '',
+      pathsFromCurrent: '',
+      pathsFromParent: '',
+      nearby: '',
+    };
   }
 
   const currentNode = allNodesForTheme.find(node => node.id === currentMapNodeId);
   if (!currentNode) {
-    return '';
+    return {
+      location: '',
+      exits: '',
+      pathsFromCurrent: '',
+      pathsFromParent: '',
+      nearby: '',
+    };
   }
 
-  let context = ` - You are currently at ${currentNode.id} - "${currentNode.placeName}".`;
+  let locationContext = ` - You are currently at ${currentNode.id} - "${currentNode.placeName}".`;
   if (currentNode.data.description) {
-    context += ` ${currentNode.data.description}.`;
+    locationContext += ` ${currentNode.data.description}.`;
   }
 
   const parentNodeForCurrent =
@@ -226,12 +247,12 @@ export const formatMapContextForPrompt = (
 
   if (parentNodeForCurrent) {
     if (parentNodeForCurrent.data.nodeType === 'feature') {
-      context += ` This is a feature of "${parentNodeForCurrent.placeName}".`;
+      locationContext += ` This is a feature of "${parentNodeForCurrent.placeName}".`;
     } else {
-      context += ` This is part of the larger known location: "${parentNodeForCurrent.placeName}".`;
+      locationContext += ` This is part of the larger known location: "${parentNodeForCurrent.placeName}".`;
     }
   }
-  context += '\n';
+  locationContext += '\n';
 
   const areaMainNodeId =
     currentNode.data.nodeType === 'feature'
@@ -286,7 +307,7 @@ export const formatMapContextForPrompt = (
   } else {
     exitsContext = 'Current location is not part of a larger mapped area.';
   }
-  context += exitsContext + '\n\n';
+  exitsContext += '\n';
 
   const processedTargets = new Set<string>();
   const excludeForCurrentNode =
@@ -311,19 +332,28 @@ export const formatMapContextForPrompt = (
       )
     : [];
 
+  let pathsCurrentContext = '';
   if (pathsFromCurrentNode.length > 0) {
-    context +=
+    pathsCurrentContext =
       'Paths leading directly from your current spot (' + currentNode.placeName + "):\n" + pathsFromCurrentNode.join('\n');
   }
 
+  let pathsParentContext = '';
   if (pathsFromParentNode.length > 0 && parentNodeForCurrent) {
-    if (pathsFromCurrentNode.length > 0) context += '\n\n';
-    context +=
+    if (pathsCurrentContext) pathsParentContext += '\n\n';
+    pathsParentContext +=
       `Additional paths and features within or connected to "${parentNodeForCurrent.placeName}":\n` +
       pathsFromParentNode.join('\n');
   }
-  context += '\n';
+  if (pathsCurrentContext || pathsParentContext) {
+    if (!pathsParentContext) {
+      pathsCurrentContext += '\n';
+    } else {
+      pathsParentContext += '\n';
+    }
+  }
 
+  let nearbyContext = '';
   const nearbyNodeIds = getNearbyNodeIds(currentNode.id, 2, allNodesForTheme, allEdgesForTheme);
   if (nearbyNodeIds.size > 0) {
     const nearbyNodeNames = Array.from(nearbyNodeIds)
@@ -331,10 +361,16 @@ export const formatMapContextForPrompt = (
       .filter(name => !!name)
       .map(name => `"${name}"`);
     if (nearbyNodeNames.length > 0) {
-      context += `\nLocations nearby (within two hops): ${nearbyNodeNames.join(', ')}.`;
+      nearbyContext = `Locations nearby (within two hops): ${nearbyNodeNames.join(', ')}.`;
     }
   }
 
-  return context;
+  return {
+    location: locationContext.trimEnd(),
+    exits: exitsContext.trimEnd(),
+    pathsFromCurrent: pathsCurrentContext.trimEnd(),
+    pathsFromParent: pathsParentContext.trimEnd(),
+    nearby: nearbyContext.trimEnd(),
+  };
 };
 

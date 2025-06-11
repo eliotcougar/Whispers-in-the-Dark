@@ -151,7 +151,7 @@ export const buildMainGameTurnPrompt = (
     const targetNode = allNodesForCurrentTheme.find(n => n.id === edge.targetNodeId);
     return sourceNode && targetNode;
   });
-  const mapContext = formatMapContextForPrompt(
+  const mapContextParts = formatMapContextForPrompt(
     fullMapData,
     currentMapNodeDetails?.id || null,
     currentTheme,
@@ -201,7 +201,11 @@ ${placesContext}
 ${charactersContext}
 
 ### Current Map Context (including your location, possible exits, nearby paths, and other nearby locations):
-${mapContext}
+${mapContextParts.location}
+${mapContextParts.exits}
+${mapContextParts.pathsFromCurrent}
+${mapContextParts.pathsFromParent}
+${mapContextParts.nearby}
 
 ${detailedEntityContext}
 
