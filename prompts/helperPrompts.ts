@@ -8,6 +8,8 @@ import { VALID_ITEM_TYPES_STRING } from '../constants'; // Import needed constan
 
 export const ITEMS_GUIDE = `- "itemChange" is ALWAYS an array. If no items change this turn, send an empty array: "itemChange": [].
 Valid actions are 'gain', 'lose', 'update', 'put', 'give', and 'take'.
+Use 'put' when the item remains in the world but changes holder or is left at a location.
+Use 'lose' only when the item is consumed, destroyed, or otherwise removed from play.
 Structure for individual ItemChange objects within the array:
 - Example for gaining a new item:
   { "action": "gain",

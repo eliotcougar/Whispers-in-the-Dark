@@ -99,6 +99,6 @@ If a Companion leaves the Player, or the Player leaves a Companion, their presen
 - If "mainQuest" or "currentObjective" change, they MUST be provided. Otherwise, they are optional.
 - If the narrative implies any changes to the map (new details, locations, connections, status changes), set "mapUpdated": true.
 
-CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" indicates an item was gained, lost, moved, given/taken, used, or changed, the "itemChange" array MUST ALSO accurately reflect this with valid ItemChange objects. For "gain" or "put", ensure "item" has "name", "type", "description". For "update", ensure "name" (original name) is correct. If transforming ("newName" is used), "type", "description" MUST be present for the new item.
+CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" indicates an item was gained, lost, moved, given/taken, used, or changed, the "itemChange" array MUST ALSO accurately reflect this with valid ItemChange objects. Use "put" when an item is dropped or stored somewhere. Use "lose" only if the item is consumed or destroyed. For "gain" or "put", ensure "item" has "name", "type", "description". For "update", ensure "name" (original name) is correct. If transforming ("newName" is used), "type", "description" MUST be present for the new item.
 CRITICALLY IMPORTANT: Names and Aliases (of items, places, characters, etc) cannot contain a comma.
 `;

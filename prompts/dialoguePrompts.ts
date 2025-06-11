@@ -69,6 +69,7 @@ Respond ONLY in JSON format with the following structure:
 
 Items:
 If the dialogue resulted in obtaining or losing any Items, moving them elsewhere, or transferring them between characters, use "itemChange" actions "gain", "lose", "put", "give"/"take", or "update".
+Use "put" when an item is dropped or stored somewhere; use "lose" only if the item is destroyed or consumed.
 ${ITEMS_GUIDE}
 These fields MUST be provided if the Player's Inventory clearly changed during the dialogue..
 
