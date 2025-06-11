@@ -127,12 +127,16 @@ const applyItemActionCore = (
   if (fromId && toId && fromId !== toId) {
     // Give item from one holder to another
     const givePayload = payload as GiveItemPayload;
+    if (!givePayload.toId || !givePayload.fromId) {
+      console.warn('applyItemActionCore ("give"): Missing fromId or toId.', givePayload);
+      return newInventory;
+    }
     const itemToMove = findItemByIdentifier([givePayload.id, givePayload.name], newInventory) as Item | null;
     if (!itemToMove) {
       console.warn(`applyItemActionCore ('give'): Item not found for transfer.`);
       return newInventory;
     }
-    if (givePayload.fromId && itemToMove.holderId !== givePayload.fromId) {
+    if (itemToMove.holderId !== givePayload.fromId) {
       console.warn(`applyItemActionCore ('give'): Source holder mismatch for item ${itemToMove.name}.`);
     }
     const idx = newInventory.findIndex(i => i.id === itemToMove.id);

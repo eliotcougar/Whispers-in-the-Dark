@@ -152,10 +152,15 @@ export const fetchCorrectedItemAction_Service = async (
       const itemObj = parsed['item'];
       if (itemObj && typeof itemObj === 'object') {
         const maybe = itemObj as Record<string, unknown>;
-        if (typeof maybe['fromId'] === 'string' && typeof maybe['toId'] === 'string') {
+        const fromId = typeof maybe['fromId'] === 'string' ? maybe['fromId'] : undefined;
+        const toId = typeof maybe['toId'] === 'string' ? maybe['toId'] : undefined;
+        const holderId = typeof maybe['holderId'] === 'string' ? maybe['holderId'] : undefined;
+
+        if (fromId && toId) {
           return 'give';
         }
-        if (typeof maybe['holderId'] === 'string' && maybe['holderId'] !== PLAYER_HOLDER_ID) {
+
+        if (!fromId && !toId && holderId && holderId.toLowerCase() !== PLAYER_HOLDER_ID) {
           return 'put';
         }
       }
