@@ -48,7 +48,7 @@ Respond ONLY in JSON format with the following structure:
   "sceneDescription": "Detailed, engaging description, considering Current Theme Guidance, active items, known Places/Characters, Local Time, Local Environment, Local Place, Player's Character Gender.",
   "logMessage": "A concise summary message for the main game log, describing the key outcomes or information gained from the dialogue",
   "options": ["Action 1", "Action 2", "Action 3", "Action 4" /* ALWAYS provide FOUR distinct "options". Tailor them to the full context. */ ],
-  "itemChange"?: [ /* ItemChange objects if items were gained, lost, put elsewhere, given, or updated *directly through the dialogue*. Follow standard ItemChange structure. For 'update', 'gain', or 'put', the 'item' field is an Item object. */ ],
+  "itemChange"?: [ /* ItemChange objects if items were gained, lost, put elsewhere, given/taken, or updated *directly through the dialogue*. Follow standard ItemChange structure. For 'update', 'gain', or 'put', the 'item' field is an Item object. */ ],
   "charactersAdded"?: [ /* { "name", "description", "aliases" (${ALIAS_INSTRUCTION}), "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}, "lastKnownLocation": "...", "preciseLocation": "..." } if new characters were *introduced or became significant*. */ ],
   "charactersUpdated"?: [ /* { "name", "newDescription", "newAliases" (${ALIAS_INSTRUCTION}), "addAlias"?: string, "newPresenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}, "newLastKnownLocation": "...", "newPreciseLocation": "..." } if dialogue provided new information about existing characters or their presence state. */ ],
   "mainQuest"?: "New quest string if the dialogue changed it.",
@@ -68,7 +68,7 @@ Respond ONLY in JSON format with the following structure:
 - "preciseLocation" (on Character object, updated via "charactersUpdated") details location/activity in current scene if "presenceStatus" is 'nearby' or 'companion'.
 
 Items:
-If the dialogue resulted in obtaining or losing any Items, moving them elsewhere, or transferring them between characters, use "itemChange" actions "gain", "lose", "put", "give", or "update".
+If the dialogue resulted in obtaining or losing any Items, moving them elsewhere, or transferring them between characters, use "itemChange" actions "gain", "lose", "put", "give"/"take", or "update".
 ${ITEMS_GUIDE}
 These fields MUST be provided if the Player's Inventory clearly changed during the dialogue..
 

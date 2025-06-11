@@ -195,7 +195,7 @@ async function processItemChanges(
             continue;
         }
 
-        if (typeof ic.action !== 'string' || !['gain', 'lose', 'update', 'put', 'give'].includes(ic.action)) {
+        if (typeof ic.action !== 'string' || !['gain', 'lose', 'update', 'put', 'give', 'take'].includes(ic.action)) {
             console.warn("parseAIResponse ('itemChange'): Invalid itemChange 'action'. Attempting correction.", ic);
             const correctedAction = await fetchCorrectedItemAction_Service(
                 context.logMessageFromPayload || baseData.logMessage,
@@ -203,7 +203,7 @@ async function processItemChanges(
                 JSON.stringify(ic),
                 context.currentTheme
             );
-            if (correctedAction && ['gain', 'lose', 'update', 'put', 'give'].includes(correctedAction)) {
+            if (correctedAction && ['gain', 'lose', 'update', 'put', 'give', 'take'].includes(correctedAction)) {
                 ic.action = correctedAction;
                 console.log(`parseAIResponse ('itemChange'): Corrected itemChange action to: "${correctedAction}"`, ic);
             } else {
@@ -322,6 +322,7 @@ async function processItemChanges(
                 break;
             }
             case 'give':
+            case 'take':
                 if (currentItemPayload && typeof currentItemPayload === 'object') {
                     const maybe = currentItemPayload as Partial<GiveItemPayload>;
                     if ((maybe.id || maybe.name) && typeof maybe.toId === 'string' && typeof maybe.fromId === 'string') {

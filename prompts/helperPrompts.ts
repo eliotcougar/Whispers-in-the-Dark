@@ -7,6 +7,7 @@
 import { VALID_ITEM_TYPES_STRING } from '../constants'; // Import needed constant
 
 export const ITEMS_GUIDE = `- "itemChange" is ALWAYS an array. If no items change this turn, send an empty array: "itemChange": [].
+Valid actions are 'gain', 'lose', 'update', 'put', 'give', and 'take'.
 Structure for individual ItemChange objects within the array:
 - Example for gaining a new item:
   { "action": "gain",
@@ -55,6 +56,15 @@ Structure for individual ItemChange objects within the array:
       "name": "Iron Sword",
       "fromId": "player",
       "toId": "npc_guard_4f3a"
+    }
+  }
+
+- "take" is an alias for "give". It has the same structure and is used when the player takes an existing item from somewhere or someone. Example:
+  { "action": "take",
+    item: {
+      "name": "Coin Pouch",
+      "fromId": "npc_bandit_8f2c",
+      "toId": "player"
     }
   }
 

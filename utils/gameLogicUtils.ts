@@ -182,6 +182,9 @@ export const updateItem = (inv: Item[], item: Item): Item[] =>
 export const giveItem = (inv: Item[], payload: GiveItemPayload): Item[] =>
   applyItemActionCore(inv, payload.fromId, payload.toId, payload);
 
+export const takeItem = (inv: Item[], payload: GiveItemPayload): Item[] =>
+  applyItemActionCore(inv, payload.fromId, payload.toId, payload);
+
 /**
  * Applies a single item change action to the current inventory.
  * Assumes `currentInventory` and `itemChange` (and its `.item` payload) are ALREADY VALIDATED by the parser.
@@ -199,6 +202,8 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
       return putItem(currentInventory, itemChange.item as Item);
     case "give":
       return giveItem(currentInventory, itemChange.item as GiveItemPayload);
+    case "take":
+      return takeItem(currentInventory, itemChange.item as GiveItemPayload);
     case "lose":
       return loseItem(currentInventory, itemChange.item as ItemReference);
     case "update":
@@ -302,7 +307,7 @@ export const buildItemChangeRecords = (
         };
         record = { type: 'gain', gainedItem: cleanGainedItem };
       }
-    } else if (change.action === 'give' && typeof itemPayload === 'object') {
+    } else if ((change.action === 'give' || change.action === 'take') && typeof itemPayload === 'object') {
       const givePayload = itemPayload as GiveItemPayload;
       const oldItem = findItemByIdentifier([givePayload.id, givePayload.name], currentInventory, false, true) as Item | null;
       if (oldItem) {

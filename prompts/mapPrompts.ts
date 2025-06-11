@@ -82,7 +82,7 @@ ${MAP_NODE_TYPE_GUIDE}
 ${MAP_EDGE_TYPE_GUIDE}
 
 CRITICAL INSTRUCTIONS:
-- DO NOT add small items and characters to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Features represent sub-spaces within larger spaces.
+- DO NOT add small items and characters to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Features represent sub-spaces within larger spaces. NEVER create nodes that represent inventory items.
 - Node Data for "nodesToAdd":
     - "description", "aliases", and "status" are ALWAYS REQUIRED in the "data" field for ALL added nodes.
     - "description" must be ${NODE_DESCRIPTION_INSTRUCTION}.
