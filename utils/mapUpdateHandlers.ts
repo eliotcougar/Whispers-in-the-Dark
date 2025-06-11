@@ -14,7 +14,7 @@ import {
   ValidNewCharacterPayload,
   ValidCharacterUpdatePayload
 } from '../types';
-import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/mapUpdateService';
+import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/cartographer/api';
 import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/corrections';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
