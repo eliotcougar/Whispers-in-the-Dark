@@ -21,7 +21,10 @@ import { recordModelCall } from '../../utils/modelUsageTracker';
 import { callMinimalCorrectionAI } from '../corrections/base';
 import { isApiConfigured } from '../apiClient';
 import { buildDialogueTurnPrompt, buildDialogueSummaryPrompt, buildDialogueMemorySummaryPrompts } from './promptBuilder';
-import { parseDialogueAIResponse, parseDialogueSummaryResponse } from './responseParser';
+import {
+  parseDialogueTurnResponse,
+  parseDialogueSummaryResponse,
+} from './responseParser';
 
 interface GeminiRequestConfig {
   systemInstruction: string;
@@ -100,7 +103,7 @@ export const executeDialogueTurn = async (
     try {
       console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, true);
-      const parsed = parseDialogueAIResponse(response.text ?? '');
+      const parsed = parseDialogueTurnResponse(response.text ?? '');
       if (parsed) return parsed;
       console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue turn. Retrying if attempts remain.`);
     } catch (error) {
