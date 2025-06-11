@@ -8,6 +8,7 @@ export * from './api';
 export * from '../dialogueService';
 export * from "./systemPrompt";
 export * from './responseParser';
+export * from './promptBuilder';
 export * from '../mapUpdateService';
 export * from '../modelDispatcher';
 export * from '../geminiClient';
