@@ -152,7 +152,7 @@ export const fetchCorrectedItemAction_Service = async (
     const parsed = JSON.parse(malformedItemChangeString) as Record<string, unknown>;
     if (parsed && typeof parsed === 'object') {
       const rawAction = parsed['action'];
-      if (typeof rawAction === 'string' && ['gain', 'lose', 'update', 'put', 'give', 'take'].includes(rawAction)) {
+      if (typeof rawAction === 'string' && ['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(rawAction)) {
         return rawAction as ItemChange['action'];
       }
     }
@@ -162,7 +162,7 @@ export const fetchCorrectedItemAction_Service = async (
 
   const prompt = `
 Role: You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
-Valid 'action' types are: "gain", "lose", "update", "put", "give", "take".
+Valid 'action' types are: "gain", "destroy", "update", "put", "give", "take".
 
 Malformed ItemChange Object:
 \`\`\`json
@@ -174,9 +174,9 @@ Narrative Context:
 - Scene Description: "${sceneDescription || 'Not specified, infer from log.'}"
 - Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
 
-Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "lose", "update", "put", "give", or "take") that was intended.
+Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "destroy", "update", "put", "give", or "take") that was intended.
 - "gain": Player acquired a new item.
-- "lose": Player lost an item or it was consumed.
+- "destroy": Player lost an item or it was consumed.
 - "update": An existing item's properties changed.
 - "put": A new item appeared somewhere other than the player's inventory.
 - "give": An existing item changed holders.
@@ -185,14 +185,14 @@ Task: Based on the Log Message, Scene Description, and the 'item' details in the
 Respond ONLY with the single corrected action string.
 If no action can be confidently determined, respond with an empty string.`;
 
-  const systemInstructionForFix = `Determine the correct item 'action' ("gain", "lose", "update", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
+  const systemInstructionForFix = `Determine the correct item 'action' ("gain", "destroy", "update", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; ) {
     try {
       const correctedActionResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
       if (correctedActionResponse !== null) {
         const action = correctedActionResponse.trim().toLowerCase();
-        if (['gain', 'lose', 'update', 'put', 'give', 'take'].includes(action)) {
+        if (['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(action)) {
           console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, action, ".");
           return action as ItemChange['action'];
         } else if (action === '') {

@@ -188,7 +188,7 @@ export const takeItem = (inv: Item[], payload: GiveItemPayload): Item[] =>
 /**
  * Applies a single item change action to the current inventory.
  * Assumes `currentInventory` and `itemChange` (and its `.item` payload) are ALREADY VALIDATED by the parser.
- * Additionally, for 'update' and 'lose' actions, the item name is guaranteed to be present in `currentInventory`.
+ * Additionally, for 'update' and 'destroy' actions, the item name is guaranteed to be present in `currentInventory`.
  *
  * @param currentInventory - The current array of items in the player's inventory.
  * @param itemChange - The item change object received from the AI, specifying the action and item.
@@ -204,7 +204,7 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
       return giveItem(currentInventory, itemChange.item as GiveItemPayload);
     case "take":
       return takeItem(currentInventory, itemChange.item as GiveItemPayload);
-    case "lose":
+    case "destroy":
       return loseItem(currentInventory, itemChange.item as ItemReference);
     case "update":
       return updateItem(currentInventory, itemChange.item as Item);
@@ -315,7 +315,7 @@ export const buildItemChangeRecords = (
         const newItemData: Item = { ...oldItemCopy, holderId: givePayload.toId };
         record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };
       }
-    } else if (change.action === 'lose') {
+    } else if (change.action === 'destroy') {
       const ref = itemPayload as ItemReference;
       const lostItem = findItemByIdentifier([ref.id, ref.name], currentInventory, false, true) as Item | null;
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };

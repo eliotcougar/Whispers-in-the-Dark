@@ -32,7 +32,7 @@ export const parseInventoryResponse = (responseText: string): ItemChange[] | nul
       case 'update':
         ok = isValidItem(change.item, 'update');
         break;
-      case 'lose':
+      case 'destroy':
         ok = isValidItemReference(change.item);
         break;
       case 'give':

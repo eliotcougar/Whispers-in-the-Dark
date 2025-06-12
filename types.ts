@@ -72,11 +72,11 @@ export interface NewItemSuggestion {
 
 export interface ItemChange {
   // For "gain" or "update", 'item' is an Item object.
-  // For "lose", 'item' provides at least an id and name (if available).
+  // For "destroy", 'item' provides at least an id and name (if available).
   // For "put", 'item' is an Item object with holderId specifying destination.
   // For "give" or "take", 'item' contains transfer details.
   item: Item | ItemReference | GiveItemPayload | null;
-  action: "gain" | "lose" | "update" | "put" | "give" | "take";
+  action: "gain" | "destroy" | "update" | "put" | "give" | "take";
   invalidPayload?: unknown; // If the 'item' field was unparseable/invalid from AI
 }
 

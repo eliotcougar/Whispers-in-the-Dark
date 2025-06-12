@@ -215,7 +215,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (themeContextForResponse) {
         for (const change of aiItemChangesFromParser) {
           const currentChange = { ...change };
-          if (currentChange.action === 'lose' && currentChange.item) {
+          if (currentChange.action === 'destroy' && currentChange.item) {
             const itemRef = currentChange.item as ItemReference;
             const itemNameFromAI = itemRef.name;
             const exactMatchInInventory = baseStateSnapshot.inventory
@@ -275,7 +275,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         return chars
           .map(ch => {
             const items = baseStateSnapshot.inventory.filter(i => i.holderId === ch.id);
-            return `${ch.name}: ${formatInventoryForPrompt(items)}`;
+            return `ID: ${ch.id} - ${ch.name}: ${formatInventoryForPrompt(items)}`;
           })
           .join('\n');
       };

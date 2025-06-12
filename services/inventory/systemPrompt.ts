@@ -12,10 +12,10 @@ You MUST process all items in the New Items JSON, and define any operations on e
 Return ONLY the JSON array of itemChange objects, without any additional text or explanations.
 
 "itemChange" is ALWAYS an array. If no items change this turn, send an empty array: "itemChange": [].
-Valid actions are 'gain', 'lose', 'update', 'put', 'give', and 'take'.
+Valid actions are 'gain', 'destroy', 'update', 'put', 'give', and 'take'.
 CRITICALLY IMPORTANT: Use 'put' or 'gain' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory.
 CRITICALLY IMPORTANT: Use 'give' or 'take' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
-CRITICALLY IMPORTANT: Use 'lose' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from play.
+CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from play.
 
 Structure for individual ItemChange objects within the array:
 - Example for gaining a *new* item from the provided New Items JSON:
@@ -42,7 +42,7 @@ Structure for individual ItemChange objects within the array:
   }
 
 - Example for losing, destroying, completely removing an *existing* item from the world:
-  { "action": "lose",
+  { "action": "destroy",
     item:{
       "id": "item_old_lantern_flickering_7fr4", /* REQUIRED: Unique identifier for the item being lost. Choose from the provided Player Inventory or Location Inventory. */
       "name": "Old Lantern (flickering)" /* REQUIRED: Full name of the item being lost, including any notes in brackets. Choose from the provided Player inventory. */

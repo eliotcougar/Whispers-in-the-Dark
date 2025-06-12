@@ -30,10 +30,10 @@ export const buildInventoryPrompt = (
   - NPC Items Hint: "${npcItemsHint}".
 
   ${newItemsJson ? `New Items from Storyteller AI or Dialogue AI:\n${newItemsJson}\n` : ''}
-  Current Player's Inventory:\n${playerInventory}
-  Current Location Inventory:\n${locationInventory}
-  Companions Inventory:\n${companionsInventory}
-  Nearby NPCs Inventory:\n${nearbyNpcsInventory}
+  ${playerInventory ? `Current Player's Inventory:\n${playerInventory}\n` : ''}
+  ${locationInventory ? `Current Location Inventory:\n${locationInventory}\n` : ''}
+  ${companionsInventory ? `Companions Inventory:\n${companionsInventory}\n` : ''}
+  ${nearbyNpcsInventory ? `Nearby NPCs Inventory:\n${nearbyNpcsInventory}\n` : ''}
 
   Provide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
 };
