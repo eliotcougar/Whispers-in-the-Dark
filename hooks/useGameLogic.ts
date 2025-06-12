@@ -68,7 +68,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const {
     handleMapLayoutConfigChange,
-    handleMapViewBoxChange,
+    handleMapTransformChange,
     handleMapNodesPositionChange,
     handleSelectDestinationNode,
   } = useMapUpdates({ setGameStateStack });
@@ -225,7 +225,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     currentMapNodeId: currentFullState.currentMapNodeId,
     destinationNodeId: currentFullState.destinationNodeId,
     mapLayoutConfig: currentFullState.mapLayoutConfig || getDefaultMapLayoutConfig(),
-    mapViewBox: currentFullState.mapViewBox,
+    mapTransform: currentFullState.mapTransform,
     score: currentFullState.score,
     freeFormActionText,
     setFreeFormActionText,
@@ -265,7 +265,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     hasGameBeenInitialized,
     handleStartNewGameFromButton,
     handleMapLayoutConfigChange,
-    handleMapViewBoxChange,
+    handleMapTransformChange,
     handleMapNodesPositionChange,
     handleSelectDestinationNode,
     handleUndoTurn,

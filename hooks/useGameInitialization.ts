@@ -26,7 +26,8 @@ import {
 } from '../utils/initialStates';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';
-import { DEFAULT_VIEWBOX } from '../utils/mapConstants';
+import { DEFAULT_MAP_TRANSFORM } from '../utils/mapConstants';
+import type { MapTransform } from '../types';
 import { ProcessAiResponseFn } from './usePlayerActions';
 
 export interface LoadInitialGameOptions {
@@ -91,7 +92,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       currentMapNodeId: currentFullState.currentMapNodeId || null,
       destinationNodeId: currentFullState.destinationNodeId || null,
       mapLayoutConfig: currentFullState.mapLayoutConfig || getDefaultMapLayoutConfig(),
-      mapViewBox: currentFullState.mapViewBox,
+      mapTransform: currentFullState.mapTransform,
       isCustomGameMode: currentFullState.isCustomGameMode ?? false,
       isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection ?? false,
       globalTurnNumber: currentFullState.globalTurnNumber,
@@ -150,7 +151,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           currentMapNodeId: currentMapNodeIdToApply,
           destinationNodeId: destinationToApply,
           mapLayoutConfig: mapLayoutConfigToApply,
-          mapViewBox: savedStateToLoad.mapViewBox || DEFAULT_VIEWBOX,
+          mapTransform: (savedStateToLoad?.mapTransform as MapTransform | undefined) || DEFAULT_MAP_TRANSFORM,
           isCustomGameMode: savedStateToLoad.isCustomGameMode ?? false,
           isAwaitingManualShiftThemeSelection: savedStateToLoad.isAwaitingManualShiftThemeSelection ?? false,
           globalTurnNumber: savedStateToLoad.globalTurnNumber ?? 0,
@@ -197,7 +198,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.stabilityLevel = stabilityLevelProp;
       draftState.chaosLevel = chaosLevelProp;
       draftState.mapLayoutConfig = getDefaultMapLayoutConfig();
-      draftState.mapViewBox = DEFAULT_VIEWBOX;
+      draftState.mapTransform = DEFAULT_MAP_TRANSFORM;
       draftState.globalTurnNumber = 0;
 
       draftState.isCustomGameMode = customGameFlag;
@@ -211,7 +212,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         draftState.score = previousState.score;
         draftState.themeHistory = previousState.themeHistory;
         draftState.mapLayoutConfig = previousState.mapLayoutConfig;
-        draftState.mapViewBox = previousState.mapViewBox;
+        draftState.mapTransform = previousState.mapTransform;
         draftState.globalTurnNumber = previousState.globalTurnNumber;
 
         draftState.mapData.nodes = previousState.mapData.nodes.filter((n) => n.themeName !== themeObjToLoad.name);
@@ -227,7 +228,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         draftState.themeHistory = {};
         draftState.score = 0;
         draftState.inventory = [];
-        draftState.mapViewBox = DEFAULT_VIEWBOX;
+        draftState.mapTransform = DEFAULT_MAP_TRANSFORM;
       }
 
       const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);

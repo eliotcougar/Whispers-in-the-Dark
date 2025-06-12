@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
+import { MapData, MapNode, MapEdge, MapLayoutConfig, MapTransform } from '../types';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
   DEFAULT_NESTED_PADDING,
@@ -29,8 +29,8 @@ interface MapDisplayProps {
   itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
   onSelectDestination: (nodeId: string) => void;
   initialLayoutConfig: MapLayoutConfig;
-  initialViewBox: string;
-  onViewBoxChange: (newViewBox: string) => void;
+  initialTransform: MapTransform;
+  onTransformChange: (newTransform: MapTransform) => void;
   onNodesPositioned: (nodes: MapNode[]) => void;
   onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
   isVisible: boolean;
@@ -48,8 +48,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   itemPresenceByNode,
   onSelectDestination,
   initialLayoutConfig,
-  initialViewBox,
-  onViewBoxChange,
+  initialTransform,
+  onTransformChange,
   onNodesPositioned,
   onLayoutConfigChange,
   isVisible,
@@ -193,8 +193,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
           onSelectDestination={onSelectDestination}
           labelOverlapMarginPx={labelOverlapMarginPx}
           itemIconScale={itemIconScale}
-          initialViewBox={initialViewBox}
-          onViewBoxChange={onViewBoxChange}
+          initialTransform={initialTransform}
+          onTransformChange={onTransformChange}
         />
         <MapControls
           padding={layoutNestedPadding}

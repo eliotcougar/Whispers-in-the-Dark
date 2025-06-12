@@ -14,3 +14,10 @@ export const DEFAULT_LABEL_LINE_HEIGHT_EM = 1.1;
 export const DEFAULT_LABEL_OVERLAP_MARGIN_PX = 2;
 /** Default size for item icons as a fraction of node diameter */
 export const DEFAULT_ITEM_ICON_SCALE = 0.3;
+import type { MapTransform } from '../types';
+
+export const DEFAULT_MAP_TRANSFORM: MapTransform = {
+  translateX: 0,
+  translateY: 0,
+  scale: 1,
+};

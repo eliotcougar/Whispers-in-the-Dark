@@ -26,7 +26,7 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
   DEFAULT_ITEM_ICON_SCALE,
-  DEFAULT_VIEWBOX,
+  DEFAULT_MAP_TRANSFORM,
 } from './mapConstants';
 
 
@@ -63,7 +63,7 @@ export const getInitialGameStates = (): FullGameState => {
     currentMapNodeId: null,
     destinationNodeId: null,
     mapLayoutConfig: getDefaultMapLayoutConfig(),
-    mapViewBox: DEFAULT_VIEWBOX,
+    mapTransform: DEFAULT_MAP_TRANSFORM,
     score: 0,
     localTime: "Unknown",
     localEnvironment: "Unknown",
