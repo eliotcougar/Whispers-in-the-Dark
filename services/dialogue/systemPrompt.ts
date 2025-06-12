@@ -47,7 +47,10 @@ Respond ONLY in JSON format with the following structure:
   "sceneDescription": "Detailed, engaging description, considering Current Theme Guidance, active items, known Places/Characters, Local Time, Local Environment, Local Place, Player's Character Gender.",
   "logMessage": "A concise summary message for the main game log, describing the key outcomes or information gained from the dialogue",
   "options": ["Action 1", "Action 2", "Action 3", "Action 4" /* ALWAYS provide FOUR distinct "options". Tailor them to the full context. */ ],
-  "itemChange"?: [ /* ItemChange objects if items were gained, lost, put elsewhere, given/taken, or updated *directly through the dialogue*. Follow standard ItemChange structure. For 'update', 'gain', or 'put', the 'item' field is an Item object. */ ],
+  "playerItemsHint"?: "string", /* Short summary of gains, losses or item state changes for the Player. */
+  "worldItemsHint"?: "string", /* Short summary of items dropped or discovered in the environment. */
+  "npcItemsHint"?: "string", /* Short summary of items held or used by NPCs. */
+  "newItems"?: [ /* Array of brand new items introduced this turn, or [] if none. Each object must follow the format in ITEMS_GUIDE. */ ],
   "charactersAdded"?: [ /* { "name", "description", "aliases" (${ALIAS_INSTRUCTION}), "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}, "lastKnownLocation": "...", "preciseLocation": "..." } if new characters were *introduced or became significant*. */ ],
   "charactersUpdated"?: [ /* { "name", "newDescription", "newAliases" (${ALIAS_INSTRUCTION}), "addAlias"?: string, "newPresenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}, "newLastKnownLocation": "...", "newPreciseLocation": "..." } if dialogue provided new information about existing characters or their presence state. */ ],
   "mainQuest"?: "New quest string if the dialogue changed it.",
@@ -67,9 +70,9 @@ Respond ONLY in JSON format with the following structure:
 - "preciseLocation" (on Character object, updated via "charactersUpdated") details location/activity in current scene if "presenceStatus" is 'nearby' or 'companion'.
 
 Items:
-If the dialogue resulted in taking, giving, picking up, leaving behind, obtaining or consuming any Items, changing their properties or amounts, moving them elsewhere, or transferring them between characters, use "itemChange" actions "gain", "lose", "put", "give"/"take", or "update".
+If the dialogue results in items being gained, lost, moved or changed, summarize these effects using "playerItemsHint", "worldItemsHint", and "npcItemsHint" and list new items in "newItems".
 ${ITEMS_GUIDE}
-These fields MUST be provided if the Player's Inventory clearly changed during the dialogue.
+These hints MUST be provided if the Player's Inventory clearly changed during the dialogue.
 
 Local Time, Environment & Place:
 If the dialogue resulted in a change to the local time, environment, or player's specific place, update "localTime", "localEnvironment", and "localPlace" accordingly.
