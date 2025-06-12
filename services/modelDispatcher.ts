@@ -11,8 +11,19 @@ import {
   extractStatusFromError,
 } from '../utils/aiErrorUtils';
 import { MinimalModelCallRecord } from '../types';
-import { recordModelCall } from '../utils/modelUsageTracker';
-import { MINIMAL_MODEL_NAME } from '../constants';
+import {
+  recordModelCall,
+  getDelayUntilUnderLimit,
+} from '../utils/modelUsageTracker';
+import {
+  MINIMAL_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
+  MINIMAL_RATE_LIMIT_PER_MINUTE,
+  GEMINI_RATE_LIMIT_PER_MINUTE,
+  AUXILIARY_RATE_LIMIT_PER_MINUTE,
+  MAX_RETRIES,
+} from '../constants';
 
 /** Determines if a model supports separate system instructions. */
 const supportsSystemInstruction = (model: string): boolean => !model.startsWith('gemma-');
@@ -41,68 +52,87 @@ export const dispatchAIRequest = async (
     return Promise.reject(new Error('API Key not configured.'));
   }
 
+  const rateLimits: Record<string, number> = {
+    [GEMINI_MODEL_NAME]: GEMINI_RATE_LIMIT_PER_MINUTE,
+    [AUXILIARY_MODEL_NAME]: AUXILIARY_RATE_LIMIT_PER_MINUTE,
+    [MINIMAL_MODEL_NAME]: MINIMAL_RATE_LIMIT_PER_MINUTE,
+  };
+
   let lastError: unknown = null;
   for (const model of options.modelNames) {
-    try {
-      const modelSupportsSystem = supportsSystemInstruction(model);
-      const contents = modelSupportsSystem
-        ? options.prompt
-        : `${options.systemInstruction ? options.systemInstruction + '\n\n' : ''}${options.prompt}`;
+    const modelSupportsSystem = supportsSystemInstruction(model);
+    const contents = modelSupportsSystem
+      ? options.prompt
+      : `${options.systemInstruction ? options.systemInstruction + '\n\n' : ''}${options.prompt}`;
 
-      const cfg: Record<string, unknown> = {};
-      if (options.temperature !== undefined) cfg.temperature = options.temperature;
-      if (options.responseMimeType) cfg.responseMimeType = options.responseMimeType;
-      if (options.thinkingBudget !== undefined) {
-        cfg.thinkingConfig = { thinkingBudget: options.thinkingBudget };
-      }
-      if (modelSupportsSystem && options.systemInstruction) {
-        cfg.systemInstruction = options.systemInstruction;
-      }
-      if (options.responseSchema && model !== MINIMAL_MODEL_NAME) {
-        cfg.responseSchema = options.responseSchema;
-      }
-
-      recordModelCall(model);
-      const response = await ai.models.generateContent({
-        model,
-        contents,
-        config: cfg,
-      });
-
-      if (options.label) {
-        console.log(
-          `[${options.label}] tokens: total ${response.usageMetadata?.totalTokenCount ?? 'N/A'}, prompt ${response.usageMetadata?.promptTokenCount ?? 'N/A'}, thoughts ${response.usageMetadata?.thoughtsTokenCount ?? 'N/A'}`
-        );
-      }
-
-      if (options.debugLog) {
-        options.debugLog.push({
-          prompt: options.prompt,
-          systemInstruction: options.systemInstruction || '',
-          modelUsed: model,
-          responseText: response.text ?? '',
-        });
-      }
-
-      return { response, modelUsed: model };
-    } catch (err) {
-      if (options.debugLog) {
-        options.debugLog.push({
-          prompt: options.prompt,
-          systemInstruction: options.systemInstruction || '',
-          modelUsed: model,
-          responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
-        });
-      }
-
-      lastError = err;
-      if (!isServerOrClientError(err)) {
-        throw err;
-      }
-      console.warn(
-        `dispatchAIRequest: Model ${model} failed with status ${extractStatusFromError(err)}. Trying next model if available.`
-      );
+    const cfg: Record<string, unknown> = {};
+    if (options.temperature !== undefined) cfg.temperature = options.temperature;
+    if (options.responseMimeType) cfg.responseMimeType = options.responseMimeType;
+    if (options.thinkingBudget !== undefined) {
+      cfg.thinkingConfig = { thinkingBudget: options.thinkingBudget };
     }
+    if (modelSupportsSystem && options.systemInstruction) {
+      cfg.systemInstruction = options.systemInstruction;
+    }
+    if (options.responseSchema && model !== MINIMAL_MODEL_NAME) {
+      cfg.responseSchema = options.responseSchema;
+    }
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; ) {
+      const extraDelay = getDelayUntilUnderLimit(model, rateLimits[model] ?? 1);
+      if (extraDelay > 0 || attempt > 1) {
+        const delay = 5000 + extraDelay;
+        await new Promise(res => setTimeout(res, delay));
+      }
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents,
+          config: cfg,
+        });
+        recordModelCall(model);
+
+        if (options.label) {
+          console.log(
+            `[${options.label}] tokens: total ${response.usageMetadata?.totalTokenCount ?? 'N/A'}, prompt ${response.usageMetadata?.promptTokenCount ?? 'N/A'}, thoughts ${response.usageMetadata?.thoughtsTokenCount ?? 'N/A'}`
+          );
+        }
+
+        if (options.debugLog) {
+          options.debugLog.push({
+            prompt: options.prompt,
+            systemInstruction: options.systemInstruction || '',
+            modelUsed: model,
+            responseText: response.text ?? '',
+          });
+        }
+
+        return { response, modelUsed: model };
+      } catch (err) {
+        if (options.debugLog) {
+          options.debugLog.push({
+            prompt: options.prompt,
+            systemInstruction: options.systemInstruction || '',
+            modelUsed: model,
+            responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
+          });
+        }
+
+        lastError = err;
+        if (!isServerOrClientError(err)) {
+          throw err;
+        }
+
+        console.warn(
+          `dispatchAIRequest: Model ${model} failed with status ${extractStatusFromError(err)}. Retry ${attempt}/${MAX_RETRIES}`
+        );
+        attempt += 1;
+      }
+    }
+
+    console.warn(
+      `dispatchAIRequest: Model ${model} exhausted retries. Falling back if another model is available.`
+    );
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 };

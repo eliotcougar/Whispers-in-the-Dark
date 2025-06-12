@@ -6,7 +6,6 @@ import { AUXILIARY_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME } from '../
 import { dispatchAIRequest } from '../modelDispatcher';
 import { MinimalModelCallRecord } from '../../types';
 import { isApiConfigured } from '../apiClient';
-import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 
@@ -42,10 +41,7 @@ export const callCorrectionAI = async <T = unknown>(
     throw new Error('JSON parse failed');
   } catch (error) {
     console.error(`callCorrectionAI: Error during single AI call or parsing for prompt starting with "${prompt.substring(0, 100)}...":`, error);
-    if (isServerOrClientError(error)) {
-      return null;
-    }
-    return null;
+    throw error;
   }
 };
 
@@ -79,6 +75,6 @@ export const callMinimalCorrectionAI = async (
       `callMinimalCorrectionAI: Error during AI call for prompt starting with "${prompt.substring(0,100)}...":`,
       error
     );
-    return null;
+    throw error;
   }
 };

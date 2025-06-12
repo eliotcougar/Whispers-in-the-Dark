@@ -16,8 +16,8 @@ import {
 } from '../../types';
 import { GEMINI_MODEL_NAME, MAX_RETRIES } from '../../constants';
 import { DIALOGUE_SYSTEM_INSTRUCTION, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION } from './systemPrompt';
-import { ai } from '../geminiClient';
-import { recordModelCall } from '../../utils/modelUsageTracker';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { callMinimalCorrectionAI } from '../corrections/base';
 import { isApiConfigured } from '../apiClient';
 import { buildDialogueTurnPrompt, buildDialogueSummaryPrompt, buildDialogueMemorySummaryPrompts } from './promptBuilder';
@@ -50,12 +50,17 @@ const callDialogueGeminiAPI = async (
   if (disableThinking) {
     config.thinkingConfig = { thinkingBudget: 0 };
   }
-  recordModelCall(GEMINI_MODEL_NAME);
-  return ai!.models.generateContent({
-    model: GEMINI_MODEL_NAME,
-    contents: prompt,
-    config,
+
+  const { response } = await dispatchAIRequest({
+    modelNames: [GEMINI_MODEL_NAME],
+    prompt,
+    systemInstruction,
+    temperature: config.temperature,
+    responseMimeType: config.responseMimeType,
+    thinkingBudget: config.thinkingConfig?.thinkingBudget,
+    label: 'Dialogue',
   });
+  return response;
 };
 
 /**
@@ -99,16 +104,20 @@ export const executeDialogueTurn = async (
     dialogueParticipants,
   });
 
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; ) {
     try {
       console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, true);
       const parsed = parseDialogueTurnResponse(response.text ?? '');
       if (parsed) return parsed;
       console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue turn. Retrying if attempts remain.`);
+      attempt++;
     } catch (error) {
       console.error(`Error fetching dialogue turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
+      if (!isServerOrClientError(error)) throw error;
       if (attempt === MAX_RETRIES) throw error;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      continue;
     }
   }
   throw new Error('Failed to fetch dialogue turn after maximum retries.');
@@ -132,16 +141,20 @@ export const executeDialogueSummary = async (
 
   const prompt = buildDialogueSummaryPrompt(summaryContext);
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 2; attempt++) {
+  for (let attempt = 1; attempt <= MAX_RETRIES + 2; ) {
     try {
       console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 2})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION, false);
       const parsed = parseDialogueSummaryResponse(response.text ?? '');
       if (parsed) return parsed;
       console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
+      attempt++;
     } catch (error) {
       console.error(`Error summarizing dialogue (Attempt ${attempt}/${MAX_RETRIES + 2}):`, error);
+      if (!isServerOrClientError(error)) throw error;
       if (attempt === MAX_RETRIES + 2) throw error;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      continue;
     }
   }
   return { logMessage: 'The conversation concluded without notable changes.' };
@@ -164,7 +177,7 @@ export const executeMemorySummary = async (
 
   const { systemInstructionPart, userPromptPart } = buildDialogueMemorySummaryPrompts(context);
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) {
     try {
       console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 1})`);
       const memoryText = await callMinimalCorrectionAI(userPromptPart, systemInstructionPart);
@@ -174,9 +187,13 @@ export const executeMemorySummary = async (
       }
       console.warn(`Attempt ${attempt} for memory summary yielded empty text after trim: '${memoryText}'`);
       if (attempt === MAX_RETRIES + 1) return null;
+      attempt++;
     } catch (error) {
       console.error(`Error generating memory summary (Attempt ${attempt}/${MAX_RETRIES + 1}):`, error);
+      if (!isServerOrClientError(error)) return null;
       if (attempt === MAX_RETRIES + 1) return null;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      continue;
     }
   }
   return null;
