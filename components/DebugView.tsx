@@ -21,6 +21,7 @@ type DebugTab =
   | "GameState"
   | "MainAI"
   | "MapLocationAI"
+  | "InventoryAI"
   | "Inventory"
   | "Characters"
   | "MapDataFull"
@@ -117,6 +118,7 @@ const DebugView: React.FC<DebugViewProps> = ({
     { name: "GameState", label: "Game State" },
     { name: "MainAI", label: "Main AI" },
     { name: "MapLocationAI", label: "Map & Location AI" },
+    { name: "InventoryAI", label: "Inventory AI" },
     { name: "Inventory", label: "Inventory" },
     { name: "Characters", label: "Characters" },
     { name: "MapDataFull", label: "Map Data (Full)" },
@@ -219,6 +221,23 @@ const DebugView: React.FC<DebugViewProps> = ({
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>
             )}
           </>
+        );
+      case "InventoryAI":
+        return debugPacket?.inventoryDebugInfo ? (
+          <>
+            {renderContent(
+              "Inventory AI Request Prompt",
+              debugPacket.inventoryDebugInfo.prompt,
+              false,
+            )}
+            {renderContent(
+              "Inventory AI Raw Response",
+              debugPacket.inventoryDebugInfo.rawResponse,
+              false,
+            )}
+          </>
+        ) : (
+          <p className="italic text-slate-400">No Inventory AI interaction debug packet captured.</p>
         );
       case "Inventory":
         return renderContent("Current Inventory", currentState?.inventory, true, "max-h-[70vh]");

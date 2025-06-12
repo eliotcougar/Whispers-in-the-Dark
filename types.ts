@@ -420,6 +420,10 @@ export interface DebugPacket {
       validationError?: string;
     } | null;
   } | null;
+  inventoryDebugInfo?: {
+    prompt: string;
+    rawResponse?: string;
+  } | null;
 }
 
 
