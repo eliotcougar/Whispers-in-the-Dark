@@ -6,120 +6,133 @@
 import { GenerateContentResponse } from '@google/genai';
 import { ai } from './geminiClient';
 import { isApiConfigured } from './apiClient';
-import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
+import {
+  isServerOrClientError,
+  extractStatusFromError,
+} from '../utils/aiErrorUtils';
 import { MinimalModelCallRecord } from '../types';
-import { recordModelCall } from '../utils/modelUsageTracker';
+import {
+  recordModelCall,
+  getDelayUntilUnderLimit,
+} from '../utils/modelUsageTracker';
+import {
+  MINIMAL_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
+  MINIMAL_RATE_LIMIT_PER_MINUTE,
+  GEMINI_RATE_LIMIT_PER_MINUTE,
+  AUXILIARY_RATE_LIMIT_PER_MINUTE,
+  MAX_RETRIES,
+} from '../constants';
 
 /** Determines if a model supports separate system instructions. */
 const supportsSystemInstruction = (model: string): boolean => !model.startsWith('gemma-');
 
+export interface ModelDispatchOptions {
+  modelNames: string[];
+  prompt: string;
+  systemInstruction?: string;
+  temperature?: number;
+  responseMimeType?: string;
+  thinkingBudget?: number;
+  responseSchema?: object;
+  label?: string;
+  debugLog?: MinimalModelCallRecord[];
+}
+
 /**
- * Sends an AI request, trying each model in order until one succeeds.
- * Falls back to the next model only when a client or server error is returned.
- *
- * @param modelNames - Array of model names to try in order.
- * @param prompt - The user prompt to send.
- * @param systemInstruction - Optional system instruction to include.
- * @param config - Additional generateContent configuration.
- * @returns The GenerateContentResponse from the first successful model.
+ * Sends an AI request, trying each model in order until one succeeds. Falls
+ * back to the next model only when a client or server error (typically 4xx)
+ * is encountered.
  */
 export const dispatchAIRequest = async (
-  modelNames: string[],
-  prompt: string,
-  systemInstruction?: string,
-  config: Record<string, unknown> = {}
-): Promise<GenerateContentResponse> => {
-  if (!isApiConfigured() || !ai) {
-    return Promise.reject(new Error('API Key not configured.'));
-  }
-
-  let lastError: unknown = null;
-  for (const model of modelNames) {
-    try {
-      const modelSupportsSystem = supportsSystemInstruction(model);
-      const contents = modelSupportsSystem
-        ? prompt
-        : `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`;
-      const cfg = { ...config };
-      if (modelSupportsSystem && systemInstruction) {
-        cfg.systemInstruction = systemInstruction;
-      }
-
-      recordModelCall(model);
-      const response = await ai.models.generateContent({
-        model,
-        contents,
-        config: cfg,
-      });
-      return response;
-    } catch (err) {
-      lastError = err;
-      if (!isServerOrClientError(err)) {
-        throw err;
-      }
-      console.warn(
-        `dispatchAIRequest: Model ${model} failed with status ${extractStatusFromError(err)}. Trying next model if available.`
-      );
-    }
-  }
-  throw lastError instanceof Error ? lastError : new Error(String(lastError));
-};
-
-export const dispatchAIRequestWithModelInfo = async (
-  modelNames: string[],
-  prompt: string,
-  systemInstruction?: string,
-  config: Record<string, unknown> = {},
-  debugLog?: MinimalModelCallRecord[]
+  options: ModelDispatchOptions
 ): Promise<{ response: GenerateContentResponse; modelUsed: string }> => {
   if (!isApiConfigured() || !ai) {
     return Promise.reject(new Error('API Key not configured.'));
   }
 
-  let lastError: unknown = null;
-  for (const model of modelNames) {
-    try {
-      const modelSupportsSystem = supportsSystemInstruction(model);
-      const contents = modelSupportsSystem
-        ? prompt
-        : `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`;
-      const cfg = { ...config };
-      if (modelSupportsSystem && systemInstruction) {
-        cfg.systemInstruction = systemInstruction;
-      }
-      recordModelCall(model);
+  const rateLimits: Record<string, number> = {
+    [GEMINI_MODEL_NAME]: GEMINI_RATE_LIMIT_PER_MINUTE,
+    [AUXILIARY_MODEL_NAME]: AUXILIARY_RATE_LIMIT_PER_MINUTE,
+    [MINIMAL_MODEL_NAME]: MINIMAL_RATE_LIMIT_PER_MINUTE,
+  };
 
-      const response = await ai.models.generateContent({
-        model,
-        contents,
-        config: cfg,
-      });
-      if (debugLog) {
-        debugLog.push({
-          prompt,
-          systemInstruction: systemInstruction || '',
-          modelUsed: model,
-          responseText: response.text ?? '',
-        });
-      }
-      return { response, modelUsed: model };
-    } catch (err) {
-      if (debugLog) {
-        debugLog.push({
-          prompt,
-          systemInstruction: systemInstruction || '',
-          modelUsed: model,
-          responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
-        });
-      }
-      lastError = err;
-      if (!isServerOrClientError(err)) {
-        throw err;
-      }
-      console.warn(
-        `dispatchAIRequest: Model ${model} failed with status ${extractStatusFromError(err)}. Trying next model if available.`
-      );
+  let lastError: unknown = null;
+  for (const model of options.modelNames) {
+    const modelSupportsSystem = supportsSystemInstruction(model);
+    const contents = modelSupportsSystem
+      ? options.prompt
+      : `${options.systemInstruction ? options.systemInstruction + '\n\n' : ''}${options.prompt}`;
+
+    const cfg: Record<string, unknown> = {};
+    if (options.temperature !== undefined) cfg.temperature = options.temperature;
+    if (options.responseMimeType) cfg.responseMimeType = options.responseMimeType;
+    if (options.thinkingBudget !== undefined) {
+      cfg.thinkingConfig = { thinkingBudget: options.thinkingBudget };
     }
+    if (modelSupportsSystem && options.systemInstruction) {
+      cfg.systemInstruction = options.systemInstruction;
+    }
+    if (options.responseSchema && model !== MINIMAL_MODEL_NAME) {
+      cfg.responseSchema = options.responseSchema;
+    }
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; ) {
+      const extraDelay = getDelayUntilUnderLimit(model, rateLimits[model] ?? 1);
+      if (extraDelay > 0 || attempt > 1) {
+        const delay = 5000 + extraDelay;
+        await new Promise(res => setTimeout(res, delay));
+      }
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents,
+          config: cfg,
+        });
+        recordModelCall(model);
+
+        if (options.label) {
+          console.log(
+            `[${options.label}] ${model} tokens: total ${response.usageMetadata?.totalTokenCount ?? 'N/A'}, prompt ${response.usageMetadata?.promptTokenCount ?? 'N/A'}, thoughts ${response.usageMetadata?.thoughtsTokenCount ?? 'N/A'}`
+          );
+        }
+
+        if (options.debugLog) {
+          options.debugLog.push({
+            prompt: options.prompt,
+            systemInstruction: options.systemInstruction || '',
+            modelUsed: model,
+            responseText: response.text ?? '',
+          });
+        }
+
+        return { response, modelUsed: model };
+      } catch (err) {
+        if (options.debugLog) {
+          options.debugLog.push({
+            prompt: options.prompt,
+            systemInstruction: options.systemInstruction || '',
+            modelUsed: model,
+            responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
+          });
+        }
+
+        lastError = err;
+        if (!isServerOrClientError(err)) {
+          throw err;
+        }
+
+        console.warn(
+          `dispatchAIRequest: Model ${model} failed with status ${extractStatusFromError(err)}. Retry ${attempt}/${MAX_RETRIES}`
+        );
+        attempt += 1;
+      }
+    }
+
+    console.warn(
+      `dispatchAIRequest: Model ${model} exhausted retries. Falling back if another model is available.`
+    );
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 };

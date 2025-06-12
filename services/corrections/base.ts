@@ -3,10 +3,9 @@
  * @description Shared utilities for calling the AI correction models.
  */
 import { AUXILIARY_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME } from '../../constants';
-import { dispatchAIRequest, dispatchAIRequestWithModelInfo } from '../modelDispatcher';
+import { dispatchAIRequest } from '../modelDispatcher';
 import { MinimalModelCallRecord } from '../../types';
 import { isApiConfigured } from '../apiClient';
-import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 
@@ -28,25 +27,21 @@ export const callCorrectionAI = async <T = unknown>(
 ): Promise<T | null> => {
   addProgressSymbol('●');
   try {
-    const response = await dispatchAIRequest(
-      [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+    const { response } = await dispatchAIRequest({
+      modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction,
-      {
-        responseMimeType: 'application/json',
-        temperature: CORRECTION_TEMPERATURE,
-      }
-    );
+      responseMimeType: 'application/json',
+      temperature: CORRECTION_TEMPERATURE,
+      label: 'Corrections',
+    });
     const jsonStr = extractJsonFromFence(response.text ?? '');
     const parsed = safeParseJson<T>(jsonStr);
     if (parsed) return parsed;
     throw new Error('JSON parse failed');
   } catch (error) {
     console.error(`callCorrectionAI: Error during single AI call or parsing for prompt starting with "${prompt.substring(0, 100)}...":`, error);
-    if (isServerOrClientError(error)) {
-      return null;
-    }
-    return null;
+    throw error;
   }
 };
 
@@ -66,19 +61,20 @@ export const callMinimalCorrectionAI = async (
   }
 
   try {
-    const { response } = await dispatchAIRequestWithModelInfo(
-      [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+    const { response } = await dispatchAIRequest({
+      modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction,
-      { temperature: CORRECTION_TEMPERATURE },
-      debugLog
-    );
+      temperature: CORRECTION_TEMPERATURE,
+      label: 'Corrections',
+      debugLog,
+    });
     return response.text?.trim() ?? null;
   } catch (error) {
     console.error(
       `callMinimalCorrectionAI: Error during AI call for prompt starting with "${prompt.substring(0,100)}...":`,
       error
     );
-    return null;
+    throw error;
   }
 };

@@ -132,7 +132,7 @@ function isValidMapNodeData(data: unknown): data is MapNodeData {
       (Array.isArray(maybe.aliases) &&
         maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) &&
     (maybe.status === undefined ||
-      ['undiscovered', 'discovered', 'rumored', 'quest_target'].includes(maybe.status)) &&
+      ['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(maybe.status)) &&
     (maybe.visited === undefined || typeof maybe.visited === 'boolean') &&
     (maybe.isFeature === undefined || typeof maybe.isFeature === 'boolean') &&
     (maybe.parentNodeId === undefined ||
@@ -350,7 +350,7 @@ export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined):
         } else {
             node.data.aliases = node.data.aliases.filter(alias => typeof alias === 'string');
         }
-        if (node.data.status === undefined || !['undiscovered', 'discovered', 'rumored', 'quest_target'].includes(node.data.status)) {
+        if (node.data.status === undefined || !['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(node.data.status)) {
             node.data.status = 'discovered';
         }
         if (typeof node.data.visited !== 'boolean') {

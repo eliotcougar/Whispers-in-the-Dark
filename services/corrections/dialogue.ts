@@ -62,14 +62,22 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
 
   const systemInstructionForFix = `Correct a malformed 'dialogueSetup' JSON payload. Ensure 'participants' are valid NPCs, 'initialNpcResponses' are logical, and 'initialPlayerOptions' are varied with an exit option. Adhere strictly to the JSON format.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedPayload = await callCorrectionAI<DialogueSetupPayload>(prompt, systemInstructionForFix);
-    if (correctedPayload && isDialogueSetupPayloadStructurallyValid(correctedPayload)) {
-      return correctedPayload;
-    } else {
-      console.warn(`fetchCorrectedDialogueSetup_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected dialogueSetup payload invalid. Response:`, correctedPayload);
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const correctedPayload = await callCorrectionAI<DialogueSetupPayload>(prompt, systemInstructionForFix);
+      if (correctedPayload && isDialogueSetupPayloadStructurallyValid(correctedPayload)) {
+        return correctedPayload;
+      } else {
+        console.warn(`fetchCorrectedDialogueSetup_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected dialogueSetup payload invalid. Response:`, correctedPayload);
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchCorrectedDialogueSetup_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
-    if (attempt === MAX_RETRIES) return null;
   }
   return null;
 };

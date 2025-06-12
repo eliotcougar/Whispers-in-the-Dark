@@ -9,7 +9,17 @@ export const NODE_STATUS_SYNONYMS: Record<string, MapNodeData['status']> = {
   speculation: 'rumored',
   whispered: 'rumored',
   goal: 'quest_target',
-  objective: 'quest_target'
+  objective: 'quest_target',
+  inaccessible: 'blocked',
+  'sealed off': 'blocked',
+  sealed: 'blocked',
+  destroyed: 'blocked',
+  ruined: 'blocked',
+  collapsed: 'blocked',
+  'blocked off': 'blocked',
+  barricaded: 'blocked',
+  obstructed: 'blocked',
+  impassable: 'blocked'
 };
 
 export const NODE_TYPE_SYNONYMS: Record<string, NonNullable<MapNodeData['nodeType']>> = {

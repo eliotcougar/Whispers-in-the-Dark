@@ -65,22 +65,30 @@ Constraints:
 
   const systemInstructionForFix = `You generate detailed JSON objects for new game characters based on narrative context. Provide description, aliases, presenceStatus, lastKnownLocation, and preciseLocation. Adhere strictly to the JSON format and field requirements. Derive all information strictly from the provided context.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedDetails = await callCorrectionAI<CorrectedCharacterDetails>(prompt, systemInstructionForFix);
-    if (
-      correctedDetails &&
-      typeof correctedDetails.description === 'string' && correctedDetails.description.trim() !== '' &&
-      Array.isArray(correctedDetails.aliases) && correctedDetails.aliases.every((a): a is string => typeof a === 'string') &&
-      typeof correctedDetails.presenceStatus === 'string' && VALID_PRESENCE_STATUS_VALUES.includes(correctedDetails.presenceStatus) &&
-      (correctedDetails.lastKnownLocation === null || typeof correctedDetails.lastKnownLocation === 'string') &&
-      (correctedDetails.preciseLocation === null || typeof correctedDetails.preciseLocation === 'string') &&
-      !((correctedDetails.presenceStatus === 'nearby' || correctedDetails.presenceStatus === 'companion') && correctedDetails.preciseLocation === null && correctedDetails.preciseLocation !== '') &&
-      !((correctedDetails.presenceStatus === 'distant' || correctedDetails.presenceStatus === 'unknown') && correctedDetails.preciseLocation !== null)
-    ) {
-      return correctedDetails;
-    } else {
-      console.warn(`fetchCorrectedCharacterDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected details for "${characterName}" invalid or incomplete. Response:`, correctedDetails);
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const correctedDetails = await callCorrectionAI<CorrectedCharacterDetails>(prompt, systemInstructionForFix);
+      if (
+        correctedDetails &&
+        typeof correctedDetails.description === 'string' && correctedDetails.description.trim() !== '' &&
+        Array.isArray(correctedDetails.aliases) && correctedDetails.aliases.every((a): a is string => typeof a === 'string') &&
+        typeof correctedDetails.presenceStatus === 'string' && VALID_PRESENCE_STATUS_VALUES.includes(correctedDetails.presenceStatus) &&
+        (correctedDetails.lastKnownLocation === null || typeof correctedDetails.lastKnownLocation === 'string') &&
+        (correctedDetails.preciseLocation === null || typeof correctedDetails.preciseLocation === 'string') &&
+        !((correctedDetails.presenceStatus === 'nearby' || correctedDetails.presenceStatus === 'companion') && correctedDetails.preciseLocation === null && correctedDetails.preciseLocation !== '') &&
+        !((correctedDetails.presenceStatus === 'distant' || correctedDetails.presenceStatus === 'unknown') && correctedDetails.preciseLocation !== null)
+      ) {
+        return correctedDetails;
+      } else {
+        console.warn(`fetchCorrectedCharacterDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected details for "${characterName}" invalid or incomplete. Response:`, correctedDetails);
+        if (attempt === MAX_RETRIES) return null;
+        attempt++;
+      }
+    } catch (error) {
+      console.error(`fetchCorrectedCharacterDetails_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
       if (attempt === MAX_RETRIES) return null;
+      continue;
     }
   }
   return null;
@@ -132,20 +140,28 @@ Example Response: If unclear from context, respond with a generic but plausible 
 
   const systemInstructionForFix = `Infer or correct a character's "preciseLocation" (a short phrase, max ~50-60 chars, describing their in-scene activity/position) from narrative context and potentially malformed input. Respond ONLY with the string value. Adhere to theme context: ${currentTheme.systemInstructionModifier || 'General interpretation.'}`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedLocationResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
-    if (correctedLocationResponse !== null) {
-      const correctedLocation = correctedLocationResponse.trim();
-      if (correctedLocation.length > 0 && correctedLocation.length <= 60) {
-        console.warn(`fetchCorrectedCompanionOrNPCLocation_Service: Returned corrected NPC Location `, correctedLocation, `.`);
-        return correctedLocation;
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const correctedLocationResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
+      if (correctedLocationResponse !== null) {
+        const correctedLocation = correctedLocationResponse.trim();
+        if (correctedLocation.length > 0 && correctedLocation.length <= 60) {
+          console.warn(`fetchCorrectedCompanionOrNPCLocation_Service: Returned corrected NPC Location `, correctedLocation, ".");
+          return correctedLocation;
+        } else {
+          console.warn(`fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected preciseLocation for "${characterName}" was empty or too long: "${correctedLocation}"`);
+        }
       } else {
-        console.warn(`fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected preciseLocation for "${characterName}" was empty or too long: "${correctedLocation}"`);
+        console.warn(`fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for preciseLocation of "${characterName}". Received: null`);
       }
-    } else {
-      console.warn(`fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for preciseLocation of "${characterName}". Received: null`);
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchCorrectedCompanionOrNPCLocation_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
-    if (attempt === MAX_RETRIES) return null;
   }
   return null;
 };

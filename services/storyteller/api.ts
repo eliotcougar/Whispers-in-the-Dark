@@ -7,12 +7,10 @@ import { GenerateContentResponse } from "@google/genai";
 import { AdventureTheme } from '../../types';
 import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
-import { ai } from '../geminiClient';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { recordModelCall } from '../../utils/modelUsageTracker';
 
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
@@ -30,38 +28,30 @@ export const executeAIMainTurn = async (
         systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${themeSystemInstructionModifier}`;
     }
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    for (let attempt = 1; attempt <= MAX_RETRIES; ) {
         try {
-            recordModelCall(GEMINI_MODEL_NAME);
-            const response = await ai!.models.generateContent({
-                model: GEMINI_MODEL_NAME,
-                contents: fullPrompt,
-                config: {
-                    systemInstruction: systemInstructionForCall,
-                    responseMimeType: "application/json",
-                    temperature: 1.0,
-                    thinkingConfig: { thinkingBudget: 4096 } // Disable thinking for lower latency
-                }
+            const { response } = await dispatchAIRequest({
+                modelNames: [GEMINI_MODEL_NAME],
+                prompt: fullPrompt,
+                systemInstruction: systemInstructionForCall,
+                temperature: 1.0,
+                thinkingBudget: 4096,
+                responseMimeType: "application/json",
+                label: "Storyteller"
             });
-            // Return the raw response. Parsing and processing happen in useGameLogic.
-            console.log(
-                "Executing AI Main Turn. Total tokens: ",
-                response.usageMetadata?.totalTokenCount ?? 'N/A',
-                ", Thought Tokens:", response.usageMetadata?.thoughtsTokenCount ?? 'N/A',
-                ", Prompt Tokens: ", response.usageMetadata?.promptTokenCount ?? 'N/A'
-            );
             return response;
         } catch (error) {
             console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
-            if (isServerOrClientError(error)) {
-                const err = error instanceof Error ? error : new Error(String(error));
-                return Promise.reject(err);
+            if (!isServerOrClientError(error)) {
+                throw error;
             }
             if (attempt === MAX_RETRIES) {
                 return Promise.reject(new Error(`Failed to execute AI Main Turn after maximum retries: ${error instanceof Error ? error.message : String(error)}`));
             }
-            await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue; // retry same attempt
         }
+        attempt++;
     }
     // Should not be reached if MAX_RETRIES > 0, as the loop will either return or throw.
     // Added for type safety / exhaustive paths.
@@ -99,17 +89,15 @@ The summary should be written in a narrative style, from a perspective that desc
 Do not include any preamble. Just provide the summary text itself.
 `;
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) { // Extra retry for summarization
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) { // Extra retry for summarization
     try {
       console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1})`);
-      const response = await dispatchAIRequest(
-          [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
-          summarizationPrompt,
-          undefined,
-          {
-              temperature: 0.8,
-          }
-      );
+      const { response } = await dispatchAIRequest({
+          modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+          prompt: summarizationPrompt,
+          temperature: 0.8,
+          label: 'Summarize',
+      });
       const text = (response.text ?? '').trim();
       if (text && text.length > 0) {
         return text;
@@ -118,10 +106,16 @@ Do not include any preamble. Just provide the summary text itself.
       if (attempt === MAX_RETRIES +1 && (!text || text.length === 0)) return null;
     } catch (error) {
       console.error(`Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1}):`, error);
+      if (!isServerOrClientError(error)) {
+        throw error;
+      }
       if (attempt === MAX_RETRIES +1) {
         return null;
       }
+      await new Promise(resolve => setTimeout(resolve, 500));
+      continue;
     }
+    attempt++;
   }
   return null;
 };

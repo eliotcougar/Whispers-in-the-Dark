@@ -71,17 +71,20 @@ export interface MapUpdateServiceResult {
  * Sends a prompt and system instruction to the auxiliary AI model and returns
  * the raw response.
  */
-const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promise<GenerateContentResponse> => {
+const callMapUpdateAI = async (
+  prompt: string,
+  systemInstruction: string
+): Promise<GenerateContentResponse> => {
   addProgressSymbol('▓▓');
-  return dispatchAIRequest(
-    [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+  const { response } = await dispatchAIRequest({
+    modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction,
-    {
-      responseMimeType: "application/json",
-      temperature: 0.75,
-    }
-  );
+    responseMimeType: 'application/json',
+    temperature: 0.75,
+    label: 'Cartographer',
+  });
+  return response;
 };
 
 /**
@@ -319,21 +322,20 @@ export const updateMapFromAIData_Service = async (
   if (previousMapNodeId) {
     const prevNode = themeNodeIdMap.get(previousMapNodeId);
     if (prevNode) {
-      previousMapNodeContext = `Player's Previous Map Node: Was at "${prevNode.placeName}" (ID: ${prevNode.id}, Type: ${prevNode.data.nodeType === 'feature' ? 'Feature' : 'Main'}, Visited: ${!!prevNode.data.visited}).`;
+      previousMapNodeContext = `${prevNode.id} - "${prevNode.placeName}".`;
     }
   }
 
-  const existingMapContext = `
-Current Map Nodes (for your reference):
-${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- "${n.placeName}" (ID: ${n.id}, Feature: ${n.data.nodeType === 'feature'}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
+  const existingMapContext = `Current Map Nodes (for your reference):
+${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- ${n.id} - "${n.placeName}" (Type: ${n.data.nodeType}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
 
 Current Map Edges (for your reference):
 ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- ${e.data.status || 'N/A'} ${e.data.type || 'N/A'} from ${e.sourceNodeId} to ${e.targetNodeId}`).join('\n') : "None exist yet."}
 `;
 
   const allKnownMainPlacesString = allKnownMainMapNodesForTheme.length > 0
-    ? allKnownMainMapNodesForTheme.map(p => `"${p.placeName}" (Description: "${p.data.description.substring(0,100)}...")`).join('; ')
-    : "No main places are pre-defined for this theme.";
+    ? allKnownMainMapNodesForTheme.map(p => `"${p.placeName}"`).join(', ')
+    : "No important places are known yet.";
 
 
   const basePrompt = buildMapUpdatePrompt(
@@ -350,7 +352,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
   const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };
   let validParsedPayload: AIMapUpdatePayload | null = null;
 
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt < MAX_RETRIES; ) {
     try {
       console.log(`Map Update Service: Attempt ${attempt + 1}/${MAX_RETRIES}`);
       if (attempt > 0 && debugInfo.validationError) {
@@ -384,23 +386,29 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
       if (attempt === MAX_RETRIES - 1) {
         console.error("Map Update Service: Failed to get valid map update payload after all retries.");
       }
+      attempt++;
     } catch (error) {
       console.error(`Error in map update service (Attempt ${attempt + 1}/${MAX_RETRIES}):`, error);
       if (isServerOrClientError(error)) {
         debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
         debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
-        return {
-          updatedMapData: null,
-          newlyAddedNodes: [],
-          newlyAddedEdges: [],
-          debugInfo,
-        };
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (attempt === MAX_RETRIES - 1) {
+          return {
+            updatedMapData: null,
+            newlyAddedNodes: [],
+            newlyAddedEdges: [],
+            debugInfo,
+          };
+        }
+        continue;
       }
       debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
       debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
       if (attempt === MAX_RETRIES - 1) {
         console.error("Map Update Service: Failed after all retries due to processing error.");
       }
+      attempt++;
     }
   }
 
@@ -1067,7 +1075,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
 
   while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
       let chainResult: ConnectorChainsServiceResult | null = null;
-      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      for (let attempt = 0; attempt < MAX_RETRIES; ) {
         console.log(
           `Connector Chains Refinement: Round ${refineAttempts + 1}/${MAX_CHAIN_REFINEMENT_ROUNDS}, Attempt ${
             attempt + 1
@@ -1085,6 +1093,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
             attempt + 1
           }): invalid or empty response. Retrying.`,
         );
+        attempt++;
       }
       if (chainResult && chainResult.payload) {
         chainRequests = [];
