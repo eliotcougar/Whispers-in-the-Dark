@@ -617,7 +617,7 @@ Return ONLY a JSON object strictly matching this structure:
         systemInstruction: systemInstr,
         responseMimeType: 'application/json',
         temperature: CORRECTION_TEMPERATURE,
-        label: 'ConnectorChains',
+        label: 'Corrections',
       });
       debugInfo.rawResponse = response.text ?? '';
       const jsonStr = extractJsonFromFence(response.text ?? '');

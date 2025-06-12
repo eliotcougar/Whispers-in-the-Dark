@@ -34,7 +34,7 @@ export const callCorrectionAI = async <T = unknown>(
       systemInstruction,
       responseMimeType: 'application/json',
       temperature: CORRECTION_TEMPERATURE,
-      label: 'CorrectionAI',
+      label: 'Corrections',
     });
     const jsonStr = extractJsonFromFence(response.text ?? '');
     const parsed = safeParseJson<T>(jsonStr);
@@ -70,7 +70,7 @@ export const callMinimalCorrectionAI = async (
       prompt,
       systemInstruction,
       temperature: CORRECTION_TEMPERATURE,
-      label: 'MinimalCorrection',
+      label: 'Corrections',
       debugLog,
     });
     return response.text?.trim() ?? null;

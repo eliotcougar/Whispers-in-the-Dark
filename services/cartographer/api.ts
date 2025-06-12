@@ -82,7 +82,7 @@ const callMapUpdateAI = async (
     systemInstruction,
     responseMimeType: 'application/json',
     temperature: 0.75,
-    label: 'MapUpdate',
+    label: 'Cartographer',
   });
   return response;
 };
