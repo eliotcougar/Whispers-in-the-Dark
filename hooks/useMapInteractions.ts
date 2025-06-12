@@ -86,8 +86,9 @@ export const useMapInteractions = (
     const minScale = 0.1;
     const maxScale = 10;
     if (newScale < minScale || newScale > maxScale) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    applyScale(newScale, e.clientX - rect.left, e.clientY - rect.top);
+    const containerRect = svgRef.current.parentElement?.getBoundingClientRect();
+    if (!containerRect) return;
+    applyScale(newScale, e.clientX - containerRect.left, e.clientY - containerRect.top);
   };
 
   const getTouchDistance = (t1: React.Touch, t2: React.Touch) => {
@@ -131,9 +132,10 @@ export const useMapInteractions = (
       const minScale = 0.1;
       const maxScale = 10;
       const boundedScale = Math.min(Math.max(newScale, minScale), maxScale);
-      const rect = svgRef.current.getBoundingClientRect();
-      const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-      const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+      const containerRect = svgRef.current.parentElement?.getBoundingClientRect();
+      if (!containerRect) return;
+      const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - containerRect.left;
+      const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - containerRect.top;
       applyScale(boundedScale, centerX, centerY);
       setLastPinchDistance(currentDistance);
     }
