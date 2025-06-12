@@ -335,17 +335,21 @@ const App: React.FC = () => {
     handleSaveToFile();
   }
 
-  const openSettingsFromMenu = () => {
+  const openSettingsFromMenu = useCallback(() => {
     setUserRequestedTitleMenuOpen(false);
     setIsSettingsVisible(true);
-  };
+  }, []);
 
-  const closeSettings = () => {
+  const closeSettings = useCallback(() => {
     setIsSettingsVisible(false);
     if (userRequestedTitleMenuOpen || !hasGameBeenInitialized) {
       setUserRequestedTitleMenuOpen(true);
     }
-  };
+  }, [userRequestedTitleMenuOpen, hasGameBeenInitialized]);
+
+  const closeInfoDisplay = useCallback(() => {
+    setIsInfoVisible(false);
+  }, []);
 
 
   const handleOpenCustomGameSetup = () => {
@@ -679,7 +683,7 @@ const App: React.FC = () => {
           />
           <InfoDisplay
             isVisible={isInfoVisible}
-            onClose={() => setIsInfoVisible(false)}
+            onClose={closeInfoDisplay}
           />
           <ConfirmationDialog
             isOpen={newGameFromMenuConfirmOpen}

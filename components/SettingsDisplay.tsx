@@ -3,7 +3,7 @@
  * @file SettingsDisplay.tsx
  * @description Screen for adjusting game and user settings.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { ThemePackName, ALL_THEME_PACK_NAMES } from '../themes';
 import { DEFAULT_PLAYER_GENDER } from '../constants';
 
@@ -24,7 +24,7 @@ interface SettingsDisplayProps {
 /**
  * Screen for tweaking player and gameplay settings.
  */
-const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
+const SettingsDisplayComponent: React.FC<SettingsDisplayProps> = ({
   isVisible,
   onClose,
   stabilityLevel,
@@ -221,5 +221,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
     </div>
   );
 };
+
+const SettingsDisplay = memo(SettingsDisplayComponent);
 
 export default SettingsDisplay;
