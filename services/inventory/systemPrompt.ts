@@ -78,14 +78,14 @@ Structure for individual ItemChange objects within the array:
       }
   }
 
-- Example for transformation or crafting (providing all details for the new item): 
+- Example for transformation or crafting (new item details can be partial and will inherit missing fields):
   { "action": "update",
     "item": {
       "id": "item_scrap_metal_7fr4", /* REQUIRED: Unique identifier for the item. Choose from the provided context. */
       "name": "Scrap Metal", /* REQUIRED: Full name of the item to update. Choose from the provided context. */
       "newName": "Makeshift Shiv", /* REQUIRED: New name for the transformed item, e.g., "Makeshift Shiv" */
-      "type": "weapon", /* REQUIRED: New type for the transformed item, e.g., "weapon". MUST be one of ${VALID_ITEM_TYPES_STRING} */
-      "description": "A sharp piece of metal.", /* REQUIRED: New description for the transformed item, e.g., "A sharp piece of metal." */
+      "type": "weapon", /* Optional: New type for the transformed item if it changes. MUST be one of ${VALID_ITEM_TYPES_STRING} */
+      "description": "A sharp piece of metal.", /* Optional: New description for the transformed item if it changes. */
       "isJunk"?: false /* Optional: Set to true if the item becomes junk, false if it becomes important again. Defaults to false if not provided. IMPORTANT: "status effects" can never be marked as junk. */
       "knownUses"?: [
         { 
@@ -137,6 +137,6 @@ Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
 - "knowledge": Immaterial. Represents learned info, skills, spells, passwords. 'knownUses' define how to apply it. Can be 'lost' if used up or no longer relevant. E.g., "Spell: Fireball", "Recipe: Health Potion", "Clue: Thief Name".
 - "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
 
-IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "update", providing "newName", and the new "type" and "description" for the thematically appropriate item. Your "logMessage" must creatively explain this transformation. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand". The log message could be: "The strange metal device from another world shimmers and reshapes into a humming metal wand in your grasp!"
+IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "update", providing "newName" and optionally the new "type" and "description" if they change. Your "logMessage" must creatively explain this transformation. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand". The log message could be: "The strange metal device from another world shimmers and reshapes into a humming metal wand in your grasp!"
 
 Do not include any explanations or formatting outside of the JSON array.`;
