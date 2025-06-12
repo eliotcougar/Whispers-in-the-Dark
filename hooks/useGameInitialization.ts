@@ -251,7 +251,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       } else {
         prompt = buildNewGameFirstTurnPrompt(themeObjToLoad, playerGenderProp);
       }
-      draftState.lastDebugPacket = { prompt, rawResponseText: null, parsedResponse: null, timestamp: new Date().toISOString() };
+      draftState.lastDebugPacket = {
+        prompt,
+        rawResponseText: null,
+        parsedResponse: null,
+        timestamp: new Date().toISOString(),
+        mapUpdateDebugInfo: null,
+        inventoryDebugInfo: null,
+      };
 
       try {
         const response = await executeAIMainTurn(prompt, themeObjToLoad.systemInstructionModifier);
@@ -442,6 +449,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       rawResponseText: null,
       parsedResponse: null,
       timestamp: new Date().toISOString(),
+      mapUpdateDebugInfo: null,
+      inventoryDebugInfo: null,
     };
     draftState.lastDebugPacket = debugPacket;
 

@@ -149,6 +149,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         parsedResponse: aiData,
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
+        inventoryDebugInfo: null,
       };
 
       if (aiData.localTime !== undefined) {
@@ -288,6 +289,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         );
         if (invResult) {
           combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
+          if (draftState.lastDebugPacket)
+            draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
         }
       }
 
@@ -389,6 +392,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),
+        mapUpdateDebugInfo: null,
+        inventoryDebugInfo: null,
       };
       draftState.lastDebugPacket = debugPacket;
       if (isFreeForm) draftState.score -= FREE_FORM_ACTION_COST;
