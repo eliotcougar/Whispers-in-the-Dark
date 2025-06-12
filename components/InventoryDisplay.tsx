@@ -3,7 +3,7 @@
  * @file InventoryDisplay.tsx
  * @description Shows the Player's items and handles interactions.
  */
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { Item, KnownUse } from '../types';
 import { InventoryIcon, TrashIcon } from './icons.tsx';
 
@@ -41,7 +41,7 @@ export const ItemTypeDisplay: React.FC<{ type: Item['type'] }> = ({ type }) => {
 /**
  * Shows the player's inventory and handles item interactions.
  */
-const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemInteract, onDropItem, disabled }) => {
+const InventoryDisplayComponent: React.FC<InventoryDisplayProps> = ({ items, onItemInteract, onDropItem, disabled }) => {
   const [newlyAddedItemNames, setNewlyAddedItemNames] = useState<Set<string>>(new Set());
   const prevItemsRef = useRef<Item[]>(items);
   const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
@@ -350,5 +350,7 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
     </div>
   );
 };
+
+const InventoryDisplay = memo(InventoryDisplayComponent);
 
 export default InventoryDisplay;

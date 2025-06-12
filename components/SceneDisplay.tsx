@@ -4,7 +4,7 @@
  * @file SceneDisplay.tsx
  * @description Shows the main scene description and objectives.
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { Item, Character, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
@@ -26,7 +26,7 @@ interface SceneDisplayProps {
 /**
  * Displays the current scene description and quest objectives.
  */
-const SceneDisplay: React.FC<SceneDisplayProps> = ({
+const SceneDisplayComponent: React.FC<SceneDisplayProps> = ({
   description,
   mainQuest,
   currentObjective,
@@ -104,5 +104,7 @@ const SceneDisplay: React.FC<SceneDisplayProps> = ({
     </div>
   );
 };
+
+const SceneDisplay = memo(SceneDisplayComponent);
 
 export default SceneDisplay;
