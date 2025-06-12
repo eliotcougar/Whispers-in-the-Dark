@@ -209,7 +209,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
     const getLabelBox = (n: MapNode, offset: number) => {
       const width = labelWidth(n);
-      const height = labelHeight(n);
+      const height = labelHeight(n) * 4; // 4 is a multiplier to ensure enough space for the label
       if (hasCenteredLabel(n.data.nodeType)) {
         return {
           x: n.position.x - width / 2,
