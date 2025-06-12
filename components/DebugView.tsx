@@ -116,12 +116,12 @@ const DebugView: React.FC<DebugViewProps> = ({
 
   const tabs: { name: DebugTab; label: string }[] = [
     { name: "GameState", label: "Game State" },
-    { name: "MainAI", label: "Main AI" },
-    { name: "MapLocationAI", label: "Map & Location AI" },
+    { name: "MainAI", label: "Storyteller AI" },
+    { name: "MapLocationAI", label: "Cartographer AI" },
     { name: "InventoryAI", label: "Inventory AI" },
     { name: "Inventory", label: "Inventory" },
     { name: "Characters", label: "Characters" },
-    { name: "MapDataFull", label: "Map Data (Full)" },
+    { name: "MapDataFull", label: "Map Data" },
     { name: "ThemeHistory", label: "Theme History" },
     { name: "GameLog", label: "Game Log" },
     { name: "TravelPath", label: "Travel Path" },
@@ -152,7 +152,7 @@ const DebugView: React.FC<DebugViewProps> = ({
         return (
           <>
             <p className="text-sm text-slate-400 mb-2">Timestamp: {timestamp}</p>
-            {renderContent("Last Main AI Request Prompt", debugPacket?.prompt, false)}
+            {renderContent("Last Storyteller AI Request", debugPacket?.prompt, false)}
             <div className="my-2">
               <button
                 onClick={() => setShowMainAIRaw(!showMainAIRaw)}
@@ -162,10 +162,10 @@ const DebugView: React.FC<DebugViewProps> = ({
               </button>
             </div>
             {showMainAIRaw ?
-              renderContent("Main AI Raw Response Text", debugPacket?.rawResponseText, false) :
-              renderContent("Parsed Main AI Response", debugPacket?.parsedResponse)
+              renderContent("Storyteller AI Response Raw", debugPacket?.rawResponseText, false) :
+              renderContent("Storyteller AI Response Parsed ", debugPacket?.parsedResponse)
             }
-            {debugPacket?.error && renderContent("Error During Main AI Interaction", debugPacket.error, false)}
+            {debugPacket?.error && renderContent("Error During Storyteller AI Interaction", debugPacket.error, false)}
           </>
         );
       case "MapLocationAI":
@@ -174,7 +174,7 @@ const DebugView: React.FC<DebugViewProps> = ({
             <p className="text-sm text-slate-400 mb-2">Map Update related to interaction at: {timestamp}</p>
             {debugPacket?.mapUpdateDebugInfo ? (
               <>
-                {renderContent("Map Update AI Request Prompt", debugPacket.mapUpdateDebugInfo.prompt, false)}
+                {renderContent("Cartographer AI Request", debugPacket.mapUpdateDebugInfo.prompt, false)}
                 <div className="my-2">
                   <button
                     onClick={() => setShowMapAIRaw(!showMapAIRaw)}
@@ -184,8 +184,8 @@ const DebugView: React.FC<DebugViewProps> = ({
                   </button>
                 </div>
                 {showMapAIRaw ?
-                  renderContent("Map Update AI Raw Response Text", debugPacket.mapUpdateDebugInfo.rawResponse, false) :
-                  renderContent("Parsed Map Update AI Payload", debugPacket.mapUpdateDebugInfo.parsedPayload)
+                  renderContent("Cartographer AI Response Raw", debugPacket.mapUpdateDebugInfo.rawResponse, false) :
+                  renderContent("Cartographer AI Response Parsed", debugPacket.mapUpdateDebugInfo.parsedPayload)
                 }
                 {debugPacket.mapUpdateDebugInfo.validationError && renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false)}
                 {debugPacket.mapUpdateDebugInfo.minimalModelCalls &&
@@ -226,12 +226,12 @@ const DebugView: React.FC<DebugViewProps> = ({
         return debugPacket?.inventoryDebugInfo ? (
           <>
             {renderContent(
-              "Inventory AI Request Prompt",
+              "Inventory AI Request",
               debugPacket.inventoryDebugInfo.prompt,
               false,
             )}
             {renderContent(
-              "Inventory AI Raw Response",
+              "Inventory AI Response Raw",
               debugPacket.inventoryDebugInfo.rawResponse,
               false,
             )}
