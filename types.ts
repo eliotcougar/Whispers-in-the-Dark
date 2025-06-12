@@ -64,6 +64,12 @@ export interface GiveItemPayload {
   toName?: string;
 }
 
+export interface NewItemSuggestion {
+  name: string;
+  type: ItemType;
+  description: string;
+}
+
 export interface ItemChange {
   // For "gain" or "update", 'item' is an Item object.
   // For "lose", 'item' provides at least an id and name (if available).
@@ -200,6 +206,10 @@ export interface DialogueSummaryResponse {
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
   mapHint?: string; // Optional hint about distant quest-related locations for MapAI
+  playerItemsHint?: string;
+  worldItemsHint?: string;
+  npcItemsHint?: string;
+  newItems?: NewItemSuggestion[];
 }
 // --- End Dialogue Mode Types ---
 
@@ -237,6 +247,10 @@ export interface GameStateFromAI {
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
   mapHint?: string; // Optional hint about distant quest-related locations for MapAI
+  playerItemsHint?: string;
+  worldItemsHint?: string;
+  npcItemsHint?: string;
+  newItems?: NewItemSuggestion[];
   // placesAdded and placesUpdated are removed from storyteller responsibility
 }
 

@@ -11,7 +11,8 @@ import {
     isValidItemReference,
     isValidCharacterUpdate,
     isValidNewCharacterPayload,
-    isDialogueSetupPayloadStructurallyValid
+    isDialogueSetupPayloadStructurallyValid,
+    isValidNewItemSuggestion
 } from '../parsers/validation';
 import {
     fetchCorrectedItemAction_Service,
@@ -78,7 +79,11 @@ function validateBasicStructure(
         (data.dialogueSetup === undefined || typeof data.dialogueSetup === 'object') &&
         (data.mapUpdated === undefined || typeof data.mapUpdated === 'boolean') &&
         (data.currentMapNodeId === undefined || data.currentMapNodeId === null || typeof data.currentMapNodeId === 'string') &&
-        (data.mapHint === undefined || typeof data.mapHint === 'string');
+        (data.mapHint === undefined || typeof data.mapHint === 'string') &&
+        (data.playerItemsHint === undefined || typeof data.playerItemsHint === 'string') &&
+        (data.worldItemsHint === undefined || typeof data.worldItemsHint === 'string') &&
+        (data.npcItemsHint === undefined || typeof data.npcItemsHint === 'string') &&
+        (data.newItems === undefined || Array.isArray(data.newItems));
 
     if (!baseFieldsValid) {
         console.warn('parseAIResponse: Basic field validation failed (pre-dialogue specifics and array checks).', parsedData);
@@ -654,6 +659,10 @@ export async function parseAIResponse(
         validated.localPlace = validated.localPlace?.trim() || 'Undetermined Location';
         if (validated.mapHint !== undefined) {
             validated.mapHint = validated.mapHint.trim();
+        }
+
+        if (Array.isArray(validated.newItems)) {
+            validated.newItems = validated.newItems.filter(isValidNewItemSuggestion);
         }
 
         delete (validated as Record<string, unknown>).placesAdded;
