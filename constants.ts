@@ -68,6 +68,7 @@ export const VALID_NODE_STATUS_VALUES = [
   'discovered',
   'rumored',
   'quest_target',
+  'blocked',
 ] as const;
 
 export const VALID_NODE_TYPE_VALUES = [

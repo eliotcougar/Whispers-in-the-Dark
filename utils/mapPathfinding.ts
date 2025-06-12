@@ -45,12 +45,27 @@ export const findTravelPath = (
 ): TravelStep[] | null => {
   const adjacency = new Map<string, Array<{ edgeId: string; to: string; cost: number }>>();
 
+  const nodeMap = new Map(mapData.nodes.map(n => [n.id, n]));
+  const isTraversable = (id: string | undefined): boolean => {
+    const node = id ? nodeMap.get(id) : undefined;
+    return !!node && node.data.status !== 'blocked';
+  };
+
+  const childrenByParent = new Map<string, string[]>();
+  for (const node of mapData.nodes) {
+    const p = node.data.parentNodeId;
+    if (!p) continue;
+    if (!childrenByParent.has(p)) childrenByParent.set(p, []);
+    childrenByParent.get(p)!.push(node.id);
+  }
+
   const addAdj = (from: string, to: string, id: string, cost: number) => {
     if (!adjacency.has(from)) adjacency.set(from, []);
     adjacency.get(from)!.push({ edgeId: id, to, cost });
   };
 
   for (const edge of mapData.edges) {
+    if (!isTraversable(edge.sourceNodeId) || !isTraversable(edge.targetNodeId)) continue;
     const status = edge.data.status ?? 'open';
     const cost = EDGE_STATUS_TRAVEL_COSTS[status];
     if (cost === Infinity) continue;
@@ -62,12 +77,17 @@ export const findTravelPath = (
 
   for (const node of mapData.nodes) {
     const parentId = node.data.parentNodeId;
-    if (parentId && parentId !== 'Universe') {
-      const idUp = `hierarchy:${node.id}->${parentId}`;
-      const idDown = `hierarchy:${parentId}->${node.id}`;
-      addAdj(node.id, parentId, idUp, HIERARCHY_EDGE_TRAVEL_COST);
-      addAdj(parentId, node.id, idDown, HIERARCHY_EDGE_TRAVEL_COST);
-    }
+    if (!parentId || parentId === 'Universe') continue;
+    if (!isTraversable(node.id) || !isTraversable(parentId)) continue;
+    const siblings = childrenByParent.get(parentId) || [];
+    const hasOtherChild = siblings.some(
+      id => id !== node.id && id !== startNodeId && isTraversable(id)
+    );
+    if (!hasOtherChild) continue;
+    const idUp = `hierarchy:${node.id}->${parentId}`;
+    const idDown = `hierarchy:${parentId}->${node.id}`;
+    addAdj(node.id, parentId, idUp, HIERARCHY_EDGE_TRAVEL_COST);
+    addAdj(parentId, node.id, idDown, HIERARCHY_EDGE_TRAVEL_COST);
   }
 
   const siblingsMap = new Map<string, MapData['nodes']>();
@@ -85,6 +105,7 @@ export const findTravelPath = (
     const others = siblings.filter(n => !isFeatureNode(n));
     for (const f of features) {
       for (const o of others) {
+        if (!isTraversable(f.id) || !isTraversable(o.id)) continue;
         const id1 = `hierarchy:${f.id}->${o.id}`;
         const id2 = `hierarchy:${o.id}->${f.id}`;
         addAdj(f.id, o.id, id1, HIERARCHY_EDGE_TRAVEL_COST);

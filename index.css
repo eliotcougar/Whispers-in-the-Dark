@@ -328,6 +328,11 @@ body {
   stroke: #9ca3af; /* gray-400 */
   opacity: 0.5;
 }
+.map-node-circle.blocked {
+  stroke: #ef4444; /* red-500 */
+  fill-opacity: 0.2;
+  opacity: 0.6;
+}
 .map-node-circle.rumored.feature {
   fill: #9ca3af; /* gray-400 */
   stroke: #6b7280; /* gray-500 */
