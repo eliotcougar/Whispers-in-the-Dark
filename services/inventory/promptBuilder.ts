@@ -6,22 +6,14 @@
 /**
  * Builds the prompt for requesting inventory changes.
  */
-import { Item } from '../../types';
+import { NewItemSuggestion } from '../../types';
 
 export const buildInventoryPrompt = (
   playerItemsHint: string,
   worldItemsHint: string,
   npcItemsHint: string,
-  suggestedItems: Item[],
+  newItems: NewItemSuggestion[],
 ): string => {
-  const itemsList =
-    suggestedItems.length > 0
-      ? suggestedItems
-          .map(
-            (it) =>
-              `- ${it.id} | "${it.name}" | ${it.type} | ${it.description}`,
-          )
-          .join('\n')
-      : 'None.';
-  return `Player Items Hint:\n${playerItemsHint}\n\nWorld Items Hint:\n${worldItemsHint}\n\nNPC Items Hint:\n${npcItemsHint}\n\nSuggested Items:\n${itemsList}\n\nProvide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
+  const newItemsJson = newItems.length > 0 ? `\`\`\`json\n${JSON.stringify(newItems, null, 2)}\n\`\`\`` : '[]';
+  return `Player Items Hint:\n${playerItemsHint}\n\nWorld Items Hint:\n${worldItemsHint}\n\nNPC Items Hint:\n${npcItemsHint}\n\nnewItems from Storyteller or Dialogue:\n${newItemsJson}\n\nProvide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
 };

@@ -8,10 +8,9 @@ import { MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
-import { ItemChange, Item, NewItemSuggestion } from '../../types';
+import { ItemChange, NewItemSuggestion } from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
 import { parseInventoryResponse } from './responseParser';
-import { buildItemId } from '../../utils/entityUtils';
 
 /**
  * Executes the inventory AI call using model fallback.
@@ -52,15 +51,7 @@ export const applyInventoryHints_Service = async (
     return { itemChanges: [], debugInfo: null };
   }
 
-  const suggestedItems: Item[] = newItems.map((ni) => ({
-    id: buildItemId(ni.name),
-    name: ni.name,
-    type: ni.type,
-    description: ni.description,
-    holderId: 'unknown',
-  }));
-
-  const prompt = buildInventoryPrompt(pHint, wHint, nHint, suggestedItems);
+  const prompt = buildInventoryPrompt(pHint, wHint, nHint, newItems);
   const response = await executeInventoryRequest(prompt);
   const parsed = parseInventoryResponse(response.text ?? '') || [];
   return { itemChanges: parsed, debugInfo: { prompt, rawResponse: response.text ?? '' } };
