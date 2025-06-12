@@ -19,7 +19,7 @@ import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/correcti
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
 import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
-import { existsNonRumoredPath } from './mapGraphUtils';
+import { existsNonRumoredPath, getAncestors, isDescendantOf } from './mapGraphUtils';
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
@@ -159,11 +159,17 @@ export const handleMapUpdates = async (
 
   draftState.currentMapNodeId = finalChosenNodeId;
   if (draftState.currentMapNodeId !== oldMapNodeId) turnChanges.currentMapNodeIdChanged = true;
-  if (
-    draftState.currentMapNodeId &&
-    draftState.currentMapNodeId === draftState.destinationNodeId
-  ) {
-    draftState.destinationNodeId = null;
+  if (draftState.currentMapNodeId && draftState.destinationNodeId) {
+    const nodeMap = new Map(draftState.mapData.nodes.map(n => [n.id, n]));
+    const currentNode = nodeMap.get(draftState.currentMapNodeId);
+    const destNode = nodeMap.get(draftState.destinationNodeId);
+    if (
+      currentNode &&
+      destNode &&
+      (currentNode.id === destNode.id || isDescendantOf(currentNode, destNode, nodeMap))
+    ) {
+      draftState.destinationNodeId = null;
+    }
   }
 
   if (draftState.currentMapNodeId) {
@@ -173,11 +179,13 @@ export const handleMapUpdates = async (
         draftState.mapData.nodes[currentNodeIndex].data.visited = true;
         if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
       }
-      const parentNodeIdFromData = draftState.mapData.nodes[currentNodeIndex].data.parentNodeId;
-      if (parentNodeIdFromData) {
-        const parentNodeIndex = draftState.mapData.nodes.findIndex(n => n.id === parentNodeIdFromData);
-        if (parentNodeIndex !== -1 && !draftState.mapData.nodes[parentNodeIndex].data.visited) {
-          draftState.mapData.nodes[parentNodeIndex].data.visited = true;
+      const nodeMap = new Map(draftState.mapData.nodes.map(n => [n.id, n]));
+      const currentNode = draftState.mapData.nodes[currentNodeIndex];
+      const ancestors = getAncestors(currentNode, nodeMap);
+      for (const ancestor of ancestors) {
+        const idx = draftState.mapData.nodes.findIndex(n => n.id === ancestor.id);
+        if (idx !== -1 && !draftState.mapData.nodes[idx].data.visited) {
+          draftState.mapData.nodes[idx].data.visited = true;
           if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
         }
       }
