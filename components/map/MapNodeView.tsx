@@ -209,6 +209,14 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const getLabelBox = (n: MapNode, offset: number) => {
       const width = labelWidth(n);
       const height = labelHeight(n);
+      if (hasCenteredLabel(n.data.nodeType)) {
+        return {
+          x: n.position.x - width / 2,
+          y: n.position.y - height / 2,
+          width,
+          height,
+        };
+      }
       const base = getRadiusForNode(n) + DEFAULT_LABEL_MARGIN_PX + offset;
       return {
         x: n.position.x - width / 2,
