@@ -38,6 +38,7 @@ import {
 } from '../utils/gameLogicUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
+import { formatInventoryForPrompt } from '../utils/promptFormatters/inventory';
 import { applyInventoryHints_Service } from '../services/inventory';
 
 export interface ProcessAiResponseOptions {
@@ -259,6 +260,26 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         correctedAndVerifiedItemChanges.push(...aiItemChangesFromParser);
       }
       const baseInventoryForPlayer = baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID);
+      const locationInventory = baseStateSnapshot.inventory.filter(
+        i => i.holderId === baseStateSnapshot.currentMapNodeId
+      );
+      const companionChars = baseStateSnapshot.allCharacters.filter(
+        c => c.presenceStatus === 'companion'
+      );
+      const nearbyChars = baseStateSnapshot.allCharacters.filter(
+        c => c.presenceStatus === 'nearby'
+      );
+
+      const formatCharInventoryList = (chars: typeof companionChars): string => {
+        if (chars.length === 0) return 'None.';
+        return chars
+          .map(ch => {
+            const items = baseStateSnapshot.inventory.filter(i => i.holderId === ch.id);
+            return `${ch.name}: ${formatInventoryForPrompt(items)}`;
+          })
+          .join('\n');
+      };
+
       let combinedItemChanges = [...correctedAndVerifiedItemChanges];
 
       if (themeContextForResponse) {
@@ -285,7 +306,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
           'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
           'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
-          ('newItems' in aiData && Array.isArray(aiData.newItems)) ? aiData.newItems : []
+          ('newItems' in aiData && Array.isArray(aiData.newItems)) ? aiData.newItems : [],
+          playerActionText || '',
+          formatInventoryForPrompt(baseInventoryForPlayer),
+          formatInventoryForPrompt(locationInventory),
+          formatCharInventoryList(companionChars),
+          formatCharInventoryList(nearbyChars)
         );
         if (invResult) {
           combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);

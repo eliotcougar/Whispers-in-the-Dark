@@ -43,6 +43,11 @@ export const applyInventoryHints_Service = async (
   worldItemsHint: string | undefined,
   npcItemsHint: string | undefined,
   newItems: NewItemSuggestion[],
+  playerLastAction: string,
+  playerInventory: string,
+  locationInventory: string,
+  companionsInventory: string,
+  nearbyNpcsInventory: string,
 ): Promise<InventoryUpdateResult | null> => {
   const pHint = playerItemsHint?.trim() || '';
   const wHint = worldItemsHint?.trim() || '';
@@ -51,7 +56,17 @@ export const applyInventoryHints_Service = async (
     return { itemChanges: [], debugInfo: null };
   }
 
-  const prompt = buildInventoryPrompt(pHint, wHint, nHint, newItems);
+  const prompt = buildInventoryPrompt(
+    playerLastAction,
+    pHint,
+    wHint,
+    nHint,
+    newItems,
+    playerInventory,
+    locationInventory,
+    companionsInventory,
+    nearbyNpcsInventory,
+  );
   const response = await executeInventoryRequest(prompt);
   const parsed = parseInventoryResponse(response.text ?? '') || [];
   return { itemChanges: parsed, debugInfo: { prompt, rawResponse: response.text ?? '' } };
