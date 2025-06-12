@@ -285,7 +285,6 @@ body {
 .map-node {
   cursor: pointer;
   transition:
-    transform 0.1s ease-out,
     filter 0.2s ease-out;
 }
 .map-node:hover > .map-node-circle {
