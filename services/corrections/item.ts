@@ -79,8 +79,8 @@ Instructions for "update":
     -   If "type" is provided, it must be from ${VALID_ITEM_TYPES_STRING} and CANNOT be 'junk'. If the item becomes junk, set 'isJunk: true'.
 2.  **Transformation (Using "newName"):** If the malformed payload contains a "newName" OR the context clearly indicates a transformation:
     -   The corrected payload MUST include the "newName" field.
-    -   The corrected payload MUST also include "type" and "description" that describe the *new, transformed item*.
-    -   "type" MUST be from ${VALID_ITEM_TYPES_STRING} and CANNOT be 'junk'. If the new item is junk, set 'isJunk: true'.
+    -   Optionally include "type" and "description" if they change; otherwise they will be inherited.
+    -   If "type" is provided, it must be from ${VALID_ITEM_TYPES_STRING} and CANNOT be 'junk'. If the new item is junk, set 'isJunk: true'.
 3.  **Known Uses:**
     -   "knownUses" replaces all existing known uses if provided.
     -   "addKnownUse" adds or updates a single known use.
