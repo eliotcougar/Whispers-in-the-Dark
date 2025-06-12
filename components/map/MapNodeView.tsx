@@ -4,9 +4,8 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { MapNode, MapEdge, MapTransform } from '../../types';
+import { MapNode, MapEdge } from '../../types';
 import useMapInteractions from '../../hooks/useMapInteractions';
-import { DEFAULT_VIEWBOX } from '../../utils/mapConstants';
 import {
   NODE_RADIUS,
   EDGE_HOVER_WIDTH,
@@ -45,8 +44,8 @@ interface MapNodeViewProps {
   labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */
   itemIconScale: number;
-  initialTransform: MapTransform;
-  onTransformChange: (transform: MapTransform) => void;
+  initialViewBox: string;
+  onViewBoxChange: (viewBox: string) => void;
 }
 
 /**
@@ -144,11 +143,11 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   onSelectDestination,
   labelOverlapMarginPx,
   itemIconScale,
-  initialTransform,
-  onTransformChange,
+  initialViewBox,
+  onViewBoxChange,
 }) => {
-  const interactions = useMapInteractions(initialTransform, onTransformChange);
-  const { svgRef, transform, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
+  const interactions = useMapInteractions(initialViewBox, onViewBoxChange);
+  const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number; nodeId?: string } | null>(null);
   const [isTooltipLocked, setIsTooltipLocked] = useState(false);
 
@@ -335,9 +334,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     <div className="map-content-area">
       <svg
         ref={svgRef}
-        viewBox={DEFAULT_VIEWBOX}
+        viewBox={viewBox}
         className="map-svg-container"
-        style={{ transform: `translate(${transform.translateX}px, ${transform.translateY}px) scale(${transform.scale})` }}
         onClick={e => {
           const target = e.target as Element;
           if (!target.closest('.map-node') && !target.closest('.map-edge-group')) {

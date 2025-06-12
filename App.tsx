@@ -130,8 +130,8 @@ const App: React.FC = () => {
     handleUndoTurn,
     destinationNodeId,
     handleSelectDestinationNode,
-    mapTransform,
-    handleMapTransformChange,
+    mapViewBox,
+    handleMapViewBoxChange,
     handleMapNodesPositionChange,
   } = gameLogic;
 
@@ -372,7 +372,7 @@ const App: React.FC = () => {
     startCustomGame(themeName);
   };
 
-  const [mapInitialTransform, setMapInitialTransform] = useState(mapTransform);
+  const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
   const travelPath: TravelStep[] | null = React.useMemo(() => {
     if (!destinationNodeId || !currentMapNodeId) return null;
     return findTravelPath(mapData, currentMapNodeId, destinationNodeId);
@@ -380,10 +380,24 @@ const App: React.FC = () => {
   const prevMapVisibleRef = useRef(false);
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {
-      setMapInitialTransform(mapTransform);
+      const parts = mapViewBox.split(' ').map(parseFloat);
+      if (parts.length === 4) {
+        const [, , vw, vh] = parts;
+        const node = mapData.nodes.find(n => n.id === currentMapNodeId);
+        if (node && !isNaN(vw) && !isNaN(vh)) {
+          setMapInitialViewBox(
+            `${node.position.x - vw / 2} ${node.position.y - vh / 2} ${vw} ${vh}`
+          );
+        } else {
+          setMapInitialViewBox(mapViewBox);
+        }
+      } else {
+        setMapInitialViewBox(mapViewBox);
+      }
     }
-    prevMapVisibleRef.current = isMapVisible;
-  }, [isMapVisible, mapTransform]);
+    if (!isMapVisible) prevMapVisibleRef.current = false;
+    else prevMapVisibleRef.current = true;
+  }, [isMapVisible, mapViewBox, currentMapNodeId, mapData.nodes]);
 
 
   if (!appReady) {
@@ -668,12 +682,12 @@ const App: React.FC = () => {
             currentMapNodeId={currentMapNodeId}
             destinationNodeId={destinationNodeId}
             itemPresenceByNode={itemPresenceByNode}
-          onSelectDestination={id => handleSelectDestinationNode(id)}
+            onSelectDestination={id => handleSelectDestinationNode(id)}
            initialLayoutConfig={mapLayoutConfig}
-           initialTransform={mapInitialTransform}
-           onNodesPositioned={handleMapNodesPositionChange}
+           initialViewBox={mapInitialViewBox}
+            onNodesPositioned={handleMapNodesPositionChange}
            onLayoutConfigChange={handleMapLayoutConfigChange}
-           onTransformChange={handleMapTransformChange}
+           onViewBoxChange={handleMapViewBoxChange}
             isVisible={isMapVisible}
             onClose={() => setIsMapVisible(false)}
           />

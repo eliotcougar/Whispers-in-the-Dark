@@ -4,7 +4,7 @@
  */
 
 import { useCallback, Dispatch, SetStateAction } from 'react';
-import { GameStateStack, MapLayoutConfig, MapNode, MapTransform } from '../types';
+import { GameStateStack, MapLayoutConfig, MapNode } from '../types';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
   DEFAULT_NESTED_PADDING,
@@ -58,10 +58,10 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
     [setGameStateStack]
   );
 
-  /** Stores the current map transform (pan/zoom) in the game state. */
-  const handleMapTransformChange = useCallback(
-    (newTransform: MapTransform) => {
-      setGameStateStack(prev => [{ ...prev[0], mapTransform: newTransform }, prev[1]]);
+  /** Stores the current map viewBox (pan/zoom) in the game state. */
+  const handleMapViewBoxChange = useCallback(
+    (newViewBox: string) => {
+      setGameStateStack(prev => [{ ...prev[0], mapViewBox: newViewBox }, prev[1]]);
     },
     [setGameStateStack]
   );
@@ -108,5 +108,5 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
     [setGameStateStack]
   );
 
-  return { handleMapLayoutConfigChange, handleMapTransformChange, handleMapNodesPositionChange, handleSelectDestinationNode };
+  return { handleMapLayoutConfigChange, handleMapViewBoxChange, handleMapNodesPositionChange, handleSelectDestinationNode };
 };

@@ -305,12 +305,6 @@ export interface MapLayoutConfig {
   ITEM_ICON_SCALE: number;
 }
 
-export interface MapTransform {
-  translateX: number;
-  translateY: number;
-  scale: number;
-}
-
 export interface MapNodeData {
   description: string; // Description is ALWAYS REQUIRED.
   aliases?: string[];  // Optional, can be updated.
@@ -433,7 +427,7 @@ export interface FullGameState {
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
   destinationNodeId: string | null; // Optional destination node ID
   mapLayoutConfig: MapLayoutConfig;
-  mapTransform: MapTransform;
+  mapViewBox: string;
   score: number;
   localTime: string | null;
   localEnvironment: string | null;
@@ -476,7 +470,7 @@ export type SavedGameDataShape = Pick<
   | 'currentMapNodeId'
   | 'destinationNodeId'
   | 'mapLayoutConfig'
-  | 'mapTransform'
+  | 'mapViewBox'
   | 'score'
   | 'localTime'
   | 'localEnvironment'
