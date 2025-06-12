@@ -276,8 +276,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   /** Shows node details in a tooltip. */
   const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
     if (isTooltipLocked) return;
-    const containerRect = svgRef.current?.parentElement?.getBoundingClientRect();
-    if (!containerRect) return;
+    const svgRect = svgRef.current?.getBoundingClientRect();
+    if (!svgRect) return;
     let content = `${node.placeName}`;
     //if (node.data.nodeType) content += `\nType: ${node.data.nodeType}`;
     if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
@@ -287,26 +287,26 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       const parentNode = nodes.find(n => n.id === node.data.parentNodeId);
       content += `\n(Parent: ${parentNode?.placeName || 'Unknown Location'})`;
     }*/
-    setTooltip({ content, x: event.clientX - containerRect.left + 15, y: event.clientY - containerRect.top + 15, nodeId: node.id });
+    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15, nodeId: node.id });
   };
 
   const handleNodeClick = (node: MapNode, event: React.MouseEvent) => {
     event.stopPropagation();
-    const containerRect = svgRef.current?.parentElement?.getBoundingClientRect();
-    if (!containerRect) return;
+    const svgRect = svgRef.current?.getBoundingClientRect();
+    if (!svgRect) return;
     let content = `${node.placeName}`;
     if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
     if (node.data.description) content += `\n${node.data.description}`;
     if (node.data.status) content += `\nStatus: ${node.data.status}`;
     setIsTooltipLocked(true);
-    setTooltip({ content, x: event.clientX - containerRect.left + 15, y: event.clientY - containerRect.top + 15, nodeId: node.id });
+    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15, nodeId: node.id });
   };
 
   /** Shows edge details in a tooltip. */
   const handleEdgeMouseEnter = (edge: MapEdge, event: React.MouseEvent) => {
     if (isTooltipLocked) return;
-    const containerRect = svgRef.current?.parentElement?.getBoundingClientRect();
-    if (!containerRect) return;
+    const svgRect = svgRef.current?.getBoundingClientRect();
+    if (!svgRect) return;
     const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
     const targetNode = nodes.find(n => n.id === edge.targetNodeId);
     let content = edge.data.description
@@ -315,7 +315,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     /*if (edge.data.type) content += `\n${edge.data.type}`;*/
     if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
     if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
-    setTooltip({ content, x: event.clientX - containerRect.left + 15, y: event.clientY - containerRect.top + 15 });
+    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15 });
   };
 
   /** Hides the tooltip. */
