@@ -102,14 +102,12 @@ Do not include any preamble. Just provide the summary text itself.
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) { // Extra retry for summarization
     try {
       console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1})`);
-      const response = await dispatchAIRequest(
-          [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
-          summarizationPrompt,
-          undefined,
-          {
-              temperature: 0.8,
-          }
-      );
+      const { response } = await dispatchAIRequest({
+          modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+          prompt: summarizationPrompt,
+          temperature: 0.8,
+          label: 'Summarize',
+      });
       const text = (response.text ?? '').trim();
       if (text && text.length > 0) {
         return text;

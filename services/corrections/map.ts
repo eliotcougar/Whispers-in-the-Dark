@@ -611,12 +611,14 @@ Return ONLY a JSON object strictly matching this structure:
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       debugInfo.prompt = prompt;
-      const response = await dispatchAIRequest(
-        [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+      const { response } = await dispatchAIRequest({
+        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
-        systemInstr,
-        { responseMimeType: 'application/json', temperature: CORRECTION_TEMPERATURE }
-      );
+        systemInstruction: systemInstr,
+        responseMimeType: 'application/json',
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'ConnectorChains',
+      });
       debugInfo.rawResponse = response.text ?? '';
       const jsonStr = extractJsonFromFence(response.text ?? '');
       const parsed: unknown = safeParseJson(jsonStr);
