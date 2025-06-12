@@ -46,6 +46,7 @@ export const applyInventoryHints_Service = async (
   playerLastAction: string,
   playerInventory: string,
   locationInventory: string,
+  currentNodeId: string | null,
   companionsInventory: string,
   nearbyNpcsInventory: string,
 ): Promise<InventoryUpdateResult | null> => {
@@ -64,6 +65,7 @@ export const applyInventoryHints_Service = async (
     newItems,
     playerInventory,
     locationInventory,
+    currentNodeId,
     companionsInventory,
     nearbyNpcsInventory,
   );
