@@ -71,17 +71,20 @@ export interface MapUpdateServiceResult {
  * Sends a prompt and system instruction to the auxiliary AI model and returns
  * the raw response.
  */
-const callMapUpdateAI = async (prompt: string, systemInstruction: string): Promise<GenerateContentResponse> => {
+const callMapUpdateAI = async (
+  prompt: string,
+  systemInstruction: string
+): Promise<GenerateContentResponse> => {
   addProgressSymbol('▓▓');
-  return dispatchAIRequest(
-    [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+  const { response } = await dispatchAIRequest({
+    modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction,
-    {
-      responseMimeType: "application/json",
-      temperature: 0.75,
-    }
-  );
+    responseMimeType: 'application/json',
+    temperature: 0.75,
+    label: 'MapUpdate',
+  });
+  return response;
 };
 
 /**
