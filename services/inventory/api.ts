@@ -8,6 +8,10 @@ import { MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
+import { ItemChange, Item, NewItemSuggestion } from '../../types';
+import { buildInventoryPrompt } from './promptBuilder';
+import { parseInventoryResponse } from './responseParser';
+import { buildItemId } from '../../utils/entityUtils';
 
 /**
  * Executes the inventory AI call using model fallback.
@@ -28,4 +32,36 @@ export const executeInventoryRequest = async (
     label: 'Inventory',
   });
   return response;
+};
+
+export interface InventoryUpdateResult {
+  itemChanges: ItemChange[];
+  debugInfo: { prompt: string; rawResponse?: string } | null;
+}
+
+export const applyInventoryHints_Service = async (
+  playerItemsHint: string | undefined,
+  worldItemsHint: string | undefined,
+  npcItemsHint: string | undefined,
+  newItems: NewItemSuggestion[],
+): Promise<InventoryUpdateResult | null> => {
+  const pHint = playerItemsHint?.trim() || '';
+  const wHint = worldItemsHint?.trim() || '';
+  const nHint = npcItemsHint?.trim() || '';
+  if (!pHint && !wHint && !nHint && newItems.length === 0) {
+    return { itemChanges: [], debugInfo: null };
+  }
+
+  const suggestedItems: Item[] = newItems.map((ni) => ({
+    id: buildItemId(ni.name),
+    name: ni.name,
+    type: ni.type,
+    description: ni.description,
+    holderId: 'unknown',
+  }));
+
+  const prompt = buildInventoryPrompt(pHint, wHint, nHint, suggestedItems);
+  const response = await executeInventoryRequest(prompt);
+  const parsed = parseInventoryResponse(response.text ?? '') || [];
+  return { itemChanges: parsed, debugInfo: { prompt, rawResponse: response.text ?? '' } };
 };
