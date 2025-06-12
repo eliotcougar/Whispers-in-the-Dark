@@ -15,5 +15,16 @@ export const buildInventoryPrompt = (
   newItems: NewItemSuggestion[],
 ): string => {
   const newItemsJson = newItems.length > 0 ? `\`\`\`json\n${JSON.stringify(newItems, null, 2)}\n\`\`\`` : '[]';
-  return `Player Items Hint:\n${playerItemsHint}\n\nWorld Items Hint:\n${worldItemsHint}\n\nNPC Items Hint:\n${npcItemsHint}\n\nnewItems from Storyteller or Dialogue:\n${newItemsJson}\n\nProvide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
+  return `
+  - Player Items Hint: "${playerItemsHint}";
+  - World Items Hint: "${worldItemsHint}";
+  - NPC Items Hint: "${npcItemsHint}".
+  
+  ${newItemsJson? `New Items from Storyteller AI or Dialogue AI:\n${newItemsJson}\n` : ''}
+  Current Player's Inventory:
+  Current Location Inventory:
+  Companions Inventory:
+  Nearby NPCs Inventory:
+
+  Provide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
 };
