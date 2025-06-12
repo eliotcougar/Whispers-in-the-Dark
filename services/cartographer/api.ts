@@ -322,13 +322,12 @@ export const updateMapFromAIData_Service = async (
   if (previousMapNodeId) {
     const prevNode = themeNodeIdMap.get(previousMapNodeId);
     if (prevNode) {
-      previousMapNodeContext = `Player's Previous Map Node: Was at "${prevNode.placeName}" (ID: ${prevNode.id}, Type: ${prevNode.data.nodeType === 'feature' ? 'Feature' : 'Main'}, Visited: ${!!prevNode.data.visited}).`;
+      previousMapNodeContext = `${prevNode.id} - "${prevNode.placeName}".`;
     }
   }
 
-  const existingMapContext = `
-Current Map Nodes (for your reference):
-${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- "${n.placeName}" (ID: ${n.id}, Type: ${n.data.nodeType}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
+  const existingMapContext = `Current Map Nodes (for your reference):
+${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- ${n.id} - "${n.placeName}" (Type: ${n.data.nodeType}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
 
 Current Map Edges (for your reference):
 ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- ${e.data.status || 'N/A'} ${e.data.type || 'N/A'} from ${e.sourceNodeId} to ${e.targetNodeId}`).join('\n') : "None exist yet."}

@@ -94,7 +94,7 @@ export const dispatchAIRequest = async (
 
         if (options.label) {
           console.log(
-            `[${options.label}] tokens: total ${response.usageMetadata?.totalTokenCount ?? 'N/A'}, prompt ${response.usageMetadata?.promptTokenCount ?? 'N/A'}, thoughts ${response.usageMetadata?.thoughtsTokenCount ?? 'N/A'}`
+            `[${options.label}] ${model} tokens: total ${response.usageMetadata?.totalTokenCount ?? 'N/A'}, prompt ${response.usageMetadata?.promptTokenCount ?? 'N/A'}, thoughts ${response.usageMetadata?.thoughtsTokenCount ?? 'N/A'}`
           );
         }
 

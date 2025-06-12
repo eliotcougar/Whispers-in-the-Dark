@@ -33,19 +33,20 @@ export const buildMapUpdatePrompt = (
   existingMapContext: string,
   allKnownMainPlaces: string,
 ): string => `
-Narrative Context for Map Update:
-- Current Theme: "${currentTheme.name}"
-- System Modifier for Theme: ${currentTheme.systemInstructionModifier}
-- Player's Current Location Description (localPlace): "${localPlace}"
-- ${previousMapNodeContext}
-- Scene Description: "${sceneDesc}"
-- Log Message (outcome of last action): "${logMsg}"
-- Map Hint from Storyteller: "${mapHint}"
-- All Known Main Locations for this Theme (these are expected to be main map nodes): ${allKnownMainPlaces}.
-- Your task is to analyze this narrative context and suggest additions, updates, or removals to the map data.
+## Narrative Context for Map Update:
+- Current Theme: "${currentTheme.name}";
+- System Modifier for Theme: "${currentTheme.systemInstructionModifier}";
+- Scene Description: "${sceneDesc}";
+- Log Message (outcome of last action): "${logMsg}";
+- Player's Current Location Description (localPlace): "${localPlace}".
+
+## Map Context:
+- All Known Main Locations: ${allKnownMainPlaces};
+- Player's Previous Location was: ${previousMapNodeContext};
+- Map Hint from Storyteller: "${mapHint}".
 
 ${existingMapContext}
 ---
-Based on the Narrative Context and existing map context, provide a JSON response adhering to the MAP_UPDATE_SYSTEM_INSTRUCTION.
+Based on the Narrative Context and existing map context, provide a JSON response strongly adhering to the System Instructions.
 
 `;
