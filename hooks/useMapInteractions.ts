@@ -26,14 +26,9 @@ export const useMapInteractions = (
   onViewBoxChange?: (viewBox: string) => void
 ): UseMapInteractionsResult => {
   const [viewBox, setViewBox] = useState(initialViewBox);
-  const viewBoxRef = useRef(initialViewBox);
   const updateViewBox = (box: string) => {
     setViewBox(box);
     if (onViewBoxChange) onViewBoxChange(box);
-  };
-  const setViewBoxAttr = (box: string) => {
-    viewBoxRef.current = box;
-    if (svgRef.current) svgRef.current.setAttribute('viewBox', box);
   };
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -42,8 +37,6 @@ export const useMapInteractions = (
 
   useEffect(() => {
     setViewBox(prev => (prev === initialViewBox ? prev : initialViewBox));
-    viewBoxRef.current = initialViewBox;
-    if (svgRef.current) svgRef.current.setAttribute('viewBox', initialViewBox);
   }, [initialViewBox]);
 
   /** Starts drag panning. */
@@ -69,8 +62,8 @@ export const useMapInteractions = (
     const deltaViewBoxX = prevSVGPoint.x - currentSVGPoint.x;
     const deltaViewBoxY = prevSVGPoint.y - currentSVGPoint.y;
 
-    const [vx, vy, vw, vh] = viewBoxRef.current.split(' ').map(parseFloat);
-    setViewBoxAttr(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
+    const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
+    updateViewBox(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
     setLastScreenDragPoint({ x: e.clientX, y: e.clientY });
   };
 
@@ -79,7 +72,6 @@ export const useMapInteractions = (
     setIsDragging(false);
     setLastScreenDragPoint(null);
     if (svgRef.current) svgRef.current.style.cursor = 'grab';
-    updateViewBox(viewBoxRef.current);
   };
 
   /** Ends drag if the mouse leaves the SVG. */
@@ -96,7 +88,7 @@ export const useMapInteractions = (
     if (e.cancelable) e.preventDefault();
     if (!svgRef.current) return;
 
-    const [vx, vy, vw, vh] = viewBoxRef.current.split(' ').map(parseFloat);
+    const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
     const zoomFactor = 1.1;
     const newVw = e.deltaY < 0 ? vw / zoomFactor : vw * zoomFactor;
     const newVh = e.deltaY < 0 ? vh / zoomFactor : vh * zoomFactor;
@@ -112,8 +104,7 @@ export const useMapInteractions = (
     const newVx = svgPoint.x - (svgPoint.x - vx) * (newVw / vw);
     const newVy = svgPoint.y - (svgPoint.y - vy) * (newVh / vh);
 
-    setViewBoxAttr(`${newVx} ${newVy} ${newVw} ${newVh}`);
-    updateViewBox(viewBoxRef.current);
+    updateViewBox(`${newVx} ${newVy} ${newVw} ${newVh}`);
   };
 
   /** Returns the distance between two touch points. */
@@ -161,15 +152,15 @@ export const useMapInteractions = (
       const deltaViewBoxX = prevSVGPoint.x - currentSVGPoint.x;
       const deltaViewBoxY = prevSVGPoint.y - currentSVGPoint.y;
 
-      const [vx, vy, vw, vh] = viewBoxRef.current.split(' ').map(parseFloat);
-      setViewBoxAttr(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
+      const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
+      updateViewBox(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
       setLastScreenDragPoint({ x: touch.clientX, y: touch.clientY });
     } else if (e.touches.length === 2 && lastPinchDistance !== null) {
       const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
       if (currentDistance === 0 || lastPinchDistance === 0) return;
 
       const scaleFactor = currentDistance / lastPinchDistance;
-      const [vx, vy, vw, vh] = viewBoxRef.current.split(' ').map(parseFloat);
+      const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
 
       let newVw = vw / scaleFactor;
       let newVh = vh / scaleFactor;
@@ -205,7 +196,7 @@ export const useMapInteractions = (
       const newVx = svgPinchCenter.x - (svgPinchCenter.x - vx) * (newVw / vw);
       const newVy = svgPinchCenter.y - (svgPinchCenter.y - vy) * (newVh / vh);
 
-      setViewBoxAttr(`${newVx} ${newVy} ${newVw} ${newVh}`);
+      updateViewBox(`${newVx} ${newVy} ${newVw} ${newVh}`);
       setLastPinchDistance(currentDistance);
     }
   };
@@ -217,7 +208,6 @@ export const useMapInteractions = (
     if (e.touches.length < 1) {
       setIsDragging(false);
       setLastScreenDragPoint(null);
-      updateViewBox(viewBoxRef.current);
     }
   };
 
