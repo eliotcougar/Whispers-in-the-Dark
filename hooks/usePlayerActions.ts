@@ -38,6 +38,7 @@ import {
 } from '../utils/gameLogicUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
+import { applyInventoryHints_Service } from '../services/inventory';
 
 export interface ProcessAiResponseOptions {
   forceEmptyInventory?: boolean;
@@ -257,8 +258,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         correctedAndVerifiedItemChanges.push(...aiItemChangesFromParser);
       }
       const baseInventoryForPlayer = baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID);
-      turnChanges.itemChanges = buildItemChangeRecords(correctedAndVerifiedItemChanges, baseInventoryForPlayer);
-      draftState.inventory = applyAllItemChanges(correctedAndVerifiedItemChanges, options.forceEmptyInventory ? [] : baseStateSnapshot.inventory);
+      let combinedItemChanges = [...correctedAndVerifiedItemChanges];
 
       if (themeContextForResponse) {
         try {
@@ -278,6 +278,24 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           throw mapErr;
         }
       }
+
+      if (themeContextForResponse) {
+        const invResult = await applyInventoryHints_Service(
+          'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
+          'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
+          'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
+          ('newItems' in aiData && Array.isArray(aiData.newItems)) ? aiData.newItems : []
+        );
+        if (invResult) {
+          combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
+        }
+      }
+
+      turnChanges.itemChanges = buildItemChangeRecords(combinedItemChanges, baseInventoryForPlayer);
+      draftState.inventory = applyAllItemChanges(
+        combinedItemChanges,
+        options.forceEmptyInventory ? [] : baseStateSnapshot.inventory
+      );
 
       if (aiData.logMessage) {
         draftState.gameLog = addLogMessageToList(draftState.gameLog, aiData.logMessage, MAX_LOG_MESSAGES);
