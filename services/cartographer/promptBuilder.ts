@@ -32,8 +32,7 @@ export const buildMapUpdatePrompt = (
   previousMapNodeContext: string,
   existingMapContext: string,
   allKnownMainPlaces: string,
-): string => `
-## Narrative Context for Map Update:
+): string => `## Narrative Context for Map Update:
 - Current Theme: "${currentTheme.name}";
 - System Modifier for Theme: "${currentTheme.systemInstructionModifier}";
 - Scene Description: "${sceneDesc}";
