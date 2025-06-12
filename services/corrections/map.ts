@@ -69,16 +69,24 @@ Respond ONLY with the inferred "localPlace" as a single string.`;
 
   const systemInstructionForFix = `Infer a player's "localPlace" based on narrative context. The "localPlace" should be a concise descriptive string. Respond ONLY with the string value.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedPlaceResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
-    if (correctedPlaceResponse !== null && correctedPlaceResponse.trim().length > 0) {
-      const correctedPlace = correctedPlaceResponse.trim();
-      console.warn(`fetchCorrectedLocalPlace_Service: Returned corrected localPlace `, correctedPlace, `.`);
-      return correctedPlace;
-    } else {
-      console.warn(`fetchCorrectedLocalPlace_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for localPlace. Received: null`);
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const correctedPlaceResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
+      if (correctedPlaceResponse !== null && correctedPlaceResponse.trim().length > 0) {
+        const correctedPlace = correctedPlaceResponse.trim();
+        console.warn(`fetchCorrectedLocalPlace_Service: Returned corrected localPlace `, correctedPlace, ".");
+        return correctedPlace;
+      } else {
+        console.warn(`fetchCorrectedLocalPlace_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for localPlace. Received: null`);
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchCorrectedLocalPlace_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
-    if (attempt === MAX_RETRIES) return null;
   }
   return null;
 };
@@ -136,19 +144,27 @@ Respond ONLY with the single, complete, corrected JSON object.`;
 
   const systemInstructionForFix = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (${NODE_DESCRIPTION_INSTRUCTION}), and "aliases" (${ALIAS_INSTRUCTION}, array, can be empty) are provided. Adhere strictly to the JSON format.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
-    if (
-      correctedPayload &&
-      typeof correctedPayload.name === 'string' && correctedPayload.name.trim() !== '' &&
-      typeof correctedPayload.description === 'string' && correctedPayload.description.trim() !== '' &&
-      Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((a): a is string => typeof a === 'string')
-    ) {
-      return correctedPayload;
-    } else {
-      console.warn(`fetchCorrectedPlaceDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid. Response:`, correctedPayload);
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
+      if (
+        correctedPayload &&
+        typeof correctedPayload.name === 'string' && correctedPayload.name.trim() !== '' &&
+        typeof correctedPayload.description === 'string' && correctedPayload.description.trim() !== '' &&
+        Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((a): a is string => typeof a === 'string')
+      ) {
+        return correctedPayload;
+      } else {
+        console.warn(`fetchCorrectedPlaceDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid. Response:`, correctedPayload);
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchCorrectedPlaceDetails_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
-    if (attempt === MAX_RETRIES) return null;
   }
   return null;
 };
@@ -189,19 +205,27 @@ Respond ONLY with the single, complete JSON object.`;
 
   const systemInstructionForFix = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating ${NODE_DESCRIPTION_INSTRUCTION} and aliases (${ALIAS_INSTRUCTION}, array, can be empty). Adhere strictly to the JSON format.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
-    if (
-      correctedPayload &&
-      typeof correctedPayload.name === 'string' && correctedPayload.name === mapNodePlaceName &&
-      typeof correctedPayload.description === 'string' && correctedPayload.description.trim() !== '' &&
-      Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((alias): alias is string => typeof alias === 'string')
-    ) {
-      return correctedPayload;
-    } else {
-      console.warn(`fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`, correctedPayload);
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
+      if (
+        correctedPayload &&
+        typeof correctedPayload.name === 'string' && correctedPayload.name === mapNodePlaceName &&
+        typeof correctedPayload.description === 'string' && correctedPayload.description.trim() !== '' &&
+        Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((alias): alias is string => typeof alias === 'string')
+      ) {
+        return correctedPayload;
+      } else {
+        console.warn(`fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`, correctedPayload);
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchFullPlaceDetailsForNewMapNode_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
-    if (attempt === MAX_RETRIES) return null;
   }
   return null;
 };
@@ -245,14 +269,23 @@ Valid node types: ${VALID_NODE_TYPE_VALUES.join(', ')}
 Respond ONLY with the single node type.`;
 
   const systemInstr = `Infer a map node's type. Answer with one of: ${VALID_NODE_TYPE_VALUES.join(', ')}.`;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
-    if (typeResp) {
-      const cleaned = typeResp.trim().toLowerCase();
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
+      if (typeResp) {
+        const cleaned = typeResp.trim().toLowerCase();
         const mapped = synonyms[cleaned] || cleaned;
         if ((VALID_NODE_TYPE_VALUES as readonly string[]).includes(mapped)) {
           return mapped as MapNodeData['nodeType'];
         }
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchCorrectedNodeType_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
   }
   return null;
@@ -296,14 +329,23 @@ Valid edge types: ${VALID_EDGE_TYPE_VALUES.join(', ')}
 Respond ONLY with the single edge type.`;
 
   const systemInstr = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(', ')}.`;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
-    if (typeResp) {
-      const cleaned = typeResp.trim().toLowerCase();
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
+      if (typeResp) {
+        const cleaned = typeResp.trim().toLowerCase();
         const mapped = synonyms[cleaned] || cleaned;
         if ((VALID_EDGE_TYPE_VALUES as readonly string[]).includes(mapped)) {
           return mapped as MapEdgeData['type'];
         }
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchCorrectedEdgeType_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
   }
   return null;
@@ -417,10 +459,19 @@ Respond ONLY with the name of the best parent node from the list above, or "Univ
   const systemInstr =
     'Choose the most logical parent node name for a new map node based on the map data. Respond only with that single name.';
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
-    if (resp && resp.trim().length > 0) {
-      return resp.trim();
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
+      if (resp && resp.trim().length > 0) {
+        return resp.trim();
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchLikelyParentNode_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
   }
   return null;
@@ -455,12 +506,21 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
 
   const systemInstr = 'Respond only with convert_child or upgrade_parent.';
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
-    if (resp) {
-      const cleaned = resp.trim().toLowerCase();
-      if (cleaned.includes('upgrade')) return 'upgrade_parent';
-      if (cleaned.includes('convert') || cleaned.includes('sibling')) return 'convert_child';
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
+      if (resp) {
+        const cleaned = resp.trim().toLowerCase();
+        if (cleaned.includes('upgrade')) return 'upgrade_parent';
+        if (cleaned.includes('convert') || cleaned.includes('sibling')) return 'convert_child';
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`decideFeatureHierarchyUpgrade_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
   }
   return null;
@@ -608,7 +668,7 @@ Return ONLY a JSON object strictly matching this structure:
 
   const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
     try {
       debugInfo.prompt = prompt;
       const { response } = await dispatchAIRequest({
@@ -656,7 +716,11 @@ Return ONLY a JSON object strictly matching this structure:
       debugInfo.validationError = 'Parsed JSON missing nodesToAdd or edgesToAdd';
     } catch (error) {
       debugInfo.validationError = `Error: ${error instanceof Error ? error.message : String(error)}`;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) break;
+      continue;
     }
+    attempt++;
   }
   return { payload: null, debugInfo };
 };

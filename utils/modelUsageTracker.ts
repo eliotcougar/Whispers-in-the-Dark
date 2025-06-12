@@ -44,3 +44,16 @@ export const subscribeToModelUsage = (fn: () => void): (() => void) => {
     subscribers = subscribers.filter(s => s !== fn);
   };
 };
+
+/**
+ * Returns the delay in milliseconds required before issuing the next call to
+ * the given model so as not to exceed the provided per-minute rate limit.
+ */
+export const getDelayUntilUnderLimit = (model: string, limit: number): number => {
+  purgeOld();
+  const history = usageHistories[model] || [];
+  if (history.length < limit) return 0;
+  const index = history.length - limit;
+  const targetTime = history[index] + 60_000;
+  return Math.max(0, targetTime - Date.now());
+};

@@ -47,28 +47,36 @@ If no suitable match can be confidently made, respond with an empty string.`;
 
   const systemInstructionForFix = `Your task is to match a malformed ${entityTypeToCorrect} name against a provided list of valid names, using narrative context. Respond ONLY with the best-matched string from the valid list, or an empty string if no confident match is found. Adhere to the theme context: ${currentTheme.systemInstructionModifier || 'General interpretation.'}`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const correctedNameResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const correctedNameResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
 
-    if (correctedNameResponse !== null) {
-      let correctedName = correctedNameResponse.trim();
-      // Some models may return quoted strings such as "\"name\"" or """" for no match.
-      // Strip surrounding single or double quotes before validation.
-      correctedName = correctedName.replace(/^['"]+|['"]+$/g, '').trim();
-      if (correctedName === '') {
-        console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`);
-        return null;
-      }
-      if (validNamesList.includes(correctedName)) {
-        console.warn(`fetchCorrectedName_Service: Returned corrected Name `, correctedName, `.`);
-        return correctedName;
+      if (correctedNameResponse !== null) {
+        let correctedName = correctedNameResponse.trim();
+        // Some models may return quoted strings such as "\"name\"" or """" for no match.
+        // Strip surrounding single or double quotes before validation.
+        correctedName = correctedName.replace(/^['"]+|['"]+$/g, '').trim();
+        if (correctedName === '') {
+          console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`);
+          return null;
+        }
+        if (validNamesList.includes(correctedName)) {
+          console.warn(`fetchCorrectedName_Service: Returned corrected Name `, correctedName, `.`);
+          return correctedName;
+        } else {
+          console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`);
+        }
       } else {
-        console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`);
+        console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for ${entityTypeToCorrect}. Received: null`);
       }
-    } else {
-      console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for ${entityTypeToCorrect}. Received: null`);
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(`fetchCorrectedName_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
     }
-    if (attempt === MAX_RETRIES) return null;
   }
   return null;
 };

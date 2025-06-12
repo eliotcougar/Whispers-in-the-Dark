@@ -28,7 +28,7 @@ export const executeAIMainTurn = async (
         systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${themeSystemInstructionModifier}`;
     }
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    for (let attempt = 1; attempt <= MAX_RETRIES; ) {
         try {
             const { response } = await dispatchAIRequest({
                 modelNames: [GEMINI_MODEL_NAME],
@@ -42,15 +42,16 @@ export const executeAIMainTurn = async (
             return response;
         } catch (error) {
             console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
-            if (isServerOrClientError(error)) {
-                const err = error instanceof Error ? error : new Error(String(error));
-                return Promise.reject(err);
+            if (!isServerOrClientError(error)) {
+                throw error;
             }
             if (attempt === MAX_RETRIES) {
                 return Promise.reject(new Error(`Failed to execute AI Main Turn after maximum retries: ${error instanceof Error ? error.message : String(error)}`));
             }
-            await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue; // retry same attempt
         }
+        attempt++;
     }
     // Should not be reached if MAX_RETRIES > 0, as the loop will either return or throw.
     // Added for type safety / exhaustive paths.
@@ -88,7 +89,7 @@ The summary should be written in a narrative style, from a perspective that desc
 Do not include any preamble. Just provide the summary text itself.
 `;
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) { // Extra retry for summarization
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) { // Extra retry for summarization
     try {
       console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1})`);
       const { response } = await dispatchAIRequest({
@@ -105,10 +106,16 @@ Do not include any preamble. Just provide the summary text itself.
       if (attempt === MAX_RETRIES +1 && (!text || text.length === 0)) return null;
     } catch (error) {
       console.error(`Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1}):`, error);
+      if (!isServerOrClientError(error)) {
+        throw error;
+      }
       if (attempt === MAX_RETRIES +1) {
         return null;
       }
+      await new Promise(resolve => setTimeout(resolve, 500));
+      continue;
     }
+    attempt++;
   }
   return null;
 };

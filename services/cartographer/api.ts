@@ -353,7 +353,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
   const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };
   let validParsedPayload: AIMapUpdatePayload | null = null;
 
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt < MAX_RETRIES; ) {
     try {
       console.log(`Map Update Service: Attempt ${attempt + 1}/${MAX_RETRIES}`);
       if (attempt > 0 && debugInfo.validationError) {
@@ -387,23 +387,29 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
       if (attempt === MAX_RETRIES - 1) {
         console.error("Map Update Service: Failed to get valid map update payload after all retries.");
       }
+      attempt++;
     } catch (error) {
       console.error(`Error in map update service (Attempt ${attempt + 1}/${MAX_RETRIES}):`, error);
       if (isServerOrClientError(error)) {
         debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
         debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
-        return {
-          updatedMapData: null,
-          newlyAddedNodes: [],
-          newlyAddedEdges: [],
-          debugInfo,
-        };
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (attempt === MAX_RETRIES - 1) {
+          return {
+            updatedMapData: null,
+            newlyAddedNodes: [],
+            newlyAddedEdges: [],
+            debugInfo,
+          };
+        }
+        continue;
       }
       debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
       debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
       if (attempt === MAX_RETRIES - 1) {
         console.error("Map Update Service: Failed after all retries due to processing error.");
       }
+      attempt++;
     }
   }
 
@@ -1070,7 +1076,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
 
   while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
       let chainResult: ConnectorChainsServiceResult | null = null;
-      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      for (let attempt = 0; attempt < MAX_RETRIES; ) {
         console.log(
           `Connector Chains Refinement: Round ${refineAttempts + 1}/${MAX_CHAIN_REFINEMENT_ROUNDS}, Attempt ${
             attempt + 1
@@ -1088,6 +1094,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
             attempt + 1
           }): invalid or empty response. Retrying.`,
         );
+        attempt++;
       }
       if (chainResult && chainResult.payload) {
         chainRequests = [];
