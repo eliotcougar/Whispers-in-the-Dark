@@ -7,12 +7,10 @@ import { GenerateContentResponse } from "@google/genai";
 import { AdventureTheme } from '../../types';
 import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
-import { ai } from '../geminiClient';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { recordModelCall } from '../../utils/modelUsageTracker';
 
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
@@ -32,24 +30,15 @@ export const executeAIMainTurn = async (
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            recordModelCall(GEMINI_MODEL_NAME);
-            const response = await ai!.models.generateContent({
-                model: GEMINI_MODEL_NAME,
-                contents: fullPrompt,
-                config: {
-                    systemInstruction: systemInstructionForCall,
-                    responseMimeType: "application/json",
-                    temperature: 1.0,
-                    thinkingConfig: { thinkingBudget: 4096 } // Disable thinking for lower latency
-                }
+            const { response } = await dispatchAIRequest({
+                modelNames: [GEMINI_MODEL_NAME],
+                prompt: fullPrompt,
+                systemInstruction: systemInstructionForCall,
+                temperature: 1.0,
+                thinkingBudget: 4096,
+                responseMimeType: "application/json",
+                label: "Storyteller"
             });
-            // Return the raw response. Parsing and processing happen in useGameLogic.
-            console.log(
-                "Executing AI Main Turn. Total tokens: ",
-                response.usageMetadata?.totalTokenCount ?? 'N/A',
-                ", Thought Tokens:", response.usageMetadata?.thoughtsTokenCount ?? 'N/A',
-                ", Prompt Tokens: ", response.usageMetadata?.promptTokenCount ?? 'N/A'
-            );
             return response;
         } catch (error) {
             console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
