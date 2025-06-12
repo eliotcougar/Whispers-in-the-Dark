@@ -31,11 +31,21 @@ export const findMapNodeByIdentifier = (
   const idMatch = nodes.find(n => n.id === identifier);
   if (!getAll && idMatch) return idMatch;
 
-  const lower = identifier.toLowerCase();
-  const nameMatches = nodes.filter(n => n.placeName.toLowerCase() === lower);
-  const aliasMatches = nodes.filter(n =>
-    n.data.aliases && n.data.aliases.some(a => a.toLowerCase() === lower)
-  ).filter(n => !nameMatches.includes(n));
+  const sanitize = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[.,!?;:"(){}[\]'’]/g, '')
+      .trim();
+
+  const normalized = sanitize(identifier);
+  const nameMatches = nodes.filter(n => sanitize(n.placeName) === normalized);
+  const aliasMatches = nodes
+    .filter(
+      n =>
+        n.data.aliases &&
+        n.data.aliases.some(a => sanitize(a) === normalized)
+    )
+    .filter(n => !nameMatches.includes(n));
 
   const sortByDistance = (arr: MapNode[]) => {
     if (!mapData || !currentNodeId) return arr;
