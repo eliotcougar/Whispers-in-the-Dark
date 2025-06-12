@@ -108,7 +108,7 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
       const isActive = !!item.isActive; 
 
       if (ku.appliesWhenActive !== undefined && ku.appliesWhenInactive !== undefined) {
-        return (ku.appliesWhenActive && isActive) || (ku.appliesWhenInactive && !isActive);
+        return (ku.appliesWhenActive && isActive) || (ku.appliesWhenInactive && !isActive) || (!ku.appliesWhenActive && !ku.appliesWhenInactive);
       }
       if (ku.appliesWhenActive !== undefined) {
         return ku.appliesWhenActive === isActive;
