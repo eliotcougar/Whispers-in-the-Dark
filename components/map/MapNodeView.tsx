@@ -14,6 +14,7 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
 } from '../../utils/mapConstants';
 import { MapItemBoxIcon, MapWheelIcon } from '../icons';
+import { isDescendantOf } from '../../utils/mapGraphUtils';
 
 const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   const x1 = a.position.x;
@@ -40,7 +41,7 @@ interface MapNodeViewProps {
   destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
   itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (nodeId: string) => void;
+  onSelectDestination: (nodeId: string | null) => void;
   labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */
   itemIconScale: number;
@@ -208,6 +209,14 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const getLabelBox = (n: MapNode, offset: number) => {
       const width = labelWidth(n);
       const height = labelHeight(n);
+      if (hasCenteredLabel(n.data.nodeType)) {
+        return {
+          x: n.position.x - width / 2,
+          y: n.position.y - height / 2,
+          width,
+          height,
+        };
+      }
       const base = getRadiusForNode(n) + DEFAULT_LABEL_MARGIN_PX + offset;
       return {
         x: n.position.x - width / 2,
@@ -225,25 +234,30 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const sorted = [...nodes].sort((a, b) => getDepth(b) - getDepth(a));
 
     for (const node of sorted) {
+      if (node.data.nodeType === 'feature') continue;
       const parentId = node.data.parentNodeId;
       if (!parentId) continue;
-      const parent = idToNode.get(parentId);
-      if (!parent) continue;
-      if (parent.data.nodeType === 'feature') continue;
-      if (!isParent(parent)) continue;
 
-      const parentBox = getLabelBox(parent, offsets[parent.id]);
-      const nodeBox = getLabelBox(node, offsets[node.id]);
+      const relevantFeatures = nodes.filter(
+        n =>
+          n.data.nodeType === 'feature' &&
+          (isDescendantOf(n, node, idToNode) || n.data.parentNodeId === parentId)
+      );
 
-      const overlap =
-        parentBox.x < nodeBox.x + nodeBox.width &&
-        parentBox.x + parentBox.width > nodeBox.x &&
-        parentBox.y < nodeBox.y + nodeBox.height &&
-        parentBox.y + parentBox.height > nodeBox.y;
+      for (const feature of relevantFeatures) {
+        const nodeBox = getLabelBox(node, offsets[node.id]);
+        const featureBox = getLabelBox(feature, offsets[feature.id]);
 
-      if (overlap) {
-        const delta = nodeBox.y + nodeBox.height - parentBox.y;
-        offsets[parent.id] += delta + labelOverlapMarginPx;
+        const overlap =
+          nodeBox.x < featureBox.x + featureBox.width &&
+          nodeBox.x + nodeBox.width > featureBox.x &&
+          nodeBox.y < featureBox.y + featureBox.height &&
+          nodeBox.y + nodeBox.height > featureBox.y;
+
+        if (overlap) {
+          const delta = featureBox.y + featureBox.height - nodeBox.y;
+          offsets[node.id] += delta + labelOverlapMarginPx;
+        }
       }
     }
 
@@ -451,7 +465,15 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
           {destinationNodeId && (() => {
             const dest = nodes.find(n => n.id === destinationNodeId);
+            const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
             if (!dest) return null;
+            const nodeMap = new Map(nodes.map(n => [n.id, n]));
+            if (
+              current &&
+              (current.id === dest.id || isDescendantOf(current, dest, nodeMap))
+            ) {
+              return null;
+            }
             return (
               <polygon
                 className="map-destination-marker"
@@ -549,13 +571,19 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           {isTooltipLocked && tooltip.nodeId && (
             <button
               onClick={() => {
-                onSelectDestination(tooltip.nodeId!);
+                if (tooltip.nodeId === destinationNodeId) {
+                  onSelectDestination(null);
+                } else {
+                  onSelectDestination(tooltip.nodeId!);
+                }
                 setIsTooltipLocked(false);
                 setTooltip(null);
               }}
               className="map-set-destination-button"
             >
-              Set Destination
+              {tooltip.nodeId === destinationNodeId
+                ? 'Remove Destination'
+                : 'Set Destination'}
             </button>
           )}
           {tooltip.content.split('\n').map((line, index) => (
