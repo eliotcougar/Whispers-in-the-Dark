@@ -40,6 +40,54 @@ export const getChildren = (
 };
 
 /**
+ * Returns all ancestor nodes for the provided node.
+ * The closest parent is first in the returned array.
+ */
+export const getAncestors = (
+  node: MapNode,
+  nodeMap: Map<string, MapNode>
+): MapNode[] => {
+  const ancestors: MapNode[] = [];
+  let current: MapNode | undefined = nodeMap.get(node.data.parentNodeId || '');
+  while (current) {
+    ancestors.push(current);
+    if (!current.data.parentNodeId || current.data.parentNodeId === 'Universe') break;
+    current = nodeMap.get(current.data.parentNodeId);
+  }
+  return ancestors;
+};
+
+/**
+ * Returns true if the `possibleDescendant` is a child (at any depth)
+ * of `possibleAncestor`.
+ */
+export const isDescendantOf = (
+  possibleDescendant: MapNode,
+  possibleAncestor: MapNode,
+  nodeMap: Map<string, MapNode>
+): boolean => {
+  let current: MapNode | undefined = possibleDescendant;
+  while (current && current.data.parentNodeId && current.data.parentNodeId !== 'Universe') {
+    if (current.data.parentNodeId === possibleAncestor.id) return true;
+    current = nodeMap.get(current.data.parentNodeId);
+  }
+  return false;
+};
+
+/** Convenience wrapper when only IDs and MapData are available. */
+export const isDescendantIdOf = (
+  mapData: MapData,
+  nodeId: string,
+  ancestorId: string
+): boolean => {
+  const nodeMap = new Map(mapData.nodes.map(n => [n.id, n]));
+  const node = nodeMap.get(nodeId);
+  const ancestor = nodeMap.get(ancestorId);
+  if (!node || !ancestor) return false;
+  return isDescendantOf(node, ancestor, nodeMap);
+};
+
+/**
  * Determines if a non-rumored path exists between two nodes.
  * Traverses the map graph ignoring edges with status 'rumored' or 'removed'.
  *
