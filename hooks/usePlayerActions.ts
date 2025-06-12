@@ -310,6 +310,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           playerActionText || '',
           formatInventoryForPrompt(baseInventoryForPlayer),
           formatInventoryForPrompt(locationInventory),
+          baseStateSnapshot.currentMapNodeId || null,
           formatCharInventoryList(companionChars),
           formatCharInventoryList(nearbyChars)
         );

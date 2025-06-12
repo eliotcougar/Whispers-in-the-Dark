@@ -16,6 +16,7 @@ export const buildInventoryPrompt = (
   newItems: NewItemSuggestion[],
   playerInventory: string,
   locationInventory: string,
+  currentNodeId: string | null,
   companionsInventory: string,
   nearbyNpcsInventory: string,
 ): string => {
@@ -31,7 +32,7 @@ export const buildInventoryPrompt = (
 
   ${newItemsJson ? `New Items from Storyteller AI or Dialogue AI:\n${newItemsJson}\n` : ''}
   ${playerInventory ? `Current Player's Inventory:\n${playerInventory}\n` : ''}
-  ${locationInventory ? `Current Location Inventory:\n${locationInventory}\n` : ''}
+  ${locationInventory ? `Current Location Inventory - ID: ${currentNodeId || 'unknown'}\n${locationInventory}\n` : ''}
   ${companionsInventory ? `Companions Inventory:\n${companionsInventory}\n` : ''}
   ${nearbyNpcsInventory ? `Nearby NPCs Inventory:\n${nearbyNpcsInventory}\n` : ''}
 
