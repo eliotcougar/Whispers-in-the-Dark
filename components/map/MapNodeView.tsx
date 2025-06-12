@@ -234,25 +234,30 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const sorted = [...nodes].sort((a, b) => getDepth(b) - getDepth(a));
 
     for (const node of sorted) {
+      if (node.data.nodeType === 'feature') continue;
       const parentId = node.data.parentNodeId;
       if (!parentId) continue;
-      const parent = idToNode.get(parentId);
-      if (!parent) continue;
-      if (parent.data.nodeType === 'feature') continue;
-      if (!isParent(parent)) continue;
 
-      const parentBox = getLabelBox(parent, offsets[parent.id]);
-      const nodeBox = getLabelBox(node, offsets[node.id]);
+      const relevantFeatures = nodes.filter(
+        n =>
+          n.data.nodeType === 'feature' &&
+          (isDescendantOf(n, node, idToNode) || n.data.parentNodeId === parentId)
+      );
 
-      const overlap =
-        parentBox.x < nodeBox.x + nodeBox.width &&
-        parentBox.x + parentBox.width > nodeBox.x &&
-        parentBox.y < nodeBox.y + nodeBox.height &&
-        parentBox.y + parentBox.height > nodeBox.y;
+      for (const feature of relevantFeatures) {
+        const nodeBox = getLabelBox(node, offsets[node.id]);
+        const featureBox = getLabelBox(feature, offsets[feature.id]);
 
-      if (overlap) {
-        const delta = nodeBox.y + nodeBox.height - parentBox.y;
-        offsets[parent.id] += delta + labelOverlapMarginPx;
+        const overlap =
+          nodeBox.x < featureBox.x + featureBox.width &&
+          nodeBox.x + nodeBox.width > featureBox.x &&
+          nodeBox.y < featureBox.y + featureBox.height &&
+          nodeBox.y + nodeBox.height > featureBox.y;
+
+        if (overlap) {
+          const delta = featureBox.y + featureBox.height - nodeBox.y;
+          offsets[node.id] += delta + labelOverlapMarginPx;
+        }
       }
     }
 
