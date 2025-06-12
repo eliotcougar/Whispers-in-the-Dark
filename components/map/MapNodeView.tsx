@@ -160,8 +160,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
 
   /**
-   * Calculate extra vertical offset for child labels when they overlap with
-   * their parent's label. Offsets cascade from shallowest to deepest nodes.
+   * Calculate extra vertical offset for labels when they overlap. Feature labels
+   * stay fixed while sibling and descendant non-feature labels may shift down.
+   * Only immediate left/right siblings are considered for overlap checks.
    */
   const labelOffsetMap = useMemo(() => {
     const idToNode = new Map(nodes.map(n => [n.id, n]));
@@ -231,35 +232,46 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       offsets[n.id] = 0;
     });
 
-    const sorted = [...nodes].sort((a, b) => getDepth(b) - getDepth(a));
+    // Helper to test bounding box overlap
+    const boxesOverlap = (a: { x: number; y: number; width: number; height: number }, b: { x: number; y: number; width: number; height: number }) =>
+      a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 
-    for (const node of sorted) {
-      if (node.data.nodeType === 'feature') continue;
-      const parentId = node.data.parentNodeId;
-      if (!parentId) continue;
+    // Shift siblings that overlap. Only immediate neighbors are checked.
+    childrenMap.forEach(siblings => {
+      const ordered = [...siblings].sort((a, b) => a.position.x - b.position.x);
+      for (let i = 1; i < ordered.length; i++) {
+        const left = ordered[i - 1];
+        const right = ordered[i];
 
-      const relevantFeatures = nodes.filter(
-        n =>
-          n.data.nodeType === 'feature' &&
-          (isDescendantOf(n, node, idToNode) || n.data.parentNodeId === parentId)
-      );
+        let boxLeft = getLabelBox(left, offsets[left.id]);
+        let boxRight = getLabelBox(right, offsets[right.id]);
 
-      for (const feature of relevantFeatures) {
-        const nodeBox = getLabelBox(node, offsets[node.id]);
-        const featureBox = getLabelBox(feature, offsets[feature.id]);
-
-        const overlap =
-          nodeBox.x < featureBox.x + featureBox.width &&
-          nodeBox.x + nodeBox.width > featureBox.x &&
-          nodeBox.y < featureBox.y + featureBox.height &&
-          nodeBox.y + nodeBox.height > featureBox.y;
-
-        if (overlap) {
-          const delta = featureBox.y + featureBox.height - nodeBox.y;
-          offsets[node.id] += delta + labelOverlapMarginPx;
+        if (boxesOverlap(boxLeft, boxRight)) {
+          const delta = boxLeft.y + boxLeft.height - boxRight.y + labelOverlapMarginPx;
+          if (right.data.nodeType !== 'feature') {
+            offsets[right.id] += delta;
+            boxRight = getLabelBox(right, offsets[right.id]);
+          } else if (left.data.nodeType !== 'feature') {
+            offsets[left.id] += delta;
+            boxLeft = getLabelBox(left, offsets[left.id]);
+          }
         }
       }
-    }
+    });
+
+    // Non-feature nodes must also avoid overlapping any feature descendants
+    nodes.forEach(node => {
+      if (node.data.nodeType === 'feature') return;
+      const featureDescendants = nodes.filter(n => n.data.nodeType === 'feature' && isDescendantOf(n, node, idToNode));
+      for (const feature of featureDescendants) {
+        const nodeBox = getLabelBox(node, offsets[node.id]);
+        const featureBox = getLabelBox(feature, offsets[feature.id]);
+        if (boxesOverlap(nodeBox, featureBox)) {
+          const delta = featureBox.y + featureBox.height - nodeBox.y + labelOverlapMarginPx;
+          offsets[node.id] += delta;
+        }
+      }
+    });
 
     return offsets;
   }, [nodes, labelOverlapMarginPx]);
