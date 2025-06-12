@@ -328,15 +328,15 @@ export const updateMapFromAIData_Service = async (
 
   const existingMapContext = `
 Current Map Nodes (for your reference):
-${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- "${n.placeName}" (ID: ${n.id}, Feature: ${n.data.nodeType === 'feature'}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
+${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- "${n.placeName}" (ID: ${n.id}, Type: ${n.data.nodeType}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
 
 Current Map Edges (for your reference):
 ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- ${e.data.status || 'N/A'} ${e.data.type || 'N/A'} from ${e.sourceNodeId} to ${e.targetNodeId}`).join('\n') : "None exist yet."}
 `;
 
   const allKnownMainPlacesString = allKnownMainMapNodesForTheme.length > 0
-    ? allKnownMainMapNodesForTheme.map(p => `"${p.placeName}" (Description: "${p.data.description.substring(0,100)}...")`).join('; ')
-    : "No main places are pre-defined for this theme.";
+    ? allKnownMainMapNodesForTheme.map(p => `"${p.placeName}"`).join(', ')
+    : "No important places are known yet.";
 
 
   const basePrompt = buildMapUpdatePrompt(
