@@ -22,7 +22,10 @@ Respond ONLY in JSON format with the following structure:
   "localEnvironment": "string", /* REQUIRED. A brief sentence describing current environment/weather. e.g. "Clear skies, warm sun". Update based on events. */
   "localPlace": "string", /* REQUIRED. A concise string describing player's specific location. e.g. "Inside the Old Mill". Update based on player's actions and scene changes. */
 
-  "itemChange"?: [ /* Optional array. Send an empty array e.g., "itemChange": [], or omit if no items are affected. Each object in the array must follow the structure defined in ITEMS_GUIDE for its respective itemChange action. Supports actions 'gain', 'lose', 'update', 'put', 'give', and 'take'. */
+  "playerItemsHint"?: "string", /* Short summary of gains, losses or item state changes for the Player. */
+  "worldItemsHint"?: "string", /* Short summary of items dropped or discovered in the environment. */
+  "npcItemsHint"?: "string", /* Short summary of items held or used by NPCs. */
+  "newItems"?: [ /* Array of brand new items introduced this turn, or [] if none. Each object must follow the format in ITEMS_GUIDE. */
     ... ],
   "mainQuest"?: "string", /* Optional. A stable, long-term goal. Provide this if it changes or on the first turn of a new/revisited theme. If omitted, the game will retain the previous main quest. STRONGLY RECOMMENDED if contextually appropriate and aligns with the theme.
   "currentObjective"?: "string", /* Optional. A brief, actionable short-term objective. Provide this if it changes, if the previous one was achieved, or on the first turn of a new/revisited theme. If omitted, the game will retain the previous objective unless 'objectiveAchieved' is true. STRONGLY RECOMMENDED if contextually appropriate and aligns with the theme.",
@@ -98,6 +101,6 @@ If a Companion leaves the Player, or the Player leaves a Companion, their presen
 - If "mainQuest" or "currentObjective" change, they MUST be provided. Otherwise, they are optional.
 - If the narrative implies any changes to the map (new details, locations, connections, status changes), set "mapUpdated": true.
 
-CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" indicates an item was gained, lost, moved, given/taken, used, or changed, the "itemChange" array MUST ALSO accurately reflect this with valid ItemChange objects. Use "give" or "take" when transferring an existing item from one holder to another, including dropping or picking it up at the current location. Use "put" only when revealing or placing a brand new item. Use "lose" only if the item is consumed or destroyed. For "gain" or "put", ensure "item" has "name", "type", "description". For "update", ensure "name" (original name) is correct. If transforming ("newName" is used), "type", "description" MUST be present for the new item.
+CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" implies items were gained, lost, moved, or changed, you MUST summarize these changes using "playerItemsHint", "worldItemsHint", and "npcItemsHint" and list new items in "newItems". Follow the ITEMS_GUIDE for exact formatting.
 CRITICALLY IMPORTANT: Names and Aliases (of items, places, characters, etc) cannot contain a comma.
 `;
