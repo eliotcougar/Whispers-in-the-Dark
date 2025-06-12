@@ -14,6 +14,7 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
 } from '../../utils/mapConstants';
 import { MapItemBoxIcon, MapWheelIcon } from '../icons';
+import { isDescendantOf } from '../../utils/mapGraphUtils';
 
 const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   const x1 = a.position.x;
@@ -40,7 +41,7 @@ interface MapNodeViewProps {
   destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
   itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (nodeId: string) => void;
+  onSelectDestination: (nodeId: string | null) => void;
   labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */
   itemIconScale: number;
@@ -159,8 +160,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
 
   /**
-   * Calculate extra vertical offset for child labels when they overlap with
-   * their parent's label. Offsets cascade from shallowest to deepest nodes.
+   * Calculate extra vertical offset for labels when they overlap. Feature labels
+   * stay fixed while sibling and descendant non-feature labels may shift down.
+   * Only immediate left/right siblings are considered for overlap checks.
    */
   const labelOffsetMap = useMemo(() => {
     const idToNode = new Map(nodes.map(n => [n.id, n]));
@@ -208,6 +210,14 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const getLabelBox = (n: MapNode, offset: number) => {
       const width = labelWidth(n);
       const height = labelHeight(n);
+      if (hasCenteredLabel(n.data.nodeType)) {
+        return {
+          x: n.position.x - width / 2,
+          y: n.position.y - height / 2,
+          width,
+          height,
+        };
+      }
       const base = getRadiusForNode(n) + DEFAULT_LABEL_MARGIN_PX + offset;
       return {
         x: n.position.x - width / 2,
@@ -222,30 +232,46 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       offsets[n.id] = 0;
     });
 
-    const sorted = [...nodes].sort((a, b) => getDepth(b) - getDepth(a));
+    // Helper to test bounding box overlap
+    const boxesOverlap = (a: { x: number; y: number; width: number; height: number }, b: { x: number; y: number; width: number; height: number }) =>
+      a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 
-    for (const node of sorted) {
-      const parentId = node.data.parentNodeId;
-      if (!parentId) continue;
-      const parent = idToNode.get(parentId);
-      if (!parent) continue;
-      if (parent.data.nodeType === 'feature') continue;
-      if (!isParent(parent)) continue;
+    // Shift siblings that overlap. Only immediate neighbors are checked.
+    childrenMap.forEach(siblings => {
+      const ordered = [...siblings].sort((a, b) => a.position.x - b.position.x);
+      for (let i = 1; i < ordered.length; i++) {
+        const left = ordered[i - 1];
+        const right = ordered[i];
 
-      const parentBox = getLabelBox(parent, offsets[parent.id]);
-      const nodeBox = getLabelBox(node, offsets[node.id]);
+        let boxLeft = getLabelBox(left, offsets[left.id]);
+        let boxRight = getLabelBox(right, offsets[right.id]);
 
-      const overlap =
-        parentBox.x < nodeBox.x + nodeBox.width &&
-        parentBox.x + parentBox.width > nodeBox.x &&
-        parentBox.y < nodeBox.y + nodeBox.height &&
-        parentBox.y + parentBox.height > nodeBox.y;
-
-      if (overlap) {
-        const delta = nodeBox.y + nodeBox.height - parentBox.y;
-        offsets[parent.id] += delta + labelOverlapMarginPx;
+        if (boxesOverlap(boxLeft, boxRight)) {
+          const delta = boxLeft.y + boxLeft.height - boxRight.y + labelOverlapMarginPx;
+          if (right.data.nodeType !== 'feature') {
+            offsets[right.id] += delta;
+            boxRight = getLabelBox(right, offsets[right.id]);
+          } else if (left.data.nodeType !== 'feature') {
+            offsets[left.id] += delta;
+            boxLeft = getLabelBox(left, offsets[left.id]);
+          }
+        }
       }
-    }
+    });
+
+    // Non-feature nodes must also avoid overlapping any feature descendants
+    nodes.forEach(node => {
+      if (node.data.nodeType === 'feature') return;
+      const featureDescendants = nodes.filter(n => n.data.nodeType === 'feature' && isDescendantOf(n, node, idToNode));
+      for (const feature of featureDescendants) {
+        const nodeBox = getLabelBox(node, offsets[node.id]);
+        const featureBox = getLabelBox(feature, offsets[feature.id]);
+        if (boxesOverlap(nodeBox, featureBox)) {
+          const delta = featureBox.y + featureBox.height - nodeBox.y + labelOverlapMarginPx;
+          offsets[node.id] += delta;
+        }
+      }
+    });
 
     return offsets;
   }, [nodes, labelOverlapMarginPx]);
@@ -451,7 +477,15 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
           {destinationNodeId && (() => {
             const dest = nodes.find(n => n.id === destinationNodeId);
+            const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
             if (!dest) return null;
+            const nodeMap = new Map(nodes.map(n => [n.id, n]));
+            if (
+              current &&
+              (current.id === dest.id || isDescendantOf(current, dest, nodeMap))
+            ) {
+              return null;
+            }
             return (
               <polygon
                 className="map-destination-marker"
@@ -549,13 +583,19 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           {isTooltipLocked && tooltip.nodeId && (
             <button
               onClick={() => {
-                onSelectDestination(tooltip.nodeId!);
+                if (tooltip.nodeId === destinationNodeId) {
+                  onSelectDestination(null);
+                } else {
+                  onSelectDestination(tooltip.nodeId!);
+                }
                 setIsTooltipLocked(false);
                 setTooltip(null);
               }}
               className="map-set-destination-button"
             >
-              Set Destination
+              {tooltip.nodeId === destinationNodeId
+                ? 'Remove Destination'
+                : 'Set Destination'}
             </button>
           )}
           {tooltip.content.split('\n').map((line, index) => (

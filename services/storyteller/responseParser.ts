@@ -3,27 +3,23 @@
  * @description Utilities for validating and parsing AI storyteller responses.
  */
 
-import { GameStateFromAI, Item, ItemChange, ItemReference, GiveItemPayload, Character, MapData,
+import { GameStateFromAI, Item, Character, MapData,
     ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload,
     MapNode, AdventureTheme } from '../../types';
 import {
-    isValidItem,
-    isValidItemReference,
     isValidCharacterUpdate,
     isValidNewCharacterPayload,
-    isDialogueSetupPayloadStructurallyValid
+    isDialogueSetupPayloadStructurallyValid,
+    isValidNewItemSuggestion
 } from '../parsers/validation';
 import {
-    fetchCorrectedItemAction_Service,
-    fetchCorrectedItemPayload_Service,
     fetchCorrectedName_Service,
     fetchCorrectedCharacterDetails_Service,
     fetchCorrectedDialogueSetup_Service,
 } from '../corrections';
 
 import { extractJsonFromFence } from '../../utils/jsonUtils';
-import { buildCharacterId, findItemByIdentifier } from '../../utils/entityUtils';
-import { PLAYER_HOLDER_ID } from '../../constants';
+import { buildCharacterId } from '../../utils/entityUtils';
 
 /** Interface describing contextual data required by the parsing helpers. */
 interface ParserContext {
@@ -78,7 +74,11 @@ function validateBasicStructure(
         (data.dialogueSetup === undefined || typeof data.dialogueSetup === 'object') &&
         (data.mapUpdated === undefined || typeof data.mapUpdated === 'boolean') &&
         (data.currentMapNodeId === undefined || data.currentMapNodeId === null || typeof data.currentMapNodeId === 'string') &&
-        (data.mapHint === undefined || typeof data.mapHint === 'string');
+        (data.mapHint === undefined || typeof data.mapHint === 'string') &&
+        (data.playerItemsHint === undefined || typeof data.playerItemsHint === 'string') &&
+        (data.worldItemsHint === undefined || typeof data.worldItemsHint === 'string') &&
+        (data.npcItemsHint === undefined || typeof data.npcItemsHint === 'string') &&
+        (data.newItems === undefined || Array.isArray(data.newItems));
 
     if (!baseFieldsValid) {
         console.warn('parseAIResponse: Basic field validation failed (pre-dialogue specifics and array checks).', parsedData);
@@ -172,199 +172,6 @@ async function handleDialogueSetup(
     return { dialogueSetup, options: options as string[], isDialogueTurn };
 }
 
-/**
- * Validates and corrects itemChange payloads.
- */
-async function processItemChanges(
-    itemChanges: unknown,
-    baseData: Partial<GameStateFromAI>,
-    context: ParserContext
-): Promise<ItemChange[]> {
-    const changes: unknown[] = Array.isArray(itemChanges) ? itemChanges : [];
-    if (!Array.isArray(itemChanges)) {
-        console.warn('parseAIResponse: Invalid itemChange format (expected array). Discarding itemChange.', itemChanges);
-    }
-
-    const processedItemChanges: ItemChange[] = [];
-    for (const rawIc of changes) {
-        const ic = typeof rawIc === 'object' && rawIc !== null
-            ? ({ ...(rawIc as Record<string, unknown>) } as unknown as ItemChange)
-            : (rawIc as ItemChange);
-        if (typeof ic === 'object' && ic !== null && Object.keys(ic).length === 0 && ic.constructor === Object) {
-            console.warn("parseAIResponse ('itemChange'): Skipping empty itemChange object:", ic);
-            continue;
-        }
-
-        if (typeof ic.action !== 'string' || !['gain', 'lose', 'update', 'put', 'give', 'take'].includes(ic.action)) {
-            console.warn("parseAIResponse ('itemChange'): Invalid itemChange 'action'. Attempting correction.", ic);
-            const correctedAction = await fetchCorrectedItemAction_Service(
-                context.logMessageFromPayload || baseData.logMessage,
-                context.sceneDescriptionFromPayload || baseData.sceneDescription,
-                JSON.stringify(ic),
-                context.currentTheme
-            );
-            if (correctedAction && ['gain', 'lose', 'update', 'put', 'give', 'take'].includes(correctedAction)) {
-                ic.action = correctedAction;
-                console.log(`parseAIResponse ('itemChange'): Corrected itemChange action to: "${correctedAction}"`, ic);
-            } else {
-                console.warn("parseAIResponse ('itemChange'): Failed to correct itemChange action. Discarding this itemChange.", ic);
-                continue;
-            }
-        }
-
-        let currentItemPayload = ic.item;
-        let currentInvalidPayload = ic.invalidPayload;
-
-        if (
-            (ic.action === 'gain' || ic.action === 'put') &&
-            currentItemPayload &&
-            typeof currentItemPayload === 'object' &&
-            !('holderId' in currentItemPayload)
-        ) {
-            (currentItemPayload as Item).holderId = PLAYER_HOLDER_ID;
-        }
-
-        switch (ic.action) {
-            case 'gain':
-            case 'put':
-                if (!isValidItem(currentItemPayload, 'gain')) {
-                    console.warn(`parseAIResponse ('gain'): Invalid item structure. Attempting correction.`, currentItemPayload);
-                    const corrected = await fetchCorrectedItemPayload_Service(
-                        'gain',
-                        context.logMessageFromPayload || baseData.logMessage,
-                        context.sceneDescriptionFromPayload || baseData.sceneDescription,
-                        JSON.stringify(currentItemPayload),
-                        context.currentTheme
-                    );
-                    if (corrected && isValidItem(corrected, 'gain')) {
-                        currentItemPayload = corrected;
-                        currentInvalidPayload = undefined;
-                    } else {
-                        currentInvalidPayload = currentItemPayload;
-                        currentItemPayload = null;
-                    }
-                }
-                if (currentItemPayload) {
-                    const itemObj = currentItemPayload as Item;
-                    itemObj.newName = undefined;
-                    itemObj.addKnownUse = undefined;
-                    itemObj.isJunk = itemObj.isJunk ?? false;
-                    itemObj.isActive = itemObj.isActive ?? false;
-                    itemObj.holderId = typeof itemObj.holderId === 'string' && itemObj.holderId.trim() !== '' ? itemObj.holderId : PLAYER_HOLDER_ID;
-                    currentItemPayload = itemObj;
-
-                    const existing = findItemByIdentifier([itemObj.id, itemObj.name], context.currentInventoryForCorrection, false, true) as Item | null;
-                    if (ic.action === 'gain' && existing && existing.holderId !== PLAYER_HOLDER_ID) {
-                        ic.action = 'give';
-                        currentItemPayload = {
-                            id: existing.id,
-                            name: existing.name,
-                            fromId: existing.holderId,
-                            toId: PLAYER_HOLDER_ID,
-                        } as GiveItemPayload;
-                        currentInvalidPayload = undefined;
-                    }
-                }
-                break;
-            case 'update': {
-                let originalNameForUpdate: string | undefined;
-                if (
-                    currentItemPayload &&
-                    typeof currentItemPayload === 'object' &&
-                    'name' in currentItemPayload &&
-                    typeof (currentItemPayload as { name?: unknown }).name === 'string'
-                ) {
-                    originalNameForUpdate = (currentItemPayload as { name: string }).name;
-                    const itemObject = currentItemPayload;
-                    if (!context.currentInventoryForCorrection.some(invItem => invItem.name === originalNameForUpdate) && originalNameForUpdate.trim() !== '') {
-                        console.warn(`parseAIResponse ('update'): Original item name "${originalNameForUpdate}" not found in inventory. Attempting name correction.`);
-                        const correctedOriginalName = await fetchCorrectedName_Service(
-                            'item',
-                            originalNameForUpdate,
-                            context.logMessageFromPayload || baseData.logMessage,
-                            context.sceneDescriptionFromPayload || baseData.sceneDescription,
-                            context.currentInventoryForCorrection.map(invItem => invItem.name),
-                            context.currentTheme
-                        );
-                        if (correctedOriginalName && correctedOriginalName.trim() !== '') {
-                            itemObject.name = correctedOriginalName;
-                            console.log(`parseAIResponse ('update'): Corrected original item name to "${correctedOriginalName}".`);
-                        } else {
-                            console.warn(`parseAIResponse ('update'): Failed to correct original item name "${originalNameForUpdate}".`);
-                        }
-                    }
-                    currentItemPayload = itemObject;
-                }
-                if (!isValidItem(currentItemPayload, 'update')) {
-                    console.warn(`parseAIResponse ('update'): Invalid item structure. Attempting full payload correction.`, currentItemPayload);
-                    const corrected = await fetchCorrectedItemPayload_Service(
-                        ic.action,
-                        context.logMessageFromPayload || baseData.logMessage,
-                        context.sceneDescriptionFromPayload || baseData.sceneDescription,
-                        JSON.stringify(currentItemPayload),
-                        context.currentTheme
-                    );
-                    if (corrected && isValidItem(corrected, 'update')) {
-                        currentItemPayload = corrected;
-                        currentInvalidPayload = undefined;
-                    } else {
-                        currentInvalidPayload = currentItemPayload;
-                        currentItemPayload = null;
-                    }
-                }
-                if (currentItemPayload) {
-                    const itemObj = currentItemPayload as Item;
-                    itemObj.isJunk = itemObj.isJunk ?? false;
-                    itemObj.isActive = itemObj.isActive ?? false;
-                    itemObj.holderId = typeof itemObj.holderId === 'string' && itemObj.holderId.trim() !== '' ? itemObj.holderId : PLAYER_HOLDER_ID;
-                    currentItemPayload = itemObj;
-                }
-                break;
-            }
-            case 'give':
-            case 'take':
-                if (currentItemPayload && typeof currentItemPayload === 'object') {
-                    const maybe = currentItemPayload as Partial<GiveItemPayload>;
-                    if ((maybe.id || maybe.name) && typeof maybe.toId === 'string' && typeof maybe.fromId === 'string') {
-                        currentItemPayload = {
-                            id: typeof maybe.id === 'string' ? maybe.id : undefined,
-                            name: typeof maybe.name === 'string' ? maybe.name : undefined,
-                            fromId: maybe.fromId,
-                            fromName: typeof maybe.fromName === 'string' ? maybe.fromName : undefined,
-                            toId: maybe.toId,
-                            toName: typeof maybe.toName === 'string' ? maybe.toName : undefined,
-                        } as GiveItemPayload;
-                        currentInvalidPayload = undefined;
-                    } else {
-                        currentInvalidPayload = currentItemPayload;
-                        currentItemPayload = null;
-                    }
-                } else {
-                    currentInvalidPayload = currentItemPayload;
-                    currentItemPayload = null;
-                }
-                break;
-            case 'lose':
-                if (isValidItemReference(currentItemPayload)) {
-                    currentInvalidPayload = undefined;
-                } else if (currentItemPayload && typeof currentItemPayload === 'object') {
-                    const maybe = currentItemPayload as Partial<ItemReference>;
-                    currentItemPayload = {
-                        id: typeof maybe.id === 'string' ? maybe.id : undefined,
-                        name: typeof maybe.name === 'string' ? maybe.name : undefined,
-                    } as ItemReference;
-                    currentInvalidPayload = currentItemPayload;
-                } else {
-                    currentInvalidPayload = currentItemPayload;
-                    currentItemPayload = null;
-                    console.warn(`parseAIResponse ('${ic.action}'): Invalid item payload.`);
-                }
-                break;
-        }
-        processedItemChanges.push({ ...ic, item: currentItemPayload, invalidPayload: currentInvalidPayload });
-    }
-    return processedItemChanges;
-}
 
 /**
  * Handles character additions and updates validation/correction logic.
@@ -587,7 +394,7 @@ export async function parseAIResponse(
         validated.options = dialogueResult.options;
         let isDialogueTurn = dialogueResult.isDialogueTurn;
 
-        validated.itemChange = await processItemChanges(validated.itemChange ?? [], validated, context);
+        validated.itemChange = [];
 
         const charResult = await handleCharacterChanges(validated.charactersAdded, validated.charactersUpdated, validated, context);
         validated.charactersAdded = charResult.charactersAdded;
@@ -654,6 +461,19 @@ export async function parseAIResponse(
         validated.localPlace = validated.localPlace?.trim() || 'Undetermined Location';
         if (validated.mapHint !== undefined) {
             validated.mapHint = validated.mapHint.trim();
+        }
+        if (validated.playerItemsHint !== undefined) {
+            validated.playerItemsHint = validated.playerItemsHint.trim();
+        }
+        if (validated.worldItemsHint !== undefined) {
+            validated.worldItemsHint = validated.worldItemsHint.trim();
+        }
+        if (validated.npcItemsHint !== undefined) {
+            validated.npcItemsHint = validated.npcItemsHint.trim();
+        }
+
+        if (Array.isArray(validated.newItems)) {
+            validated.newItems = validated.newItems.filter(isValidNewItemSuggestion);
         }
 
         delete (validated as Record<string, unknown>).placesAdded;

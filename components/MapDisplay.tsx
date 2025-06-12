@@ -27,7 +27,7 @@ interface MapDisplayProps {
   currentMapNodeId: string | null;
   destinationNodeId: string | null;
   itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (nodeId: string) => void;
+  onSelectDestination: (nodeId: string | null) => void;
   initialLayoutConfig: MapLayoutConfig;
   initialViewBox: string;
   onViewBoxChange: (newViewBox: string) => void;

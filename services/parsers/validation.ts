@@ -6,6 +6,7 @@ import {
   Item,
   ItemReference,
   KnownUse,
+  NewItemSuggestion,
   ValidCharacterUpdatePayload,
   ValidNewCharacterPayload,
   DialogueSetupPayload,
@@ -55,14 +56,7 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
         console.warn("isValidItem (context: update, with newName): 'newName' is invalid.", item);
         return false;
     }
-    if (typeof obj.type !== 'string' || !VALID_ITEM_TYPES.includes(obj.type)) {
-        console.warn("isValidItem (context: update, with newName): 'type' is missing or invalid for transformed item.", item);
-        return false;
-    }
-    if (typeof obj.description !== 'string' || obj.description.trim() === '') {
-        console.warn("isValidItem (context: update, with newName): 'description' is missing or invalid for transformed item.", item);
-        return false;
-    }
+    // 'type' and 'description' can be omitted and inherited from the existing item.
   }
 
 
@@ -113,6 +107,16 @@ export function isValidItemReference(obj: unknown): obj is ItemReference {
   return (
     typeof maybe.id === 'string' && maybe.id.trim() !== '' &&
     typeof maybe.name === 'string' && maybe.name.trim() !== ''
+  );
+}
+
+export function isValidNewItemSuggestion(obj: unknown): obj is NewItemSuggestion {
+  if (!obj || typeof obj !== 'object') return false;
+  const maybe = obj as Partial<NewItemSuggestion>;
+  return (
+    typeof maybe.name === 'string' && maybe.name.trim() !== '' &&
+    typeof maybe.description === 'string' && maybe.description.trim() !== '' &&
+    typeof maybe.type === 'string' && VALID_ITEM_TYPES.includes(maybe.type)
   );
 }
 

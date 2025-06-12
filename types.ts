@@ -64,13 +64,19 @@ export interface GiveItemPayload {
   toName?: string;
 }
 
+export interface NewItemSuggestion {
+  name: string;
+  type: ItemType;
+  description: string;
+}
+
 export interface ItemChange {
   // For "gain" or "update", 'item' is an Item object.
-  // For "lose", 'item' provides at least an id and name (if available).
+  // For "destroy", 'item' provides at least an id and name (if available).
   // For "put", 'item' is an Item object with holderId specifying destination.
   // For "give" or "take", 'item' contains transfer details.
   item: Item | ItemReference | GiveItemPayload | null;
-  action: "gain" | "lose" | "update" | "put" | "give" | "take";
+  action: "gain" | "destroy" | "update" | "put" | "give" | "take";
   invalidPayload?: unknown; // If the 'item' field was unparseable/invalid from AI
 }
 
@@ -200,6 +206,10 @@ export interface DialogueSummaryResponse {
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
   mapHint?: string; // Optional hint about distant quest-related locations for MapAI
+  playerItemsHint?: string;
+  worldItemsHint?: string;
+  npcItemsHint?: string;
+  newItems?: NewItemSuggestion[];
 }
 // --- End Dialogue Mode Types ---
 
@@ -237,6 +247,10 @@ export interface GameStateFromAI {
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
   mapHint?: string; // Optional hint about distant quest-related locations for MapAI
+  playerItemsHint?: string;
+  worldItemsHint?: string;
+  npcItemsHint?: string;
+  newItems?: NewItemSuggestion[];
   // placesAdded and placesUpdated are removed from storyteller responsibility
 }
 
@@ -405,6 +419,10 @@ export interface DebugPacket {
       parsedPayload?: AIMapUpdatePayload;
       validationError?: string;
     } | null;
+  } | null;
+  inventoryDebugInfo?: {
+    prompt: string;
+    rawResponse?: string;
   } | null;
 }
 

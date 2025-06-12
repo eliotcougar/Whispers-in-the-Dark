@@ -23,7 +23,10 @@ const commonWords = new Set([
 
 const normalizeStringForMatching = (text: string | null | undefined): string => {
   if (!text) return "";
-  return text.toLowerCase().replace(/[.,!?;:"(){}[\]]/g, '').trim();
+  return text
+    .toLowerCase()
+    .replace(/[.,!?;:"(){}[\]'’]/g, '')
+    .trim();
 };
 
 const tokenizeString = (text: string | null | undefined): string[] => {

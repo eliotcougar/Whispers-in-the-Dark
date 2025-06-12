@@ -38,6 +38,8 @@ import {
 } from '../utils/gameLogicUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
+import { formatInventoryForPrompt } from '../utils/promptFormatters/inventory';
+import { applyInventoryHints_Service } from '../services/inventory';
 
 export interface ProcessAiResponseOptions {
   forceEmptyInventory?: boolean;
@@ -148,6 +150,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         parsedResponse: aiData,
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
+        inventoryDebugInfo: null,
       };
 
       if (aiData.localTime !== undefined) {
@@ -212,7 +215,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (themeContextForResponse) {
         for (const change of aiItemChangesFromParser) {
           const currentChange = { ...change };
-          if (currentChange.action === 'lose' && currentChange.item) {
+          if (currentChange.action === 'destroy' && currentChange.item) {
             const itemRef = currentChange.item as ItemReference;
             const itemNameFromAI = itemRef.name;
             const exactMatchInInventory = baseStateSnapshot.inventory
@@ -257,8 +260,27 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         correctedAndVerifiedItemChanges.push(...aiItemChangesFromParser);
       }
       const baseInventoryForPlayer = baseStateSnapshot.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID);
-      turnChanges.itemChanges = buildItemChangeRecords(correctedAndVerifiedItemChanges, baseInventoryForPlayer);
-      draftState.inventory = applyAllItemChanges(correctedAndVerifiedItemChanges, options.forceEmptyInventory ? [] : baseStateSnapshot.inventory);
+      const locationInventory = baseStateSnapshot.inventory.filter(
+        i => i.holderId === baseStateSnapshot.currentMapNodeId
+      );
+      const companionChars = baseStateSnapshot.allCharacters.filter(
+        c => c.presenceStatus === 'companion'
+      );
+      const nearbyChars = baseStateSnapshot.allCharacters.filter(
+        c => c.presenceStatus === 'nearby'
+      );
+
+      const formatCharInventoryList = (chars: typeof companionChars): string => {
+        if (chars.length === 0) return 'None.';
+        return chars
+          .map(ch => {
+            const items = baseStateSnapshot.inventory.filter(i => i.holderId === ch.id);
+            return `ID: ${ch.id} - ${ch.name}: ${formatInventoryForPrompt(items)}`;
+          })
+          .join('\n');
+      };
+
+      let combinedItemChanges = [...correctedAndVerifiedItemChanges];
 
       if (themeContextForResponse) {
         try {
@@ -278,6 +300,32 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           throw mapErr;
         }
       }
+
+      if (themeContextForResponse) {
+        const invResult = await applyInventoryHints_Service(
+          'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
+          'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
+          'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
+          ('newItems' in aiData && Array.isArray(aiData.newItems)) ? aiData.newItems : [],
+          playerActionText || '',
+          formatInventoryForPrompt(baseInventoryForPlayer),
+          formatInventoryForPrompt(locationInventory),
+          baseStateSnapshot.currentMapNodeId || null,
+          formatCharInventoryList(companionChars),
+          formatCharInventoryList(nearbyChars)
+        );
+        if (invResult) {
+          combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
+          if (draftState.lastDebugPacket)
+            draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
+        }
+      }
+
+      turnChanges.itemChanges = buildItemChangeRecords(combinedItemChanges, baseInventoryForPlayer);
+      draftState.inventory = applyAllItemChanges(
+        combinedItemChanges,
+        options.forceEmptyInventory ? [] : baseStateSnapshot.inventory
+      );
 
       if (aiData.logMessage) {
         draftState.gameLog = addLogMessageToList(draftState.gameLog, aiData.logMessage, MAX_LOG_MESSAGES);
@@ -371,6 +419,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),
+        mapUpdateDebugInfo: null,
+        inventoryDebugInfo: null,
       };
       draftState.lastDebugPacket = debugPacket;
       if (isFreeForm) draftState.score -= FREE_FORM_ACTION_COST;

@@ -4,6 +4,7 @@
  */
 import { DialogueAIResponse, DialogueSummaryResponse } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { isValidNewItemSuggestion } from '../parsers/validation';
 
 export const parseDialogueAIResponse = (
   responseText: string,
@@ -69,10 +70,32 @@ export const parseDialogueSummaryResponse = (
   responseText: string,
 ): DialogueSummaryResponse | null => {
   const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<DialogueSummaryResponse>(jsonStr);
+  const parsed = safeParseJson<Partial<DialogueSummaryResponse>>(jsonStr);
   try {
     if (!parsed) throw new Error('JSON parse failed');
-    return parsed;
+    const validated: DialogueSummaryResponse = {
+      ...parsed,
+      itemChange: [],
+    } as DialogueSummaryResponse;
+
+    if (validated.mapHint !== undefined) {
+      validated.mapHint = validated.mapHint.trim();
+    }
+    if (validated.playerItemsHint !== undefined) {
+      validated.playerItemsHint = validated.playerItemsHint.trim();
+    }
+    if (validated.worldItemsHint !== undefined) {
+      validated.worldItemsHint = validated.worldItemsHint.trim();
+    }
+    if (validated.npcItemsHint !== undefined) {
+      validated.npcItemsHint = validated.npcItemsHint.trim();
+    }
+
+    if (Array.isArray(validated.newItems)) {
+      validated.newItems = validated.newItems.filter(isValidNewItemSuggestion);
+    }
+
+    return validated;
   } catch (e) {
     console.warn('Failed to parse dialogue summary JSON response from AI:', e);
     console.debug('Original dialogue summary response text:', responseText);

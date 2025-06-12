@@ -67,8 +67,8 @@ export const dispatchAIRequest = async (
 
     const cfg: Record<string, unknown> = {};
     if (options.temperature !== undefined) cfg.temperature = options.temperature;
-    if (options.responseMimeType) cfg.responseMimeType = options.responseMimeType;
-    if (options.thinkingBudget !== undefined) {
+    if (options.responseMimeType && model !== MINIMAL_MODEL_NAME) cfg.responseMimeType = options.responseMimeType;
+    if (options.thinkingBudget !== undefined && model !== MINIMAL_MODEL_NAME) {
       cfg.thinkingConfig = { thinkingBudget: options.thinkingBudget };
     }
     if (modelSupportsSystem && options.systemInstruction) {

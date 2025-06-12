@@ -29,6 +29,7 @@ import MapDisplay from './components/MapDisplay';
 import CustomGameSetupScreen from './components/CustomGameSetupScreen';
 import { useLoadingProgress } from './hooks/useLoadingProgress';
 import { findTravelPath, TravelStep } from './utils/mapPathfinding';
+import { isDescendantIdOf } from './utils/mapGraphUtils';
 
 import {
   saveGameStateToFile,
@@ -375,6 +376,12 @@ const App: React.FC = () => {
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
   const travelPath: TravelStep[] | null = React.useMemo(() => {
     if (!destinationNodeId || !currentMapNodeId) return null;
+    if (
+      currentMapNodeId === destinationNodeId ||
+      isDescendantIdOf(mapData, currentMapNodeId, destinationNodeId)
+    ) {
+      return null;
+    }
     return findTravelPath(mapData, currentMapNodeId, destinationNodeId);
   }, [destinationNodeId, currentMapNodeId, mapData]);
   const prevMapVisibleRef = useRef(false);

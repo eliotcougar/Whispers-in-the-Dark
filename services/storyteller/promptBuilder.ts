@@ -66,8 +66,8 @@ Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
 
 Player's Current Inventory (brought from previous reality or last visit):\n - ${inventoryPrompt}
 IMPORTANT:
-- EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
-- If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName", "type", and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
+  - EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
+  - If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName" and optionally updated "type" and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
 - If no items are anachronistic, no transformation is needed.
 
 Generate the scene description for a disoriented arrival, and provide appropriate initial action options for the player to orient themselves.
@@ -104,8 +104,8 @@ Current Objective: "${themeMemory.currentObjective}"
 Player's Current Inventory (brought from previous reality or last visit):\n - ${inventoryPrompt}
 IMPORTANT:
 - EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
-- If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName", "type", and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
-- CRITICALLY IMPORTANT: ALWAYS transform some items into important quest items you must have already had in this reality, based on Main Quest, Current Objective, or the Adventure Summary even if they are NOT anachronistic, using an "itemChange" "update" action with "newName", "type", "description". Creatively explain this transformation in the "logMessage".
+  - If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName" and optionally updated "type" and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
+  - CRITICALLY IMPORTANT: ALWAYS transform some items into important quest items you must have already had in this reality, based on Main Quest, Current Objective, or the Adventure Summary even if they are NOT anachronistic, using an "itemChange" "update" action with "newName" and optional "type" and "description". Creatively explain this transformation in the "logMessage".
 
 Known Locations: ${placesContext}
 Known Characters (including presence): ${charactersContext}
