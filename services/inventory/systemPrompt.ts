@@ -18,12 +18,13 @@ CRITICALLY IMPORTANT: Use 'give' or 'take' when transferring an **EXISTING** ite
 CRITICALLY IMPORTANT: Use 'lose' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from play.
 
 Structure for individual ItemChange objects within the array:
-- Example for gaining a new item from the provided New Items JSON:
+- Example for gaining a *new* item from the provided New Items JSON:
   { "action": "gain",
     item: {
       "name": "Old Lantern", /* REQUIRED: Full name of the item. */
       "type": "equipment", /* REQUIRED. MUST be one of ${VALID_ITEM_TYPES_STRING} */
       "description": "A dusty old lantern that still flickers faintly.", /* REQUIRED: Short description of the item. */
+      "holderId": "player", /* REQUIRED: ID of the character or map node that will hold the item. Use "player" for Player's inventory, or a specific NPC ID for their inventory. */
       "activeDescription"?: "The lantern is lit and casts a warm glow.", /* Optional: Description when the item is active. REQUIRED for toggle-able items.*/
       "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
       "isJunk"?: false, /* Optional: true if the item is largely unimportant or has served its ONLY purpose (e.g., a used quest item, common debris). Defaults to false if not provided. IMPORTANT: "status effects" can never be marked as junk. */
@@ -40,17 +41,7 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
-- Example for putting a new item into another inventory or location (e.g., a character's inventory, a map location):
-  { "action": "put",
-    item: {
-      "name": "Rusty Key",
-      "type": "key",
-      "description": "Opens an old door.",
-      "holderId": "char_guard_4f3a" /* ID of the character or map node to hold the item */
-    }
-  }
-
-- Example for losing, destroying, completely removing the item from the world:
+- Example for losing, destroying, completely removing an *existing* item from the world:
   { "action": "lose",
     item:{
       "id": "item_old_lantern_flickering_7fr4", /* REQUIRED: Unique identifier for the item being lost. Choose from the provided Player Inventory or Location Inventory. */
@@ -58,7 +49,7 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
-- Example for giving an existing item from one holder to another, or for placing it in the current location:
+- Example for giving an *existing* item from one holder to another, or for placing it in the current location:
   { "action": "give",
     item: {
       "id": "item_iron_sword_ab12",
@@ -68,7 +59,7 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
-- "take" is an alias for "give". It has the same structure and is used when the player takes an existing item from somewhere or someone. Example:
+- "take" is an alias for "give". It has the same structure and is used when the player takes an *existing* item from somewhere or someone. Example:
   { "action": "take",
     item: {
       "id": "item_coin_pouch_8f2c",
@@ -78,7 +69,7 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
-- Example for simple update (only changing "isActive", other properties like type/description are inherited from the existing "Old Torch"): 
+- Example for simple update (only changing "isActive", other properties like type/description are inherited from the *existing* "Old Torch"): 
   { "action": "update",
       item: {
         "id": "item_plasma_torch_7fr4", /* REQUIRED: Unique identifier for the item. Choose from the provided context. */
@@ -108,7 +99,7 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
-- Example for adding a known use (type/description etc. inherited): 
+- Example for adding a known use to *existing* item (type/description etc. inherited): 
   { "action": "update",
     "item": {
       "id": "item_mystic_orb_7fr4", /* REQUIRED: Unique identifier for the item. Choose from the provided context. */
