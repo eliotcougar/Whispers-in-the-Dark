@@ -77,6 +77,9 @@ This layer abstracts external interactions and complex data processing.
         *   `systemPrompt.ts` holds `MAP_UPDATE_SYSTEM_INSTRUCTION`.
         *   `index.ts` re-exports these utilities.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
+        *   `dispatchAIRequest(modelNames, prompt, systemInstruction?, config?)` tries each model in order until one succeeds.  It returns the `GenerateContentResponse` from the first working model.
+        *   `dispatchAIRequestWithModelInfo` accepts the same parameters plus a `debugLog` array to capture which model was used and the raw response text for troubleshooting.
+        *   Callers such as `storyteller/api.ts` log `response.usageMetadata` token counts (total, thoughts, prompt) when using this interface to help diagnose high token usage.
 *   **Data Processing & Validation:**
     *   `services/storyteller/responseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
     *   `services/dialogue/responseParser.ts`: Parses dialogue AI JSON for turns and summaries.
