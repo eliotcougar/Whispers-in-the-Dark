@@ -6,7 +6,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   DialogueHistoryEntry,
-  DialogueSummaryResponse,
+  GameStateFromAI,
   FullGameState,
   DialogueSummaryContext,
   LoadingReason,
@@ -33,12 +33,13 @@ export interface UseDialogueSummaryProps {
   setIsLoading: (isLoading: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   onDialogueConcluded: (
-    summaryPayload: DialogueSummaryResponse | null,
+    summaryPayload: GameStateFromAI | null,
     preparedGameState: FullGameState,
     debugInfo: {
       turns: DialogueTurnDebugEntry[];
       summaryPrompt?: string;
       summaryRawResponse?: string;
+      summaryThoughts?: string[];
     }
   ) => void;
   getDialogueDebugLogs: () => DialogueTurnDebugEntry[];
@@ -156,6 +157,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       parsed: summaryUpdatePayload,
       prompt: summaryPrompt,
       rawResponse: summaryRawResponse,
+      thoughts: summaryThoughts,
     } = await executeDialogueSummary(summaryContextForUpdates);
 
     const participantsForLog = [...finalParticipants];
@@ -170,6 +172,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       turns: getDialogueDebugLogs(),
       summaryPrompt,
       summaryRawResponse,
+      summaryThoughts,
     };
     onDialogueConcluded(summaryUpdatePayload, workingGameState, debugInfo);
     clearDialogueDebugLogs();

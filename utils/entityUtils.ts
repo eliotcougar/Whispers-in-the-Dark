@@ -69,6 +69,31 @@ export const findMapNodeByIdentifier = (
 
   if (sortedNames.length > 0) return sortedNames[0];
   if (sortedAliases.length > 0) return sortedAliases[0];
+
+  const lowerId = identifier.toLowerCase();
+  let partialMatch = nodes.find(n => n.id.toLowerCase().includes(lowerId));
+
+  const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
+  let base: string | null = null;
+  if (!partialMatch) {
+    const m = identifier.match(idPattern);
+    if (m) {
+      const baseStr = m[1];
+      base = baseStr;
+      partialMatch = nodes.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
+    }
+  }
+
+  if (partialMatch) return partialMatch;
+
+  const normalizedBase = sanitize((base ?? identifier).replace(/_/g, ' '));
+  const byName = nodes.find(n => sanitize(n.placeName) === normalizedBase);
+  if (byName) return byName;
+  const byAlias = nodes.find(
+    n => n.data.aliases && n.data.aliases.some(a => sanitize(a) === normalizedBase),
+  );
+  if (byAlias) return byAlias;
+
   return idMatch; // might be undefined
 };
 

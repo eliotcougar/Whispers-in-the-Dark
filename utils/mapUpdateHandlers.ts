@@ -5,7 +5,6 @@
 
 import {
   GameStateFromAI,
-  DialogueSummaryResponse,
   AdventureTheme,
   FullGameState,
   TurnChanges,
@@ -25,7 +24,7 @@ import { existsNonRumoredPath, getAncestors, isDescendantOf } from './mapGraphUt
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
  */
 export const handleMapUpdates = async (
-  aiData: GameStateFromAI | DialogueSummaryResponse,
+  aiData: GameStateFromAI,
   draftState: FullGameState,
   baseStateSnapshot: FullGameState,
   themeContextForResponse: AdventureTheme,

@@ -57,6 +57,14 @@ const DebugView: React.FC<DebugViewProps> = ({
   /**
    * Renders a single debugging section with a JSON or text payload.
    */
+  const decodeEscapedString = (text: string): string => {
+    try {
+      return JSON.parse(`"${text.replace(/"/g, '\\"')}"`) as string;
+    } catch {
+      return text.replace(/\\n/g, '\n');
+    }
+  };
+
   const renderContent = <T,>(
     title: string,
     content: T,
@@ -168,7 +176,11 @@ const DebugView: React.FC<DebugViewProps> = ({
               renderContent("Storyteller AI Response Parsed ", debugPacket?.parsedResponse)
             }
             {debugPacket?.storytellerThoughts && debugPacket.storytellerThoughts.length > 0 &&
-              renderContent("Storyteller Thoughts", debugPacket.storytellerThoughts)}
+              renderContent(
+                "Storyteller Thoughts",
+                debugPacket.storytellerThoughts.map(decodeEscapedString).join("\n"),
+                false,
+              )}
             {debugPacket?.error && renderContent("Error During Storyteller AI Interaction", debugPacket.error, false)}
           </>
         );
@@ -194,32 +206,30 @@ const DebugView: React.FC<DebugViewProps> = ({
                 {debugPacket.mapUpdateDebugInfo.validationError && renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false)}
                 {debugPacket.mapUpdateDebugInfo.minimalModelCalls &&
                   renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls)}
-                {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo && (
-                  <>
-                    {renderContent(
-                      "Connector Chains Prompt",
-                      debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.prompt,
-                      false
-                    )}
-                    {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.rawResponse &&
-                      renderContent(
-                        "Connector Chains Raw Response",
-                        debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.rawResponse,
-                        false
-                      )}
-                    {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.parsedPayload &&
-                      renderContent(
-                        "Connector Chains Parsed Payload",
-                        debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.parsedPayload
-                      )}
-                    {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.validationError &&
-                      renderContent(
-                        "Connector Chains Validation Error",
-                        debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.validationError,
-                        false
-                      )}
-                  </>
-                )}
+                {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
+                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 &&
+                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
+                    <div key={`chain-${idx}`} className="my-2">
+                      {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
+                      {info.rawResponse &&
+                        renderContent(
+                          `Connector Chains Raw Response (Round ${info.round})`,
+                          info.rawResponse,
+                          false,
+                        )}
+                      {info.parsedPayload &&
+                        renderContent(
+                          `Connector Chains Parsed Payload (Round ${info.round})`,
+                          info.parsedPayload,
+                        )}
+                      {info.validationError &&
+                        renderContent(
+                          `Connector Chains Validation Error (Round ${info.round})`,
+                          info.validationError,
+                          false,
+                        )}
+                    </div>
+                  ))}
               </>
             ) : (
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>
@@ -230,9 +240,10 @@ const DebugView: React.FC<DebugViewProps> = ({
         return debugPacket?.dialogueDebugInfo ? (
           <>
             {debugPacket.dialogueDebugInfo.turns.map((t, idx) => {
-              const responseWithThoughts = t.thoughts && t.thoughts.length > 0
-                ? `${t.thoughts.map(th => `Narrator THOUGHTS: "${th}"`).join('\n')}\n${t.rawResponse}`
-                : t.rawResponse;
+              const thoughtsText = t.thoughts && t.thoughts.length > 0
+                ? t.thoughts.map(th => `Narrator THOUGHTS: "${decodeEscapedString(th)}"`).join('\n')
+                : null;
+              const responseWithThoughts = thoughtsText ? `${thoughtsText}\n${t.rawResponse}` : t.rawResponse;
               return (
                 <div key={idx} className="mb-2">
                   {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
@@ -250,6 +261,13 @@ const DebugView: React.FC<DebugViewProps> = ({
               renderContent(
                 "Dialogue Summary Response",
                 debugPacket.dialogueDebugInfo.summaryRawResponse,
+                false,
+              )}
+            {debugPacket.dialogueDebugInfo.summaryThoughts &&
+              debugPacket.dialogueDebugInfo.summaryThoughts.length > 0 &&
+              renderContent(
+                "Dialogue Summary Thoughts",
+                debugPacket.dialogueDebugInfo.summaryThoughts.map(decodeEscapedString).join("\n"),
                 false,
               )}
           </>

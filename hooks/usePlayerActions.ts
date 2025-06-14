@@ -6,7 +6,6 @@
 import { useCallback, useRef } from 'react';
 import {
   GameStateFromAI,
-  DialogueSummaryResponse,
   Item,
   ItemReference,
   KnownUse,
@@ -50,7 +49,7 @@ export interface ProcessAiResponseOptions {
 }
 
 export type ProcessAiResponseFn = (
-  aiData: GameStateFromAI | DialogueSummaryResponse | null,
+  aiData: GameStateFromAI | null,
   themeContextForResponse: AdventureTheme | null,
   draftState: FullGameState,
   options: ProcessAiResponseOptions

@@ -478,6 +478,53 @@ Respond ONLY with the name of the best parent node from the list above, or "Univ
 };
 
 /**
+ * Attempts to resolve a malformed map node identifier to a known node ID.
+ */
+export const fetchCorrectedNodeIdentifier_Service = async (
+  malformedIdentifier: string,
+  context: { currentTheme: AdventureTheme; themeNodes: MapNode[] },
+  debugLog?: MinimalModelCallRecord[],
+): Promise<string | null> => {
+  if (!isApiConfigured()) {
+    console.error('fetchCorrectedNodeIdentifier_Service: API Key not configured.');
+    return null;
+  }
+
+  const nodeList = context.themeNodes
+    .map(n => `- ${n.id} ("${n.placeName}")`)
+    .join('\n');
+
+  const prompt = `A different AI referred to a map location using an incorrect identifier: "${malformedIdentifier}".
+Known map nodes in the current theme:\n${nodeList}\nChoose the most likely intended node ID from the list above. Respond with an empty string if none match.`;
+
+  const systemInstr = 'Respond ONLY with a single node ID from the list or an empty string.';
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
+      if (resp) {
+        const cleaned = resp.trim();
+        const match = context.themeNodes.find(n => n.id === cleaned);
+        if (match) return match.id;
+        const byName = context.themeNodes.find(n => n.placeName === cleaned);
+        if (byName) return byName.id;
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(
+        `fetchCorrectedNodeIdentifier_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
+    }
+  }
+  return null;
+};
+
+/**
  * When an edge references a node name that doesn't exist, this helper attempts
  * to pick the most likely existing node the AI might have meant. Nodes are
  * ordered by hop distance from the player's current location before being

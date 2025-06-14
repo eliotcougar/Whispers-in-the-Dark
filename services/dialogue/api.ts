@@ -7,7 +7,7 @@ import {
   DialogueAIResponse,
   DialogueHistoryEntry,
   DialogueSummaryContext,
-  DialogueSummaryResponse,
+  GameStateFromAI,
   Item,
   Character,
   MapNode,
@@ -15,7 +15,8 @@ import {
   AdventureTheme,
 } from '../../types';
 import { GEMINI_MODEL_NAME, MAX_RETRIES } from '../../constants';
-import { DIALOGUE_SYSTEM_INSTRUCTION, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION } from './systemPrompt';
+import { DIALOGUE_SYSTEM_INSTRUCTION } from './systemPrompt';
+import { SYSTEM_INSTRUCTION } from '../storyteller/systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { callMinimalCorrectionAI, fetchCorrectedDialogueTurn_Service } from '../corrections';
@@ -23,8 +24,8 @@ import { isApiConfigured } from '../apiClient';
 import { buildDialogueTurnPrompt, buildDialogueSummaryPrompt, buildDialogueMemorySummaryPrompts } from './promptBuilder';
 import {
   parseDialogueTurnResponse,
-  parseDialogueSummaryResponse,
 } from './responseParser';
+import { parseAIResponse } from '../storyteller/responseParser';
 
 interface GeminiRequestConfig {
   systemInstruction: string;
@@ -143,7 +144,7 @@ export const executeDialogueTurn = async (
  */
 export const executeDialogueSummary = async (
   summaryContext: DialogueSummaryContext,
-): Promise<{ parsed: DialogueSummaryResponse | null; prompt: string; rawResponse: string }> => {
+): Promise<{ parsed: GameStateFromAI | null; prompt: string; rawResponse: string; thoughts: string[] }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Summary Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -159,9 +160,34 @@ export const executeDialogueSummary = async (
   for (let attempt = 1; attempt <= MAX_RETRIES + 2; ) {
     try {
       console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 2})`);
-      const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION, 2048);
-      const parsed = parseDialogueSummaryResponse(response.text ?? '');
-      if (parsed) return { parsed, prompt, rawResponse: response.text ?? '' };
+      let systemInstructionForCall = SYSTEM_INSTRUCTION;
+      if (summaryContext.currentThemeObject.systemInstructionModifier) {
+        systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${summaryContext.currentThemeObject.systemInstructionModifier}`;
+      }
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: systemInstructionForCall,
+        temperature: 1.0,
+        responseMimeType: 'application/json',
+        thinkingBudget: 4096,
+        includeThoughts: true,
+        label: 'Storyteller',
+      });
+      const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+      const thoughtParts = parts.filter(p => p.thought === true && typeof p.text === 'string').map(p => p.text as string);
+      const parsed = await parseAIResponse(
+        response.text ?? '',
+        summaryContext.playerGender,
+        summaryContext.currentThemeObject,
+        undefined,
+        undefined,
+        undefined,
+        summaryContext.knownCharactersInTheme,
+        summaryContext.mapDataForTheme,
+        summaryContext.inventory,
+      );
+      if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
       console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
       attempt++;
     } catch (error) {
@@ -172,7 +198,7 @@ export const executeDialogueSummary = async (
       continue;
     }
   }
-  return { parsed: { logMessage: 'The conversation concluded without notable changes.' }, prompt, rawResponse: '' };
+  return { parsed: null, prompt, rawResponse: '', thoughts: [] };
 };
 
 /**

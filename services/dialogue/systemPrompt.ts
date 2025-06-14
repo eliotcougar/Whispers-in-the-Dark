@@ -3,8 +3,6 @@
  * @description System instructions for dialogue-related AI calls.
  */
 
-import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from '../../prompts/helperPrompts';
-import { VALID_PRESENCE_STATUS_VALUES_STRING, ALIAS_INSTRUCTION } from '../../constants';
 
 export const DIALOGUE_SYSTEM_INSTRUCTION = `You are an AI assistant guiding a dialogue turn in a text-based adventure game. The player is in conversation with one or more characters. Your role is to:
 1. Generate responses for the NPC(s) involved in the dialogue.
@@ -40,50 +38,3 @@ Instructions:
 - Consider the player's gender subtly if it makes sense for character interactions, but don't make it overt.
 `;
 
-export const DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION = `You are an AI assistant tasked with analyzing a completed dialogue transcript from a text-based adventure game. Your goal is to extract concrete game state changes that occurred *as a direct result of the dialogue itself*.
-
-Respond ONLY in JSON format with the following structure:
-{
-  "sceneDescription": "Detailed, engaging description, considering Current Theme Guidance, active items, known Places/Characters, Local Time, Local Environment, Local Place, Player's Character Gender.",
-  "logMessage": "A concise summary message for the main game log, describing the key outcomes or information gained from the dialogue",
-  "options": ["Action 1", "Action 2", "Action 3", "Action 4" /* ALWAYS provide FOUR distinct "options". Tailor them to the full context. */ ],
-  "playerItemsHint"?: "string", /* Short summary of gains, losses or item state changes for the Player. */
-  "worldItemsHint"?: "string", /* Short summary of items dropped or discovered in the environment. */
-  "npcItemsHint"?: "string", /* Short summary of items held or used by NPCs. */
-  "newItems"?: [ /* Array of brand new items introduced this turn, or [] if none. Each object must follow the format in ITEMS_GUIDE. */ ],
-  "charactersAdded"?: [ /* { "name", "description", "aliases" (${ALIAS_INSTRUCTION}), "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}, "lastKnownLocation": "...", "preciseLocation": "..." } if new characters were *introduced or became significant*. */ ],
-  "charactersUpdated"?: [ /* { "name", "newDescription", "newAliases" (${ALIAS_INSTRUCTION}), "addAlias"?: string, "newPresenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}, "newLastKnownLocation": "...", "newPreciseLocation": "..." } if dialogue provided new information about existing characters or their presence state. */ ],
-  "mainQuest"?: "New quest string if the dialogue changed it.",
-  "currentObjective"?: "New objective string if dialogue changed it.",
-  "objectiveAchieved"?: boolean, /* Set to true if the dialogue directly resulted in completing the current objective and resulted in a new objective. */
-  "localTime"?: "New concise string if time changed due to dialogue (e.g. significant passage of time discussed).",
-  "localEnvironment"?: "New brief sentence if environment/weather changed due to dialogue (e.g. magical effect during conversation).",
-  "localPlace"?: "New concise string if player's specific location changed due to dialogue (e.g. journey completed during talk, arrival confirmed).",
-  "mapUpdated"?: boolean, /* Optional. Set to true if this dialogue's outcome (e.g., revealing a new map node/location via logMessage, changing a map node's status) warrants an update to the game map. You DO NOT output specific map node/edge changes. */
-  "currentMapNodeId"?: string /* Optional. If dialogue implies player is at a specific Map Node (Location/Feature), provide its 'placeName' or ID. Omit if no strong suggestion. */,
-  "mapHint"?: string /* Optional hint (up to 500 chars) describing distant quest-related and objective-related locations, their surroundings, and travel directions from the player's current position. */
-}
-
-- For "charactersAdded" and "charactersUpdated", ensure all relevant fields including "presenceStatus", "lastKnownLocation", and "preciseLocation" are considered and provided if the dialogue yields such information. Default "presenceStatus" to 'distant' or 'unknown' if not specified but character is introduced.
-- "preciseLocation" is for the in-scene details. "lastKnownLocation" is for general whereabouts, and can be a known Map Node name or a descriptive string.
-- "lastKnownLocation" (on Character object, updated via "charactersUpdated") tracks general whereabouts when "presenceStatus" is 'distant' or 'unknown'.
-- "preciseLocation" (on Character object, updated via "charactersUpdated") details location/activity in current scene if "presenceStatus" is 'nearby' or 'companion'.
-
-Items:
-If the dialogue results in items being gained, lost, moved or changed, summarize these effects using "playerItemsHint", "worldItemsHint", and "npcItemsHint" and list new items in "newItems".
-${ITEMS_GUIDE}
-These hints MUST be provided if the Player's Inventory clearly changed during the dialogue.
-
-Local Time, Environment & Place:
-If the dialogue resulted in a change to the local time, environment, or player's specific place, update "localTime", "localEnvironment", and "localPlace" accordingly.
-${LOCAL_CONDITIONS_GUIDE}
-These fields MUST be provided if the dialogue caused a change, for example, Player moved to a new place, time passed, or weather changed; otherwise, they can be omitted if no change occurred. If provided, they must follow the specified format.
-
-Instructions:
-- Analyze the Dialogue Log carefully. Identify any explicit agreements, revelations, exchanges, or decisions made.
-- "charactersAdded"/"charactersUpdated": Only add/update if the dialogue provided new, concrete information for description, aliases, presence status, or locations.
-- If the dialogue implies a new location was revealed or an existing one changed, set "mapUpdated": true and include details in the "logMessage". The map service will handle actual map changes.
-- If distant quest-related locations were mentioned, summarize their relative position and travel directions in "mapHint" so the Map AI can ensure they exist on the map.
-- "logMessage": This should be a brief, informative message suitable for the main game log, summarizing the dialogue's impact.
-- "mainQuest"/"currentObjective"/"objectiveAchieved": Only change these if the dialogue undeniably led to a quest/objective update or completion.
-`;

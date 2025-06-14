@@ -160,6 +160,25 @@ export const attemptMatchAndSetNode = (
       console.log(`MapNodeMatcher (${source}): AI suggested node ID "${suggestedIdentifier}", matched to ID "${foundNodeById.id}".`);
       return { matched: true, nodeId: foundNodeById.id };
     }
+
+    const lowerId = suggestedIdentifier.toLowerCase();
+    let partialIdMatch = currentThemeNodesFromDraft.find(n => n.id.toLowerCase().includes(lowerId));
+
+    const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
+    let extractedBase: string | null = null;
+    if (!partialIdMatch) {
+      const m = suggestedIdentifier.match(idPattern);
+      if (m) {
+        const baseStr = m[1];
+        extractedBase = baseStr;
+        partialIdMatch = currentThemeNodesFromDraft.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
+      }
+    }
+
+    if (partialIdMatch) {
+      console.log(`MapNodeMatcher (${source}): Heuristically matched malformed ID "${suggestedIdentifier}" to "${partialIdMatch.id}".`);
+      return { matched: true, nodeId: partialIdMatch.id };
+    }
   
     // 2. Try to match by Name or Alias (case-insensitive)
     const lowerSuggestedIdentifier = suggestedIdentifier.toLowerCase();
@@ -167,6 +186,17 @@ export const attemptMatchAndSetNode = (
       n.placeName.toLowerCase() === lowerSuggestedIdentifier ||
       (n.data.aliases && n.data.aliases.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
     );
+
+    if (matchingNodesByNameOrAlias.length === 0) {
+      const baseForNames = extractedBase ?? suggestedIdentifier;
+      const normalizedBase = baseForNames.replace(/_/g, ' ').toLowerCase();
+      matchingNodesByNameOrAlias.push(
+        ...currentThemeNodesFromDraft.filter(n =>
+          n.placeName.toLowerCase() === normalizedBase ||
+          (n.data.aliases && n.data.aliases.some(a => a.toLowerCase() === normalizedBase)),
+        ),
+      );
+    }
   
     if (matchingNodesByNameOrAlias.length === 0) {
       console.log(`MapNodeMatcher (${source}): AI suggested identifier "${suggestedIdentifier}" NOT found by ID, name, or alias within theme "${currentThemeName}".`);
