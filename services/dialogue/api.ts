@@ -80,7 +80,7 @@ export const executeDialogueTurn = async (
   dialogueHistory: DialogueHistoryEntry[],
   playerLastUtterance: string,
   dialogueParticipants: string[],
-): Promise<DialogueAIResponse | null> => {
+): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -123,7 +123,7 @@ export const executeDialogueTurn = async (
           currentTheme,
         );
       }
-      if (parsed) return parsed;
+      if (parsed) return { parsed, prompt, rawResponse: response.text ?? '' };
       console.warn(`Attempt ${attempt} failed to yield valid dialogue JSON even after correction.`);
       attempt++;
     } catch (error) {
@@ -142,7 +142,7 @@ export const executeDialogueTurn = async (
  */
 export const executeDialogueSummary = async (
   summaryContext: DialogueSummaryContext,
-): Promise<DialogueSummaryResponse | null> => {
+): Promise<{ parsed: DialogueSummaryResponse | null; prompt: string; rawResponse: string }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Summary Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -160,7 +160,7 @@ export const executeDialogueSummary = async (
       console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 2})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION, 2048);
       const parsed = parseDialogueSummaryResponse(response.text ?? '');
-      if (parsed) return parsed;
+      if (parsed) return { parsed, prompt, rawResponse: response.text ?? '' };
       console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
       attempt++;
     } catch (error) {
@@ -171,7 +171,7 @@ export const executeDialogueSummary = async (
       continue;
     }
   }
-  return { logMessage: 'The conversation concluded without notable changes.' };
+  return { parsed: { logMessage: 'The conversation concluded without notable changes.' }, prompt, rawResponse: '' };
 };
 
 /**

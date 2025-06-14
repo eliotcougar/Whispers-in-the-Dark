@@ -16,7 +16,7 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 export const executeAIMainTurn = async (
     fullPrompt: string,
     themeSystemInstructionModifier: string | undefined // Retain as string for direct use
-): Promise<GenerateContentResponse> => {
+): Promise<{ response: GenerateContentResponse; thoughts: string[] }> => {
     addProgressSymbol('██');
     if (!isApiConfigured()) {
       console.error("API Key not configured for Gemini Service.");
@@ -36,10 +36,15 @@ export const executeAIMainTurn = async (
                 systemInstruction: systemInstructionForCall,
                 temperature: 1.0,
                 thinkingBudget: 4096,
+                includeThoughts: true,
                 responseMimeType: "application/json",
                 label: "Storyteller"
             });
-            return response;
+            const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+            const thoughts = parts
+              .filter(p => p.thought === true && typeof p.text === 'string')
+              .map(p => p.text as string);
+            return { response, thoughts };
         } catch (error) {
             console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
             if (!isServerOrClientError(error)) {

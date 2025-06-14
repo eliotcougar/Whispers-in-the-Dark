@@ -422,16 +422,24 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),
+        storytellerThoughts: null,
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        dialogueDebugInfo: null,
       };
       draftState.lastDebugPacket = debugPacket;
       if (isFreeForm) draftState.score -= FREE_FORM_ACTION_COST;
 
       let encounteredError = false;
       try {
-        const response = await executeAIMainTurn(prompt, currentThemeObj.systemInstructionModifier);
-        if (draftState.lastDebugPacket) draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+        const { response, thoughts } = await executeAIMainTurn(
+          prompt,
+          currentThemeObj.systemInstructionModifier,
+        );
+        if (draftState.lastDebugPacket) {
+          draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+          draftState.lastDebugPacket.storytellerThoughts = thoughts;
+        }
 
         const currentThemeMapDataForParse = {
           nodes: draftState.mapData.nodes.filter((n) => n.themeName === currentThemeObj.name),
