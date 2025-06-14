@@ -14,16 +14,15 @@ export const DIALOGUE_SYSTEM_INSTRUCTION = `You are an AI assistant guiding a di
 
 Respond ONLY in JSON format with the following structure:
 {
-  "npcResponses": [
+  "npcResponses": [ /* Include one entry for each NPC who may speaks this turn. It can be one or multiple NPCs. Speaker MUST be one of the current dialogue participants. Lines must be non-empty. */
     { "speaker": "CharacterName1", "line": "What CharacterName1 says this turn." }, /* REQUIRED. */
-    { "speaker": "CharacterName2", "line": "What CharacterName2 says this turn,if they speak." }, /* Optional. */
+    { "speaker": "CharacterName2", "line": "What CharacterName2 says this turn, if they speak at all." }, /* Optional line from another Participant NPC. */
     ...
-    /* Include one entry for each NPC who may speaks this turn. It can be one or multiple NPCs. Speaker MUST be one of the current dialogue participants. Lines must be non-empty. */
   ],
-  "playerOptions": [
-    "Player's first dialogue choice (phrased as if player is speaking, non-empty).",
+  "playerOptions": [ /* up to 8 total options */
+    "Player's first dialogue choice (phrased in first-person, as if player is speaking, non-empty).",
     "Player's second dialogue choice.",
-    /* ... up to 7 total options ... */
+    ...
     "An AI-generated phrase for the player to end the dialogue (e.g., "Thanks, I'll be on my way.", "Enough! I don't want to talk to you."). This MUST be the last option."
   ],
   "dialogueEnds"?: boolean, /* Optional. Set to true if the NPC(s) clearly signal the end of the conversation, or if the conversation obviously reached its logical end. */
@@ -31,7 +30,7 @@ Respond ONLY in JSON format with the following structure:
 }
 
 Instructions:
-- NPC responses should be in character, relevant to the ongoing dialogue.
+- NPC responses should be in character, first-person responses, relevant to the ongoing dialogue.
 - Player options should be natural, first-person phrases. Ensure variety and meaningful choices.
 - The LAST player option must always be a contextually appropriate way for the player to signal they wish to end the conversation.
 - If the Player's latest response is a polite hint that the conversation is over, provide the final NPC responses and set "dialogueEnds" true.
