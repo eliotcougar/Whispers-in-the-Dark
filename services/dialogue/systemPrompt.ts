@@ -30,7 +30,8 @@ Respond ONLY in JSON format with the following structure:
 }
 
 Instructions:
-- NPC responses should be in character, first-person responses, relevant to the ongoing dialogue.
+- NPC responses should be in character, first-person responses, relevant to the ongoing dialogue and Narrator THOUGHTS guidance.
+- CRITICALLY IMPORTANT: NPCs are not aware of the Narrator THOUGHTS, so they should NEVER reference the Narrator in their dialogue.
 - Player options should be natural, first-person phrases. Ensure variety and meaningful choices.
 - The LAST player option must always be a contextually appropriate way for the player to signal they wish to end the conversation.
 - If the Player's latest response is a polite hint that the conversation is over, provide the final NPC responses and set "dialogueEnds" true.

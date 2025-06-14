@@ -43,7 +43,7 @@ export const buildDialogueTurnPrompt = (
 
   const historyString = historyToUseInPrompt
     .map(entry => {
-      const thought = entry.thought ? `THOUGHT of ${entry.speaker}: "${entry.thought}"\n` : '';
+      const thought = entry.thought ? `Narrator THOUGHTS: "${entry.thought}"\n` : '';
       return `${thought}${entry.speaker}: "${entry.line}"`;
     })
     .join('\n');
