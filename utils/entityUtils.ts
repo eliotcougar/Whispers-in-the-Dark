@@ -69,21 +69,30 @@ export const findMapNodeByIdentifier = (
 
   if (sortedNames.length > 0) return sortedNames[0];
   if (sortedAliases.length > 0) return sortedAliases[0];
-  // Additional heuristic: identifier resembles an ID with a random suffix
+
+  const lowerId = identifier.toLowerCase();
+  let partialMatch = nodes.find(n => n.id.toLowerCase().includes(lowerId));
+
   const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
-  const match = identifier.match(idPattern);
-  if (match) {
-    const base = match[1];
-    const prefixMatch = nodes.find(n => n.id.startsWith(`${base}_`));
-    if (prefixMatch) return prefixMatch;
-    const normalizedBase = sanitize(base.replace(/_/g, ' '));
-    const byName = nodes.find(n => sanitize(n.placeName) === normalizedBase);
-    if (byName) return byName;
-    const byAlias = nodes.find(
-      n => n.data.aliases && n.data.aliases.some(a => sanitize(a) === normalizedBase),
-    );
-    if (byAlias) return byAlias;
+  let base: string | null = null;
+  if (!partialMatch) {
+    const m = identifier.match(idPattern);
+    if (m) {
+      const baseStr = m[1];
+      base = baseStr;
+      partialMatch = nodes.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
+    }
   }
+
+  if (partialMatch) return partialMatch;
+
+  const normalizedBase = sanitize((base ?? identifier).replace(/_/g, ' '));
+  const byName = nodes.find(n => sanitize(n.placeName) === normalizedBase);
+  if (byName) return byName;
+  const byAlias = nodes.find(
+    n => n.data.aliases && n.data.aliases.some(a => sanitize(a) === normalizedBase),
+  );
+  if (byAlias) return byAlias;
 
   return idMatch; // might be undefined
 };

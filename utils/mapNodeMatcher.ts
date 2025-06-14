@@ -161,16 +161,23 @@ export const attemptMatchAndSetNode = (
       return { matched: true, nodeId: foundNodeById.id };
     }
 
-    // 1b. Heuristic: treat malformed IDs with wrong suffix
+    const lowerId = suggestedIdentifier.toLowerCase();
+    let partialIdMatch = currentThemeNodesFromDraft.find(n => n.id.toLowerCase().includes(lowerId));
+
     const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
-    const m = suggestedIdentifier.match(idPattern);
-    if (m) {
-      const base = m[1];
-      const prefixMatch = currentThemeNodesFromDraft.find(n => n.id.startsWith(`${base}_`));
-      if (prefixMatch) {
-        console.log(`MapNodeMatcher (${source}): Heuristically matched malformed ID "${suggestedIdentifier}" to "${prefixMatch.id}".`);
-        return { matched: true, nodeId: prefixMatch.id };
+    let extractedBase: string | null = null;
+    if (!partialIdMatch) {
+      const m = suggestedIdentifier.match(idPattern);
+      if (m) {
+        const baseStr = m[1];
+        extractedBase = baseStr;
+        partialIdMatch = currentThemeNodesFromDraft.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
       }
+    }
+
+    if (partialIdMatch) {
+      console.log(`MapNodeMatcher (${source}): Heuristically matched malformed ID "${suggestedIdentifier}" to "${partialIdMatch.id}".`);
+      return { matched: true, nodeId: partialIdMatch.id };
     }
   
     // 2. Try to match by Name or Alias (case-insensitive)
@@ -181,8 +188,8 @@ export const attemptMatchAndSetNode = (
     );
 
     if (matchingNodesByNameOrAlias.length === 0) {
-      const base = m ? m[1] : suggestedIdentifier;
-      const normalizedBase = base.replace(/_/g, ' ').toLowerCase();
+      const baseForNames = extractedBase ?? suggestedIdentifier;
+      const normalizedBase = baseForNames.replace(/_/g, ' ').toLowerCase();
       matchingNodesByNameOrAlias.push(
         ...currentThemeNodesFromDraft.filter(n =>
           n.placeName.toLowerCase() === normalizedBase ||
