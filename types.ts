@@ -341,6 +341,15 @@ export interface AINodeUpdate {
   initialPosition?: { x: number; y: number };
 }
 
+export interface AISplitFamilyOperation {
+  originalNodeId: string;
+  newNodeId: string;
+  newNodeType: MapNodeData['nodeType'];
+  newConnectorNodeId: string;
+  originalChildren: string[];
+  newChildren: string[];
+}
+
 export interface AIMapUpdatePayload {
   // parentNodeId is mandatory for each entry in nodesToAdd. The value is a NAME
   // of the intended parent node (use "Universe" for the root node).
@@ -354,9 +363,10 @@ export interface AIMapUpdatePayload {
   nodesToUpdate?: { placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }[]; // Added placeName to newData for renaming
   nodesToRemove?: { placeName: string; }[]; 
   edgesToAdd?: { sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }[]; 
-  edgesToUpdate?: AIEdgeUpdate[]; 
-  edgesToRemove?: { sourcePlaceName: string; targetPlaceName: string; type?: MapEdgeData['type']; }[]; 
-  suggestedCurrentMapNodeId?: string | undefined; 
+  edgesToUpdate?: AIEdgeUpdate[];
+  edgesToRemove?: { sourcePlaceName: string; targetPlaceName: string; type?: MapEdgeData['type']; }[];
+  suggestedCurrentMapNodeId?: string | undefined;
+  splitFamily?: AISplitFamilyOperation | undefined;
 }
 // --- End Map Update Service Payload ---
 
