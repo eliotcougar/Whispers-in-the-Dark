@@ -8,9 +8,10 @@ import { MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
-import { ItemChange, NewItemSuggestion } from '../../types';
+import { AdventureTheme, ItemChange, NewItemSuggestion } from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
 import { parseInventoryResponse } from './responseParser';
+import { fetchCorrectedItemChangeArray_Service } from '../corrections';
 
 /**
  * Executes the inventory AI call using model fallback.
@@ -49,6 +50,9 @@ export const applyInventoryHints_Service = async (
   currentNodeId: string | null,
   companionsInventory: string,
   nearbyNpcsInventory: string,
+  sceneDescription: string | undefined,
+  logMessage: string | undefined,
+  currentTheme: AdventureTheme,
 ): Promise<InventoryUpdateResult | null> => {
   const pHint = playerItemsHint?.trim() || '';
   const wHint = worldItemsHint?.trim() || '';
@@ -70,6 +74,21 @@ export const applyInventoryHints_Service = async (
     nearbyNpcsInventory,
   );
   const response = await executeInventoryRequest(prompt);
-  const parsed = parseInventoryResponse(response.text ?? '') || [];
-  return { itemChanges: parsed, debugInfo: { prompt, rawResponse: response.text ?? '' } };
+  let parsed = parseInventoryResponse(response.text ?? '');
+  if (!parsed || (parsed.length === 0 && (response.text?.trim() || '') !== '[]')) {
+    const corrected = await fetchCorrectedItemChangeArray_Service(
+      response.text ?? '',
+      logMessage,
+      sceneDescription,
+      pHint,
+      wHint,
+      nHint,
+      currentNodeId,
+      companionsInventory,
+      nearbyNpcsInventory,
+      currentTheme,
+    );
+    if (corrected) parsed = corrected;
+  }
+  return { itemChanges: parsed || [], debugInfo: { prompt, rawResponse: response.text ?? '' } };
 };
