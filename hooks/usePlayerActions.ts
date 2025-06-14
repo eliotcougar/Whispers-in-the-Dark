@@ -145,8 +145,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
 
       draftState.lastDebugPacket = {
-        prompt: draftState.lastDebugPacket?.prompt || 'Prompt not captured for this state transition',
-        rawResponseText: draftState.lastDebugPacket?.rawResponseText || 'Raw text not captured',
+        ...(draftState.lastDebugPacket ?? {}),
+        prompt:
+          draftState.lastDebugPacket?.prompt ||
+          'Prompt not captured for this state transition',
+        rawResponseText:
+          draftState.lastDebugPacket?.rawResponseText || 'Raw text not captured',
         parsedResponse: aiData,
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
