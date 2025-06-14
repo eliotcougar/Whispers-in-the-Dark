@@ -121,6 +121,7 @@ export const executeDialogueTurn = async (
           response.text ?? '',
           dialogueParticipants,
           currentTheme,
+          thoughtParts,
         );
       }
       if (parsed) return { parsed, prompt, rawResponse: response.text ?? '' };

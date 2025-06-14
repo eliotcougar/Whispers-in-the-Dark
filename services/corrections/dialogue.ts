@@ -85,11 +85,14 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
 
 /**
  * Attempts to correct a malformed DialogueAIResponse for a single dialogue turn.
+ * The original NPC thoughts (if any) should be provided so they can be
+ * reattached to the corrected response.
  */
 export const fetchCorrectedDialogueTurn_Service = async (
   malformedResponseText: string,
   validParticipants: string[],
   currentTheme: AdventureTheme,
+  npcThoughts?: string[],
 ): Promise<DialogueAIResponse | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedDialogueTurn_Service: API Key not configured.');
@@ -128,7 +131,7 @@ Respond ONLY with the corrected JSON object.`;
     try {
       const correctedText = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
       if (correctedText) {
-        const parsed = parseDialogueTurnResponse(correctedText);
+        const parsed = parseDialogueTurnResponse(correctedText, npcThoughts);
         if (
           parsed &&
           parsed.npcResponses.every(r => validParticipants.includes(r.speaker))
