@@ -269,41 +269,41 @@ export function isValidAIMapUpdatePayload(payload: AIMapUpdatePayload | null): p
     return false;
   }
 
-  if (payload.nodesToAdd !== undefined) {
+  if (payload.nodesToAdd != null) {
     if (!Array.isArray(payload.nodesToAdd) || !payload.nodesToAdd.every(n => isValidAINodeOperationInternal(n, true))) {
       console.warn("Validation Error (AIMapUpdatePayload): 'nodesToAdd' is invalid."); return false;
     }
   }
-  if (payload.nodesToUpdate !== undefined) {
+  if (payload.nodesToUpdate != null) {
     if (!Array.isArray(payload.nodesToUpdate) || !payload.nodesToUpdate.every(n => isValidAINodeOperationInternal(n, false))) {
       console.warn("Validation Error (AIMapUpdatePayload): 'nodesToUpdate' is invalid."); return false;
     }
   }
-  if (payload.nodesToRemove !== undefined) {
+  if (payload.nodesToRemove != null) {
     if (!Array.isArray(payload.nodesToRemove) || !payload.nodesToRemove.every(isValidAINodeRemovalInternal)) {
       console.warn("Validation Error (AIMapUpdatePayload): 'nodesToRemove' is invalid."); return false;
     }
   }
-  if (payload.edgesToAdd !== undefined) {
+  if (payload.edgesToAdd != null) {
     if (!Array.isArray(payload.edgesToAdd) || !payload.edgesToAdd.every(e => isValidAIEdgeOperationInternal(e, true))) {
       console.warn("Validation Error (AIMapUpdatePayload): 'edgesToAdd' is invalid."); return false;
     }
   }
-  if (payload.edgesToUpdate !== undefined) {
+  if (payload.edgesToUpdate != null) {
     if (!Array.isArray(payload.edgesToUpdate) || !payload.edgesToUpdate.every(e => isValidAIEdgeOperationInternal(e, false))) {
       console.warn("Validation Error (AIMapUpdatePayload): 'edgesToUpdate' is invalid."); return false;
     }
   }
-  if (payload.edgesToRemove !== undefined) {
+  if (payload.edgesToRemove != null) {
     if (!Array.isArray(payload.edgesToRemove) || !payload.edgesToRemove.every(isValidAIEdgeRemovalInternal)) {
       console.warn("Validation Error (AIMapUpdatePayload): 'edgesToRemove' is invalid."); return false;
     }
   }
-  if (payload.suggestedCurrentMapNodeId !== undefined && payload.suggestedCurrentMapNodeId !== null && typeof payload.suggestedCurrentMapNodeId !== 'string') {
+  if (payload.suggestedCurrentMapNodeId != null && typeof payload.suggestedCurrentMapNodeId !== 'string') {
     console.warn("Validation Error (AIMapUpdatePayload): 'suggestedCurrentMapNodeId' must be a string or null if present. Value:", payload.suggestedCurrentMapNodeId);
     return false;
   }
-  if (payload.splitFamily !== undefined) {
+  if (payload.splitFamily != null) {
     if (!isValidSplitFamilyOperationInternal(payload.splitFamily)) {
       console.warn("Validation Error (AIMapUpdatePayload): 'splitFamily' is invalid.");
       return false;

@@ -359,14 +359,14 @@ export interface AIMapUpdatePayload {
       status: MapNodeData['status'];
       parentNodeId: string;
     } & Partial<Omit<MapNodeData, 'status' | 'parentNodeId'>>;
-  })[];
-  nodesToUpdate?: { placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }[]; // Added placeName to newData for renaming
-  nodesToRemove?: { placeName: string; }[]; 
-  edgesToAdd?: { sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }[]; 
-  edgesToUpdate?: AIEdgeUpdate[];
-  edgesToRemove?: { sourcePlaceName: string; targetPlaceName: string; type?: MapEdgeData['type']; }[];
-  suggestedCurrentMapNodeId?: string | undefined;
-  splitFamily?: AISplitFamilyOperation | undefined;
+  })[] | null;
+  nodesToUpdate?: { placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }[] | null; // Added placeName to newData for renaming
+  nodesToRemove?: { placeName: string; }[] | null;
+  edgesToAdd?: { sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }[] | null;
+  edgesToUpdate?: AIEdgeUpdate[] | null;
+  edgesToRemove?: { sourcePlaceName: string; targetPlaceName: string; type?: MapEdgeData['type']; }[] | null;
+  suggestedCurrentMapNodeId?: string | null | undefined;
+  splitFamily?: AISplitFamilyOperation | null | undefined;
 }
 // --- End Map Update Service Payload ---
 
