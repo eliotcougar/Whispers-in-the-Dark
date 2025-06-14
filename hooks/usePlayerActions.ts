@@ -312,7 +312,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           formatInventoryForPrompt(locationInventory),
           baseStateSnapshot.currentMapNodeId || null,
           formatCharInventoryList(companionChars),
-          formatCharInventoryList(nearbyChars)
+          formatCharInventoryList(nearbyChars),
+          'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
+          aiData.logMessage,
+          themeContextForResponse
         );
         if (invResult) {
           combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);

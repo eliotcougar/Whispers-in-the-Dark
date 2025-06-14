@@ -8,3 +8,4 @@ export * from './item';
 export * from './map';
 export * from './name';
 export * from './dialogue';
+export * from './inventory';
