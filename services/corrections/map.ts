@@ -788,7 +788,7 @@ export const resolveSplitFamilyOrphans_Service = async (
   const orphanList = context.orphanNodes
 
     .map(o => `{"name":"${o.placeName}","id":"${o.id}"},"description":"${o.data.description || 'No description'}"}`)
-    .join(', ');
+    .join(', \n');
 
 
   const prompt = `Resolve orphan child nodes after splitting a parent location into two.
