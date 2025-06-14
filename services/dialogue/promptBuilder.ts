@@ -42,7 +42,10 @@ export const buildDialogueTurnPrompt = (
   }
 
   const historyString = historyToUseInPrompt
-    .map(entry => `${entry.speaker}: "${entry.line}"`)
+    .map(entry => {
+      const thought = entry.thought ? `THOUGHT of ${entry.speaker}: "${entry.thought}"\n` : '';
+      return `${thought}${entry.speaker}: "${entry.line}"`;
+    })
     .join('\n');
 
   const inventoryString =
@@ -95,7 +98,7 @@ Context for Dialogue Turn:
 - ${characterContextString}
 - Current Dialogue Participants: ${dialogueParticipants.join(', ')}
 ${pastDialogueSummariesContext.trim() ? pastDialogueSummariesContext : '\n- No specific past dialogue summaries available for current participants.'}
-- Dialogue History (most recent last):
+ - Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):
 ${historyString}
 - Player's Last Utterance/Choice: "${playerLastUtterance}"
 
