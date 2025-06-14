@@ -3,8 +3,10 @@ import { findTravelPath } from './mapPathfinding';
 
 export const generateUniqueId = (base: string): string => {
   const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+  // ensure we never have more than one underscore before the random suffix
+  const trimmed = sanitized.replace(/_+$/, '');
   const unique = `${Math.random().toString(36).substring(2,6)}`;
-  return `${sanitized}_${unique}`;
+  return `${trimmed}_${unique}`;
 };
 
 /** Helper to calculate the hop distance between two nodes using pathfinding. */
