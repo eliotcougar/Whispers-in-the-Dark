@@ -31,8 +31,8 @@ export const handleMapUpdates = async (
   loadingReason: LoadingReason | null,
   setLoadingReason: (reason: LoadingReason | null) => void,
   turnChanges: TurnChanges
-): Promise<string | undefined> => {
-  let mapAISuggestedNodeIdentifier: string | undefined = undefined;
+): Promise<string | null | undefined> => {
+  let mapAISuggestedNodeIdentifier: string | null | undefined = undefined;
   let mapUpdateResult: MapUpdateServiceResult | null = null;
 
   if ('mapUpdated' in aiData && aiData.mapUpdated || (draftState.localPlace !== baseStateSnapshot.localPlace)) {

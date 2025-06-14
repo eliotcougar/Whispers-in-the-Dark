@@ -96,6 +96,14 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
     }
   });
 
+  if (payload.splitFamily && payload.splitFamily.newNodeType) {
+    const mapped = nodeTypeSynonyms[payload.splitFamily.newNodeType.toLowerCase()];
+    if (mapped) payload.splitFamily.newNodeType = mapped;
+    if (!VALID_NODE_TYPE_VALUES.includes(payload.splitFamily.newNodeType)) {
+      errors.push(`splitFamily.newNodeType invalid "${payload.splitFamily.newNodeType}"`);
+    }
+  }
+
   return errors;
 };
 
@@ -155,6 +163,9 @@ export const parseAIMapUpdateResponse = (
             !acc.suggestedCurrentMapNodeId
           ) {
             acc.suggestedCurrentMapNodeId = maybeObj.suggestedCurrentMapNodeId;
+          }
+          if (maybeObj.splitFamily && !acc.splitFamily) {
+            acc.splitFamily = maybeObj.splitFamily;
           }
         }
         return acc;

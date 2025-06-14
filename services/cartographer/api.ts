@@ -42,6 +42,7 @@ import {
   EdgeChainRequest,
   fetchConnectorChains_Service,
   ConnectorChainsServiceResult,
+  resolveSplitFamilyOrphans_Service,
 } from '../corrections/map';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -227,6 +228,14 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
       }
     }
   });
+
+  if (payload.splitFamily && payload.splitFamily.newNodeType) {
+    const mapped = nodeTypeSynonyms[payload.splitFamily.newNodeType.toLowerCase()];
+    if (mapped) payload.splitFamily.newNodeType = mapped as MapNodeData['nodeType'];
+    if (!VALID_NODE_TYPE_VALUES.includes(payload.splitFamily.newNodeType)) {
+      errors.push(`splitFamily.newNodeType invalid "${payload.splitFamily.newNodeType}"`);
+    }
+  }
 
   return errors;
 };
@@ -1207,6 +1216,56 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
 
   if (debugInfo.connectorChainsDebugInfo && debugInfo.connectorChainsDebugInfo.length === 0) {
     debugInfo.connectorChainsDebugInfo = null;
+  }
+
+  if (validParsedPayload.splitFamily) {
+    const sf = validParsedPayload.splitFamily;
+    const originalParent = themeNodeIdMap.get(sf.originalNodeId);
+    const newParent = themeNodeIdMap.get(sf.newNodeId);
+    const connector = themeNodeIdMap.get(sf.newConnectorNodeId);
+    if (originalParent && newParent && connector) {
+      newParent.data.nodeType = sf.newNodeType;
+      newParent.data.parentNodeId = originalParent.data.parentNodeId;
+      connector.data.parentNodeId = newParent.id;
+      newMapData.edges.forEach(edge => {
+        if (edge.sourceNodeId === newParent.id) edge.sourceNodeId = connector.id;
+        if (edge.targetNodeId === newParent.id) edge.targetNodeId = connector.id;
+      });
+      const originalSet = new Set(sf.originalChildren);
+      const newSet = new Set(sf.newChildren);
+      const orphans: MapNode[] = [];
+      newMapData.nodes.forEach(n => {
+        if (n.data.parentNodeId === originalParent.id && n.id !== newParent.id && n.id !== connector.id) {
+          if (newSet.has(n.id)) {
+            n.data.parentNodeId = newParent.id;
+          } else if (originalSet.has(n.id)) {
+            n.data.parentNodeId = originalParent.id;
+          } else {
+            orphans.push(n);
+          }
+        }
+      });
+      if (orphans.length > 0) {
+        const resolution = await resolveSplitFamilyOrphans_Service({
+          sceneDescription: sceneDesc,
+          logMessage: logMsg,
+          originalParent,
+          newParent,
+          orphanNodes: orphans,
+          currentTheme,
+        });
+        resolution.originalChildren.forEach(id => {
+          const node = themeNodeIdMap.get(id);
+          if (node) node.data.parentNodeId = originalParent.id;
+        });
+        resolution.newChildren.forEach(id => {
+          const node = themeNodeIdMap.get(id);
+          if (node) node.data.parentNodeId = newParent.id;
+        });
+      }
+    } else {
+      console.warn('splitFamily references unknown node ids');
+    }
   }
 
   // --- End of Temporary Feature Upgrade (parent-child edges cleaned up) ---

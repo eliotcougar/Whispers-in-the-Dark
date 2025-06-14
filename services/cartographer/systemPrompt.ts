@@ -25,7 +25,8 @@ export const SYSTEM_INSTRUCTION = `
 You are an AI assistant specializing in updating a game map based on narrative events.
 Your task is to analyze the provided game context and determine what changes should be made to the map data.
 You may receive a "Map Hint" string from the storyteller describing distant quest locations, their surroundings, and how to reach them. Use these hints to ensure those locations exist on the map, adding them and their nearby context if absent.
-Respond ONLY with a single JSON object adhering to the following structure:
+Respond ONLY with a single JSON object adhering to the following structure.
+Any property may be omitted or set to null when no updates are needed:
 {
   "nodesToAdd": [
     {
@@ -74,6 +75,14 @@ Respond ONLY with a single JSON object adhering to the following structure:
     }
   } ],
   "edgesToRemove": [ { "sourcePlaceName": "string", "targetPlaceName": "string", "type"?: "string" /* Optional. If provided, only remove edges of this type. Valid types are: ${VALID_EDGE_TYPES_FOR_MAP_AI} */ } ],
+  "splitFamily"?: {
+    "originalNodeId": "string", /* Node that remains after split */
+    "newNodeId": "string",      /* ID of child node promoted to parent */
+    "newNodeType": "string",    /* Upgraded type for new parent. One of: ${VALID_NODE_TYPES_FOR_MAP_AI} */
+    "newConnectorNodeId": "string", /* Feature node that will own edges originally connected to newNodeId */
+    "originalChildren": ["string"], /* IDs of nodes that stay with original parent */
+    "newChildren": ["string"]       /* IDs of nodes that move under new parent */
+  },
   "suggestedCurrentMapNodeId"?: "string" /* Optional: If map updates together with the context imply a new player location, provide its ID or placeName. */
 }
 
