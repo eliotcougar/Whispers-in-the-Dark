@@ -772,3 +772,44 @@ Return ONLY a JSON object strictly matching this structure:
   return { payload: null, debugInfo };
 };
 
+export const resolveSplitFamilyOrphans_Service = async (
+  context: {
+    sceneDescription: string;
+    logMessage: string | undefined;
+    originalParent: MapNode;
+    newParent: MapNode;
+    orphanNodes: MapNode[];
+    currentTheme: AdventureTheme;
+  }
+): Promise<{ originalChildren: string[]; newChildren: string[] }> => {
+  if (!isApiConfigured() || context.orphanNodes.length === 0)
+    return { originalChildren: [], newChildren: [] };
+
+  const orphanList = context.orphanNodes
+    .map(o => `{"name":"${o.placeName}","id":"${o.id}"}`)
+    .join(', ');
+
+  const prompt = `Resolve orphan child nodes after splitting a parent location into two.
+Original Parent: "${context.originalParent.placeName}" (ID:${context.originalParent.id})
+New Parent: "${context.newParent.placeName}" (ID:${context.newParent.id})
+Orphan Children: [${orphanList}]
+Return JSON {"originalChildren": ["ids"], "newChildren": ["ids"]}`;
+
+  const systemInstr = 'Assign orphan nodes to either the original or new parent. Respond only with JSON.';
+  try {
+    const result = await callCorrectionAI<{ originalChildren: string[]; newChildren: string[] }>(prompt, systemInstr);
+    if (
+      result &&
+      Array.isArray(result.originalChildren) &&
+      result.originalChildren.every(id => typeof id === 'string') &&
+      Array.isArray(result.newChildren) &&
+      result.newChildren.every(id => typeof id === 'string')
+    ) {
+      return result;
+    }
+  } catch (e) {
+    console.error('resolveSplitFamilyOrphans_Service error:', e);
+  }
+  return { originalChildren: [], newChildren: [] };
+};
+
