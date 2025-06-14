@@ -57,6 +57,14 @@ const DebugView: React.FC<DebugViewProps> = ({
   /**
    * Renders a single debugging section with a JSON or text payload.
    */
+  const decodeEscapedString = (text: string): string => {
+    try {
+      return JSON.parse(`"${text.replace(/"/g, '\\"')}"`) as string;
+    } catch {
+      return text.replace(/\\n/g, '\n');
+    }
+  };
+
   const renderContent = <T,>(
     title: string,
     content: T,
@@ -168,7 +176,11 @@ const DebugView: React.FC<DebugViewProps> = ({
               renderContent("Storyteller AI Response Parsed ", debugPacket?.parsedResponse)
             }
             {debugPacket?.storytellerThoughts && debugPacket.storytellerThoughts.length > 0 &&
-              renderContent("Storyteller Thoughts", debugPacket.storytellerThoughts)}
+              renderContent(
+                "Storyteller Thoughts",
+                debugPacket.storytellerThoughts.map(decodeEscapedString).join("\n"),
+                false,
+              )}
             {debugPacket?.error && renderContent("Error During Storyteller AI Interaction", debugPacket.error, false)}
           </>
         );
@@ -228,9 +240,10 @@ const DebugView: React.FC<DebugViewProps> = ({
         return debugPacket?.dialogueDebugInfo ? (
           <>
             {debugPacket.dialogueDebugInfo.turns.map((t, idx) => {
-              const responseWithThoughts = t.thoughts && t.thoughts.length > 0
-                ? `${t.thoughts.map(th => `Narrator THOUGHTS: "${th}"`).join('\n')}\n${t.rawResponse}`
-                : t.rawResponse;
+              const thoughtsText = t.thoughts && t.thoughts.length > 0
+                ? t.thoughts.map(th => `Narrator THOUGHTS: "${decodeEscapedString(th)}"`).join('\n')
+                : null;
+              const responseWithThoughts = thoughtsText ? `${thoughtsText}\n${t.rawResponse}` : t.rawResponse;
               return (
                 <div key={idx} className="mb-2">
                   {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
@@ -254,7 +267,8 @@ const DebugView: React.FC<DebugViewProps> = ({
               debugPacket.dialogueDebugInfo.summaryThoughts.length > 0 &&
               renderContent(
                 "Dialogue Summary Thoughts",
-                debugPacket.dialogueDebugInfo.summaryThoughts,
+                debugPacket.dialogueDebugInfo.summaryThoughts.map(decodeEscapedString).join("\n"),
+                false,
               )}
           </>
         ) : (
