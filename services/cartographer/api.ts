@@ -585,7 +585,16 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
         referenceMapNodeId,
       ) as MapNode | undefined;
 
-      if (existingNode) {
+      const canReuseExisting =
+        !!existingNode &&
+        existingNode.themeName === currentTheme.name &&
+        ((resolvedParentId === undefined && !existingNode.data.parentNodeId) ||
+          existingNode.data.parentNodeId === resolvedParentId) &&
+        (existingNode.placeName.toLowerCase() === nodeAddOp.placeName.toLowerCase() ||
+          (existingNode.data.aliases?.some(a => a.toLowerCase() === nodeAddOp.placeName.toLowerCase()) ?? false) ||
+          (nodeAddOp.data.aliases?.some(a => a.toLowerCase() === existingNode.placeName.toLowerCase()) ?? false));
+
+      if (canReuseExisting && existingNode) {
         if (nodeAddOp.data.aliases) {
           const aliasSet = new Set([...(existingNode.data.aliases || [])]);
           nodeAddOp.data.aliases.forEach(a => aliasSet.add(a));
