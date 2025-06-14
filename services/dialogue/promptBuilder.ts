@@ -159,9 +159,11 @@ ${dialogueLogString}
 
 Based *only* on the Dialogue Transcript and the provided context, determine what concrete game state changes (items, characters, quest/objective updates, log message, map updates) resulted *directly* from this dialogue.
 The "logMessage" field in your response should be a concise summary suitable for the main game log.
+Provide the next scene description and FOUR action options for the player as you would for a normal game turn.
 If the dialogue revealed a new alias for an existing character, use "charactersUpdated" with "addAlias".
 If the dialogue changed some character's general whereabouts, use "newLastKnownLocation" in "charactersUpdated".
 If the dialogue revealed new map information (new locations, changed accessibility, etc.), or if Player's own location changed over the course of the dialogue, then set "mapUpdated": true.
+Respond using the SAME JSON structure defined in the SYSTEM_INSTRUCTION for regular turns.
 `;
 };
 

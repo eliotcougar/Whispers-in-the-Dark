@@ -252,6 +252,12 @@ const DebugView: React.FC<DebugViewProps> = ({
                 debugPacket.dialogueDebugInfo.summaryRawResponse,
                 false,
               )}
+            {debugPacket.dialogueDebugInfo.summaryThoughts &&
+              debugPacket.dialogueDebugInfo.summaryThoughts.length > 0 &&
+              renderContent(
+                "Dialogue Summary Thoughts",
+                debugPacket.dialogueDebugInfo.summaryThoughts,
+              )}
           </>
         ) : (
           <p className="italic text-slate-400">No Dialogue debug info captured.</p>

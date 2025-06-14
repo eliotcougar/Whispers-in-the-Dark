@@ -9,7 +9,6 @@ import {
   MapData,
   MapNode,
   MapEdge,
-  DialogueSummaryResponse,
   MapNodeData,
   MapEdgeData,
   AIMapUpdatePayload,
@@ -236,7 +235,7 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
  * @returns A promise resolving to a MapUpdateServiceResult.
  */
 export const updateMapFromAIData_Service = async (
-  aiResponse: GameStateFromAI | DialogueSummaryResponse,
+  aiResponse: GameStateFromAI,
   currentMapData: MapData,
   currentTheme: AdventureTheme,
   allKnownMainMapNodesForTheme: MapNode[],

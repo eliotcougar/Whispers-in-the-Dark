@@ -174,6 +174,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
             dialogueDebugInfo: null,
           };
         }
+        draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt || draftState.lastDebugPacket.prompt}`;
+        draftState.lastDebugPacket.rawResponseText = debugInfo.summaryRawResponse || null;
+        draftState.lastDebugPacket.storytellerThoughts = debugInfo.summaryThoughts || null;
+        draftState.lastDebugPacket.parsedResponse = summaryPayload;
         draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
         commitGameState(draftState);
         setIsLoading(false);

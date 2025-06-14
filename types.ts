@@ -178,40 +178,7 @@ export interface DialogueMemorySummaryContext {
 }
 
 
-export interface DialogueSummaryResponse {
-  itemChange?: ItemChange[]; 
-  charactersAdded?: {
-    name: string; 
-    description: string; 
-    aliases?: string[]; 
-    presenceStatus?: Character['presenceStatus']; 
-    lastKnownLocation?: string | null; 
-    preciseLocation?: string | null; 
-  }[];
-  charactersUpdated?: { 
-    name: string; 
-    newDescription?: string; 
-    newAliases?: string[]; 
-    addAlias?: string; 
-    newPresenceStatus?: Character['presenceStatus'];
-    newLastKnownLocation?: string | null; 
-    newPreciseLocation?: string | null;
-  }[];
-  logMessage?: string; 
-  mainQuest?: string; 
-  currentObjective?: string;
-  objectiveAchieved?: boolean;
-  localTime?: string; 
-  localEnvironment?: string; 
-  localPlace?: string; 
-  mapUpdated?: boolean; // This flag signals the map service to run
-  currentMapNodeId?: string | undefined; // Suggestion for current location node ID
-  mapHint?: string; // Optional hint about distant quest-related locations for MapAI
-  playerItemsHint?: string;
-  worldItemsHint?: string;
-  npcItemsHint?: string;
-  newItems?: NewItemSuggestion[];
-}
+export type DialogueSummaryResponse = GameStateFromAI;
 // --- End Dialogue Mode Types ---
 
 
@@ -411,7 +378,7 @@ export interface DialogueTurnDebugEntry {
 export interface DebugPacket {
   prompt: string;
   rawResponseText: string | null;
-  parsedResponse: GameStateFromAI | DialogueSummaryResponse | null;
+  parsedResponse: GameStateFromAI | null;
   error?: string;
   timestamp: string;
   storytellerThoughts?: string[] | null;
@@ -436,6 +403,7 @@ export interface DebugPacket {
     turns: DialogueTurnDebugEntry[];
     summaryPrompt?: string;
     summaryRawResponse?: string;
+    summaryThoughts?: string[];
   } | null;
 }
 

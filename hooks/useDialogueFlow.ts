@@ -5,7 +5,7 @@
 
 import React from 'react';
 import {
-  DialogueSummaryResponse,
+  GameStateFromAI,
   FullGameState,
   LoadingReason,
   DialogueTurnDebugEntry,
@@ -21,12 +21,13 @@ interface UseDialogueFlowProps {
   setIsLoading: (isLoading: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   onDialogueConcluded: (
-    summaryPayload: DialogueSummaryResponse | null,
+    summaryPayload: GameStateFromAI | null,
     preparedGameState: FullGameState,
     debugInfo: {
       turns: DialogueTurnDebugEntry[];
       summaryPrompt?: string;
       summaryRawResponse?: string;
+      summaryThoughts?: string[];
     }
   ) => void;
 }
