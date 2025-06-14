@@ -40,16 +40,14 @@ interface GeminiRequestConfig {
 const callDialogueGeminiAPI = async (
   prompt: string,
   systemInstruction: string,
-  disableThinking: boolean = false,
+  thinkingBudgetLimit: number = 0 // Default to 0 (disabled thinking)
 ): Promise<GenerateContentResponse> => {
   const config: GeminiRequestConfig = {
     systemInstruction,
     responseMimeType: 'application/json',
     temperature: 0.8,
+    thinkingConfig: { thinkingBudget: thinkingBudgetLimit }
   };
-  if (disableThinking) {
-    config.thinkingConfig = { thinkingBudget: 0 };
-  }
 
   const { response } = await dispatchAIRequest({
     modelNames: [GEMINI_MODEL_NAME],
@@ -57,7 +55,7 @@ const callDialogueGeminiAPI = async (
     systemInstruction,
     temperature: config.temperature,
     responseMimeType: config.responseMimeType,
-    thinkingBudget: config.thinkingConfig?.thinkingBudget,
+    thinkingConfig: config.thinkingConfig,
     label: 'Dialogue',
   });
   return response;
@@ -107,7 +105,7 @@ export const executeDialogueTurn = async (
   for (let attempt = 1; attempt <= MAX_RETRIES; ) {
     try {
       console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES})`);
-      const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, true);
+      const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, 512);
       let parsed = parseDialogueTurnResponse(response.text ?? '');
       if (!parsed) {
         parsed = await fetchCorrectedDialogueTurn_Service(
@@ -151,7 +149,7 @@ export const executeDialogueSummary = async (
   for (let attempt = 1; attempt <= MAX_RETRIES + 2; ) {
     try {
       console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 2})`);
-      const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION, false);
+      const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION, 2048);
       const parsed = parseDialogueSummaryResponse(response.text ?? '');
       if (parsed) return parsed;
       console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
