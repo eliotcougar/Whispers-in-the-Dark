@@ -160,6 +160,18 @@ export const attemptMatchAndSetNode = (
       console.log(`MapNodeMatcher (${source}): AI suggested node ID "${suggestedIdentifier}", matched to ID "${foundNodeById.id}".`);
       return { matched: true, nodeId: foundNodeById.id };
     }
+
+    // 1b. Heuristic: treat malformed IDs with wrong suffix
+    const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
+    const m = suggestedIdentifier.match(idPattern);
+    if (m) {
+      const base = m[1];
+      const prefixMatch = currentThemeNodesFromDraft.find(n => n.id.startsWith(`${base}_`));
+      if (prefixMatch) {
+        console.log(`MapNodeMatcher (${source}): Heuristically matched malformed ID "${suggestedIdentifier}" to "${prefixMatch.id}".`);
+        return { matched: true, nodeId: prefixMatch.id };
+      }
+    }
   
     // 2. Try to match by Name or Alias (case-insensitive)
     const lowerSuggestedIdentifier = suggestedIdentifier.toLowerCase();
@@ -167,6 +179,17 @@ export const attemptMatchAndSetNode = (
       n.placeName.toLowerCase() === lowerSuggestedIdentifier ||
       (n.data.aliases && n.data.aliases.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
     );
+
+    if (matchingNodesByNameOrAlias.length === 0) {
+      const base = m ? m[1] : suggestedIdentifier;
+      const normalizedBase = base.replace(/_/g, ' ').toLowerCase();
+      matchingNodesByNameOrAlias.push(
+        ...currentThemeNodesFromDraft.filter(n =>
+          n.placeName.toLowerCase() === normalizedBase ||
+          (n.data.aliases && n.data.aliases.some(a => a.toLowerCase() === normalizedBase)),
+        ),
+      );
+    }
   
     if (matchingNodesByNameOrAlias.length === 0) {
       console.log(`MapNodeMatcher (${source}): AI suggested identifier "${suggestedIdentifier}" NOT found by ID, name, or alias within theme "${currentThemeName}".`);
