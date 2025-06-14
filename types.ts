@@ -101,8 +101,9 @@ export interface Character {
 
 // --- Dialogue Mode Types ---
 export interface DialogueTurnResponsePart {
-  speaker: string; 
-  line: string;    
+  speaker: string;
+  thought?: string;
+  line: string;
 }
 
 // Alias used throughout the codebase for clarity in dialogue history arrays.

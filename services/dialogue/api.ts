@@ -30,7 +30,7 @@ interface GeminiRequestConfig {
   systemInstruction: string;
   responseMimeType: string;
   temperature: number;
-  thinkingConfig?: { thinkingBudget: number };
+  thinkingConfig?: { thinkingBudget: number; includeThoughts: boolean };
 }
 
 /**
@@ -46,7 +46,7 @@ const callDialogueGeminiAPI = async (
     systemInstruction,
     responseMimeType: 'application/json',
     temperature: 0.8,
-    thinkingConfig: { thinkingBudget: thinkingBudgetLimit }
+    thinkingConfig: { thinkingBudget: thinkingBudgetLimit, includeThoughts: true }
   };
 
   const { response } = await dispatchAIRequest({
@@ -55,7 +55,8 @@ const callDialogueGeminiAPI = async (
     systemInstruction,
     temperature: config.temperature,
     responseMimeType: config.responseMimeType,
-    thinkingConfig: config.thinkingConfig,
+    thinkingBudget: config.thinkingConfig?.thinkingBudget,
+    includeThoughts: true,
     label: 'Dialogue',
   });
   return response;
@@ -106,7 +107,15 @@ export const executeDialogueTurn = async (
     try {
       console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, 512);
-      let parsed = parseDialogueTurnResponse(response.text ?? '');
+      const parts =
+        (response.candidates?.[0]?.content?.parts ?? []) as Array<{
+          text?: string;
+          thought?: boolean;
+        }>;
+      const thoughtParts = parts
+        .filter(p => p.thought === true && typeof p.text === 'string')
+        .map(p => p.text as string);
+      let parsed = parseDialogueTurnResponse(response.text ?? '', thoughtParts);
       if (!parsed) {
         parsed = await fetchCorrectedDialogueTurn_Service(
           response.text ?? '',

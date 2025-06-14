@@ -8,6 +8,7 @@ import { isValidNewItemSuggestion } from '../parsers/validation';
 
 export const parseDialogueAIResponse = (
   responseText: string,
+  thoughts?: string[],
 ): DialogueAIResponse | null => {
   const jsonStr = extractJsonFromFence(responseText);
   const parsed = safeParseJson<Partial<DialogueAIResponse>>(jsonStr);
@@ -16,7 +17,9 @@ export const parseDialogueAIResponse = (
     if (
       !parsed ||
       !Array.isArray(parsed.npcResponses) ||
-      !parsed.npcResponses.every(r => r && typeof r.speaker === 'string' && typeof r.line === 'string') ||
+      !parsed.npcResponses.every(
+        r => r && typeof r.speaker === 'string' && typeof r.line === 'string',
+      ) ||
       !Array.isArray(parsed.playerOptions) ||
       !parsed.playerOptions.every(o => typeof o === 'string') ||
       (parsed.dialogueEnds !== undefined && typeof parsed.dialogueEnds !== 'boolean') ||
@@ -28,7 +31,15 @@ export const parseDialogueAIResponse = (
     if (parsed.playerOptions.length === 0) {
       parsed.playerOptions = ['End Conversation.'];
     }
-    return parsed as DialogueAIResponse;
+    const validated = parsed as DialogueAIResponse;
+    if (thoughts && thoughts.length > 0) {
+      validated.npcResponses.forEach((r, idx) => {
+        if (thoughts[idx]) {
+          r.thought = thoughts[idx];
+        }
+      });
+    }
+    return validated;
   } catch (e) {
     console.warn('Failed to parse dialogue JSON response from AI:', e);
     console.debug('Original dialogue response text:', responseText);
@@ -38,6 +49,7 @@ export const parseDialogueAIResponse = (
 
 export const parseDialogueTurnResponse = (
   responseText: string,
+  thoughts?: string[],
 ): DialogueAIResponse | null => {
   const jsonStr = extractJsonFromFence(responseText);
   const parsed = safeParseJson<Partial<DialogueAIResponse>>(jsonStr);
@@ -46,7 +58,9 @@ export const parseDialogueTurnResponse = (
     if (
       !parsed ||
       !Array.isArray(parsed.npcResponses) ||
-      !parsed.npcResponses.every(r => r && typeof r.speaker === 'string' && typeof r.line === 'string') ||
+      !parsed.npcResponses.every(
+        r => r && typeof r.speaker === 'string' && typeof r.line === 'string',
+      ) ||
       !Array.isArray(parsed.playerOptions) ||
       !parsed.playerOptions.every(o => typeof o === 'string') ||
       (parsed.dialogueEnds !== undefined && typeof parsed.dialogueEnds !== 'boolean') ||
@@ -58,7 +72,15 @@ export const parseDialogueTurnResponse = (
     if (parsed.playerOptions.length === 0) {
       parsed.playerOptions = ['End Conversation.'];
     }
-    return parsed as DialogueAIResponse;
+    const validated = parsed as DialogueAIResponse;
+    if (thoughts && thoughts.length > 0) {
+      validated.npcResponses.forEach((r, idx) => {
+        if (thoughts[idx]) {
+          r.thought = thoughts[idx];
+        }
+      });
+    }
+    return validated;
   } catch (e) {
     console.warn('Failed to parse dialogue JSON response from AI:', e);
     console.debug('Original dialogue response text:', responseText);

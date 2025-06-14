@@ -35,6 +35,7 @@ export interface ModelDispatchOptions {
   temperature?: number;
   responseMimeType?: string;
   thinkingBudget?: number;
+  includeThoughts?: boolean;
   responseSchema?: object;
   label?: string;
   debugLog?: MinimalModelCallRecord[];
@@ -68,8 +69,18 @@ export const dispatchAIRequest = async (
     const cfg: Record<string, unknown> = {};
     if (options.temperature !== undefined) cfg.temperature = options.temperature;
     if (options.responseMimeType && model !== MINIMAL_MODEL_NAME) cfg.responseMimeType = options.responseMimeType;
-    if (options.thinkingBudget !== undefined && model !== MINIMAL_MODEL_NAME) {
-      cfg.thinkingConfig = { thinkingBudget: options.thinkingBudget };
+    if (
+      model !== MINIMAL_MODEL_NAME &&
+      (options.thinkingBudget !== undefined || options.includeThoughts)
+    ) {
+      const thinkingCfg: { thinkingBudget?: number; includeThoughts?: boolean } = {};
+      if (options.thinkingBudget !== undefined) {
+        thinkingCfg.thinkingBudget = options.thinkingBudget;
+      }
+      if (options.includeThoughts) {
+        thinkingCfg.includeThoughts = true;
+      }
+      cfg.thinkingConfig = thinkingCfg;
     }
     if (modelSupportsSystem && options.systemInstruction) {
       cfg.systemInstruction = options.systemInstruction;
