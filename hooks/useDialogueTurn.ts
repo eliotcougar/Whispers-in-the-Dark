@@ -76,7 +76,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
           node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
         );
-        const { parsed: turnData, prompt: turnPrompt, rawResponse } = await executeDialogueTurn(
+        const { parsed: turnData, prompt: turnPrompt, rawResponse, thoughts } = await executeDialogueTurn(
           currentThemeObj,
           stateAfterPlayerChoice.mainQuest,
           stateAfterPlayerChoice.currentObjective,
@@ -92,7 +92,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           option,
           stateAfterPlayerChoice.dialogueState!.participants
         );
-        addDebugEntry({ prompt: turnPrompt, rawResponse });
+        addDebugEntry({ prompt: turnPrompt, rawResponse, thoughts });
 
         const latestStateAfterFetch = getCurrentGameState();
         if (turnData && latestStateAfterFetch.dialogueState) {

@@ -404,6 +404,7 @@ export interface MinimalModelCallRecord {
 export interface DialogueTurnDebugEntry {
   prompt: string;
   rawResponse: string;
+  thoughts?: string[];
 }
 
 

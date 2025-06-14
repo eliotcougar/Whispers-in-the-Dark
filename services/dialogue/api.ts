@@ -80,7 +80,7 @@ export const executeDialogueTurn = async (
   dialogueHistory: DialogueHistoryEntry[],
   playerLastUtterance: string,
   dialogueParticipants: string[],
-): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string }> => {
+): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string; thoughts: string[] }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -124,7 +124,7 @@ export const executeDialogueTurn = async (
           thoughtParts,
         );
       }
-      if (parsed) return { parsed, prompt, rawResponse: response.text ?? '' };
+      if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
       console.warn(`Attempt ${attempt} failed to yield valid dialogue JSON even after correction.`);
       attempt++;
     } catch (error) {

@@ -229,12 +229,17 @@ const DebugView: React.FC<DebugViewProps> = ({
       case "DialogueAI":
         return debugPacket?.dialogueDebugInfo ? (
           <>
-            {debugPacket.dialogueDebugInfo.turns.map((t, idx) => (
-              <div key={idx} className="mb-2">
-                {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
-                {renderContent(`Turn ${idx + 1} Response`, t.rawResponse, false)}
-              </div>
-            ))}
+            {debugPacket.dialogueDebugInfo.turns.map((t, idx) => {
+              const responseWithThoughts = t.thoughts && t.thoughts.length > 0
+                ? `${t.thoughts.map(th => `Narrator THOUGHTS: "${th}"`).join('\n')}\n${t.rawResponse}`
+                : t.rawResponse;
+              return (
+                <div key={idx} className="mb-2">
+                  {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
+                  {renderContent(`Turn ${idx + 1} Response`, responseWithThoughts, false)}
+                </div>
+              );
+            })}
             {debugPacket.dialogueDebugInfo.summaryPrompt &&
               renderContent(
                 "Dialogue Summary Prompt",
