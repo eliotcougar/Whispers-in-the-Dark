@@ -389,11 +389,12 @@ export interface DebugPacket {
     validationError?: string;
     minimalModelCalls?: MinimalModelCallRecord[];
     connectorChainsDebugInfo?: {
+      round: number;
       prompt: string;
       rawResponse?: string;
       parsedPayload?: AIMapUpdatePayload;
       validationError?: string;
-    } | null;
+    }[] | null;
   } | null;
   inventoryDebugInfo?: {
     prompt: string;

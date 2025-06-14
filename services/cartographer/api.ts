@@ -64,11 +64,12 @@ export interface MapUpdateServiceResult {
     validationError?: string;
     minimalModelCalls?: MinimalModelCallRecord[];
     connectorChainsDebugInfo?: {
+      round: number;
       prompt: string;
       rawResponse?: string;
       parsedPayload?: AIMapUpdatePayload;
       validationError?: string;
-    } | null;
+    }[] | null;
   } | null;
 }
 
@@ -369,7 +370,11 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
     allKnownMainPlacesString,
   );
   let prompt = basePrompt;
-  const debugInfo: MapUpdateServiceResult['debugInfo'] = { prompt: basePrompt, minimalModelCalls };
+  const debugInfo: MapUpdateServiceResult['debugInfo'] = {
+    prompt: basePrompt,
+    minimalModelCalls,
+    connectorChainsDebugInfo: [],
+  };
   let validParsedPayload: AIMapUpdatePayload | null = null;
 
   for (let attempt = 0; attempt < MAX_RETRIES; ) {
@@ -573,6 +578,25 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
       }
 
       // Use buildNodeId helper for consistent node id generation
+      const existingNode = findMapNodeByIdentifier(
+        nodeAddOp.placeName,
+        newMapData.nodes,
+        newMapData,
+        referenceMapNodeId,
+      ) as MapNode | undefined;
+
+      if (existingNode) {
+        if (nodeAddOp.data.aliases) {
+          const aliasSet = new Set([...(existingNode.data.aliases || [])]);
+          nodeAddOp.data.aliases.forEach(a => aliasSet.add(a));
+          existingNode.data.aliases = Array.from(aliasSet);
+        }
+        if (nodeAddOp.data.description && existingNode.data.description.trim().length === 0) {
+          existingNode.data.description = nodeAddOp.data.description;
+        }
+        continue;
+      }
+
       const newNodeId = buildNodeId(nodeAddOp.placeName);
 
       const {
@@ -1065,7 +1089,10 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
         );
         chainResult = await fetchConnectorChains_Service(chainRequests, chainContext);
         if (chainResult.debugInfo) {
-          debugInfo.connectorChainsDebugInfo = chainResult.debugInfo;
+          debugInfo.connectorChainsDebugInfo?.push({
+            round: refineAttempts + 1,
+            ...chainResult.debugInfo,
+          });
         }
         if (chainResult.payload) {
           break;
@@ -1091,13 +1118,32 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
                 ) as MapNode | undefined)
               : undefined;
           const parentId = parent ? parent.id : undefined;
+
+          const existing = findMapNodeByIdentifier(
+            nAdd.placeName,
+            newMapData.nodes,
+            newMapData,
+            referenceMapNodeId,
+          ) as MapNode | undefined;
+          if (existing) {
+            if (nodeData.aliases) {
+              const aliasSet = new Set([...(existing.data.aliases || [])]);
+              nodeData.aliases.forEach(a => aliasSet.add(a));
+              existing.data.aliases = Array.from(aliasSet);
+            }
+            if (nodeData.description && existing.data.description.trim().length === 0) {
+              existing.data.description = nodeData.description;
+            }
+            return;
+          }
+
           const newId = generateUniqueId(`node_${nAdd.placeName}_`);
           const node: MapNode = {
             id: newId,
             themeName: currentTheme.name,
             placeName: nAdd.placeName,
             position: parent ? { ...parent.position } : { x: 0, y: 0 },
-            data: { ...nodeData, parentNodeId: parentId }
+            data: { ...nodeData, parentNodeId: parentId },
           } as MapNode;
           newMapData.nodes.push(node);
           newlyAddedNodes.push(node);
@@ -1148,6 +1194,10 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
         break;
       }
       refineAttempts++;
+  }
+
+  if (debugInfo.connectorChainsDebugInfo && debugInfo.connectorChainsDebugInfo.length === 0) {
+    debugInfo.connectorChainsDebugInfo = null;
   }
 
   // --- End of Temporary Feature Upgrade (parent-child edges cleaned up) ---
