@@ -18,7 +18,7 @@ import { GEMINI_MODEL_NAME, MAX_RETRIES } from '../../constants';
 import { DIALOGUE_SYSTEM_INSTRUCTION, DIALOGUE_SUMMARY_SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
-import { callMinimalCorrectionAI } from '../corrections/base';
+import { callMinimalCorrectionAI, fetchCorrectedDialogueTurn_Service } from '../corrections';
 import { isApiConfigured } from '../apiClient';
 import { buildDialogueTurnPrompt, buildDialogueSummaryPrompt, buildDialogueMemorySummaryPrompts } from './promptBuilder';
 import {
@@ -108,9 +108,16 @@ export const executeDialogueTurn = async (
     try {
       console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, true);
-      const parsed = parseDialogueTurnResponse(response.text ?? '');
+      let parsed = parseDialogueTurnResponse(response.text ?? '');
+      if (!parsed) {
+        parsed = await fetchCorrectedDialogueTurn_Service(
+          response.text ?? '',
+          dialogueParticipants,
+          currentTheme,
+        );
+      }
       if (parsed) return parsed;
-      console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue turn. Retrying if attempts remain.`);
+      console.warn(`Attempt ${attempt} failed to yield valid dialogue JSON even after correction.`);
       attempt++;
     } catch (error) {
       console.error(`Error fetching dialogue turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);

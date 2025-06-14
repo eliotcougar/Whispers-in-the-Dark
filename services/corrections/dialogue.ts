@@ -2,13 +2,14 @@
  * @file services/corrections/dialogue.ts
  * @description Correction helper for malformed dialogue setup payloads.
  */
-import { AdventureTheme, Character, MapNode, Item, DialogueSetupPayload } from '../../types';
+import { AdventureTheme, Character, MapNode, Item, DialogueSetupPayload, DialogueAIResponse } from '../../types';
 import { MAX_RETRIES } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { formatKnownCharactersForPrompt } from '../../utils/promptFormatters';
 import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
-import { callCorrectionAI } from './base';
+import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
+import { parseDialogueTurnResponse } from '../dialogue/responseParser';
 
 /**
  * Attempts to correct a malformed DialogueSetupPayload.
@@ -74,6 +75,83 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
       attempt++;
     } catch (error) {
       console.error(`fetchCorrectedDialogueSetup_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt === MAX_RETRIES) return null;
+      continue;
+    }
+  }
+  return null;
+};
+
+/**
+ * Attempts to correct a malformed DialogueAIResponse for a single dialogue turn.
+ */
+export const fetchCorrectedDialogueTurn_Service = async (
+  malformedResponseText: string,
+  validParticipants: string[],
+  currentTheme: AdventureTheme,
+): Promise<DialogueAIResponse | null> => {
+  if (!isApiConfigured()) {
+    console.error('fetchCorrectedDialogueTurn_Service: API Key not configured.');
+    return null;
+  }
+
+  const participantList = validParticipants.map(n => `"${n}"`).join(', ') || 'None';
+
+  const prompt = `
+Role: You fix malformed JSON for a dialogue turn in a text adventure game.
+
+Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
+
+Malformed Dialogue Response:
+\`\`\`
+${malformedResponseText}
+\`\`\`
+
+Valid Participant Names: [${participantList}]
+
+Required JSON Structure:
+{
+  "npcResponses": [{ "speaker": "Name", "line": "text" }],
+  "playerOptions": ["text"],
+  "dialogueEnds": boolean?,
+  "updatedParticipants": ["Name"]?
+}
+
+Do NOT change the text of any npcResponses.line or playerOptions.
+Ensure each "speaker" value is one of the valid participant names.
+Respond ONLY with the corrected JSON object.`;
+
+  const systemInstructionForFix = `Correct a malformed dialogue turn JSON object without altering the dialogue text. Speaker names must be among: ${participantList}. Adhere strictly to JSON format.`;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+    try {
+      const correctedText = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
+      if (correctedText) {
+        const parsed = parseDialogueTurnResponse(correctedText);
+        if (
+          parsed &&
+          parsed.npcResponses.every(r => validParticipants.includes(r.speaker))
+        ) {
+          return parsed;
+        } else {
+          console.warn(
+            `fetchCorrectedDialogueTurn_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): corrected response invalid or speakers not in list.`,
+            correctedText,
+          );
+        }
+      } else {
+        console.warn(
+          `fetchCorrectedDialogueTurn_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned empty response.`,
+        );
+      }
+      if (attempt === MAX_RETRIES) return null;
+      attempt++;
+    } catch (error) {
+      console.error(
+        `fetchCorrectedDialogueTurn_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
       await new Promise(resolve => setTimeout(resolve, 500));
       if (attempt === MAX_RETRIES) return null;
       continue;
