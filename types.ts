@@ -401,6 +401,12 @@ export interface MinimalModelCallRecord {
   responseText: string;
 }
 
+export interface DialogueTurnDebugEntry {
+  prompt: string;
+  rawResponse: string;
+  thoughts?: string[];
+}
+
 
 export interface DebugPacket {
   prompt: string;
@@ -408,6 +414,7 @@ export interface DebugPacket {
   parsedResponse: GameStateFromAI | DialogueSummaryResponse | null;
   error?: string;
   timestamp: string;
+  storytellerThoughts?: string[] | null;
   mapUpdateDebugInfo?: {
     prompt: string;
     rawResponse?: string;
@@ -424,6 +431,11 @@ export interface DebugPacket {
   inventoryDebugInfo?: {
     prompt: string;
     rawResponse?: string;
+  } | null;
+  dialogueDebugInfo?: {
+    turns: DialogueTurnDebugEntry[];
+    summaryPrompt?: string;
+    summaryRawResponse?: string;
   } | null;
 }
 

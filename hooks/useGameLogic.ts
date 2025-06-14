@@ -155,13 +155,26 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setError,
     setIsLoading,
     setLoadingReason,
-    onDialogueConcluded: (summaryPayload, preparedGameState) => {
+    onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
       processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
         playerActionText: undefined,
       }).then(() => {
+        if (!draftState.lastDebugPacket) {
+          draftState.lastDebugPacket = {
+            prompt: '',
+            rawResponseText: null,
+            parsedResponse: null,
+            timestamp: new Date().toISOString(),
+            storytellerThoughts: null,
+            mapUpdateDebugInfo: null,
+            inventoryDebugInfo: null,
+            dialogueDebugInfo: null,
+          };
+        }
+        draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
         commitGameState(draftState);
         setIsLoading(false);
         setLoadingReason(null);

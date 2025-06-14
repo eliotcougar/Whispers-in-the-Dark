@@ -3,10 +3,12 @@
  * @description Orchestrates dialogue turns and summarization hooks.
  */
 
+import React from 'react';
 import {
   DialogueSummaryResponse,
   FullGameState,
   LoadingReason,
+  DialogueTurnDebugEntry,
 } from '../types';
 import { useDialogueTurn } from './useDialogueTurn';
 import { useDialogueSummary } from './useDialogueSummary';
@@ -20,7 +22,12 @@ interface UseDialogueFlowProps {
   setLoadingReason: (reason: LoadingReason | null) => void;
   onDialogueConcluded: (
     summaryPayload: DialogueSummaryResponse | null,
-    preparedGameState: FullGameState
+    preparedGameState: FullGameState,
+    debugInfo: {
+      turns: DialogueTurnDebugEntry[];
+      summaryPrompt?: string;
+      summaryRawResponse?: string;
+    }
   ) => void;
 }
 
@@ -38,6 +45,17 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     onDialogueConcluded,
   } = props;
 
+  const dialogueLogsRef = React.useRef<DialogueTurnDebugEntry[]>([]);
+
+  const addDebugEntry = (entry: DialogueTurnDebugEntry) => {
+    dialogueLogsRef.current.push(entry);
+  };
+
+  const getDialogueDebugLogs = () => dialogueLogsRef.current;
+  const clearDialogueDebugLogs = () => {
+    dialogueLogsRef.current = [];
+  };
+
   const {
     isDialogueExiting,
     initiateDialogueExit,
@@ -50,6 +68,8 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     setIsLoading,
     setLoadingReason,
     onDialogueConcluded,
+    getDialogueDebugLogs,
+    clearDialogueDebugLogs,
   });
 
   const { handleDialogueOptionSelect } = useDialogueTurn({
@@ -61,6 +81,7 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     setLoadingReason,
     initiateDialogueExit,
     isDialogueExiting,
+    addDebugEntry,
   });
 
   return {

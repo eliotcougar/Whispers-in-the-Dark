@@ -13,6 +13,7 @@ import {
   MapData,
   DialogueSummaryRecord,
   DialogueMemorySummaryContext,
+  DialogueTurnDebugEntry,
 } from '../types';
 import {
   executeDialogueSummary,
@@ -33,8 +34,15 @@ export interface UseDialogueSummaryProps {
   setLoadingReason: (reason: LoadingReason | null) => void;
   onDialogueConcluded: (
     summaryPayload: DialogueSummaryResponse | null,
-    preparedGameState: FullGameState
+    preparedGameState: FullGameState,
+    debugInfo: {
+      turns: DialogueTurnDebugEntry[];
+      summaryPrompt?: string;
+      summaryRawResponse?: string;
+    }
   ) => void;
+  getDialogueDebugLogs: () => DialogueTurnDebugEntry[];
+  clearDialogueDebugLogs: () => void;
 }
 
 /**
@@ -49,6 +57,8 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setIsLoading,
     setLoadingReason,
     onDialogueConcluded,
+    getDialogueDebugLogs,
+    clearDialogueDebugLogs,
   } = props;
 
   const [isDialogueExiting, setIsDialogueExiting] = useState<boolean>(false);
@@ -65,7 +75,12 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
 
     if (!currentThemeObj || !stateAtDialogueConclusionStart.dialogueState) {
       console.error('Cannot exit dialogue: current theme is null or not in dialogue state.', stateAtDialogueConclusionStart);
-      onDialogueConcluded(null, stateAtDialogueConclusionStart);
+      onDialogueConcluded(
+        null,
+        stateAtDialogueConclusionStart,
+        { turns: getDialogueDebugLogs() }
+      );
+      clearDialogueDebugLogs();
       setIsDialogueExiting(false);
       setIsLoading(false);
       setLoadingReason(null);
@@ -137,7 +152,11 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       themeName: currentThemeObj.name,
       currentThemeObject: currentThemeObj,
     };
-    const summaryUpdatePayload = await executeDialogueSummary(summaryContextForUpdates);
+    const {
+      parsed: summaryUpdatePayload,
+      prompt: summaryPrompt,
+      rawResponse: summaryRawResponse,
+    } = await executeDialogueSummary(summaryContextForUpdates);
 
     const participantsForLog = [...finalParticipants];
     const dialogueBlock =
@@ -147,9 +166,15 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
 
     workingGameState.dialogueState = null;
 
-    onDialogueConcluded(summaryUpdatePayload, workingGameState);
+    const debugInfo = {
+      turns: getDialogueDebugLogs(),
+      summaryPrompt,
+      summaryRawResponse,
+    };
+    onDialogueConcluded(summaryUpdatePayload, workingGameState, debugInfo);
+    clearDialogueDebugLogs();
     setDialogueNextSceneAttempted(true);
-  }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded]);
+  }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
 
   useEffect(() => {
     if (isDialogueExiting && dialogueNextSceneAttempted && Date.now() >= dialogueUiCloseDelayTargetMs) {

@@ -256,13 +256,21 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),
+        storytellerThoughts: null,
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        dialogueDebugInfo: null,
       };
 
       try {
-        const response = await executeAIMainTurn(prompt, themeObjToLoad.systemInstructionModifier);
-        if (draftState.lastDebugPacket) draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+        const { response, thoughts } = await executeAIMainTurn(
+          prompt,
+          themeObjToLoad.systemInstructionModifier,
+        );
+        if (draftState.lastDebugPacket) {
+          draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+          draftState.lastDebugPacket.storytellerThoughts = thoughts;
+        }
 
         const currentThemeMapDataForParse = {
           nodes: draftState.mapData.nodes.filter((n) => n.themeName === themeObjToLoad.name),
@@ -449,18 +457,22 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       rawResponseText: null,
       parsedResponse: null,
       timestamp: new Date().toISOString(),
+      storytellerThoughts: null,
       mapUpdateDebugInfo: null,
       inventoryDebugInfo: null,
+      dialogueDebugInfo: null,
     };
     draftState.lastDebugPacket = debugPacket;
 
     try {
-      const response = await executeAIMainTurn(
+      const { response, thoughts } = await executeAIMainTurn(
         lastPrompt,
         currentThemeObj.systemInstructionModifier,
       );
-      if (draftState.lastDebugPacket)
+      if (draftState.lastDebugPacket) {
         draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+        draftState.lastDebugPacket.storytellerThoughts = thoughts;
+      }
 
       const currentThemeCharacters = draftState.allCharacters.filter(
         (c) => c.themeName === currentThemeObj.name,

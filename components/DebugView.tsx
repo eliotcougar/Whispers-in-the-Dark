@@ -22,6 +22,7 @@ type DebugTab =
   | "MainAI"
   | "MapLocationAI"
   | "InventoryAI"
+  | "DialogueAI"
   | "Inventory"
   | "Characters"
   | "MapDataFull"
@@ -119,6 +120,7 @@ const DebugView: React.FC<DebugViewProps> = ({
     { name: "MainAI", label: "Storyteller AI" },
     { name: "MapLocationAI", label: "Cartographer AI" },
     { name: "InventoryAI", label: "Inventory AI" },
+    { name: "DialogueAI", label: "Dialogue AI" },
     { name: "Inventory", label: "Inventory" },
     { name: "Characters", label: "Characters" },
     { name: "MapDataFull", label: "Map Data" },
@@ -165,6 +167,8 @@ const DebugView: React.FC<DebugViewProps> = ({
               renderContent("Storyteller AI Response Raw", debugPacket?.rawResponseText, false) :
               renderContent("Storyteller AI Response Parsed ", debugPacket?.parsedResponse)
             }
+            {debugPacket?.storytellerThoughts && debugPacket.storytellerThoughts.length > 0 &&
+              renderContent("Storyteller Thoughts", debugPacket.storytellerThoughts)}
             {debugPacket?.error && renderContent("Error During Storyteller AI Interaction", debugPacket.error, false)}
           </>
         );
@@ -221,6 +225,36 @@ const DebugView: React.FC<DebugViewProps> = ({
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>
             )}
           </>
+        );
+      case "DialogueAI":
+        return debugPacket?.dialogueDebugInfo ? (
+          <>
+            {debugPacket.dialogueDebugInfo.turns.map((t, idx) => {
+              const responseWithThoughts = t.thoughts && t.thoughts.length > 0
+                ? `${t.thoughts.map(th => `Narrator THOUGHTS: "${th}"`).join('\n')}\n${t.rawResponse}`
+                : t.rawResponse;
+              return (
+                <div key={idx} className="mb-2">
+                  {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
+                  {renderContent(`Turn ${idx + 1} Response`, responseWithThoughts, false)}
+                </div>
+              );
+            })}
+            {debugPacket.dialogueDebugInfo.summaryPrompt &&
+              renderContent(
+                "Dialogue Summary Prompt",
+                debugPacket.dialogueDebugInfo.summaryPrompt,
+                false,
+              )}
+            {debugPacket.dialogueDebugInfo.summaryRawResponse &&
+              renderContent(
+                "Dialogue Summary Response",
+                debugPacket.dialogueDebugInfo.summaryRawResponse,
+                false,
+              )}
+          </>
+        ) : (
+          <p className="italic text-slate-400">No Dialogue debug info captured.</p>
         );
       case "InventoryAI":
         return debugPacket?.inventoryDebugInfo ? (

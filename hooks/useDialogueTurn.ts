@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { executeDialogueTurn } from '../services/dialogue';
 import { PLAYER_HOLDER_ID } from '../constants';
+import { DialogueTurnDebugEntry } from '../types';
 
 export interface UseDialogueTurnProps {
   getCurrentGameState: () => FullGameState;
@@ -22,6 +23,7 @@ export interface UseDialogueTurnProps {
   setLoadingReason: (reason: LoadingReason | null) => void;
   initiateDialogueExit: (preparedState: FullGameState) => Promise<void>;
   isDialogueExiting: boolean;
+  addDebugEntry: (entry: DialogueTurnDebugEntry) => void;
 }
 
 /**
@@ -37,6 +39,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
     setLoadingReason,
     initiateDialogueExit,
     isDialogueExiting,
+    addDebugEntry,
   } = props;
 
   const handleDialogueOptionSelect = useCallback(async (option: string) => {
@@ -73,7 +76,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
           node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
         );
-        const turnData = await executeDialogueTurn(
+        const { parsed: turnData, prompt: turnPrompt, rawResponse, thoughts } = await executeDialogueTurn(
           currentThemeObj,
           stateAfterPlayerChoice.mainQuest,
           stateAfterPlayerChoice.currentObjective,
@@ -89,6 +92,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           option,
           stateAfterPlayerChoice.dialogueState!.participants
         );
+        addDebugEntry({ prompt: turnPrompt, rawResponse, thoughts });
 
         const latestStateAfterFetch = getCurrentGameState();
         if (turnData && latestStateAfterFetch.dialogueState) {
@@ -156,6 +160,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
     setIsLoading,
     setLoadingReason,
     initiateDialogueExit,
+    addDebugEntry,
   ]);
 
   return { handleDialogueOptionSelect };
