@@ -394,11 +394,39 @@ export const updateMapFromAIData_Service = async (
     }
   }
 
+  const buildHierarchyLines = (nodes: MapNode[]): string[] => {
+    const childrenMap = new Map<string, MapNode[]>();
+    const roots: MapNode[] = [];
+    nodes.forEach(n => {
+      const parentId = n.data.parentNodeId && n.data.parentNodeId !== 'Universe'
+        ? n.data.parentNodeId
+        : 'Universe';
+      if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
+      childrenMap.get(parentId)!.push(n);
+    });
+    const sortFn = (a: MapNode, b: MapNode) => a.placeName.localeCompare(b.placeName);
+    for (const arr of childrenMap.values()) arr.sort(sortFn);
+    roots.push(...(childrenMap.get('Universe') || []));
+
+    const lines: string[] = [];
+    const traverse = (node: MapNode, prefix: string, isLast: boolean) => {
+      const connector = isLast ? '└─' : '├─';
+      lines.push(
+        `${prefix}${connector} ${node.id} - "${node.placeName}" (Type: ${node.data.nodeType}, Visited: ${!!node.data.visited}, ParentNodeId: ${node.data.parentNodeId || 'N/A'}, Status: ${node.data.status || 'N/A'})`
+      );
+      const children = childrenMap.get(node.id) || [];
+      const childPrefix = prefix + (isLast ? '   ' : '│  ');
+      children.forEach((c, idx) => traverse(c, childPrefix, idx === children.length - 1));
+    };
+    roots.forEach((r, idx) => traverse(r, '', idx === roots.length - 1));
+    return lines;
+  };
+
   const existingMapContext = `Current Map Nodes (for your reference):
-${currentThemeNodesFromMapData.length > 0 ? currentThemeNodesFromMapData.map(n => `- ${n.id} - "${n.placeName}" (Type: ${n.data.nodeType}, Visited: ${!!n.data.visited}, ParentNodeId: ${n.data.parentNodeId || 'N/A'}, Status: ${n.data.status || 'N/A'})`).join('\n') : "None exist yet."}
+${currentThemeNodesFromMapData.length > 0 ? buildHierarchyLines(currentThemeNodesFromMapData).join('\n') : 'None exist yet.'}
 
 Current Map Edges (for your reference):
-${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- ${e.data.status || 'N/A'} ${e.data.type || 'N/A'} from ${e.sourceNodeId} to ${e.targetNodeId}`).join('\n') : "None exist yet."}
+${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- ${e.data.status || 'N/A'} ${e.data.type || 'N/A'} from ${e.sourceNodeId} to ${e.targetNodeId}`).join('\n') : 'None exist yet.'}
 `;
 
   const allKnownMainPlacesString = allKnownMainMapNodesForTheme.length > 0
