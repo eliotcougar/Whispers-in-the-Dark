@@ -112,12 +112,14 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                 <ul className="list-disc list-inside ml-4 space-y-1">
                   <li>Biggest feature - Map.</li>
                   <li>Known Places moved from Knowledge Base to the new Map.</li>
+                  <li>Game Log moved to the History screen where Past Realities are.</li>
                   <li>Characters now remember past conversations with the player.</li>
                   <li>Added &quot;Custom Game&quot; option to the Main Menu: You can now choose a specific theme to start in, and random reality shifts will be disabled for that playthrough.</li>
                   <li>Manual shifts in Custom Game give you full control over your destination.</li>
                   <li>Removed error-triggered reality shifts entirely.</li>
-                  <li>Retry button nor really performs a retry.</li>
-                  <li></li>
+                  <li>Retry button now really performs a retry.</li>
+                  <li>A lot more heuristics to deal with slightly malformed AI responses.</li>
+                  <li>The number of main options increased to 6 to accomodate the additional variety of actions related to moving around.</li>
                 </ul>
                 <h3 className="text-xl font-medium text-sky-400 mb-2">Version 1.2.2 (bugfix)</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
