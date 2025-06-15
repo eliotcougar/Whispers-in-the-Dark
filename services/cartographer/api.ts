@@ -166,6 +166,44 @@ const normalizeRemovalUpdates = (payload: AIMapUpdatePayload) => {
 };
 
 /**
+ * Filters duplicate edge operations within an AIMapUpdatePayload. Duplicate
+ * edges are determined by case-insensitive source/target names and edge type.
+ */
+const dedupeEdgeOps = (payload: AIMapUpdatePayload) => {
+  const normalizeKey = (
+    source: string,
+    target: string,
+    type: string | undefined,
+  ): string => {
+    const a = source.toLowerCase();
+    const b = target.toLowerCase();
+    const t = (type || 'any').toLowerCase();
+    return a < b ? `${a}|${b}|${t}` : `${b}|${a}|${t}`;
+  };
+
+  const dedupe = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
+    arr: T[] | undefined,
+    typeGetter: (e: T) => string | undefined,
+  ): T[] | undefined => {
+    if (!arr) return arr;
+    const seen = new Set<string>();
+    const result: T[] = [];
+    for (const e of arr) {
+      const key = normalizeKey(e.sourcePlaceName, e.targetPlaceName, typeGetter(e));
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(e);
+      }
+    }
+    return result;
+  };
+
+  payload.edgesToAdd = dedupe(payload.edgesToAdd || undefined, e => e.data?.type);
+  payload.edgesToUpdate = dedupe(payload.edgesToUpdate || undefined, e => e.newData?.type);
+  payload.edgesToRemove = dedupe(payload.edgesToRemove || undefined, e => e.type);
+};
+
+/**
  * Normalizes status and type fields within the payload to
  * their canonical values, accepting various synonyms.
  * Returns an array of error strings for values that remain
@@ -402,6 +440,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
       if (parsedPayloadAttempt) {
         normalizeRemovalUpdates(parsedPayloadAttempt);
         const synonymErrors = normalizeStatusAndTypeSynonyms(parsedPayloadAttempt);
+        dedupeEdgeOps(parsedPayloadAttempt);
         if (isValidAIMapUpdatePayload(parsedPayloadAttempt)) {
             debugInfo.parsedPayload = parsedPayloadAttempt;
             validParsedPayload = parsedPayloadAttempt; // Successfully got a valid payload
