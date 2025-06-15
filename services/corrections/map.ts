@@ -594,6 +594,8 @@ export interface ConnectorChainsServiceResult {
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
+    observations?: string;
+    rationale?: string;
   } | null;
 }
 
@@ -688,6 +690,8 @@ ${MAP_EDGE_TYPE_GUIDE}
 Return a single JSON object representing a single set of feature nodes and edges between them.
 Return ONLY a JSON object strictly matching this structure:
 {
+  "observations": "string", /* REQUIRED. Contextually relevant observations about the chains and map graph. Minimum 2000 chars. */
+  "rationale": "string", /* REQUIRED. Explain the reasoning behind your chain suggestions. */
   "nodesToAdd": [
     {
       "placeName": "string", /* A contextually relevant location name, based on Theme and Scene Description
@@ -713,7 +717,11 @@ Return ONLY a JSON object strictly matching this structure:
   ]
 }`;
 
-  const debugInfo: ConnectorChainsServiceResult['debugInfo'] = { prompt };
+  const debugInfo: ConnectorChainsServiceResult['debugInfo'] = {
+    prompt,
+    observations: undefined,
+    rationale: undefined,
+  };
 
   for (let attempt = 0; attempt <= MAX_RETRIES; ) {
     try {
@@ -750,6 +758,12 @@ Return ONLY a JSON object strictly matching this structure:
                 ...maybeObj.edgesToAdd,
               ];
             }
+            if (maybeObj.observations && !acc.observations) {
+              acc.observations = maybeObj.observations;
+            }
+            if (maybeObj.rationale && !acc.rationale) {
+              acc.rationale = maybeObj.rationale;
+            }
           }
           return acc;
         }, {} as AIMapUpdatePayload);
@@ -757,6 +771,12 @@ Return ONLY a JSON object strictly matching this structure:
         result = parsed as AIMapUpdatePayload;
       }
       debugInfo.parsedPayload = result as AIMapUpdatePayload;
+      if (result) {
+        if (result.observations && !debugInfo.observations)
+          debugInfo.observations = result.observations;
+        if (result.rationale && !debugInfo.rationale)
+          debugInfo.rationale = result.rationale;
+      }
       if (result && (result.nodesToAdd || result.edgesToAdd)) {
         return { payload: result, debugInfo };
       }

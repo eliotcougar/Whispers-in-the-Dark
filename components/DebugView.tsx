@@ -218,30 +218,42 @@ const DebugView: React.FC<DebugViewProps> = ({
                 {debugPacket.mapUpdateDebugInfo.validationError && renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false)}
                 {debugPacket.mapUpdateDebugInfo.minimalModelCalls &&
                   renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls)}
-                {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
-                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 &&
-                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
-                    <div key={`chain-${idx}`} className="my-2">
-                      {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
-                      {info.rawResponse &&
-                        renderContent(
-                          `Connector Chains Raw Response (Round ${info.round})`,
-                          info.rawResponse,
-                          false,
-                        )}
-                      {info.parsedPayload &&
-                        renderContent(
-                          `Connector Chains Parsed Payload (Round ${info.round})`,
-                          info.parsedPayload,
-                        )}
-                      {info.validationError &&
-                        renderContent(
-                          `Connector Chains Validation Error (Round ${info.round})`,
-                          info.validationError,
-                          false,
-                        )}
-                    </div>
-                  ))}
+                  {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
+                    debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 &&
+                    debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
+                      <div key={`chain-${idx}`} className="my-2">
+                        {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
+                        {info.rawResponse &&
+                          renderContent(
+                            `Connector Chains Raw Response (Round ${info.round})`,
+                            info.rawResponse,
+                            false,
+                          )}
+                        {info.parsedPayload &&
+                          renderContent(
+                            `Connector Chains Parsed Payload (Round ${info.round})`,
+                            info.parsedPayload,
+                          )}
+                        {info.observations &&
+                          renderContent(
+                            `Connector Chains Observations (Round ${info.round})`,
+                            info.observations,
+                            false,
+                          )}
+                        {info.rationale &&
+                          renderContent(
+                            `Connector Chains Rationale (Round ${info.round})`,
+                            info.rationale,
+                            false,
+                          )}
+                        {info.validationError &&
+                          renderContent(
+                            `Connector Chains Validation Error (Round ${info.round})`,
+                            info.validationError,
+                            false,
+                          )}
+                      </div>
+                    ))}
               </>
             ) : (
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>
