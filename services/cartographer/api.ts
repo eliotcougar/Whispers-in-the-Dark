@@ -1127,7 +1127,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
       newMapData.edges = remainingEdges;
   }
 
-  let chainRequests = pendingChainRequests;
+  let chainRequests: EdgeChainRequest[] = pendingChainRequests.splice(0);
   let refineAttempts = 0;
   const chainContext = {
       sceneDescription: sceneDesc,
@@ -1242,6 +1242,9 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
             }
           }
         });
+        chainContext.themeNodes = newMapData.nodes.filter(
+          n => n.themeName === currentTheme.name,
+        );
       } else {
         console.warn(
           `Connector Chains Refinement failed after ${MAX_RETRIES} attempts for round ${
