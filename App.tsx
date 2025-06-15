@@ -11,10 +11,10 @@ import SceneDisplay from './components/SceneDisplay';
 import ActionOptions from './components/ActionOptions';
 import InventoryDisplay from './components/InventoryDisplay';
 import LocationItemsDisplay from './components/LocationItemsDisplay';
-import GameLogDisplay from './components/GameLogDisplay';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorDisplay from './components/ErrorDisplay';
-import ThemeMemoryDisplay from './components/ThemeMemoryDisplay';
+import HistoryDisplay from './components/HistoryDisplay';
+import QuestInfoBox from './components/QuestInfoBox';
 import ImageVisualizer from './components/ImageVisualizer';
 import KnowledgeBase from './components/KnowledgeBase';
 import SettingsDisplay from './components/SettingsDisplay';
@@ -160,7 +160,7 @@ const App: React.FC = () => {
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(false);
   const [userRequestedTitleMenuOpen, setUserRequestedTitleMenuOpen] = useState(false);
-  const [isThemeMemoryVisible, setIsThemeMemoryVisible] = useState(false);
+  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [isDebugViewVisible, setIsDebugViewVisible] = useState(false);
   const [isCustomGameSetupVisible, setIsCustomGameSetupVisible] = useState(false);
   const [isManualShiftThemeSelectionVisible, setIsManualShiftThemeSelectionVisible] = useState(false);
@@ -172,7 +172,7 @@ const App: React.FC = () => {
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
 
-  const isAnyModalOrDialogueActive = isVisualizerVisible || isKnowledgeBaseVisible || isSettingsVisible || isInfoVisible || isMapVisible || isThemeMemoryVisible || isDebugViewVisible || !!dialogueState || effectiveIsTitleMenuOpen || shiftConfirmOpen || newGameFromMenuConfirmOpen || loadGameFromMenuConfirmOpen || isCustomGameSetupVisible || newCustomGameConfirmOpen || isManualShiftThemeSelectionVisible;
+  const isAnyModalOrDialogueActive = isVisualizerVisible || isKnowledgeBaseVisible || isSettingsVisible || isInfoVisible || isMapVisible || isHistoryVisible || isDebugViewVisible || !!dialogueState || effectiveIsTitleMenuOpen || shiftConfirmOpen || newGameFromMenuConfirmOpen || loadGameFromMenuConfirmOpen || isCustomGameSetupVisible || newCustomGameConfirmOpen || isManualShiftThemeSelectionVisible;
 
 
   useEffect(() => {
@@ -481,7 +481,7 @@ const App: React.FC = () => {
                 onOpenInfo={() => setIsInfoVisible(true)}
                 onOpenVisualizer={() => setIsVisualizerVisible(true)}
                 onOpenKnowledgeBase={() => setIsKnowledgeBaseVisible(true)}
-                onOpenThemeMemory={() => setIsThemeMemoryVisible(true)}
+                onOpenHistory={() => setIsHistoryVisible(true)}
                 onOpenMap={() => setIsMapVisible(true)}
                 onOpenTitleMenu={() => setUserRequestedTitleMenuOpen(true)}
                 onManualRealityShift={() => setShiftConfirmOpen(true)}
@@ -501,14 +501,11 @@ const App: React.FC = () => {
 
             <SceneDisplay
               description={hasGameBeenInitialized ? currentScene : " "}
-              mainQuest={hasGameBeenInitialized ? mainQuest : null}
-              currentObjective={hasGameBeenInitialized ? currentObjective : null}
               lastActionLog={hasGameBeenInitialized ? lastActionLog : null}
               inventory={inventory}
               mapData={mapData.nodes}
               allCharacters={allCharacters}
               currentThemeName={currentTheme?.name || null}
-              objectiveAnimationType={objectiveAnimationType}
               localTime={localTime}
               localEnvironment={localEnvironment}
               localPlace={localPlace}
@@ -560,20 +557,24 @@ const App: React.FC = () => {
                 </div>
               </>
             )}
-            <GameLogDisplay messages={gameLog} />
           </div>
 
           <div className="lg:col-span-2 space-y-6 flex flex-col">
-            <LocationItemsDisplay
-              items={itemsHere}
-              onTakeItem={handleTakeLocationItem}
-              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
-            />
-            <InventoryDisplay
-              items={inventory}
-              onItemInteract={handleItemInteraction}
-              onDropItem={gameLogic.handleDropItem}
-              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+          <LocationItemsDisplay
+            items={itemsHere}
+            onTakeItem={handleTakeLocationItem}
+            disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+          />
+          <QuestInfoBox
+            mainQuest={hasGameBeenInitialized ? mainQuest : null}
+            currentObjective={hasGameBeenInitialized ? currentObjective : null}
+            objectiveAnimationType={objectiveAnimationType}
+          />
+          <InventoryDisplay
+            items={inventory}
+            onItemInteract={handleItemInteraction}
+            onDropItem={gameLogic.handleDropItem}
+            disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
             />
           </div>
         </main>
@@ -702,10 +703,11 @@ const App: React.FC = () => {
             isVisible={isKnowledgeBaseVisible}
             onClose={() => setIsKnowledgeBaseVisible(false)}
           />
-          <ThemeMemoryDisplay
+          <HistoryDisplay
             themeHistory={themeHistory}
-            isVisible={isThemeMemoryVisible}
-            onClose={() => setIsThemeMemoryVisible(false)}
+            gameLog={gameLog}
+            isVisible={isHistoryVisible}
+            onClose={() => setIsHistoryVisible(false)}
           />
           <MapDisplay
             mapData={mapData}

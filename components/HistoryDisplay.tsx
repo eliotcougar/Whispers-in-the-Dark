@@ -1,44 +1,51 @@
-
-
 /**
- * @file ThemeMemoryDisplay.tsx
- * @description Displays memory of previously visited themes.
- */
+ * @file HistoryDisplay.tsx
+ * @description Shows the game log and memory of previously visited realities.
+*/
 import React from 'react';
 import { ThemeHistoryState } from '../types';
+import GameLogDisplay from './GameLogDisplay';
 
-interface ThemeMemoryDisplayProps {
+interface HistoryDisplayProps {
   themeHistory: ThemeHistoryState;
+  gameLog: string[];
   // mapData?: MapNode[]; // If we need to look up MapNode details by placeName from ThemeMemory
   isVisible: boolean;
   onClose: () => void;
 }
 
 /**
- * Displays a history of themes the player has explored.
- */
-const ThemeMemoryDisplay: React.FC<ThemeMemoryDisplayProps> = ({
-  themeHistory, 
-  isVisible, 
+ * Displays the game log and a history of themes the player has explored.
+*/
+const HistoryDisplay: React.FC<HistoryDisplayProps> = ({
+  themeHistory,
+  gameLog,
+  isVisible,
   onClose,
   // mapData // If needed in future
 }) => {
   const rememberedThemes = Object.entries(themeHistory);
 
   return (
-    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="theme-memory-title">
+    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="history-title">
       <div className="animated-frame-content">
         <button
           onClick={onClose}
           className="animated-frame-close-button"
-          aria-label="Close echoes of past realities"
+          aria-label="Close history"
         >
           &times;
         </button>
-        <div className="theme-memory-content-area"> 
-          <h1 id="theme-memory-title" className="text-3xl font-bold text-purple-400 mb-6 text-center">
-            Echoes of Past Realities
+        <div className="theme-memory-content-area">
+          <h1 id="history-title" className="text-3xl font-bold text-purple-400 mb-6 text-center">
+            History
           </h1>
+
+          <GameLogDisplay messages={gameLog} />
+
+          <h2 className="text-2xl font-semibold text-purple-300 mt-8 mb-4 text-center">
+            Echoes of Past Realities
+          </h2>
           
           {rememberedThemes.length === 0 && (
             <p className="text-slate-400 italic text-center">No alternate timelines have been chronicled yet.</p>
@@ -75,4 +82,4 @@ const ThemeMemoryDisplay: React.FC<ThemeMemoryDisplayProps> = ({
   );
 };
 
-export default ThemeMemoryDisplay;
+export default HistoryDisplay;

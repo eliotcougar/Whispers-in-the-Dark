@@ -24,7 +24,7 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   `DialogueDisplay.tsx`: Handles the UI for conversations with NPCs, using `MapNode` data for highlighting.
     *   `MapDisplay.tsx`: Visualizes the `MapData` for the current theme. Includes pan/zoom interactions and exposes layout tuning via `MapControls`.
     *   `MapNodeView.tsx`: Renders individual nodes within the map SVG.
-    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `ThemeMemoryDisplay.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on characters, with location details coming from the map.
+    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `HistoryDisplay.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on characters, with location details coming from the map.
     *   `LoadingSpinner.tsx`, `ErrorDisplay.tsx`: Provide feedback during loading or error states.
     *   `MainToolbar.tsx`: Contains buttons for primary game actions and information display, including opening the map.
 
