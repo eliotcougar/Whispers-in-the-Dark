@@ -188,8 +188,12 @@ function isValidAINodeOperationInternal(nodeOp: unknown, isNodeAddOperation: boo
 function isValidAINodeRemovalInternal(nodeRemove: unknown): boolean {
   if (typeof nodeRemove !== 'object' || nodeRemove === null) return false;
   const rem = nodeRemove as Record<string, unknown>;
-  if (typeof rem.placeName !== 'string' || rem.placeName.trim() === '') {
-    console.warn("Validation Error (NodeRemove): 'placeName' is required. Value:", rem.placeName);
+  if (typeof rem.nodeId !== 'string' || rem.nodeId.trim() === '') {
+    console.warn("Validation Error (NodeRemove): 'nodeId' is required. Value:", rem.nodeId);
+    return false;
+  }
+  if (rem.nodeName !== undefined && (typeof rem.nodeName !== 'string' || rem.nodeName.trim() === '')) {
+    console.warn("Validation Error (NodeRemove): 'nodeName' must be a non-empty string if provided. Value:", rem.nodeName);
     return false;
   }
   return true;
@@ -231,16 +235,16 @@ function isValidAIEdgeOperationInternal(edgeOp: unknown, isEdgeAddOperation: boo
 function isValidAIEdgeRemovalInternal(edgeRemove: unknown): boolean {
   if (typeof edgeRemove !== 'object' || edgeRemove === null) return false;
   const rem = edgeRemove as Record<string, unknown>;
-  if (typeof rem.sourcePlaceName !== 'string' || rem.sourcePlaceName.trim() === '') {
-    console.warn("Validation Error (EdgeRemove): 'sourcePlaceName' is required. Value:", rem.sourcePlaceName);
+  if (typeof rem.edgeId !== 'string' || rem.edgeId.trim() === '') {
+    console.warn("Validation Error (EdgeRemove): 'edgeId' is required. Value:", rem.edgeId);
     return false;
   }
-  if (typeof rem.targetPlaceName !== 'string' || rem.targetPlaceName.trim() === '') {
-    console.warn("Validation Error (EdgeRemove): 'targetPlaceName' is required. Value:", rem.targetPlaceName);
+  if (rem.sourceId !== undefined && (typeof rem.sourceId !== 'string' || rem.sourceId.trim() === '')) {
+    console.warn("Validation Error (EdgeRemove): 'sourceId' must be a non-empty string if provided. Value:", rem.sourceId);
     return false;
   }
-  if (rem.type !== undefined && (typeof rem.type !== 'string' || !VALID_EDGE_TYPE_VALUES.includes(rem.type as NonNullable<MapEdgeData['type']>))) {
-    console.warn("Validation Error (EdgeRemove): Optional 'type' is invalid. Value:", rem.type);
+  if (rem.targetId !== undefined && (typeof rem.targetId !== 'string' || rem.targetId.trim() === '')) {
+    console.warn("Validation Error (EdgeRemove): 'targetId' must be a non-empty string if provided. Value:", rem.targetId);
     return false;
   }
   return true;

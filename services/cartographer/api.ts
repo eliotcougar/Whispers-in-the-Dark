@@ -141,7 +141,7 @@ const normalizeRemovalUpdates = (payload: AIMapUpdatePayload) => {
   (payload.nodesToUpdate || []).forEach(nodeUpd => {
     const statusVal = nodeUpd.newData?.status?.toLowerCase();
     if (statusVal && nodeRemovalSynonyms.has(statusVal)) {
-      updatedNodesToRemove.push({ placeName: nodeUpd.placeName });
+      updatedNodesToRemove.push({ nodeId: nodeUpd.placeName, nodeName: nodeUpd.placeName });
     } else {
       updatedNodesToUpdate.push(nodeUpd);
     }
@@ -155,9 +155,9 @@ const normalizeRemovalUpdates = (payload: AIMapUpdatePayload) => {
     const statusVal = edgeUpd.newData?.status?.toLowerCase();
     if (statusVal && edgeRemovalSynonyms.has(statusVal)) {
       updatedEdgesToRemove.push({
-        sourcePlaceName: edgeUpd.sourcePlaceName,
-        targetPlaceName: edgeUpd.targetPlaceName,
-        type: edgeUpd.newData.type
+        edgeId: '',
+        sourceId: edgeUpd.sourcePlaceName,
+        targetId: edgeUpd.targetPlaceName
       });
     } else {
       updatedEdgesToUpdate.push(edgeUpd);
@@ -169,7 +169,8 @@ const normalizeRemovalUpdates = (payload: AIMapUpdatePayload) => {
 
 /**
  * Filters duplicate edge operations within an AIMapUpdatePayload. Duplicate
- * edges are determined by case-insensitive source/target names and edge type.
+ * edges are determined by case-insensitive source/target names and edge type
+ * for add/update operations. Removals are deduped by edgeId.
  */
 const dedupeEdgeOps = (payload: AIMapUpdatePayload) => {
   const normalizeKey = (
@@ -183,7 +184,7 @@ const dedupeEdgeOps = (payload: AIMapUpdatePayload) => {
     return a < b ? `${a}|${b}|${t}` : `${b}|${a}|${t}`;
   };
 
-  const dedupe = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
+  const dedupeNamed = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
     arr: T[] | undefined,
     typeGetter: (e: T) => string | undefined,
   ): T[] | undefined => {
@@ -200,9 +201,21 @@ const dedupeEdgeOps = (payload: AIMapUpdatePayload) => {
     return result;
   };
 
-  payload.edgesToAdd = dedupe(payload.edgesToAdd || undefined, e => e.data?.type);
-  payload.edgesToUpdate = dedupe(payload.edgesToUpdate || undefined, e => e.newData?.type);
-  payload.edgesToRemove = dedupe(payload.edgesToRemove || undefined, e => e.type);
+  payload.edgesToAdd = dedupeNamed(payload.edgesToAdd || undefined, e => e.data?.type);
+  payload.edgesToUpdate = dedupeNamed(payload.edgesToUpdate || undefined, e => e.newData?.type);
+
+  if (payload.edgesToRemove) {
+    const seen = new Set<string>();
+    const result: typeof payload.edgesToRemove = [];
+    for (const e of payload.edgesToRemove) {
+      const key = e.edgeId.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(e);
+      }
+    }
+    payload.edgesToRemove = result;
+  }
 };
 
 /**
@@ -259,15 +272,7 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
   (payload.nodesToUpdate || []).forEach((n, idx) => applyNodeDataFix(n.newData, `nodesToUpdate[${idx}].newData`));
   (payload.edgesToAdd || []).forEach((e, idx) => applyEdgeDataFix(e.data, `edgesToAdd[${idx}]`));
   (payload.edgesToUpdate || []).forEach((e, idx) => applyEdgeDataFix(e.newData, `edgesToUpdate[${idx}].newData`));
-  (payload.edgesToRemove || []).forEach((e, idx) => {
-    if (e.type) {
-      const mapped = edgeTypeSynonyms[e.type.toLowerCase()];
-      if (mapped) e.type = mapped;
-        if (!VALID_EDGE_TYPE_VALUES.includes(e.type)) {
-        errors.push(`edgesToRemove[${idx}] invalid type "${e.type}"`);
-      }
-    }
-  });
+  // edgesToRemove no longer supports type adjustments
 
   if (payload.splitFamily && payload.splitFamily.newNodeType) {
     const mapped = nodeTypeSynonyms[payload.splitFamily.newNodeType.toLowerCase()];
@@ -572,7 +577,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
             ignoredNodeNames.add(nodeAdd.placeName);
             continue;
         }
-        const removeIndex = nodesToRemove_mut.findIndex(nr => nr.placeName.toLowerCase() === nodeAdd.placeName.toLowerCase());
+        const removeIndex = nodesToRemove_mut.findIndex(nr => nr.nodeName && nr.nodeName.toLowerCase() === nodeAdd.placeName.toLowerCase());
         if (removeIndex !== -1) {
             nodesToRemove_mut.splice(removeIndex, 1);
         } else { finalNodesToAddOps.push(nodeAdd); }
@@ -582,14 +587,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
 
   const finalEdgesToAdd: typeof edgesToAdd_mut = [];
   for (const edgeAdd of edgesToAdd_mut) {
-      const removeIndex = edgesToRemove_mut.findIndex(er => {
-          const namesMatch = (er.sourcePlaceName.toLowerCase() === edgeAdd.sourcePlaceName.toLowerCase() && er.targetPlaceName.toLowerCase() === edgeAdd.targetPlaceName.toLowerCase()) ||
-                           (er.sourcePlaceName.toLowerCase() === edgeAdd.targetPlaceName.toLowerCase() && er.targetPlaceName.toLowerCase() === edgeAdd.sourcePlaceName.toLowerCase());
-          if (!namesMatch) return false;
-          return !er.type || er.type === edgeAdd.data?.type;
-      });
-      if (removeIndex !== -1) { edgesToRemove_mut.splice(removeIndex, 1);
-      } else { finalEdgesToAdd.push(edgeAdd); }
+      finalEdgesToAdd.push(edgeAdd);
   }
   edgesToAdd_mut = finalEdgesToAdd;
 
@@ -620,7 +618,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
     if (upd.newData.placeName)
       updNames.push(upd.newData.placeName.toLowerCase());
     for (const name of updNames) {
-      const idx = nodesToRemove_mut.findIndex(r => r.placeName.toLowerCase() === name);
+      const idx = nodesToRemove_mut.findIndex(r => r.nodeName && r.nodeName.toLowerCase() === name);
       if (idx !== -1) nodesToRemove_mut.splice(idx, 1);
     }
   });
@@ -866,8 +864,14 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
 
   // Process Node Removals
   for (const nodeRemoveOp of nodesToRemove_mut) {
-      const node = await resolveNodeRef(nodeRemoveOp.placeName);
+      let node = await resolveNodeRef(nodeRemoveOp.nodeId);
+      if (!node && nodeRemoveOp.nodeName) {
+        node = await resolveNodeRef(nodeRemoveOp.nodeName);
+      }
       if (node) {
+          if (nodeRemoveOp.nodeName && node.placeName.toLowerCase() !== nodeRemoveOp.nodeName.toLowerCase()) {
+              console.warn(`MapUpdate (nodesToRemove): nodeId "${nodeRemoveOp.nodeId}" resolves to "${node.placeName}" which mismatches provided nodeName "${nodeRemoveOp.nodeName}".`);
+          }
           const removedNodeId = node.id;
           const index = newMapData.nodes.findIndex(n => n.id === removedNodeId);
           if (index !== -1) newMapData.nodes.splice(index, 1);
@@ -883,10 +887,10 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
               if (v.id === removedNodeId) themeNodeAliasMap.delete(k);
           }
           // Remove from newNodesInBatchIdNameMap if it was added then removed in same batch
-          const batchKey = Object.keys(newNodesInBatchIdNameMap).find(k => newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.placeName);
+          const batchKey = Object.keys(newNodesInBatchIdNameMap).find(k => newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.nodeName);
           if (batchKey) delete newNodesInBatchIdNameMap[batchKey];
       } else {
-          console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.placeName}" not found for removal.`);
+          console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.nodeId || nodeRemoveOp.nodeName}" not found for removal.`);
       }
   }
 
@@ -1139,26 +1143,35 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
   }
 
   for (const edgeRemoveOp of edgesToRemove_mut) {
-      const sourceNodeRef = await resolveNodeRef(edgeRemoveOp.sourcePlaceName);
-      const targetNodeRef = await resolveNodeRef(edgeRemoveOp.targetPlaceName);
-      if (!sourceNodeRef || !targetNodeRef) { console.warn(`MapUpdate: Skipping edge removal due to missing source ("${edgeRemoveOp.sourcePlaceName}") or target ("${edgeRemoveOp.targetPlaceName}") node.`); continue; }
-      const sourceNodeId = sourceNodeRef.id; const targetNodeId = targetNodeRef.id;
-      const removalType = edgeRemoveOp.type;
-
-      const remainingEdges: MapEdge[] = [];
-      newMapData.edges.forEach(edge => {
-          const matchesNodes = (edge.sourceNodeId === sourceNodeId && edge.targetNodeId === targetNodeId) ||
-                               (edge.sourceNodeId === targetNodeId && edge.targetNodeId === sourceNodeId);
-          if (!matchesNodes || (removalType && edge.data.type !== removalType)) {
-              remainingEdges.push(edge);
-          } else {
-              const arr1 = themeEdgesMap.get(edge.sourceNodeId);
-              if (arr1) themeEdgesMap.set(edge.sourceNodeId, arr1.filter(e => e !== edge));
-              const arr2 = themeEdgesMap.get(edge.targetNodeId);
-              if (arr2) themeEdgesMap.set(edge.targetNodeId, arr2.filter(e => e !== edge));
+      let edge = newMapData.edges.find(e => e.id === edgeRemoveOp.edgeId) ||
+                 newMapData.edges.find(e => e.id.toLowerCase().includes(edgeRemoveOp.edgeId.toLowerCase()));
+      if (!edge && edgeRemoveOp.sourceId && edgeRemoveOp.targetId) {
+          const sourceNodeRef = await resolveNodeRef(edgeRemoveOp.sourceId);
+          const targetNodeRef = await resolveNodeRef(edgeRemoveOp.targetId);
+          if (!sourceNodeRef || !targetNodeRef) {
+              console.warn(`MapUpdate: Skipping edge removal due to missing source ("${edgeRemoveOp.sourceId}") or target ("${edgeRemoveOp.targetId}") node.`);
+              continue;
           }
-      });
-      newMapData.edges = remainingEdges;
+          edge = newMapData.edges.find(e => {
+              const matchesNodes = (e.sourceNodeId === sourceNodeRef.id && e.targetNodeId === targetNodeRef.id) ||
+                                   (e.sourceNodeId === targetNodeRef.id && e.targetNodeId === sourceNodeRef.id);
+              return matchesNodes;
+          }) || undefined;
+      } else if (edge) {
+          if ((edgeRemoveOp.sourceId && edge.sourceNodeId !== edgeRemoveOp.sourceId && edge.targetNodeId !== edgeRemoveOp.sourceId) ||
+              (edgeRemoveOp.targetId && edge.sourceNodeId !== edgeRemoveOp.targetId && edge.targetNodeId !== edgeRemoveOp.targetId)) {
+              console.warn(`MapUpdate (edgesToRemove): edgeId "${edgeRemoveOp.edgeId}" does not match provided sourceId/targetId.`);
+          }
+      }
+      if (!edge) {
+          console.warn(`MapUpdate (edgesToRemove): Edge "${edgeRemoveOp.edgeId}" not found for removal.`);
+          continue;
+      }
+      newMapData.edges = newMapData.edges.filter(e => e !== edge);
+      const arr1 = themeEdgesMap.get(edge.sourceNodeId);
+      if (arr1) themeEdgesMap.set(edge.sourceNodeId, arr1.filter(e2 => e2 !== edge));
+      const arr2 = themeEdgesMap.get(edge.targetNodeId);
+      if (arr2) themeEdgesMap.set(edge.targetNodeId, arr2.filter(e2 => e2 !== edge));
   }
 
   let chainRequests: EdgeChainRequest[] = pendingChainRequests.splice(0);

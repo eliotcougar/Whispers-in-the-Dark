@@ -55,7 +55,7 @@ Any subsection may be omitted or set to null when no updates are needed:
       }
     }
   ],
-  "nodesToRemove": [ { "placeName": "string" } ],
+  "nodesToRemove": [ { "nodeId": "string", "nodeName": "string" } ],
   "edgesToAdd": [ {
     "sourcePlaceName": "string",
     "targetPlaceName": "string",
@@ -76,8 +76,8 @@ Any subsection may be omitted or set to null when no updates are needed:
       "travelTime"?: string // Optional, e.g., "short", "1 day".
     }
   } ],
-  "edgesToRemove": [ { "sourcePlaceName": "string", "targetPlaceName": "string", "type"?: "string" /* Optional. If provided, only remove edges of this type. Valid types are: ${VALID_EDGE_TYPES_FOR_MAP_AI} */ } ],
-  "splitFamily"?: {
+  "edgesToRemove": [ { "edgeId": "string", "sourceId": "string", "targetId": "string" } ],
+  "splitFamily"?: { /* Use this to split a node into two, promoting one child to parent. */
     "originalNodeId": "string", /* Node that remains after split */
     "newNodeId": "string",      /* ID of child node promoted to parent */
     "newNodeType": "string",    /* Upgraded type for new parent. One of: ${VALID_NODE_TYPES_FOR_MAP_AI} */
@@ -92,7 +92,8 @@ ${MAP_NODE_TYPE_GUIDE}
 ${MAP_EDGE_TYPE_GUIDE}
 
 CRITICAL INSTRUCTIONS:
-- DO NOT add small items and characters to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Features represent sub-spaces within larger spaces. NEVER create nodes that represent inventory items.
+- All nodes MUST represent physical locations. NEVER add small items and characters to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Feature-type nodes represent sub-spaces within larger spaces. NEVER create nodes that represent inventory items.
+- IMPORTANT: Large multi-crew vehicles (e.g., ships, airships, spaceships, trains) can be represented as nodes if they are significant locations in the narrative. They should have a "nodeType" of "exterior" and MUST have sub-nodes for their interior spaces. When creating a node for a large vehicle, ensure it has a "description" that indicates its size and purpose, and that it contains a significant number of constituent nodes required for the large vehicle operation (e.g. main deck, engine room, captain's quarters, cargo hold, bridge, observation deck, reactor room, life support, etc.). At least one of the feature nodes must be clearly defined as a connection point to the outer world (e.g., "Docking Bay", "Hangar", "Airlock", "Gang Plank" etc.).
 - When considering a new location, check existing item and character names (including aliases). If the name matches or closely resembles one, SKIP adding that node and omit any edges that would connect to it.
 - Node Data for "nodesToAdd":
     - "description", "aliases", and "status" are ALWAYS REQUIRED in the "data" field for ALL added nodes.
@@ -106,14 +107,13 @@ CRITICAL INSTRUCTIONS:
     - You MUST include "parentNodeId" to specify the parent for every node except the root. The hierarchy relies solely on parentNodeId.
 - Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. NEVER create duplicates of existing nodes or edges.
 - NEVER add a node named "Universe" or create edges that reference a place named "Universe". That name is reserved for the root and already exists.
-- Edges only allowed to connect nodes of type='feature' that have the same parent (siblings), that have the same grandparent (grandchildren), or where one feature's parent is the grandparent of the other (child–grandchild), or edges of type='shortcut'.
+- Edges only allowed to connect nodes of type='feature' that have the same parent (siblings), that have the same grandparent (grandchildren), or where one feature's parent is the grandparent of the other (child-grandchild), or edges of type='shortcut'.
 - Edges of type 'shortcut' are exempt from these hierarchy restrictions but still must connect feature nodes.
 - When you add intermediate feature nodes to satisfy hierarchy rules, ALWAYS assign to them the same status as their parent node. Any edges created to replace a prior connection should keep that connection's status unless explicitly updated.
 - If the narrative suggests that a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "details" via "nodesToUpdate", rather than adding a new node.
 - If any new specific places (feature nodes) within or between main locations are described, add them and specify their parent via 'parentNodeId'.
 - Try to assign a definitive parent node to any orphan nodes (Parent node: N/A).
 - Try to fix any illogical inconsistencies in the hierarchy, such as a feature node that has no parent, illogical child-parent relationships, or wrong level of hierarchy.
-- All nodes MUST represent physical locations.
 - If connections (paths, doors, etc.) are revealed or changed, update edges.
 - If new details are revealed about a location (main or feature), update description and/or aliases.
 - If the Player's new 'localPlace' tells that they are at a specific feature node (existing or newly added), suggest it in 'suggestedCurrentMapNodeId'.
