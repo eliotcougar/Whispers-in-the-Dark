@@ -203,6 +203,18 @@ const DebugView: React.FC<DebugViewProps> = ({
                   renderContent("Cartographer AI Response Raw", debugPacket.mapUpdateDebugInfo.rawResponse, false) :
                   renderContent("Cartographer AI Response Parsed", debugPacket.mapUpdateDebugInfo.parsedPayload)
                 }
+                {debugPacket.mapUpdateDebugInfo.observations &&
+                  renderContent(
+                    "Cartographer Observations",
+                    debugPacket.mapUpdateDebugInfo.observations,
+                    false,
+                  )}
+                {debugPacket.mapUpdateDebugInfo.rationale &&
+                  renderContent(
+                    "Cartographer Rationale",
+                    debugPacket.mapUpdateDebugInfo.rationale,
+                    false,
+                  )}
                 {debugPacket.mapUpdateDebugInfo.validationError && renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false)}
                 {debugPacket.mapUpdateDebugInfo.minimalModelCalls &&
                   renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls)}

@@ -63,6 +63,8 @@ export interface MapUpdateServiceResult {
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
+    observations?: string;
+    rationale?: string;
     minimalModelCalls?: MinimalModelCallRecord[];
     connectorChainsDebugInfo?: {
       round: number;
@@ -447,6 +449,8 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
   let prompt = basePrompt;
   const debugInfo: MapUpdateServiceResult['debugInfo'] = {
     prompt: basePrompt,
+    observations: undefined,
+    rationale: undefined,
     minimalModelCalls,
     connectorChainsDebugInfo: [],
   };
@@ -466,6 +470,8 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
       const parsedPayloadAttempt = parseAIMapUpdateResponse(response.text ?? '');
 
       if (parsedPayloadAttempt) {
+        debugInfo.observations = parsedPayloadAttempt.observations ?? debugInfo.observations;
+        debugInfo.rationale = parsedPayloadAttempt.rationale ?? debugInfo.rationale;
         normalizeRemovalUpdates(parsedPayloadAttempt);
         const synonymErrors = normalizeStatusAndTypeSynonyms(parsedPayloadAttempt);
         dedupeEdgeOps(parsedPayloadAttempt);

@@ -354,6 +354,8 @@ export interface AIMapUpdatePayload {
   // parentNodeId is mandatory for each entry in nodesToAdd. The value is a NAME
   // of the intended parent node (use "Universe" for the root node).
   // Description and aliases are required for all new nodes.
+  observations?: string | null;
+  rationale?: string | null;
   nodesToAdd?: (AINodeUpdate & {
     data: {
       status: MapNodeData['status'];
@@ -397,6 +399,8 @@ export interface DebugPacket {
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
+    observations?: string;
+    rationale?: string;
     minimalModelCalls?: MinimalModelCallRecord[];
     connectorChainsDebugInfo?: {
       round: number;
