@@ -30,6 +30,11 @@ import CustomGameSetupScreen from './components/CustomGameSetupScreen';
 import { useLoadingProgress } from './hooks/useLoadingProgress';
 import { findTravelPath, TravelStep } from './utils/mapPathfinding';
 import { isDescendantIdOf } from './utils/mapGraphUtils';
+import {
+  applyNestedCircleLayout,
+  DEFAULT_NESTED_PADDING,
+  DEFAULT_NESTED_ANGLE_PADDING,
+} from './utils/mapLayoutUtils';
 
 import {
   saveGameStateToFile,
@@ -387,10 +392,21 @@ const App: React.FC = () => {
   const prevMapVisibleRef = useRef(false);
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {
+      const layoutNodes = applyNestedCircleLayout(
+        mapData.nodes.filter(n => n.themeName === currentTheme?.name).map(n => ({ ...n })),
+        {
+          padding:
+            mapLayoutConfig?.NESTED_PADDING ?? DEFAULT_NESTED_PADDING,
+          anglePadding:
+            mapLayoutConfig?.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING,
+        }
+      );
+      handleMapNodesPositionChange(layoutNodes);
+
       const parts = mapViewBox.split(' ').map(parseFloat);
       if (parts.length === 4) {
         const [, , vw, vh] = parts;
-        const node = mapData.nodes.find(n => n.id === currentMapNodeId);
+        const node = layoutNodes.find(n => n.id === currentMapNodeId);
         if (node && !isNaN(vw) && !isNaN(vh)) {
           setMapInitialViewBox(
             `${node.position.x - vw / 2} ${node.position.y - vh / 2} ${vw} ${vh}`
@@ -404,7 +420,15 @@ const App: React.FC = () => {
     }
     if (!isMapVisible) prevMapVisibleRef.current = false;
     else prevMapVisibleRef.current = true;
-  }, [isMapVisible, mapViewBox, currentMapNodeId, mapData.nodes]);
+  }, [
+    isMapVisible,
+    mapViewBox,
+    currentMapNodeId,
+    mapData.nodes,
+    currentTheme?.name,
+    mapLayoutConfig,
+    handleMapNodesPositionChange,
+  ]);
 
 
   if (!appReady) {
