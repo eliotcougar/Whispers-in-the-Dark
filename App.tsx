@@ -445,7 +445,7 @@ const App: React.FC = () => {
     <>
       <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-8 flex flex-col items-center">
         <header className="w-full max-w-screen-xl mb-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-sky-400 tracking-wider" style={{ fontFamily: "'Cinzel Decorative', cursive" }}>
+          <h1 className="text-4xl md:text-5xl font-bold text-sky-400 tracking-wider title-font">
             Whispers in the Dark
           </h1>
           {hasGameBeenInitialized && (

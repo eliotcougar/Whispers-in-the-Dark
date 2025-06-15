@@ -45,7 +45,7 @@ const TitleMenu: React.FC<TitleMenuProps> = ({
         )}
         <div className="flex flex-col items-center justify-center h-full w-full p-4 text-center">
           <header className="mb-10 md:mb-12">
-            <h1 id="title-menu-heading" className="text-4xl sm:text-5xl md:text-6xl font-bold text-sky-400 tracking-wider" style={{ fontFamily: "'Cinzel Decorative', cursive" }}>
+            <h1 id="title-menu-heading" className="text-4xl sm:text-5xl md:text-6xl font-bold text-sky-400 tracking-wider title-font">
               Whispers in the Dark
             </h1>
             <p className="text-slate-400 text-lg md:text-xl mt-2">An Adventure in Shifting Realities</p>
