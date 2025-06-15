@@ -53,6 +53,7 @@ export const LOADING_REASONS = [
   'storyteller',
   'map',
   'correction',
+  'inventory',
   'dialogue_turn',
   'dialogue_summary',
   'dialogue_memory_creation',

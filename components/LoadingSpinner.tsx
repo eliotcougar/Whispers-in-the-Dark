@@ -38,6 +38,9 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
     case 'correction':
       textMessage = "Dungeon Master is fixing mistakes...";
       break;
+    case 'inventory':
+      textMessage = "Dungeon Master is handling items...";
+      break;
     case 'dialogue_turn':
       textMessage = "The conversation continues...";
       break;
