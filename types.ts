@@ -408,6 +408,8 @@ export interface DebugPacket {
       rawResponse?: string;
       parsedPayload?: AIMapUpdatePayload;
       validationError?: string;
+      observations?: string;
+      rationale?: string;
     }[] | null;
   } | null;
   inventoryDebugInfo?: {
