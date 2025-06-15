@@ -109,7 +109,8 @@ CRITICAL INSTRUCTIONS:
 - When you add intermediate feature nodes to satisfy hierarchy rules, ALWAYS assign to them the same status as their parent node. Any edges created to replace a prior connection should keep that connection's status unless explicitly updated.
 - If the narrative suggests that a generic feature node (e.g., "Dark Alcove") has become more specific (e.g., "Shrine of Eldras"), UPDATE the existing feature node's "placeName" (if name changed via newData.placeName) and "details" via "nodesToUpdate", rather than adding a new node.
 - If any new specific places (feature nodes) within or between main locations are described, add them and specify their parent via 'parentNodeId'.
-- Check if you can assign a definitive parent node to any orphan nodes (Parent node: N/A).
+- Try to assign a definitive parent node to any orphan nodes (Parent node: N/A).
+- Try to fix any illogical inconsistencies in the hierarchy, such as a feature node that has no parent, illogical child-parent relationships, or wrong level of hierarchy.
 - All nodes MUST represent physical locations.
 - If connections (paths, doors, etc.) are revealed or changed, update edges.
 - If new details are revealed about a location (main or feature), update description and/or aliases.
