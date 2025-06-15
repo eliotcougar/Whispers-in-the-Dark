@@ -304,27 +304,30 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
       }
 
-      if (themeContextForResponse) {
-        const invResult = await applyInventoryHints_Service(
-          'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
-          'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
-          'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
-          ('newItems' in aiData && Array.isArray(aiData.newItems)) ? aiData.newItems : [],
-          playerActionText || '',
-          formatInventoryForPrompt(baseInventoryForPlayer),
-          formatInventoryForPrompt(locationInventory),
-          baseStateSnapshot.currentMapNodeId || null,
-          formatCharInventoryList(companionChars),
-          formatCharInventoryList(nearbyChars),
-          'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
-          aiData.logMessage,
-          themeContextForResponse
-        );
-        if (invResult) {
-          combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
-          if (draftState.lastDebugPacket)
-            draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
-        }
+        if (themeContextForResponse) {
+          const originalLoadingReason = loadingReason;
+          setLoadingReason('inventory');
+          const invResult = await applyInventoryHints_Service(
+            'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
+            'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
+            'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
+            ('newItems' in aiData && Array.isArray(aiData.newItems)) ? aiData.newItems : [],
+            playerActionText || '',
+            formatInventoryForPrompt(baseInventoryForPlayer),
+            formatInventoryForPrompt(locationInventory),
+            baseStateSnapshot.currentMapNodeId || null,
+            formatCharInventoryList(companionChars),
+            formatCharInventoryList(nearbyChars),
+            'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
+            aiData.logMessage,
+            themeContextForResponse
+          );
+          setLoadingReason(originalLoadingReason);
+          if (invResult) {
+            combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
+            if (draftState.lastDebugPacket)
+              draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
+          }
       }
 
       turnChanges.itemChanges = buildItemChangeRecords(combinedItemChanges, baseInventoryForPlayer);
