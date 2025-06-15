@@ -26,7 +26,9 @@ export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 
 export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
 export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift
-export const DEFAULT_ENABLED_THEME_PACKS = [...ALL_THEME_PACK_NAMES];
+export const DEFAULT_ENABLED_THEME_PACKS = ALL_THEME_PACK_NAMES.filter(
+  name => name !== 'Testing'
+);
 export const DEFAULT_PLAYER_GENDER = "Male";
 export const PLAYER_HOLDER_ID = "player";
 
