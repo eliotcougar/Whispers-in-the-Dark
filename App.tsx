@@ -560,15 +560,15 @@ const App: React.FC = () => {
           </div>
 
           <div className="lg:col-span-2 space-y-6 flex flex-col">
-          <LocationItemsDisplay
-            items={itemsHere}
-            onTakeItem={handleTakeLocationItem}
-            disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
-          />
           <QuestInfoBox
             mainQuest={hasGameBeenInitialized ? mainQuest : null}
             currentObjective={hasGameBeenInitialized ? currentObjective : null}
             objectiveAnimationType={objectiveAnimationType}
+          />
+          <LocationItemsDisplay
+            items={itemsHere}
+            onTakeItem={handleTakeLocationItem}
+            disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
           />
           <InventoryDisplay
             items={inventory}
