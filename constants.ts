@@ -24,7 +24,7 @@ export const CURRENT_GAME_VERSION = "1.3 (Spatio-Temporal Update)";
 export const CURRENT_SAVE_GAME_VERSION = "4";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 
-export const DEFAULT_STABILITY_LEVEL = 20; // Number of turns before chaos can occur
+export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
 export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift
 export const DEFAULT_ENABLED_THEME_PACKS = [...ALL_THEME_PACK_NAMES];
 export const DEFAULT_PLAYER_GENDER = "Male";

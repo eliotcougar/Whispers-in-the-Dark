@@ -1,5 +1,5 @@
 /* Main stylesheet for Whispers in the Dark */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap');
 
 body {
   font-family: "Georgia", serif; /* Thematic font */
@@ -7,7 +7,12 @@ body {
 
 /* Font used for the main game title */
 .title-font {
-  font-family: 'Cinzel Decorative', cursive;
+  font-family: "Tektur", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
 }
 /* Custom scrollbar for a more thematic feel */
 ::-webkit-scrollbar {
