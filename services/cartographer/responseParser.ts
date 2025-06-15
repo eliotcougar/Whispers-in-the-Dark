@@ -167,6 +167,12 @@ export const parseAIMapUpdateResponse = (
           if (maybeObj.splitFamily && !acc.splitFamily) {
             acc.splitFamily = maybeObj.splitFamily;
           }
+          if (maybeObj.observations && !acc.observations) {
+            acc.observations = maybeObj.observations;
+          }
+          if (maybeObj.rationale && !acc.rationale) {
+            acc.rationale = maybeObj.rationale;
+          }
         }
         return acc;
       }, {} as AIMapUpdatePayload);
