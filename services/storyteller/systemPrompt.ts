@@ -11,11 +11,13 @@ export const SYSTEM_INSTRUCTION = `You are the Dungeon Master for a text-based a
 Respond ONLY in JSON format with the following structure:
 {
   "sceneDescription": "string", /* Detailed, engaging description, considering Current Theme Guidance, active items, known Locations, known Characters, Local Time, Local Environment, Local Place, Player's Character Gender. */
-  "options": [ /* REQUIRED. ALWAYS provide FOUR distinct "options". Tailor them to the full context. */
+  "options": [ /* REQUIRED. ALWAYS provide SIX distinct "options". Tailor them to the full context. */
     "Action 1",
     "Action 2",
     "Action 3",
-    "Action 4"
+    "Action 4",
+    "Action 5",
+    "Action 6"
   ],
   "logMessage": "string", /* REQUIRED. Outcome of the player's *previous* action or an important event. This should reflect the presence and actions of characters with 'companion' or 'nearby' status. */
   "localTime": "string", /* REQUIRED. A concise string describing current time. e.g. "Midday", "Early morning" "12:30". Update based on events. */

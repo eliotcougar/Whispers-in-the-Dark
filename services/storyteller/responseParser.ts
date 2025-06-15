@@ -6,6 +6,7 @@
 import { GameStateFromAI, Item, Character, MapData,
     ValidCharacterUpdatePayload, ValidNewCharacterPayload, DialogueSetupPayload,
     MapNode, AdventureTheme } from '../../types';
+import { MAIN_TURN_OPTIONS_COUNT } from '../../constants';
 import {
     isValidCharacterUpdate,
     isValidNewCharacterPayload,
@@ -440,7 +441,7 @@ export async function parseAIResponse(
                 isDialogueTurn = false;
                 if (!Array.isArray(validated.options) || validated.options.length === 0 || !validated.options.every((opt: unknown) => typeof opt === 'string' && opt.trim() !== '')) {
                     console.warn('parseAIResponse: options invalid after dialogue cancellation. Resetting to default failsafe.', validated.options);
-                    validated.options = ['Look around.', 'Ponder the situation.', 'Check inventory.', 'Try to move on.'];
+                    validated.options = ['Look around.', 'Ponder the situation.', 'Check inventory.', 'Try to move on.', 'Consider your objective.', 'Plan your next steps.'];
                 }
             } else if (validated.dialogueSetup) {
                 validated.dialogueSetup.participants = finalValidParticipants;
@@ -453,8 +454,8 @@ export async function parseAIResponse(
                 onParseAttemptFailed?.();
                 return null;
             }
-            while (validated.options.length < 4) validated.options.push('...');
-            if (validated.options.length > 4) validated.options = validated.options.slice(0, 4);
+            while (validated.options.length < MAIN_TURN_OPTIONS_COUNT) validated.options.push('...');
+            if (validated.options.length > MAIN_TURN_OPTIONS_COUNT) validated.options = validated.options.slice(0, MAIN_TURN_OPTIONS_COUNT);
         } else {
             validated.options = [];
         }

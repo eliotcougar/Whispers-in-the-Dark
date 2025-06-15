@@ -210,7 +210,14 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if ('options' in aiData && aiData.options && aiData.options.length > 0 && !('dialogueSetup' in aiData && aiData.dialogueSetup)) {
         draftState.actionOptions = aiData.options;
       } else if (!isFromDialogueSummary && !('dialogueSetup' in aiData && aiData.dialogueSetup)) {
-        draftState.actionOptions = ['Look around.', 'Ponder your situation.', 'Check your inventory.', 'Wait for something to happen.'];
+        draftState.actionOptions = [
+          'Look around.',
+          'Ponder your situation.',
+          'Check your inventory.',
+          'Wait for something to happen.',
+          'Consider your objective.',
+          'Plan your next steps.'
+        ];
       }
 
       const aiItemChangesFromParser = aiData.itemChange || [];
@@ -481,7 +488,14 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
         draftState = structuredCloneGameState(baseStateSnapshot);
         draftState.lastActionLog = `Your action ("${action}") caused a ripple in reality, but the outcome is obscured.`;
-        draftState.actionOptions = ['Look around.', 'Ponder the situation.', 'Check your inventory.', 'Try to move on.'];
+        draftState.actionOptions = [
+          'Look around.',
+          'Ponder the situation.',
+          'Check your inventory.',
+          'Try to move on.',
+          'Consider your objective.',
+          'Plan your next steps.'
+        ];
         draftState.dialogueState = null;
         draftState.lastDebugPacket = { ...debugPacket, error: e instanceof Error ? e.message : String(e) };
       } finally {
