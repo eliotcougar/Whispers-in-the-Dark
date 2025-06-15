@@ -18,7 +18,7 @@ interface MainToolbarProps {
   onOpenInfo: () => void;
   onOpenVisualizer: () => void;
   onOpenKnowledgeBase: () => void;
-  onOpenThemeMemory: () => void; 
+  onOpenHistory: () => void;
   onOpenMap: () => void; // Added for Map
   onOpenTitleMenu: () => void;
   onManualRealityShift: () => void;
@@ -36,7 +36,7 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
   onOpenInfo,
   onOpenVisualizer,
   onOpenKnowledgeBase,
-  onOpenThemeMemory, 
+  onOpenHistory,
   onOpenMap, // Added for Map
   onOpenTitleMenu,
   onManualRealityShift,
@@ -108,13 +108,13 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
           <BookOpenIcon />
         </button>
         <button
-          onClick={onOpenThemeMemory} 
+          onClick={onOpenHistory}
           disabled={isLoading || !currentThemeName}
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md 
+          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                     disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                     transition-colors duration-150"
-          title="View Echoes of Past Realities"
-          aria-label="View Echoes of Past Realities"
+          title="Open History"
+          aria-label="Open History"
         >
           <ScrollIcon />
         </button>

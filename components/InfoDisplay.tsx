@@ -69,7 +69,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
             <div className="space-y-3 text-slate-300 leading-relaxed">
               <p><strong>Image Visualizer:</strong> Click the &quot;eye&quot; icon to generate an AI-powered image representing the current scene. It uses Imagen 3, and the daily quota is not very big. Use sporadingly.</p>
               <p><strong>Knowledge Base:</strong> Click the &quot;book&quot; icon to view details about all Places and Characters you&apos;ve discovered across different themes.</p>
-              <p><strong>Echoes of Past Realities:</strong> This panel (part of the main game screen) shows a summary of themes you&apos;ve previously experienced, helping you remember past adventures.</p>
+              <p><strong>History:</strong> This panel shows your Game Log and a summary of themes you&apos;ve previously experienced.</p>
               <p><strong>Map Display:</strong> Use the map icon to view a dynamic graph of locations within the current theme, showing connections and your current position.</p>
             </div>
           </section>
@@ -154,7 +154,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                   <li>Implemented tracking of Companions and nearby NPCs in the scene context for better cohesion.</li>
                   <li>Biggest feature - Conversations with characters.</li>
                   <li>Moved New Game, Save Game, Load Game, and Settings to the Main Menu.</li>
-                  <li>Moved Echoes of Past Realities to a dedicated screen next to Knowledge Base.</li>
+                  <li>Moved History to a dedicated screen next to Knowledge Base.</li>
                   <li>Inventory Items can now be arranged in multiple columns on bigger screens.</li>
                   <li>Basic Inventory sorting.</li>
                   <li>Fixed the ability to exit and enter vehicles. (Try exiting an airship while it&apos;s flying)</li>
@@ -171,7 +171,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                   <li>Introduced &quot;Custom Action&quot; input field for more player agency.</li>
                   <li>Added confirmation dialogs for &quot;Restart Game&quot; and &quot;Force Reality Shift&quot; actions.</li>
                   <li>Initial screen now offers &quot;Start a New Adventure&quot; or &quot;Load a Save File&quot; before gameplay begins.</li>
-                  <li>Simplified &quot;Echoes of Past Realities&quot; display to show only theme name and summary for a cleaner look.</li>
+                  <li>Simplified History display to show only theme name and summary for a cleaner look.</li>
                   <li>Standardized font sizes across various UI boxes (Quest, Objective, Last Action, Options) for consistency.</li>
                   <li>Added Knowledge Base where you can see all the Places and Characters encountered.</li>
                   <li>Added Visualizer that uses Imagen 3 to show the current scene.</li>
@@ -199,7 +199,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                   <li>Game log to track player actions and key events.</li>
                   <li>Autosave functionality to browser&apos;s local storage.</li>
                   <li>Manual save and load game to/from a file.</li>
-                  <li>Theme Memory (&quot;Echoes of Past Realities&quot;) to summarize experiences in past themes.</li>
+                  <li>History panel to summarize experiences in past themes.</li>
                 </ul>
               </div>
             </div>

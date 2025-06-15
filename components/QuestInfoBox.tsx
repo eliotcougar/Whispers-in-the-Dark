@@ -1,0 +1,35 @@
+import React, { useMemo } from 'react';
+
+interface QuestInfoBoxProps {
+  mainQuest?: string | null;
+  currentObjective?: string | null;
+  objectiveAnimationType?: 'success' | 'neutral' | null;
+}
+
+const QuestInfoBox: React.FC<QuestInfoBoxProps> = ({ mainQuest, currentObjective, objectiveAnimationType }) => {
+  const objectiveBoxClasses = useMemo(() => {
+    const baseClass = 'p-3 bg-amber-900/50 border border-amber-700 rounded-md';
+    if (objectiveAnimationType === 'success') return `${baseClass} animate-objective-success`;
+    if (objectiveAnimationType === 'neutral') return `${baseClass} animate-objective-neutral`;
+    return baseClass;
+  }, [objectiveAnimationType]);
+
+  return (
+    <div className="space-y-4">
+      {mainQuest && (
+        <div className="p-3 bg-purple-900/50 border border-purple-700 rounded-md">
+          <h3 className="text-lg font-semibold text-purple-300">Main Quest:</h3>
+          <p className="text-purple-200 text-lg">{mainQuest}</p>
+        </div>
+      )}
+      {currentObjective && (
+        <div className={objectiveBoxClasses}>
+          <h3 className="text-lg font-semibold text-amber-300">Current Objective:</h3>
+          <p className="text-amber-200 text-lg">{currentObjective}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default QuestInfoBox;
