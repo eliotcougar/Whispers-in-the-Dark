@@ -428,7 +428,7 @@ export const updateMapFromAIData_Service = async (
 ${currentThemeNodesFromMapData.length > 0 ? buildHierarchyLines(currentThemeNodesFromMapData).join('\n') : 'None exist yet.'}
 
 Current Map Edges (for your reference):
-${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- ${e.data.status || 'N/A'} ${e.data.type || 'N/A'} from ${e.sourceNodeId} to ${e.targetNodeId}`).join('\n') : 'None exist yet.'}
+${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e => `- ${e.data.status || 'N/A'} ${e.data.type || 'N/A'} ID: ${e.id}, from ${e.sourceNodeId} to ${e.targetNodeId}`).join('\n') : 'None exist yet.'}
 `;
 
   const allKnownMainPlacesString = allKnownMainMapNodesForTheme.length > 0
