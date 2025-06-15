@@ -30,6 +30,8 @@ export const DEFAULT_ENABLED_THEME_PACKS = [...ALL_THEME_PACK_NAMES];
 export const DEFAULT_PLAYER_GENDER = "Male";
 export const PLAYER_HOLDER_ID = "player";
 
+export const MAIN_TURN_OPTIONS_COUNT = 6; // Number of action choices shown each main turn
+
 export const FREE_FORM_ACTION_MAX_LENGTH = 70;
 export const FREE_FORM_ACTION_COST = 5;
 

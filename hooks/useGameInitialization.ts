@@ -436,6 +436,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           'Ponder the situation.',
           'Try to move on.',
           'Check your inventory.',
+          'Consider your objective.',
+          'Plan your next steps.'
         ],
         lastActionLog: 'Attempting to re-establish connection with the narrative flow...',
         dialogueState: null,
@@ -527,6 +529,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         'Ponder the situation.',
         'Check your inventory.',
         'Try to move on.',
+        'Consider your objective.',
+        'Plan your next steps.'
       ];
       draftState.dialogueState = null;
       if (draftState.lastDebugPacket)
