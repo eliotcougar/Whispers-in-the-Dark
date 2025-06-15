@@ -95,8 +95,13 @@ export const parseDialogueSummaryResponse = (
   const parsed = safeParseJson<Partial<DialogueSummaryResponse>>(jsonStr);
   try {
     if (!parsed) throw new Error('JSON parse failed');
+
+    const sanitized = Object.fromEntries(
+      Object.entries(parsed).map(([k, v]) => [k, v === null ? undefined : v]),
+    ) as Partial<DialogueSummaryResponse>;
+
     const validated: DialogueSummaryResponse = {
-      ...parsed,
+      ...sanitized,
       itemChange: [],
     } as DialogueSummaryResponse;
 
