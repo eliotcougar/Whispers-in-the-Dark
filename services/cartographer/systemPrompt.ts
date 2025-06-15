@@ -55,7 +55,7 @@ Any subsection may be omitted or set to null when no updates are needed:
       }
     }
   ],
-  "nodesToRemove": [ { "placeName": "string" } ],
+  "nodesToRemove": [ { "nodeId": "string", "nodeName"?: "string" } ],
   "edgesToAdd": [ {
     "sourcePlaceName": "string",
     "targetPlaceName": "string",
@@ -76,7 +76,7 @@ Any subsection may be omitted or set to null when no updates are needed:
       "travelTime"?: string // Optional, e.g., "short", "1 day".
     }
   } ],
-  "edgesToRemove": [ { "sourcePlaceName": "string", "targetPlaceName": "string", "type"?: "string" /* Optional. If provided, only remove edges of this type. Valid types are: ${VALID_EDGE_TYPES_FOR_MAP_AI} */ } ],
+  "edgesToRemove": [ { "edgeId": "string", "sourceId"?: "string", "targetId"?: "string" } ],
   "splitFamily"?: {
     "originalNodeId": "string", /* Node that remains after split */
     "newNodeId": "string",      /* ID of child node promoted to parent */

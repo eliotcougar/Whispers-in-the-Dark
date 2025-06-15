@@ -363,10 +363,10 @@ export interface AIMapUpdatePayload {
     } & Partial<Omit<MapNodeData, 'status' | 'parentNodeId'>>;
   })[] | null;
   nodesToUpdate?: { placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }[] | null; // Added placeName to newData for renaming
-  nodesToRemove?: { placeName: string; }[] | null;
+  nodesToRemove?: { nodeId: string; nodeName?: string; }[] | null;
   edgesToAdd?: { sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }[] | null;
   edgesToUpdate?: AIEdgeUpdate[] | null;
-  edgesToRemove?: { sourcePlaceName: string; targetPlaceName: string; type?: MapEdgeData['type']; }[] | null;
+  edgesToRemove?: { edgeId: string; sourceId?: string; targetId?: string; }[] | null;
   suggestedCurrentMapNodeId?: string | null | undefined;
   splitFamily?: AISplitFamilyOperation | null | undefined;
 }

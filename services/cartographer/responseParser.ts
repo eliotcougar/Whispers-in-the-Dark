@@ -86,15 +86,7 @@ const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] =
   (payload.nodesToUpdate || []).forEach((n, idx) => applyNodeDataFix(n.newData, `nodesToUpdate[${idx}].newData`));
   (payload.edgesToAdd || []).forEach((e, idx) => applyEdgeDataFix(e.data, `edgesToAdd[${idx}]`));
   (payload.edgesToUpdate || []).forEach((e, idx) => applyEdgeDataFix(e.newData, `edgesToUpdate[${idx}].newData`));
-  (payload.edgesToRemove || []).forEach((e, idx) => {
-    if (e.type) {
-      const mapped = edgeTypeSynonyms[e.type.toLowerCase()];
-      if (mapped) e.type = mapped;
-      if (!VALID_EDGE_TYPE_VALUES.includes(e.type)) {
-        errors.push(`edgesToRemove[${idx}] invalid type "${e.type}"`);
-      }
-    }
-  });
+  // edgesToRemove no longer requires type normalization
 
   if (payload.splitFamily && payload.splitFamily.newNodeType) {
     const mapped = nodeTypeSynonyms[payload.splitFamily.newNodeType.toLowerCase()];
@@ -190,7 +182,7 @@ export const parseAIMapUpdateResponse = (
         payload.nodesToUpdate = payload.nodesToUpdate.filter(n => !nameIsUniverse(n.placeName));
       }
       if (Array.isArray(payload.nodesToRemove)) {
-        payload.nodesToRemove = payload.nodesToRemove.filter(n => !nameIsUniverse(n.placeName));
+        payload.nodesToRemove = payload.nodesToRemove.filter(n => !nameIsUniverse(n.nodeName));
       }
       const filterEdgeArray = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
         arr: T[] | undefined,
@@ -205,7 +197,7 @@ export const parseAIMapUpdateResponse = (
         payload.edgesToUpdate = filterEdgeArray(payload.edgesToUpdate);
       }
       if (Array.isArray(payload.edgesToRemove)) {
-        payload.edgesToRemove = filterEdgeArray(payload.edgesToRemove);
+        // edgesToRemove now uses IDs; no Universe filtering needed
       }
 
       // Normalize any synonym values before validation so parsing succeeds
