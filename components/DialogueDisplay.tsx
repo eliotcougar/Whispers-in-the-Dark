@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types'; 
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 import LoadingSpinner from './LoadingSpinner';
+import ModelUsageIndicators from './ModelUsageIndicators';
 
 interface DialogueDisplayProps {
   isVisible: boolean;
@@ -155,7 +156,11 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
           })}
         </div>
 
-        <div className="dialogue-options-area mt-auto border-t border-slate-600 pt-4">
+        <div className="dialogue-options-area mt-auto pt-4">
+          <div className="flex items-center mb-2">
+            <ModelUsageIndicators />
+            <div className="flex-grow border-t border-slate-600 ml-2" />
+          </div>
           {renderOptionsArea()}
         </div>
       </div>
