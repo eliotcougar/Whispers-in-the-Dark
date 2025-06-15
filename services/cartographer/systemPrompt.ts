@@ -28,8 +28,8 @@ You may receive a "Map Hint" string from the storyteller describing distant ques
 Respond ONLY with a single JSON object adhering to the following structure.
 Any property may be omitted or set to null when no updates are needed:
 {
-  "observations": "string", /* REQUIRED. Contextually relevant observations about the current state of the map graph, focusing on Player's current location and its immediate surroundings and connections. Note any illogical discrepancies in nodes relationships and connections. Minimum 1000 chars. */
-  "rationale": "string", /* REQUIRED. Explanation of the reasons for the changes you make. */
+  "observations": "string", /* REQUIRED. Contextually relevant observations about the current state of the map graph, focusing on Player's current location and its immediate surroundings and connections. Note any illogical discrepancies in nodes relationships and connections. Minimum 2000 chars. */
+  "rationale": "string", /* REQUIRED. Explanation of the reasons for the changes you make. Remember, feature nodes cannot be parents of other feature nodes. */
   "nodesToAdd": [
     {
       "placeName": "string", // Name of the node. For sub-locations this can be a descriptive feature name.
