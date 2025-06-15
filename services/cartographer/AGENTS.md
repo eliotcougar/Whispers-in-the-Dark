@@ -7,3 +7,4 @@ The **cartographer** service is responsible for updating the map. It calls the a
 * `index.ts` – re-exports these helpers.
 
 Edits here should maintain strict validation rules so invalid map structures do not propagate to the rest of the game.
+Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.

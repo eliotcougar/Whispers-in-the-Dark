@@ -26,8 +26,8 @@ ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,
  - Wait for Player's Input.
  - Construct the request prompt to the AI storyteller using current Game State and Player's Input.
  - Wait for the response from AI storyteller API.
- - Validate the data structures in the JSON response from AI storyteller.
- - Attempt to fix the errors in the response (for example, wrong name identifiers for game entities, missing fields) using in-place heuristics or using special requests to an auxiliary AI.
+ - Validate the data structures in the JSON response from AI storyteller. Attempt to fix the errors in the response (for example, wrong name identifiers for game entities, missing fields) using in-place heuristics or using special requests to correction AIs.
+ - Pass the results to the additional AIs that operate the map structure, inventory, dialogue, and everything else. Attempt to fix the errors in their responses (for example, wrong name identifiers for game entities, missing fields) using in-place heuristics or using special requests to correction AIs.
  - Construct the next Game State and Turn Changes objects.
  - Repeat.
 

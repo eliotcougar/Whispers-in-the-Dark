@@ -7,3 +7,4 @@ The **storyteller** service encapsulates all communication with the main narrati
 * `index.ts` – re-exports the modules above for convenient importing.
 
 When modifying this service keep the prompt format and returned interfaces aligned with code in `useGameLogic` and the AI prompts.
+Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.

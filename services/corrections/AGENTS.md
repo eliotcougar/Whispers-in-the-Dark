@@ -7,3 +7,4 @@ The **corrections** helpers attempt to fix malformed AI responses. They are used
 * `index.ts` – exports all correction helpers together.
 
 Use these utilities to keep the game running smoothly when the main models return inconsistent data.
+Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.

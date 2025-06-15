@@ -7,3 +7,4 @@ The **inventory** service coordinates small item management requests to the AI. 
 * `index.ts` – re-exports these helpers for convenient importing.
 
 Maintain compatibility between the prompt builder and parser when adjusting this service.
+Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.
