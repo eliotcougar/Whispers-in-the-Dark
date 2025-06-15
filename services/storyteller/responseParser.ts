@@ -62,23 +62,23 @@ function validateBasicStructure(
     }
 
     const baseFieldsValid =
-        (data.mainQuest === undefined || typeof data.mainQuest === 'string') &&
-        (data.currentObjective === undefined || typeof data.currentObjective === 'string') &&
-        (data.logMessage === undefined || typeof data.logMessage === 'string') &&
-        (data.charactersAdded === undefined || Array.isArray(data.charactersAdded)) &&
-        (data.charactersUpdated === undefined || Array.isArray(data.charactersUpdated)) &&
-        (data.objectiveAchieved === undefined || typeof data.objectiveAchieved === 'boolean') &&
-        (data.localTime === undefined || typeof data.localTime === 'string') &&
-        (data.localEnvironment === undefined || typeof data.localEnvironment === 'string') &&
-        (data.localPlace === undefined || typeof data.localPlace === 'string') &&
-        (data.dialogueSetup === undefined || typeof data.dialogueSetup === 'object') &&
-        (data.mapUpdated === undefined || typeof data.mapUpdated === 'boolean') &&
+        (data.mainQuest === undefined || data.mainQuest === null || typeof data.mainQuest === 'string') &&
+        (data.currentObjective === undefined || data.currentObjective === null || typeof data.currentObjective === 'string') &&
+        (data.logMessage === undefined || data.logMessage === null || typeof data.logMessage === 'string') &&
+        (data.charactersAdded === undefined || data.charactersAdded === null || Array.isArray(data.charactersAdded)) &&
+        (data.charactersUpdated === undefined || data.charactersUpdated === null || Array.isArray(data.charactersUpdated)) &&
+        (data.objectiveAchieved === undefined || data.objectiveAchieved === null || typeof data.objectiveAchieved === 'boolean') &&
+        (data.localTime === undefined || data.localTime === null || typeof data.localTime === 'string') &&
+        (data.localEnvironment === undefined || data.localEnvironment === null || typeof data.localEnvironment === 'string') &&
+        (data.localPlace === undefined || data.localPlace === null || typeof data.localPlace === 'string') &&
+        (data.dialogueSetup === undefined || data.dialogueSetup === null || typeof data.dialogueSetup === 'object') &&
+        (data.mapUpdated === undefined || data.mapUpdated === null || typeof data.mapUpdated === 'boolean') &&
         (data.currentMapNodeId === undefined || data.currentMapNodeId === null || typeof data.currentMapNodeId === 'string') &&
-        (data.mapHint === undefined || typeof data.mapHint === 'string') &&
-        (data.playerItemsHint === undefined || typeof data.playerItemsHint === 'string') &&
-        (data.worldItemsHint === undefined || typeof data.worldItemsHint === 'string') &&
-        (data.npcItemsHint === undefined || typeof data.npcItemsHint === 'string') &&
-        (data.newItems === undefined || Array.isArray(data.newItems));
+        (data.mapHint === undefined || data.mapHint === null || typeof data.mapHint === 'string') &&
+        (data.playerItemsHint === undefined || data.playerItemsHint === null || typeof data.playerItemsHint === 'string') &&
+        (data.worldItemsHint === undefined || data.worldItemsHint === null || typeof data.worldItemsHint === 'string') &&
+        (data.npcItemsHint === undefined || data.npcItemsHint === null || typeof data.npcItemsHint === 'string') &&
+        (data.newItems === undefined || data.newItems === null || Array.isArray(data.newItems));
 
     if (!baseFieldsValid) {
         console.warn('parseAIResponse: Basic field validation failed (pre-dialogue specifics and array checks).', parsedData);
@@ -86,7 +86,11 @@ function validateBasicStructure(
         return null;
     }
 
-    return data as Partial<GameStateFromAI>;
+    const sanitized = Object.fromEntries(
+        Object.entries(data).map(([k, v]) => [k, v === null ? undefined : v])
+    );
+
+    return sanitized as Partial<GameStateFromAI>;
 }
 
 /**
