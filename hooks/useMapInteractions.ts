@@ -224,5 +224,3 @@ export const useMapInteractions = (
     handleTouchEnd,
   };
 };
-
-export default useMapInteractions;
