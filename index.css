@@ -441,7 +441,8 @@ body {
   font-size: 0.9rem; /* Slightly larger font */
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
   pointer-events: none;
-  max-width: 280px; /* Increased max-width */
+  width: 260px; /* Constant width to prevent shrink near edges */
+  max-width: 260px;
   z-index: 70;
   white-space: pre-wrap;
   transition: opacity 0.1s ease-in-out; /* Smooth appear/disappear if needed */
