@@ -19,7 +19,10 @@ import { DIALOGUE_SYSTEM_INSTRUCTION } from './systemPrompt';
 import { SYSTEM_INSTRUCTION } from '../storyteller/systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
-import { callMinimalCorrectionAI, fetchCorrectedDialogueTurn_Service } from '../corrections';
+import { fetchCorrectedDialogueTurn_Service } from '../corrections';
+import { CORRECTION_TEMPERATURE } from '../../constants';
+import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME } from '../../constants';
+import { addProgressSymbol } from '../../utils/loadingProgress';
 import { isApiConfigured } from '../apiClient';
 import { buildDialogueTurnPrompt, buildDialogueSummaryPrompt, buildDialogueMemorySummaryPrompts } from './promptBuilder';
 import {
@@ -221,7 +224,15 @@ export const executeMemorySummary = async (
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) {
     try {
       console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 1})`);
-      const memoryText = await callMinimalCorrectionAI(userPromptPart, systemInstructionPart);
+      addProgressSymbol('○');
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME],
+        prompt: userPromptPart,
+        systemInstruction: systemInstructionPart,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const memoryText = response.text?.trim() ?? null;
       if (memoryText && memoryText.length > 0) {
         console.log(`summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`);
         return memoryText;

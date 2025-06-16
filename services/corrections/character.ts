@@ -3,9 +3,19 @@
  * @description Correction helpers for character related data.
  */
 import { AdventureTheme, Character, MapNode } from '../../types';
-import { MAX_RETRIES, VALID_PRESENCE_STATUS_VALUES, VALID_PRESENCE_STATUS_VALUES_STRING } from '../../constants';
+import {
+  MAX_RETRIES,
+  VALID_PRESENCE_STATUS_VALUES,
+  VALID_PRESENCE_STATUS_VALUES_STRING,
+  MINIMAL_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+} from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
-import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { CORRECTION_TEMPERATURE } from '../../constants';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { addProgressSymbol } from '../../utils/loadingProgress';
+import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
 
@@ -68,7 +78,16 @@ Constraints:
 
   return retryAiCall<CorrectedCharacterDetails>(async attempt => {
     try {
-      const aiResponse = await callCorrectionAI<CorrectedCharacterDetails>(prompt, systemInstruction);
+      addProgressSymbol('●');
+      const { response } = await dispatchAIRequest({
+        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        responseMimeType: 'application/json',
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = safeParseJson<CorrectedCharacterDetails>(extractJsonFromFence(response.text ?? ''));
       if (
         aiResponse &&
         typeof aiResponse.description === 'string' &&
@@ -154,7 +173,15 @@ Example Response: If unclear from context, respond with a generic but plausible 
 
   return retryAiCall<string>(async attempt => {
     try {
-      const aiResponse = await callMinimalCorrectionAI(prompt, systemInstruction);
+      addProgressSymbol('○');
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = response.text?.trim() ?? null;
       if (aiResponse !== null) {
         const correctedLocation = aiResponse.trim();
         if (correctedLocation.length > 0 && correctedLocation.length <= 60) {

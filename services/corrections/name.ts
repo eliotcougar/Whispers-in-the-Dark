@@ -3,8 +3,15 @@
  * @description Correction helper for resolving malformed entity names.
  */
 import { AdventureTheme } from '../../types';
-import { MAX_RETRIES } from '../../constants';
-import { callMinimalCorrectionAI } from './base';
+import {
+  MAX_RETRIES,
+  MINIMAL_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+} from '../../constants';
+import { CORRECTION_TEMPERATURE } from '../../constants';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { addProgressSymbol } from '../../utils/loadingProgress';
 import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
 
@@ -50,10 +57,15 @@ If no suitable match can be confidently made, respond with an empty string.`;
 
   return retryAiCall<string>(async attempt => {
     try {
-      const aiResponse = await callMinimalCorrectionAI(
+      addProgressSymbol('○');
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
-      );
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = response.text?.trim() ?? null;
       if (aiResponse !== null) {
         let correctedName = aiResponse.trim();
         correctedName = correctedName.replace(/^['"]+|['"]+$/g, '').trim();

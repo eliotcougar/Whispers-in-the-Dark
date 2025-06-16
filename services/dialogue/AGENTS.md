@@ -8,3 +8,17 @@ The **dialogue** service handles conversational interactions with NPCs. It gener
 
 Maintain compatibility between dialogue prompts and the parser whenever adjustments are made.
 Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.
+
+### Gemini API call guidelines
+
+- Use `retryAiCall` to wrap Gemini requests so failures are automatically retried.
+- Call `addProgressSymbol` before each dispatch for UI feedback.
+- All dialogue requests must use `dispatchAIRequest`.
+
+### Variable naming guidelines
+
+- `prompt` – string sent as the user content of the AI request.
+- `systemInstruction` – accompanying system instruction string.
+- `aiResponse` – raw value returned from the AI call.
+- `parsedResult` – JSON-parsed form of `aiResponse` when needed.
+- `validated*` – results after type validation, e.g. `validatedChanges`.
