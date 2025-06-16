@@ -15,6 +15,7 @@ import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { CORRECTION_TEMPERATURE } from './base';
+import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -67,28 +68,31 @@ Guidance for "localPlace":
 
 Respond ONLY with the inferred "localPlace" as a single string.`;
 
-  const systemInstructionForFix = `Infer a player's "localPlace" based on narrative context. The "localPlace" should be a concise descriptive string. Respond ONLY with the string value.`;
+  const systemInstruction = `Infer a player's "localPlace" based on narrative context. The "localPlace" should be a concise descriptive string. Respond ONLY with the string value.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<string>(async attempt => {
     try {
-      const correctedPlaceResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
-      if (correctedPlaceResponse !== null && correctedPlaceResponse.trim().length > 0) {
-        const correctedPlace = correctedPlaceResponse.trim();
-        console.warn(`fetchCorrectedLocalPlace_Service: Returned corrected localPlace `, correctedPlace, ".");
-        return correctedPlace;
-      } else {
-        console.warn(`fetchCorrectedLocalPlace_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for localPlace. Received: null`);
+      const aiResponse = await callMinimalCorrectionAI(
+        prompt,
+        systemInstruction,
+      );
+      if (aiResponse !== null && aiResponse.trim().length > 0) {
+        const correctedLocalPlace = aiResponse.trim();
+        console.warn(`fetchCorrectedLocalPlace_Service: Returned corrected localPlace `, correctedLocalPlace, ".");
+        return { result: correctedLocalPlace };
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
+      console.warn(
+        `fetchCorrectedLocalPlace_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for localPlace. Received: null`,
+      );
     } catch (error) {
-      console.error(`fetchCorrectedLocalPlace_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(
+        `fetchCorrectedLocalPlace_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -142,31 +146,35 @@ Required JSON Structure for corrected map location details:
 
 Respond ONLY with the single, complete, corrected JSON object.`;
 
-  const systemInstructionForFix = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (${NODE_DESCRIPTION_INSTRUCTION}), and "aliases" (${ALIAS_INSTRUCTION}, array, can be empty) are provided. Adhere strictly to the JSON format.`;
+  const systemInstruction = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (${NODE_DESCRIPTION_INSTRUCTION}), and "aliases" (${ALIAS_INSTRUCTION}, array, can be empty) are provided. Adhere strictly to the JSON format.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<{ name: string; description: string; aliases?: string[] }>(async attempt => {
     try {
-      const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
+      const aiResponse = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstruction);
       if (
-        correctedPayload &&
-        typeof correctedPayload.name === 'string' && correctedPayload.name.trim() !== '' &&
-        typeof correctedPayload.description === 'string' && correctedPayload.description.trim() !== '' &&
-        Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((a): a is string => typeof a === 'string')
+        aiResponse &&
+        typeof aiResponse.name === 'string' &&
+        aiResponse.name.trim() !== '' &&
+        typeof aiResponse.description === 'string' &&
+        aiResponse.description.trim() !== '' &&
+        Array.isArray(aiResponse.aliases) &&
+        aiResponse.aliases.every((a): a is string => typeof a === 'string')
       ) {
-        return correctedPayload;
-      } else {
-        console.warn(`fetchCorrectedPlaceDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid. Response:`, correctedPayload);
+        return { result: aiResponse };
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
+      console.warn(
+        `fetchCorrectedPlaceDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid. Response:`,
+        aiResponse,
+      );
     } catch (error) {
-      console.error(`fetchCorrectedPlaceDetails_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(
+        `fetchCorrectedPlaceDetails_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -203,31 +211,35 @@ Required JSON Structure:
 
 Respond ONLY with the single, complete JSON object.`;
 
-  const systemInstructionForFix = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating ${NODE_DESCRIPTION_INSTRUCTION} and aliases (${ALIAS_INSTRUCTION}, array, can be empty). Adhere strictly to the JSON format.`;
+  const systemInstruction = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating ${NODE_DESCRIPTION_INSTRUCTION} and aliases (${ALIAS_INSTRUCTION}, array, can be empty). Adhere strictly to the JSON format.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<{ name: string; description: string; aliases?: string[] }>(async attempt => {
     try {
-      const correctedPayload = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstructionForFix);
+      const aiResponse = await callCorrectionAI<{ name: string; description: string; aliases?: string[] }>(prompt, systemInstruction);
       if (
-        correctedPayload &&
-        typeof correctedPayload.name === 'string' && correctedPayload.name === mapNodePlaceName &&
-        typeof correctedPayload.description === 'string' && correctedPayload.description.trim() !== '' &&
-        Array.isArray(correctedPayload.aliases) && correctedPayload.aliases.every((alias): alias is string => typeof alias === 'string')
+        aiResponse &&
+        typeof aiResponse.name === 'string' &&
+        aiResponse.name === mapNodePlaceName &&
+        typeof aiResponse.description === 'string' &&
+        aiResponse.description.trim() !== '' &&
+        Array.isArray(aiResponse.aliases) &&
+        aiResponse.aliases.every((alias): alias is string => typeof alias === 'string')
       ) {
-        return correctedPayload;
-      } else {
-        console.warn(`fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`, correctedPayload);
+        return { result: aiResponse };
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
+      console.warn(
+        `fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`,
+        aiResponse,
+      );
     } catch (error) {
-      console.error(`fetchFullPlaceDetailsForNewMapNode_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(
+        `fetchFullPlaceDetailsForNewMapNode_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -268,27 +280,26 @@ Description: "${nodeInfo.description || 'No description provided.'}"
 Valid node types: ${VALID_NODE_TYPE_VALUES.join(', ')}
 Respond ONLY with the single node type.`;
 
-  const systemInstr = `Infer a map node's type. Answer with one of: ${VALID_NODE_TYPE_VALUES.join(', ')}.`;
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  const systemInstruction = `Infer a map node's type. Answer with one of: ${VALID_NODE_TYPE_VALUES.join(', ')}.`;
+  return retryAiCall<NonNullable<MapNodeData['nodeType']>>(async attempt => {
     try {
-      const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
-      if (typeResp) {
-        const cleaned = typeResp.trim().toLowerCase();
+      const aiResponse = await callMinimalCorrectionAI(prompt, systemInstruction);
+      if (aiResponse) {
+        const cleaned = aiResponse.trim().toLowerCase();
         const mapped = synonyms[cleaned] || cleaned;
         if ((VALID_NODE_TYPE_VALUES as readonly string[]).includes(mapped)) {
-          return mapped as MapNodeData['nodeType'];
+          return { result: mapped as MapNodeData['nodeType'] };
         }
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
-      console.error(`fetchCorrectedNodeType_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(
+        `fetchCorrectedNodeType_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -328,27 +339,26 @@ Description: "${edgeInfo.description || 'No description provided.'}"
 Valid edge types: ${VALID_EDGE_TYPE_VALUES.join(', ')}
 Respond ONLY with the single edge type.`;
 
-  const systemInstr = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(', ')}.`;
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  const systemInstruction = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(', ')}.`;
+  return retryAiCall<MapEdgeData['type']>(async attempt => {
     try {
-      const typeResp = await callMinimalCorrectionAI(prompt, systemInstr);
-      if (typeResp) {
-        const cleaned = typeResp.trim().toLowerCase();
+      const aiResponse = await callMinimalCorrectionAI(prompt, systemInstruction);
+      if (aiResponse) {
+        const cleaned = aiResponse.trim().toLowerCase();
         const mapped = synonyms[cleaned] || cleaned;
         if ((VALID_EDGE_TYPE_VALUES as readonly string[]).includes(mapped)) {
-          return mapped as MapEdgeData['type'];
+          return { result: mapped as MapEdgeData['type'] };
         }
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
-      console.error(`fetchCorrectedEdgeType_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(
+        `fetchCorrectedEdgeType_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -456,25 +466,24 @@ ${nodeLines}
 Map data above is your main reference. Scene description and log message are just supportive clues.
 Respond ONLY with the name of the best parent node from the list above, or "Universe" if none are suitable.`;
 
-  const systemInstr =
+  const systemInstruction =
     'Choose the most logical parent node name for a new map node based on the map data. Respond only with that single name.';
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<string>(async attempt => {
     try {
-      const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
+      const resp = await callMinimalCorrectionAI(prompt, systemInstruction, debugLog);
       if (resp && resp.trim().length > 0) {
-        return resp.trim();
+        return { result: resp.trim() };
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
-      console.error(`fetchLikelyParentNode_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(
+        `fetchLikelyParentNode_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -497,31 +506,27 @@ export const fetchCorrectedNodeIdentifier_Service = async (
   const prompt = `A different AI referred to a map location using an incorrect identifier: "${malformedIdentifier}".
 Known map nodes in the current theme:\n${nodeList}\nChoose the most likely intended node ID from the list above. Respond with an empty string if none match.`;
 
-  const systemInstr = 'Respond ONLY with a single node ID from the list or an empty string.';
+  const systemInstruction = 'Respond ONLY with a single node ID from the list or an empty string.';
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<string>(async attempt => {
     try {
-      const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
+      const resp = await callMinimalCorrectionAI(prompt, systemInstruction, debugLog);
       if (resp) {
         const cleaned = resp.trim();
         const match = context.themeNodes.find(n => n.id === cleaned);
-        if (match) return match.id;
+        if (match) return { result: match.id };
         const byName = context.themeNodes.find(n => n.placeName === cleaned);
-        if (byName) return byName.id;
+        if (byName) return { result: byName.id };
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
       console.error(
         `fetchCorrectedNodeIdentifier_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
         error,
       );
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -551,26 +556,25 @@ Parent Feature: "${parentFeature.placeName}" (Desc: "${parentFeature.data.descri
 Child Node: "${childNode.placeName}" (Type: ${childNode.data.nodeType})
 Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_parent" to upgrade the parent to a higher-level node.`;
 
-  const systemInstr = 'Respond only with convert_child or upgrade_parent.';
+  const systemInstruction = 'Respond only with convert_child or upgrade_parent.';
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<'convert_child' | 'upgrade_parent'>(async attempt => {
     try {
-      const resp = await callMinimalCorrectionAI(prompt, systemInstr, debugLog);
+      const resp = await callMinimalCorrectionAI(prompt, systemInstruction, debugLog);
       if (resp) {
         const cleaned = resp.trim().toLowerCase();
-        if (cleaned.includes('upgrade')) return 'upgrade_parent';
-        if (cleaned.includes('convert') || cleaned.includes('sibling')) return 'convert_child';
+        if (cleaned.includes('upgrade')) return { result: 'upgrade_parent' };
+        if (cleaned.includes('convert') || cleaned.includes('sibling')) return { result: 'convert_child' };
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
-      console.error(`decideFeatureHierarchyUpgrade_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(
+        `decideFeatureHierarchyUpgrade_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        error,
+      );
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 export interface ChainParentPair {
@@ -675,7 +679,7 @@ Graph:
 ${graphBlock}
 `;
 
-  const systemInstr = `Imagine a Player travelling along the provided chains. For each Parent Node in the graph imagine locations within them that may connect them to their neighbours.
+  const systemInstruction = `Imagine a Player travelling along the provided chains. For each Parent Node in the graph imagine locations within them that may connect them to their neighbours.
 CHOOSE ONE for each Parent Node:
 - IF there is a contextually appropriate feature node already present under that Parent Node, use it directly in edgesToAdd.
 - IF there is 'None', or no appropriate candidate feature node exists under that Parent Node, you MUST use nodesToAdd to add a contextually appropriate feature node with full information, based on Context.
@@ -723,13 +727,13 @@ Return ONLY a JSON object strictly matching this structure:
     rationale: undefined,
   };
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  const payload = await retryAiCall<AIMapUpdatePayload>(async () => {
     try {
       debugInfo.prompt = prompt;
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
-        systemInstruction: systemInstr,
+        systemInstruction: systemInstruction,
         responseMimeType: 'application/json',
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
@@ -739,7 +743,7 @@ Return ONLY a JSON object strictly matching this structure:
       const parsed: unknown = safeParseJson(jsonStr);
       if (!parsed) {
         debugInfo.validationError = 'Failed to parse JSON';
-        return { payload: null, debugInfo };
+        return { result: null, retry: false };
       }
       let result: AIMapUpdatePayload | null = null;
       if (Array.isArray(parsed)) {
@@ -778,18 +782,16 @@ Return ONLY a JSON object strictly matching this structure:
           debugInfo.rationale = result.rationale;
       }
       if (result && (result.nodesToAdd || result.edgesToAdd)) {
-        return { payload: result, debugInfo };
+        return { result };
       }
       debugInfo.validationError = 'Parsed JSON missing nodesToAdd or edgesToAdd';
     } catch (error) {
       debugInfo.validationError = `Error: ${error instanceof Error ? error.message : String(error)}`;
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) break;
-      continue;
+      throw error;
     }
-    attempt++;
-  }
-  return { payload: null, debugInfo };
+    return { result: null };
+  });
+  return { payload, debugInfo };
 };
 
 export const resolveSplitFamilyOrphans_Service = async (
@@ -817,21 +819,30 @@ New Parent: "${context.newParent.placeName}" (ID:${context.newParent.id})
 Orphan Children: [${orphanList}]
 Return JSON {"originalChildren": ["ids"], "newChildren": ["ids"]}`;
 
-  const systemInstr = 'Assign orphan nodes to either the original or new parent. Respond only with JSON.';
-  try {
-    const result = await callCorrectionAI<{ originalChildren: string[]; newChildren: string[] }>(prompt, systemInstr);
-    if (
-      result &&
-      Array.isArray(result.originalChildren) &&
-      result.originalChildren.every(id => typeof id === 'string') &&
-      Array.isArray(result.newChildren) &&
-      result.newChildren.every(id => typeof id === 'string')
-    ) {
-      return result;
+  const systemInstruction = 'Assign orphan nodes to either the original or new parent. Respond only with JSON.';
+
+  const result = await retryAiCall<{ originalChildren: string[]; newChildren: string[] }>(async () => {
+    try {
+      const payload = await callCorrectionAI<{ originalChildren: string[]; newChildren: string[] }>(
+        prompt,
+        systemInstruction,
+      );
+      if (
+        payload &&
+        Array.isArray(payload.originalChildren) &&
+        payload.originalChildren.every(id => typeof id === 'string') &&
+        Array.isArray(payload.newChildren) &&
+        payload.newChildren.every(id => typeof id === 'string')
+      ) {
+        return { result: payload };
+      }
+    } catch (e) {
+      console.error('resolveSplitFamilyOrphans_Service error:', e);
+      throw e;
     }
-  } catch (e) {
-    console.error('resolveSplitFamilyOrphans_Service error:', e);
-  }
-  return { originalChildren: [], newChildren: [] };
+    return { result: null };
+  });
+
+  return result ?? { originalChildren: [], newChildren: [] };
 };
 

@@ -7,6 +7,7 @@ import { MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../../constants';
 import { isValidItem } from '../parsers/validation';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
+import { retryAiCall } from '../../utils/retry';
 
 /**
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
@@ -111,26 +112,24 @@ ${specificActionInstructions}
 
 Respond ONLY with the single, complete, corrected JSON object for the 'item' field.`;
 
-  const systemInstructionForFix = `Correct JSON item payloads based on the provided structure, context, and specific instructions for the action type. Adhere strictly to the JSON format. Preserve the original intent of the item change if discernible. CRITICAL: Ensure the 'type' field is never 'junk'; use 'isJunk: true' and a valid type instead.`;
+  const systemInstruction = `Correct JSON item payloads based on the provided structure, context, and specific instructions for the action type. Adhere strictly to the JSON format. Preserve the original intent of the item change if discernible. CRITICAL: Ensure the 'type' field is never 'junk'; use 'isJunk: true' and a valid type instead.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<Item>(async attempt => {
     try {
-      const correctedItemPayload = await callCorrectionAI<Item>(prompt, systemInstructionForFix);
-      if (correctedItemPayload && isValidItem(correctedItemPayload, actionType === 'gain' ? 'gain' : 'update')) {
-        return correctedItemPayload;
-      } else {
-        console.warn(`fetchCorrectedItemPayload_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected '${actionType}' payload invalid after validation. Response:`, correctedItemPayload);
-        if (attempt === MAX_RETRIES) return null;
-        attempt++;
+      const aiResponse = await callCorrectionAI<Item>(prompt, systemInstruction);
+      if (aiResponse && isValidItem(aiResponse, actionType === 'gain' ? 'gain' : 'update')) {
+        return { result: aiResponse };
       }
+      console.warn(
+        `fetchCorrectedItemPayload_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected '${actionType}' payload invalid after validation. Response:`,
+        aiResponse,
+      );
     } catch (error) {
       console.error(`fetchCorrectedItemPayload_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -185,33 +184,29 @@ Task: Based on the Log Message, Scene Description, and the 'item' details in the
 Respond ONLY with the single corrected action string.
 If no action can be confidently determined, respond with an empty string.`;
 
-  const systemInstructionForFix = `Determine the correct item 'action' ("gain", "destroy", "update", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
+  const systemInstruction = `Determine the correct item 'action' ("gain", "destroy", "update", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<ItemChange['action']>(async attempt => {
     try {
-      const correctedActionResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
-      if (correctedActionResponse !== null) {
-        const action = correctedActionResponse.trim().toLowerCase();
-        if (['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(action)) {
-          console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, action, ".");
-          return action as ItemChange['action'];
-        } else if (action === '') {
-          console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
-          return null;
-        } else {
-          console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned invalid action "${action}".`);
+      const aiResponse = await callMinimalCorrectionAI(prompt, systemInstruction);
+      if (aiResponse !== null) {
+        const candidateAction = aiResponse.trim().toLowerCase();
+        if (['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(candidateAction)) {
+          console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, candidateAction, ".");
+          return { result: candidateAction as ItemChange['action'] };
         }
+        if (candidateAction === '') {
+          console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
+          return { result: null, retry: false };
+        }
+        console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned invalid action "${candidateAction}".`);
       } else {
         console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for item action. Received: null`);
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
       console.error(`fetchCorrectedItemAction_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };

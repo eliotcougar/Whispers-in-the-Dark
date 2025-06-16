@@ -9,6 +9,7 @@ import { formatKnownCharactersForPrompt } from '../../utils/promptFormatters';
 import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
 import { callCorrectionAI, callMinimalCorrectionAI } from './base';
 import { isApiConfigured } from '../apiClient';
+import { retryAiCall } from '../../utils/retry';
 import { parseDialogueTurnResponse } from '../dialogue/responseParser';
 
 /**
@@ -61,26 +62,24 @@ Required JSON Structure for corrected 'dialogueSetup':
 
 Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup'.`;
 
-  const systemInstructionForFix = `Correct a malformed 'dialogueSetup' JSON payload. Ensure 'participants' are valid NPCs, 'initialNpcResponses' are logical, and 'initialPlayerOptions' are varied with an exit option. Adhere strictly to the JSON format.`;
+  const systemInstruction = `Correct a malformed 'dialogueSetup' JSON payload. Ensure 'participants' are valid NPCs, 'initialNpcResponses' are logical, and 'initialPlayerOptions' are varied with an exit option. Adhere strictly to the JSON format.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<DialogueSetupPayload>(async attempt => {
     try {
-      const correctedPayload = await callCorrectionAI<DialogueSetupPayload>(prompt, systemInstructionForFix);
-      if (correctedPayload && isDialogueSetupPayloadStructurallyValid(correctedPayload)) {
-        return correctedPayload;
-      } else {
-        console.warn(`fetchCorrectedDialogueSetup_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected dialogueSetup payload invalid. Response:`, correctedPayload);
+      const aiResponse = await callCorrectionAI<DialogueSetupPayload>(prompt, systemInstruction);
+      if (aiResponse && isDialogueSetupPayloadStructurallyValid(aiResponse)) {
+        return { result: aiResponse };
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
+      console.warn(
+        `fetchCorrectedDialogueSetup_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected dialogueSetup payload invalid. Response:`,
+        aiResponse,
+      );
     } catch (error) {
       console.error(`fetchCorrectedDialogueSetup_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -125,40 +124,35 @@ Do NOT change the text of any npcResponses.line or playerOptions.
 Ensure each "speaker" value is one of the valid participant names.
 Respond ONLY with the corrected JSON object.`;
 
-  const systemInstructionForFix = `Correct a malformed dialogue turn JSON object without altering the dialogue text. Speaker names must be among: ${participantList}. Adhere strictly to JSON format.`;
+  const systemInstruction = `Correct a malformed dialogue turn JSON object without altering the dialogue text. Speaker names must be among: ${participantList}. Adhere strictly to JSON format.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<DialogueAIResponse>(async attempt => {
     try {
-      const correctedText = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
-      if (correctedText) {
-        const parsed = parseDialogueTurnResponse(correctedText, npcThoughts);
+      const aiResponse = await callMinimalCorrectionAI(prompt, systemInstruction);
+      if (aiResponse) {
+        const parsedResponse = parseDialogueTurnResponse(aiResponse, npcThoughts);
         if (
-          parsed &&
-          parsed.npcResponses.every(r => validParticipants.includes(r.speaker))
+          parsedResponse &&
+          parsedResponse.npcResponses.every(r => validParticipants.includes(r.speaker))
         ) {
-          return parsed;
-        } else {
-          console.warn(
-            `fetchCorrectedDialogueTurn_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): corrected response invalid or speakers not in list.`,
-            correctedText,
-          );
+          return { result: parsedResponse };
         }
+        console.warn(
+          `fetchCorrectedDialogueTurn_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): corrected response invalid or speakers not in list.`,
+          aiResponse,
+        );
       } else {
         console.warn(
           `fetchCorrectedDialogueTurn_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned empty response.`,
         );
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
       console.error(
         `fetchCorrectedDialogueTurn_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
         error,
       );
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
