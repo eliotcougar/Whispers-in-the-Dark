@@ -148,7 +148,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
       if (isStatus400) {
         console.log('Attempting Gemini fallback due to Imagen 400');
         try {
-          const fallbackResp = await ai.models.generateContentStream({
+          const fallbackResp = await ai.models.generateContent({
             model: 'gemini-2.0-flash-preview-image-generation',
             contents: [
               {
@@ -157,24 +157,26 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
               },
             ],
             config: {
-              responseModalities: ['IMAGE', 'TEXT'],
-              responseMimeType: 'text/plain',
+              responseModalities: ['IMAGE'],
+              responseMimeType: 'image/png',
             },
           });
 
-          for await (const chunk of fallbackResp) {
-            const isInlinePart = (part: unknown): part is Part =>
-              typeof part === 'object' && part !== null && 'inlineData' in part;
-            const inlinePart = chunk.candidates?.[0]?.content?.parts?.find(
-              isInlinePart,
-            );
-            const inlineData = inlinePart?.inlineData;
-            if (inlineData?.data) {
-              const imageUrl = `data:${inlineData.mimeType || 'image/jpeg'};base64,${inlineData.data}`;
-              setInternalImageUrl(imageUrl);
-              setGeneratedImage(imageUrl, currentSceneDescription);
-              return;
-            }
+          const isInlinePart = (part: unknown): part is Part =>
+            typeof part === 'object' && part !== null && 'inlineData' in part;
+          const inlinePart = fallbackResp.candidates?.[0]?.content?.parts?.find(
+            isInlinePart,
+          );
+          const inlineData = inlinePart?.inlineData;
+          console.log('Gemini fallback inlineData', inlineData);
+          if (inlineData?.data) {
+            const imageUrl = `data:${inlineData.mimeType || 'image/png'};base64,${inlineData.data}`;
+            setInternalImageUrl(imageUrl);
+            setGeneratedImage(imageUrl, currentSceneDescription);
+            setError(null);
+            return;
+          } else {
+            console.error('Gemini fallback response missing image data');
           }
         } catch (fallbackErr) {
           console.error('Fallback image generation failed:', fallbackErr);
