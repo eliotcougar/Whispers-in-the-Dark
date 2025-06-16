@@ -10,6 +10,8 @@ import type { Part } from '@google/genai';
 import { AdventureTheme, Character, MapNode } from '../types';
 import LoadingSpinner from './LoadingSpinner';
 import { extractStatusFromError } from '../utils/aiErrorUtils';
+import { dispatchAIRequest } from '../services/modelDispatcher';
+import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME } from '../constants';
 
 if (!isApiConfigured()) {
   console.error("GEMINI_API_KEY for GoogleGenAI is not set. Image visualization will not work.");
@@ -84,10 +86,10 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     setError(null);
     setInternalImageUrl(null);
 
-    let prompt = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
+    let rawPrompt = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
     Aspect ratio 4:3.
     It is ${localTime || 'now'}. ${localEnvironment || 'The air is okay'}. ${localPlace || 'Location is unimportant'}. ${currentSceneDescription}`;
-    prompt += ``;
+    rawPrompt += ``;
 
     const mentionedPlaces: string[] = [];
     // Derive places from mapData (main nodes)
@@ -95,7 +97,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
       .filter(node => node.themeName === currentTheme.name)
       .forEach(node => {
         if (currentSceneDescription.toLowerCase().includes(node.placeName.toLowerCase())) {
-          prompt += ` The ${node.placeName} is prominent, described as: ${node.data.description || 'A notable location.'}.`; 
+          rawPrompt += ` The ${node.placeName} is prominent, described as: ${node.data.description || 'A notable location.'}.`;
           mentionedPlaces.push(node.placeName);
         }
       });
@@ -103,18 +105,32 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     const mentionedCharacters: string[] = [];
     allCharacters.forEach(character => {
       if (character.themeName === currentTheme.name && currentSceneDescription.toLowerCase().includes(character.name.toLowerCase())) {
-        prompt += ` ${character.name} here, appearing as: ${character.description}.`;
+        rawPrompt += ` ${character.name} here, appearing as: ${character.description}.`;
         mentionedCharacters.push(character.name);
       }
     });
     
-    prompt += " Focus on creating a faithful representation based on this description. Do not generate any text on the image.";
-    console.log("Imagen Prompt: ", prompt);
+    rawPrompt += " Focus on creating a faithful representation based on this description. Do not generate any text on the image.";
+
+    // Ask a minimal model to rewrite the prompt to avoid unsafe elements
+    let safePrompt = rawPrompt;
+    try {
+      const { response: safeResp } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME],
+        prompt: `Rewrite the following scene description into a concise, safe visual depiction suitable for image generation. Avoid any explicit or unsafe elements.\n\nScene:\n${rawPrompt}`,
+        systemInstruction: 'Respond ONLY with the cleaned visual description.',
+        temperature: 0.4,
+        label: 'ImagePromptSanitizer',
+      });
+      safePrompt = safeResp.text?.trim() || rawPrompt;
+    } catch (safeErr) {
+      console.warn('Prompt sanitization failed, using raw prompt.', safeErr);
+    }
 
     try {
       const response = await ai.models.generateImages({
         model: 'imagen-3.0-generate-002',
-        prompt: prompt,
+        prompt: safePrompt,
         config: { numberOfImages: 1, outputMimeType: 'image/jpeg' },
       });
 
@@ -131,14 +147,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
       const errorMessage = err instanceof Error ? err.message : "Unknown error during image generation.";
 
       const status = extractStatusFromError(err);
-      console.log('Debug Imagen error details', {
-        extractedStatus: status,
-        rawError: err,
-        errorMessage,
-      });
-
       const isStatus400 = status === 400;
-      console.log('Imagen error status check', { status, isStatus400 });
 
       // The Imagen API may respond with HTTP 400 when the request is not allowed
       // for the current project. Treat it similarly to the explicit billing
@@ -146,14 +155,13 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
 
       
       if (isStatus400) {
-        console.log('Attempting Gemini fallback due to Imagen 400');
         try {
           const fallbackResp = await ai.models.generateContentStream({
             model: 'gemini-2.0-flash-preview-image-generation',
             contents: [
               {
                 role: 'user',
-                parts: [{ text: prompt }],
+                parts: [{ text: safePrompt }],
               },
             ],
             config: {
@@ -165,14 +173,15 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
           const isInlinePart = (part: unknown): part is Part =>
             typeof part === 'object' && part !== null && 'inlineData' in part;
 
+          let finishReason: string | undefined;
           for await (const chunk of fallbackResp) {
-            console.log('Gemini fallback chunk', chunk);
-            const inlinePart = chunk.candidates?.[0]?.content?.parts?.find(
-              isInlinePart,
-            );
+            const candidate = chunk.candidates?.[0];
+            if (candidate?.finishReason) {
+              finishReason = candidate.finishReason;
+            }
+            const inlinePart = candidate?.content?.parts?.find(isInlinePart);
             const inlineData = inlinePart?.inlineData;
             if (inlineData?.data) {
-              console.log('Gemini fallback inlineData', inlineData);
               const imageUrl = `data:${inlineData.mimeType || 'image/png'};base64,${inlineData.data}`;
               setInternalImageUrl(imageUrl);
               setGeneratedImage(imageUrl, currentSceneDescription);
@@ -181,9 +190,15 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
             }
           }
 
-          console.error('Gemini fallback response missing image data');
+          if (finishReason && finishReason.toUpperCase().includes('SAFETY')) {
+            setError(`Image blocked due to safety filter (${finishReason}).`);
+          } else {
+            setError('Fallback image generation failed to return image data.');
+          }
+
         } catch (fallbackErr) {
           console.error('Fallback image generation failed:', fallbackErr);
+          setError('Fallback image generation failed.');
         }
       }
 
