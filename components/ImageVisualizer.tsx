@@ -131,7 +131,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
 
       if (errorMessage.includes("Imagen API is only accessible to billed users")) {
         try {
-          const fallbackResp = await ai.models.generateContent({
+          const fallbackResp = await ai.models.generateContentStream({
             model: 'gemini-2.0-flash-preview-image-generation',
             contents: [
               {
@@ -139,20 +139,25 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
                 parts: [{ text: prompt }],
               },
             ],
-            config: { responseModalities: ['IMAGE'], responseMimeType: 'image/jpeg' },
+            config: {
+              responseModalities: ['IMAGE', 'TEXT'],
+              responseMimeType: 'text/plain',
+            },
           });
 
-          const isInlinePart = (part: unknown): part is Part =>
-            typeof part === 'object' && part !== null && 'inlineData' in part;
-          const inlinePart = fallbackResp.candidates?.[0]?.content?.parts?.find(
-            isInlinePart,
-          );
-          const inlineData = inlinePart?.inlineData;
-          if (inlineData?.data) {
-            const imageUrl = `data:${inlineData.mimeType || 'image/jpeg'};base64,${inlineData.data}`;
-            setInternalImageUrl(imageUrl);
-            setGeneratedImage(imageUrl, currentSceneDescription);
-            return;
+          for await (const chunk of fallbackResp) {
+            const isInlinePart = (part: unknown): part is Part =>
+              typeof part === 'object' && part !== null && 'inlineData' in part;
+            const inlinePart = chunk.candidates?.[0]?.content?.parts?.find(
+              isInlinePart,
+            );
+            const inlineData = inlinePart?.inlineData;
+            if (inlineData?.data) {
+              const imageUrl = `data:${inlineData.mimeType || 'image/jpeg'};base64,${inlineData.data}`;
+              setInternalImageUrl(imageUrl);
+              setGeneratedImage(imageUrl, currentSceneDescription);
+              return;
+            }
           }
         } catch (fallbackErr) {
           console.error('Fallback image generation failed:', fallbackErr);
