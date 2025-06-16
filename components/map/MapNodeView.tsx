@@ -5,7 +5,7 @@
 
 import React, { useMemo, useState, useRef } from 'react';
 import { MapNode, MapEdge } from '../../types';
-import useMapInteractions from '../../hooks/useMapInteractions';
+import { useMapInteractions } from '../../hooks/useMapInteractions';
 import {
   NODE_RADIUS,
   EDGE_HOVER_WIDTH,
