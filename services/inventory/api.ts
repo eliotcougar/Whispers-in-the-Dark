@@ -12,6 +12,7 @@ import { AdventureTheme, ItemChange, NewItemSuggestion } from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
 import { parseInventoryResponse, InventoryAIPayload } from './responseParser';
 import { fetchCorrectedItemChangeArray_Service } from '../corrections';
+import { addProgressSymbol } from '../../utils/loadingProgress';
 
 /**
  * Executes the inventory AI call using model fallback.
@@ -23,6 +24,7 @@ export const executeInventoryRequest = async (
     console.error('API Key not configured for Inventory Service.');
     return Promise.reject(new Error('API Key not configured.'));
   }
+  addProgressSymbol('░░');
   const { response } = await dispatchAIRequest({
     modelNames: [MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
