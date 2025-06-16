@@ -355,6 +355,18 @@ const App: React.FC = () => {
     }
   };
 
+  const openInfoFromMenu = () => {
+    setUserRequestedTitleMenuOpen(false);
+    setIsInfoVisible(true);
+  };
+
+  const closeInfo = () => {
+    setIsInfoVisible(false);
+    if (userRequestedTitleMenuOpen || !hasGameBeenInitialized) {
+      setUserRequestedTitleMenuOpen(true);
+    }
+  };
+
 
   const handleOpenCustomGameSetup = () => {
     setUserRequestedTitleMenuOpen(false);
@@ -651,7 +663,7 @@ const App: React.FC = () => {
         onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
         onLoadGame={handleLoadGameFromMenu}
         onOpenSettings={openSettingsFromMenu}
-        onOpenInfo={() => setIsInfoVisible(true)}
+        onOpenInfo={openInfoFromMenu}
         isGameActive={hasGameBeenInitialized}
       />
       <CustomGameSetupScreen
@@ -690,6 +702,11 @@ const App: React.FC = () => {
         playerGender={playerGender}
         onPlayerGenderChange={setPlayerGender}
         isCustomGameMode={isCustomGameMode}
+      />
+
+      <InfoDisplay
+        isVisible={isInfoVisible}
+        onClose={closeInfo}
       />
 
 
@@ -735,10 +752,6 @@ const App: React.FC = () => {
            onViewBoxChange={handleMapViewBoxChange}
             isVisible={isMapVisible}
             onClose={() => setIsMapVisible(false)}
-          />
-          <InfoDisplay
-            isVisible={isInfoVisible}
-            onClose={() => setIsInfoVisible(false)}
           />
           <ConfirmationDialog
             isOpen={newGameFromMenuConfirmOpen}
