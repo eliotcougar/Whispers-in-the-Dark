@@ -61,7 +61,8 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
   for (let attempt = 0; attempt <= MAX_RETRIES; ) {
     try {
       const corrected = await callCorrectionAI<ItemChange[]>(prompt, systemInstructionForFix);
-      const validated = corrected ? parseInventoryResponse(JSON.stringify(corrected)) : null;
+      const validatedPayload = corrected ? parseInventoryResponse(JSON.stringify(corrected)) : null;
+      const validated = validatedPayload ? validatedPayload.itemChanges : null;
       if (validated) return validated;
       console.warn(
         `fetchCorrectedItemChangeArray_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): corrected payload invalid.`,

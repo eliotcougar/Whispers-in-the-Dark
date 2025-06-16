@@ -311,6 +311,23 @@ const DebugView: React.FC<DebugViewProps> = ({
               debugPacket.inventoryDebugInfo.rawResponse,
               false,
             )}
+            {debugPacket.inventoryDebugInfo.parsedItemChanges &&
+              renderContent(
+                "Inventory AI Parsed",
+                debugPacket.inventoryDebugInfo.parsedItemChanges,
+              )}
+            {debugPacket.inventoryDebugInfo.observations &&
+              renderContent(
+                "Inventory Observations",
+                debugPacket.inventoryDebugInfo.observations,
+                false,
+              )}
+            {debugPacket.inventoryDebugInfo.rationale &&
+              renderContent(
+                "Inventory Rationale",
+                debugPacket.inventoryDebugInfo.rationale,
+                false,
+              )}
           </>
         ) : (
           <p className="italic text-slate-400">No Inventory AI interaction debug packet captured.</p>
