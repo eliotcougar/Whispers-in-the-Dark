@@ -692,6 +692,11 @@ const App: React.FC = () => {
         isCustomGameMode={isCustomGameMode}
       />
 
+      <InfoDisplay
+        isVisible={isInfoVisible}
+        onClose={() => setIsInfoVisible(false)}
+      />
+
 
       {hasGameBeenInitialized && currentTheme && (
         <>
@@ -735,10 +740,6 @@ const App: React.FC = () => {
            onViewBoxChange={handleMapViewBoxChange}
             isVisible={isMapVisible}
             onClose={() => setIsMapVisible(false)}
-          />
-          <InfoDisplay
-            isVisible={isInfoVisible}
-            onClose={() => setIsInfoVisible(false)}
           />
           <ConfirmationDialog
             isOpen={newGameFromMenuConfirmOpen}
