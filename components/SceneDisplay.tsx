@@ -40,17 +40,20 @@ const SceneDisplay: React.FC<SceneDisplayProps> = ({
     [inventory, mapData, allCharacters, currentThemeName]
   );
 
+  const enableMobileTap =
+    typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
+
   const highlightedDescription = useMemo(() => {
     return description.split('\n').map((para, index) => (
       <p key={index} className="mb-4 leading-relaxed text-lg text-slate-300">
-        {highlightEntitiesInText(para, entitiesForHighlighting)}
+        {highlightEntitiesInText(para, entitiesForHighlighting, enableMobileTap)}
       </p>
     ));
-  }, [description, entitiesForHighlighting]);
+  }, [description, entitiesForHighlighting, enableMobileTap]);
 
   const highlightedLastActionLog = useMemo(() => {
-    return highlightEntitiesInText(lastActionLog, entitiesForHighlighting);
-  }, [lastActionLog, entitiesForHighlighting]);
+    return highlightEntitiesInText(lastActionLog, entitiesForHighlighting, enableMobileTap);
+  }, [lastActionLog, entitiesForHighlighting, enableMobileTap]);
 
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 min-h-[200px]">

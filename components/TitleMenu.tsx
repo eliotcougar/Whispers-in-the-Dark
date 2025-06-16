@@ -14,6 +14,7 @@ interface TitleMenuProps {
   onSaveGame?: () => void;
   onLoadGame: () => void;
   onOpenSettings: () => void;
+  onOpenInfo: () => void;
   isGameActive: boolean;
 }
 
@@ -28,6 +29,7 @@ const TitleMenu: React.FC<TitleMenuProps> = ({
   onSaveGame,
   onLoadGame,
   onOpenSettings,
+  onOpenInfo,
   isGameActive,
 }) => {
 
@@ -92,6 +94,14 @@ const TitleMenu: React.FC<TitleMenuProps> = ({
               aria-label="Open Settings"
             >
               Settings
+            </button>
+            <button
+              onClick={onOpenInfo}
+              className="w-full px-6 py-2.5 sm:py-3 bg-cyan-700 hover:bg-cyan-600 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
+                         transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-cyan-400 focus:outline-none"
+              aria-label="About & Game Guide"
+            >
+              About
             </button>
             {isGameActive && (
               <button
