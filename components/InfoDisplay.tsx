@@ -68,7 +68,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
               Notable Features
             </h2>
             <div className="space-y-3 text-slate-300 leading-relaxed">
-              <p><strong>Image Visualizer:</strong> Click the &quot;eye&quot; icon to generate an AI-powered image representing the current scene. It uses Imagen 3, and the daily quota is not very big. Use sporadingly.</p>
+              <p><strong>Image Visualizer:</strong> Click the &quot;eye&quot; icon to generate an AI-powered image representing the current scene. It uses Imagen 3, and the daily quota is not very big. If you use it up, it will fall back to Gemini 2.0 Image Generation Preview</p>
               <p><strong>Knowledge Base:</strong> Click the &quot;book&quot; icon to view details about all Places and Characters you&apos;ve discovered across different themes.</p>
               <p><strong>History:</strong> This panel shows your Game Log and a summary of themes you&apos;ve previously experienced.</p>
               <p><strong>Map Display:</strong> Use the map icon to view a dynamic graph of locations within the current theme, showing connections and your current position.</p>
@@ -112,6 +112,15 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
             </h2>
             <div className="space-y-4 text-slate-300 leading-relaxed">
               <div>
+                <h3 className="text-xl font-medium text-sky-400 mb-2">Version 1.3.1 (bugfix)</h3>
+                <ul className="list-disc list-inside ml-4 space-y-1">
+                  <li>Fixed some bugs here and there.</li>
+                  <li>The toolbar is now usable on small mobile screens again.</li>
+                  <li>Fixed the tooltips alignment when they are close to the edges of the map.</li>
+                  <li>Fall back to Gemini 2.0 Image Generation Preview for players without paid account outside of AI Studio or when the quota is exceeded.</li>
+                  <li>Fixed Inventory AI being unable to place items on the map because it was unaware of any map nodes.</li>
+                  <li>Added pseudo-thinking to the Inventory AI model. Should help with disappearing items and other weirdness.</li>
+                </ul>
                 <h3 className="text-xl font-medium text-sky-400 mb-2">Version 1.3 (Spatio-Temporal Update)</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
                   <li>Biggest feature - Map.</li>
@@ -124,6 +133,7 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
                   <li>Retry button now really performs a retry.</li>
                   <li>A lot more heuristics to deal with slightly malformed AI responses.</li>
                   <li>The number of main options increased to 6 to accomodate the additional variety of actions related to moving around.</li>
+                  <li>Cartographer AI now uses a pseudo-thinking hack to improve the output.</li>
                 </ul>
                 <h3 className="text-xl font-medium text-sky-400 mb-2">Version 1.2.2 (bugfix)</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
