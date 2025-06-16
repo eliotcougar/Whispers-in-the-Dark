@@ -15,6 +15,7 @@ import {
 } from '../../utils/mapConstants';
 import { MapItemBoxIcon, MapWheelIcon } from '../icons';
 import { isDescendantOf } from '../../utils/mapGraphUtils';
+import { getSVGCoordinates, getScreenCoordinates } from '../../utils/svgUtils';
 
 const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   const x1 = a.position.x;
@@ -151,14 +152,27 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{
     content: string;
-    x: number;
-    y: number;
+    svgX: number;
+    svgY: number;
     anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
     nodeId?: string;
   } | null>(null);
   const [isTooltipLocked, setIsTooltipLocked] = useState(false);
   const tooltipTimeout = useRef<number | null>(null);
   const TOOLTIP_DELAY_MS = 250;
+
+  // Recalculate tooltip position when viewBox changes so it stays anchored
+  // during panning or zooming.
+  const tooltipScreenPosition = useMemo(() => {
+    if (!tooltip || !svgRef.current) return null;
+    const { x, y } = getScreenCoordinates(
+      svgRef.current,
+      tooltip.svgX,
+      tooltip.svgY
+    );
+    const rect = svgRef.current.getBoundingClientRect();
+    return { x: x - rect.left, y: y - rect.top };
+  }, [tooltip, viewBox, svgRef]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isSmallFontType = (type: string | undefined) =>
     type === 'feature' || type === 'room' || type === 'interior';
@@ -323,6 +337,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (!svgRect) return;
     const x = event.clientX - svgRect.left;
     const y = event.clientY - svgRect.top;
+    const svgCoords = svgRef.current
+      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
+      : { x: 0, y: 0 };
     let content = `${node.placeName}`;
     if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
     if (node.data.description) content += `\n${node.data.description}`;
@@ -330,7 +347,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const anchor = computeAnchor(x, y, svgRect);
     if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
     tooltipTimeout.current = window.setTimeout(() => {
-      setTooltip({ content, x, y, anchor, nodeId: node.id });
+      setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId: node.id });
     }, TOOLTIP_DELAY_MS);
   };
 
@@ -344,13 +361,16 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (!svgRect) return;
     const x = event.clientX - svgRect.left;
     const y = event.clientY - svgRect.top;
+    const svgCoords = svgRef.current
+      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
+      : { x: 0, y: 0 };
     let content = `${node.placeName}`;
     if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
     if (node.data.description) content += `\n${node.data.description}`;
     if (node.data.status) content += `\nStatus: ${node.data.status}`;
     setIsTooltipLocked(true);
     const anchor = computeAnchor(x, y, svgRect);
-    setTooltip({ content, x, y, anchor, nodeId: node.id });
+    setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId: node.id });
   };
 
   /** Shows edge details in a tooltip. */
@@ -360,6 +380,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (!svgRect) return;
     const x = event.clientX - svgRect.left;
     const y = event.clientY - svgRect.top;
+    const svgCoords = svgRef.current
+      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
+      : { x: 0, y: 0 };
     const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
     const targetNode = nodes.find(n => n.id === edge.targetNodeId);
     let content = edge.data.description
@@ -371,7 +394,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const anchor = computeAnchor(x, y, svgRect);
     if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
     tooltipTimeout.current = window.setTimeout(() => {
-      setTooltip({ content, x, y, anchor });
+      setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor });
     }, TOOLTIP_DELAY_MS);
   };
 
@@ -611,10 +634,10 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           })}
         </g>
       </svg>
-      {tooltip && (
+      {tooltip && tooltipScreenPosition && (
         <div
           className={`map-tooltip anchor-${tooltip.anchor}`}
-          style={{ top: tooltip.y, left: tooltip.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
+          style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
         >
           {isTooltipLocked && tooltip.nodeId && (
             <button

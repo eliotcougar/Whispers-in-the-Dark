@@ -22,3 +22,22 @@ export const getSVGCoordinates = (
   const transformed = svgPoint.matrixTransform(ctmInverse);
   return { x: transformed.x, y: transformed.y };
 };
+
+/**
+ * Converts SVG coordinates back to screen coordinates using the element's
+ * current transformation matrix. If the matrix cannot be obtained, the
+ * original values are returned.
+ */
+export const getScreenCoordinates = (
+  svgEl: SVGSVGElement,
+  svgX: number,
+  svgY: number
+): { x: number; y: number } => {
+  const ctm = svgEl.getScreenCTM();
+  if (!ctm) return { x: svgX, y: svgY };
+  const svgPoint = svgEl.createSVGPoint();
+  svgPoint.x = svgX;
+  svgPoint.y = svgY;
+  const transformed = svgPoint.matrixTransform(ctm);
+  return { x: transformed.x, y: transformed.y };
+};
