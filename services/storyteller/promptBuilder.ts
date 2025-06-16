@@ -174,7 +174,13 @@ export const buildMainGameTurnPrompt = (
   } else if (destinationNodeId) {
     const destNode = fullMapData.nodes.find(n => n.id === destinationNodeId);
     const placeName = destNode?.placeName || destinationNodeId;
-    travelPlanOrUnknown = `Player wants to reach ${placeName}, but does not know how to get there.`;
+    const destParentId = destNode?.data.parentNodeId;
+    const destParent =
+      destParentId && destParentId !== 'Universe'
+        ? fullMapData.nodes.find(n => n.id === destParentId)?.placeName || destParentId
+        : null;
+    const displayName = destParent ? `${placeName} in ${destParent}` : placeName;
+    travelPlanOrUnknown = `Player wants to reach ${displayName}, but does not know how to get there.`;
   }
 
   const detailedEntityContext = formatDetailedContextForMentionedEntities(

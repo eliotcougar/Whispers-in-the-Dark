@@ -135,6 +135,12 @@ export const formatTravelPlanLine = (
   if (!path || path.length < 3) return null;
   const destination = mapData.nodes.find(n => n.id === destinationNodeId);
   const destName = destination?.placeName ?? destinationNodeId;
+  const destParentId = destination?.data.parentNodeId;
+  const destParentName =
+    destParentId && destParentId !== 'Universe'
+      ? mapData.nodes.find(n => n.id === destParentId)?.placeName ?? destParentId
+      : null;
+  const destDisplay = destParentName ? `${destName} in ${destParentName}` : destName;
   const destRumored = destination?.data.status === 'rumored';
   const firstEdge = path[1];
   const nextNodeStep = path[2];
@@ -153,8 +159,8 @@ export const formatTravelPlanLine = (
   const furtherRumored = furtherNode?.data.status === 'rumored';
 
   let line = destRumored
-    ? `Player wants to reach a rumored place - ${destName}.`
-    : `Player wants to travel to ${destName}.`;
+    ? `Player wants to reach a rumored place - ${destDisplay}.`
+    : `Player wants to travel to ${destDisplay}.`;
 
   if (firstEdge.id.startsWith('hierarchy:')) {
     const [from, to] = firstEdge.id.split(':')[1].split('->');
