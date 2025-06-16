@@ -41,7 +41,19 @@ export const buildDialogueTurnPrompt = (
     historyToUseInPrompt = historyToUseInPrompt.slice(0, -1);
   }
 
-  const historyString = historyToUseInPrompt
+  // Trim Narrator THOUGHTS from all but the most recent NPC responses
+  const trimmedHistory = historyToUseInPrompt.map(entry => ({ ...entry }));
+  let foundLastPlayer = false;
+  for (let i = trimmedHistory.length - 1; i >= 0; i--) {
+    const entry = trimmedHistory[i];
+    if (entry.speaker.toLowerCase() === 'player') {
+      foundLastPlayer = true;
+    } else if (foundLastPlayer && 'thought' in entry) {
+      delete entry.thought;
+    }
+  }
+
+  const historyString = trimmedHistory
     .map(entry => {
       const thought = entry.thought ? `Narrator THOUGHTS: "${entry.thought}"\n` : '';
       return `${thought}${entry.speaker}: "${entry.line}"`;
