@@ -355,6 +355,18 @@ const App: React.FC = () => {
     }
   };
 
+  const openInfoFromMenu = () => {
+    setUserRequestedTitleMenuOpen(false);
+    setIsInfoVisible(true);
+  };
+
+  const closeInfo = () => {
+    setIsInfoVisible(false);
+    if (userRequestedTitleMenuOpen || !hasGameBeenInitialized) {
+      setUserRequestedTitleMenuOpen(true);
+    }
+  };
+
 
   const handleOpenCustomGameSetup = () => {
     setUserRequestedTitleMenuOpen(false);
@@ -651,7 +663,7 @@ const App: React.FC = () => {
         onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
         onLoadGame={handleLoadGameFromMenu}
         onOpenSettings={openSettingsFromMenu}
-        onOpenInfo={() => setIsInfoVisible(true)}
+        onOpenInfo={openInfoFromMenu}
         isGameActive={hasGameBeenInitialized}
       />
       <CustomGameSetupScreen
@@ -694,7 +706,8 @@ const App: React.FC = () => {
 
       <InfoDisplay
         isVisible={isInfoVisible}
-        onClose={() => setIsInfoVisible(false)}
+        onClose={closeInfo}
+
       />
 
 
