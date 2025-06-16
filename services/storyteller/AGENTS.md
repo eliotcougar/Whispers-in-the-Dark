@@ -8,6 +8,7 @@ The **storyteller** service encapsulates all communication with the main narrati
 
 When modifying this service keep the prompt format and returned interfaces aligned with code in `useGameLogic` and the AI prompts.
 Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.
+- Use `extractJsonFromFence`, `safeParseJson` and `coerceNullToUndefined` from `utils/jsonUtils.ts` when parsing model output.
 
 ### Gemini API call guidelines
 

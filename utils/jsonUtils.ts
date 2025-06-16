@@ -30,5 +30,17 @@ export function safeParseJson<T>(jsonStr: string): T | null {
   }
 }
 
+/**
+ * Returns a shallow copy of the input object where any `null` values are
+ * converted to `undefined`. Useful for sanitizing optional fields in AI
+ * responses so they can be handled uniformly.
+ */
+export function coerceNullToUndefined<T extends Record<string, unknown>>(obj: T): T {
+  const sanitized = Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v === null ? undefined : v]),
+  );
+  return sanitized as T;
+}
+
 // Backwards compatibility for old imports
 export const sanitizeJsonString = extractJsonFromFence;

@@ -35,7 +35,7 @@ export const fetchCorrectedItemPayload_Service = async (
 
   let originalItemNameFromMalformed = 'Not specified or unparseable from malformed payload';
   try {
-    const malformedObj: Record<string, unknown> = JSON.parse(malformedPayloadString) as Record<string, unknown>;
+    const malformedObj = safeParseJson<Record<string, unknown>>(malformedPayloadString);
     if (malformedObj && typeof malformedObj.name === 'string') {
       originalItemNameFromMalformed = `"${malformedObj.name}"`;
     }
@@ -167,7 +167,7 @@ export const fetchCorrectedItemAction_Service = async (
 
   // Basic check before engaging the AI
   try {
-    const parsed = JSON.parse(malformedItemChangeString) as Record<string, unknown>;
+    const parsed = safeParseJson<Record<string, unknown>>(malformedItemChangeString);
     if (parsed && typeof parsed === 'object') {
       const rawAction = parsed['action'];
       if (typeof rawAction === 'string' && ['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(rawAction)) {

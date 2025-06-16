@@ -3,7 +3,7 @@
  * @description Helpers for parsing dialogue-related AI responses.
  */
 import { DialogueAIResponse, DialogueSummaryResponse } from '../../types';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { extractJsonFromFence, safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
 import { isValidNewItemSuggestion } from '../parsers/validation';
 
 export const parseDialogueAIResponse = (
@@ -96,9 +96,7 @@ export const parseDialogueSummaryResponse = (
   try {
     if (!parsed) throw new Error('JSON parse failed');
 
-    const sanitized = Object.fromEntries(
-      Object.entries(parsed).map(([k, v]) => [k, v === null ? undefined : v]),
-    ) as Partial<DialogueSummaryResponse>;
+    const sanitized: Partial<DialogueSummaryResponse> = coerceNullToUndefined(parsed);
 
     const validated: DialogueSummaryResponse = {
       ...sanitized,
