@@ -390,6 +390,9 @@ body {
   fill: none;
   transition: stroke 0.2s ease-out;
 }
+.map-edge-group {
+  cursor: pointer;
+}
 .map-edge-group:hover > .map-edge {
   /* Target visible line on group hover */
   stroke: #9ca3af; /* gray-400, brighter on hover */
