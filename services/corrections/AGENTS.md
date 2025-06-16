@@ -8,3 +8,11 @@ The **corrections** helpers attempt to fix malformed AI responses. They are used
 
 Use these utilities to keep the game running smoothly when the main models return inconsistent data.
 Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.
+
+### Variable naming guidelines
+
+- `prompt` – string sent as the user content of the AI request.
+- `systemInstruction` – accompanying system instruction string.
+- `aiResponse` – raw value returned from the AI call.
+- `parsedResult` – JSON-parsed form of `aiResponse` when needed.
+- `validated*` – results after type validation, e.g. `validatedChanges`.
