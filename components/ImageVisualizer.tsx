@@ -6,6 +6,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { geminiClient as ai, isApiConfigured } from '../services/apiClient';
+import type { Part } from '@google/genai';
 import { AdventureTheme, Character, MapNode } from '../types'; 
 import LoadingSpinner from './LoadingSpinner';
 
@@ -111,7 +112,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
 
     try {
       const response = await ai.models.generateImages({
-        model: 'imagen-3.0-generate-002', 
+        model: 'imagen-3.0-generate-002',
         prompt: prompt,
         config: { numberOfImages: 1, outputMimeType: 'image/jpeg' },
       });
@@ -127,12 +128,43 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     } catch (err) {
       console.error("Error generating image:", err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error during image generation.";
+
+      if (errorMessage.includes("Imagen API is only accessible to billed users")) {
+        try {
+          const fallbackResp = await ai.models.generateContent({
+            model: 'gemini-2.0-flash-preview-image-generation',
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: prompt }],
+              },
+            ],
+            config: { responseModalities: ['IMAGE'], responseMimeType: 'image/jpeg' },
+          });
+
+          const isInlinePart = (part: unknown): part is Part =>
+            typeof part === 'object' && part !== null && 'inlineData' in part;
+          const inlinePart = fallbackResp.candidates?.[0]?.content?.parts?.find(
+            isInlinePart,
+          );
+          const inlineData = inlinePart?.inlineData;
+          if (inlineData?.data) {
+            const imageUrl = `data:${inlineData.mimeType || 'image/jpeg'};base64,${inlineData.data}`;
+            setInternalImageUrl(imageUrl);
+            setGeneratedImage(imageUrl, currentSceneDescription);
+            return;
+          }
+        } catch (fallbackErr) {
+          console.error('Fallback image generation failed:', fallbackErr);
+        }
+      }
+
       if (errorMessage.includes("quota") || errorMessage.includes("billing")) {
-          setError("Image generation quota exceeded or billing issue. Please check your Google Cloud project.");
+        setError("Image generation quota exceeded or billing issue. Please check your Google Cloud project.");
       } else if (errorMessage.includes("API key not valid")) {
-          setError("Image generation failed: API key is not valid. Please check configuration.");
+        setError("Image generation failed: API key is not valid. Please check configuration.");
       } else {
-          setError(`Failed to visualize scene: ${errorMessage.substring(0,100)}`);
+        setError(`Failed to visualize scene: ${errorMessage.substring(0,100)}`);
       }
     } finally {
       setIsLoading(false);
