@@ -4,6 +4,26 @@
  * @description Utility for highlighting entities within text snippets.
  */
 import React from 'react';
+
+const showMobileTooltip = (text: string, rect: DOMRect) => {
+  const existing = document.querySelector('.highlight-tooltip');
+  if (existing) existing.remove();
+
+  const div = document.createElement('div');
+  div.className = 'highlight-tooltip';
+  div.textContent = text;
+  document.body.appendChild(div);
+
+  const offset = 8;
+  const left = rect.left + rect.width / 2 - div.offsetWidth / 2 + window.scrollX;
+  const top = rect.bottom + offset + window.scrollY;
+  div.style.left = `${Math.max(4, Math.min(left, window.innerWidth - div.offsetWidth - 4))}px`;
+  div.style.top = `${top}px`;
+
+  const remove = () => div.remove();
+  div.addEventListener('click', remove);
+  setTimeout(remove, 2500);
+};
 import { Item, Character, MapNode } from '../types';
 // Item and Character types are fine. Place-like entities will be mapped to HighlightableEntity.
 // No direct type change needed here as long as the calling components map MapNode data to HighlightableEntity structure.
@@ -30,7 +50,8 @@ const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
 
 export const highlightEntitiesInText = (
   text: string | null | undefined,
-  entities: HighlightableEntity[]
+  entities: HighlightableEntity[],
+  enableMobileTap: boolean = false
 ): React.ReactNode[] => {
   if (!text) return [text || '']; 
 
@@ -94,8 +115,15 @@ export const highlightEntitiesInText = (
           key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${match.index}`}
           className={getEntityHighlightClass(matchedTermInfo.entityData.type)}
           title={matchedTermInfo.entityData.description || matchedTermInfo.entityData.name}
+          onClick={enableMobileTap ? (e => {
+            if (window.matchMedia('(hover: none)').matches) {
+              const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+              const text = e.currentTarget.getAttribute('title') || '';
+              showMobileTooltip(text, rect);
+            }
+          }) : undefined}
         >
-          {matchedString} 
+          {matchedString}
         </span>
       );
     } else {
