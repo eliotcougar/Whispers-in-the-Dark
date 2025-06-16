@@ -129,14 +129,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
       console.error("Error generating image:", err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error during image generation.";
 
-      // The Imagen API may respond with HTTP 400 when the request is not allowed
-      // for the current project. Treat it similarly to the explicit billing
-      // error so the Gemini fallback is attempted.
-      const isStatus400 =
-        typeof err === 'object' && err !== null && 'status' in err &&
-        Number((err as { status?: number | string }).status) === 400;
-
-      if (errorMessage.includes("Imagen API is only accessible to billed users") || isStatus400) {
+      if (errorMessage.includes("Imagen API is only accessible to billed users")) {
         try {
           const fallbackResp = await ai.models.generateContentStream({
             model: 'gemini-2.0-flash-preview-image-generation',
