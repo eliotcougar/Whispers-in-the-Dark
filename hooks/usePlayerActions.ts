@@ -318,7 +318,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           setLoadingReason('inventory');
           const limitedMapContext = formatLimitedMapContextForPrompt(
             draftState.mapData,
-            draftState.currentMapNodeId
+            draftState.currentMapNodeId,
+            baseStateSnapshot.inventory
           );
           const invResult = await applyInventoryHints_Service(
             'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
