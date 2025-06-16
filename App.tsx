@@ -21,7 +21,6 @@ import SettingsDisplay from './components/SettingsDisplay';
 import ConfirmationDialog from './components/ConfirmationDialog';
 import InfoDisplay from './components/InfoDisplay';
 import MainToolbar from './components/MainToolbar';
-import ModelUsageIndicators from './components/ModelUsageIndicators';
 import TitleMenu from './components/TitleMenu';
 import DialogueDisplay from './components/DialogueDisplay';
 import DebugView from './components/DebugView';
@@ -479,6 +478,7 @@ const App: React.FC = () => {
                 isLoading={isLoading || !!dialogueState}
                 currentThemeName={currentTheme?.name || null}
                 currentSceneExists={!!currentScene}
+                onOpenInfo={() => setIsInfoVisible(true)}
                 onOpenVisualizer={() => setIsVisualizerVisible(true)}
                 onOpenKnowledgeBase={() => setIsKnowledgeBaseVisible(true)}
                 onOpenHistory={() => setIsHistoryVisible(true)}
@@ -487,12 +487,6 @@ const App: React.FC = () => {
                 onManualRealityShift={() => setShiftConfirmOpen(true)}
                 turnsSinceLastShift={turnsSinceLastShift}
               />
-            )}
-            {hasGameBeenInitialized && (
-              <div className="flex items-center my-2">
-                <ModelUsageIndicators />
-                <div className="flex-grow border-t border-slate-600 ml-2" />
-              </div>
             )}
 
             {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized && (
@@ -646,7 +640,6 @@ const App: React.FC = () => {
         onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
         onLoadGame={handleLoadGameFromMenu}
         onOpenSettings={openSettingsFromMenu}
-        onOpenInfo={() => setIsInfoVisible(true)}
         isGameActive={hasGameBeenInitialized}
       />
       <CustomGameSetupScreen

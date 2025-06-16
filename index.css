@@ -447,20 +447,6 @@ body {
   transition: opacity 0.1s ease-in-out; /* Smooth appear/disappear if needed */
 }
 
-.highlight-tooltip {
-  position: fixed;
-  background-color: rgba(31, 41, 55, 0.95);
-  color: #e5e7eb;
-  border: 1px solid #60a5fa;
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  z-index: 80;
-  white-space: pre-wrap;
-}
-
 
 .map-controls-container {
   display: flex;

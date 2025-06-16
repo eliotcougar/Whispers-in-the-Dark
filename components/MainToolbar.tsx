@@ -4,9 +4,10 @@
  * @description Top-level toolbar with action buttons.
  */
 import React from 'react';
+import ModelUsageIndicators from './ModelUsageIndicators';
 import {
   CoinIcon,
-  VisualizeIcon, BookOpenIcon, MenuIcon, RealityShiftIcon, ScrollIcon, MapIcon // Added MapIcon
+  VisualizeIcon, BookOpenIcon, MenuIcon, InfoIcon, RealityShiftIcon, ScrollIcon, MapIcon // Added MapIcon
 } from './icons.tsx';
 
 interface MainToolbarProps {
@@ -14,6 +15,7 @@ interface MainToolbarProps {
   isLoading: boolean;
   currentThemeName: string | null;
   currentSceneExists: boolean;
+  onOpenInfo: () => void;
   onOpenVisualizer: () => void;
   onOpenKnowledgeBase: () => void;
   onOpenHistory: () => void;
@@ -31,6 +33,7 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
   isLoading,
   currentThemeName,
   currentSceneExists,
+  onOpenInfo,
   onOpenVisualizer,
   onOpenKnowledgeBase,
   onOpenHistory,
@@ -63,11 +66,25 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
             <span className="text-indigo-400 font-semibold text-lg">{turnsSinceLastShift}</span>
           </div>
         )}
+        <div className="p-2 border border-slate-500 rounded-md shadow-md">
+          <ModelUsageIndicators />
+        </div>
       </div>
 
 
       {/* Icon Buttons */}
       <div className="flex space-x-2">
+        <button
+          onClick={onOpenInfo}
+          disabled={isLoading}
+          className="p-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded-md shadow-md
+                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                    transition-colors duration-150"
+          title="Open Game Info & Guide"
+          aria-label="Open Game Info & Guide"
+        >
+          <InfoIcon />
+        </button>
         <button
           onClick={onOpenVisualizer}
           disabled={isLoading || !currentThemeName || !currentSceneExists}
