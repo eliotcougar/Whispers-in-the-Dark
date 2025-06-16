@@ -415,6 +415,9 @@ export interface DebugPacket {
   inventoryDebugInfo?: {
     prompt: string;
     rawResponse?: string;
+    parsedItemChanges?: ItemChange[];
+    observations?: string;
+    rationale?: string;
   } | null;
   dialogueDebugInfo?: {
     turns: DialogueTurnDebugEntry[];
