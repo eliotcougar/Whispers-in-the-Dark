@@ -575,6 +575,8 @@ const App: React.FC = () => {
             items={itemsHere}
             onTakeItem={handleTakeLocationItem}
             disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+            currentNodeId={currentMapNodeId}
+            mapNodes={mapData.nodes}
           />
           <InventoryDisplay
             items={inventory}

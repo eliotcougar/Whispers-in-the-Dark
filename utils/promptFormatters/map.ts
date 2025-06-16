@@ -196,6 +196,30 @@ const getNearbyNodeIds = (
 };
 
 /**
+ * Formats limited map context for inventory prompts.
+ * Lists nodes within two hops including id, name, parent id and description.
+ */
+export const formatLimitedMapContextForPrompt = (
+  mapData: MapData,
+  currentMapNodeId: string | null,
+): string => {
+  if (!currentMapNodeId) return 'Current location unknown.';
+  const allNodes = mapData.nodes;
+  const allEdges = mapData.edges;
+  const nearbyIds = getNearbyNodeIds(currentMapNodeId, 2, allNodes, allEdges);
+  nearbyIds.add(currentMapNodeId);
+  const lines: string[] = [];
+  nearbyIds.forEach(id => {
+    const node = allNodes.find(n => n.id === id);
+    if (!node) return;
+    const parent = node.data.parentNodeId || 'Universe';
+    const desc = node.data.description || 'No description.';
+    lines.push(` - ${node.id} - "${node.placeName}" (parent: ${parent}), "${desc}"`);
+  });
+  return lines.join(';\n') + '.';
+};
+
+/**
  * Formats the current map context for the AI prompt.
  */
 export const formatMapContextForPrompt = (
