@@ -137,13 +137,16 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
         errorMessage,
       });
 
+      const isStatus400 = status === 400;
+      console.log('Imagen error status check', { status, isStatus400 });
+
       // The Imagen API may respond with HTTP 400 when the request is not allowed
       // for the current project. Treat it similarly to the explicit billing
       // error so the Gemini fallback is attempted.
-      const isStatus400 = status === 400;
 
       
       if (isStatus400) {
+        console.log('Attempting Gemini fallback due to Imagen 400');
         try {
           const fallbackResp = await ai.models.generateContentStream({
             model: 'gemini-2.0-flash-preview-image-generation',
