@@ -3,7 +3,7 @@
  * @description SVG view rendering map nodes and edges with tooltip interactions.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { MapNode, MapEdge } from '../../types';
 import useMapInteractions from '../../hooks/useMapInteractions';
 import {
@@ -157,6 +157,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     nodeId?: string;
   } | null>(null);
   const [isTooltipLocked, setIsTooltipLocked] = useState(false);
+  const tooltipTimeout = useRef<number | null>(null);
+  const TOOLTIP_DELAY_MS = 250;
 
   const isSmallFontType = (type: string | undefined) =>
     type === 'feature' || type === 'room' || type === 'interior';
@@ -326,11 +328,18 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (node.data.description) content += `\n${node.data.description}`;
     if (node.data.status) content += `\nStatus: ${node.data.status}`;
     const anchor = computeAnchor(x, y, svgRect);
-    setTooltip({ content, x, y, anchor, nodeId: node.id });
+    if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
+    tooltipTimeout.current = window.setTimeout(() => {
+      setTooltip({ content, x, y, anchor, nodeId: node.id });
+    }, TOOLTIP_DELAY_MS);
   };
 
   const handleNodeClick = (node: MapNode, event: React.MouseEvent) => {
     event.stopPropagation();
+    if (tooltipTimeout.current) {
+      clearTimeout(tooltipTimeout.current);
+      tooltipTimeout.current = null;
+    }
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
     const x = event.clientX - svgRect.left;
@@ -360,11 +369,18 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
     if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
     const anchor = computeAnchor(x, y, svgRect);
-    setTooltip({ content, x, y, anchor });
+    if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
+    tooltipTimeout.current = window.setTimeout(() => {
+      setTooltip({ content, x, y, anchor });
+    }, TOOLTIP_DELAY_MS);
   };
 
   /** Hides the tooltip. */
   const handleMouseLeaveGeneral = () => {
+    if (tooltipTimeout.current) {
+      clearTimeout(tooltipTimeout.current);
+      tooltipTimeout.current = null;
+    }
     if (!isTooltipLocked) setTooltip(null);
   };
 
