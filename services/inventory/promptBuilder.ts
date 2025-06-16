@@ -19,6 +19,7 @@ export const buildInventoryPrompt = (
   currentNodeId: string | null,
   companionsInventory: string,
   nearbyNpcsInventory: string,
+  limitedMapContext: string,
 ): string => {
   const newItemsJson =
     newItems.length > 0
@@ -35,6 +36,7 @@ export const buildInventoryPrompt = (
   ${locationInventory ? `Current Location Inventory - ID: ${currentNodeId || 'unknown'}\n${locationInventory}\n` : ''}
   ${companionsInventory ? `Companions Inventory:\n${companionsInventory}\n` : ''}
   ${nearbyNpcsInventory ? `Nearby NPCs Inventory:\n${nearbyNpcsInventory}\n` : ''}
+  ${limitedMapContext ? `Nearby Map Context:\n${limitedMapContext}\n` : ''}
 
   Provide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
 };

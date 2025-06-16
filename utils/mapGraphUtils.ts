@@ -88,6 +88,26 @@ export const isDescendantIdOf = (
 };
 
 /**
+ * Returns IDs of nodes directly connected to the provided node via traversable edges.
+ */
+export const getAdjacentNodeIds = (
+  mapData: MapData,
+  nodeId: string,
+): string[] => {
+  const allowed: MapEdgeStatus[] = ['open', 'accessible', 'active'];
+  const ids = new Set<string>();
+  for (const edge of mapData.edges) {
+    if (!allowed.includes(edge.data.status ?? 'open')) continue;
+    if (edge.sourceNodeId === nodeId) {
+      ids.add(edge.targetNodeId);
+    } else if (edge.targetNodeId === nodeId && edge.data.status !== 'one_way') {
+      ids.add(edge.sourceNodeId);
+    }
+  }
+  return Array.from(ids);
+};
+
+/**
  * Determines if a non-rumored path exists between two nodes.
  * Traverses the map graph ignoring edges with status 'rumored' or 'removed'.
  *
