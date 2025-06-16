@@ -20,7 +20,7 @@ export const MAX_RETRIES = 3; // Max retries for most API calls
 export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the game log
 
 export const DEVELOPER = "Eliot the Cougar"
-export const CURRENT_GAME_VERSION = "1.3 (Spatio-Temporal Update)";
+export const CURRENT_GAME_VERSION = "1.3.1 (Spatio-Temporal Update)";
 export const CURRENT_SAVE_GAME_VERSION = "4";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 
