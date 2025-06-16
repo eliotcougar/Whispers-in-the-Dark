@@ -43,13 +43,13 @@ const SceneDisplay: React.FC<SceneDisplayProps> = ({
   const highlightedDescription = useMemo(() => {
     return description.split('\n').map((para, index) => (
       <p key={index} className="mb-4 leading-relaxed text-lg text-slate-300">
-        {highlightEntitiesInText(para, entitiesForHighlighting)}
+        {highlightEntitiesInText(para, entitiesForHighlighting, true)}
       </p>
     ));
   }, [description, entitiesForHighlighting]);
 
   const highlightedLastActionLog = useMemo(() => {
-    return highlightEntitiesInText(lastActionLog, entitiesForHighlighting);
+    return highlightEntitiesInText(lastActionLog, entitiesForHighlighting, true);
   }, [lastActionLog, entitiesForHighlighting]);
 
   return (
