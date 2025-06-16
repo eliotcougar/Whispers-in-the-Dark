@@ -149,13 +149,29 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 }) => {
   const interactions = useMapInteractions(initialViewBox, onViewBoxChange);
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
-  const [tooltip, setTooltip] = useState<{ content: string; x: number; y: number; nodeId?: string } | null>(null);
+  const [tooltip, setTooltip] = useState<{
+    content: string;
+    x: number;
+    y: number;
+    anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    nodeId?: string;
+  } | null>(null);
   const [isTooltipLocked, setIsTooltipLocked] = useState(false);
 
   const isSmallFontType = (type: string | undefined) =>
     type === 'feature' || type === 'room' || type === 'interior';
 
   const hasCenteredLabel = (type: string | undefined) => type === 'feature';
+
+  const computeAnchor = (
+    x: number,
+    y: number,
+    rect: DOMRect
+  ): 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' => {
+    const horizontal = x > rect.width / 2 ? 'right' : 'left';
+    const vertical = y > rect.height * 0.75 ? 'bottom' : 'top';
+    return `${vertical}-${horizontal}` as const;
+  };
 
 
 
@@ -303,28 +319,29 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (isTooltipLocked) return;
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
+    const x = event.clientX - svgRect.left;
+    const y = event.clientY - svgRect.top;
     let content = `${node.placeName}`;
-    //if (node.data.nodeType) content += `\nType: ${node.data.nodeType}`;
     if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
     if (node.data.description) content += `\n${node.data.description}`;
     if (node.data.status) content += `\nStatus: ${node.data.status}`;
-    /*if (node.data.parentNodeId && node.data.parentNodeId !== 'Universe') {
-      const parentNode = nodes.find(n => n.id === node.data.parentNodeId);
-      content += `\n(Parent: ${parentNode?.placeName || 'Unknown Location'})`;
-    }*/
-    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15, nodeId: node.id });
+    const anchor = computeAnchor(x, y, svgRect);
+    setTooltip({ content, x, y, anchor, nodeId: node.id });
   };
 
   const handleNodeClick = (node: MapNode, event: React.MouseEvent) => {
     event.stopPropagation();
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
+    const x = event.clientX - svgRect.left;
+    const y = event.clientY - svgRect.top;
     let content = `${node.placeName}`;
     if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
     if (node.data.description) content += `\n${node.data.description}`;
     if (node.data.status) content += `\nStatus: ${node.data.status}`;
     setIsTooltipLocked(true);
-    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15, nodeId: node.id });
+    const anchor = computeAnchor(x, y, svgRect);
+    setTooltip({ content, x, y, anchor, nodeId: node.id });
   };
 
   /** Shows edge details in a tooltip. */
@@ -332,6 +349,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (isTooltipLocked) return;
     const svgRect = svgRef.current?.getBoundingClientRect();
     if (!svgRect) return;
+    const x = event.clientX - svgRect.left;
+    const y = event.clientY - svgRect.top;
     const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
     const targetNode = nodes.find(n => n.id === edge.targetNodeId);
     let content = edge.data.description
@@ -340,7 +359,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     /*if (edge.data.type) content += `\n${edge.data.type}`;*/
     if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
     if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
-    setTooltip({ content, x: event.clientX - svgRect.left + 15, y: event.clientY - svgRect.top + 15 });
+    const anchor = computeAnchor(x, y, svgRect);
+    setTooltip({ content, x, y, anchor });
   };
 
   /** Hides the tooltip. */
@@ -577,7 +597,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       </svg>
       {tooltip && (
         <div
-          className="map-tooltip"
+          className={`map-tooltip anchor-${tooltip.anchor}`}
           style={{ top: tooltip.y, left: tooltip.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
         >
           {isTooltipLocked && tooltip.nodeId && (

@@ -447,6 +447,25 @@ body {
   transition: opacity 0.1s ease-in-out; /* Smooth appear/disappear if needed */
 }
 
+.map-tooltip.anchor-top-right {
+  transform: translate(-100%, 0);
+  transform-origin: top right;
+}
+
+.map-tooltip.anchor-top-left {
+  transform-origin: top left;
+}
+
+.map-tooltip.anchor-bottom-right {
+  transform: translate(-100%, -100%);
+  transform-origin: bottom right;
+}
+
+.map-tooltip.anchor-bottom-left {
+  transform: translate(0, -100%);
+  transform-origin: bottom left;
+}
+
 
 .map-controls-container {
   display: flex;
