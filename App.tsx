@@ -130,6 +130,7 @@ const App: React.FC = () => {
     lastDebugPacket,
     lastTurnChanges,
     turnsSinceLastShift,
+    globalTurnNumber,
     isCustomGameMode,
     gameStateStack,
     handleMapLayoutConfigChange,
@@ -381,6 +382,8 @@ const App: React.FC = () => {
 
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
   const travelPath: TravelStep[] | null = React.useMemo(() => {
+    // Using globalTurnNumber to force recalculation each turn
+    void globalTurnNumber;
     if (!destinationNodeId || !currentMapNodeId) return null;
     if (
       currentMapNodeId === destinationNodeId ||
@@ -389,7 +392,7 @@ const App: React.FC = () => {
       return null;
     }
     return findTravelPath(mapData, currentMapNodeId, destinationNodeId);
-  }, [destinationNodeId, currentMapNodeId, mapData]);
+  }, [destinationNodeId, currentMapNodeId, mapData, globalTurnNumber]);
   const prevMapVisibleRef = useRef(false);
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {

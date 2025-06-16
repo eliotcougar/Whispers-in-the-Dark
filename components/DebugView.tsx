@@ -4,6 +4,7 @@
  * @description Developer panel for inspecting game state.
  */
 import React, { useState } from 'react';
+import { extractJsonFromFence } from '../utils/jsonUtils';
 import { GameStateStack, DebugPacket, MapNode } from '../types';
 import { TravelStep } from '../utils/mapPathfinding';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -45,6 +46,7 @@ const DebugView: React.FC<DebugViewProps> = ({
   const [activeTab, setActiveTab] = useState<DebugTab>("GameState");
   const [showMainAIRaw, setShowMainAIRaw] = useState<boolean>(true);
   const [showMapAIRaw, setShowMapAIRaw] = useState<boolean>(true);
+  const [showInventoryAIRaw, setShowInventoryAIRaw] = useState<boolean>(true);
 
   const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null;
@@ -62,6 +64,25 @@ const DebugView: React.FC<DebugViewProps> = ({
       return JSON.parse(`"${text.replace(/"/g, '\\"')}"`) as string;
     } catch {
       return text.replace(/\\n/g, '\n');
+    }
+  };
+
+  const filterObservationsAndRationale = (raw: string | undefined | null): string => {
+    if (!raw) return "";
+    const jsonStr = extractJsonFromFence(raw);
+    try {
+      const parsed: unknown = JSON.parse(jsonStr);
+      const strip = (obj: unknown) => {
+        if (obj && typeof obj === 'object') {
+          delete (obj as Record<string, unknown>).observations;
+          delete (obj as Record<string, unknown>).rationale;
+          Object.values(obj).forEach(strip);
+        }
+      };
+      strip(parsed);
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      return raw.replace(/"?(observations|rationale)"?\s*:\s*"[^"\\]*(?:\\.[^"\\]*)*"\s*,?/gi, '').trim();
     }
   };
 
@@ -200,7 +221,11 @@ const DebugView: React.FC<DebugViewProps> = ({
                   </button>
                 </div>
                 {showMapAIRaw ?
-                  renderContent("Cartographer AI Response Raw", debugPacket.mapUpdateDebugInfo.rawResponse, false) :
+                  renderContent(
+                    "Cartographer AI Response Raw",
+                    filterObservationsAndRationale(debugPacket.mapUpdateDebugInfo.rawResponse),
+                    false,
+                  ) :
                   renderContent("Cartographer AI Response Parsed", debugPacket.mapUpdateDebugInfo.parsedPayload)
                 }
                 {debugPacket.mapUpdateDebugInfo.observations &&
@@ -226,7 +251,7 @@ const DebugView: React.FC<DebugViewProps> = ({
                         {info.rawResponse &&
                           renderContent(
                             `Connector Chains Raw Response (Round ${info.round})`,
-                            info.rawResponse,
+                            filterObservationsAndRationale(info.rawResponse),
                             false,
                           )}
                         {info.parsedPayload &&
@@ -306,11 +331,36 @@ const DebugView: React.FC<DebugViewProps> = ({
               debugPacket.inventoryDebugInfo.prompt,
               false,
             )}
-            {renderContent(
-              "Inventory AI Response Raw",
-              debugPacket.inventoryDebugInfo.rawResponse,
-              false,
-            )}
+            <div className="my-2">
+              <button
+                onClick={() => setShowInventoryAIRaw(!showInventoryAIRaw)}
+                className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+              >
+                Toggle Raw/Parsed Inventory Response
+              </button>
+            </div>
+            {showInventoryAIRaw
+              ? renderContent(
+                  "Inventory AI Response Raw",
+                  filterObservationsAndRationale(debugPacket.inventoryDebugInfo.rawResponse),
+                  false,
+                )
+              : renderContent(
+                  "Inventory AI Response Parsed",
+                  debugPacket.inventoryDebugInfo.parsedItemChanges,
+                )}
+            {debugPacket.inventoryDebugInfo.observations &&
+              renderContent(
+                "Inventory Observations",
+                debugPacket.inventoryDebugInfo.observations,
+                false,
+              )}
+            {debugPacket.inventoryDebugInfo.rationale &&
+              renderContent(
+                "Inventory Rationale",
+                debugPacket.inventoryDebugInfo.rationale,
+                false,
+              )}
           </>
         ) : (
           <p className="italic text-slate-400">No Inventory AI interaction debug packet captured.</p>

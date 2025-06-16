@@ -10,7 +10,7 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
 import { AdventureTheme, ItemChange, NewItemSuggestion } from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
-import { parseInventoryResponse } from './responseParser';
+import { parseInventoryResponse, InventoryAIPayload } from './responseParser';
 import { fetchCorrectedItemChangeArray_Service } from '../corrections';
 
 /**
@@ -36,7 +36,13 @@ export const executeInventoryRequest = async (
 
 export interface InventoryUpdateResult {
   itemChanges: ItemChange[];
-  debugInfo: { prompt: string; rawResponse?: string } | null;
+  debugInfo: {
+    prompt: string;
+    rawResponse?: string;
+    parsedItemChanges?: ItemChange[];
+    observations?: string;
+    rationale?: string;
+  } | null;
 }
 
 export const applyInventoryHints_Service = async (
@@ -77,7 +83,8 @@ export const applyInventoryHints_Service = async (
   );
   const response = await executeInventoryRequest(prompt);
   let parsed = parseInventoryResponse(response.text ?? '');
-  if (!parsed || (parsed.length === 0 && (response.text?.trim() || '') !== '[]')) {
+  if (!parsed ||
+      (parsed.itemChanges.length === 0 && (response.text?.trim() || '') !== '[]')) {
     const corrected = await fetchCorrectedItemChangeArray_Service(
       response.text ?? '',
       logMessage,
@@ -90,7 +97,17 @@ export const applyInventoryHints_Service = async (
       nearbyNpcsInventory,
       currentTheme,
     );
-    if (corrected) parsed = corrected;
+    if (corrected)
+      parsed = { itemChanges: corrected } as InventoryAIPayload;
   }
-  return { itemChanges: parsed || [], debugInfo: { prompt, rawResponse: response.text ?? '' } };
+  return {
+    itemChanges: parsed ? parsed.itemChanges : [],
+    debugInfo: {
+      prompt,
+      rawResponse: response.text ?? '',
+      parsedItemChanges: parsed ? parsed.itemChanges : undefined,
+      observations: parsed?.observations,
+      rationale: parsed?.rationale,
+    },
+  };
 };
