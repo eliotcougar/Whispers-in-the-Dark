@@ -86,10 +86,10 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     setError(null);
     setInternalImageUrl(null);
 
-    let rawPrompt = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
+    const prefix = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
     Aspect ratio 4:3.
     It is ${localTime || 'now'}. ${localEnvironment || 'The air is okay'}. ${localPlace || 'Location is unimportant'}. ${currentSceneDescription}`;
-    rawPrompt += ``;
+    let rawPrompt = prefix;
 
     const mentionedPlaces: string[] = [];
     // Derive places from mapData (main nodes)
@@ -112,17 +112,19 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     
     rawPrompt += " Focus on creating a faithful representation based on this description. Do not generate any text on the image.";
 
+    console.log("Original Scene: ", rawPrompt);
     // Ask a minimal model to rewrite the prompt to avoid unsafe elements
     let safePrompt = rawPrompt;
     try {
       const { response: safeResp } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME],
-        prompt: `Rewrite the following scene description into a concise, safe visual depiction suitable for image generation. Avoid any explicit or unsafe elements.\n\nScene:\n${rawPrompt}`,
-        systemInstruction: 'Respond ONLY with the cleaned visual description.',
-        temperature: 0.4,
+        prompt: `Rewrite the following scene description into a safe and aestetic visual depiction suitable for highly censored image generation. Only include the elements that are definitely present in the scene and omit anything non-visual, that is mentioned only for unrelated context. Preserve all details of the landscape or environment. Mention time, weather, mood of the environment. Preserve small details. Avoid any depressing, explicit or unsafe elements. Absolutely avoid nudity or corpses.\n\nScene:\n${rawPrompt}`,
+        systemInstruction: 'Respond ONLY with the visual description of the scene.',
+        temperature: 1,
         label: 'ImagePromptSanitizer',
       });
-      safePrompt = safeResp.text?.trim() || rawPrompt;
+      safePrompt = prefix + safeResp.text?.trim() || rawPrompt;
+      console.log("Sanitized prompt: ", safePrompt);
     } catch (safeErr) {
       console.warn('Prompt sanitization failed, using raw prompt.', safeErr);
     }
