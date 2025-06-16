@@ -472,7 +472,7 @@ const App: React.FC = () => {
         )}
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-2">
             {hasGameBeenInitialized && (
               <MainToolbar
                 score={score}
@@ -565,7 +565,7 @@ const App: React.FC = () => {
             )}
           </div>
 
-          <div className="lg:col-span-2 space-y-6 flex flex-col">
+          <div className="lg:col-span-2 space-y-2 flex flex-col">
           <QuestInfoBox
             mainQuest={hasGameBeenInitialized ? mainQuest : null}
             currentObjective={hasGameBeenInitialized ? currentObjective : null}
