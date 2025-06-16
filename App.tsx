@@ -707,6 +707,7 @@ const App: React.FC = () => {
       <InfoDisplay
         isVisible={isInfoVisible}
         onClose={closeInfo}
+
       />
 
 
