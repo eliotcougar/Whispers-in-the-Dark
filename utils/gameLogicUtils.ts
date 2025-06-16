@@ -136,8 +136,14 @@ const applyItemActionCore = (
       else currentUses.push(updatePayload.addKnownUse);
       updated.knownUses = currentUses;
     }
-    if (updatePayload.newName && updatePayload.newName.trim() !== '' && updatePayload.newName !== existingItem.name) {
-      updated.name = updatePayload.newName;
+    const renameOnly =
+      !!updatePayload.id &&
+      !!updatePayload.name &&
+      updatePayload.newName === undefined &&
+      updatePayload.name !== existingItem.name;
+    const finalName = updatePayload.newName || (renameOnly ? updatePayload.name : undefined);
+    if (finalName && finalName.trim() !== '' && finalName !== existingItem.name) {
+      updated.name = finalName;
     }
     newInventory[idx] = updated;
     return newInventory;
@@ -326,9 +332,14 @@ export const buildItemChangeRecords = (
       if (oldItem) {
         const oldItemCopy = { ...oldItem };
         itemPayload.id = oldItemCopy.id;
+        const renameOnly =
+          !!updatePayload.id &&
+          !!updatePayload.name &&
+          updatePayload.newName === undefined &&
+          updatePayload.name !== oldItemCopy.name;
         const newItemData: Item = {
           id: oldItemCopy.id,
-          name: updatePayload.newName || oldItemCopy.name,
+          name: updatePayload.newName || (renameOnly ? updatePayload.name : oldItemCopy.name),
           type: updatePayload.type !== undefined ? updatePayload.type : oldItemCopy.type,
           description: updatePayload.description !== undefined ? updatePayload.description : oldItemCopy.description,
           activeDescription: updatePayload.activeDescription !== undefined ? (updatePayload.activeDescription === null ? undefined : updatePayload.activeDescription) : oldItemCopy.activeDescription,
