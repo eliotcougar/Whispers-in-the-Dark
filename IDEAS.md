@@ -1,36 +1,20 @@
 IDEAS:
 
-+ Store a global turn number in the Game State. May get useful.
-+ Reasses the 'use' action in itemChange. Feels wrong to have it there.
-
 Using items is a mess, they have their own states.
   - Isolate scene actions and item actions. Up to three item actions per turn, using an auxiliary model to generate outcomes, then the next scene generates automatically.
   - Make the status a free-form string. May be more versatile than Active/Inactive.
 
-Spatio-temporal Continuity update:
-  + Map data structure.
-  + Selection of relevant map nodes for context.
-  + Items can be left at map nodes and retrieved later. (Items in World Inventory with location tags)
-    + Item retreival from World Inventory.
-    + Visual indication of items on the map.
-    + Inventory AI can place items -> NPCs can have items in their inventory. Limited to current Place and Nearby NPCs.
-    + Giving/taking items to/from NPCs during dialogue -> NPCs can have items in their inventory.
-    + Inventory AI can give/take items to/from known/new NPCs and move them around.
-    + Inventory AI can place new items on the map.
-  + Map view. Graph.
-    + Drag.
-    + Zoom.
-    + View nodes details.
-    + View links details.
-  - Mobile Locations (Ships, Airships, Spaseships, Cars, ...) - inherently linked to Vehicle-type items.
-  + Reduce the variety of node and edge types. Cleanup.
-  + More node hierarchies (Area, Settlement, Building, Room)
-  + Correction services for "Validation Error (NodeData - Update): Invalid 'status'. Value:"  "removed"
-
-Ink and Quill update
+v1.4. Ink and Quill update
  - Notebook item type with real text notes inside.
  - Book item type with real chapters inside.
+ - Page item type as a single page book subtype.
  - Fact list, storing random static facts.
+ - Librarian AI: Selects relevant facts from the fact list before each turn.
+
+v1.5? On the Road update
+- Mobile Locations, large multi-crew vehicles (Ships, Airships, Spaseships, ...)
+- Separate sub-graphs, dynamically connected to main map.
+- Vehicle Builder AI: constructs all the necessary parts of a vehicle. Vehicle are immutable afterwards.
 
 Money item type that is auto-consumed and is added to a variable set. With unique animation.
 
