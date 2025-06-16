@@ -109,9 +109,9 @@ export const fetchCorrectedPlaceDetails_Service = async (
 
   let originalPlaceNameFromMalformed = 'Not specified or unparseable';
   try {
-    const malformedObj: Record<string, unknown> = JSON.parse(
+    const malformedObj = safeParseJson<Record<string, unknown>>(
       malformedMapNodePayloadString,
-    ) as Record<string, unknown>;
+    );
     if (malformedObj && typeof malformedObj.name === 'string') {
       originalPlaceNameFromMalformed = `"${malformedObj.name}"`;
     } else if (

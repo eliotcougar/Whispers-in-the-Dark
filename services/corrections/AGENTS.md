@@ -8,6 +8,7 @@ The **corrections** helpers attempt to fix malformed AI responses. They are used
 
 Use these utilities to keep the game running smoothly when the main models return inconsistent data.
 Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.
+- The shared helpers in `utils/jsonUtils.ts` simplify fence stripping and JSON parsing; use them in correction routines.
 
 ### Gemini API call guidelines
 

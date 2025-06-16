@@ -8,6 +8,7 @@ The **dialogue** service handles conversational interactions with NPCs. It gener
 
 Maintain compatibility between dialogue prompts and the parser whenever adjustments are made.
 Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.
+- Use the utilities in `utils/jsonUtils.ts` for stripping code fences and safely parsing AI responses.
 
 ### Gemini API call guidelines
 

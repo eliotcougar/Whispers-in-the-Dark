@@ -8,6 +8,7 @@ The **inventory** service coordinates small item management requests to the AI. 
 
 Maintain compatibility between the prompt builder and parser when adjusting this service.
 Both null and undefined optional fields in AI responses should be sanitized to undefined and treated as undefined down the line.
+- Prefer the helpers in `utils/jsonUtils.ts` when parsing or sanitizing AI JSON.
 
 ### Gemini API call guidelines
 

@@ -19,7 +19,11 @@ import {
     fetchCorrectedDialogueSetup_Service,
 } from '../corrections';
 
-import { extractJsonFromFence } from '../../utils/jsonUtils';
+import {
+    extractJsonFromFence,
+    safeParseJson,
+    coerceNullToUndefined,
+} from '../../utils/jsonUtils';
 import { buildCharacterId } from '../../utils/entityUtils';
 
 /** Interface describing contextual data required by the parsing helpers. */
@@ -87,10 +91,7 @@ function validateBasicStructure(
         return null;
     }
 
-    const sanitized = Object.fromEntries(
-        Object.entries(data).map(([k, v]) => [k, v === null ? undefined : v])
-    );
-
+    const sanitized = coerceNullToUndefined(data);
     return sanitized as Partial<GameStateFromAI>;
 }
 
@@ -376,7 +377,8 @@ export async function parseAIResponse(
     const allRelevantMainMapNodesForCorrection: MapNode[] = currentThemeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
 
     try {
-        const parsedData = JSON.parse(jsonStr) as Partial<GameStateFromAI>;
+        const parsedData = safeParseJson<Partial<GameStateFromAI>>(jsonStr);
+        if (parsedData === null) throw new Error('JSON parse failed');
 
         const validated = validateBasicStructure(parsedData, onParseAttemptFailed);
         if (!validated) return null;

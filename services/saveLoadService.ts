@@ -28,6 +28,7 @@ import { getDefaultMapLayoutConfig } from "../hooks/useMapUpdates";
 import { DEFAULT_VIEWBOX } from '../utils/mapConstants';
 import { findThemeByName } from "./themeUtils";
 import { buildCharacterId, buildItemId } from '../utils/entityUtils';
+import { safeParseJson } from '../utils/jsonUtils';
 
 
 // --- Validation Helpers for SavedGameDataShape (V3) ---
@@ -609,7 +610,11 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
     reader.onload = (event) => {
       try {
         if (event.target && typeof event.target.result === 'string') {
-          const parsedData: unknown = JSON.parse(event.target.result);
+          const parsedData: unknown = safeParseJson(event.target.result);
+          if (parsedData === null) {
+            resolve(null);
+            return;
+          }
           const processed = normalizeLoadedSaveData(parsedData as Record<string, unknown>, 'file');
           if (processed) {
             resolve(expandSavedDataToFullState(processed));

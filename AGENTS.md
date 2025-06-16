@@ -34,7 +34,8 @@ ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,
 ## Code and Prompts synchronization:
  - When making changes to the data structures and code, always make sure the AI prompts used by the game are in agreement with the changes you make.
  - Try to centralize common enums and constants in one place, and import them as necessary.
- - Use the defined common enums to define type properties that can take a limited set of values.
+- Use the defined common enums to define type properties that can take a limited set of values.
+- Reuse JSON helpers from `utils/jsonUtils.ts` (`extractJsonFromFence`, `safeParseJson`, `coerceNullToUndefined`) instead of hand-written parsing logic.
 
 ## Unified visual style rules:
  - Close modal frame button grey, hover: red.
