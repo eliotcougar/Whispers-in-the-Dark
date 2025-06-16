@@ -7,8 +7,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { geminiClient as ai, isApiConfigured } from '../services/apiClient';
 import type { Part } from '@google/genai';
-import { AdventureTheme, Character, MapNode } from '../types'; 
+import { AdventureTheme, Character, MapNode } from '../types';
 import LoadingSpinner from './LoadingSpinner';
+import { extractStatusFromError } from '../utils/aiErrorUtils';
 
 if (!isApiConfigured()) {
   console.error("GEMINI_API_KEY for GoogleGenAI is not set. Image visualization will not work.");
@@ -129,7 +130,13 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
       console.error("Error generating image:", err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error during image generation.";
 
-      if (errorMessage.includes("Imagen API is only accessible to billed users")) {
+      // The Imagen API may respond with HTTP 400 when the request is not allowed
+      // for the current project. Treat it similarly to the explicit billing
+      // error so the Gemini fallback is attempted.
+      const status = extractStatusFromError(err);
+      const isStatus400 = status === 400;
+
+      if (isStatus400) {
         try {
           const fallbackResp = await ai.models.generateContentStream({
             model: 'gemini-2.0-flash-preview-image-generation',
