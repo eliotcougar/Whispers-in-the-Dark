@@ -47,6 +47,7 @@ const DebugView: React.FC<DebugViewProps> = ({
   const [showMainAIRaw, setShowMainAIRaw] = useState<boolean>(true);
   const [showMapAIRaw, setShowMapAIRaw] = useState<boolean>(true);
   const [showInventoryAIRaw, setShowInventoryAIRaw] = useState<boolean>(true);
+  const [showConnectorChainRaw, setShowConnectorChainRaw] = useState<Record<number, boolean>>({});
 
   const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null;
@@ -121,6 +122,17 @@ const DebugView: React.FC<DebugViewProps> = ({
                 }
               }
             }
+          }
+
+          if (title.toLowerCase().includes('parsed')) {
+            const strip = (obj: unknown) => {
+              if (obj && typeof obj === 'object') {
+                delete (obj as Record<string, unknown>).observations;
+                delete (obj as Record<string, unknown>).rationale;
+                Object.values(obj).forEach(strip);
+              }
+            };
+            strip(contentForDisplay);
           }
 
           return JSON.stringify(contentForDisplay, null, 2);
@@ -243,42 +255,53 @@ const DebugView: React.FC<DebugViewProps> = ({
                 {debugPacket.mapUpdateDebugInfo.validationError && renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false)}
                 {debugPacket.mapUpdateDebugInfo.minimalModelCalls &&
                   renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls)}
-                  {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
-                    debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 &&
-                    debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
-                      <div key={`chain-${idx}`} className="my-2">
-                        {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
-                        {info.rawResponse &&
+                {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
+                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 &&
+                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
+                    <div key={`chain-${idx}`} className="my-2">
+                      {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
+                      <div className="my-2">
+                        <button
+                          onClick={() =>
+                            setShowConnectorChainRaw(prev => ({ ...prev, [idx]: !prev[idx] }))
+                          }
+                          className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+                        >
+                          Toggle Raw/Parsed Connector Chains Response
+                        </button>
+                      </div>
+                      {(showConnectorChainRaw[idx] ?? true)
+                        ? info.rawResponse &&
                           renderContent(
                             `Connector Chains Raw Response (Round ${info.round})`,
                             filterObservationsAndRationale(info.rawResponse),
                             false,
-                          )}
-                        {info.parsedPayload &&
+                          )
+                        : info.parsedPayload &&
                           renderContent(
                             `Connector Chains Parsed Payload (Round ${info.round})`,
                             info.parsedPayload,
                           )}
-                        {info.observations &&
-                          renderContent(
-                            `Connector Chains Observations (Round ${info.round})`,
-                            info.observations,
-                            false,
-                          )}
-                        {info.rationale &&
-                          renderContent(
-                            `Connector Chains Rationale (Round ${info.round})`,
-                            info.rationale,
-                            false,
-                          )}
-                        {info.validationError &&
-                          renderContent(
-                            `Connector Chains Validation Error (Round ${info.round})`,
-                            info.validationError,
-                            false,
-                          )}
-                      </div>
-                    ))}
+                      {info.observations &&
+                        renderContent(
+                          `Connector Chains Observations (Round ${info.round})`,
+                          info.observations,
+                          false,
+                        )}
+                      {info.rationale &&
+                        renderContent(
+                          `Connector Chains Rationale (Round ${info.round})`,
+                          info.rationale,
+                          false,
+                        )}
+                      {info.validationError &&
+                        renderContent(
+                          `Connector Chains Validation Error (Round ${info.round})`,
+                          info.validationError,
+                          false,
+                        )}
+                    </div>
+                  ))}
               </>
             ) : (
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>
