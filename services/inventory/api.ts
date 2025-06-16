@@ -59,6 +59,7 @@ export const applyInventoryHints_Service = async (
   sceneDescription: string | undefined,
   logMessage: string | undefined,
   currentTheme: AdventureTheme,
+  limitedMapContext: string,
 ): Promise<InventoryUpdateResult | null> => {
   const pHint = playerItemsHint?.trim() || '';
   const wHint = worldItemsHint?.trim() || '';
@@ -78,6 +79,7 @@ export const applyInventoryHints_Service = async (
     currentNodeId,
     companionsInventory,
     nearbyNpcsInventory,
+    limitedMapContext,
   );
   const response = await executeInventoryRequest(prompt);
   let parsed = parseInventoryResponse(response.text ?? '');

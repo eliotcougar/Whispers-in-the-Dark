@@ -13,6 +13,7 @@ import { usePlayerActions } from './usePlayerActions';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
+import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 
 export interface UseGameLogicProps {
   playerGenderProp: string;
@@ -227,9 +228,33 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     mainQuest: currentFullState.mainQuest,
     currentObjective: currentFullState.currentObjective,
     inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-    itemsHere: currentFullState.currentMapNodeId
-      ? currentFullState.inventory.filter(i => i.holderId === currentFullState.currentMapNodeId)
-      : [],
+    itemsHere: useMemo(() => {
+      if (!currentFullState.currentMapNodeId) return [];
+      const atCurrent = currentFullState.inventory.filter(
+        i => i.holderId === currentFullState.currentMapNodeId
+      );
+      const adjIds = getAdjacentNodeIds(
+        currentFullState.mapData,
+        currentFullState.currentMapNodeId
+      );
+      const contextText = `${currentFullState.currentScene} ${currentFullState.lastActionLog || ''}`.toLowerCase();
+      const nearbyItems = currentFullState.inventory.filter(
+        i =>
+          adjIds.includes(i.holderId) &&
+          contextText.includes(i.name.toLowerCase())
+      );
+      const combined = [...atCurrent];
+      nearbyItems.forEach(it => {
+        if (!combined.includes(it)) combined.push(it);
+      });
+      return combined;
+    }, [
+      currentFullState.currentMapNodeId,
+      currentFullState.inventory,
+      currentFullState.mapData,
+      currentFullState.currentScene,
+      currentFullState.lastActionLog,
+    ]),
     itemPresenceByNode,
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,

@@ -9,6 +9,12 @@ export const generateUniqueId = (base: string): string => {
   return `${trimmed}_${unique}`;
 };
 
+export const stripBracketText = (name: string): string =>
+  name
+    .replace(/\[[^\]]*\]|\([^)]*\)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 /** Helper to calculate the hop distance between two nodes using pathfinding. */
 const getHopDistance = (
   mapData: MapData | undefined,
@@ -139,8 +145,13 @@ export const findItemByIdentifier = (
   const [id, name] = identifiers;
   const results: Item[] = [];
   const nameToCheck = typeof name === 'string' ? name : undefined;
-  const cmp = (a: string, b: string) =>
-    ignoreCase ? a.toLowerCase() === b.toLowerCase() : a === b;
+  const cmp = (a: string, b: string) => {
+    const aCore = stripBracketText(a);
+    const bCore = stripBracketText(b);
+    return ignoreCase
+      ? aCore.toLowerCase() === bCore.toLowerCase()
+      : aCore === bCore;
+  };
 
   if (id) {
     const idMatch = items.find(i => i.id === id);
@@ -167,13 +178,10 @@ export const findItemByIdentifier = (
   }
 
   if (!getAll && ignoreCase && nameToCheck) {
-    const normalized = nameToCheck.toLowerCase().replace(/\s+/g, ' ').trim();
-    const stripped = normalized.replace(/\([^)]*\)/g, '').trim();
-    const fuzzy = items.find(i => {
-      const n = i.name.toLowerCase().replace(/\s+/g, ' ').trim();
-      const ns = n.replace(/\([^)]*\)/g, '').trim();
-      return n === normalized || ns === stripped;
-    });
+    const normalized = stripBracketText(nameToCheck).toLowerCase();
+    const fuzzy = items.find(i =>
+      stripBracketText(i.name).toLowerCase() === normalized
+    );
     if (fuzzy) return fuzzy;
   }
 
@@ -228,6 +236,7 @@ export const buildCharacterId = (charName: string): string => {
 };
 
 export const buildItemId = (itemName: string): string => {
-  return generateUniqueId(`item_${itemName}`);
+  const core = stripBracketText(itemName);
+  return generateUniqueId(`item_${core}`);
 };
 

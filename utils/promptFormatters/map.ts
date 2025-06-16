@@ -4,7 +4,7 @@
  * @description Utilities for formatting map related context for AI prompts.
  */
 
-import { AdventureTheme, MapData, MapNode, MapEdge } from '../../types';
+import { AdventureTheme, MapData, MapNode, MapEdge, Item } from '../../types';
 import { NON_DISPLAYABLE_EDGE_STATUSES } from '../../constants';
 
 /**
@@ -193,6 +193,38 @@ const getNearbyNodeIds = (
     return filteredReachableNodeIds;
   }
   return allReachableNodeIds;
+};
+
+/**
+ * Formats limited map context for inventory prompts.
+ * Lists nodes within two hops including id, name, parent id, description, and items at each node.
+ */
+export const formatLimitedMapContextForPrompt = (
+  mapData: MapData,
+  currentMapNodeId: string | null,
+  inventory: Item[] = [],
+): string => {
+  if (!currentMapNodeId) return 'Current location unknown.';
+  const allNodes = mapData.nodes;
+  const allEdges = mapData.edges;
+  const nearbyIds = getNearbyNodeIds(currentMapNodeId, 2, allNodes, allEdges);
+  nearbyIds.add(currentMapNodeId);
+  const lines: string[] = [];
+  nearbyIds.forEach(id => {
+    const node = allNodes.find(n => n.id === id);
+    if (!node) return;
+    const parent = node.data.parentNodeId || 'Universe';
+    const desc = node.data.description || 'No description.';
+    const itemsAtNode = inventory.filter(item => item.holderId === id);
+    const itemsStr =
+      itemsAtNode.length > 0
+        ? ` Items: ${itemsAtNode.map(i => `"${i.name}"`).join(', ')}`
+        : '';
+    lines.push(
+      ` - ${node.id} - "${node.placeName}" (parent: ${parent}), "${desc}"${itemsStr}`,
+    );
+  });
+  return lines.join(';\n') + '.';
 };
 
 /**

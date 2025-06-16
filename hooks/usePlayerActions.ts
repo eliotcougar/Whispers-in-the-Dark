@@ -38,6 +38,8 @@ import {
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
 import { formatInventoryForPrompt } from '../utils/promptFormatters/inventory';
+import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
+import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { applyInventoryHints_Service } from '../services/inventory';
 
 export interface ProcessAiResponseOptions {
@@ -314,6 +316,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         if (themeContextForResponse) {
           const originalLoadingReason = loadingReason;
           setLoadingReason('inventory');
+          const limitedMapContext = formatLimitedMapContextForPrompt(
+            draftState.mapData,
+            draftState.currentMapNodeId,
+            baseStateSnapshot.inventory
+          );
           const invResult = await applyInventoryHints_Service(
             'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
             'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
@@ -327,7 +334,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
             formatCharInventoryList(nearbyChars),
             'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
             aiData.logMessage,
-            themeContextForResponse
+            themeContextForResponse,
+            limitedMapContext
           );
           setLoadingReason(originalLoadingReason);
           if (invResult) {
@@ -643,14 +651,20 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const currentLocationId = currentFullState.currentMapNodeId;
       if (!currentLocationId) return;
 
-      const itemToTake = currentFullState.inventory.find(
-        (item) => item.name === itemName && item.holderId === currentLocationId
+      const adjacentIds = getAdjacentNodeIds(
+        currentFullState.mapData,
+        currentLocationId
       );
+      const itemToTake = currentFullState.inventory.find(item => {
+        if (item.name !== itemName) return false;
+        if (item.holderId === currentLocationId) return true;
+        return adjacentIds.includes(item.holderId);
+      });
       if (!itemToTake) return;
 
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map((item) =>
-        item.name === itemName && item.holderId === currentLocationId
+        item.name === itemName && item.holderId === itemToTake.holderId
           ? { ...item, holderId: PLAYER_HOLDER_ID }
           : item
       );

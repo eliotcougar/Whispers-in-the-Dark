@@ -448,6 +448,7 @@ body {
   transition: opacity 0.1s ease-in-out; /* Smooth appear/disappear if needed */
 }
 
+
 .map-tooltip.anchor-top-right {
   transform: translate(-100%, 0);
   transform-origin: top right;

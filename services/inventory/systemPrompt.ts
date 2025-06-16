@@ -8,6 +8,8 @@ import { VALID_ITEM_TYPES_STRING } from '../../constants';
 export const SYSTEM_INSTRUCTION = `** SYSTEM INSTRUCTIONS: **
 You are an AI assistant that converts item hints into explicit inventory actions for a text adventure game.
 Analyze the hints and optional new items JSON provided in the prompt.
+The prompt provides limited map context listing nodes within two hops of the Player.
+Items described in the "World Items Hint" should be placed at their appropriate map node holderId from this context using the 'put' action, leaving them for the Player to pick up later unless explicitly taken.
 You MUST process all items in the New Items JSON, and define any operations on existing items in the Player's Inventory, Location Inventory, or NPCs' inventories, according to provided hints.
 Respond ONLY with a JSON object containing these fields:
 {"observations": "string", /* REQUIRED. Contextually relevant observations about the items. Minimum 500 chars. */

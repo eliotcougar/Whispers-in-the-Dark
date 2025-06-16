@@ -7,9 +7,11 @@ interface LocationItemsDisplayProps {
   items: Item[];
   onTakeItem: (itemName: string) => void;
   disabled: boolean;
+  currentNodeId: string | null;
+  mapNodes: { id: string; placeName: string }[];
 }
 
-const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTakeItem, disabled }) => {
+const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTakeItem, disabled, currentNodeId, mapNodes }) => {
   if (items.length === 0) return null;
 
   return (
@@ -20,6 +22,8 @@ const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTa
       <ul className="flex flex-wrap justify-center gap-4 list-none p-0">
         {items.map((item) => {
           const description = item.isActive && item.activeDescription ? item.activeDescription : item.description;
+          const atCurrent = item.holderId === currentNodeId;
+          const holderName = !atCurrent ? mapNodes.find(n => n.id === item.holderId)?.placeName : null;
           return (
             <li
               key={item.name}
@@ -32,7 +36,10 @@ const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTa
               <div className="mb-1">
                 <span className="font-semibold text-lg text-slate-100">{item.name}</span>
               </div>
-              <p className="text-sm text-slate-300 mb-3 italic leading-tight flex-grow">{description}</p>
+              <p className="text-sm text-slate-300 mb-1 italic leading-tight flex-grow">{description}</p>
+              {!atCurrent && holderName && (
+                <p className="text-xs text-slate-400 mb-2">Reachable at {holderName}</p>
+              )}
               <div className="mt-auto">
                 <button
                   onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
