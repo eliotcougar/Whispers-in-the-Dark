@@ -11,6 +11,9 @@ export const GEMINI_MODEL_NAME = "gemini-2.5-flash-preview-05-20";
 export const AUXILIARY_MODEL_NAME = "gemini-2.0-flash"; // Updated for better capability
 export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string outputs
 
+// Temperature used for correction helpers
+export const CORRECTION_TEMPERATURE = 0.75;
+
 // Per-minute rate limits for each model
 export const GEMINI_RATE_LIMIT_PER_MINUTE = 10;
 export const AUXILIARY_RATE_LIMIT_PER_MINUTE = 15;

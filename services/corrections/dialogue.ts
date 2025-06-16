@@ -3,11 +3,19 @@
  * @description Correction helper for malformed dialogue setup payloads.
  */
 import { AdventureTheme, Character, MapNode, Item, DialogueSetupPayload, DialogueAIResponse } from '../../types';
-import { MAX_RETRIES } from '../../constants';
+import {
+  MAX_RETRIES,
+  MINIMAL_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+} from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { formatKnownCharactersForPrompt } from '../../utils/promptFormatters';
 import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
-import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { CORRECTION_TEMPERATURE } from '../../constants';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { addProgressSymbol } from '../../utils/loadingProgress';
+import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
 import { parseDialogueTurnResponse } from '../dialogue/responseParser';
@@ -66,7 +74,16 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
 
   return retryAiCall<DialogueSetupPayload>(async attempt => {
     try {
-      const aiResponse = await callCorrectionAI<DialogueSetupPayload>(prompt, systemInstruction);
+      addProgressSymbol('●');
+      const { response } = await dispatchAIRequest({
+        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        responseMimeType: 'application/json',
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = safeParseJson<DialogueSetupPayload>(extractJsonFromFence(response.text ?? ''));
       if (aiResponse && isDialogueSetupPayloadStructurallyValid(aiResponse)) {
         return { result: aiResponse };
       }
@@ -128,7 +145,15 @@ Respond ONLY with the corrected JSON object.`;
 
   return retryAiCall<DialogueAIResponse>(async attempt => {
     try {
-      const aiResponse = await callMinimalCorrectionAI(prompt, systemInstruction);
+      addProgressSymbol('○');
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = response.text?.trim() ?? null;
       if (aiResponse) {
         const parsedResponse = parseDialogueTurnResponse(aiResponse, npcThoughts);
         if (

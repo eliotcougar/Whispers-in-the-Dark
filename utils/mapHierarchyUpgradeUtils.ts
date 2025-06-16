@@ -7,7 +7,7 @@
 
 import { MapData, MapNode, MapEdge, AdventureTheme } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
-import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/map';
+import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/hierarchyUpgrade';
 import { generateUniqueId } from './entityUtils';
 
 /**

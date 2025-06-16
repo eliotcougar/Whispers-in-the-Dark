@@ -3,9 +3,18 @@
  * @description Correction helpers for item related data.
  */
 import { Item, AdventureTheme, ItemChange } from '../../types';
-import { MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../../constants';
+import {
+  MAX_RETRIES,
+  VALID_ITEM_TYPES_STRING,
+  MINIMAL_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+} from '../../constants';
 import { isValidItem } from '../parsers/validation';
-import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { CORRECTION_TEMPERATURE } from '../../constants';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { addProgressSymbol } from '../../utils/loadingProgress';
+import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
 
@@ -116,7 +125,17 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
 
   return retryAiCall<Item>(async attempt => {
     try {
-      const aiResponse = await callCorrectionAI<Item>(prompt, systemInstruction);
+      addProgressSymbol('●');
+      const { response } = await dispatchAIRequest({
+        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        responseMimeType: 'application/json',
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const jsonStr = response.text ?? '';
+      const aiResponse = safeParseJson<Item>(extractJsonFromFence(jsonStr));
       if (aiResponse && isValidItem(aiResponse, actionType === 'gain' ? 'gain' : 'update')) {
         return { result: aiResponse };
       }
@@ -188,7 +207,15 @@ If no action can be confidently determined, respond with an empty string.`;
 
   return retryAiCall<ItemChange['action']>(async attempt => {
     try {
-      const aiResponse = await callMinimalCorrectionAI(prompt, systemInstruction);
+      addProgressSymbol('○');
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = response.text?.trim() ?? null;
       if (aiResponse !== null) {
         const candidateAction = aiResponse.trim().toLowerCase();
         if (['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(candidateAction)) {

@@ -28,22 +28,23 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
 import { isValidAIMapUpdatePayload } from '../../utils/mapUpdateValidationUtils';
 import {
-  VALID_NODE_STATUS_VALUES,
-  VALID_NODE_TYPE_VALUES,
-  VALID_EDGE_TYPE_VALUES,
-  VALID_EDGE_STATUS_VALUES
-} from '../../constants';
-import { NODE_STATUS_SYNONYMS, NODE_TYPE_SYNONYMS, EDGE_TYPE_SYNONYMS, EDGE_STATUS_SYNONYMS } from '../../utils/mapSynonyms';
+  normalizeRemovalUpdates,
+  dedupeEdgeOps,
+  normalizeStatusAndTypeSynonyms,
+  fixDeleteIdMixups,
+} from './mapUpdateUtils';
+import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
+import { buildChainRequest } from './connectorChains';
+
 import { structuredCloneGameState } from '../../utils/cloneUtils';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import {
   fetchLikelyParentNode_Service,
   fetchCorrectedNodeIdentifier_Service,
-  EdgeChainRequest,
-  fetchConnectorChains_Service,
-  ConnectorChainsServiceResult,
-  resolveSplitFamilyOrphans_Service,
-} from '../corrections/map';
+} from '../corrections/placeDetails';
+import type { EdgeChainRequest, ConnectorChainsServiceResult } from '../corrections/edgeFixes';
+import { fetchConnectorChains_Service } from '../corrections/edgeFixes';
+import { resolveSplitFamilyOrphans_Service } from '../corrections/hierarchyUpgrade';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { generateUniqueId, findMapNodeByIdentifier, buildNodeId } from '../../utils/entityUtils';
@@ -100,190 +101,6 @@ const callMapUpdateAI = async (
  * Parses the AI's map update response into an AIMapUpdatePayload structure.
  */
 
-/**
- * Converts node/edge update operations that merely set a
- * status suggesting removal (e.g., "removed", "deleted") into
- * proper remove operations. This prevents validation errors when
- * MapAI uses an update action with a removal status.
- */
-const normalizeRemovalUpdates = (payload: AIMapUpdatePayload) => {
-  const nodeRemovalSynonyms = new Set([
-    'removed',
-    'deleted',
-    'destroyed',
-    'eliminated',
-    'erased',
-    'gone',
-    'lost',
-    'obliterated',
-    'terminated',
-    'discarded'
-  ]);
-  const edgeRemovalSynonyms = new Set([
-    'removed',
-    'deleted',
-    'destroyed',
-    'eliminated',
-    'erased',
-    'gone',
-    'lost',
-    'severed',
-    'cut',
-    'broken',
-    'disconnected',
-    'obliterated',
-    'terminated',
-    'dismantled'
-  ]);
-
-  const updatedNodesToUpdate: typeof payload.nodesToUpdate = [];
-  const updatedNodesToRemove: typeof payload.nodesToRemove = payload.nodesToRemove ? [...payload.nodesToRemove] : [];
-  (payload.nodesToUpdate || []).forEach(nodeUpd => {
-    const statusVal = nodeUpd.newData?.status?.toLowerCase();
-    if (statusVal && nodeRemovalSynonyms.has(statusVal)) {
-      updatedNodesToRemove.push({ nodeId: nodeUpd.placeName, nodeName: nodeUpd.placeName });
-    } else {
-      updatedNodesToUpdate.push(nodeUpd);
-    }
-  });
-  payload.nodesToUpdate = updatedNodesToUpdate.length > 0 ? updatedNodesToUpdate : undefined;
-  payload.nodesToRemove = updatedNodesToRemove.length > 0 ? updatedNodesToRemove : undefined;
-
-  const updatedEdgesToUpdate: typeof payload.edgesToUpdate = [];
-  const updatedEdgesToRemove: typeof payload.edgesToRemove = payload.edgesToRemove ? [...payload.edgesToRemove] : [];
-  (payload.edgesToUpdate || []).forEach(edgeUpd => {
-    const statusVal = edgeUpd.newData?.status?.toLowerCase();
-    if (statusVal && edgeRemovalSynonyms.has(statusVal)) {
-      updatedEdgesToRemove.push({
-        edgeId: '',
-        sourceId: edgeUpd.sourcePlaceName,
-        targetId: edgeUpd.targetPlaceName
-      });
-    } else {
-      updatedEdgesToUpdate.push(edgeUpd);
-    }
-  });
-  payload.edgesToUpdate = updatedEdgesToUpdate.length > 0 ? updatedEdgesToUpdate : undefined;
-  payload.edgesToRemove = updatedEdgesToRemove.length > 0 ? updatedEdgesToRemove : undefined;
-};
-
-/**
- * Filters duplicate edge operations within an AIMapUpdatePayload. Duplicate
- * edges are determined by case-insensitive source/target names and edge type
- * for add/update operations. Removals are deduped by edgeId.
- */
-const dedupeEdgeOps = (payload: AIMapUpdatePayload) => {
-  const normalizeKey = (
-    source: string,
-    target: string,
-    type: string | undefined,
-  ): string => {
-    const a = source.toLowerCase();
-    const b = target.toLowerCase();
-    const t = (type || 'any').toLowerCase();
-    return a < b ? `${a}|${b}|${t}` : `${b}|${a}|${t}`;
-  };
-
-  const dedupeNamed = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
-    arr: T[] | undefined,
-    typeGetter: (e: T) => string | undefined,
-  ): T[] | undefined => {
-    if (!arr) return arr;
-    const seen = new Set<string>();
-    const result: T[] = [];
-    for (const e of arr) {
-      const key = normalizeKey(e.sourcePlaceName, e.targetPlaceName, typeGetter(e));
-      if (!seen.has(key)) {
-        seen.add(key);
-        result.push(e);
-      }
-    }
-    return result;
-  };
-
-  payload.edgesToAdd = dedupeNamed(payload.edgesToAdd || undefined, e => e.data?.type);
-  payload.edgesToUpdate = dedupeNamed(payload.edgesToUpdate || undefined, e => e.newData?.type);
-
-  if (payload.edgesToRemove) {
-    const seen = new Set<string>();
-    const result: typeof payload.edgesToRemove = [];
-    for (const e of payload.edgesToRemove) {
-      const key = e.edgeId.toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        result.push(e);
-      }
-    }
-    payload.edgesToRemove = result;
-  }
-};
-
-/**
- * Normalizes status and type fields within the payload to
- * their canonical values, accepting various synonyms.
- * Returns an array of error strings for values that remain
- * invalid after synonym normalization.
- */
-const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] => {
-  const errors: string[] = [];
-
-  const nodeStatusSynonyms = NODE_STATUS_SYNONYMS;
-  const nodeTypeSynonyms = NODE_TYPE_SYNONYMS;
-  const edgeTypeSynonyms = EDGE_TYPE_SYNONYMS;
-  const edgeStatusSynonyms = EDGE_STATUS_SYNONYMS;
-
-  const applyNodeDataFix = (data: Partial<MapNodeData> | undefined, context: string) => {
-    if (!data) return;
-    if (data.status) {
-      const mapped = nodeStatusSynonyms[data.status.toLowerCase()];
-      if (mapped) data.status = mapped;
-      if (!VALID_NODE_STATUS_VALUES.includes(data.status)) {
-        errors.push(`${context} invalid status "${data.status}"`);
-      }
-    }
-    if (data.nodeType) {
-      const mapped = nodeTypeSynonyms[data.nodeType.toLowerCase()];
-      if (mapped) data.nodeType = mapped;
-      if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType)) {
-        errors.push(`${context} invalid nodeType "${data.nodeType}"`);
-      }
-    }
-  };
-
-  const applyEdgeDataFix = (data: Partial<MapEdgeData> | undefined, context: string) => {
-    if (!data) return;
-    if (data.type) {
-      const mapped = edgeTypeSynonyms[data.type.toLowerCase()];
-      if (mapped) data.type = mapped;
-      if (!VALID_EDGE_TYPE_VALUES.includes(data.type)) {
-        errors.push(`${context} invalid type "${data.type}"`);
-      }
-    }
-    if (data.status) {
-      const mapped = edgeStatusSynonyms[data.status.toLowerCase()];
-      if (mapped) data.status = mapped;
-      if (!VALID_EDGE_STATUS_VALUES.includes(data.status)) {
-        errors.push(`${context} invalid status "${data.status}"`);
-      }
-    }
-  };
-
-  (payload.nodesToAdd || []).forEach((n, idx) => applyNodeDataFix(n.data, `nodesToAdd[${idx}]`));
-  (payload.nodesToUpdate || []).forEach((n, idx) => applyNodeDataFix(n.newData, `nodesToUpdate[${idx}].newData`));
-  (payload.edgesToAdd || []).forEach((e, idx) => applyEdgeDataFix(e.data, `edgesToAdd[${idx}]`));
-  (payload.edgesToUpdate || []).forEach((e, idx) => applyEdgeDataFix(e.newData, `edgesToUpdate[${idx}].newData`));
-  // edgesToRemove no longer supports type adjustments
-
-  if (payload.splitFamily && payload.splitFamily.newNodeType) {
-    const mapped = nodeTypeSynonyms[payload.splitFamily.newNodeType.toLowerCase()];
-    if (mapped) payload.splitFamily.newNodeType = mapped as MapNodeData['nodeType'];
-    if (!VALID_NODE_TYPE_VALUES.includes(payload.splitFamily.newNodeType)) {
-      errors.push(`splitFamily.newNodeType invalid "${payload.splitFamily.newNodeType}"`);
-    }
-  }
-
-  return errors;
-};
 
 /**
  * Updates the game map based on narrative events and AI suggestions.
@@ -347,7 +164,10 @@ export const updateMapFromAIData_Service = async (
     if (!node) {
       const corrected = await fetchCorrectedNodeIdentifier_Service(
         identifier,
-        { currentTheme, themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name) },
+        {
+          themeNodes: newMapData.nodes.filter(n => n.themeName === currentTheme.name),
+          currentLocationId: referenceMapNodeId,
+        },
         minimalModelCalls,
       );
       if (corrected) {
@@ -478,6 +298,7 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
         debugInfo.observations = parsedPayloadAttempt.observations ?? debugInfo.observations;
         debugInfo.rationale = parsedPayloadAttempt.rationale ?? debugInfo.rationale;
         normalizeRemovalUpdates(parsedPayloadAttempt);
+        fixDeleteIdMixups(parsedPayloadAttempt);
         const synonymErrors = normalizeStatusAndTypeSynonyms(parsedPayloadAttempt);
         dedupeEdgeOps(parsedPayloadAttempt);
         if (isValidAIMapUpdatePayload(parsedPayloadAttempt)) {
@@ -735,10 +556,10 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
               : 'open',
           description: `Path between ${nodeAddOp.placeName} and ${sameTypeParent.placeName}`,
         };
-        if (isEdgeConnectionAllowed(newNode, sameTypeParent, 'path')) {
-          addEdgeWithTracking(newNode, sameTypeParent, edgeData);
+        if (isEdgeConnectionAllowed(newNode, sameTypeParent, 'path', themeNodeIdMap)) {
+          addEdgeWithTracking(newNode, sameTypeParent, edgeData, newMapData.edges, themeEdgesMap);
         } else {
-          pendingChainRequests.push(buildChainRequest(newNode, sameTypeParent, edgeData));
+          pendingChainRequests.push(buildChainRequest(newNode, sameTypeParent, edgeData, themeNodeIdMap));
         }
       }
     }
@@ -894,136 +715,6 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
       }
   }
 
-  // Determines whether two feature nodes can be directly connected based on the
-  // hierarchy rules. Allowed connections are:
-  //   1) sibling features (same parent, including direct children of 'Universe')
-  //   2) features whose parents share the same grandparent (including the root 'Universe')
-  //   3) a feature and another feature whose parent is the child's grandparent (again including 'Universe')
-  function isEdgeConnectionAllowed(
-      nodeA: MapNode,
-      nodeB: MapNode,
-      edgeType?: MapEdgeData['type']
-  ): boolean {
-      if (nodeA.data.nodeType !== 'feature' || nodeB.data.nodeType !== 'feature') {
-          return false;
-      }
-      if (edgeType === 'shortcut') return true;
-
-      const parentAId = nodeA.data.parentNodeId ?? 'Universe';
-      const parentBId = nodeB.data.parentNodeId ?? 'Universe';
-      const parentA = parentAId === 'Universe' ? null : themeNodeIdMap.get(parentAId);
-      const parentB = parentBId === 'Universe' ? null : themeNodeIdMap.get(parentBId);
-
-      if (!parentA && parentAId !== 'Universe') return false;
-      if (!parentB && parentBId !== 'Universe') return false;
-      if (parentAId === parentBId) return true;
-
-      const grandAId = parentAId === 'Universe'
-        ? 'Universe'
-        : themeNodeIdMap.get(parentAId)?.data.parentNodeId ?? 'Universe';
-      const grandBId = parentBId === 'Universe'
-        ? 'Universe'
-        : themeNodeIdMap.get(parentBId)?.data.parentNodeId ?? 'Universe';
-
-      if (grandAId && grandBId && grandAId === grandBId) return true;
-
-      // Allow child-to-grandchild feature connections across hierarchy levels
-      if (grandAId && parentBId === grandAId) return true;
-      if (grandBId && parentAId === grandBId) return true;
-
-      // Allow connections between features whose parents are both direct children of the root
-      if (parentAId !== 'Universe' && parentBId !== 'Universe') {
-        const parentAParent = themeNodeIdMap.get(parentAId)?.data.parentNodeId ?? 'Universe';
-        const parentBParent = themeNodeIdMap.get(parentBId)?.data.parentNodeId ?? 'Universe';
-        if (parentAParent === 'Universe' && parentBParent === 'Universe') return true;
-      }
-      if (parentAId === 'Universe' && grandBId === 'Universe') return true;
-      if (parentBId === 'Universe' && grandAId === 'Universe') return true;
-
-      return false;
-  }
-
-
-  function addEdgeWithTracking(
-      a: MapNode,
-      b: MapNode,
-      data: MapEdgeData
-  ): MapEdge {
-      const existing = (themeEdgesMap.get(a.id) || []).find(
-          e =>
-              ((e.sourceNodeId === a.id && e.targetNodeId === b.id) ||
-                  (e.sourceNodeId === b.id && e.targetNodeId === a.id)) &&
-              e.data.type === data.type
-      );
-      if (existing) return existing;
-      const id = generateUniqueId(`edge_${a.id}_to_${b.id}_`);
-      const edge: MapEdge = { id, sourceNodeId: a.id, targetNodeId: b.id, data };
-      newMapData.edges.push(edge);
-      newlyAddedEdges.push(edge);
-      let arrA = themeEdgesMap.get(a.id); if (!arrA) { arrA = []; themeEdgesMap.set(a.id, arrA); } arrA.push(edge);
-      let arrB = themeEdgesMap.get(b.id); if (!arrB) { arrB = []; themeEdgesMap.set(b.id, arrB); } arrB.push(edge);
-      return edge;
-  }
-
-  function getNodeDepth(node: MapNode): number {
-      let depth = 0;
-      let current: MapNode | undefined = node;
-      while (current.data.parentNodeId) {
-          const parent = themeNodeIdMap.get(current.data.parentNodeId);
-          if (!parent) break;
-          depth++;
-          current = parent;
-      }
-      return depth;
-  }
-
-  function buildChainRequest(
-      sourceNode: MapNode,
-      targetNode: MapNode,
-      edgeData: MapEdgeData,
-  ): EdgeChainRequest {
-      const chainPairs: EdgeChainRequest['pairs'] = [];
-      const sourceChain: MapNode[] = [sourceNode];
-      const targetChain: MapNode[] = [targetNode];
-      let nodeA: MapNode = sourceNode;
-      let nodeB: MapNode = targetNode;
-      let attempts = 0;
-      let lastKey = '';
-      while (!isEdgeConnectionAllowed(nodeA, nodeB, edgeData.type) && attempts < 10) {
-          const stepKey = `${nodeA.id}|${nodeB.id}`;
-          if (stepKey !== lastKey) {
-            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
-            lastKey = stepKey;
-          }
-          const depthA = getNodeDepth(nodeA);
-          const depthB = getNodeDepth(nodeB);
-          if (depthA >= depthB && nodeA.data.parentNodeId) {
-              const parentA = themeNodeIdMap.get(nodeA.data.parentNodeId);
-              if (parentA) { nodeA = parentA; sourceChain.push(nodeA); } else break;
-          } else if (nodeB.data.parentNodeId) {
-              const parentB = themeNodeIdMap.get(nodeB.data.parentNodeId);
-              if (parentB) { nodeB = parentB; targetChain.push(nodeB); } else break;
-          } else {
-              break;
-          }
-          attempts++;
-      }
-      if (!isEdgeConnectionAllowed(nodeA, nodeB, edgeData.type)) {
-          const finalKey = `${nodeA.id}|${nodeB.id}`;
-          if (finalKey !== lastKey) {
-            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
-          }
-      }
-      return {
-          originalSource: sourceNode,
-          originalTarget: targetNode,
-          pairs: chainPairs,
-          sourceChain,
-          targetChain,
-          edgeData,
-      };
-  }
-
 
 
 
@@ -1047,58 +738,23 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
       if (processedChainKeys.has(pairKey)) continue;
       processedChainKeys.add(pairKey);
 
-      const chainPairs: EdgeChainRequest['pairs'] = [];
-      const sourceChain: MapNode[] = [sourceNode];
-      const targetChain: MapNode[] = [targetNode];
-      let nodeA: MapNode = sourceNode;
-      let nodeB: MapNode = targetNode;
-      let attempts = 0;
-      let lastKey = '';
-      while (!isEdgeConnectionAllowed(nodeA, nodeB, edgeAddOp.data?.type) && attempts < 10) {
-          const stepKey = `${nodeA.id}|${nodeB.id}`;
-          if (stepKey !== lastKey) {
-            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
-            lastKey = stepKey;
-          }
-          const depthA = getNodeDepth(nodeA);
-          const depthB = getNodeDepth(nodeB);
-          if (depthA >= depthB && nodeA.data.parentNodeId) {
-              const parentA = themeNodeIdMap.get(nodeA.data.parentNodeId);
-              if (parentA) { nodeA = parentA; sourceChain.push(nodeA); } else break;
-          } else if (nodeB.data.parentNodeId) {
-              const parentB = themeNodeIdMap.get(nodeB.data.parentNodeId);
-              if (parentB) { nodeB = parentB; targetChain.push(nodeB); } else break;
-          } else {
-              break;
-          }
-          attempts++;
-      }
-
-      if (!isEdgeConnectionAllowed(nodeA, nodeB, edgeAddOp.data?.type)) {
-          const finalKey = `${nodeA.id}|${nodeB.id}`;
-          if (finalKey !== lastKey) {
-            chainPairs.push({ sourceParent: nodeA, targetParent: nodeB });
-          }
-          pendingChainRequests.push({
-            originalSource: sourceNode,
-            originalTarget: targetNode,
-            pairs: chainPairs,
-            sourceChain,
-            targetChain,
-            edgeData: edgeAddOp.data || { type: 'path', status: 'open' },
-          });
+        const chainReq = buildChainRequest(sourceNode, targetNode, edgeAddOp.data || { type: 'path', status: 'open' }, themeNodeIdMap);
+        if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data?.type, themeNodeIdMap)) {
+          pendingChainRequests.push(chainReq);
           continue;
-      }
+        }
 
       addEdgeWithTracking(
-        nodeA,
-        nodeB,
+        sourceNode,
+        targetNode,
         {
           ...(edgeAddOp.data || {}),
           status:
             edgeAddOp.data?.status ||
-            (nodeA.data.status === 'rumored' || nodeB.data.status === 'rumored' ? 'rumored' : 'open'),
-        }
+            (sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored' ? 'rumored' : 'open'),
+        },
+        newMapData.edges,
+        themeEdgesMap,
       );
   }
 
@@ -1280,12 +936,14 @@ ${currentThemeEdgesFromMapData.length > 0 ? currentThemeEdgesFromMapData.map(e =
                 src,
                 tgt,
                 eAdd.data || { type: 'path', status: 'open' },
+                newMapData.edges,
+                themeEdgesMap,
               );
             } else {
               console.warn(
                 `Connector chain edge between "${src.placeName}" and "${tgt.placeName}" violates hierarchy rules. Reprocessing.`,
               );
-              chainRequests.push(buildChainRequest(src, tgt, eAdd.data || { type: 'path', status: 'open' }));
+              chainRequests.push(buildChainRequest(src, tgt, eAdd.data || { type: 'path', status: 'open' }, themeNodeIdMap));
             }
           }
         });
