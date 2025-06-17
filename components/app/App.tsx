@@ -5,48 +5,41 @@
  */
 
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { useGameLogic } from './hooks/useGameLogic';
-import SceneDisplay from './components/SceneDisplay';
-import ActionOptions from './components/ActionOptions';
-import InventoryDisplay from './components/InventoryDisplay';
-import LocationItemsDisplay from './components/LocationItemsDisplay';
-import LoadingSpinner from './components/LoadingSpinner';
-import ErrorDisplay from './components/ErrorDisplay';
-import HistoryDisplay from './components/HistoryDisplay';
-import QuestInfoBox from './components/QuestInfoBox';
-import ImageVisualizer from './components/ImageVisualizer';
-import KnowledgeBase from './components/KnowledgeBase';
-import SettingsDisplay from './components/SettingsDisplay';
-import ConfirmationDialog from './components/ConfirmationDialog';
-import InfoDisplay from './components/InfoDisplay';
-import MainToolbar from './components/MainToolbar';
-import ModelUsageIndicators from './components/ModelUsageIndicators';
-import TitleMenu from './components/TitleMenu';
-import DialogueDisplay from './components/DialogueDisplay';
-import DebugView from './components/DebugView';
-import ItemChangeAnimator from './components/ItemChangeAnimator';
-import MapDisplay from './components/MapDisplay';
-import CustomGameSetupScreen from './components/CustomGameSetupScreen';
-import { useLoadingProgress } from './hooks/useLoadingProgress';
-import { useSaveLoad } from './hooks/useSaveLoad';
-import { useModalState } from './hooks/useModalState';
-import { findTravelPath, TravelStep } from './utils/mapPathfinding';
-import { isDescendantIdOf } from './utils/mapGraphUtils';
+import { useGameLogic } from '../../hooks/useGameLogic';
+import SceneDisplay from '../SceneDisplay';
+import ActionOptions from '../ActionOptions';
+import InventoryDisplay from '../InventoryDisplay';
+import LocationItemsDisplay from '../LocationItemsDisplay';
+import LoadingSpinner from '../LoadingSpinner';
+import ErrorDisplay from '../ErrorDisplay';
+import QuestInfoBox from '../QuestInfoBox';
+import MainToolbar from '../MainToolbar';
+import ModelUsageIndicators from '../ModelUsageIndicators';
+import TitleMenu from '../TitleMenu';
+import DialogueDisplay from '../DialogueDisplay';
+import DebugView from '../DebugView';
+import ItemChangeAnimator from '../ItemChangeAnimator';
+import CustomGameSetupScreen from '../CustomGameSetupScreen';
+import Footer from './Footer';
+import AppModals from './AppModals';
+import { useLoadingProgress } from '../../hooks/useLoadingProgress';
+import { useSaveLoad } from '../../hooks/useSaveLoad';
+import { useModalState } from '../../hooks/useModalState';
+import { findTravelPath, TravelStep } from '../../utils/mapPathfinding';
+import { isDescendantIdOf } from '../../utils/mapGraphUtils';
 import {
   applyNestedCircleLayout,
   DEFAULT_NESTED_PADDING,
   DEFAULT_NESTED_ANGLE_PADDING,
-} from './utils/mapLayoutUtils';
+} from '../../utils/mapLayoutUtils';
 
-import {
-  saveGameStateToLocalStorage
-} from "./services/storage";
+import { saveGameStateToLocalStorage } from '../../services/storage';
 
 import {
   FREE_FORM_ACTION_COST,
   FREE_FORM_ACTION_MAX_LENGTH,
-  DEVELOPER
-} from "./constants";
+} from '../../constants';
+import { ThemePackName } from '../../types';
 
 
 
@@ -560,18 +553,11 @@ const App: React.FC = () => {
           isGameBusy={isAnyModalOrDialogueActive || isLoading}
         />
 
-        <footer className={`w-full max-w-screen-xl mt-12 text-center text-slate-500 text-sm ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
-          <div className="flex justify-between items-center">
-            <p className={`text-left`}>&copy; {new Date().getFullYear()}. Developed by {DEVELOPER}, Codex, and Gemini. <br />Powered by Gemini.</p>
-            <button
-              onClick={() => setIsDebugViewVisible(!isDebugViewVisible)}
-              className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-400 text-xs rounded shadow-md transition-colors"
-              aria-label="Open Debug View"
-            >
-              Debug
-            </button>
-          </div>
-        </footer>
+        <Footer
+          isBlurred={isAnyModalOrDialogueActive}
+          isDebugViewVisible={isDebugViewVisible}
+          setIsDebugViewVisible={setIsDebugViewVisible}
+        />
       </div>
 
       <input
@@ -632,21 +618,41 @@ const App: React.FC = () => {
         titleText="Select Destination Theme"
         descriptionText="Choose the theme you wish to manually shift your reality to. The current theme is disabled."
       />
-      <SettingsDisplay
-        isVisible={isSettingsVisible}
-        onClose={closeSettings}
+
+      {hasGameBeenInitialized && currentTheme && (
+      <AppModals
+        isVisualizerVisible={isVisualizerVisible}
+        setIsVisualizerVisible={setIsVisualizerVisible}
+        visualizerImageUrl={visualizerImageUrl}
+        visualizerImageScene={visualizerImageScene}
+        setGeneratedImage={setGeneratedImageCache}
+        currentScene={currentScene}
+        currentTheme={currentTheme}
+        mapData={mapData}
+        allCharacters={allCharacters}
+        localTime={localTime}
+        localEnvironment={localEnvironment}
+        localPlace={localPlace}
+        isKnowledgeBaseVisible={isKnowledgeBaseVisible}
+        setIsKnowledgeBaseVisible={setIsKnowledgeBaseVisible}
+        isHistoryVisible={isHistoryVisible}
+        setIsHistoryVisible={setIsHistoryVisible}
+        themeHistory={themeHistory}
+        gameLog={gameLog}
+        isSettingsVisible={isSettingsVisible}
+        onCloseSettings={closeSettings}
         stabilityLevel={stabilityLevel}
         chaosLevel={chaosLevel}
         onStabilityChange={setStabilityLevel}
         onChaosChange={setChaosLevel}
         enabledThemePacks={enabledThemePacks}
-        onToggleThemePack={(packName) => {
-          setEnabledThemePacks(prevPacks => {
+        onToggleThemePack={(packName: ThemePackName) => {
+          setEnabledThemePacks((prevPacks: ThemePackName[]) => {
             const newPacks = prevPacks.includes(packName)
-              ? prevPacks.filter(p => p !== packName)
+              ? prevPacks.filter((p) => p !== packName)
               : [...prevPacks, packName];
             if (newPacks.length === 0) {
-              alert("At least one theme pack must be enabled.");
+              alert('At least one theme pack must be enabled.');
               return prevPacks;
             }
             return newPacks;
@@ -655,105 +661,43 @@ const App: React.FC = () => {
         playerGender={playerGender}
         onPlayerGenderChange={setPlayerGender}
         isCustomGameMode={isCustomGameMode}
+        isInfoVisible={isInfoVisible}
+        onCloseInfo={closeInfo}
+        isMapVisible={isMapVisible}
+        onCloseMap={() => setIsMapVisible(false)}
+        currentThemeName={currentTheme?.name || null}
+        currentMapNodeId={currentMapNodeId}
+        destinationNodeId={destinationNodeId}
+        itemPresenceByNode={itemPresenceByNode}
+        onSelectDestination={(id) => handleSelectDestinationNode(id)}
+        initialLayoutConfig={mapLayoutConfig}
+        initialViewBox={mapInitialViewBox}
+        onViewBoxChange={handleMapViewBoxChange}
+        onNodesPositioned={handleMapNodesPositionChange}
+        onLayoutConfigChange={handleMapLayoutConfigChange}
+        newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
+        confirmNewGameFromMenu={confirmNewGameFromMenu}
+        cancelNewGameFromMenu={() => {
+          setNewGameFromMenuConfirmOpen(false);
+          setUserRequestedTitleMenuOpen(true);
+        }}
+        newCustomGameConfirmOpen={newCustomGameConfirmOpen}
+        confirmNewCustomGame={confirmNewCustomGame}
+        cancelNewCustomGame={() => {
+          setNewCustomGameConfirmOpen(false);
+          setUserRequestedTitleMenuOpen(true);
+        }}
+        loadGameFromMenuConfirmOpen={loadGameFromMenuConfirmOpen}
+        confirmLoadGameFromMenu={confirmLoadGameFromMenu}
+        cancelLoadGameFromMenu={() => {
+          setLoadGameFromMenuConfirmOpen(false);
+          setUserRequestedTitleMenuOpen(true);
+        }}
+        shiftConfirmOpen={shiftConfirmOpen}
+        confirmShift={confirmShift}
+        cancelShift={() => setShiftConfirmOpen(false)}
+        isCustomGameModeShift={isCustomGameMode}
       />
-
-      <InfoDisplay
-        isVisible={isInfoVisible}
-        onClose={closeInfo}
-
-      />
-
-
-      {hasGameBeenInitialized && currentTheme && (
-        <>
-          <ImageVisualizer
-            currentSceneDescription={currentScene}
-            currentTheme={currentTheme}
-            mapData={mapData.nodes}
-            allCharacters={allCharacters}
-            localTime={localTime}
-            localEnvironment={localEnvironment}
-            localPlace={localPlace}
-            isVisible={isVisualizerVisible}
-            onClose={() => setIsVisualizerVisible(false)}
-            setGeneratedImage={setGeneratedImageCache}
-            cachedImageUrl={visualizerImageUrl}
-            cachedImageScene={visualizerImageScene}
-          />
-          <KnowledgeBase
-            allCharacters={allCharacters}
-            currentTheme={currentTheme}
-            isVisible={isKnowledgeBaseVisible}
-            onClose={() => setIsKnowledgeBaseVisible(false)}
-          />
-          <HistoryDisplay
-            themeHistory={themeHistory}
-            gameLog={gameLog}
-            isVisible={isHistoryVisible}
-            onClose={() => setIsHistoryVisible(false)}
-          />
-          <MapDisplay
-            mapData={mapData}
-            currentThemeName={currentTheme?.name || null}
-            currentMapNodeId={currentMapNodeId}
-            destinationNodeId={destinationNodeId}
-            itemPresenceByNode={itemPresenceByNode}
-            onSelectDestination={id => handleSelectDestinationNode(id)}
-           initialLayoutConfig={mapLayoutConfig}
-           initialViewBox={mapInitialViewBox}
-            onNodesPositioned={handleMapNodesPositionChange}
-           onLayoutConfigChange={handleMapLayoutConfigChange}
-           onViewBoxChange={handleMapViewBoxChange}
-            isVisible={isMapVisible}
-            onClose={() => setIsMapVisible(false)}
-          />
-          <ConfirmationDialog
-            isOpen={newGameFromMenuConfirmOpen}
-            title="Confirm New Game"
-            message="Are you sure you want to start a new game? Your current progress will be lost."
-            onConfirm={confirmNewGameFromMenu}
-            onCancel={() => {
-              setNewGameFromMenuConfirmOpen(false);
-              setUserRequestedTitleMenuOpen(true);
-            }}
-            confirmText="Start New Game"
-            confirmButtonClass="bg-red-600 hover:bg-red-500"
-          />
-          <ConfirmationDialog
-            isOpen={newCustomGameConfirmOpen}
-            title="Confirm Custom Game"
-            message="Are you sure you want to start a new custom game? Your current progress will be lost."
-            onConfirm={confirmNewCustomGame}
-            onCancel={() => {
-              setNewCustomGameConfirmOpen(false);
-              setUserRequestedTitleMenuOpen(true);
-            }}
-            confirmText="Start Custom Game"
-            confirmButtonClass="bg-orange-600 hover:bg-orange-500"
-          />
-          <ConfirmationDialog
-            isOpen={loadGameFromMenuConfirmOpen}
-            title="Confirm Load Game"
-            message="Are you sure you want to load a game? Your current progress will be overwritten if you load a new game."
-            onConfirm={confirmLoadGameFromMenu}
-            onCancel={() => {
-              setLoadGameFromMenuConfirmOpen(false);
-              setUserRequestedTitleMenuOpen(true);
-            }}
-            confirmText="Load Game"
-            confirmButtonClass="bg-blue-600 hover:bg-blue-500"
-          />
-          <ConfirmationDialog
-            isOpen={shiftConfirmOpen}
-            title="Confirm Reality Shift"
-            message={<>This will destabilize the current reality, leading to an <strong className="text-purple-400">immediate and unpredictable shift</strong> to a new theme. Are you sure you wish to proceed?</>}
-            onConfirm={confirmShift}
-            onCancel={() => setShiftConfirmOpen(false)}
-            confirmText="Shift Reality"
-            confirmButtonClass="bg-purple-600 hover:bg-purple-500"
-            isCustomModeShift={isCustomGameMode}
-          />
-        </>
       )}
     </>
   );
