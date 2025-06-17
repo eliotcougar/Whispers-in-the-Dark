@@ -15,6 +15,7 @@ import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
 import { CORRECTION_TEMPERATURE } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
+import { LOADING_REASON_UI_MAP } from '../../constants';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
@@ -74,7 +75,7 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
 
   return retryAiCall<DialogueSetupPayload>(async attempt => {
     try {
-      addProgressSymbol('●');
+      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -145,7 +146,7 @@ Respond ONLY with the corrected JSON object.`;
 
   return retryAiCall<DialogueAIResponse>(async attempt => {
     try {
-      addProgressSymbol('○');
+      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

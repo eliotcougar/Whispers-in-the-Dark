@@ -16,6 +16,7 @@ import {
 import { dispatchAIRequest } from '../modelDispatcher';
 import { CORRECTION_TEMPERATURE } from '../../constants';
 import { addProgressSymbol } from '../../utils/loadingProgress';
+import { LOADING_REASON_UI_MAP } from '../../constants';
 import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
@@ -56,7 +57,7 @@ Respond ONLY with the single edge type.`;
   const systemInstruction = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(', ')}.`;
   return retryAiCall<MapEdgeData['type']>(async attempt => {
     try {
-      addProgressSymbol('○');
+      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -115,7 +116,7 @@ export const fetchConnectorChains_Service = async (
     themeNodes: MapNode[];
   },
 ): Promise<ConnectorChainsServiceResult> => {
-  addProgressSymbol('▒▒');
+  addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
   if (!isApiConfigured() || requests.length === 0)
     return { payload: null, debugInfo: null };
 

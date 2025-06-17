@@ -4,7 +4,8 @@
  * @description Loading spinner indicating in-progress actions.
  */
 import React from 'react';
-import { LoadingReason } from '../types'; // Import LoadingReason
+import { LoadingReason } from '../types';
+import { LOADING_REASON_UI_MAP } from '../constants';
 import { useLoadingProgress } from '../hooks/useLoadingProgress';
 
 interface LoadingSpinnerProps {
@@ -20,45 +21,12 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
   const spinnerClass = `${spinnerBaseClass} animate-spin border-sky-600`;
   const textColor = "text-sky-400";
   
-  let textMessage = "Loading..."; // Default
-  
-  switch (loadingReason) {
-    case 'initial_load':
-      textMessage = "Loading...";
-      break;
-    case 'reality_shift_load':
-      textMessage = "Reality is shifting...";
-      break;
-    case 'storyteller':
-      textMessage = "Dungeon Master is thinking...";
-      break;
-    case 'map':
-      textMessage = "Dungeon Master is drawing the map...";
-      break;
-    case 'correction':
-      textMessage = "Dungeon Master is fixing mistakes...";
-      break;
-    case 'inventory':
-      textMessage = "Dungeon Master is handling items...";
-      break;
-    case 'dialogue_turn':
-      textMessage = "The conversation continues...";
-      break;
-    case 'dialogue_summary': 
-      textMessage = "Concluding dialogue...";
-      break;
-    case 'dialogue_memory_creation': 
-      textMessage = "Forming memories...";
-      break;
-    case 'dialogue_conclusion_summary': 
-      textMessage = "Returning to the world...";
-      break;
-    default:
-      if (loadingReason === null) { 
-          textMessage = "Hmmmmmm...";
-      }
-      break;
-  }
+  const textMessage =
+    loadingReason && LOADING_REASON_UI_MAP[loadingReason]
+      ? LOADING_REASON_UI_MAP[loadingReason].text
+      : loadingReason === null
+      ? 'Hmmmmmm...'
+      : 'Loading...';
 
   const progressDisplay = progress
     ? progress + progress.split('').reverse().join('')

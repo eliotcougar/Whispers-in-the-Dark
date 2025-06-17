@@ -5,7 +5,7 @@
  */
 import { GenerateContentResponse } from "@google/genai";
 import { AdventureTheme } from '../../types';
-import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../../constants';
+import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES, LOADING_REASON_UI_MAP } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
@@ -17,7 +17,7 @@ export const executeAIMainTurn = async (
     fullPrompt: string,
     themeSystemInstructionModifier: string | undefined // Retain as string for direct use
 ): Promise<{ response: GenerateContentResponse; thoughts: string[] }> => {
-    addProgressSymbol('██');
+    addProgressSymbol(LOADING_REASON_UI_MAP['storyteller'].icon);
     if (!isApiConfigured()) {
       console.error("API Key not configured for Gemini Service.");
       return Promise.reject(new Error("API Key not configured."));

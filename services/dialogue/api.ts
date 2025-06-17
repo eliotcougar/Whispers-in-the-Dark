@@ -21,7 +21,7 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { fetchCorrectedDialogueTurn_Service } from '../corrections';
 import { CORRECTION_TEMPERATURE } from '../../constants';
-import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME } from '../../constants';
+import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { isApiConfigured } from '../apiClient';
 import { buildDialogueTurnPrompt, buildDialogueSummaryPrompt, buildDialogueMemorySummaryPrompts } from './promptBuilder';
@@ -224,7 +224,7 @@ export const executeMemorySummary = async (
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) {
     try {
       console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 1})`);
-      addProgressSymbol('○');
+      addProgressSymbol(LOADING_REASON_UI_MAP['dialogue_memory_creation'].icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME],
         prompt: userPromptPart,
