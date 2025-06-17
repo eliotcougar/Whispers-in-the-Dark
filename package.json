@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint --ext .ts,.tsx .",
     "test": "npm run lint",
+    "test:unit": "ts-node tests/mapVisit.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
     "eslint": "^9.28.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "ts-node": "^10.9.2",
     "typescript": "~5.8.3",
     "vite": "^6.2.0"
   }

@@ -176,6 +176,12 @@ export const handleMapUpdates = async (
     if (currentNodeIndex !== -1) {
       if (!draftState.mapData.nodes[currentNodeIndex].data.visited) {
         draftState.mapData.nodes[currentNodeIndex].data.visited = true;
+        if (
+          draftState.mapData.nodes[currentNodeIndex].data.status === 'rumored' ||
+          draftState.mapData.nodes[currentNodeIndex].data.status === 'undiscovered'
+        ) {
+          draftState.mapData.nodes[currentNodeIndex].data.status = 'discovered';
+        }
         if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
       }
       const nodeMap = new Map(draftState.mapData.nodes.map(n => [n.id, n]));
@@ -185,6 +191,12 @@ export const handleMapUpdates = async (
         const idx = draftState.mapData.nodes.findIndex(n => n.id === ancestor.id);
         if (idx !== -1 && !draftState.mapData.nodes[idx].data.visited) {
           draftState.mapData.nodes[idx].data.visited = true;
+          if (
+            draftState.mapData.nodes[idx].data.status === 'rumored' ||
+            draftState.mapData.nodes[idx].data.status === 'undiscovered'
+          ) {
+            draftState.mapData.nodes[idx].data.status = 'discovered';
+          }
           if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
         }
       }
