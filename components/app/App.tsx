@@ -149,6 +149,8 @@ const App: React.FC = () => {
     setIsMapVisible,
     userRequestedTitleMenuOpen,
     setUserRequestedTitleMenuOpen,
+    shouldReturnToTitleMenu,
+    setShouldReturnToTitleMenu,
     isHistoryVisible,
     setIsHistoryVisible,
     isDebugViewVisible,
@@ -291,26 +293,30 @@ const App: React.FC = () => {
 
   const openSettingsFromMenu = () => {
     setUserRequestedTitleMenuOpen(false);
+    setShouldReturnToTitleMenu(true);
     setIsSettingsVisible(true);
   };
 
   const closeSettings = () => {
     setIsSettingsVisible(false);
-    if (userRequestedTitleMenuOpen || !hasGameBeenInitialized) {
+    if (shouldReturnToTitleMenu || !hasGameBeenInitialized) {
       setUserRequestedTitleMenuOpen(true);
     }
+    setShouldReturnToTitleMenu(false);
   };
 
   const openInfoFromMenu = () => {
     setUserRequestedTitleMenuOpen(false);
+    setShouldReturnToTitleMenu(true);
     setIsInfoVisible(true);
   };
 
   const closeInfo = () => {
     setIsInfoVisible(false);
-    if (userRequestedTitleMenuOpen || !hasGameBeenInitialized) {
+    if (shouldReturnToTitleMenu || !hasGameBeenInitialized) {
       setUserRequestedTitleMenuOpen(true);
     }
+    setShouldReturnToTitleMenu(false);
   };
 
 
