@@ -126,34 +126,36 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
       <h3 className="text-xl font-bold text-amber-400 mb-2 border-b-2 border-amber-700 pb-2 flex items-center">
         <InventoryIcon /> Inventory
       </h3>
+
       <div className="mb-4 flex flex-wrap gap-2">
         <button
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            setSortOrder(prev => prev === 'name' ? 'default' : 'name');
-            event.currentTarget.blur();
-          }}
-          disabled={disabled}
+          aria-pressed={sortOrder === 'name'}
           className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded shadow transition-colors duration-150
                       ${sortOrder === 'name'
                         ? 'bg-sky-600 text-white hover:bg-sky-500 ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800'
                         : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
                       } disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
-          aria-pressed={sortOrder === 'name'}
+          disabled={disabled}
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+            setSortOrder(prev => prev === 'name' ? 'default' : 'name');
+            event.currentTarget.blur();
+          }}
         >
           Sort by Name
         </button>
+
         <button
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            setSortOrder(prev => prev === 'type' ? 'default' : 'type');
-            event.currentTarget.blur();
-          }}
-          disabled={disabled}
+          aria-pressed={sortOrder === 'type'}
           className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded shadow transition-colors duration-150
                       ${sortOrder === 'type'
                         ? 'bg-sky-600 text-white hover:bg-sky-500 ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800'
                         : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
                       } disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
-          aria-pressed={sortOrder === 'type'}
+          disabled={disabled}
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+            setSortOrder(prev => prev === 'type' ? 'default' : 'type');
+            event.currentTarget.blur();
+          }}
         >
           Sort by Type
         </button>
@@ -171,13 +173,15 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
 
             return (
               <li 
-                key={item.name} 
                 className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} flex flex-col`} 
+                key={item.name} 
               >
                 <div className="flex justify-between items-center mb-1 text-xs"> {/* New top row */}
                   <ItemTypeDisplay type={item.type} />
-                  {item.isActive && <span className="text-green-400 font-semibold">Active</span>}
+
+                  {item.isActive ? <span className="text-green-400 font-semibold">Active</span> : null}
                 </div>
+
                 <div className="mb-1"> {/* Name row */}
                   <span className="font-semibold text-lg text-slate-100">
                     {item.name}
@@ -185,22 +189,23 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                 </div>
 
                 <p className="text-sm text-slate-300 mb-3 italic leading-tight flex-grow">{displayDescription}</p> 
-                {item.isJunk && <p className="text-xs text-orange-400 mb-1 italic">(Marked as junk)</p>}
+
+                {item.isJunk ? <p className="text-xs text-orange-400 mb-1 italic">(Marked as junk)</p> : null}
 
 
                 <div className="space-y-2 mt-auto"> 
                   {applicableUses.map((knownUse) => (
                     <button
+                      aria-label={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
+                      className="w-full text-sm bg-teal-600 hover:bg-teal-500 text-white font-medium py-1.5 px-3 rounded shadow
+                                 disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
+                                 transition-colors duration-150 ease-in-out"
+                      disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-knownuse-${knownUse.actionName}`}
                       onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                         onItemInteract(item, 'specific', knownUse);
                         event.currentTarget.blur();
                       }}
-                      disabled={disabled || isConfirmingDiscard}
-                      className="w-full text-sm bg-teal-600 hover:bg-teal-500 text-white font-medium py-1.5 px-3 rounded shadow
-                                 disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                                 transition-colors duration-150 ease-in-out"
-                      aria-label={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
                       title={knownUse.description}
                     >
                       {knownUse.actionName}
@@ -208,38 +213,44 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                   ))}
 
                   <button
+                    aria-label={`Inspect ${item.name}`}
+                    className="w-full text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-1.5 px-3 rounded shadow
+                               disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
+                               transition-colors duration-150 ease-in-out"
+                    disabled={disabled || isConfirmingDiscard}
                     key={`${item.name}-inspect`}
                     onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                       onItemInteract(item, 'inspect');
                       event.currentTarget.blur();
                     }}
-                    disabled={disabled || isConfirmingDiscard}
-                    className="w-full text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-1.5 px-3 rounded shadow
-                               disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                               transition-colors duration-150 ease-in-out"
-                    aria-label={`Inspect ${item.name}`}
                   >
                     Inspect
                   </button>
 
                   {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
                     <button
+                      aria-label={`Attempt to use ${item.name} (generic action)`}
+                      className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
+                                disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                                transition-colors duration-150 ease-in-out"
+                      disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-generic-use`}
                       onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                         onItemInteract(item, 'generic');
                         event.currentTarget.blur();
                       }}
-                      disabled={disabled || isConfirmingDiscard}
-                      className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
-                                disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                                transition-colors duration-150 ease-in-out"
-                      aria-label={`Attempt to use ${item.name} (generic action)`}
                     >
                       Attempt to Use (Generic)
                     </button>
                   )}
+
                   {item.type === 'vehicle' && (
                     <button
+                      aria-label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
+                      className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow
+                                disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                                transition-colors duration-150 ease-in-out"
+                      disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-vehicle-action`}
                       onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                         const actionName = item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`;
@@ -250,80 +261,74 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                         onItemInteract(item, 'specific', dynamicKnownUse);
                         event.currentTarget.blur();
                       }}
-                      disabled={disabled || isConfirmingDiscard}
-                      className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow
-                                disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                                transition-colors duration-150 ease-in-out"
-                      aria-label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
                     >
                       {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
                     </button>
                   )}
 
-                  {item.isJunk && !isConfirmingDiscard && (
-                    <ItemActionButton
-                      key={`${item.name}-discard`}
-                      onClick={() => setConfirmingDiscardItemName(item.name)}
-                      disabled={disabled}
-                      ariaLabel={`Discard ${item.name}`}
-                      className="bg-orange-700 hover:bg-orange-600"
-                      label={<><TrashIcon /> Discard</>}
-                    />
-                  )}
+                  {item.isJunk && !isConfirmingDiscard ? <ItemActionButton
+                    ariaLabel={`Discard ${item.name}`}
+                    className="bg-orange-700 hover:bg-orange-600"
+                    disabled={disabled}
+                    key={`${item.name}-discard`}
+                    label={<><TrashIcon /> Discard</>}
+                    onClick={() => setConfirmingDiscardItemName(item.name)}
+                    /> : null}
 
                   {!item.isJunk && !isConfirmingDiscard && item.type != 'vehicle' && (
                     <ItemActionButton
-                      key={`${item.name}-drop`}
-                      onClick={() => setConfirmingDiscardItemName(item.name)}
-                      disabled={disabled}
                       ariaLabel={`Drop ${item.name}`}
                       className="bg-sky-700 hover:bg-sky-600"
+                      disabled={disabled}
+                      key={`${item.name}-drop`}
                       label="Drop"
+                      onClick={() => setConfirmingDiscardItemName(item.name)}
                     />
                   )}
+
                   {!item.isJunk && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
                     <ItemActionButton
-                      key={`${item.name}-drop`}
-                      onClick={() => setConfirmingDiscardItemName(item.name)}
-                      disabled={disabled}
                       ariaLabel={`Park ${item.name} here`}
                       className="bg-sky-700 hover:bg-sky-600"
+                      disabled={disabled}
+                      key={`${item.name}-drop`}
                       label="Park Here"
+                      onClick={() => setConfirmingDiscardItemName(item.name)}
                     />
                   )}
-                  {isConfirmingDiscard && (
-                    <div className="grid grid-cols-2 gap-2 mt-2">
+
+                  {isConfirmingDiscard ? <div className="grid grid-cols-2 gap-2 mt-2">
                        <button
-                        key={`${item.name}-confirm-drop`}
-                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                         aria-label={`Confirm drop of ${item.name}`}
+                         className="w-full text-sm bg-red-600 hover:bg-red-500 text-white font-semibold py-1.5 px-3 rounded shadow
+                                   disabled:bg-slate-500 disabled:cursor-not-allowed
+                                   transition-colors duration-150 ease-in-out"
+                         disabled={disabled}
+                         key={`${item.name}-confirm-drop`}
+                         onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                           onDropItem(item.name);
                           setConfirmingDiscardItemName(null);
                           event.currentTarget.blur();
                         }}
-                        disabled={disabled}
-                        className="w-full text-sm bg-red-600 hover:bg-red-500 text-white font-semibold py-1.5 px-3 rounded shadow
-                                   disabled:bg-slate-500 disabled:cursor-not-allowed
-                                   transition-colors duration-150 ease-in-out"
-                        aria-label={`Confirm drop of ${item.name}`}
                       >
                         {item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
                       </button>
+
                       <button
+                        aria-label="Cancel discard"
+                        className="w-full text-sm bg-slate-600 hover:bg-slate-500 text-white font-medium py-1.5 px-3 rounded shadow
+                                   disabled:bg-slate-500 disabled:cursor-not-allowed
+                                   transition-colors duration-150 ease-in-out"
+                        disabled={disabled}
                         key={`${item.name}-cancel-discard`}
                         onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                           setConfirmingDiscardItemName(null);
                           event.currentTarget.blur();
                         }}
-                        disabled={disabled}
-                        className="w-full text-sm bg-slate-600 hover:bg-slate-500 text-white font-medium py-1.5 px-3 rounded shadow
-                                   disabled:bg-slate-500 disabled:cursor-not-allowed
-                                   transition-colors duration-150 ease-in-out"
-                        aria-label="Cancel discard"
                       >
                         Cancel
                       </button>
-                    </div>
-                  )}
+                    </div> : null}
                 </div>
               </li>
             );

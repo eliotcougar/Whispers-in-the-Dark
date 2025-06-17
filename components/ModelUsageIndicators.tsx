@@ -20,16 +20,16 @@ const ModelUsageIndicators: React.FC = () => {
   const usage = useModelUsage();
 
   return (
-    <div className="flex space-x-1" aria-label="Model usage last minute">
+    <div aria-label="Model usage last minute" className="flex space-x-1">
       {Object.values(usage).map(info => {
         const pct = info.count / info.limit;
         const title = `${info.model}: ${info.count}/${info.limit} calls last minute`;
         return (
           <div
-            key={info.model}
-            className={`${squareClass} ${getColorClass(pct)}`}
-            title={title}
             aria-label={title}
+            className={`${squareClass} ${getColorClass(pct)}`}
+            key={info.model}
+            title={title}
           />
         );
       })}

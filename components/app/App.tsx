@@ -403,6 +403,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-200 flex flex-col items-center justify-center p-4">
         <LoadingSpinner loadingReason="initial_load" />
+
         <p className="mt-4 text-xl text-sky-400">Initializing application...</p>
       </div>
     );
@@ -416,147 +417,143 @@ const App: React.FC = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-sky-400 tracking-wider title-font">
             Whispers in the Dark
           </h1>
-          {hasGameBeenInitialized && (
-            <p className="text-slate-400 text-lg">An Adventure in Shifting Realities
-              {isCustomGameMode && <span className="block text-xs text-orange-400">(Custom Game - Random Shifts Disabled)</span>}
-              {currentTheme && <span className="block text-xs text-purple-400">Current Theme: {currentTheme.name}</span>}
-            </p>
-          )}
+
+          {hasGameBeenInitialized ? <p className="text-slate-400 text-lg">An Adventure in Shifting Realities
+              {isCustomGameMode ? <span className="block text-xs text-orange-400">(Custom Game - Random Shifts Disabled)</span> : null}
+
+              {currentTheme ? <span className="block text-xs text-purple-400">Current Theme: {currentTheme.name}</span> : null}
+            </p> : null}
         </header>
 
-        {error && !isLoading && !dialogueState && hasGameBeenInitialized && (
-          <div className="w-full max-w-3xl my-4">
+        {error && !isLoading && !dialogueState && hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
             <ErrorDisplay
               message={error}
               onRetry={isLoading ? undefined : () => { void handleRetry(); }}
             />
-          </div>
-        )}
-         {error && !hasGameBeenInitialized && (
-            <div className="w-full max-w-3xl my-4">
+          </div> : null}
+
+         {error && !hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
                 <ErrorDisplay message={error} onRetry={() => { void handleRetry(); }} />
-            </div>
-        )}
+            </div> : null}
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
           <div className="lg:col-span-2 space-y-2">
-            {hasGameBeenInitialized && (
-              <MainToolbar
-                score={score}
-                isLoading={isLoading || !!dialogueState}
-                currentThemeName={currentTheme?.name || null}
-                currentSceneExists={!!currentScene}
-                onOpenVisualizer={() => setIsVisualizerVisible(true)}
-                onOpenKnowledgeBase={() => setIsKnowledgeBaseVisible(true)}
-                onOpenHistory={() => setIsHistoryVisible(true)}
-                onOpenMap={() => setIsMapVisible(true)}
-                onOpenTitleMenu={() => setUserRequestedTitleMenuOpen(true)}
-                onManualRealityShift={() => setShiftConfirmOpen(true)}
-                turnsSinceLastShift={turnsSinceLastShift}
-              />
-            )}
-            {hasGameBeenInitialized && (
-              <div className="flex items-center my-2">
-                <ModelUsageIndicators />
-                <div className="flex-grow border-t border-slate-600 ml-2" />
-              </div>
-            )}
+            {hasGameBeenInitialized ? <MainToolbar
+              currentSceneExists={!!currentScene}
+              currentThemeName={currentTheme?.name || null}
+              isLoading={isLoading || !!dialogueState}
+              onManualRealityShift={() => setShiftConfirmOpen(true)}
+              onOpenHistory={() => setIsHistoryVisible(true)}
+              onOpenKnowledgeBase={() => setIsKnowledgeBaseVisible(true)}
+              onOpenMap={() => setIsMapVisible(true)}
+              onOpenTitleMenu={() => setUserRequestedTitleMenuOpen(true)}
+              onOpenVisualizer={() => setIsVisualizerVisible(true)}
+              score={score}
+              turnsSinceLastShift={turnsSinceLastShift}
+              /> : null}
 
-            {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized && (
-              <div className="my-4 flex justify-center">
+            {hasGameBeenInitialized ? <div className="flex items-center my-2">
+                <ModelUsageIndicators />
+
+                <div className="flex-grow border-t border-slate-600 ml-2" />
+              </div> : null}
+
+            {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized ? <div className="my-4 flex justify-center">
                 <LoadingSpinner loadingReason={loadingReason} />
-              </div>
-            )}
-            {isLoading && !hasGameBeenInitialized && (
-                 !error && <LoadingSpinner loadingReason={loadingReason} />
-            )}
+              </div> : null}
+
+            {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
 
 
             <SceneDisplay
-              description={hasGameBeenInitialized ? currentScene : " "}
-              lastActionLog={hasGameBeenInitialized ? lastActionLog : null}
-              inventory={inventory}
-              mapData={mapData.nodes}
               allCharacters={allCharacters}
               currentThemeName={currentTheme?.name || null}
-              localTime={localTime}
+              description={hasGameBeenInitialized ? currentScene : " "}
+              inventory={inventory}
+              lastActionLog={hasGameBeenInitialized ? lastActionLog : null}
               localEnvironment={localEnvironment}
               localPlace={localPlace}
+              localTime={localTime}
+              mapData={mapData.nodes}
             />
-            {actionOptions.length > 0 && (!error || !(error.includes("API Key"))) && hasGameBeenInitialized && (
-              <>
+
+            {actionOptions.length > 0 && (!error || !(error.includes("API Key"))) && hasGameBeenInitialized ? <>
                 <ActionOptions
-                  options={actionOptions}
-                  onActionSelect={handleActionSelect}
+                  allCharacters={allCharacters}
+                  currentThemeName={currentTheme?.name || null}
                   disabled={isLoading || !!dialogueState}
                   inventory={inventory}
                   mapData={mapData.nodes}
-                  allCharacters={allCharacters}
-                  currentThemeName={currentTheme?.name || null}
+                  onActionSelect={handleActionSelect}
+                  options={actionOptions}
                 />
+
                 <div className="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-lg shadow">
-                  <label htmlFor="freeFormAction" className="block text-sm font-medium text-amber-300 mb-1">
+                  <label className="block text-sm font-medium text-amber-300 mb-1" htmlFor="freeFormAction">
                     Perform Custom Action (Cost: {FREE_FORM_ACTION_COST} Score Points)
                   </label>
+
                   <div className="flex space-x-2">
                     <input
-                      type="text"
-                      id="freeFormAction"
-                      value={freeFormActionText}
-                      onChange={(e) => setFreeFormActionText(e.target.value)}
-                      maxLength={FREE_FORM_ACTION_MAX_LENGTH}
-                      className="flex-grow p-2 bg-slate-700 text-slate-200 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-600 disabled:text-slate-400"
-                      placeholder="Type your custom action here..."
-                      disabled={!canPerformFreeAction}
                       aria-label="Custom action input"
+                      className="flex-grow p-2 bg-slate-700 text-slate-200 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-600 disabled:text-slate-400"
+                      disabled={!canPerformFreeAction}
+                      id="freeFormAction"
+                      maxLength={FREE_FORM_ACTION_MAX_LENGTH}
+                      onChange={(e) => setFreeFormActionText(e.target.value)}
+                      placeholder="Type your custom action here..."
+                      type="text"
+                      value={freeFormActionText}
                     />
+
                     <button
-                      onClick={handleFreeFormActionSubmit}
-                      disabled={!canPerformFreeAction || freeFormActionText.trim() === ""}
+                      aria-label="Submit custom action"
                       className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white font-semibold rounded-md shadow
                                 disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                                 transition-colors duration-150"
-                      aria-label="Submit custom action"
+                      disabled={!canPerformFreeAction || freeFormActionText.trim() === ""}
+                      onClick={handleFreeFormActionSubmit}
                     >
                       Submit
                     </button>
                   </div>
+
                   {!canPerformFreeAction && score < FREE_FORM_ACTION_COST && !isLoading && (
                     <p className="text-xs text-red-400 mt-1">Not enough score points.</p>
                   )}
-                  {canPerformFreeAction && (
-                    <p className="text-xs text-slate-400 mt-1">Max {FREE_FORM_ACTION_MAX_LENGTH} characters.</p>
-                  )}
+
+                  {canPerformFreeAction ? <p className="text-xs text-slate-400 mt-1">Max {FREE_FORM_ACTION_MAX_LENGTH} characters.</p> : null}
                 </div>
-              </>
-            )}
+              </> : null}
           </div>
 
           <div className="lg:col-span-2 space-y-2 flex flex-col">
           <QuestInfoBox
-            mainQuest={hasGameBeenInitialized ? mainQuest : null}
             currentObjective={hasGameBeenInitialized ? currentObjective : null}
+            mainQuest={hasGameBeenInitialized ? mainQuest : null}
             objectiveAnimationType={objectiveAnimationType}
           />
+
           <LocationItemsDisplay
-            items={itemsHere}
-            onTakeItem={handleTakeLocationItem}
-            disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
             currentNodeId={currentMapNodeId}
-            mapNodes={mapData.nodes}
-          />
-          <InventoryDisplay
-            items={inventory}
-            onItemInteract={handleItemInteraction}
-            onDropItem={gameLogic.handleDropItem}
             disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+            items={itemsHere}
+            mapNodes={mapData.nodes}
+            onTakeItem={handleTakeLocationItem}
+          />
+
+          <InventoryDisplay
+            disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+            items={inventory}
+            onDropItem={gameLogic.handleDropItem}
+            onItemInteract={handleItemInteraction}
             />
           </div>
         </main>
 
         <ItemChangeAnimator
-          lastTurnChanges={lastTurnChanges}
           isGameBusy={isAnyModalOrDialogueActive || isLoading}
+          lastTurnChanges={lastTurnChanges}
         />
 
         <Footer
@@ -567,91 +564,120 @@ const App: React.FC = () => {
       </div>
 
       <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileInputChange}
         accept=".json,application/json"
-        className="hidden"
         aria-hidden="true"
+        className="hidden"
+        onChange={handleFileInputChange}
+        ref={fileInputRef}
+        type="file"
       />
 
       <DialogueDisplay
-        isVisible={!!dialogueState}
-        onClose={handleForceExitDialogue}
-        history={dialogueState?.history || []}
-        options={dialogueState?.options || []}
-        onOptionSelect={handleDialogueOptionSelectSafe}
-        participants={dialogueState?.participants || []}
-        isLoading={isLoading}
-        isDialogueExiting={isDialogueExiting}
-        inventory={inventory}
-        mapData={mapData.nodes}
         allCharacters={allCharacters}
         currentThemeName={currentTheme?.name || null}
+        history={dialogueState?.history || []}
+        inventory={inventory}
+        isDialogueExiting={isDialogueExiting}
+        isLoading={isLoading}
+        isVisible={!!dialogueState}
         loadingReason={loadingReason}
+        mapData={mapData.nodes}
+        onClose={handleForceExitDialogue}
+        onOptionSelect={handleDialogueOptionSelectSafe}
+        options={dialogueState?.options || []}
+        participants={dialogueState?.participants || []}
       />
 
       <DebugView
-        isVisible={isDebugViewVisible}
-        onClose={() => setIsDebugViewVisible(false)}
         debugPacket={lastDebugPacket}
         gameStateStack={gameStateStack}
+        isVisible={isDebugViewVisible}
+        onClose={() => setIsDebugViewVisible(false)}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
       />
 
       <TitleMenu
+        isGameActive={hasGameBeenInitialized}
         isVisible={effectiveIsTitleMenuOpen}
         onClose={() => setUserRequestedTitleMenuOpen(false)}
-        onNewGame={handleNewGameFromMenu}
         onCustomGame={handleOpenCustomGameSetup}
-        onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
         onLoadGame={handleLoadGameFromMenu}
-        onOpenSettings={openSettingsFromMenu}
+        onNewGame={handleNewGameFromMenu}
         onOpenInfo={openInfoFromMenu}
-        isGameActive={hasGameBeenInitialized}
+        onOpenSettings={openSettingsFromMenu}
+        onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
       />
+
       <CustomGameSetupScreen
         isVisible={isCustomGameSetupVisible}
         onClose={handleCloseCustomGameSetup}
         onThemeSelected={handleCustomThemeSelectedForNewGame}
       />
+
       <CustomGameSetupScreen
+        descriptionText="Choose the theme you wish to manually shift your reality to. The current theme is disabled."
+        disabledThemeName={currentTheme?.name || null}
         isVisible={isManualShiftThemeSelectionVisible}
         onClose={handleCancelManualShiftThemeSelection}
         onThemeSelected={handleManualShiftThemeSelected}
-        disabledThemeName={currentTheme?.name || null}
         titleText="Select Destination Theme"
-        descriptionText="Choose the theme you wish to manually shift your reality to. The current theme is disabled."
       />
 
-      {hasGameBeenInitialized && currentTheme && (
-      <AppModals
-        isVisualizerVisible={isVisualizerVisible}
-        setIsVisualizerVisible={setIsVisualizerVisible}
-        visualizerImageUrl={visualizerImageUrl}
-        visualizerImageScene={visualizerImageScene}
-        setGeneratedImage={setGeneratedImageCache}
+      {hasGameBeenInitialized && currentTheme ? <AppModals
+        allCharacters={allCharacters}
+        cancelLoadGameFromMenu={() => {
+          setLoadGameFromMenuConfirmOpen(false);
+          setUserRequestedTitleMenuOpen(true);
+        }}
+        cancelNewCustomGame={() => {
+          setNewCustomGameConfirmOpen(false);
+          setUserRequestedTitleMenuOpen(true);
+        }}
+        cancelNewGameFromMenu={() => {
+          setNewGameFromMenuConfirmOpen(false);
+          setUserRequestedTitleMenuOpen(true);
+        }}
+        cancelShift={() => setShiftConfirmOpen(false)}
+        chaosLevel={chaosLevel}
+        confirmLoadGameFromMenu={confirmLoadGameFromMenu}
+        confirmNewCustomGame={confirmNewCustomGame}
+        confirmNewGameFromMenu={confirmNewGameFromMenu}
+        confirmShift={confirmShift}
+        currentMapNodeId={currentMapNodeId}
         currentScene={currentScene}
         currentTheme={currentTheme}
-        mapData={mapData}
-        allCharacters={allCharacters}
-        localTime={localTime}
+        currentThemeName={currentTheme?.name || null}
+        destinationNodeId={destinationNodeId}
+        enabledThemePacks={enabledThemePacks}
+        gameLog={gameLog}
+        initialLayoutConfig={mapLayoutConfig}
+        initialViewBox={mapInitialViewBox}
+        isCustomGameMode={isCustomGameMode}
+        isCustomGameModeShift={isCustomGameMode}
+        isHistoryVisible={isHistoryVisible}
+        isInfoVisible={isInfoVisible}
+        isKnowledgeBaseVisible={isKnowledgeBaseVisible}
+        isMapVisible={isMapVisible}
+        isSettingsVisible={isSettingsVisible}
+        isVisualizerVisible={isVisualizerVisible}
+        itemPresenceByNode={itemPresenceByNode}
+        loadGameFromMenuConfirmOpen={loadGameFromMenuConfirmOpen}
         localEnvironment={localEnvironment}
         localPlace={localPlace}
-        isKnowledgeBaseVisible={isKnowledgeBaseVisible}
-        setIsKnowledgeBaseVisible={setIsKnowledgeBaseVisible}
-        isHistoryVisible={isHistoryVisible}
-        setIsHistoryVisible={setIsHistoryVisible}
-        themeHistory={themeHistory}
-        gameLog={gameLog}
-        isSettingsVisible={isSettingsVisible}
-        onCloseSettings={closeSettings}
-        stabilityLevel={stabilityLevel}
-        chaosLevel={chaosLevel}
-        onStabilityChange={setStabilityLevel}
+        localTime={localTime}
+        mapData={mapData}
+        newCustomGameConfirmOpen={newCustomGameConfirmOpen}
+        newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
         onChaosChange={setChaosLevel}
-        enabledThemePacks={enabledThemePacks}
+        onCloseInfo={closeInfo}
+        onCloseMap={() => setIsMapVisible(false)}
+        onCloseSettings={closeSettings}
+        onLayoutConfigChange={handleMapLayoutConfigChange}
+        onNodesPositioned={handleMapNodesPositionChange}
+        onPlayerGenderChange={setPlayerGender}
+        onSelectDestination={(id) => handleSelectDestinationNode(id)}
+        onStabilityChange={setStabilityLevel}
         onToggleThemePack={(packName: ThemePackName) => {
           setEnabledThemePacks((prevPacks: ThemePackName[]) => {
             const newPacks = prevPacks.includes(packName)
@@ -664,47 +690,18 @@ const App: React.FC = () => {
             return newPacks;
           });
         }}
-        playerGender={playerGender}
-        onPlayerGenderChange={setPlayerGender}
-        isCustomGameMode={isCustomGameMode}
-        isInfoVisible={isInfoVisible}
-        onCloseInfo={closeInfo}
-        isMapVisible={isMapVisible}
-        onCloseMap={() => setIsMapVisible(false)}
-        currentThemeName={currentTheme?.name || null}
-        currentMapNodeId={currentMapNodeId}
-        destinationNodeId={destinationNodeId}
-        itemPresenceByNode={itemPresenceByNode}
-        onSelectDestination={(id) => handleSelectDestinationNode(id)}
-        initialLayoutConfig={mapLayoutConfig}
-        initialViewBox={mapInitialViewBox}
         onViewBoxChange={handleMapViewBoxChange}
-        onNodesPositioned={handleMapNodesPositionChange}
-        onLayoutConfigChange={handleMapLayoutConfigChange}
-        newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
-        confirmNewGameFromMenu={confirmNewGameFromMenu}
-        cancelNewGameFromMenu={() => {
-          setNewGameFromMenuConfirmOpen(false);
-          setUserRequestedTitleMenuOpen(true);
-        }}
-        newCustomGameConfirmOpen={newCustomGameConfirmOpen}
-        confirmNewCustomGame={confirmNewCustomGame}
-        cancelNewCustomGame={() => {
-          setNewCustomGameConfirmOpen(false);
-          setUserRequestedTitleMenuOpen(true);
-        }}
-        loadGameFromMenuConfirmOpen={loadGameFromMenuConfirmOpen}
-        confirmLoadGameFromMenu={confirmLoadGameFromMenu}
-        cancelLoadGameFromMenu={() => {
-          setLoadGameFromMenuConfirmOpen(false);
-          setUserRequestedTitleMenuOpen(true);
-        }}
+        playerGender={playerGender}
+        setGeneratedImage={setGeneratedImageCache}
+        setIsHistoryVisible={setIsHistoryVisible}
+        setIsKnowledgeBaseVisible={setIsKnowledgeBaseVisible}
+        setIsVisualizerVisible={setIsVisualizerVisible}
         shiftConfirmOpen={shiftConfirmOpen}
-        confirmShift={confirmShift}
-        cancelShift={() => setShiftConfirmOpen(false)}
-        isCustomGameModeShift={isCustomGameMode}
-      />
-      )}
+        stabilityLevel={stabilityLevel}
+        themeHistory={themeHistory}
+        visualizerImageScene={visualizerImageScene}
+        visualizerImageUrl={visualizerImageUrl}
+      /> : null}
     </>
   );
 };

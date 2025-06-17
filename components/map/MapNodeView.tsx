@@ -425,8 +425,6 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   return (
     <div className="map-content-area">
       <svg
-        ref={svgRef}
-        viewBox={viewBox}
         className="map-svg-container"
         onClick={e => {
           const target = e.target as Element;
@@ -436,14 +434,16 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           }
         }}
         onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
+        onTouchStart={handleTouchStart}
+        onWheel={handleWheel}
         preserveAspectRatio="xMidYMid meet"
+        ref={svgRef}
+        viewBox={viewBox}
       >
         <g>
 
@@ -456,8 +456,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             if (edge.data.status) edgeClass += ` ${edge.data.status.replace(/\s+/g, '_').toLowerCase()}`;
             return (
               <g
-                key={edge.id}
                 className="map-edge-group"
+                key={edge.id}
                 onMouseEnter={e => handleEdgeMouseEnter(edge, e)}
                 onMouseLeave={handleMouseLeaveGeneral}
               >
@@ -465,28 +465,30 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                   <>
                     <path
                       d={buildShortcutPath(sourceNode, targetNode)}
+                      fill="none"
                       stroke="transparent"
                       strokeWidth={EDGE_HOVER_WIDTH}
-                      fill="none"
                     />
-                    <path d={buildShortcutPath(sourceNode, targetNode)} className={edgeClass} />
+
+                    <path className={edgeClass} d={buildShortcutPath(sourceNode, targetNode)} />
                   </>
                 ) : (
                   <>
                     <line
-                      x1={sourceNode.position.x}
-                      y1={sourceNode.position.y}
-                      x2={targetNode.position.x}
-                      y2={targetNode.position.y}
                       stroke="transparent"
                       strokeWidth={EDGE_HOVER_WIDTH}
-                    />
-                    <line
                       x1={sourceNode.position.x}
-                      y1={sourceNode.position.y}
                       x2={targetNode.position.x}
+                      y1={sourceNode.position.y}
                       y2={targetNode.position.y}
+                    />
+
+                    <line
                       className={edgeClass}
+                      x1={sourceNode.position.x}
+                      x2={targetNode.position.x}
+                      y1={sourceNode.position.y}
+                      y2={targetNode.position.y}
                     />
                   </>
                 )}
@@ -506,18 +508,14 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             const handleEnter = (e: React.MouseEvent) => handleNodeMouseEnter(node, e);
             return (
               <g
-                key={node.id}
-                transform={`translate(${node.position.x}, ${node.position.y})`}
                 className="map-node"
-                onMouseLeave={handleMouseLeaveGeneral}
+                key={node.id}
                 onClick={e => handleNodeClick(node, e)}
+                onMouseLeave={handleMouseLeaveGeneral}
+                transform={`translate(${node.position.x}, ${node.position.y})`}
               >
                 <circle
                   className={nodeClass}
-                  r={radius}
-                  pointerEvents={
-                    node.data.nodeType === 'feature' ? 'visible' : 'none'
-                  }
                   onMouseEnter={
                     node.data.nodeType === 'feature' ? handleEnter : undefined
                   }
@@ -526,22 +524,27 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                       ? handleMouseLeaveGeneral
                       : undefined
                   }
+                  pointerEvents={
+                    node.data.nodeType === 'feature' ? 'visible' : 'none'
+                  }
+                  r={radius}
                 />
+
                 <circle
                   className="map-node-hover-ring"
-                  r={radius}
                   fill="none"
-                  stroke="transparent"
-                  strokeWidth={8}
-                  pointerEvents="stroke"
                   onMouseEnter={handleEnter}
                   onMouseLeave={handleMouseLeaveGeneral}
+                  pointerEvents="stroke"
+                  r={radius}
+                  stroke="transparent"
+                  strokeWidth={8}
                 />
               </g>
             );
           })}
 
-          {destinationNodeId && (() => {
+          {destinationNodeId ? (() => {
             const dest = nodes.find(n => n.id === destinationNodeId);
             const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
             if (!dest) return null;
@@ -555,12 +558,12 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             return (
               <polygon
                 className="map-destination-marker"
+                pointerEvents="none"
                 points="0,-14 10,0 0,14 -10,0"
                 transform={`translate(${dest.position.x}, ${dest.position.y})`}
-                pointerEvents="none"
               />
             );
-          })()}
+          })() : null}
 
           {sortedNodes.map(node => {
           const presence = itemPresenceByNode?.[node.id];
@@ -570,26 +573,27 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           const iconSize = NODE_RADIUS * 2 * itemIconScale;
           return (
             <g key={`${node.id}-icons`}>
-              {presence.hasUseful && (() => {
+              {presence.hasUseful ? (() => {
                 const angle = (20 * Math.PI) / 180;
                 const x = node.position.x + offset * Math.sin(angle);
                 const y = node.position.y - offset * Math.cos(angle);
                 return (
-                    <g transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`} pointerEvents="none">
+                    <g pointerEvents="none" transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`}>
                       <MapItemBoxIcon className="text-green-400" size={iconSize} />
                     </g>
                 );
-              })()}
-              {presence.hasVehicle && (() => {
+              })() : null}
+
+              {presence.hasVehicle ? (() => {
                 const angle = (340 * Math.PI) / 180;
                 const x = node.position.x + offset * Math.sin(angle);
                 const y = node.position.y - offset * Math.cos(angle);
                 return (
-                    <g transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`} pointerEvents="none">
+                    <g pointerEvents="none" transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`}>
                       <MapWheelIcon className="text-green-400" size={iconSize} />
                     </g>
                 );
-              })()}
+              })() : null}
             </g>
           );
         })}
@@ -612,7 +616,6 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
             return (
               <text
-                key={`label-${node.id}`}
                 className={`map-node-label${
                   isSmallFontType(node.data.nodeType)
                     ? node.data.nodeType === 'feature'
@@ -622,16 +625,17 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                         : ' interior-label'
                     : ''
                 }`}
-                transform={`translate(${node.position.x}, ${node.position.y})`}
-                pointerEvents="visible"
+                key={`label-${node.id}`}
                 onMouseEnter={e => handleNodeMouseEnter(node, e)}
                 onMouseLeave={handleMouseLeaveGeneral}
+                pointerEvents="visible"
+                transform={`translate(${node.position.x}, ${node.position.y})`}
               >
                 {labelLines.map((line, index) => (
                   <tspan
+                    dy={index === 0 ? `${initialDyOffset}em` : `${DEFAULT_LABEL_LINE_HEIGHT_EM}em`}
                     key={`${node.id}-line-${index}`}
                     x="0"
-                    dy={index === 0 ? `${initialDyOffset}em` : `${DEFAULT_LABEL_LINE_HEIGHT_EM}em`}
                   >
                     {line}
                   </tspan>
@@ -641,14 +645,14 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           })}
         </g>
       </svg>
-      {tooltip && tooltipScreenPosition && (
-        <div
-          className={`map-tooltip anchor-${tooltip.anchor}`}
-          style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
+
+      {tooltip && tooltipScreenPosition ? <div
+        className={`map-tooltip anchor-${tooltip.anchor}`}
+        style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
         >
-          {isTooltipLocked && tooltip.nodeId && (
-            <button
-              onClick={() => {
+          {isTooltipLocked && tooltip.nodeId ? <button
+            className="map-set-destination-button"
+            onClick={() => {
                 if (tooltip.nodeId === destinationNodeId) {
                   onSelectDestination(null);
                 } else {
@@ -657,21 +661,20 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                 setIsTooltipLocked(false);
                 setTooltip(null);
               }}
-              className="map-set-destination-button"
             >
               {tooltip.nodeId === destinationNodeId
                 ? 'Remove Destination'
                 : 'Set Destination'}
-            </button>
-          )}
+            </button> : null}
+
           {tooltip.content.split('\n').map((line, index) => (
             <React.Fragment key={index}>
               {index === 0 ? <strong>{line}</strong> : line}
+
               {index < tooltip.content.split('\n').length - 1 && <br />}
             </React.Fragment>
           ))}
-        </div>
-      )}
+        </div> : null}
     </div>
   );
 };

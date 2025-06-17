@@ -290,27 +290,35 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
     <>
       <div className="flex justify-between items-center mb-1 text-xs">
         <ItemTypeDisplay type={item.type} />
-        {item.isActive && <span className="text-green-400 font-semibold">Active</span>}
+
+        {item.isActive ? <span className="text-green-400 font-semibold">Active</span> : null}
       </div>
+
       <div className="mb-1">
         <span className="font-semibold text-lg text-slate-100">{item.name}</span>
       </div>
+
       <p className="text-sm text-slate-300 mb-3 italic leading-tight flex-grow">
         {item.isActive && item.activeDescription ? item.activeDescription : item.description}
       </p>
-      {item.isJunk && <p className="text-xs text-orange-400 mb-1 italic">(Marked as junk)</p>}
+
+      {item.isJunk ? <p className="text-xs text-orange-400 mb-1 italic">(Marked as junk)</p> : null}
+
       <div className="space-y-1 mt-auto">
         {item.knownUses?.map(ku => (
-          <button key={`${item.name}-anim-ku-${ku.actionName}`} disabled className="w-full text-xs bg-slate-500/70 text-slate-400 font-medium py-1 px-2 rounded shadow cursor-not-allowed" title={ku.description || ku.actionName} aria-hidden="true">
+          <button aria-hidden="true" className="w-full text-xs bg-slate-500/70 text-slate-400 font-medium py-1 px-2 rounded shadow cursor-not-allowed" disabled key={`${item.name}-anim-ku-${ku.actionName}`} title={ku.description || ku.actionName}>
             {ku.actionName}
           </button>
         ))}
-        <button disabled className="w-full text-sm bg-slate-500/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" aria-hidden="true">Inspect</button>
+
+        <button aria-hidden="true" className="w-full text-sm bg-slate-500/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" disabled>Inspect</button>
+
         {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
-          <button disabled className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" aria-hidden="true">Attempt to Use (Generic)</button>
+          <button aria-hidden="true" className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" disabled>Attempt to Use (Generic)</button>
         )}
+
         {item.type === 'vehicle' && (
-          <button disabled className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" aria-hidden="true">
+          <button aria-hidden="true" className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" disabled>
             {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
           </button>
         )}
@@ -339,18 +347,19 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
 
   return (
     <div
+      aria-label="Skip item animations"
       className={`item-change-overlay ${isVisibleOverlay ? 'active' : ''}`}
       onClick={handleSkipAnimations}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSkipAnimations(); }}
       role="button"
       tabIndex={0}
-      aria-label="Skip item animations"
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSkipAnimations(); }}
     >
       {currentAnimatingItem?.type === 'change' && itemForCardDisplay.oldItem && itemForCardDisplay.newItem ? (
         <>
           <div className={`${baseCardClass} ${visibilityClass} ${disappearTargetClass} ${getGlowClass('old')}`}>
             {renderCardContent(itemForCardDisplay.oldItem)}
           </div>
+
           <div className={`${baseCardClass} ${visibilityClass} ${disappearTargetClass} ${getGlowClass('new')}`}>
             {renderCardContent(itemForCardDisplay.newItem)}
           </div>

@@ -112,9 +112,8 @@ export const highlightEntitiesInText = (
     if (matchedTermInfo) {
       results.push(
         <span
-          key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${match.index}`}
           className={getEntityHighlightClass(matchedTermInfo.entityData.type)}
-          title={matchedTermInfo.entityData.description || matchedTermInfo.entityData.name}
+          key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${match.index}`}
           onClick={enableMobileTap ? (e => {
             if (window.matchMedia('(hover: none)').matches) {
               const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -122,6 +121,7 @@ export const highlightEntitiesInText = (
               showMobileTooltip(text, rect);
             }
           }) : undefined}
+          title={matchedTermInfo.entityData.description || matchedTermInfo.entityData.name}
         >
           {matchedString}
         </span>

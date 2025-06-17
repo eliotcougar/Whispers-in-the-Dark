@@ -175,38 +175,42 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   if (!isVisible) return null;
 
   return (
-    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="map-display-title">
+    <div aria-labelledby="map-display-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
       <div className="animated-frame-content">
-        <button onClick={onClose} className="animated-frame-close-button" aria-label="Close map view">
+        <button aria-label="Close map view" className="animated-frame-close-button" onClick={onClose}>
           &times;
         </button>
-        <h1 id="map-display-title" className="text-xl font-bold text-teal-400 mb-2 text-center">
+
+        <h1 className="text-xl font-bold text-teal-400 mb-2 text-center" id="map-display-title">
           {currentThemeName ? `Map: ${currentThemeName}` : 'Map'}
         </h1>
+
         <p className="text-center text-xs text-slate-400 mb-1">Pan by dragging, zoom with the mouse wheel or pinch. Hover for details.</p>
+
         <MapNodeView
-          nodes={displayedNodes}
-          edges={currentThemeEdges}
           currentMapNodeId={currentMapNodeId}
           destinationNodeId={destinationNodeId}
-          itemPresenceByNode={itemPresenceByNode}
-          onSelectDestination={onSelectDestination}
-          labelOverlapMarginPx={labelOverlapMarginPx}
-          itemIconScale={itemIconScale}
+          edges={currentThemeEdges}
           initialViewBox={initialViewBox}
+          itemIconScale={itemIconScale}
+          itemPresenceByNode={itemPresenceByNode}
+          labelOverlapMarginPx={labelOverlapMarginPx}
+          nodes={displayedNodes}
+          onSelectDestination={onSelectDestination}
           onViewBoxChange={onViewBoxChange}
         />
+
         <MapControls
-          padding={layoutNestedPadding}
-          setPadding={setLayoutNestedPadding}
           anglePadding={layoutNestedAnglePadding}
-          setAnglePadding={setLayoutNestedAnglePadding}
-          overlapMargin={labelOverlapMarginPx}
-          setOverlapMargin={setLabelOverlapMarginPx}
           itemIconScale={itemIconScale}
-          setItemIconScale={setItemIconScale}
-          onReset={handleResetLayoutToDefaults}
           onRefreshLayout={handleRefreshLayout}
+          onReset={handleResetLayoutToDefaults}
+          overlapMargin={labelOverlapMarginPx}
+          padding={layoutNestedPadding}
+          setAnglePadding={setLayoutNestedAnglePadding}
+          setItemIconScale={setItemIconScale}
+          setOverlapMargin={setLabelOverlapMarginPx}
+          setPadding={setLayoutNestedPadding}
         />
       </div>
     </div>

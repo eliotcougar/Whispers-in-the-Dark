@@ -147,6 +147,7 @@ const DebugView: React.FC<DebugViewProps> = ({
     return (
       <section className="mb-4">
         <h3 className="text-lg font-semibold text-sky-400 mb-1">{title}</h3>
+
         <pre className={`bg-slate-900 p-2 rounded-md text-xs text-slate-200 overflow-auto ${maxHeightClass} whitespace-pre-wrap break-all`}>
           <code>{displayContent}</code>
         </pre>
@@ -180,58 +181,67 @@ const DebugView: React.FC<DebugViewProps> = ({
         return (
           <>
             <button
-              onClick={onUndoTurn}
-              disabled={!previousState || currentState.globalTurnNumber <= 1}
-              className="mb-3 px-3 py-1.5 text-sm font-medium rounded shadow transition-colors duration-150 bg-orange-600 text-white hover:bg-orange-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed"
               aria-label="Undo last turn"
+              className="mb-3 px-3 py-1.5 text-sm font-medium rounded shadow transition-colors duration-150 bg-orange-600 text-white hover:bg-orange-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed"
+              disabled={!previousState || currentState.globalTurnNumber <= 1}
+              onClick={onUndoTurn}
             >
               Undo Turn (Global Turn: {currentState.globalTurnNumber})
             </button>
-            {currentState && renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]")}
-            {previousState && renderContent("Previous Game State (Stack[1] - Bottom)", previousState, true, "max-h-[30vh]")}
+
+            {currentState ? renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]") : null}
+
+            {previousState ? renderContent("Previous Game State (Stack[1] - Bottom)", previousState, true, "max-h-[30vh]") : null}
           </>
         );
       case "MainAI":
         return (
           <>
             <p className="text-sm text-slate-400 mb-2">Timestamp: {timestamp}</p>
+
             {renderContent("Last Storyteller AI Request", debugPacket?.prompt, false)}
+
             <div className="my-2">
               <button
-                onClick={() => setShowMainAIRaw(!showMainAIRaw)}
                 className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+                onClick={() => setShowMainAIRaw(!showMainAIRaw)}
               >
                 Toggle Raw/Parsed Response
               </button>
             </div>
+
             {showMainAIRaw ?
               renderContent("Storyteller AI Response Raw", debugPacket?.rawResponseText, false) :
               renderContent("Storyteller AI Response Parsed ", debugPacket?.parsedResponse)
             }
-            {debugPacket?.storytellerThoughts && debugPacket.storytellerThoughts.length > 0 &&
-              renderContent(
+
+            {debugPacket?.storytellerThoughts && debugPacket.storytellerThoughts.length > 0 ? renderContent(
                 "Storyteller Thoughts",
                 debugPacket.storytellerThoughts.map(decodeEscapedString).join("\n"),
                 false,
-              )}
-            {debugPacket?.error && renderContent("Error During Storyteller AI Interaction", debugPacket.error, false)}
+              ) : null}
+
+            {debugPacket?.error ? renderContent("Error During Storyteller AI Interaction", debugPacket.error, false) : null}
           </>
         );
       case "MapLocationAI":
         return (
           <>
             <p className="text-sm text-slate-400 mb-2">Map Update related to interaction at: {timestamp}</p>
+
             {debugPacket?.mapUpdateDebugInfo ? (
               <>
                 {renderContent("Cartographer AI Request", debugPacket.mapUpdateDebugInfo.prompt, false)}
+
                 <div className="my-2">
                   <button
-                    onClick={() => setShowMapAIRaw(!showMapAIRaw)}
                     className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+                    onClick={() => setShowMapAIRaw(!showMapAIRaw)}
                   >
                     Toggle Raw/Parsed Map Update Response
                   </button>
                 </div>
+
                 {showMapAIRaw ?
                   renderContent(
                     "Cartographer AI Response Raw",
@@ -240,36 +250,39 @@ const DebugView: React.FC<DebugViewProps> = ({
                   ) :
                   renderContent("Cartographer AI Response Parsed", debugPacket.mapUpdateDebugInfo.parsedPayload)
                 }
-                {debugPacket.mapUpdateDebugInfo.observations &&
-                  renderContent(
+
+                {debugPacket.mapUpdateDebugInfo.observations ? renderContent(
                     "Cartographer Observations",
                     debugPacket.mapUpdateDebugInfo.observations,
                     false,
-                  )}
-                {debugPacket.mapUpdateDebugInfo.rationale &&
-                  renderContent(
+                  ) : null}
+
+                {debugPacket.mapUpdateDebugInfo.rationale ? renderContent(
                     "Cartographer Rationale",
                     debugPacket.mapUpdateDebugInfo.rationale,
                     false,
-                  )}
-                {debugPacket.mapUpdateDebugInfo.validationError && renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false)}
-                {debugPacket.mapUpdateDebugInfo.minimalModelCalls &&
-                  renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls)}
+                  ) : null}
+
+                {debugPacket.mapUpdateDebugInfo.validationError ? renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false) : null}
+
+                {debugPacket.mapUpdateDebugInfo.minimalModelCalls ? renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls) : null}
+
                 {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
-                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 &&
-                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
-                    <div key={`chain-${idx}`} className="my-2">
+                  debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 ? debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
+                    <div className="my-2" key={`chain-${idx}`}>
                       {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
+
                       <div className="my-2">
                         <button
+                          className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                           onClick={() =>
                             setShowConnectorChainRaw(prev => ({ ...prev, [idx]: !prev[idx] }))
                           }
-                          className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                         >
                           Toggle Raw/Parsed Connector Chains Response
                         </button>
                       </div>
+
                       {(showConnectorChainRaw[idx] ?? true)
                         ? info.rawResponse &&
                           renderContent(
@@ -282,26 +295,26 @@ const DebugView: React.FC<DebugViewProps> = ({
                             `Connector Chains Parsed Payload (Round ${info.round})`,
                             info.parsedPayload,
                           )}
-                      {info.observations &&
-                        renderContent(
+
+                      {info.observations ? renderContent(
                           `Connector Chains Observations (Round ${info.round})`,
                           info.observations,
                           false,
-                        )}
-                      {info.rationale &&
-                        renderContent(
+                        ) : null}
+
+                      {info.rationale ? renderContent(
                           `Connector Chains Rationale (Round ${info.round})`,
                           info.rationale,
                           false,
-                        )}
-                      {info.validationError &&
-                        renderContent(
+                        ) : null}
+
+                      {info.validationError ? renderContent(
                           `Connector Chains Validation Error (Round ${info.round})`,
                           info.validationError,
                           false,
-                        )}
+                        ) : null}
                     </div>
-                  ))}
+                  )) : null}
               </>
             ) : (
               <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>
@@ -317,31 +330,32 @@ const DebugView: React.FC<DebugViewProps> = ({
                 : null;
               const responseWithThoughts = thoughtsText ? `${thoughtsText}\n${t.rawResponse}` : t.rawResponse;
               return (
-                <div key={idx} className="mb-2">
+                <div className="mb-2" key={idx}>
                   {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
+
                   {renderContent(`Turn ${idx + 1} Response`, responseWithThoughts, false)}
                 </div>
               );
             })}
-            {debugPacket.dialogueDebugInfo.summaryPrompt &&
-              renderContent(
+
+            {debugPacket.dialogueDebugInfo.summaryPrompt ? renderContent(
                 "Dialogue Summary Prompt",
                 debugPacket.dialogueDebugInfo.summaryPrompt,
                 false,
-              )}
-            {debugPacket.dialogueDebugInfo.summaryRawResponse &&
-              renderContent(
+              ) : null}
+
+            {debugPacket.dialogueDebugInfo.summaryRawResponse ? renderContent(
                 "Dialogue Summary Response",
                 debugPacket.dialogueDebugInfo.summaryRawResponse,
                 false,
-              )}
+              ) : null}
+
             {debugPacket.dialogueDebugInfo.summaryThoughts &&
-              debugPacket.dialogueDebugInfo.summaryThoughts.length > 0 &&
-              renderContent(
+              debugPacket.dialogueDebugInfo.summaryThoughts.length > 0 ? renderContent(
                 "Dialogue Summary Thoughts",
                 debugPacket.dialogueDebugInfo.summaryThoughts.map(decodeEscapedString).join("\n"),
                 false,
-              )}
+              ) : null}
           </>
         ) : (
           <p className="italic text-slate-400">No Dialogue debug info captured.</p>
@@ -354,14 +368,16 @@ const DebugView: React.FC<DebugViewProps> = ({
               debugPacket.inventoryDebugInfo.prompt,
               false,
             )}
+
             <div className="my-2">
               <button
-                onClick={() => setShowInventoryAIRaw(!showInventoryAIRaw)}
                 className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+                onClick={() => setShowInventoryAIRaw(!showInventoryAIRaw)}
               >
                 Toggle Raw/Parsed Inventory Response
               </button>
             </div>
+
             {showInventoryAIRaw
               ? renderContent(
                   "Inventory AI Response Raw",
@@ -372,18 +388,18 @@ const DebugView: React.FC<DebugViewProps> = ({
                   "Inventory AI Response Parsed",
                   debugPacket.inventoryDebugInfo.parsedItemChanges,
                 )}
-            {debugPacket.inventoryDebugInfo.observations &&
-              renderContent(
+
+            {debugPacket.inventoryDebugInfo.observations ? renderContent(
                 "Inventory Observations",
                 debugPacket.inventoryDebugInfo.observations,
                 false,
-              )}
-            {debugPacket.inventoryDebugInfo.rationale &&
-              renderContent(
+              ) : null}
+
+            {debugPacket.inventoryDebugInfo.rationale ? renderContent(
                 "Inventory Rationale",
                 debugPacket.inventoryDebugInfo.rationale,
                 false,
-              )}
+              ) : null}
           </>
         ) : (
           <p className="italic text-slate-400">No Inventory AI interaction debug packet captured.</p>
@@ -418,6 +434,7 @@ const DebugView: React.FC<DebugViewProps> = ({
         return (
           <>
             {renderContent('Travel Path (IDs)', travelPath)}
+
             {renderContent('Expanded Path Data', expanded, true, 'max-h-[70vh]')}
           </>
         );
@@ -451,28 +468,29 @@ const DebugView: React.FC<DebugViewProps> = ({
   };
 
   return (
-    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="debug-view-title">
+    <div aria-labelledby="debug-view-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
       <div className="animated-frame-content flex flex-col">
         <button
-          onClick={onClose}
-          className="animated-frame-close-button"
           aria-label="Close debug view"
+          className="animated-frame-close-button"
+          onClick={onClose}
         >
           &times;
         </button>
-        <h1 id="debug-view-title" className="text-2xl font-bold text-amber-400 mb-3 text-center flex-shrink-0">
+
+        <h1 className="text-2xl font-bold text-amber-400 mb-3 text-center flex-shrink-0" id="debug-view-title">
           Debug View & Game Internals
         </h1>
         
         <div className="flex flex-wrap border-b border-slate-700 mb-3 flex-shrink-0">
           {tabs.map(tab => (
             <button
-              key={tab.name}
-              onClick={() => setActiveTab(tab.name)}
               className={`px-3 py-2 text-sm font-medium transition-colors
                           ${activeTab === tab.name 
                             ? 'border-b-2 border-sky-400 text-sky-300' 
                             : 'text-slate-400 hover:text-sky-400'}`}
+              key={tab.name}
+              onClick={() => setActiveTab(tab.name)}
             >
               {tab.label}
             </button>

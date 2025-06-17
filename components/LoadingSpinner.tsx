@@ -34,17 +34,17 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
 
   return (
     <div
+      aria-live="polite"
       className={`flex flex-col items-center my-8`}
       role="status"
-      aria-live="polite"
     >
-      <div className={spinnerClass} aria-hidden="true"></div>
+      <div aria-hidden="true" className={spinnerClass}></div>
+
       <p className={`mt-2 text-xl ${textColor}`}>{textMessage}</p>
-      {progressDisplay && (
-        <div className="mt-2 text-2xl text-sky-300 font-mono">
+
+      {progressDisplay ? <div className="mt-2 text-2xl text-sky-300 font-mono">
           {progressDisplay}
-        </div>
-      )}
+        </div> : null}
     </div>
   );
 };

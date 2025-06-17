@@ -44,93 +44,99 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
       {/* Score and Turns Display */}
       <div className="flex items-center space-x-3">
         <div
+          aria-label={`Current score: ${score} points`}
           className="flex items-center p-2 border border-amber-500 rounded-md shadow-md"
           title={`Score: ${score} points`}
-          aria-label={`Current score: ${score} points`}
         >
           <CoinIcon className="w-5 h-5 mr-2 text-amber-400" />
+
           <span className="text-amber-400 font-semibold text-lg">{score}</span>
         </div>
-        {currentThemeName && (
-          <div
-            className="flex items-center p-2 border border-indigo-500 rounded-md shadow-md"
-            title={`Turns since last reality shift: ${turnsSinceLastShift}`}
-            aria-label={`Turns since last reality shift: ${turnsSinceLastShift}`}
+
+        {currentThemeName ? <div
+          aria-label={`Turns since last reality shift: ${turnsSinceLastShift}`}
+          className="flex items-center p-2 border border-indigo-500 rounded-md shadow-md"
+          title={`Turns since last reality shift: ${turnsSinceLastShift}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg className="h-5 w-5 mr-2 text-indigo-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+
             <span className="text-indigo-400 font-semibold text-lg">{turnsSinceLastShift}</span>
-          </div>
-        )}
+          </div> : null}
       </div>
 
 
       {/* Icon Buttons */}
       <div className="flex space-x-2">
         <button
-          onClick={onOpenVisualizer}
-          disabled={isLoading || !currentThemeName || !currentSceneExists}
+          aria-label="Visualize Scene"
           className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                     disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                     transition-colors duration-150"
+          disabled={isLoading || !currentThemeName || !currentSceneExists}
+          onClick={onOpenVisualizer}
           title="Visualize Scene"
-          aria-label="Visualize Scene"
         >
           <VisualizeIcon />
         </button>
+
         <button
-          onClick={onOpenKnowledgeBase}
-          disabled={isLoading || !currentThemeName}
+          aria-label="Open Knowledge Base"
           className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                     disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                     transition-colors duration-150"
+          disabled={isLoading || !currentThemeName}
+          onClick={onOpenKnowledgeBase}
           title="Open Knowledge Base"
-          aria-label="Open Knowledge Base"
         >
           <BookOpenIcon />
         </button>
+
         <button
-          onClick={onOpenHistory}
-          disabled={isLoading || !currentThemeName}
+          aria-label="Open History"
           className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                     disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                     transition-colors duration-150"
+          disabled={isLoading || !currentThemeName}
+          onClick={onOpenHistory}
           title="Open History"
-          aria-label="Open History"
         >
           <ScrollIcon />
         </button>
+
         <button
-          onClick={onOpenMap}
-          disabled={isLoading || !currentThemeName}
+          aria-label="Open Map"
           className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                     disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                     transition-colors duration-150"
+          disabled={isLoading || !currentThemeName}
+          onClick={onOpenMap}
           title="Open Map"
-          aria-label="Open Map"
         >
           <MapIcon />
         </button>
+
         <button
-          onClick={onManualRealityShift}
-          disabled={isLoading || !currentThemeName}
+          aria-label="Force Reality Shift"
           className="p-2 bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md
                     disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                     transition-colors duration-150"
+          disabled={isLoading || !currentThemeName}
+          onClick={onManualRealityShift}
           title="Force Reality Shift"
-          aria-label="Force Reality Shift"
         >
           <RealityShiftIcon />
         </button>
+
         <button
-          onClick={onOpenTitleMenu}
-          disabled={isLoading}
+          aria-label="Open Title Menu"
           className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md
                     disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                     transition-colors duration-150"
+          disabled={isLoading}
+          onClick={onOpenTitleMenu}
           title="Open Title Menu"
-          aria-label="Open Title Menu"
         >
           <MenuIcon />
         </button>

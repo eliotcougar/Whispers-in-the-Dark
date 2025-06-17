@@ -27,17 +27,18 @@ const HistoryDisplay: React.FC<HistoryDisplayProps> = ({
   const rememberedThemes = Object.entries(themeHistory);
 
   return (
-    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="history-title">
+    <div aria-labelledby="history-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
       <div className="animated-frame-content">
         <button
-          onClick={onClose}
-          className="animated-frame-close-button"
           aria-label="Close history"
+          className="animated-frame-close-button"
+          onClick={onClose}
         >
           &times;
         </button>
+
         <div className="theme-memory-content-area">
-          <h1 id="history-title" className="text-3xl font-bold text-purple-400 mb-6 text-center">
+          <h1 className="text-3xl font-bold text-purple-400 mb-6 text-center" id="history-title">
             History
           </h1>
 
@@ -55,15 +56,17 @@ const HistoryDisplay: React.FC<HistoryDisplayProps> = ({
             <ul className="space-y-4">
               {rememberedThemes.map(([themeName, memory]) => (
                 <li 
-                  key={themeName} 
-                  className="text-slate-300 bg-slate-700/80 p-4 rounded-lg shadow-lg border border-slate-600 transition-all hover:shadow-purple-500/40 hover:border-purple-500"
+                  className="text-slate-300 bg-slate-700/80 p-4 rounded-lg shadow-lg border border-slate-600 transition-all hover:shadow-purple-500/40 hover:border-purple-500" 
+                  key={themeName}
                 >
                   <h4 className="font-semibold text-xl text-purple-300 mb-2">{themeName}</h4>
+
                   {memory.summary && memory.summary !== "The details of this reality are hazy..." ? (
                     <p className="text-sm text-slate-300 mb-2 italic leading-relaxed">&ldquo;{memory.summary}&rdquo;</p>
                   ) : (
                     <p className="text-sm text-slate-400 mb-2 italic">The memories of this reality are too fragmented to recall clearly.</p>
                   )}
+
                   {/* 
                   Future enhancements could include looking up MapNode details using memory.placeNames from mapData.
                   Currently, memory.placeNames are just strings (MapNode.placeName).

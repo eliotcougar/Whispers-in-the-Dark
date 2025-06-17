@@ -50,23 +50,22 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
   }, [groupedEntities, currentTheme]);
 
   return (
-    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="knowledge-base-title">
+    <div aria-labelledby="knowledge-base-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
       <div className="animated-frame-content"> 
         <button
-          onClick={onClose}
-          className="animated-frame-close-button"
           aria-label="Close knowledge base"
+          className="animated-frame-close-button"
+          onClick={onClose}
         >
           &times;
         </button>
-        <div className="knowledge-base-content-area"> 
-          <h1 id="knowledge-base-title" className="text-3xl font-bold text-sky-300 mb-6 text-center">Knowledge Base</h1>
-          
-          {sortedThemeNames.length === 0 && isVisible && (
-            <p className="text-slate-400 italic text-center">No knowledge has been recorded yet.</p>
-          )}
 
-          {isVisible && sortedThemeNames.map(themeName => {
+        <div className="knowledge-base-content-area"> 
+          <h1 className="text-3xl font-bold text-sky-300 mb-6 text-center" id="knowledge-base-title">Knowledge Base</h1>
+          
+          {sortedThemeNames.length === 0 && isVisible ? <p className="text-slate-400 italic text-center">No knowledge has been recorded yet.</p> : null}
+
+          {isVisible ? sortedThemeNames.map(themeName => {
             const themeData = groupedEntities[themeName];
             const characters = themeData.characters || [];
 
@@ -75,17 +74,17 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
             }
 
             return (
-              <section key={themeName} className="mb-8">
+              <section className="mb-8" key={themeName}>
                 <h2 className="kb-theme-group-title">
                   Theme: {themeName}
-                  {currentTheme && themeName === currentTheme.name && (
-                    <span className="text-sm text-purple-400 ml-2">(Current Active Theme)</span>
-                  )}
+
+                  {currentTheme && themeName === currentTheme.name ? <span className="text-sm text-purple-400 ml-2">(Current Active Theme)</span> : null}
                 </h2>
                 
                 {characters.length > 0 && (
                   <>
                     <h3 className="text-xl font-semibold text-emerald-400 mt-4 mb-2">Characters</h3>
+
                     <div className="kb-card-grid">
                       {characters.map(character => {
                         let locationDisplay = null;
@@ -115,17 +114,16 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
                         }
 
                         return (
-                          <div key={`${themeName}-char-${character.name}`} className="kb-card">
+                          <div className="kb-card" key={`${themeName}-char-${character.name}`}>
                             <div className="kb-card-name-header">{character.name}</div>
-                            {character.aliases && character.aliases.length > 0 && (
-                              <p className="kb-card-aliases">Aliases: {character.aliases.join(', ')}</p>
-                            )}
+
+                            {character.aliases && character.aliases.length > 0 ? <p className="kb-card-aliases">Aliases: {character.aliases.join(', ')}</p> : null}
+
                             <p className="kb-card-description">{character.description}</p>
-                            {locationDisplay && (
-                              <div className="mt-2 pt-2 border-t border-slate-600">
+
+                            {locationDisplay ? <div className="mt-2 pt-2 border-t border-slate-600">
                                 {locationDisplay}
-                              </div>
-                            )}
+                              </div> : null}
                           </div>
                         );
                       })}
@@ -134,7 +132,7 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
                 )}
               </section>
             );
-          })}
+          }) : null}
         </div>
       </div>
     </div>

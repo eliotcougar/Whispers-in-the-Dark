@@ -30,11 +30,13 @@ const renderParameterControl = (
   explanation?: string
 ) => (
   <div className="map-control-group">
-  <label htmlFor={id} className="map-control-label">
+  <label className="map-control-label" htmlFor={id}>
       {label}: {value.toFixed(step < 1 ? 2 : 0)}
   </label>
-    <input type="range" id={id} min={min} max={max} step={step} value={value} onChange={e => onChange(parseFloat(e.target.value))} className="map-control-input" />
-    {explanation && <p className="map-control-explanation">{explanation}</p>}
+
+    <input className="map-control-input" id={id} max={max} min={min} onChange={e => onChange(parseFloat(e.target.value))} step={step} type="range" value={value} />
+
+    {explanation ? <p className="map-control-explanation">{explanation}</p> : null}
   </div>
 );
 
@@ -57,8 +59,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
 
   return (
     <div className={`map-controls-container ${expanded ? 'controls-expanded' : ''}`}>
-      {expanded && (
-        <div className="map-layout-sliders-wrapper">
+      {expanded ? <div className="map-layout-sliders-wrapper">
           {renderParameterControl(
             'Padding',
             'layoutPadding',
@@ -69,6 +70,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
             1,
             'Distance between parent and child levels'
           )}
+
           {renderParameterControl(
             'Angle Padding',
             'layoutAnglePadding',
@@ -79,6 +81,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
             0.01,
             'Extra spacing between siblings'
           )}
+
           {renderParameterControl(
             'Overlap Margin',
             'overlapMargin',
@@ -89,6 +92,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
             1,
             'Extra spacing when labels overlap'
           )}
+
           {renderParameterControl(
             'Icon Size',
             'itemIconScale',
@@ -99,13 +103,14 @@ const MapControls: React.FC<MapControlsProps> = props => {
             0.1,
             'Relative size of item markers'
           )}
-          <button onClick={onReset} className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
+
+          <button className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" onClick={onReset} style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
             Reset to Defaults
           </button>
-        </div>
-      )}
+        </div> : null}
+
       <div className="map-action-buttons-row">
-        <button onClick={() => setExpanded(!expanded)} className="map-control-button">
+        <button className="map-control-button" onClick={() => setExpanded(!expanded)}>
           {expanded ? 'Hide' : 'Show'} Layout Controls
         </button>
       </div>

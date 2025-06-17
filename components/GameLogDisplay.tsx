@@ -20,12 +20,14 @@ const GameLogDisplay: React.FC<GameLogDisplayProps> = ({ messages }) => {
       <h3 className="text-xl font-bold text-emerald-400 mb-4 border-b-2 border-emerald-700 pb-2 flex items-center">
         <LogIcon /> Game Log
       </h3>
+
       <ul className="space-y-2 text-sm">
         {messages.map((message, index) => (
-          <li key={index} className="text-slate-400 leading-snug">
+          <li className="text-slate-400 leading-snug" key={index}>
             <span className="text-emerald-500">&raquo;</span> {message}
           </li>
         ))}
+
         <div ref={logEndRef} />
       </ul>
     </div>

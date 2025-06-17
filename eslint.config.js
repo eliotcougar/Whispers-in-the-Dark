@@ -33,7 +33,9 @@ const tsCompat = compat.config({
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking'
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    /*'plugin:@typescript-eslint/stylistic',
+    'plugin:@typescript-eslint/stylistic-type-checked'*/
   ],
   env: {
     browser: true,
@@ -47,7 +49,14 @@ const tsCompat = compat.config({
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
-    'react-hooks/exhaustive-deps': 'error'
+    'react-hooks/exhaustive-deps': 'error',
+    'react-hooks/rules-of-hooks': 'error',
+    'react/jsx-no-leaked-render': 'error',  
+    'react/no-array-index-key' : 'warn',
+    'react/jsx-newline': 'warn',
+    'react/jsx-indent-props': ['warn', 2],
+    'react/jsx-sort-props': 'warn'
+    /*'@typescript-eslint/no-unnecessary-condition': 'error'*/
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
 

@@ -229,47 +229,44 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
   }, [isVisible, cachedImageUrl, cachedImageScene, currentSceneDescription, generateImage]);
 
   return (
-    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="visualizer-title">
+    <div aria-labelledby="visualizer-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
       <div className="animated-frame-content visualizer-content-area"> 
         <button
-          onClick={onClose}
-          className="animated-frame-close-button"
           aria-label="Close visualizer"
+          className="animated-frame-close-button"
+          onClick={onClose}
         >
           &times;
         </button>
         
-        {isLoading && (
-          <div className="visualizer-spinner-container">
+        {isLoading ? <div className="visualizer-spinner-container">
             <LoadingSpinner />
-            <p id="visualizer-title" className="mt-2 text-lg">Conjuring vision...</p>
-          </div>
-        )}
 
-        {!isLoading && error && (
-          <div className="visualizer-error-container">
-            <h2 id="visualizer-title" className="text-xl font-semibold text-red-400 mb-2">Vision Failed</h2>
+            <p className="mt-2 text-lg" id="visualizer-title">Conjuring vision...</p>
+          </div> : null}
+
+        {!isLoading && error ? <div className="visualizer-error-container">
+            <h2 className="text-xl font-semibold text-red-400 mb-2" id="visualizer-title">Vision Failed</h2>
+
             <p>{error}</p>
+
             <button
-              onClick={() => { void generateImage(); }}
               className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow transition-colors"
+              onClick={() => { void generateImage(); }}
             >
               Retry Visualization
             </button>
-          </div>
-        )}
+          </div> : null}
 
-        {!isLoading && !error && internalImageUrl && (
-          <div className="visualizer-image-container">
-            <img src={internalImageUrl} alt="Scene visualization" className="visualizer-image" />
-            <h2 id="visualizer-title" className="sr-only">Scene Visualization</h2>
-          </div>
-        )}
-         {!isLoading && !error && !internalImageUrl && isVisible && ( 
-          <div className="visualizer-spinner-container">
-            <p id="visualizer-title" className="mt-2 text-lg text-slate-400">Preparing to visualize...</p>
-          </div>
-        )}
+        {!isLoading && !error && internalImageUrl ? <div className="visualizer-image-container">
+            <img alt="Scene visualization" className="visualizer-image" src={internalImageUrl} />
+
+            <h2 className="sr-only" id="visualizer-title">Scene Visualization</h2>
+          </div> : null}
+
+         {!isLoading && !error && !internalImageUrl && isVisible ? <div className="visualizer-spinner-container">
+            <p className="mt-2 text-lg text-slate-400" id="visualizer-title">Preparing to visualize...</p>
+          </div> : null}
       </div>
     </div>
   );

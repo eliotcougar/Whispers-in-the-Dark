@@ -88,17 +88,17 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {options.map((option) => (
             <button
-              key={option}
-              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                onOptionSelect(option);
-                event.currentTarget.blur();
-              }}
-              disabled={optionsDisabled} 
               className={`w-full p-3 rounded-md shadow transition-all duration-150 ease-in-out
                           text-left text-white font-medium animate-dialogue-new-entry
                           bg-sky-700 hover:bg-sky-600 focus:ring-2 focus:ring-sky-500 focus:outline-none
                           disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                           border border-sky-800 hover:border-sky-500`}
+              disabled={optionsDisabled}
+              key={option} 
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                onOptionSelect(option);
+                event.currentTarget.blur();
+              }}
             >
               {highlightEntitiesInText(option, entitiesForHighlighting)}
             </button>
@@ -110,9 +110,10 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
     return (
       <div className="text-center py-4">
         <p className="text-slate-400 italic">Waiting for response or options...</p>
+
          <button
-            onClick={onClose} 
-            className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow"
+           className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow" 
+           onClick={onClose}
           >
             Force End Conversation (if really stuck)
           </button>
@@ -122,17 +123,18 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
 
 
   return (
-    <div ref={dialogueFrameRef} className="dialogue-frame open" role="dialog" aria-modal="true" aria-labelledby="dialogue-title">
+    <div aria-labelledby="dialogue-title" aria-modal="true" className="dialogue-frame open" ref={dialogueFrameRef} role="dialog">
       <div className="dialogue-frame-content">
         <button
-          onClick={onClose}
-          className="animated-frame-close-button" 
           aria-label="End Conversation"
+          className="animated-frame-close-button" 
           disabled={isLoading || isDialogueExiting} // Updated disabled condition
+          onClick={onClose}
         >
           &times;
         </button>
-        <h1 id="dialogue-title" className="text-2xl font-bold text-sky-300 mb-4 text-center">
+
+        <h1 className="text-2xl font-bold text-sky-300 mb-4 text-center" id="dialogue-title">
           Conversation with: {participantsString}
         </h1>
 
@@ -141,13 +143,14 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
             const isPlayer = entry.speaker.toLowerCase() === 'player';
             return (
               <div 
-                key={index} 
+                className={`mb-3 p-3 rounded-lg animate-dialogue-new-entry ${isPlayer ? 'bg-slate-700 ml-auto w-11/12 text-right' : 'bg-slate-600 mr-auto w-11/12'}`} 
+                key={index}
                 ref={index === history.length - 1 ? lastHistoryEntryRef : null}
-                className={`mb-3 p-3 rounded-lg animate-dialogue-new-entry ${isPlayer ? 'bg-slate-700 ml-auto w-11/12 text-right' : 'bg-slate-600 mr-auto w-11/12'}`}
               >
                 <strong className={isPlayer ? 'text-amber-400' : 'text-emerald-400'}>
                   {entry.speaker}:
                 </strong>
+
                 <span className="text-slate-200 ml-2">
                   {highlightEntitiesInText(entry.line, entitiesForHighlighting)}
                 </span>
@@ -159,8 +162,10 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
         <div className="dialogue-options-area mt-auto pt-4">
           <div className="flex items-center mb-2">
             <ModelUsageIndicators />
+
             <div className="flex-grow border-t border-slate-600 ml-2" />
           </div>
+
           {renderOptionsArea()}
         </div>
       </div>

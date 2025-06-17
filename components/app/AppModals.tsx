@@ -87,96 +87,105 @@ const AppModals: React.FC<AppModalsProps> = (props) => {
   return (
     <>
       <ImageVisualizer
+        allCharacters={props.allCharacters}
+        cachedImageScene={props.visualizerImageScene}
+        cachedImageUrl={props.visualizerImageUrl}
         currentSceneDescription={props.currentScene}
         currentTheme={props.currentTheme}
-        mapData={props.mapData.nodes}
-        allCharacters={props.allCharacters}
-        localTime={props.localTime}
+        isVisible={props.isVisualizerVisible}
         localEnvironment={props.localEnvironment}
         localPlace={props.localPlace}
-        isVisible={props.isVisualizerVisible}
+        localTime={props.localTime}
+        mapData={props.mapData.nodes}
         onClose={() => props.setIsVisualizerVisible(false)}
         setGeneratedImage={props.setGeneratedImage}
-        cachedImageUrl={props.visualizerImageUrl}
-        cachedImageScene={props.visualizerImageScene}
       />
+
       <KnowledgeBase
         allCharacters={props.allCharacters}
         currentTheme={props.currentTheme}
         isVisible={props.isKnowledgeBaseVisible}
         onClose={() => props.setIsKnowledgeBaseVisible(false)}
       />
+
       <HistoryDisplay
-        themeHistory={props.themeHistory}
         gameLog={props.gameLog}
         isVisible={props.isHistoryVisible}
         onClose={() => props.setIsHistoryVisible(false)}
+        themeHistory={props.themeHistory}
       />
+
       <MapDisplay
-        mapData={props.mapData}
-        currentThemeName={props.currentThemeName}
         currentMapNodeId={props.currentMapNodeId}
+        currentThemeName={props.currentThemeName}
         destinationNodeId={props.destinationNodeId}
-        itemPresenceByNode={props.itemPresenceByNode}
-        onSelectDestination={props.onSelectDestination}
         initialLayoutConfig={props.initialLayoutConfig}
         initialViewBox={props.initialViewBox}
-        onNodesPositioned={props.onNodesPositioned}
-        onLayoutConfigChange={props.onLayoutConfigChange}
-        onViewBoxChange={props.onViewBoxChange}
         isVisible={props.isMapVisible}
+        itemPresenceByNode={props.itemPresenceByNode}
+        mapData={props.mapData}
         onClose={props.onCloseMap}
+        onLayoutConfigChange={props.onLayoutConfigChange}
+        onNodesPositioned={props.onNodesPositioned}
+        onSelectDestination={props.onSelectDestination}
+        onViewBoxChange={props.onViewBoxChange}
       />
+
       <SettingsDisplay
-        isVisible={props.isSettingsVisible}
-        onClose={props.onCloseSettings}
-        stabilityLevel={props.stabilityLevel}
         chaosLevel={props.chaosLevel}
-        onStabilityChange={props.onStabilityChange}
-        onChaosChange={props.onChaosChange}
         enabledThemePacks={props.enabledThemePacks}
+        isCustomGameMode={props.isCustomGameMode}
+        isVisible={props.isSettingsVisible}
+        onChaosChange={props.onChaosChange}
+        onClose={props.onCloseSettings}
+        onPlayerGenderChange={props.onPlayerGenderChange}
+        onStabilityChange={props.onStabilityChange}
         onToggleThemePack={props.onToggleThemePack}
         playerGender={props.playerGender}
-        onPlayerGenderChange={props.onPlayerGenderChange}
-        isCustomGameMode={props.isCustomGameMode}
+        stabilityLevel={props.stabilityLevel}
       />
+
       <InfoDisplay isVisible={props.isInfoVisible} onClose={props.onCloseInfo} />
+
       <ConfirmationDialog
-        isOpen={props.newGameFromMenuConfirmOpen}
-        title="Confirm New Game"
-        message="Are you sure you want to start a new game? Your current progress will be lost."
-        onConfirm={props.confirmNewGameFromMenu}
-        onCancel={props.cancelNewGameFromMenu}
-        confirmText="Start New Game"
         confirmButtonClass="bg-red-600 hover:bg-red-500"
+        confirmText="Start New Game"
+        isOpen={props.newGameFromMenuConfirmOpen}
+        message="Are you sure you want to start a new game? Your current progress will be lost."
+        onCancel={props.cancelNewGameFromMenu}
+        onConfirm={props.confirmNewGameFromMenu}
+        title="Confirm New Game"
       />
+
       <ConfirmationDialog
-        isOpen={props.newCustomGameConfirmOpen}
-        title="Confirm Custom Game"
-        message="Are you sure you want to start a new custom game? Your current progress will be lost."
-        onConfirm={props.confirmNewCustomGame}
-        onCancel={props.cancelNewCustomGame}
-        confirmText="Start Custom Game"
         confirmButtonClass="bg-orange-600 hover:bg-orange-500"
+        confirmText="Start Custom Game"
+        isOpen={props.newCustomGameConfirmOpen}
+        message="Are you sure you want to start a new custom game? Your current progress will be lost."
+        onCancel={props.cancelNewCustomGame}
+        onConfirm={props.confirmNewCustomGame}
+        title="Confirm Custom Game"
       />
+
       <ConfirmationDialog
-        isOpen={props.loadGameFromMenuConfirmOpen}
-        title="Confirm Load Game"
-        message="Are you sure you want to load a game? Your current progress will be overwritten if you load a new game."
-        onConfirm={props.confirmLoadGameFromMenu}
-        onCancel={props.cancelLoadGameFromMenu}
-        confirmText="Load Game"
         confirmButtonClass="bg-blue-600 hover:bg-blue-500"
+        confirmText="Load Game"
+        isOpen={props.loadGameFromMenuConfirmOpen}
+        message="Are you sure you want to load a game? Your current progress will be overwritten if you load a new game."
+        onCancel={props.cancelLoadGameFromMenu}
+        onConfirm={props.confirmLoadGameFromMenu}
+        title="Confirm Load Game"
       />
+
       <ConfirmationDialog
-        isOpen={props.shiftConfirmOpen}
-        title="Confirm Reality Shift"
-        message={<>This will destabilize the current reality, leading to an <strong className="text-purple-400">immediate and unpredictable shift</strong> to a new theme. Are you sure you wish to proceed?</>}
-        onConfirm={props.confirmShift}
-        onCancel={props.cancelShift}
-        confirmText="Shift Reality"
         confirmButtonClass="bg-purple-600 hover:bg-purple-500"
+        confirmText="Shift Reality"
         isCustomModeShift={props.isCustomGameModeShift}
+        isOpen={props.shiftConfirmOpen}
+        message={<>This will destabilize the current reality, leading to an <strong className="text-purple-400">immediate and unpredictable shift</strong> to a new theme. Are you sure you wish to proceed?</>}
+        onCancel={props.cancelShift}
+        onConfirm={props.confirmShift}
+        title="Confirm Reality Shift"
       />
     </>
   );

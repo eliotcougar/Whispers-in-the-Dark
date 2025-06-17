@@ -20,12 +20,14 @@ const Footer: React.FC<FooterProps> = ({
     <div className="flex justify-between items-center">
       <p className="text-left">
         &copy; {new Date().getFullYear()}. Developed by {DEVELOPER}, Codex, and
+
         Gemini. <br />Powered by Gemini.
       </p>
+
       <button
-        onClick={() => setIsDebugViewVisible(!isDebugViewVisible)}
-        className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-400 text-xs rounded shadow-md transition-colors"
         aria-label="Open Debug View"
+        className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-400 text-xs rounded shadow-md transition-colors"
+        onClick={() => setIsDebugViewVisible(!isDebugViewVisible)}
       >
         Debug
       </button>
