@@ -9,6 +9,8 @@
 3. Run `npm run build` to verify TypeScript compilation and bundling succeeds.
 4. Run `npm run test:unit` to run unit tests.
 
+Documentation of JSX eslint rules: https://github.com/jsx-eslint/eslint-plugin-react/tree/master/docs/rules
+
 ## Specific terms:
   - "REALITY SHIFT" - process of switching between Themes.
   - "Theme" - for the sets of stylistic details of each reality.
