@@ -13,6 +13,7 @@ export const useModalState = () => {
   const [isInfoVisible, setIsInfoVisible] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(false);
   const [userRequestedTitleMenuOpen, setUserRequestedTitleMenuOpen] = useState(false);
+  const [shouldReturnToTitleMenu, setShouldReturnToTitleMenu] = useState(false);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [isDebugViewVisible, setIsDebugViewVisible] = useState(false);
   const [isCustomGameSetupVisible, setIsCustomGameSetupVisible] = useState(false);
@@ -39,6 +40,8 @@ export const useModalState = () => {
     setIsMapVisible,
     userRequestedTitleMenuOpen,
     setUserRequestedTitleMenuOpen,
+    shouldReturnToTitleMenu,
+    setShouldReturnToTitleMenu,
     isHistoryVisible,
     setIsHistoryVisible,
     isDebugViewVisible,
