@@ -33,14 +33,14 @@ const mapData: MapData = {
       themeName: theme.name,
       placeName: 'Utility Entrance',
       position: { x: 0, y: 0 },
-      data: { description: 'utility entrance', aliases: ['Utility Hatch', 'Metal Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_costal_outpost_test' }
+      data: { description: 'utility entrance', aliases: ['Utility Hatch', 'Metal Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_coastal_outpost_test' }
     },
     {
       id: 'node_main_entrance_test',
       themeName: theme.name,
       placeName: 'Main Entrance',
       position: { x: 0, y: 0 },
-      data: { description: 'utility entrance', aliases: ['Marked Door', 'Yellow Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_costal_outpost_test' }
+      data: { description: 'utility entrance', aliases: ['Marked Door', 'Yellow Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_coastal_outpost_test' }
     }
     
   ],
