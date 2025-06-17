@@ -5,7 +5,7 @@
  * @description Renders the list of actions the Player can choose from.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Item, Character, MapNode } from '../types'; 
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
@@ -39,6 +39,14 @@ const ActionOptions: React.FC<ActionOptionsProps> = ({
   );
 
 
+  const handleOptionClick = useCallback(
+    (action: string) => (event: React.MouseEvent<HTMLButtonElement>) => {
+      onActionSelect(action);
+      event.currentTarget.blur();
+    },
+    [onActionSelect]
+  );
+
   return (
     <div className="mt-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -52,10 +60,7 @@ const ActionOptions: React.FC<ActionOptionsProps> = ({
                         transform hover:scale-105 disabled:transform-none`} 
             disabled={disabled || option === "..."}
             key={option}
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-              onActionSelect(option);
-              event.currentTarget.blur(); 
-            }}
+            onClick={handleOptionClick(option)}
           >
             {index + 1}. {highlightEntitiesInText(option, entitiesForHighlighting)}
           </button>

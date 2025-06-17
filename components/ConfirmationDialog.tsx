@@ -4,7 +4,7 @@
  * @file ConfirmationDialog.tsx
  * @description Modal dialog to confirm user actions.
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 
 interface ConfirmationDialogProps {
   readonly isOpen: boolean;
@@ -32,6 +32,9 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   confirmButtonClass = "bg-sky-600 hover:bg-sky-500",
   isCustomModeShift, // Destructure new prop
 }) => {
+  const stopPropagation = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+  }, []);
   if (!isOpen) return null;
 
   let displayMessage = message;
@@ -55,7 +58,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     >
       <div 
         className="bg-slate-800 p-6 md:p-8 rounded-xl shadow-2xl border border-slate-700 w-full max-w-lg transform transition-all duration-300 ease-out scale-95 opacity-0 animate-dialog-enter"
-        onClick={(e) => e.stopPropagation()} // Prevent dialog close when clicking inside
+        onClick={stopPropagation} // Prevent dialog close when clicking inside
         style={{animationFillMode: 'forwards'}} // Keep final state of animation
       >
         <h2 className="text-2xl font-bold text-sky-300 mb-5" id="confirmation-dialog-title">{title}</h2>

@@ -3,7 +3,7 @@
  * @file CustomGameSetupScreen.tsx
  * @description Allows the Player to select starting themes.
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 import { AdventureTheme, ThemePackName } from '../types';
 import { THEME_PACKS } from '../themes'; // To get pack names and structure
 
@@ -27,6 +27,11 @@ const CustomGameSetupScreen: React.FC<CustomGameSetupScreenProps> = ({
   titleText,
   descriptionText,
 }) => {
+  const handleThemeSelect = useCallback(
+    (themeName: string) => () => onThemeSelected(themeName),
+    [onThemeSelected]
+  );
+
   if (!isVisible) {
     return null;
   }
@@ -85,8 +90,8 @@ const CustomGameSetupScreen: React.FC<CustomGameSetupScreenProps> = ({
                                        ${isDisabled ? 'opacity-50 cursor-not-allowed hover:bg-slate-700 hover:border-slate-600 hover:scale-100' : ''}`}
                             disabled={isDisabled}
                             key={theme.name}
-                            onClick={() => onThemeSelected(theme.name)}
-                            style={{ minHeight: '180px' }} 
+                            onClick={handleThemeSelect(theme.name)}
+                            style={{ minHeight: '180px' }}
                           >
                             <h3 className="text-xl font-semibold text-amber-400 mb-2">{theme.name}</h3>
 
