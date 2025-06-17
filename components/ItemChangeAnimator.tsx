@@ -284,6 +284,15 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
     }
   }, [isGameBusy, resetAnimationState, lastTurnChanges, animatedTurnChangesRef, currentProcessingChanges]);
 
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        handleSkipAnimations();
+      }
+    },
+    [handleSkipAnimations]
+  );
+
 
   /** Renders the static card markup for a given item. */
   const renderCardContent = (item: Item) => (
@@ -350,7 +359,7 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
       aria-label="Skip item animations"
       className={`item-change-overlay ${isVisibleOverlay ? 'active' : ''}`}
       onClick={handleSkipAnimations}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSkipAnimations(); }}
+      onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
     >

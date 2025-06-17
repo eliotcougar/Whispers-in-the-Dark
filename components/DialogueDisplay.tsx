@@ -3,7 +3,7 @@
  * @file DialogueDisplay.tsx
  * @description Renders dialogue history and choice options.
  */
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types'; 
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 import LoadingSpinner from './LoadingSpinner';
@@ -73,10 +73,21 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
   );
 
 
-  if (!isVisible) return null;
-
   const participantsString = participants.join(', ');
   const optionsDisabled = isLoading || isDialogueExiting;
+
+  const handleOptionClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const option = event.currentTarget.dataset.option;
+      if (option) {
+        onOptionSelect(option);
+        event.currentTarget.blur();
+      }
+    },
+    [onOptionSelect]
+  );
+
+  if (!isVisible) return null;
 
   const renderOptionsArea = () => {
     if (isDialogueExiting || isLoading) {
@@ -86,19 +97,17 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
     if (options.length > 0) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {options.map((option) => (
+          {options.map(option => (
             <button
               className={`w-full p-3 rounded-md shadow transition-all duration-150 ease-in-out
                           text-left text-white font-medium animate-dialogue-new-entry
                           bg-sky-700 hover:bg-sky-600 focus:ring-2 focus:ring-sky-500 focus:outline-none
                           disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                           border border-sky-800 hover:border-sky-500`}
+              data-option={option}
               disabled={optionsDisabled}
-              key={option} 
-              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                onOptionSelect(option);
-                event.currentTarget.blur();
-              }}
+              key={option}
+              onClick={handleOptionClick}
             >
               {highlightEntitiesInText(option, entitiesForHighlighting)}
             </button>

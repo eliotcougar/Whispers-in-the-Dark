@@ -216,6 +216,10 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     }
   }, [currentSceneDescription, currentTheme, mapData, allCharacters, localTime, localEnvironment, localPlace, setGeneratedImage]);
 
+  const handleRetry = useCallback(() => {
+    void generateImage();
+  }, [generateImage]);
+
   useEffect(() => {
     if (isVisible) {
       if (cachedImageUrl && cachedImageScene === currentSceneDescription) {
@@ -252,8 +256,8 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
 
           <button
             className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow transition-colors"
-            onClick={() => { void generateImage(); }}
-            >
+            onClick={handleRetry}
+          >
             Retry Visualization
           </button>
         </div> : null}

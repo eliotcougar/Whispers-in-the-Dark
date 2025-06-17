@@ -159,18 +159,18 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   }, [isVisible, runLayout]);
 
   /** Triggers a recalculation of node positions using the current settings. */
-  const handleRefreshLayout = () => {
+  const handleRefreshLayout = useCallback(() => {
     runLayout();
-  };
+  }, [runLayout]);
 
   /** Resets all layout parameters to default values. */
-  const handleResetLayoutToDefaults = () => {
+  const handleResetLayoutToDefaults = useCallback(() => {
     setLayoutIdealEdgeLength(DEFAULT_IDEAL_EDGE_LENGTH);
     setLayoutNestedPadding(DEFAULT_NESTED_PADDING);
     setLayoutNestedAnglePadding(DEFAULT_NESTED_ANGLE_PADDING);
     setLabelOverlapMarginPx(DEFAULT_LABEL_OVERLAP_MARGIN_PX);
     setItemIconScale(DEFAULT_ITEM_ICON_SCALE);
-  };
+  }, []);
 
   if (!isVisible) return null;
 

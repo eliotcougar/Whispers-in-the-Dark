@@ -10,6 +10,7 @@
 4. Run `npm run test:unit` to run unit tests.
 
 Documentation of JSX eslint rules: https://github.com/jsx-eslint/eslint-plugin-react/tree/master/docs/rules
+- When writing React components, comply with `react/jsx-no-bind` and `react/prefer-read-only-props` rules.
 
 ## Specific terms:
   - "REALITY SHIFT" - process of switching between Themes.

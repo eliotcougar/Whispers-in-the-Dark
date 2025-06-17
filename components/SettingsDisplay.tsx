@@ -3,7 +3,7 @@
  * @file SettingsDisplay.tsx
  * @description Screen for adjusting game and user settings.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ThemePackName, ALL_THEME_PACK_NAMES } from '../themes';
 import { DEFAULT_PLAYER_GENDER } from '../constants';
 
@@ -56,32 +56,78 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
   }, [playerGender, isVisible]);
 
   /** Toggles a theme pack in the player's preferences. */
-  const handleThemePackToggle = (packName: ThemePackName) => {
-    onToggleThemePack(packName);
-  };
+  const handleThemePackToggle = useCallback(
+    (packName: ThemePackName) => {
+      onToggleThemePack(packName);
+    },
+    [onToggleThemePack]
+  );
+
+  /** Handles checkbox changes using a data attribute. */
+  const handleThemePackToggleByData = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const packName = e.currentTarget.dataset.packName as ThemePackName | undefined;
+      if (packName) {
+        handleThemePackToggle(packName);
+      }
+    },
+    [handleThemePackToggle]
+  );
 
   /** Updates gender selection based on radio option. */
-  const handleGenderRadioChange = (option: 'Male' | 'Female' | 'Custom') => {
-    setSelectedGenderOption(option);
-    if (option === 'Male') {
-      onPlayerGenderChange('Male');
-    } else if (option === 'Female') {
-      onPlayerGenderChange('Female');
-    } else { // Custom
-      onPlayerGenderChange(customGenderInput.trim() || 'Not Specified');
-    }
-  };
+  const handleGenderRadioChange = useCallback(
+    (option: 'Male' | 'Female' | 'Custom') => {
+      setSelectedGenderOption(option);
+      if (option === 'Male') {
+        onPlayerGenderChange('Male');
+      } else if (option === 'Female') {
+        onPlayerGenderChange('Female');
+      } else {
+        // Custom
+        onPlayerGenderChange(customGenderInput.trim() || 'Not Specified');
+      }
+    },
+    [customGenderInput, onPlayerGenderChange]
+  );
+
+  /** Reads the gender option from a data attribute. */
+  const handleGenderRadioChangeByData = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const option = e.currentTarget.dataset.genderOption as 'Male' | 'Female' | 'Custom' | undefined;
+      if (option) {
+        handleGenderRadioChange(option);
+      }
+    },
+    [handleGenderRadioChange]
+  );
 
   /** Handles typing into the custom gender text input. */
-  const handleCustomGenderInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCustomGenderInput(value);
-    if (selectedGenderOption === 'Custom') {
-      onPlayerGenderChange(value.trim() || 'Not Specified');
-    }
-  };
+  const handleCustomGenderInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setCustomGenderInput(value);
+      if (selectedGenderOption === 'Custom') {
+        onPlayerGenderChange(value.trim() || 'Not Specified');
+      }
+    },
+    [selectedGenderOption, onPlayerGenderChange]
+  );
 
   const sliderControlOpacityClass = isCustomGameMode ? "opacity-50" : "";
+
+  const handleStabilitySliderChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onStabilityChange(parseInt(e.target.value, 10));
+    },
+    [onStabilityChange]
+  );
+
+  const handleChaosSliderChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChaosChange(parseInt(e.target.value, 10));
+    },
+    [onChaosChange]
+  );
 
   return (
     <div aria-labelledby="settings-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
@@ -120,7 +166,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
                 id="stabilitySlider"
                 max="100"
                 min="0"
-                onChange={(e) => onStabilityChange(parseInt(e.target.value, 10))}
+                onChange={handleStabilitySliderChange}
                 type="range"
                 value={stabilityLevel}
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
@@ -146,7 +192,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
                 id="chaosSlider"
                 max="100"
                 min="0"
-                onChange={(e) => onChaosChange(parseInt(e.target.value, 10))}
+                onChange={handleChaosSliderChange}
                 type="range"
                 value={chaosLevel}
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
@@ -178,11 +224,12 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
                     aria-labelledby={`gender-label-${option.toLowerCase()}`}
                     checked={selectedGenderOption === option}
                     className="form-radio h-5 w-5 text-sky-500 bg-slate-600 border-slate-500 focus:ring-sky-400 focus:ring-offset-slate-800"
+                    data-gender-option={option}
                     name="playerGender"
-                    onChange={() => handleGenderRadioChange(option)}
+                    onChange={handleGenderRadioChangeByData}
                     type="radio"
                     value={option}
-                  />
+                    />
 
                   <span className="text-slate-200 text-lg" id={`gender-label-${option.toLowerCase()}`}>{option}</span>
                 </label>
@@ -216,9 +263,10 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
                     aria-labelledby={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}
                     checked={enabledThemePacks.includes(packName)}
                     className="form-checkbox h-5 w-5 text-sky-500 bg-slate-600 border-slate-500 rounded focus:ring-sky-400 focus:ring-offset-slate-800"
-                    onChange={() => handleThemePackToggle(packName)}
+                    data-pack-name={packName}
+                    onChange={handleThemePackToggleByData}
                     type="checkbox"
-                  />
+                    />
 
                   <span className="text-slate-200 text-lg" id={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}>{packName}</span>
                 </label>

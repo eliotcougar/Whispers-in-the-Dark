@@ -82,7 +82,25 @@ interface AppModalsProps {
   readonly isCustomGameModeShift: boolean;
 }
 
-const AppModals: React.FC<AppModalsProps> = (props) => {
+const AppModals: React.FC<AppModalsProps> = props => {
+  const {
+    setIsVisualizerVisible,
+    setIsKnowledgeBaseVisible,
+    setIsHistoryVisible,
+  } = props;
+
+  const handleCloseVisualizer = React.useCallback(() => {
+    setIsVisualizerVisible(false);
+  }, [setIsVisualizerVisible]);
+
+  const handleCloseKnowledgeBase = React.useCallback(() => {
+    setIsKnowledgeBaseVisible(false);
+  }, [setIsKnowledgeBaseVisible]);
+
+  const handleCloseHistory = React.useCallback(() => {
+    setIsHistoryVisible(false);
+  }, [setIsHistoryVisible]);
+
   if (!props.currentTheme) return null;
   return (
     <>
@@ -97,7 +115,7 @@ const AppModals: React.FC<AppModalsProps> = (props) => {
         localPlace={props.localPlace}
         localTime={props.localTime}
         mapData={props.mapData.nodes}
-        onClose={() => props.setIsVisualizerVisible(false)}
+        onClose={handleCloseVisualizer}
         setGeneratedImage={props.setGeneratedImage}
       />
 
@@ -105,13 +123,13 @@ const AppModals: React.FC<AppModalsProps> = (props) => {
         allCharacters={props.allCharacters}
         currentTheme={props.currentTheme}
         isVisible={props.isKnowledgeBaseVisible}
-        onClose={() => props.setIsKnowledgeBaseVisible(false)}
+        onClose={handleCloseKnowledgeBase}
       />
 
       <HistoryDisplay
         gameLog={props.gameLog}
         isVisible={props.isHistoryVisible}
-        onClose={() => props.setIsHistoryVisible(false)}
+        onClose={handleCloseHistory}
         themeHistory={props.themeHistory}
       />
 

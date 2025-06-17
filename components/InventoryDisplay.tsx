@@ -3,7 +3,7 @@
  * @file InventoryDisplay.tsx
  * @description Shows the Player's items and handles interactions.
  */
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Item, KnownUse } from '../types';
 import { InventoryIcon, TrashIcon } from './icons.tsx';
 import ItemActionButton from './ItemActionButton';
@@ -47,6 +47,95 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
   const prevItemsRef = useRef<Item[]>(items);
   const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
+
+  const handleSortByName = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setSortOrder(prev => (prev === 'name' ? 'default' : 'name'));
+    event.currentTarget.blur();
+  }, []);
+
+  const handleSortByType = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setSortOrder(prev => (prev === 'type' ? 'default' : 'type'));
+    event.currentTarget.blur();
+  }, []);
+
+  const handleStartConfirmDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    const name = event.currentTarget.dataset.itemName;
+    if (name) {
+      setConfirmingDiscardItemName(name);
+      event.currentTarget.blur();
+    }
+  }, []);
+
+  const handleConfirmDrop = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    const name = event.currentTarget.dataset.itemName;
+    if (name) {
+      onDropItem(name);
+      setConfirmingDiscardItemName(null);
+      event.currentTarget.blur();
+    }
+  }, [onDropItem]);
+
+  const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setConfirmingDiscardItemName(null);
+    event.currentTarget.blur();
+  }, []);
+
+  const handleSpecificUse = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const { itemName, actionName, promptEffect } = event.currentTarget.dataset;
+      if (!itemName || !actionName || !promptEffect) return;
+      const item = items.find(i => i.name === itemName);
+      if (!item) return;
+      const knownUse: KnownUse = {
+        actionName,
+        promptEffect,
+      };
+      onItemInteract(item, 'specific', knownUse);
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract]
+  );
+
+  const handleInspect = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const name = event.currentTarget.dataset.itemName;
+      if (!name) return;
+      const item = items.find(i => i.name === name);
+      if (!item) return;
+      onItemInteract(item, 'inspect');
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract]
+  );
+
+  const handleGenericUse = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const name = event.currentTarget.dataset.itemName;
+      if (!name) return;
+      const item = items.find(i => i.name === name);
+      if (!item) return;
+      onItemInteract(item, 'generic');
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract]
+  );
+
+  const handleVehicleToggle = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const name = event.currentTarget.dataset.itemName;
+      if (!name) return;
+      const item = items.find(i => i.name === name);
+      if (!item) return;
+      const actionName = item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`;
+      const dynamicKnownUse: KnownUse = {
+        actionName,
+        promptEffect: actionName,
+      };
+      onItemInteract(item, 'specific', dynamicKnownUse);
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract]
+  );
 
 
   useEffect(() => {
@@ -136,10 +225,7 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                         : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
                       } disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
           disabled={disabled}
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            setSortOrder(prev => prev === 'name' ? 'default' : 'name');
-            event.currentTarget.blur();
-          }}
+          onClick={handleSortByName}
         >
           Sort by Name
         </button>
@@ -152,10 +238,7 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                         : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
                       } disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
           disabled={disabled}
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            setSortOrder(prev => prev === 'type' ? 'default' : 'type');
-            event.currentTarget.blur();
-          }}
+          onClick={handleSortByType}
         >
           Sort by Type
         </button>
@@ -200,12 +283,12 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                       className="w-full text-sm bg-teal-600 hover:bg-teal-500 text-white font-medium py-1.5 px-3 rounded shadow
                                  disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                                  transition-colors duration-150 ease-in-out"
+                      data-action-name={knownUse.actionName}
+                      data-item-name={item.name}
+                      data-prompt-effect={knownUse.promptEffect}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-knownuse-${knownUse.actionName}`}
-                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                        onItemInteract(item, 'specific', knownUse);
-                        event.currentTarget.blur();
-                      }}
+                      onClick={handleSpecificUse}
                       title={knownUse.description}
                     >
                       {knownUse.actionName}
@@ -217,12 +300,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                     className="w-full text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-1.5 px-3 rounded shadow
                                disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                                transition-colors duration-150 ease-in-out"
+                    data-item-name={item.name}
                     disabled={disabled || isConfirmingDiscard}
                     key={`${item.name}-inspect`}
-                    onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                      onItemInteract(item, 'inspect');
-                      event.currentTarget.blur();
-                    }}
+                    onClick={handleInspect}
                   >
                     Inspect
                   </button>
@@ -233,12 +314,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                       className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
                                 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                                 transition-colors duration-150 ease-in-out"
+                      data-item-name={item.name}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-generic-use`}
-                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                        onItemInteract(item, 'generic');
-                        event.currentTarget.blur();
-                      }}
+                      onClick={handleGenericUse}
                     >
                       Attempt to Use (Generic)
                     </button>
@@ -250,17 +329,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                       className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow
                                 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                                 transition-colors duration-150 ease-in-out"
+                      data-item-name={item.name}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-vehicle-action`}
-                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                        const actionName = item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`;
-                        const dynamicKnownUse: KnownUse = {
-                          actionName: actionName,
-                          promptEffect: actionName,
-                        };
-                        onItemInteract(item, 'specific', dynamicKnownUse);
-                        event.currentTarget.blur();
-                      }}
+                      onClick={handleVehicleToggle}
                     >
                       {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
                     </button>
@@ -269,20 +341,22 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                   {item.isJunk && !isConfirmingDiscard ? <ItemActionButton
                     ariaLabel={`Discard ${item.name}`}
                     className="bg-orange-700 hover:bg-orange-600"
+                    data-item-name={item.name}
                     disabled={disabled}
                     key={`${item.name}-discard`}
                     label={<><TrashIcon /> Discard</>}
-                    onClick={() => setConfirmingDiscardItemName(item.name)}
+                    onClick={handleStartConfirmDiscard}
                     /> : null}
 
                   {!item.isJunk && !isConfirmingDiscard && item.type != 'vehicle' && (
                     <ItemActionButton
                       ariaLabel={`Drop ${item.name}`}
                       className="bg-sky-700 hover:bg-sky-600"
+                      data-item-name={item.name}
                       disabled={disabled}
                       key={`${item.name}-drop`}
                       label="Drop"
-                      onClick={() => setConfirmingDiscardItemName(item.name)}
+                      onClick={handleStartConfirmDiscard}
                     />
                   )}
 
@@ -290,10 +364,11 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                     <ItemActionButton
                       ariaLabel={`Park ${item.name} here`}
                       className="bg-sky-700 hover:bg-sky-600"
+                      data-item-name={item.name}
                       disabled={disabled}
                       key={`${item.name}-drop`}
                       label="Park Here"
-                      onClick={() => setConfirmingDiscardItemName(item.name)}
+                      onClick={handleStartConfirmDiscard}
                     />
                   )}
 
@@ -303,13 +378,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                       className="w-full text-sm bg-red-600 hover:bg-red-500 text-white font-semibold py-1.5 px-3 rounded shadow
                                    disabled:bg-slate-500 disabled:cursor-not-allowed
                                    transition-colors duration-150 ease-in-out"
+                      data-item-name={item.name}
                       disabled={disabled}
                       key={`${item.name}-confirm-drop`}
-                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                          onDropItem(item.name);
-                          setConfirmingDiscardItemName(null);
-                          event.currentTarget.blur();
-                        }}
+                      onClick={handleConfirmDrop}
                       >
                       {item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
                     </button>
@@ -321,10 +393,7 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                                    transition-colors duration-150 ease-in-out"
                       disabled={disabled}
                       key={`${item.name}-cancel-discard`}
-                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                          setConfirmingDiscardItemName(null);
-                          event.currentTarget.blur();
-                        }}
+                      onClick={handleCancelDiscard}
                       >
                       Cancel
                     </button>
