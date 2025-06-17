@@ -23,12 +23,12 @@ interface GroupedEntities {
 /**
  * Lists discovered characters grouped by their associated theme.
  */
-const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
+function KnowledgeBase({
   allCharacters,
   currentTheme, // This is now AdventureTheme | null
   isVisible,
   onClose,
-}) => {
+}: KnowledgeBaseProps) {
   const groupedEntities = React.useMemo(() => {
     const grouped: GroupedEntities = {};
 
@@ -51,7 +51,7 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
 
   return (
     <div aria-labelledby="knowledge-base-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
-      <div className="animated-frame-content"> 
+      <div className="animated-frame-content">
         <button
           aria-label="Close knowledge base"
           className="animated-frame-close-button"
@@ -137,6 +137,6 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default KnowledgeBase;

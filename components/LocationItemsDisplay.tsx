@@ -12,7 +12,7 @@ interface LocationItemsDisplayProps {
   readonly mapNodes: { id: string; placeName: string }[];
 }
 
-const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTakeItem, disabled, currentNodeId, mapNodes }) => {
+function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapNodes }: LocationItemsDisplayProps) {
   const handleTakeItem = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const itemName = event.currentTarget.dataset.itemName;
@@ -73,6 +73,6 @@ const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTa
       </ul>
     </div>
   );
-};
+}
 
 export default LocationItemsDisplay;

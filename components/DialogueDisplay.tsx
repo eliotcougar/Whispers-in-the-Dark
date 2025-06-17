@@ -30,7 +30,7 @@ interface DialogueDisplayProps {
 /**
  * Renders dialogue history and available dialogue options.
  */
-const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
+function DialogueDisplay({
   isVisible,
   onClose,
   history,
@@ -40,11 +40,11 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
   isLoading,
   isDialogueExiting,
   inventory,
-  mapData, 
+  mapData,
   allCharacters,
   currentThemeName,
   loadingReason, // Destructure prop
-}) => {
+}: DialogueDisplayProps) {
   const dialogueFrameRef = useRef<HTMLDivElement | null>(null); 
   const lastHistoryEntryRef = useRef<HTMLDivElement | null>(null);
 
@@ -182,6 +182,6 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default DialogueDisplay;

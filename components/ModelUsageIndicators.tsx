@@ -2,7 +2,6 @@
  * @file ModelUsageIndicators.tsx
  * @description Shows recent AI model usage levels.
  */
-import * as React from 'react';
 import { useModelUsage } from '../hooks/useModelUsage';
 
 const squareClass = 'w-4 h-4 rounded';
@@ -16,7 +15,7 @@ const getColorClass = (pct: number) => {
   return 'bg-red-500';
 };
 
-const ModelUsageIndicators: React.FC = () => {
+function ModelUsageIndicators() {
   const usage = useModelUsage();
 
   return (
@@ -35,6 +34,6 @@ const ModelUsageIndicators: React.FC = () => {
       })}
     </div>
   );
-};
+}
 
 export default ModelUsageIndicators;

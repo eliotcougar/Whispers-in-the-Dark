@@ -5,7 +5,6 @@
  */
 import { useCallback } from 'react';
 
-import * as React from 'react';
 import { AdventureTheme, ThemePackName } from '../types';
 import { THEME_PACKS } from '../themes'; // To get pack names and structure
 
@@ -21,14 +20,14 @@ interface CustomGameSetupScreenProps {
 /**
  * Lets the player pick starting themes for a custom game.
  */
-const CustomGameSetupScreen: React.FC<CustomGameSetupScreenProps> = ({
+function CustomGameSetupScreen({
   isVisible,
   onClose,
   onThemeSelected,
-  disabledThemeName,
-  titleText,
-  descriptionText,
-}) => {
+  disabledThemeName = null,
+  titleText = undefined,
+  descriptionText = undefined,
+}: CustomGameSetupScreenProps) {
   const handleThemeSelect = useCallback(
     (themeName: string) => () => onThemeSelected(themeName),
     [onThemeSelected]
@@ -115,6 +114,6 @@ const CustomGameSetupScreen: React.FC<CustomGameSetupScreenProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default CustomGameSetupScreen;

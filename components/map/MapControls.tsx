@@ -21,7 +21,7 @@ interface MapControlsProps {
 }
 
 interface ParameterControlProps {
-  readonly explanation?: string;
+  readonly explanation: string;
   readonly id: string;
   readonly label: string;
   readonly max: number;

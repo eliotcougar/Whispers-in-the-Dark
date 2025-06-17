@@ -25,15 +25,15 @@ interface ActionOptionsProps {
  * Component that displays all available actions as buttons.
  * Calls `onActionSelect` with the chosen action when a button is clicked.
  */
-const ActionOptions: React.FC<ActionOptionsProps> = ({
+function ActionOptions({
   options,
   onActionSelect,
   disabled,
   inventory,
   mapData,
   allCharacters,
-  currentThemeName 
-}) => {
+  currentThemeName
+}: ActionOptionsProps) {
 
   const entitiesForHighlighting = useMemo(
     () => buildHighlightableEntities(inventory, mapData, allCharacters, currentThemeName),
@@ -70,6 +70,6 @@ const ActionOptions: React.FC<ActionOptionsProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default ActionOptions;

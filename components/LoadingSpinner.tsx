@@ -3,19 +3,18 @@
  * @file LoadingSpinner.tsx
  * @description Loading spinner indicating in-progress actions.
  */
-import * as React from 'react';
 import { LoadingReason } from '../types';
 import { LOADING_REASON_UI_MAP } from '../constants';
 import { useLoadingProgress } from '../hooks/useLoadingProgress';
 
 interface LoadingSpinnerProps {
-  readonly loadingReason?: LoadingReason;
+  readonly loadingReason: LoadingReason | null;
 }
 
 /**
  * Displays a spinner with a reason message while the game is busy.
  */
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
+function LoadingSpinner({ loadingReason = null }: LoadingSpinnerProps) {
   const { progress } = useLoadingProgress();
   const spinnerBaseClass = "rounded-full h-16 w-16 border-t-4 border-b-4";
   const spinnerClass = `${spinnerBaseClass} animate-spin border-sky-600`;
@@ -47,6 +46,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
       </div> : null}
     </div>
   );
-};
+}
 
 export default LoadingSpinner;

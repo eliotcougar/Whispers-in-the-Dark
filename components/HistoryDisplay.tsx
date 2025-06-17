@@ -2,7 +2,6 @@
  * @file HistoryDisplay.tsx
  * @description Shows the game log and memory of previously visited realities.
 */
-import * as React from 'react';
 import { ThemeHistoryState } from '../types';
 import GameLogDisplay from './GameLogDisplay';
 
@@ -17,13 +16,13 @@ interface HistoryDisplayProps {
 /**
  * Displays the game log and a history of themes the player has explored.
 */
-const HistoryDisplay: React.FC<HistoryDisplayProps> = ({
+function HistoryDisplay({
   themeHistory,
   gameLog,
   isVisible,
   onClose,
   // mapData // If needed in future
-}) => {
+}: HistoryDisplayProps) {
   const rememberedThemes = Object.entries(themeHistory);
 
   return (
@@ -83,6 +82,6 @@ const HistoryDisplay: React.FC<HistoryDisplayProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default HistoryDisplay;
