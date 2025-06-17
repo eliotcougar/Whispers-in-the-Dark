@@ -269,7 +269,7 @@ const DebugView: React.FC<DebugViewProps> = ({
 
                 {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
                   debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 ? debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
-                    <div className="my-2" key={`chain-${idx}`}>
+                    <div className="my-2" key={`chain-${info.round}`}>
                       {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
 
                       <div className="my-2">
@@ -330,7 +330,7 @@ const DebugView: React.FC<DebugViewProps> = ({
                 : null;
               const responseWithThoughts = thoughtsText ? `${thoughtsText}\n${t.rawResponse}` : t.rawResponse;
               return (
-                <div className="mb-2" key={idx}>
+                <div className="mb-2" key={t.prompt}>
                   {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
 
                   {renderContent(`Turn ${idx + 1} Response`, responseWithThoughts, false)}

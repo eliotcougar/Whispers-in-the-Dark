@@ -44,8 +44,8 @@ const SceneDisplay: React.FC<SceneDisplayProps> = ({
     typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
 
   const highlightedDescription = useMemo(() => {
-    return description.split('\n').map((para, index) => (
-      <p className="mb-4 leading-relaxed text-lg text-slate-300" key={index}>
+    return description.split('\n').map((para) => (
+      <p className="mb-4 leading-relaxed text-lg text-slate-300" key={para}>
         {highlightEntitiesInText(para, entitiesForHighlighting, enableMobileTap)}
       </p>
     ));

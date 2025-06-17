@@ -22,8 +22,8 @@ const GameLogDisplay: React.FC<GameLogDisplayProps> = ({ messages }) => {
       </h3>
 
       <ul className="space-y-2 text-sm">
-        {messages.map((message, index) => (
-          <li className="text-slate-400 leading-snug" key={index}>
+        {messages.map((message) => (
+          <li className="text-slate-400 leading-snug" key={message}>
             <span className="text-emerald-500">&raquo;</span> {message}
           </li>
         ))}
