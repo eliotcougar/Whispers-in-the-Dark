@@ -24,9 +24,9 @@ function CustomGameSetupScreen({
   isVisible,
   onClose,
   onThemeSelected,
-  disabledThemeName,
-  titleText,
-  descriptionText,
+  disabledThemeName = null,
+  titleText = undefined,
+  descriptionText = undefined,
 }: CustomGameSetupScreenProps) {
   const handleThemeSelect = useCallback(
     (themeName: string) => () => onThemeSelected(themeName),

@@ -32,7 +32,7 @@ function ConfirmationDialog({
   confirmText = "Confirm",
   cancelText = "Cancel",
   confirmButtonClass = "bg-sky-600 hover:bg-sky-500",
-  isCustomModeShift, // Destructure new prop
+  isCustomModeShift = false, // Destructure new prop with default
 }: ConfirmationDialogProps) {
   const stopPropagation = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();

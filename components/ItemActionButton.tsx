@@ -4,24 +4,24 @@ import * as React from 'react';
 interface ItemActionButtonProps {
   readonly label: React.ReactNode;
   readonly onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  readonly disabled?: boolean;
+  readonly disabled: boolean;
   readonly ariaLabel: string;
-  readonly className?: string;
-  readonly dataItemName?: string;
+  readonly className: string;
+  readonly dataItemName: string;
 }
 
 /**
  * Button used for item actions like drop, discard or park.
  * Applies shared styling and ensures blur after click.
  */
-const ItemActionButton: React.FC<ItemActionButtonProps> = ({
+function ItemActionButton({
   label,
   onClick,
   disabled = false,
   ariaLabel,
   className = '',
-  dataItemName,
-}) => {
+  dataItemName = '',
+}: ItemActionButtonProps) {
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       onClick(event);
@@ -41,6 +41,6 @@ const ItemActionButton: React.FC<ItemActionButtonProps> = ({
       {label}
     </button>
   );
-};
+}
 
 export default ItemActionButton;

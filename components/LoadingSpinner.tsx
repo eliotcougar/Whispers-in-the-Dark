@@ -8,7 +8,7 @@ import { LOADING_REASON_UI_MAP } from '../constants';
 import { useLoadingProgress } from '../hooks/useLoadingProgress';
 
 interface LoadingSpinnerProps {
-  readonly loadingReason?: LoadingReason;
+  readonly loadingReason: LoadingReason | null;
 }
 
 /**

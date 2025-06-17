@@ -89,10 +89,10 @@ const areItemsEffectivelyIdentical = (
 /**
  * Animates item gains, losses, and transformations over time.
  */
-const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
+function ItemChangeAnimator({
   lastTurnChanges,
   isGameBusy,
-}) => {
+}: ItemChangeAnimatorProps) {
   const [animationQueue, setAnimationQueue] = useState<AnimationQueueItem[]>([]);
   const [currentAnimatingItem, setCurrentAnimatingItem] = useState<AnimationQueueItem | null>(null);
   const [animationStep, setAnimationStep] = useState<AnimationStep>('idle');
@@ -382,6 +382,6 @@ const ItemChangeAnimator: React.FC<ItemChangeAnimatorProps> = ({
       ) : null}
     </div>
   );
-};
+}
 
 export default ItemChangeAnimator;

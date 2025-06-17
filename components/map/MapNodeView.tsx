@@ -43,7 +43,7 @@ interface MapNodeViewProps {
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
-  readonly itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
   readonly onSelectDestination: (nodeId: string | null) => void;
   readonly labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */

@@ -245,7 +245,7 @@ function ImageVisualizer({
         </button>
         
         {isLoading ? <div className="visualizer-spinner-container">
-          <LoadingSpinner />
+          <LoadingSpinner loadingReason={null} />
 
           <p className="mt-2 text-lg" id="visualizer-title">Conjuring vision...</p>
         </div> : null}
