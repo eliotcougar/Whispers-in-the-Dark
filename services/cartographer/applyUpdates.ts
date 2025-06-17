@@ -596,7 +596,7 @@ export const applyMapUpdates = async ({
     );
 
     const checkType = edgeUpdateOp.newData.type || candidateEdges[0]?.data.type;
-    if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType)) {
+    if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType, themeNodeIdMap)) {
       console.warn(
         `MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`
       );
@@ -745,7 +745,7 @@ export const applyMapUpdates = async ({
               : `${tgt.id}|${src.id}|${eAdd.data?.type || 'path'}`;
             if (processedChainKeys.has(pairKey)) return;
             processedChainKeys.add(pairKey);
-            if (isEdgeConnectionAllowed(src, tgt, eAdd.data?.type)) {
+            if (isEdgeConnectionAllowed(src, tgt, eAdd.data?.type, themeNodeIdMap)) {
               addEdgeWithTracking(
                 src,
                 tgt,
