@@ -56,21 +56,50 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
   }, [playerGender, isVisible]);
 
   /** Toggles a theme pack in the player's preferences. */
-  const handleThemePackToggle = (packName: ThemePackName) => {
-    onToggleThemePack(packName);
-  };
+  const handleThemePackToggle = useCallback(
+    (packName: ThemePackName) => {
+      onToggleThemePack(packName);
+    },
+    [onToggleThemePack]
+  );
+
+  /** Handles checkbox changes using a data attribute. */
+  const handleThemePackToggleByData = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const packName = e.currentTarget.dataset.packName as ThemePackName | undefined;
+      if (packName) {
+        handleThemePackToggle(packName);
+      }
+    },
+    [handleThemePackToggle]
+  );
 
   /** Updates gender selection based on radio option. */
-  const handleGenderRadioChange = (option: 'Male' | 'Female' | 'Custom') => {
-    setSelectedGenderOption(option);
-    if (option === 'Male') {
-      onPlayerGenderChange('Male');
-    } else if (option === 'Female') {
-      onPlayerGenderChange('Female');
-    } else { // Custom
-      onPlayerGenderChange(customGenderInput.trim() || 'Not Specified');
-    }
-  };
+  const handleGenderRadioChange = useCallback(
+    (option: 'Male' | 'Female' | 'Custom') => {
+      setSelectedGenderOption(option);
+      if (option === 'Male') {
+        onPlayerGenderChange('Male');
+      } else if (option === 'Female') {
+        onPlayerGenderChange('Female');
+      } else {
+        // Custom
+        onPlayerGenderChange(customGenderInput.trim() || 'Not Specified');
+      }
+    },
+    [customGenderInput, onPlayerGenderChange]
+  );
+
+  /** Reads the gender option from a data attribute. */
+  const handleGenderRadioChangeByData = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const option = e.currentTarget.dataset.genderOption as 'Male' | 'Female' | 'Custom' | undefined;
+      if (option) {
+        handleGenderRadioChange(option);
+      }
+    },
+    [handleGenderRadioChange]
+  );
 
   /** Handles typing into the custom gender text input. */
   const handleCustomGenderInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,17 +215,18 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
             </p>
 
             <div className="space-y-3">
-              {(['Male', 'Female', 'Custom'] as const).map(option => (
-                <label className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors" key={option}>
-                  <input
-                    aria-labelledby={`gender-label-${option.toLowerCase()}`}
-                    checked={selectedGenderOption === option}
-                    className="form-radio h-5 w-5 text-sky-500 bg-slate-600 border-slate-500 focus:ring-sky-400 focus:ring-offset-slate-800"
-                    name="playerGender"
-                    onChange={() => handleGenderRadioChange(option)}
-                    type="radio"
-                    value={option}
-                  />
+                {(['Male', 'Female', 'Custom'] as const).map(option => (
+                  <label className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors" key={option}>
+                    <input
+                      aria-labelledby={`gender-label-${option.toLowerCase()}`}
+                      checked={selectedGenderOption === option}
+                      className="form-radio h-5 w-5 text-sky-500 bg-slate-600 border-slate-500 focus:ring-sky-400 focus:ring-offset-slate-800"
+                      name="playerGender"
+                      data-gender-option={option}
+                      onChange={handleGenderRadioChangeByData}
+                      type="radio"
+                      value={option}
+                    />
 
                   <span className="text-slate-200 text-lg" id={`gender-label-${option.toLowerCase()}`}>{option}</span>
                 </label>
@@ -224,15 +254,16 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
             </p>
 
             <div className="space-y-3">
-              {ALL_THEME_PACK_NAMES.map(packName => (
-                <label className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors" key={packName}>
-                  <input
-                    aria-labelledby={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}
-                    checked={enabledThemePacks.includes(packName)}
-                    className="form-checkbox h-5 w-5 text-sky-500 bg-slate-600 border-slate-500 rounded focus:ring-sky-400 focus:ring-offset-slate-800"
-                    onChange={() => handleThemePackToggle(packName)}
-                    type="checkbox"
-                  />
+                {ALL_THEME_PACK_NAMES.map(packName => (
+                  <label className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors" key={packName}>
+                    <input
+                      aria-labelledby={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}
+                      checked={enabledThemePacks.includes(packName)}
+                      className="form-checkbox h-5 w-5 text-sky-500 bg-slate-600 border-slate-500 rounded focus:ring-sky-400 focus:ring-offset-slate-800"
+                      data-pack-name={packName}
+                      onChange={handleThemePackToggleByData}
+                      type="checkbox"
+                    />
 
                   <span className="text-slate-200 text-lg" id={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}>{packName}</span>
                 </label>

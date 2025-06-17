@@ -231,6 +231,92 @@ const App: React.FC = () => {
     setShiftConfirmOpen(false);
   };
 
+  const handleOpenManualShiftConfirm = useCallback(
+    () => setShiftConfirmOpen(true),
+    [setShiftConfirmOpen]
+  );
+
+  const handleOpenHistory = useCallback(
+    () => setIsHistoryVisible(true),
+    [setIsHistoryVisible]
+  );
+
+  const handleOpenKnowledgeBase = useCallback(
+    () => setIsKnowledgeBaseVisible(true),
+    [setIsKnowledgeBaseVisible]
+  );
+
+  const handleOpenMap = useCallback(() => setIsMapVisible(true), [setIsMapVisible]);
+
+  const handleOpenTitleMenu = useCallback(
+    () => setUserRequestedTitleMenuOpen(true),
+    [setUserRequestedTitleMenuOpen]
+  );
+
+  const handleOpenVisualizer = useCallback(
+    () => setIsVisualizerVisible(true),
+    [setIsVisualizerVisible]
+  );
+
+  const handleCloseDebugView = useCallback(
+    () => setIsDebugViewVisible(false),
+    [setIsDebugViewVisible]
+  );
+
+  const handleCloseTitleMenu = useCallback(
+    () => setUserRequestedTitleMenuOpen(false),
+    [setUserRequestedTitleMenuOpen]
+  );
+
+  const handleCloseMap = useCallback(() => setIsMapVisible(false), [setIsMapVisible]);
+
+  const handleRetryClick = useCallback(() => {
+    void handleRetry();
+  }, [handleRetry]);
+
+  const handleFreeFormActionChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFreeFormActionText(e.target.value);
+    },
+    [setFreeFormActionText]
+  );
+
+  const handleCancelLoadGameFromMenu = useCallback(() => {
+    setLoadGameFromMenuConfirmOpen(false);
+    setUserRequestedTitleMenuOpen(true);
+  }, [setLoadGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
+
+  const handleCancelShift = useCallback(
+    () => setShiftConfirmOpen(false),
+    [setShiftConfirmOpen]
+  );
+
+  const handleCancelNewCustomGame = useCallback(() => {
+    setNewCustomGameConfirmOpen(false);
+    setUserRequestedTitleMenuOpen(true);
+  }, [setNewCustomGameConfirmOpen, setUserRequestedTitleMenuOpen]);
+
+  const handleCancelNewGameFromMenu = useCallback(() => {
+    setNewGameFromMenuConfirmOpen(false);
+    setUserRequestedTitleMenuOpen(true);
+  }, [setNewGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
+
+  const handleToggleThemePackStable = useCallback(
+    (packName: ThemePackName) => {
+      setEnabledThemePacks(prevPacks => {
+        const newPacks = prevPacks.includes(packName)
+          ? prevPacks.filter(p => p !== packName)
+          : [...prevPacks, packName];
+        if (newPacks.length === 0) {
+          alert('At least one theme pack must be enabled.');
+          return prevPacks;
+        }
+        return newPacks;
+      });
+    },
+    [setEnabledThemePacks]
+  );
+
   useEffect(() => {
     if (isAwaitingManualShiftThemeSelection && !isManualShiftThemeSelectionVisible) {
       setIsManualShiftThemeSelectionVisible(true);
@@ -428,29 +514,29 @@ const App: React.FC = () => {
         {error && !isLoading && !dialogueState && hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
           <ErrorDisplay
             message={error}
-            onRetry={isLoading ? undefined : () => { void handleRetry(); }}
+            onRetry={isLoading ? undefined : handleRetryClick}
             />
         </div> : null}
 
         {error && !hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
-          <ErrorDisplay message={error} onRetry={() => { void handleRetry(); }} />
+          <ErrorDisplay message={error} onRetry={handleRetryClick} />
         </div> : null}
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
           <div className="lg:col-span-2 space-y-2">
-            {hasGameBeenInitialized ? <MainToolbar
-              currentSceneExists={!!currentScene}
-              currentThemeName={currentTheme?.name || null}
-              isLoading={isLoading || !!dialogueState}
-              onManualRealityShift={() => setShiftConfirmOpen(true)}
-              onOpenHistory={() => setIsHistoryVisible(true)}
-              onOpenKnowledgeBase={() => setIsKnowledgeBaseVisible(true)}
-              onOpenMap={() => setIsMapVisible(true)}
-              onOpenTitleMenu={() => setUserRequestedTitleMenuOpen(true)}
-              onOpenVisualizer={() => setIsVisualizerVisible(true)}
-              score={score}
-              turnsSinceLastShift={turnsSinceLastShift}
-              /> : null}
+              {hasGameBeenInitialized ? <MainToolbar
+                currentSceneExists={!!currentScene}
+                currentThemeName={currentTheme?.name || null}
+                isLoading={isLoading || !!dialogueState}
+                onManualRealityShift={handleOpenManualShiftConfirm}
+                onOpenHistory={handleOpenHistory}
+                onOpenKnowledgeBase={handleOpenKnowledgeBase}
+                onOpenMap={handleOpenMap}
+                onOpenTitleMenu={handleOpenTitleMenu}
+                onOpenVisualizer={handleOpenVisualizer}
+                score={score}
+                turnsSinceLastShift={turnsSinceLastShift}
+                /> : null}
 
             {hasGameBeenInitialized ? <div className="flex items-center my-2">
               <ModelUsageIndicators />
@@ -500,7 +586,7 @@ const App: React.FC = () => {
                     disabled={!canPerformFreeAction}
                     id="freeFormAction"
                     maxLength={FREE_FORM_ACTION_MAX_LENGTH}
-                    onChange={(e) => setFreeFormActionText(e.target.value)}
+                    onChange={handleFreeFormActionChange}
                     placeholder="Type your custom action here..."
                     type="text"
                     value={freeFormActionText}
@@ -588,19 +674,19 @@ const App: React.FC = () => {
         participants={dialogueState?.participants || []}
       />
 
-      <DebugView
-        debugPacket={lastDebugPacket}
-        gameStateStack={gameStateStack}
-        isVisible={isDebugViewVisible}
-        onClose={() => setIsDebugViewVisible(false)}
-        onUndoTurn={handleUndoTurn}
-        travelPath={travelPath}
-      />
+        <DebugView
+          debugPacket={lastDebugPacket}
+          gameStateStack={gameStateStack}
+          isVisible={isDebugViewVisible}
+          onClose={handleCloseDebugView}
+          onUndoTurn={handleUndoTurn}
+          travelPath={travelPath}
+        />
 
-      <TitleMenu
-        isGameActive={hasGameBeenInitialized}
-        isVisible={effectiveIsTitleMenuOpen}
-        onClose={() => setUserRequestedTitleMenuOpen(false)}
+        <TitleMenu
+          isGameActive={hasGameBeenInitialized}
+          isVisible={effectiveIsTitleMenuOpen}
+          onClose={handleCloseTitleMenu}
         onCustomGame={handleOpenCustomGameSetup}
         onLoadGame={handleLoadGameFromMenu}
         onNewGame={handleNewGameFromMenu}
@@ -624,21 +710,12 @@ const App: React.FC = () => {
         titleText="Select Destination Theme"
       />
 
-      {hasGameBeenInitialized && currentTheme ? <AppModals
-        allCharacters={allCharacters}
-        cancelLoadGameFromMenu={() => {
-          setLoadGameFromMenuConfirmOpen(false);
-          setUserRequestedTitleMenuOpen(true);
-        }}
-        cancelNewCustomGame={() => {
-          setNewCustomGameConfirmOpen(false);
-          setUserRequestedTitleMenuOpen(true);
-        }}
-        cancelNewGameFromMenu={() => {
-          setNewGameFromMenuConfirmOpen(false);
-          setUserRequestedTitleMenuOpen(true);
-        }}
-        cancelShift={() => setShiftConfirmOpen(false)}
+        {hasGameBeenInitialized && currentTheme ? <AppModals
+          allCharacters={allCharacters}
+          cancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
+          cancelNewCustomGame={handleCancelNewCustomGame}
+          cancelNewGameFromMenu={handleCancelNewGameFromMenu}
+          cancelShift={handleCancelShift}
         chaosLevel={chaosLevel}
         confirmLoadGameFromMenu={confirmLoadGameFromMenu}
         confirmNewCustomGame={confirmNewCustomGame}
@@ -671,25 +748,14 @@ const App: React.FC = () => {
         newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
         onChaosChange={setChaosLevel}
         onCloseInfo={closeInfo}
-        onCloseMap={() => setIsMapVisible(false)}
+          onCloseMap={handleCloseMap}
         onCloseSettings={closeSettings}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
         onPlayerGenderChange={setPlayerGender}
-        onSelectDestination={(id) => handleSelectDestinationNode(id)}
+          onSelectDestination={handleSelectDestinationNode}
         onStabilityChange={setStabilityLevel}
-        onToggleThemePack={(packName: ThemePackName) => {
-          setEnabledThemePacks((prevPacks: ThemePackName[]) => {
-            const newPacks = prevPacks.includes(packName)
-              ? prevPacks.filter((p) => p !== packName)
-              : [...prevPacks, packName];
-            if (newPacks.length === 0) {
-              alert('At least one theme pack must be enabled.');
-              return prevPacks;
-            }
-            return newPacks;
-          });
-        }}
+          onToggleThemePack={handleToggleThemePackStable}
         onViewBoxChange={handleMapViewBoxChange}
         playerGender={playerGender}
         setGeneratedImage={setGeneratedImageCache}

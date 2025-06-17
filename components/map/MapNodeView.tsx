@@ -337,6 +337,25 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     [nodes, depthMap]
   );
 
+  const destinationMarker = useMemo(() => {
+    if (!destinationNodeId) return null;
+    const dest = nodes.find(n => n.id === destinationNodeId);
+    const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
+    if (!dest) return null;
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    if (current && (current.id === dest.id || isDescendantOf(current, dest, nodeMap))) {
+      return null;
+    }
+    return (
+      <polygon
+        className="map-destination-marker"
+        pointerEvents="none"
+        points="0,-14 10,0 0,14 -10,0"
+        transform={`translate(${dest.position.x}, ${dest.position.y})`}
+      />
+    );
+  }, [destinationNodeId, nodes, currentMapNodeId]);
+
 
   /** Hides the tooltip. */
   const handleMouseLeaveGeneral = () => {
@@ -583,26 +602,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             );
           })}
 
-          {destinationNodeId ? (() => {
-            const dest = nodes.find(n => n.id === destinationNodeId);
-            const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
-            if (!dest) return null;
-            const nodeMap = new Map(nodes.map(n => [n.id, n]));
-            if (
-              current &&
-              (current.id === dest.id || isDescendantOf(current, dest, nodeMap))
-            ) {
-              return null;
-            }
-            return (
-              <polygon
-                className="map-destination-marker"
-                pointerEvents="none"
-                points="0,-14 10,0 0,14 -10,0"
-                transform={`translate(${dest.position.x}, ${dest.position.y})`}
-              />
-            );
-          })() : null}
+          {destinationMarker}
 
           {sortedNodes.map(node => {
           const presence = itemPresenceByNode?.[node.id];
@@ -610,29 +610,23 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           const radius = getRadiusForNode(node);
           const offset = radius + DEFAULT_LABEL_MARGIN_PX * 1.5;
           const iconSize = NODE_RADIUS * 2 * itemIconScale;
+          const usefulX = node.position.x + offset * Math.sin((20 * Math.PI) / 180) - iconSize / 2;
+          const usefulY = node.position.y - offset * Math.cos((20 * Math.PI) / 180) - iconSize / 2;
+          const vehicleX = node.position.x + offset * Math.sin((340 * Math.PI) / 180) - iconSize / 2;
+          const vehicleY = node.position.y - offset * Math.cos((340 * Math.PI) / 180) - iconSize / 2;
           return (
             <g key={`${node.id}-icons`}>
-              {presence.hasUseful ? (() => {
-                const angle = (20 * Math.PI) / 180;
-                const x = node.position.x + offset * Math.sin(angle);
-                const y = node.position.y - offset * Math.cos(angle);
-                return (
-                  <g pointerEvents="none" transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`}>
-                    <MapItemBoxIcon className="text-green-400" size={iconSize} />
-                  </g>
-                );
-              })() : null}
+              {presence.hasUseful ? (
+                <g pointerEvents="none" transform={`translate(${usefulX}, ${usefulY})`}>
+                  <MapItemBoxIcon className="text-green-400" size={iconSize} />
+                </g>
+              ) : null}
 
-              {presence.hasVehicle ? (() => {
-                const angle = (340 * Math.PI) / 180;
-                const x = node.position.x + offset * Math.sin(angle);
-                const y = node.position.y - offset * Math.cos(angle);
-                return (
-                  <g pointerEvents="none" transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`}>
-                    <MapWheelIcon className="text-green-400" size={iconSize} />
-                  </g>
-                );
-              })() : null}
+              {presence.hasVehicle ? (
+                <g pointerEvents="none" transform={`translate(${vehicleX}, ${vehicleY})`}>
+                  <MapWheelIcon className="text-green-400" size={iconSize} />
+                </g>
+              ) : null}
             </g>
           );
         })}
