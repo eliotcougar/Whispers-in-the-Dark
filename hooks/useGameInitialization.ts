@@ -27,7 +27,7 @@ import {
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';
 import { DEFAULT_VIEWBOX } from '../utils/mapConstants';
-import { ProcessAiResponseFn } from './usePlayerActions';
+import { ProcessAiResponseFn } from './useProcessAiResponse';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
