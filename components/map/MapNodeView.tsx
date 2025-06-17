@@ -3,7 +3,7 @@
  * @description SVG view rendering map nodes and edges with tooltip interactions.
  */
 
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useLayoutEffect } from 'react';
 import { MapNode, MapEdge } from '../../types';
 import { useMapInteractions } from '../../hooks/useMapInteractions';
 import {
@@ -161,18 +161,25 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   const tooltipTimeout = useRef<number | null>(null);
   const TOOLTIP_DELAY_MS = 250;
 
+  const [tooltipScreenPosition, setTooltipScreenPosition] = useState<
+    { x: number; y: number } | null
+  >(null);
+
   // Recalculate tooltip position when viewBox changes so it stays anchored
   // during panning or zooming.
-  const tooltipScreenPosition = useMemo(() => {
-    if (!tooltip || !svgRef.current) return null;
+  useLayoutEffect(() => {
+    if (!tooltip || !svgRef.current) {
+      setTooltipScreenPosition(null);
+      return;
+    }
     const { x, y } = getScreenCoordinates(
       svgRef.current,
       tooltip.svgX,
       tooltip.svgY
     );
     const rect = svgRef.current.getBoundingClientRect();
-    return { x: x - rect.left, y: y - rect.top };
-  }, [tooltip, viewBox, svgRef]); // eslint-disable-line react-hooks/exhaustive-deps
+    setTooltipScreenPosition({ x: x - rect.left, y: y - rect.top });
+  }, [tooltip, viewBox, svgRef]);
 
   const isSmallFontType = (type: string | undefined) =>
     type === 'feature' || type === 'room' || type === 'interior';
