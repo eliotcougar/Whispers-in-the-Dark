@@ -53,7 +53,6 @@ const tsCompat = compat.config({
     'react-hooks/rules-of-hooks': 'error',
     'react/jsx-no-leaked-render': 'error',  
     'react/no-array-index-key' : 'warn',
-    'react/jsx-newline': 'warn',
     'react/jsx-indent-props': ['warn', 2],
     'react/jsx-sort-props': 'warn'
     /*'@typescript-eslint/no-unnecessary-condition': 'error'*/

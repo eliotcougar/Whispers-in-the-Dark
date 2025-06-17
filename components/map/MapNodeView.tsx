@@ -634,7 +634,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                 {labelLines.map((line, index) => (
                   <tspan
                     dy={index === 0 ? `${initialDyOffset}em` : `${DEFAULT_LABEL_LINE_HEIGHT_EM}em`}
-                    key={`${node.id}-line-${index}`}
+                    key={`${node.id}-${line}`}
                     x="0"
                   >
                     {line}
@@ -668,7 +668,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             </button> : null}
 
           {tooltip.content.split('\n').map((line, index) => (
-            <React.Fragment key={index}>
+            <React.Fragment key={`${tooltip.nodeId}-${line}`}> 
               {index === 0 ? <strong>{line}</strong> : line}
 
               {index < tooltip.content.split('\n').length - 1 && <br />}

@@ -142,9 +142,9 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
           {history.map((entry, index) => {
             const isPlayer = entry.speaker.toLowerCase() === 'player';
             return (
-              <div 
-                className={`mb-3 p-3 rounded-lg animate-dialogue-new-entry ${isPlayer ? 'bg-slate-700 ml-auto w-11/12 text-right' : 'bg-slate-600 mr-auto w-11/12'}`} 
-                key={index}
+              <div
+                className={`mb-3 p-3 rounded-lg animate-dialogue-new-entry ${isPlayer ? 'bg-slate-700 ml-auto w-11/12 text-right' : 'bg-slate-600 mr-auto w-11/12'}`}
+                key={entry.line}
                 ref={index === history.length - 1 ? lastHistoryEntryRef : null}
               >
                 <strong className={isPlayer ? 'text-amber-400' : 'text-emerald-400'}>

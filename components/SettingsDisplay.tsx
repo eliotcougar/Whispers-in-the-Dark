@@ -112,17 +112,17 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
               </label>
 
               <input
+                aria-labelledby="stabilitySliderLabel"
                 aria-valuemax={100}
+                aria-valuemin={0}
                 aria-valuenow={stabilityLevel}
+                className={`settings-slider ${sliderControlOpacityClass}`} /* Apply opacity here, remove disabled */
                 id="stabilitySlider"
                 max="100"
                 min="0"
                 onChange={(e) => onStabilityChange(parseInt(e.target.value, 10))}
                 type="range"
                 value={stabilityLevel}
-                className={`settings-slider ${sliderControlOpacityClass}`} /* Apply opacity here, remove disabled */
-                aria-valuemin={0}
-                aria-labelledby="stabilitySliderLabel"
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
               />
 
@@ -138,17 +138,17 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
               </label>
 
               <input
+                aria-labelledby="chaosSliderLabel"
                 aria-valuemax={100}
+                aria-valuemin={0}
                 aria-valuenow={chaosLevel}
+                className={`settings-slider ${sliderControlOpacityClass}`} /* Apply opacity here, remove disabled */
                 id="chaosSlider"
                 max="100"
                 min="0"
                 onChange={(e) => onChaosChange(parseInt(e.target.value, 10))}
                 type="range"
                 value={chaosLevel}
-                className={`settings-slider ${sliderControlOpacityClass}`} /* Apply opacity here, remove disabled */
-                aria-valuemin={0}
-                aria-labelledby="chaosSliderLabel"
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
               />
 
