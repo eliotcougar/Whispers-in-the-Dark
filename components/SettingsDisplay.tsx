@@ -6,8 +6,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import * as React from 'react';
-import { ThemePackName, ALL_THEME_PACK_NAMES } from '../themes';
-import { DEFAULT_PLAYER_GENDER } from '../constants';
+import { ThemePackName } from '../types';
+import { DEFAULT_PLAYER_GENDER, ALL_THEME_PACK_NAMES_CONST } from '../constants';
 
 interface SettingsDisplayProps {
   readonly isVisible: boolean;
@@ -259,7 +259,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
             </p>
 
             <div className="space-y-3">
-              {ALL_THEME_PACK_NAMES.map(packName => (
+              {ALL_THEME_PACK_NAMES_CONST.map(packName => (
                 <label className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors" key={packName}>
                   <input
                     aria-labelledby={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}

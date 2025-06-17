@@ -4,7 +4,6 @@
  * @description Global constants and default configuration values.
  */
 
-import { ALL_THEME_PACK_NAMES } from './themes';
 
 // Using gemini-2.5-flash model specified by API guidelines for general text tasks.
 export const GEMINI_MODEL_NAME = "gemini-2.5-flash";
@@ -19,6 +18,17 @@ export const GEMINI_RATE_LIMIT_PER_MINUTE = 10;
 export const AUXILIARY_RATE_LIMIT_PER_MINUTE = 15;
 export const MINIMAL_RATE_LIMIT_PER_MINUTE = 30;
 
+// List of available theme pack names used for default configuration.
+export const ALL_THEME_PACK_NAMES_CONST = [
+  'Fantasy & Myth',
+  'Science Fiction & Future',
+  'Horror & Dark Mystery',
+  'Action & Wasteland',
+  'Testing',
+] as const;
+
+export type ThemePackNameConst = typeof ALL_THEME_PACK_NAMES_CONST[number];
+
 export const MAX_RETRIES = 3; // Max retries for most API calls
 export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the game log
 
@@ -29,7 +39,7 @@ export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 
 export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
 export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift
-export const DEFAULT_ENABLED_THEME_PACKS = ALL_THEME_PACK_NAMES.filter(
+export const DEFAULT_ENABLED_THEME_PACKS = ALL_THEME_PACK_NAMES_CONST.filter(
   name => name !== 'Testing'
 );
 export const DEFAULT_PLAYER_GENDER = "Male";
