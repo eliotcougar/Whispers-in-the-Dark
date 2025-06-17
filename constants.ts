@@ -77,6 +77,7 @@ export const LOADING_REASONS = [
   'dialogue_conclusion_summary',
   'initial_load',
   'reality_shift_load',
+  'visualize'
 ] as const;
 
 export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { text: string; icon: string }> = {
@@ -90,6 +91,7 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   dialogue_conclusion_summary: { text: 'Returning to the world...', icon: '○' },
   initial_load: { text: 'Loading...', icon: '▒▒' },
   reality_shift_load: { text: 'Reality is shifting...', icon: '▒▒' },
+  visualize: { text: 'Visualizing the scene...', icon: '▒▒' }
 };
 
 // Centralized map node/edge valid values
