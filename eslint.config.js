@@ -55,9 +55,11 @@ const tsCompat = compat.config({
     'react/no-array-index-key' : 'error',
     'react/jsx-indent-props': ['warn', 2],
     'react/jsx-indent': ['warn', 2],
-    'react/jsx-no-bind': 'warn',
+    'react/jsx-no-bind': 'error',
     'react/jsx-sort-props': 'warn',
-    'react/prefer-read-only-props': 'error'
+    'react/prefer-read-only-props': 'error',
+    'react/function-component-definition': 'warn',
+    'react/require-default-props': 'warn'
     /*'@typescript-eslint/no-unnecessary-condition': 'error'*/
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
