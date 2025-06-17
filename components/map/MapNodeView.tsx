@@ -12,7 +12,7 @@ import {
   MAX_LABEL_LINES,
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
-} from '../../utils/mapConstants';
+} from '../../constants';
 import { MapItemBoxIcon, MapWheelIcon } from '../icons';
 import { isDescendantOf } from '../../utils/mapGraphUtils';
 import { getSVGCoordinates, getScreenCoordinates } from '../../utils/svgUtils';

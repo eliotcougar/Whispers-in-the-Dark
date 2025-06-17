@@ -15,7 +15,7 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
   DEFAULT_ITEM_ICON_SCALE,
-} from '../utils/mapConstants';
+} from '../constants';
 
 /** Returns the default configuration for the map layout force algorithm. */
 export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({

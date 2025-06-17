@@ -29,7 +29,7 @@ import {
 } from '../../constants';
 import { ALL_THEME_PACK_NAMES } from '../../themes';
 import { getDefaultMapLayoutConfig } from '../../hooks/useMapUpdates';
-import { DEFAULT_VIEWBOX } from '../../utils/mapConstants';
+import { DEFAULT_VIEWBOX } from '../../constants';
 import { buildCharacterId, buildItemId } from '../../utils/entityUtils';
 
 // --- Validation Helpers for SavedGameDataShape (V3) ---

@@ -4,9 +4,9 @@
  */
 import { FullGameState, SavedGameDataShape, MapData } from '../../types';
 import { CURRENT_SAVE_GAME_VERSION, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_PLAYER_GENDER, PLAYER_HOLDER_ID } from '../../constants';
-import { findThemeByName } from '../themeUtils';
+import { findThemeByName } from '../../utils/themeUtils';
 import { getDefaultMapLayoutConfig } from '../../hooks/useMapUpdates';
-import { DEFAULT_VIEWBOX } from '../../utils/mapConstants';
+import { DEFAULT_VIEWBOX } from '../../constants';
 import {
   ensureCompleteMapLayoutConfig,
   ensureCompleteMapNodeDataDefaults,

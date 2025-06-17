@@ -27,7 +27,7 @@ import {
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
   DEFAULT_ITEM_ICON_SCALE,
   DEFAULT_VIEWBOX,
-} from './mapConstants';
+} from '../constants';
 
 
 const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({

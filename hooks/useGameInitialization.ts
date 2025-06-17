@@ -18,7 +18,7 @@ import {
 } from '../services/storyteller';
 import { getThemesFromPacks } from '../themes';
 import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../constants';
-import { findThemeByName } from '../services/themeUtils';
+import { findThemeByName } from '../utils/themeUtils';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
   getInitialGameStates,
@@ -26,7 +26,7 @@ import {
 } from '../utils/initialStates';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';
-import { DEFAULT_VIEWBOX } from '../utils/mapConstants';
+import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
 
 export interface LoadInitialGameOptions {

@@ -16,7 +16,7 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
   DEFAULT_ITEM_ICON_SCALE,
-} from '../utils/mapConstants';
+} from '../constants';
 import MapNodeView from './map/MapNodeView';
 import MapControls from './map/MapControls';
 

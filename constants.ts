@@ -144,6 +144,19 @@ export const NON_DISPLAYABLE_EDGE_STATUSES = [
   'removed',
 ];
 
+export const NODE_RADIUS = 20;
+export const VIEWBOX_WIDTH_INITIAL = 1000;
+export const VIEWBOX_HEIGHT_INITIAL = 750;
+export const DEFAULT_VIEWBOX = `${-VIEWBOX_WIDTH_INITIAL / 2} ${-VIEWBOX_HEIGHT_INITIAL / 2} ${VIEWBOX_WIDTH_INITIAL} ${VIEWBOX_HEIGHT_INITIAL}`;
+export const EDGE_HOVER_WIDTH = 8;
+export const MAX_LABEL_LINES = 4;
+export const DEFAULT_LABEL_MARGIN_PX = 10;
+export const DEFAULT_LABEL_LINE_HEIGHT_EM = 1.1;
+export const DEFAULT_LABEL_OVERLAP_MARGIN_PX = 2;
+/** Default size for item icons as a fraction of node diameter */
+export const DEFAULT_ITEM_ICON_SCALE = 0.3;
+
+
 export const MAX_DIALOGUE_SUMMARIES_PER_CHARACTER = 5; // Max summaries to store per character
 export const MAX_DIALOGUE_SUMMARIES_IN_PROMPT = 3;   // Max summaries to include in AI prompt
 export const RECENT_LOG_COUNT_FOR_PROMPT = 10; // Number of log messages to include in AI prompts

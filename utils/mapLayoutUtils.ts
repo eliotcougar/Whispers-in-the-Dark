@@ -8,7 +8,7 @@
 
 import { MapNode } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
-import { NODE_RADIUS } from './mapConstants';
+import { NODE_RADIUS } from '../constants';
 
 export const DEFAULT_IDEAL_EDGE_LENGTH = 140;
 export const DEFAULT_NESTED_PADDING = 10;
