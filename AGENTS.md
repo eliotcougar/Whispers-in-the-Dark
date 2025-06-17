@@ -7,7 +7,8 @@
 1. Run `npm run typecheck` to verify strict type safety. It can take a long time to complete, be patient.
 2. Run `npm run lint` to check for any linting errors and warnings that must be fixed. It can take a long time to complete, be patient.
 3. Run `npm run build` to verify TypeScript compilation and bundling succeeds.
-4. Run `npm run test:unit` to run unit tests.
+4. If asked by the user, run `npm run test:unit` to run unit tests.
+5. If there are indentation warnings, you can easily auto-fix them using `npm run lint -- --fix`.
 
 Documentation of JSX eslint rules: https://github.com/jsx-eslint/eslint-plugin-react/tree/master/docs/rules
 - When writing React components, comply with `react/jsx-no-bind` and `react/prefer-read-only-props` rules.
