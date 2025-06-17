@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 interface ItemActionButtonProps {
   readonly label: React.ReactNode;
@@ -6,6 +6,7 @@ interface ItemActionButtonProps {
   readonly disabled?: boolean;
   readonly ariaLabel: string;
   readonly className?: string;
+  readonly dataItemName?: string;
 }
 
 /**
@@ -18,16 +19,23 @@ const ItemActionButton: React.FC<ItemActionButtonProps> = ({
   disabled = false,
   ariaLabel,
   className = '',
+  dataItemName,
 }) => {
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      onClick(event);
+      event.currentTarget.blur();
+    },
+    [onClick]
+  );
+
   return (
     <button
       aria-label={ariaLabel}
       className={`w-full text-sm text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${className}`}
+      data-item-name={dataItemName}
       disabled={disabled}
-      onClick={(event) => {
-        onClick(event);
-        event.currentTarget.blur();
-      }}
+      onClick={handleClick}
     >
       {label}
     </button>

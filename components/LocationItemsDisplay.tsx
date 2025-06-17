@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Item } from '../types';
 import { InventoryIcon } from './icons';
 import { ItemTypeDisplay } from './InventoryDisplay';
@@ -12,6 +12,17 @@ interface LocationItemsDisplayProps {
 }
 
 const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTakeItem, disabled, currentNodeId, mapNodes }) => {
+  const handleTakeItem = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const itemName = event.currentTarget.dataset.itemName;
+      if (itemName) {
+        onTakeItem(itemName);
+        event.currentTarget.blur();
+      }
+    },
+    [onTakeItem]
+  );
+
   if (items.length === 0) return null;
 
   return (
@@ -48,11 +59,9 @@ const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTa
                 <button
                   aria-label={item.type === 'vehicle' ? `Enter ${item.name}` : `Take ${item.name}`}
                   className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
+                  data-item-name={item.name}
                   disabled={disabled}
-                  onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                    onTakeItem(item.name);
-                    event.currentTarget.blur();
-                  }}
+                  onClick={handleTakeItem}
                 >
                   {item.type === 'vehicle' ? 'Enter Vehicle' : 'Take'}
                 </button>

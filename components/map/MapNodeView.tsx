@@ -3,7 +3,7 @@
  * @description SVG view rendering map nodes and edges with tooltip interactions.
  */
 
-import React, { useMemo, useState, useRef, useLayoutEffect } from 'react';
+import React, { useMemo, useState, useRef, useLayoutEffect, useCallback } from 'react';
 import { MapNode, MapEdge } from '../../types';
 import { useMapInteractions } from '../../hooks/useMapInteractions';
 import {
@@ -414,6 +414,21 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     if (!isTooltipLocked) setTooltip(null);
   };
 
+  const handleDestinationClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const nodeId = event.currentTarget.dataset.nodeId;
+      if (!nodeId) return;
+      if (nodeId === destinationNodeId) {
+        onSelectDestination(null);
+      } else {
+        onSelectDestination(nodeId);
+      }
+      setIsTooltipLocked(false);
+      setTooltip(null);
+    },
+    [destinationNodeId, onSelectDestination]
+  );
+
   if (nodes.length === 0) {
     return (
       <div className="map-content-area">
@@ -652,16 +667,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
         >
         {isTooltipLocked && tooltip.nodeId ? <button
           className="map-set-destination-button"
-          onClick={() => {
-                if (tooltip.nodeId === destinationNodeId) {
-                  onSelectDestination(null);
-                } else {
-                  onSelectDestination(tooltip.nodeId!);
-                }
-                setIsTooltipLocked(false);
-                setTooltip(null);
-              }}
-            >
+          data-node-id={tooltip.nodeId}
+          onClick={handleDestinationClick}
+        >
           {tooltip.nodeId === destinationNodeId
                 ? 'Remove Destination'
                 : 'Set Destination'}
