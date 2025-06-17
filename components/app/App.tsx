@@ -22,6 +22,8 @@ import DialogueDisplay from '../DialogueDisplay';
 import DebugView from '../DebugView';
 import ItemChangeAnimator from '../ItemChangeAnimator';
 import CustomGameSetupScreen from '../CustomGameSetupScreen';
+import SettingsDisplay from '../SettingsDisplay';
+import InfoDisplay from '../InfoDisplay';
 import Footer from './Footer';
 import AppModals from './AppModals';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
@@ -718,13 +720,28 @@ const App: React.FC = () => {
         titleText="Select Destination Theme"
       />
 
+      <SettingsDisplay
+        chaosLevel={chaosLevel}
+        enabledThemePacks={enabledThemePacks}
+        isCustomGameMode={isCustomGameMode}
+        isVisible={isSettingsVisible}
+        onChaosChange={setChaosLevel}
+        onClose={closeSettings}
+        onPlayerGenderChange={setPlayerGender}
+        onStabilityChange={setStabilityLevel}
+        onToggleThemePack={handleToggleThemePackStable}
+        playerGender={playerGender}
+        stabilityLevel={stabilityLevel}
+      />
+
+      <InfoDisplay isVisible={isInfoVisible} onClose={closeInfo} />
+
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allCharacters={allCharacters}
         cancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
         cancelNewCustomGame={handleCancelNewCustomGame}
         cancelNewGameFromMenu={handleCancelNewGameFromMenu}
         cancelShift={handleCancelShift}
-        chaosLevel={chaosLevel}
         confirmLoadGameFromMenu={confirmLoadGameFromMenu}
         confirmNewCustomGame={confirmNewCustomGame}
         confirmNewGameFromMenu={confirmNewGameFromMenu}
@@ -734,17 +751,13 @@ const App: React.FC = () => {
         currentTheme={currentTheme}
         currentThemeName={currentTheme?.name || null}
         destinationNodeId={destinationNodeId}
-        enabledThemePacks={enabledThemePacks}
         gameLog={gameLog}
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
-        isCustomGameMode={isCustomGameMode}
         isCustomGameModeShift={isCustomGameMode}
         isHistoryVisible={isHistoryVisible}
-        isInfoVisible={isInfoVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
         isMapVisible={isMapVisible}
-        isSettingsVisible={isSettingsVisible}
         isVisualizerVisible={isVisualizerVisible}
         itemPresenceByNode={itemPresenceByNode}
         loadGameFromMenuConfirmOpen={loadGameFromMenuConfirmOpen}
@@ -754,24 +767,17 @@ const App: React.FC = () => {
         mapData={mapData}
         newCustomGameConfirmOpen={newCustomGameConfirmOpen}
         newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
-        onChaosChange={setChaosLevel}
         onCloseInfo={closeInfo}
         onCloseMap={handleCloseMap}
-        onCloseSettings={closeSettings}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
-        onPlayerGenderChange={setPlayerGender}
         onSelectDestination={handleSelectDestinationNode}
-        onStabilityChange={setStabilityLevel}
-        onToggleThemePack={handleToggleThemePackStable}
         onViewBoxChange={handleMapViewBoxChange}
-        playerGender={playerGender}
         setGeneratedImage={setGeneratedImageCache}
         setIsHistoryVisible={setIsHistoryVisible}
         setIsKnowledgeBaseVisible={setIsKnowledgeBaseVisible}
         setIsVisualizerVisible={setIsVisualizerVisible}
         shiftConfirmOpen={shiftConfirmOpen}
-        stabilityLevel={stabilityLevel}
         themeHistory={themeHistory}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
