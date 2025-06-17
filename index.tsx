@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App'; // Changed to default import
+import App from './components/app/App';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
