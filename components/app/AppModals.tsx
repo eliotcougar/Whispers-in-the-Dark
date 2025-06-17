@@ -1,7 +1,5 @@
 import * as React from 'react';
 import KnowledgeBase from '../KnowledgeBase';
-import SettingsDisplay from '../SettingsDisplay';
-import InfoDisplay from '../InfoDisplay';
 import MapDisplay from '../MapDisplay';
 import ConfirmationDialog from '../ConfirmationDialog';
 import HistoryDisplay from '../HistoryDisplay';
@@ -12,7 +10,6 @@ import {
   MapLayoutConfig,
   Character,
   ThemeHistoryState,
-  ThemePackName,
   MapNode,
 } from '../../types';
 
@@ -39,19 +36,6 @@ interface AppModalsProps {
   readonly themeHistory: ThemeHistoryState;
   readonly gameLog: string[];
 
-  readonly isSettingsVisible: boolean;
-  readonly onCloseSettings: () => void;
-  readonly stabilityLevel: number;
-  readonly chaosLevel: number;
-  readonly onStabilityChange: (v: number) => void;
-  readonly onChaosChange: (v: number) => void;
-  readonly enabledThemePacks: ThemePackName[];
-  readonly onToggleThemePack: (p: ThemePackName) => void;
-  readonly playerGender: string;
-  readonly onPlayerGenderChange: (g: string) => void;
-  readonly isCustomGameMode: boolean;
-
-  readonly isInfoVisible: boolean;
   readonly onCloseInfo: () => void;
 
   readonly isMapVisible: boolean;
@@ -149,21 +133,6 @@ const AppModals: React.FC<AppModalsProps> = props => {
         onViewBoxChange={props.onViewBoxChange}
       />
 
-      <SettingsDisplay
-        chaosLevel={props.chaosLevel}
-        enabledThemePacks={props.enabledThemePacks}
-        isCustomGameMode={props.isCustomGameMode}
-        isVisible={props.isSettingsVisible}
-        onChaosChange={props.onChaosChange}
-        onClose={props.onCloseSettings}
-        onPlayerGenderChange={props.onPlayerGenderChange}
-        onStabilityChange={props.onStabilityChange}
-        onToggleThemePack={props.onToggleThemePack}
-        playerGender={props.playerGender}
-        stabilityLevel={props.stabilityLevel}
-      />
-
-      <InfoDisplay isVisible={props.isInfoVisible} onClose={props.onCloseInfo} />
 
       <ConfirmationDialog
         confirmButtonClass="bg-red-600 hover:bg-red-500"
