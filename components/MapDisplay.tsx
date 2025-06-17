@@ -3,7 +3,9 @@
  * @description Layout component composing the map view and controls.
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+
+import * as React from 'react';
 import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,

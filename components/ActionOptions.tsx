@@ -5,8 +5,10 @@
  * @description Renders the list of actions the Player can choose from.
  */
 
-import React, { useMemo, useCallback } from 'react';
-import { Item, Character, MapNode } from '../types'; 
+import { useMemo, useCallback } from 'react';
+
+import * as React from 'react';
+import { Item, Character, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
 interface ActionOptionsProps {

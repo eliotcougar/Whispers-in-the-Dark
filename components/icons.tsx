@@ -3,7 +3,7 @@
  * @file Collection of small React components rendering SVG icons used across
  * the user interface.
  */
-import React from 'react';
+import * as React from 'react';
 
 /** Icon used for performing a manual reality shift. */
 export const RealityShiftIcon: React.FC<{ readonly className?: string }> = ({ className = "w-5 h-5" }) => (

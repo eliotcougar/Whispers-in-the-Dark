@@ -4,7 +4,9 @@
  * @description Main application component wiring together UI and game logic.
  */
 
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
+
+import * as React from 'react';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import SceneDisplay from '../SceneDisplay';
 import ActionOptions from '../ActionOptions';

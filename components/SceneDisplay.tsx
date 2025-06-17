@@ -4,7 +4,9 @@
  * @file SceneDisplay.tsx
  * @description Shows the main scene description and local context.
  */
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
+
+import * as React from 'react';
 import { Item, Character, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 

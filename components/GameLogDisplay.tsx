@@ -3,7 +3,9 @@
  * @file GameLogDisplay.tsx
  * @description Shows the running log of game events.
  */
-import React, { useRef } from 'react';
+import { useRef } from 'react';
+
+import * as React from 'react';
 import { LogIcon } from './icons.tsx'; // Updated import
 
 interface GameLogDisplayProps {

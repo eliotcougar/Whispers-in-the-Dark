@@ -3,7 +3,9 @@
  * @description SVG view rendering map nodes and edges with tooltip interactions.
  */
 
-import React, { useMemo, useState, useRef, useLayoutEffect, useCallback } from 'react';
+import { useMemo, useState, useRef, useLayoutEffect, useCallback } from 'react';
+
+import * as React from 'react';
 import { MapNode, MapEdge } from '../../types';
 import { useMapInteractions } from '../../hooks/useMapInteractions';
 import {

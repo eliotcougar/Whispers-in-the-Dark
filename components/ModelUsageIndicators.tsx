@@ -2,7 +2,7 @@
  * @file ModelUsageIndicators.tsx
  * @description Shows recent AI model usage levels.
  */
-import React from 'react';
+import * as React from 'react';
 import { useModelUsage } from '../hooks/useModelUsage';
 
 const squareClass = 'w-4 h-4 rounded';

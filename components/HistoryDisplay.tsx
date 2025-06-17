@@ -2,7 +2,7 @@
  * @file HistoryDisplay.tsx
  * @description Shows the game log and memory of previously visited realities.
 */
-import React from 'react';
+import * as React from 'react';
 import { ThemeHistoryState } from '../types';
 import GameLogDisplay from './GameLogDisplay';
 

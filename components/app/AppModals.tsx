@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import KnowledgeBase from '../KnowledgeBase';
 import SettingsDisplay from '../SettingsDisplay';
 import InfoDisplay from '../InfoDisplay';

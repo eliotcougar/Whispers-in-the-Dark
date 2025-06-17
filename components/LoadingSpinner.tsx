@@ -3,7 +3,7 @@
  * @file LoadingSpinner.tsx
  * @description Loading spinner indicating in-progress actions.
  */
-import React from 'react';
+import * as React from 'react';
 import { LoadingReason } from '../types';
 import { LOADING_REASON_UI_MAP } from '../constants';
 import { useLoadingProgress } from '../hooks/useLoadingProgress';

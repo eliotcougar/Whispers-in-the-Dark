@@ -4,7 +4,9 @@
  * @file ConfirmationDialog.tsx
  * @description Modal dialog to confirm user actions.
  */
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
+import * as React from 'react';
 
 interface ConfirmationDialogProps {
   readonly isOpen: boolean;

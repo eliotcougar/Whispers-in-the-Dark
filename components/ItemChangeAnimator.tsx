@@ -3,7 +3,9 @@
  * @file ItemChangeAnimator.tsx
  * @description Animates item gain, loss, and changes.
  */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+import * as React from 'react';
 import { Item, TurnChanges, KnownUse } from '../types';
 import { ItemTypeDisplay } from './InventoryDisplay';
 

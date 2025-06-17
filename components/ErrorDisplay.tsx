@@ -3,7 +3,7 @@
  * @file ErrorDisplay.tsx
  * @description Shows an error message with optional retry.
  */
-import React from 'react';
+import * as React from 'react';
 
 interface ErrorDisplayProps {
   readonly message: string;

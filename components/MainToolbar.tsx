@@ -3,7 +3,7 @@
  * @file MainToolbar.tsx
  * @description Top-level toolbar with action buttons.
  */
-import React from 'react';
+import * as React from 'react';
 import {
   CoinIcon,
   VisualizeIcon, BookOpenIcon, MenuIcon, RealityShiftIcon, ScrollIcon, MapIcon // Added MapIcon

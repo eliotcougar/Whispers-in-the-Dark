@@ -3,8 +3,10 @@
  * @file DialogueDisplay.tsx
  * @description Renders dialogue history and choice options.
  */
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
-import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types'; 
+import { useEffect, useRef, useMemo, useCallback } from 'react';
+
+import * as React from 'react';
+import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 import LoadingSpinner from './LoadingSpinner';
 import ModelUsageIndicators from './ModelUsageIndicators';

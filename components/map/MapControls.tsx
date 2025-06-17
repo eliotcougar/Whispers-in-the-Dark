@@ -3,7 +3,9 @@
  * @description UI component displaying map layout sliders and actions.
  */
 
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
+
+import * as React from 'react';
 
 interface MapControlsProps {
   readonly padding: number;

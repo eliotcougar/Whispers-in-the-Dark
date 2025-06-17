@@ -3,7 +3,9 @@
  * @file DebugView.tsx
  * @description Developer panel for inspecting game state.
  */
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+
+import * as React from 'react';
 import { extractJsonFromFence } from '../utils/jsonUtils';
 import { GameStateStack, DebugPacket, MapNode } from '../types';
 import { TravelStep } from '../utils/mapPathfinding';

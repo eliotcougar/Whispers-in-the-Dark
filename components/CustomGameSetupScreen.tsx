@@ -3,7 +3,9 @@
  * @file CustomGameSetupScreen.tsx
  * @description Allows the Player to select starting themes.
  */
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+
+import * as React from 'react';
 import { AdventureTheme, ThemePackName } from '../types';
 import { THEME_PACKS } from '../themes'; // To get pack names and structure
 
