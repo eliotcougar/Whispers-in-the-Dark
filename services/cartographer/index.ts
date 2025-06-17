@@ -9,3 +9,6 @@ export * from './systemPrompt';
 export * from './mapUpdateUtils';
 export * from './edgeUtils';
 export * from './connectorChains';
+export * from './request';
+export * from './applyUpdates';
+export * from './types';
