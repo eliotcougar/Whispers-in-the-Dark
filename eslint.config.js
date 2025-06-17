@@ -54,6 +54,7 @@ const tsCompat = compat.config({
     'react/jsx-no-leaked-render': 'error',  
     'react/no-array-index-key' : 'warn',
     'react/jsx-indent-props': ['warn', 2],
+    'react/jsx-indent': ['warn', 2],
     'react/jsx-sort-props': 'warn',
     'react/prefer-read-only-props': 'warn'
     /*'@typescript-eslint/no-unnecessary-condition': 'error'*/

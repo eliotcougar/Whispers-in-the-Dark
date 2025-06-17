@@ -30,9 +30,9 @@ const renderParameterControl = (
   explanation?: string
 ) => (
   <div className="map-control-group">
-  <label className="map-control-label" htmlFor={id}>
+    <label className="map-control-label" htmlFor={id}>
       {label}: {value.toFixed(step < 1 ? 2 : 0)}
-  </label>
+    </label>
 
     <input className="map-control-input" id={id} max={max} min={min} onChange={e => onChange(parseFloat(e.target.value))} step={step} type="range" value={value} />
 
@@ -60,7 +60,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
   return (
     <div className={`map-controls-container ${expanded ? 'controls-expanded' : ''}`}>
       {expanded ? <div className="map-layout-sliders-wrapper">
-          {renderParameterControl(
+        {renderParameterControl(
             'Padding',
             'layoutPadding',
             padding,
@@ -71,7 +71,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
             'Distance between parent and child levels'
           )}
 
-          {renderParameterControl(
+        {renderParameterControl(
             'Angle Padding',
             'layoutAnglePadding',
             anglePadding,
@@ -82,7 +82,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
             'Extra spacing between siblings'
           )}
 
-          {renderParameterControl(
+        {renderParameterControl(
             'Overlap Margin',
             'overlapMargin',
             overlapMargin,
@@ -93,7 +93,7 @@ const MapControls: React.FC<MapControlsProps> = props => {
             'Extra spacing when labels overlap'
           )}
 
-          {renderParameterControl(
+        {renderParameterControl(
             'Icon Size',
             'itemIconScale',
             itemIconScale,
@@ -104,10 +104,10 @@ const MapControls: React.FC<MapControlsProps> = props => {
             'Relative size of item markers'
           )}
 
-          <button className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" onClick={onReset} style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
-            Reset to Defaults
-          </button>
-        </div> : null}
+        <button className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" onClick={onReset} style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
+          Reset to Defaults
+        </button>
+      </div> : null}
 
       <div className="map-action-buttons-row">
         <button className="map-control-button" onClick={() => setExpanded(!expanded)}>

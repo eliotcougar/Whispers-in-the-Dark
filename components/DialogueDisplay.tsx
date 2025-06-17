@@ -111,12 +111,12 @@ const DialogueDisplay: React.FC<DialogueDisplayProps> = ({
       <div className="text-center py-4">
         <p className="text-slate-400 italic">Waiting for response or options...</p>
 
-         <button
-           className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow" 
-           onClick={onClose}
+        <button
+          className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow" 
+          onClick={onClose}
           >
-            Force End Conversation (if really stuck)
-          </button>
+          Force End Conversation (if really stuck)
+        </button>
       </div>
     );
   };

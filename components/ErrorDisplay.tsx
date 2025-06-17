@@ -29,8 +29,8 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ message, onRetry }) => (
       className="bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded shadow transition duration-150 ease-in-out"
       onClick={onRetry}
       >
-        Try Again
-      </button> : null}
+      Try Again
+    </button> : null}
   </div>
 );
 

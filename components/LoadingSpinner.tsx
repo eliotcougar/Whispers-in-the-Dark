@@ -43,8 +43,8 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ loadingReason }) => {
       <p className={`mt-2 text-xl ${textColor}`}>{textMessage}</p>
 
       {progressDisplay ? <div className="mt-2 text-2xl text-sky-300 font-mono">
-          {progressDisplay}
-        </div> : null}
+        {progressDisplay}
+      </div> : null}
     </div>
   );
 };

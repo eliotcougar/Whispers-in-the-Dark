@@ -240,33 +240,33 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
         </button>
         
         {isLoading ? <div className="visualizer-spinner-container">
-            <LoadingSpinner />
+          <LoadingSpinner />
 
-            <p className="mt-2 text-lg" id="visualizer-title">Conjuring vision...</p>
-          </div> : null}
+          <p className="mt-2 text-lg" id="visualizer-title">Conjuring vision...</p>
+        </div> : null}
 
         {!isLoading && error ? <div className="visualizer-error-container">
-            <h2 className="text-xl font-semibold text-red-400 mb-2" id="visualizer-title">Vision Failed</h2>
+          <h2 className="text-xl font-semibold text-red-400 mb-2" id="visualizer-title">Vision Failed</h2>
 
-            <p>{error}</p>
+          <p>{error}</p>
 
-            <button
-              className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow transition-colors"
-              onClick={() => { void generateImage(); }}
+          <button
+            className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow transition-colors"
+            onClick={() => { void generateImage(); }}
             >
-              Retry Visualization
-            </button>
-          </div> : null}
+            Retry Visualization
+          </button>
+        </div> : null}
 
         {!isLoading && !error && internalImageUrl ? <div className="visualizer-image-container">
-            <img alt="Scene visualization" className="visualizer-image" src={internalImageUrl} />
+          <img alt="Scene visualization" className="visualizer-image" src={internalImageUrl} />
 
-            <h2 className="sr-only" id="visualizer-title">Scene Visualization</h2>
-          </div> : null}
+          <h2 className="sr-only" id="visualizer-title">Scene Visualization</h2>
+        </div> : null}
 
-         {!isLoading && !error && !internalImageUrl && isVisible ? <div className="visualizer-spinner-container">
-            <p className="mt-2 text-lg text-slate-400" id="visualizer-title">Preparing to visualize...</p>
-          </div> : null}
+        {!isLoading && !error && !internalImageUrl && isVisible ? <div className="visualizer-spinner-container">
+          <p className="mt-2 text-lg text-slate-400" id="visualizer-title">Preparing to visualize...</p>
+        </div> : null}
       </div>
     </div>
   );

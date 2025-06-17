@@ -59,20 +59,20 @@ const SceneDisplay: React.FC<SceneDisplayProps> = ({
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 min-h-[200px]">
 
       {lastActionLog ? <div className="mb-4 p-3 bg-slate-700/50 border border-slate-600 rounded-md">
-          <p className="text-yellow-200 text-lg">{highlightedLastActionLog}</p>
-        </div> : null}
+        <p className="text-yellow-200 text-lg">{highlightedLastActionLog}</p>
+      </div> : null}
 
       {highlightedDescription}
       
       {(localTime || localEnvironment || localPlace) ? <div className="mt-4 pt-3 border-t border-slate-700">
-          <p className="text-lg text-slate-400">
-            <strong className="text-slate-300">Time:</strong> {localTime || "Unknown"}.{' '}
+        <p className="text-lg text-slate-400">
+          <strong className="text-slate-300">Time:</strong> {localTime || "Unknown"}.{' '}
 
-            <strong className="text-slate-300">Environment:</strong> {localEnvironment || "Unknown"}.{' '}
+          <strong className="text-slate-300">Environment:</strong> {localEnvironment || "Unknown"}.{' '}
 
-            <strong className="text-slate-300">Location:</strong> {localPlace || "Unknown"}.
-          </p>
-        </div> : null}
+          <strong className="text-slate-300">Location:</strong> {localPlace || "Unknown"}.
+        </p>
+      </div> : null}
     </div>
   );
 };

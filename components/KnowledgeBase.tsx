@@ -101,15 +101,15 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
                           );
                         } else if (character.lastKnownLocation && character.lastKnownLocation !== "Unknown") { 
                            locationDisplay = (
-                            <p className="text-sm text-slate-400 flex items-center">
-                              <span className="ml-1 italic">{character.lastKnownLocation} ({character.presenceStatus})</span>
-                            </p>
+                             <p className="text-sm text-slate-400 flex items-center">
+                               <span className="ml-1 italic">{character.lastKnownLocation} ({character.presenceStatus})</span>
+                             </p>
                           );
                         } else {
                            locationDisplay = (
-                            <p className="text-sm text-slate-500 flex items-center">
-                              <span className="ml-1 italic">({character.presenceStatus}, Location Unknown)</span>
-                            </p>
+                             <p className="text-sm text-slate-500 flex items-center">
+                               <span className="ml-1 italic">({character.presenceStatus}, Location Unknown)</span>
+                             </p>
                           );
                         }
 
@@ -122,8 +122,8 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
                             <p className="kb-card-description">{character.description}</p>
 
                             {locationDisplay ? <div className="mt-2 pt-2 border-t border-slate-600">
-                                {locationDisplay}
-                              </div> : null}
+                              {locationDisplay}
+                            </div> : null}
                           </div>
                         );
                       })}

@@ -298,37 +298,37 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                   )}
 
                   {isConfirmingDiscard ? <div className="grid grid-cols-2 gap-2 mt-2">
-                       <button
-                         aria-label={`Confirm drop of ${item.name}`}
-                         className="w-full text-sm bg-red-600 hover:bg-red-500 text-white font-semibold py-1.5 px-3 rounded shadow
+                    <button
+                      aria-label={`Confirm drop of ${item.name}`}
+                      className="w-full text-sm bg-red-600 hover:bg-red-500 text-white font-semibold py-1.5 px-3 rounded shadow
                                    disabled:bg-slate-500 disabled:cursor-not-allowed
                                    transition-colors duration-150 ease-in-out"
-                         disabled={disabled}
-                         key={`${item.name}-confirm-drop`}
-                         onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                      disabled={disabled}
+                      key={`${item.name}-confirm-drop`}
+                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                           onDropItem(item.name);
                           setConfirmingDiscardItemName(null);
                           event.currentTarget.blur();
                         }}
                       >
-                        {item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
-                      </button>
+                      {item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
+                    </button>
 
-                      <button
-                        aria-label="Cancel discard"
-                        className="w-full text-sm bg-slate-600 hover:bg-slate-500 text-white font-medium py-1.5 px-3 rounded shadow
+                    <button
+                      aria-label="Cancel discard"
+                      className="w-full text-sm bg-slate-600 hover:bg-slate-500 text-white font-medium py-1.5 px-3 rounded shadow
                                    disabled:bg-slate-500 disabled:cursor-not-allowed
                                    transition-colors duration-150 ease-in-out"
-                        disabled={disabled}
-                        key={`${item.name}-cancel-discard`}
-                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                      disabled={disabled}
+                      key={`${item.name}-cancel-discard`}
+                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                           setConfirmingDiscardItemName(null);
                           event.currentTarget.blur();
                         }}
                       >
-                        Cancel
-                      </button>
-                    </div> : null}
+                      Cancel
+                    </button>
+                  </div> : null}
                 </div>
               </li>
             );

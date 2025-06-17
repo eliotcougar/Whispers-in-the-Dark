@@ -578,9 +578,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                 const x = node.position.x + offset * Math.sin(angle);
                 const y = node.position.y - offset * Math.cos(angle);
                 return (
-                    <g pointerEvents="none" transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`}>
-                      <MapItemBoxIcon className="text-green-400" size={iconSize} />
-                    </g>
+                  <g pointerEvents="none" transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`}>
+                    <MapItemBoxIcon className="text-green-400" size={iconSize} />
+                  </g>
                 );
               })() : null}
 
@@ -589,9 +589,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                 const x = node.position.x + offset * Math.sin(angle);
                 const y = node.position.y - offset * Math.cos(angle);
                 return (
-                    <g pointerEvents="none" transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`}>
-                      <MapWheelIcon className="text-green-400" size={iconSize} />
-                    </g>
+                  <g pointerEvents="none" transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`}>
+                    <MapWheelIcon className="text-green-400" size={iconSize} />
+                  </g>
                 );
               })() : null}
             </g>
@@ -650,9 +650,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
         className={`map-tooltip anchor-${tooltip.anchor}`}
         style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
         >
-          {isTooltipLocked && tooltip.nodeId ? <button
-            className="map-set-destination-button"
-            onClick={() => {
+        {isTooltipLocked && tooltip.nodeId ? <button
+          className="map-set-destination-button"
+          onClick={() => {
                 if (tooltip.nodeId === destinationNodeId) {
                   onSelectDestination(null);
                 } else {
@@ -662,19 +662,19 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                 setTooltip(null);
               }}
             >
-              {tooltip.nodeId === destinationNodeId
+          {tooltip.nodeId === destinationNodeId
                 ? 'Remove Destination'
                 : 'Set Destination'}
-            </button> : null}
+        </button> : null}
 
-          {tooltip.content.split('\n').map((line, index) => (
-            <React.Fragment key={`${tooltip.nodeId}-${line}`}> 
-              {index === 0 ? <strong>{line}</strong> : line}
+        {tooltip.content.split('\n').map((line, index) => (
+          <React.Fragment key={`${tooltip.nodeId}-${line}`}> 
+            {index === 0 ? <strong>{line}</strong> : line}
 
-              {index < tooltip.content.split('\n').length - 1 && <br />}
-            </React.Fragment>
+            {index < tooltip.content.split('\n').length - 1 && <br />}
+          </React.Fragment>
           ))}
-        </div> : null}
+      </div> : null}
     </div>
   );
 };

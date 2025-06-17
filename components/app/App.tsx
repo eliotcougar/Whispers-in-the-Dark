@@ -419,22 +419,22 @@ const App: React.FC = () => {
           </h1>
 
           {hasGameBeenInitialized ? <p className="text-slate-400 text-lg">An Adventure in Shifting Realities
-              {isCustomGameMode ? <span className="block text-xs text-orange-400">(Custom Game - Random Shifts Disabled)</span> : null}
+            {isCustomGameMode ? <span className="block text-xs text-orange-400">(Custom Game - Random Shifts Disabled)</span> : null}
 
-              {currentTheme ? <span className="block text-xs text-purple-400">Current Theme: {currentTheme.name}</span> : null}
-            </p> : null}
+            {currentTheme ? <span className="block text-xs text-purple-400">Current Theme: {currentTheme.name}</span> : null}
+          </p> : null}
         </header>
 
         {error && !isLoading && !dialogueState && hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
-            <ErrorDisplay
-              message={error}
-              onRetry={isLoading ? undefined : () => { void handleRetry(); }}
+          <ErrorDisplay
+            message={error}
+            onRetry={isLoading ? undefined : () => { void handleRetry(); }}
             />
-          </div> : null}
+        </div> : null}
 
-         {error && !hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
-                <ErrorDisplay message={error} onRetry={() => { void handleRetry(); }} />
-            </div> : null}
+        {error && !hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
+          <ErrorDisplay message={error} onRetry={() => { void handleRetry(); }} />
+        </div> : null}
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
           <div className="lg:col-span-2 space-y-2">
@@ -453,14 +453,14 @@ const App: React.FC = () => {
               /> : null}
 
             {hasGameBeenInitialized ? <div className="flex items-center my-2">
-                <ModelUsageIndicators />
+              <ModelUsageIndicators />
 
-                <div className="flex-grow border-t border-slate-600 ml-2" />
-              </div> : null}
+              <div className="flex-grow border-t border-slate-600 ml-2" />
+            </div> : null}
 
             {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized ? <div className="my-4 flex justify-center">
-                <LoadingSpinner loadingReason={loadingReason} />
-              </div> : null}
+              <LoadingSpinner loadingReason={loadingReason} />
+            </div> : null}
 
             {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
 
@@ -478,75 +478,75 @@ const App: React.FC = () => {
             />
 
             {actionOptions.length > 0 && (!error || !(error.includes("API Key"))) && hasGameBeenInitialized ? <>
-                <ActionOptions
-                  allCharacters={allCharacters}
-                  currentThemeName={currentTheme?.name || null}
-                  disabled={isLoading || !!dialogueState}
-                  inventory={inventory}
-                  mapData={mapData.nodes}
-                  onActionSelect={handleActionSelect}
-                  options={actionOptions}
+              <ActionOptions
+                allCharacters={allCharacters}
+                currentThemeName={currentTheme?.name || null}
+                disabled={isLoading || !!dialogueState}
+                inventory={inventory}
+                mapData={mapData.nodes}
+                onActionSelect={handleActionSelect}
+                options={actionOptions}
                 />
 
-                <div className="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-lg shadow">
-                  <label className="block text-sm font-medium text-amber-300 mb-1" htmlFor="freeFormAction">
-                    Perform Custom Action (Cost: {FREE_FORM_ACTION_COST} Score Points)
-                  </label>
+              <div className="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-lg shadow">
+                <label className="block text-sm font-medium text-amber-300 mb-1" htmlFor="freeFormAction">
+                  Perform Custom Action (Cost: {FREE_FORM_ACTION_COST} Score Points)
+                </label>
 
-                  <div className="flex space-x-2">
-                    <input
-                      aria-label="Custom action input"
-                      className="flex-grow p-2 bg-slate-700 text-slate-200 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-600 disabled:text-slate-400"
-                      disabled={!canPerformFreeAction}
-                      id="freeFormAction"
-                      maxLength={FREE_FORM_ACTION_MAX_LENGTH}
-                      onChange={(e) => setFreeFormActionText(e.target.value)}
-                      placeholder="Type your custom action here..."
-                      type="text"
-                      value={freeFormActionText}
+                <div className="flex space-x-2">
+                  <input
+                    aria-label="Custom action input"
+                    className="flex-grow p-2 bg-slate-700 text-slate-200 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-600 disabled:text-slate-400"
+                    disabled={!canPerformFreeAction}
+                    id="freeFormAction"
+                    maxLength={FREE_FORM_ACTION_MAX_LENGTH}
+                    onChange={(e) => setFreeFormActionText(e.target.value)}
+                    placeholder="Type your custom action here..."
+                    type="text"
+                    value={freeFormActionText}
                     />
 
-                    <button
-                      aria-label="Submit custom action"
-                      className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white font-semibold rounded-md shadow
+                  <button
+                    aria-label="Submit custom action"
+                    className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white font-semibold rounded-md shadow
                                 disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                                 transition-colors duration-150"
-                      disabled={!canPerformFreeAction || freeFormActionText.trim() === ""}
-                      onClick={handleFreeFormActionSubmit}
+                    disabled={!canPerformFreeAction || freeFormActionText.trim() === ""}
+                    onClick={handleFreeFormActionSubmit}
                     >
-                      Submit
-                    </button>
-                  </div>
+                    Submit
+                  </button>
+                </div>
 
-                  {!canPerformFreeAction && score < FREE_FORM_ACTION_COST && !isLoading && (
-                    <p className="text-xs text-red-400 mt-1">Not enough score points.</p>
+                {!canPerformFreeAction && score < FREE_FORM_ACTION_COST && !isLoading && (
+                <p className="text-xs text-red-400 mt-1">Not enough score points.</p>
                   )}
 
-                  {canPerformFreeAction ? <p className="text-xs text-slate-400 mt-1">Max {FREE_FORM_ACTION_MAX_LENGTH} characters.</p> : null}
-                </div>
-              </> : null}
+                {canPerformFreeAction ? <p className="text-xs text-slate-400 mt-1">Max {FREE_FORM_ACTION_MAX_LENGTH} characters.</p> : null}
+              </div>
+            </> : null}
           </div>
 
           <div className="lg:col-span-2 space-y-2 flex flex-col">
-          <QuestInfoBox
-            currentObjective={hasGameBeenInitialized ? currentObjective : null}
-            mainQuest={hasGameBeenInitialized ? mainQuest : null}
-            objectiveAnimationType={objectiveAnimationType}
+            <QuestInfoBox
+              currentObjective={hasGameBeenInitialized ? currentObjective : null}
+              mainQuest={hasGameBeenInitialized ? mainQuest : null}
+              objectiveAnimationType={objectiveAnimationType}
           />
 
-          <LocationItemsDisplay
-            currentNodeId={currentMapNodeId}
-            disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
-            items={itemsHere}
-            mapNodes={mapData.nodes}
-            onTakeItem={handleTakeLocationItem}
+            <LocationItemsDisplay
+              currentNodeId={currentMapNodeId}
+              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+              items={itemsHere}
+              mapNodes={mapData.nodes}
+              onTakeItem={handleTakeLocationItem}
           />
 
-          <InventoryDisplay
-            disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
-            items={inventory}
-            onDropItem={gameLogic.handleDropItem}
-            onItemInteract={handleItemInteraction}
+            <InventoryDisplay
+              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+              items={inventory}
+              onDropItem={gameLogic.handleDropItem}
+              onItemInteract={handleItemInteraction}
             />
           </div>
         </main>

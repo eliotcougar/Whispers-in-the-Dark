@@ -101,10 +101,10 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
             <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">Reality Shift Controls</h2>
 
             {isCustomGameMode ? <div className="p-3 mb-3 bg-indigo-800/70 border border-indigo-600 rounded-md text-indigo-200 text-sm">
-                <p>Random Reality Shifts are disabled in Custom Game mode.</p>
+              <p>Random Reality Shifts are disabled in Custom Game mode.</p>
 
-                <p>You can still change these settings, and they will apply if you start a regular &quot;New Game&quot; from the Main Menu.</p>
-              </div> : null}
+              <p>You can still change these settings, and they will apply if you start a regular &quot;New Game&quot; from the Main Menu.</p>
+            </div> : null}
 
             <div className="settings-slider-container">
               <label className={`settings-slider-label ${sliderControlOpacityClass}`} htmlFor="stabilitySlider">
@@ -158,9 +158,9 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
               </p>
             </div>
 
-             {/* Disclaimer is NOT greyed out */}
-             <div className="settings-disclaimer">
-                <p><strong>In the Beta</strong>, manual reality shift can be triggered at any time regardless of these settings.</p>
+            {/* Disclaimer is NOT greyed out */}
+            <div className="settings-disclaimer">
+              <p><strong>In the Beta</strong>, manual reality shift can be triggered at any time regardless of these settings.</p>
             </div>
           </div>
 
@@ -225,10 +225,10 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
               ))}
             </div>
 
-             {enabledThemePacks.length === 0 && (
-                <p className="text-red-400 mt-2 text-sm">
-                    At least one theme pack must be enabled. Please select a pack to continue.
-                </p>
+            {enabledThemePacks.length === 0 && (
+            <p className="text-red-400 mt-2 text-sm">
+              At least one theme pack must be enabled. Please select a pack to continue.
+            </p>
             )}
           </div>
         </div>

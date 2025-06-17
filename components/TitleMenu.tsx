@@ -41,8 +41,8 @@ const TitleMenu: React.FC<TitleMenuProps> = ({
           className="animated-frame-close-button"
           onClick={onClose}
           >
-            &times;
-          </button> : null}
+          &times;
+        </button> : null}
 
         <div className="flex flex-col items-center justify-center h-full w-full p-4 text-center">
           <header className="mb-10 md:mb-12">
@@ -78,8 +78,8 @@ const TitleMenu: React.FC<TitleMenuProps> = ({
                            transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-green-400 focus:outline-none"
               onClick={onSaveGame}
               >
-                Save Game
-              </button> : null}
+              Save Game
+            </button> : null}
 
             <button
               aria-label={isGameActive ? "Load Game from File (Current progress will be lost)" : "Load Game from File"}
@@ -114,8 +114,8 @@ const TitleMenu: React.FC<TitleMenuProps> = ({
                               transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-sky-500 focus:outline-none"
               onClick={onClose}
               >
-                  Return to Game
-              </button> : null}
+              Return to Game
+            </button> : null}
           </div>
         </div>
 
