@@ -4,7 +4,7 @@
  */
 
 import { GenerateContentResponse } from '@google/genai';
-import { MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME } from '../../constants';
+import { MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
@@ -24,7 +24,7 @@ export const executeInventoryRequest = async (
     console.error('API Key not configured for Inventory Service.');
     return Promise.reject(new Error('API Key not configured.'));
   }
-  addProgressSymbol('░░');
+  addProgressSymbol(LOADING_REASON_UI_MAP['inventory'].icon);
   const { response } = await dispatchAIRequest({
     modelNames: [MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,

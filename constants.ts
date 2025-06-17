@@ -69,6 +69,19 @@ export const LOADING_REASONS = [
   'reality_shift_load',
 ] as const;
 
+export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { text: string; icon: string }> = {
+  storyteller: { text: 'Dungeon Master is thinking...', icon: '██' },
+  map: { text: 'Dungeon Master is drawing the map...', icon: '▓▓' },
+  correction: { text: 'Dungeon Master is fixing mistakes...', icon: '○' },
+  inventory: { text: 'Dungeon Master is handling items...', icon: '░░' },
+  dialogue_turn: { text: 'The conversation continues...', icon: '○' },
+  dialogue_summary: { text: 'Concluding dialogue...', icon: '○' },
+  dialogue_memory_creation: { text: 'Forming memories...', icon: '○' },
+  dialogue_conclusion_summary: { text: 'Returning to the world...', icon: '○' },
+  initial_load: { text: 'Loading...', icon: '▒▒' },
+  reality_shift_load: { text: 'Reality is shifting...', icon: '▒▒' },
+};
+
 // Centralized map node/edge valid values
 
 export const VALID_NODE_STATUS_VALUES = [

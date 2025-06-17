@@ -10,7 +10,7 @@ import {
   AUXILIARY_MODEL_NAME,
   GEMINI_MODEL_NAME,
 } from '../../constants';
-import { CORRECTION_TEMPERATURE } from '../../constants';
+import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
@@ -37,7 +37,7 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
 
   return retryAiCall<'convert_child' | 'upgrade_parent'>(async attempt => {
     try {
-      addProgressSymbol('○');
+      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -87,7 +87,7 @@ Return JSON {"originalChildren": ["ids"], "newChildren": ["ids"]}`;
 
   const result = await retryAiCall<{ originalChildren: string[]; newChildren: string[] }>(async () => {
     try {
-      addProgressSymbol('●');
+      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

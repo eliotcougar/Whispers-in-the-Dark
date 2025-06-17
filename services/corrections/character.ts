@@ -12,7 +12,7 @@ import {
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
-import { CORRECTION_TEMPERATURE } from '../../constants';
+import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
@@ -78,7 +78,7 @@ Constraints:
 
   return retryAiCall<CorrectedCharacterDetails>(async attempt => {
     try {
-      addProgressSymbol('●');
+      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -173,7 +173,7 @@ Example Response: If unclear from context, respond with a generic but plausible 
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol('○');
+      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
