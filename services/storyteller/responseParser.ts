@@ -10,9 +10,9 @@ import { MAIN_TURN_OPTIONS_COUNT } from '../../constants';
 import {
     isValidCharacterUpdate,
     isValidNewCharacterPayload,
-    isDialogueSetupPayloadStructurallyValid,
-    isValidNewItemSuggestion
+    isDialogueSetupPayloadStructurallyValid
 } from '../parsers/validation';
+import { trimDialogueHints } from '../../utils/dialogueParsing';
 import {
     fetchCorrectedName_Service,
     fetchCorrectedCharacterDetails_Service,
@@ -466,22 +466,7 @@ export async function parseAIResponse(
         validated.localTime = validated.localTime?.trim() || 'Time Unknown';
         validated.localEnvironment = validated.localEnvironment?.trim() || 'Environment Undetermined';
         validated.localPlace = validated.localPlace?.trim() || 'Undetermined Location';
-        if (validated.mapHint !== undefined) {
-            validated.mapHint = validated.mapHint.trim();
-        }
-        if (validated.playerItemsHint !== undefined) {
-            validated.playerItemsHint = validated.playerItemsHint.trim();
-        }
-        if (validated.worldItemsHint !== undefined) {
-            validated.worldItemsHint = validated.worldItemsHint.trim();
-        }
-        if (validated.npcItemsHint !== undefined) {
-            validated.npcItemsHint = validated.npcItemsHint.trim();
-        }
-
-        if (Array.isArray(validated.newItems)) {
-            validated.newItems = validated.newItems.filter(isValidNewItemSuggestion);
-        }
+        trimDialogueHints(validated);
 
         delete (validated as Record<string, unknown>).placesAdded;
         delete (validated as Record<string, unknown>).placesUpdated;
