@@ -5,7 +5,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
-import * as React from 'react';
 import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
@@ -42,7 +41,7 @@ interface MapDisplayProps {
 /**
  * Renders the interactive map with controls for layout tweaking.
  */
-const MapDisplay: React.FC<MapDisplayProps> = ({
+function MapDisplay({
   mapData,
   currentThemeName,
   currentMapNodeId,
@@ -56,7 +55,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onLayoutConfigChange,
   isVisible,
   onClose,
-}) => {
+}: MapDisplayProps) {
   const [displayedNodes, setDisplayedNodes] = useState<MapNode[]>([]);
 
   const [layoutIdealEdgeLength, setLayoutIdealEdgeLength] = useState(initialLayoutConfig?.IDEAL_EDGE_LENGTH ?? DEFAULT_IDEAL_EDGE_LENGTH);
@@ -217,6 +216,6 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default MapDisplay;

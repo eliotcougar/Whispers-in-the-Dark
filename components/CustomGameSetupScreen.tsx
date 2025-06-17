@@ -116,4 +116,10 @@ function CustomGameSetupScreen({
   );
 }
 
+CustomGameSetupScreen.defaultProps = {
+  disabledThemeName: null,
+  titleText: undefined,
+  descriptionText: undefined
+};
+
 export default CustomGameSetupScreen;

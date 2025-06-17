@@ -26,7 +26,7 @@ interface SettingsDisplayProps {
 /**
  * Screen for tweaking player and gameplay settings.
  */
-const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
+function SettingsDisplay({
   isVisible,
   onClose,
   stabilityLevel,
@@ -38,7 +38,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
   playerGender,
   onPlayerGenderChange,
   isCustomGameMode,
-}) => {
+}: SettingsDisplayProps) {
   const [customGenderInput, setCustomGenderInput] = useState('');
   const [selectedGenderOption, setSelectedGenderOption] = useState<'Male' | 'Female' | 'Custom'>(DEFAULT_PLAYER_GENDER as 'Male' | 'Female' | 'Custom');
 
@@ -285,6 +285,6 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default SettingsDisplay;

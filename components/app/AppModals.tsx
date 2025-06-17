@@ -66,7 +66,7 @@ interface AppModalsProps {
   readonly isCustomGameModeShift: boolean;
 }
 
-const AppModals: React.FC<AppModalsProps> = props => {
+function AppModals(props: AppModalsProps) {
   const {
     setIsVisualizerVisible,
     setIsKnowledgeBaseVisible,
@@ -176,6 +176,6 @@ const AppModals: React.FC<AppModalsProps> = props => {
       />
     </>
   );
-};
+}
 
 export default AppModals;

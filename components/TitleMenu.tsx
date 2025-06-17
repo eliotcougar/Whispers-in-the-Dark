@@ -3,7 +3,6 @@
  * @file TitleMenu.tsx
  * @description Main title screen with game start options.
  */
-import * as React from 'react';
 import { CURRENT_GAME_VERSION } from '../constants'; // Import the version constant
 
 interface TitleMenuProps {
@@ -21,17 +20,17 @@ interface TitleMenuProps {
 /**
  * Main title screen offering game start and load options.
  */
-const TitleMenu: React.FC<TitleMenuProps> = ({
+function TitleMenu({
   isVisible,
   onClose,
   onNewGame,
-  onCustomGame, 
+  onCustomGame,
   onSaveGame,
   onLoadGame,
   onOpenSettings,
   onOpenInfo,
   isGameActive,
-}) => {
+}: TitleMenuProps) {
 
   return (
     <div aria-labelledby="title-menu-heading" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
@@ -126,6 +125,8 @@ const TitleMenu: React.FC<TitleMenuProps> = ({
       </div>
     </div>
   );
-};
+}
+
+TitleMenu.defaultProps = { onSaveGame: undefined };
 
 export default TitleMenu;

@@ -36,4 +36,8 @@ function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
   );
 }
 
+ErrorDisplay.defaultProps = {
+  onRetry: undefined
+};
+
 export default ErrorDisplay;

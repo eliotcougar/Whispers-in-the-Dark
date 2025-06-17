@@ -184,4 +184,8 @@ function DialogueDisplay({
   );
 }
 
+DialogueDisplay.defaultProps = {
+  isDialogueExiting: false
+};
+
 export default DialogueDisplay;

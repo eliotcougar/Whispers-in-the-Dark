@@ -8,11 +8,11 @@ interface FooterProps {
   readonly setIsDebugViewVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const Footer: React.FC<FooterProps> = ({
+function Footer({
   isBlurred,
   isDebugViewVisible,
   setIsDebugViewVisible,
-}) => {
+}: FooterProps) {
   const handleToggleDebug = useCallback(() => {
     setIsDebugViewVisible(prev => !prev);
   }, [setIsDebugViewVisible]);
@@ -40,6 +40,6 @@ const Footer: React.FC<FooterProps> = ({
       </div>
     </footer>
   );
-};
+}
 
 export default Footer;
