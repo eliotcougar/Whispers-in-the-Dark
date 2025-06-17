@@ -22,7 +22,7 @@ type SortOrder = 'default' | 'name' | 'type';
 /**
  * Displays the item type label with theme-based coloring.
  */
-export const ItemTypeDisplay: React.FC<{ readonly type: Item['type'] }> = ({ type }) => {
+export function ItemTypeDisplay({ type }: { readonly type: Item['type'] }) {
   const colorMap: Record<Item['type'], string> = {
     'single-use': 'text-red-400',
     'multi-use': 'text-yellow-400',
@@ -39,12 +39,12 @@ export const ItemTypeDisplay: React.FC<{ readonly type: Item['type'] }> = ({ typ
   const color = colorMap[type] ?? 'text-slate-400';
 
   return <span className={`text-xs italic ${color}`}>{type}</span>;
-};
+}
 
 /**
  * Shows the player's inventory and handles item interactions.
  */
-const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemInteract, onDropItem, disabled }) => {
+function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: InventoryDisplayProps) {
   const [newlyAddedItemNames, setNewlyAddedItemNames] = useState<Set<string>>(new Set());
   const prevItemsRef = useRef<Item[]>(items);
   const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
@@ -410,6 +410,6 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
       )}
     </div>
   );
-};
+}
 
 export default InventoryDisplay;

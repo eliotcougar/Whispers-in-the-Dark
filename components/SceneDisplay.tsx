@@ -6,7 +6,6 @@
  */
 import { useMemo } from 'react';
 
-import * as React from 'react';
 import { Item, Character, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
@@ -25,7 +24,7 @@ interface SceneDisplayProps {
 /**
  * Displays the current scene description and quest objectives.
  */
-const SceneDisplay: React.FC<SceneDisplayProps> = ({
+function SceneDisplay({
   description,
   lastActionLog,
   inventory,
@@ -35,7 +34,7 @@ const SceneDisplay: React.FC<SceneDisplayProps> = ({
   localTime,
   localEnvironment,
   localPlace,
-}) => {
+}: SceneDisplayProps) {
 
   const entitiesForHighlighting = useMemo(
     () => buildHighlightableEntities(inventory, mapData, allCharacters, currentThemeName),
@@ -77,6 +76,13 @@ const SceneDisplay: React.FC<SceneDisplayProps> = ({
       </div> : null}
     </div>
   );
+}
+
+SceneDisplay.defaultProps = {
+  lastActionLog: null,
+  localTime: null,
+  localEnvironment: null,
+  localPlace: null
 };
 
 export default SceneDisplay;

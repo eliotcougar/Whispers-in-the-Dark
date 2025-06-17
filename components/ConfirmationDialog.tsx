@@ -102,4 +102,11 @@ function ConfirmationDialog({
   );
 }
 
+ConfirmationDialog.defaultProps = {
+  confirmText: 'Confirm',
+  cancelText: 'Cancel',
+  confirmButtonClass: 'bg-sky-600 hover:bg-sky-500',
+  isCustomModeShift: false
+};
+
 export default ConfirmationDialog;

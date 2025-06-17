@@ -50,7 +50,7 @@ import { ThemePackName } from '../../types';
 const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 
-const App: React.FC = () => {
+function App() {
   const { clearProgress } = useLoadingProgress();
   const gameLogicRef = useRef<ReturnType<typeof useGameLogic> | null>(null);
   const {
@@ -784,6 +784,6 @@ const App: React.FC = () => {
       /> : null}
     </>
   );
-};
+}
 
 export default App;

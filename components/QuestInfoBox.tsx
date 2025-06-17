@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import * as React from 'react';
 
 interface QuestInfoBoxProps {
   readonly mainQuest?: string | null;
@@ -7,7 +6,7 @@ interface QuestInfoBoxProps {
   readonly objectiveAnimationType?: 'success' | 'neutral' | null;
 }
 
-const QuestInfoBox: React.FC<QuestInfoBoxProps> = ({ mainQuest, currentObjective, objectiveAnimationType }) => {
+function QuestInfoBox({ mainQuest, currentObjective, objectiveAnimationType }: QuestInfoBoxProps) {
   const objectiveBoxClasses = useMemo(() => {
     const baseClass = 'p-3 bg-amber-900/50 border border-amber-700 rounded-md';
     if (objectiveAnimationType === 'success') return `${baseClass} animate-objective-success`;
@@ -30,6 +29,12 @@ const QuestInfoBox: React.FC<QuestInfoBoxProps> = ({ mainQuest, currentObjective
       </div> : null}
     </div>
   );
+}
+
+QuestInfoBox.defaultProps = {
+  mainQuest: null,
+  currentObjective: null,
+  objectiveAnimationType: null
 };
 
 export default QuestInfoBox;

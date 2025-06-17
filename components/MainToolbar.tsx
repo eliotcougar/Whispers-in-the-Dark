@@ -3,7 +3,6 @@
  * @file MainToolbar.tsx
  * @description Top-level toolbar with action buttons.
  */
-import * as React from 'react';
 import {
   CoinIcon,
   VisualizeIcon, BookOpenIcon, MenuIcon, RealityShiftIcon, ScrollIcon, MapIcon // Added MapIcon
@@ -26,7 +25,7 @@ interface MainToolbarProps {
 /**
  * Provides quick-access buttons for common game actions.
  */
-const MainToolbar: React.FC<MainToolbarProps> = ({
+function MainToolbar({
   score,
   isLoading,
   currentThemeName,
@@ -38,7 +37,7 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
   onOpenTitleMenu,
   onManualRealityShift,
   turnsSinceLastShift,
-}) => {
+}: MainToolbarProps) {
   return (
     <div className="flex justify-between items-center w-full">
       {/* Score and Turns Display */}
@@ -143,6 +142,6 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default MainToolbar;
