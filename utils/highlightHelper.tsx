@@ -3,7 +3,7 @@
  * @file highlightHelper.tsx
  * @description Utility for highlighting entities within text snippets.
  */
-import React from 'react';
+import * as React from 'react';
 import { Item, Character, MapNode } from '../types';
 
 const showMobileTooltip = (text: string, rect: DOMRect) => {
