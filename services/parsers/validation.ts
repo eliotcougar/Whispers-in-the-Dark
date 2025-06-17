@@ -12,6 +12,7 @@ import {
   DialogueSetupPayload,
 } from '../../types';
 import { VALID_ITEM_TYPES, VALID_PRESENCE_STATUS_VALUES } from '../../constants';
+import { normalizeItemType } from '../../utils/itemSynonyms';
 
 export function isValidKnownUse(ku: unknown): ku is KnownUse {
   if (!ku || typeof ku !== 'object') return false;
@@ -27,6 +28,11 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
 export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
   if (!item || typeof item !== 'object') return false;
   const obj = item as Partial<Item>;
+
+  if (typeof obj.type === 'string') {
+    const normalized = normalizeItemType(obj.type);
+    if (normalized) obj.type = normalized;
+  }
 
   // Name is always required
   if (typeof obj.name !== 'string' || obj.name.trim() === '') {
@@ -61,9 +67,13 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
 
 
   // Validate optional fields if they are present, regardless of context (unless specific context requires them)
-  if (obj.type !== undefined && (typeof obj.type !== 'string' || !VALID_ITEM_TYPES.includes(obj.type))) {
-    console.warn("isValidItem: 'type' is present but invalid.", item);
-    return false;
+  if (obj.type !== undefined) {
+    const normalized = normalizeItemType(obj.type);
+    if (!normalized) {
+      console.warn("isValidItem: 'type' is present but invalid.", item);
+      return false;
+    }
+    obj.type = normalized;
   }
   if (obj.description !== undefined && (typeof obj.description !== 'string' || obj.description.trim() === '')) {
       // Allow empty description if it's an update payload and not a transformation,
@@ -113,6 +123,10 @@ export function isValidItemReference(obj: unknown): obj is ItemReference {
 export function isValidNewItemSuggestion(obj: unknown): obj is NewItemSuggestion {
   if (!obj || typeof obj !== 'object') return false;
   const maybe = obj as Partial<NewItemSuggestion>;
+  if (typeof maybe.type === 'string') {
+    const normalized = normalizeItemType(maybe.type);
+    if (normalized) maybe.type = normalized;
+  }
   return (
     typeof maybe.name === 'string' && maybe.name.trim() !== '' &&
     typeof maybe.description === 'string' && maybe.description.trim() !== '' &&
