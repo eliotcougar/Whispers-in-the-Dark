@@ -352,10 +352,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                     <ItemActionButton
                       ariaLabel={`Drop ${item.name}`}
                       className="bg-sky-700 hover:bg-sky-600"
+                      data-item-name={item.name}
                       disabled={disabled}
                       key={`${item.name}-drop`}
                       label="Drop"
-                      data-item-name={item.name}
                       onClick={handleStartConfirmDiscard}
                     />
                   )}
@@ -364,10 +364,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                     <ItemActionButton
                       ariaLabel={`Park ${item.name} here`}
                       className="bg-sky-700 hover:bg-sky-600"
+                      data-item-name={item.name}
                       disabled={disabled}
                       key={`${item.name}-drop`}
                       label="Park Here"
-                      data-item-name={item.name}
                       onClick={handleStartConfirmDiscard}
                     />
                   )}

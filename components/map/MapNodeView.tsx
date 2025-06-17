@@ -358,15 +358,15 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
 
   /** Hides the tooltip. */
-  const handleMouseLeaveGeneral = () => {
+  const handleMouseLeaveGeneral = useCallback(function handleMouseLeaveGeneral() {
     if (tooltipTimeout.current) {
       clearTimeout(tooltipTimeout.current);
       tooltipTimeout.current = null;
     }
     if (!isTooltipLocked) setTooltip(null);
-  };
+  }, [isTooltipLocked]);
 
-  const handleSvgClick = useCallback((event: React.MouseEvent<SVGSVGElement>) => {
+  const handleSvgClick = useCallback(function handleSvgClick(event: React.MouseEvent<SVGSVGElement>) {
     const target = event.target as Element;
     if (!target.closest('.map-node') && !target.closest('.map-edge-group')) {
       setIsTooltipLocked(false);
@@ -374,8 +374,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     }
   }, []);
 
-  const handleEdgeMouseEnterById = useCallback(
-    (event: React.MouseEvent<SVGGElement>) => {
+  const handleEdgeMouseEnterById = useCallback(function handleEdgeMouseEnterById(
+    event: React.MouseEvent<SVGGElement>
+  ) {
       if (isTooltipLocked) return;
       const edgeId = event.currentTarget.dataset.edgeId;
       if (!edgeId) return;
@@ -404,8 +405,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     [edges, isTooltipLocked, nodes, svgRef]
   );
 
-  const handleNodeMouseEnterById = useCallback(
-    (event: React.MouseEvent<Element>) => {
+  const handleNodeMouseEnterById = useCallback(function handleNodeMouseEnterById(
+    event: React.MouseEvent<Element>
+  ) {
       if (isTooltipLocked) return;
       const nodeId = event.currentTarget.getAttribute('data-node-id');
       if (!nodeId) return;
@@ -431,8 +433,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     [isTooltipLocked, nodes, svgRef]
   );
 
-  const handleNodeClickById = useCallback(
-    (event: React.MouseEvent<Element>) => {
+  const handleNodeClickById = useCallback(function handleNodeClickById(
+    event: React.MouseEvent<Element>
+  ) {
       event.stopPropagation();
       const nodeId = event.currentTarget.getAttribute('data-node-id');
       if (!nodeId) return;
@@ -460,8 +463,9 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     [nodes, svgRef]
   );
 
-  const handleDestinationClick = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleDestinationClick = useCallback(function handleDestinationClick(
+    event: React.MouseEvent<HTMLButtonElement>
+  ) {
       const nodeId = event.currentTarget.dataset.nodeId;
       if (!nodeId) return;
       if (nodeId === destinationNodeId) {
@@ -589,8 +593,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
                 <circle
                   className="map-node-hover-ring"
-                  fill="none"
                   data-node-id={node.id}
+                  fill="none"
                   onMouseEnter={handleNodeMouseEnterById}
                   onMouseLeave={handleMouseLeaveGeneral}
                   pointerEvents="stroke"
@@ -658,8 +662,8 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                         : ' interior-label'
                     : ''
                 }`}
-                key={`label-${node.id}`}
                 data-node-id={node.id}
+                key={`label-${node.id}`}
                 onMouseEnter={handleNodeMouseEnterById}
                 onMouseLeave={handleMouseLeaveGeneral}
                 pointerEvents="visible"

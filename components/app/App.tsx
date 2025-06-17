@@ -226,10 +226,10 @@ const App: React.FC = () => {
     setVisualizerImageScene(scene);
   }, [setVisualizerImageUrl, setVisualizerImageScene]);
 
-  const confirmShift = () => {
+  const confirmShift = useCallback(() => {
     executeManualRealityShift();
     setShiftConfirmOpen(false);
-  };
+  }, [executeManualRealityShift, setShiftConfirmOpen]);
 
   const handleOpenManualShiftConfirm = useCallback(
     () => setShiftConfirmOpen(true),
@@ -323,15 +323,18 @@ const App: React.FC = () => {
     }
   }, [isAwaitingManualShiftThemeSelection, isManualShiftThemeSelectionVisible, setIsManualShiftThemeSelectionVisible]);
 
-  const handleManualShiftThemeSelected = (themeName: string) => {
-    setIsManualShiftThemeSelectionVisible(false);
-    completeManualShiftWithSelectedTheme(themeName);
-  };
+  const handleManualShiftThemeSelected = useCallback(
+    (themeName: string) => {
+      setIsManualShiftThemeSelectionVisible(false);
+      completeManualShiftWithSelectedTheme(themeName);
+    },
+    [completeManualShiftWithSelectedTheme, setIsManualShiftThemeSelectionVisible]
+  );
 
-  const handleCancelManualShiftThemeSelection = () => {
+  const handleCancelManualShiftThemeSelection = useCallback(() => {
     setIsManualShiftThemeSelectionVisible(false);
     cancelManualShiftThemeSelection();
-  };
+  }, [cancelManualShiftThemeSelection, setIsManualShiftThemeSelectionVisible]);
 
   /**
    * Wrapper ensuring lint compliance for the async dialogue option handler.
@@ -344,91 +347,94 @@ const App: React.FC = () => {
   );
 
 
-  const handleNewGameFromMenu = () => {
+  const handleNewGameFromMenu = useCallback(() => {
     setUserRequestedTitleMenuOpen(false);
     if (hasGameBeenInitialized) {
       setNewGameFromMenuConfirmOpen(true);
     } else {
       handleStartNewGameFromButton();
     }
-  };
+  }, [hasGameBeenInitialized, handleStartNewGameFromButton, setNewGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
 
-  const confirmNewGameFromMenu = () => {
+  const confirmNewGameFromMenu = useCallback(() => {
     setNewGameFromMenuConfirmOpen(false);
     handleStartNewGameFromButton();
-  };
+  }, [handleStartNewGameFromButton, setNewGameFromMenuConfirmOpen]);
 
-  const handleLoadGameFromMenu = () => {
+  const handleLoadGameFromMenu = useCallback(() => {
     setUserRequestedTitleMenuOpen(false);
     if (hasGameBeenInitialized) {
       setLoadGameFromMenuConfirmOpen(true);
     } else {
       handleLoadFromFileClick();
     }
-  };
+  }, [hasGameBeenInitialized, handleLoadFromFileClick, setLoadGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
 
-  const confirmLoadGameFromMenu = () => {
+  const confirmLoadGameFromMenu = useCallback(() => {
     setLoadGameFromMenuConfirmOpen(false);
     handleLoadFromFileClick();
-  };
+  }, [handleLoadFromFileClick, setLoadGameFromMenuConfirmOpen]);
 
-  const handleSaveGameFromMenu = () => {
+  const handleSaveGameFromMenu = useCallback(() => {
     setUserRequestedTitleMenuOpen(false);
     handleSaveToFile();
-  }
+  }, [handleSaveToFile, setUserRequestedTitleMenuOpen]);
 
-  const openSettingsFromMenu = () => {
+  const openSettingsFromMenu = useCallback(() => {
     setUserRequestedTitleMenuOpen(false);
     setShouldReturnToTitleMenu(true);
     setIsSettingsVisible(true);
-  };
+  }, [setUserRequestedTitleMenuOpen, setShouldReturnToTitleMenu, setIsSettingsVisible]);
 
-  const closeSettings = () => {
+  const closeSettings = useCallback(() => {
     setIsSettingsVisible(false);
     if (shouldReturnToTitleMenu || !hasGameBeenInitialized) {
       setUserRequestedTitleMenuOpen(true);
     }
     setShouldReturnToTitleMenu(false);
-  };
+  }, [shouldReturnToTitleMenu, hasGameBeenInitialized, setIsSettingsVisible, setShouldReturnToTitleMenu, setUserRequestedTitleMenuOpen]);
 
-  const openInfoFromMenu = () => {
+  const openInfoFromMenu = useCallback(() => {
     setUserRequestedTitleMenuOpen(false);
     setShouldReturnToTitleMenu(true);
     setIsInfoVisible(true);
-  };
+  }, [setUserRequestedTitleMenuOpen, setShouldReturnToTitleMenu, setIsInfoVisible]);
 
-  const closeInfo = () => {
+  const closeInfo = useCallback(() => {
     setIsInfoVisible(false);
     if (shouldReturnToTitleMenu || !hasGameBeenInitialized) {
       setUserRequestedTitleMenuOpen(true);
     }
     setShouldReturnToTitleMenu(false);
-  };
+  }, [shouldReturnToTitleMenu, hasGameBeenInitialized, setIsInfoVisible, setShouldReturnToTitleMenu, setUserRequestedTitleMenuOpen]);
 
 
-  const handleOpenCustomGameSetup = () => {
+  const handleOpenCustomGameSetup = useCallback(() => {
     setUserRequestedTitleMenuOpen(false);
     if (hasGameBeenInitialized) {
       setNewCustomGameConfirmOpen(true);
     } else {
       setIsCustomGameSetupVisible(true);
     }
-  };
+  }, [hasGameBeenInitialized, setIsCustomGameSetupVisible, setNewCustomGameConfirmOpen, setUserRequestedTitleMenuOpen]);
 
-  const confirmNewCustomGame = () => {
+  const confirmNewCustomGame = useCallback(() => {
     setNewCustomGameConfirmOpen(false);
     setIsCustomGameSetupVisible(true);
-  };
+  }, [setIsCustomGameSetupVisible, setNewCustomGameConfirmOpen]);
 
-  const handleCloseCustomGameSetup = () => {
+  const handleCloseCustomGameSetup = useCallback(() => {
     setIsCustomGameSetupVisible(false);
     setUserRequestedTitleMenuOpen(true);
-  };
+  }, [setIsCustomGameSetupVisible, setUserRequestedTitleMenuOpen]);
 
-  const handleCustomThemeSelectedForNewGame = (themeName: string) => {
-    setIsCustomGameSetupVisible(false);
-    startCustomGame(themeName);
-  };
+  const handleCustomThemeSelectedForNewGame = useCallback(
+    (themeName: string) => {
+      setIsCustomGameSetupVisible(false);
+      startCustomGame(themeName);
+    },
+    [setIsCustomGameSetupVisible, startCustomGame]
+  );
 
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
   const travelPath: TravelStep[] | null = React.useMemo(() => {
@@ -524,18 +530,18 @@ const App: React.FC = () => {
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
           <div className="lg:col-span-2 space-y-2">
-              {hasGameBeenInitialized ? <MainToolbar
-                currentSceneExists={!!currentScene}
-                currentThemeName={currentTheme?.name || null}
-                isLoading={isLoading || !!dialogueState}
-                onManualRealityShift={handleOpenManualShiftConfirm}
-                onOpenHistory={handleOpenHistory}
-                onOpenKnowledgeBase={handleOpenKnowledgeBase}
-                onOpenMap={handleOpenMap}
-                onOpenTitleMenu={handleOpenTitleMenu}
-                onOpenVisualizer={handleOpenVisualizer}
-                score={score}
-                turnsSinceLastShift={turnsSinceLastShift}
+            {hasGameBeenInitialized ? <MainToolbar
+              currentSceneExists={!!currentScene}
+              currentThemeName={currentTheme?.name || null}
+              isLoading={isLoading || !!dialogueState}
+              onManualRealityShift={handleOpenManualShiftConfirm}
+              onOpenHistory={handleOpenHistory}
+              onOpenKnowledgeBase={handleOpenKnowledgeBase}
+              onOpenMap={handleOpenMap}
+              onOpenTitleMenu={handleOpenTitleMenu}
+              onOpenVisualizer={handleOpenVisualizer}
+              score={score}
+              turnsSinceLastShift={turnsSinceLastShift}
                 /> : null}
 
             {hasGameBeenInitialized ? <div className="flex items-center my-2">
@@ -674,19 +680,19 @@ const App: React.FC = () => {
         participants={dialogueState?.participants || []}
       />
 
-        <DebugView
-          debugPacket={lastDebugPacket}
-          gameStateStack={gameStateStack}
-          isVisible={isDebugViewVisible}
-          onClose={handleCloseDebugView}
-          onUndoTurn={handleUndoTurn}
-          travelPath={travelPath}
+      <DebugView
+        debugPacket={lastDebugPacket}
+        gameStateStack={gameStateStack}
+        isVisible={isDebugViewVisible}
+        onClose={handleCloseDebugView}
+        onUndoTurn={handleUndoTurn}
+        travelPath={travelPath}
         />
 
-        <TitleMenu
-          isGameActive={hasGameBeenInitialized}
-          isVisible={effectiveIsTitleMenuOpen}
-          onClose={handleCloseTitleMenu}
+      <TitleMenu
+        isGameActive={hasGameBeenInitialized}
+        isVisible={effectiveIsTitleMenuOpen}
+        onClose={handleCloseTitleMenu}
         onCustomGame={handleOpenCustomGameSetup}
         onLoadGame={handleLoadGameFromMenu}
         onNewGame={handleNewGameFromMenu}
@@ -710,12 +716,12 @@ const App: React.FC = () => {
         titleText="Select Destination Theme"
       />
 
-        {hasGameBeenInitialized && currentTheme ? <AppModals
-          allCharacters={allCharacters}
-          cancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
-          cancelNewCustomGame={handleCancelNewCustomGame}
-          cancelNewGameFromMenu={handleCancelNewGameFromMenu}
-          cancelShift={handleCancelShift}
+      {hasGameBeenInitialized && currentTheme ? <AppModals
+        allCharacters={allCharacters}
+        cancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
+        cancelNewCustomGame={handleCancelNewCustomGame}
+        cancelNewGameFromMenu={handleCancelNewGameFromMenu}
+        cancelShift={handleCancelShift}
         chaosLevel={chaosLevel}
         confirmLoadGameFromMenu={confirmLoadGameFromMenu}
         confirmNewCustomGame={confirmNewCustomGame}
@@ -748,14 +754,14 @@ const App: React.FC = () => {
         newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
         onChaosChange={setChaosLevel}
         onCloseInfo={closeInfo}
-          onCloseMap={handleCloseMap}
+        onCloseMap={handleCloseMap}
         onCloseSettings={closeSettings}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
         onPlayerGenderChange={setPlayerGender}
-          onSelectDestination={handleSelectDestinationNode}
+        onSelectDestination={handleSelectDestinationNode}
         onStabilityChange={setStabilityLevel}
-          onToggleThemePack={handleToggleThemePackStable}
+        onToggleThemePack={handleToggleThemePackStable}
         onViewBoxChange={handleMapViewBoxChange}
         playerGender={playerGender}
         setGeneratedImage={setGeneratedImageCache}
