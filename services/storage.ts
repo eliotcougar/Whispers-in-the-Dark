@@ -12,7 +12,7 @@ import {
   prepareGameStateForSaving,
   expandSavedDataToFullState,
   normalizeLoadedSaveData,
-} from './saveLoadService';
+} from './saveLoad';
 import { safeParseJson } from '../utils/jsonUtils';
 
 /** Saves the current game state to localStorage. */

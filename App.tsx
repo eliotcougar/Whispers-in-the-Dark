@@ -5,7 +5,6 @@
  */
 
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { FullGameState, ThemePackName } from './types';
 import { useGameLogic } from './hooks/useGameLogic';
 import SceneDisplay from './components/SceneDisplay';
 import ActionOptions from './components/ActionOptions';
@@ -29,6 +28,8 @@ import ItemChangeAnimator from './components/ItemChangeAnimator';
 import MapDisplay from './components/MapDisplay';
 import CustomGameSetupScreen from './components/CustomGameSetupScreen';
 import { useLoadingProgress } from './hooks/useLoadingProgress';
+import { useSaveLoad } from './hooks/useSaveLoad';
+import { useModalState } from './hooks/useModalState';
 import { findTravelPath, TravelStep } from './utils/mapPathfinding';
 import { isDescendantIdOf } from './utils/mapGraphUtils';
 import {
@@ -38,19 +39,10 @@ import {
 } from './utils/mapLayoutUtils';
 
 import {
-  saveGameStateToFile,
-  loadGameStateFromFile
-} from "./services/saveLoadService";
-import {
-  saveGameStateToLocalStorage,
-  loadGameStateFromLocalStorage
+  saveGameStateToLocalStorage
 } from "./services/storage";
 
 import {
-  DEFAULT_PLAYER_GENDER,
-  DEFAULT_ENABLED_THEME_PACKS,
-  DEFAULT_STABILITY_LEVEL,
-  DEFAULT_CHAOS_LEVEL,
   FREE_FORM_ACTION_COST,
   FREE_FORM_ACTION_MAX_LENGTH,
   DEVELOPER
@@ -63,38 +55,32 @@ const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 const App: React.FC = () => {
   const { clearProgress } = useLoadingProgress();
-  const [playerGender, setPlayerGender] = useState<string>(DEFAULT_PLAYER_GENDER);
-  const [enabledThemePacks, setEnabledThemePacks] = useState<ThemePackName[]>([...DEFAULT_ENABLED_THEME_PACKS]);
-  const [stabilityLevel, setStabilityLevel] = useState<number>(DEFAULT_STABILITY_LEVEL);
-  const [chaosLevel, setChaosLevel] = useState<number>(DEFAULT_CHAOS_LEVEL);
-  const [initialSavedStateForLogic, setInitialSavedStateForLogic] = useState<FullGameState | null>(null);
-  const [appReady, setAppReady] = useState(false);
-
-  useEffect(() => {
-    const loadInitialData = () => {
-      const loadedState = loadGameStateFromLocalStorage();
-      if (loadedState) {
-        setPlayerGender(loadedState.playerGender ?? DEFAULT_PLAYER_GENDER);
-        setEnabledThemePacks(loadedState.enabledThemePacks ?? [...DEFAULT_ENABLED_THEME_PACKS]);
-        setStabilityLevel(loadedState.stabilityLevel ?? DEFAULT_STABILITY_LEVEL);
-        setChaosLevel(loadedState.chaosLevel ?? DEFAULT_CHAOS_LEVEL);
-        setInitialSavedStateForLogic(loadedState);
-      } else {
-        setInitialSavedStateForLogic(null);
-      }
-      setAppReady(true);
-    };
-    // Load initial data and update settings; no async operations needed here.
-    loadInitialData();
-  }, []);
-
-
-  const handleSettingsUpdateFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>) => {
-    if (loadedSettings.playerGender !== undefined) setPlayerGender(loadedSettings.playerGender);
-    if (loadedSettings.enabledThemePacks !== undefined) setEnabledThemePacks(loadedSettings.enabledThemePacks);
-    if (loadedSettings.stabilityLevel !== undefined) setStabilityLevel(loadedSettings.stabilityLevel);
-    if (loadedSettings.chaosLevel !== undefined) setChaosLevel(loadedSettings.chaosLevel);
-  }, []);
+  const gameLogicRef = useRef<ReturnType<typeof useGameLogic> | null>(null);
+  const {
+    playerGender,
+    setPlayerGender,
+    enabledThemePacks,
+    setEnabledThemePacks,
+    stabilityLevel,
+    setStabilityLevel,
+    chaosLevel,
+    setChaosLevel,
+    initialSavedState,
+    appReady,
+    fileInputRef,
+    handleSaveToFile,
+    handleLoadFromFileClick,
+    handleFileInputChange,
+    updateSettingsFromLoad,
+  } = useSaveLoad({
+    gatherCurrentGameState: () => gameLogicRef.current!.gatherCurrentGameState(),
+    applyLoadedGameState: (args) => gameLogicRef.current!.applyLoadedGameState(args),
+    setError: (msg) => gameLogicRef.current!.setError(msg),
+    setIsLoading: (val) => gameLogicRef.current!.setIsLoading(val),
+    isLoading: gameLogicRef.current?.isLoading,
+    dialogueState: gameLogicRef.current?.dialogueState,
+    hasGameBeenInitialized: gameLogicRef.current?.hasGameBeenInitialized,
+  });
 
 
   const gameLogic = useGameLogic({
@@ -102,10 +88,11 @@ const App: React.FC = () => {
     enabledThemePacksProp: enabledThemePacks,
     stabilityLevelProp: stabilityLevel,
     chaosLevelProp: chaosLevel,
-    onSettingsUpdateFromLoad: handleSettingsUpdateFromLoad,
-    initialSavedStateFromApp: initialSavedStateForLogic,
+    onSettingsUpdateFromLoad: updateSettingsFromLoad,
+    initialSavedStateFromApp: initialSavedState,
     isAppReady: appReady,
   });
+  gameLogicRef.current = gameLogic;
 
   const {
     currentTheme,
@@ -120,8 +107,7 @@ const App: React.FC = () => {
     cancelManualShiftThemeSelection,
     isAwaitingManualShiftThemeSelection,
     startCustomGame,
-    gatherCurrentGameState, applyLoadedGameState, setError: setLogicError,
-    setIsLoading: setLogicIsLoading, hasGameBeenInitialized, handleStartNewGameFromButton,
+    gatherCurrentGameState, hasGameBeenInitialized, handleStartNewGameFromButton,
     localTime, localEnvironment, localPlace,
     dialogueState,
     handleDialogueOptionSelect,
@@ -149,28 +135,44 @@ const App: React.FC = () => {
     }
   }, [isLoading, clearProgress]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const prevGameLogLength = useRef(gameLog.length);
   const prevSceneRef = useRef(currentScene);
   const autosaveTimeoutRef = useRef<number | null>(null);
 
-  const [isVisualizerVisible, setIsVisualizerVisible] = useState(false);
-  const [visualizerImageUrl, setVisualizerImageUrl] = useState<string | null>(null);
-  const [visualizerImageScene, setVisualizerImageScene] = useState<string | null>(null);
-  const [isKnowledgeBaseVisible, setIsKnowledgeBaseVisible] = useState(false);
-  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
-  const [isInfoVisible, setIsInfoVisible] = useState(false);
-  const [isMapVisible, setIsMapVisible] = useState(false);
-  const [userRequestedTitleMenuOpen, setUserRequestedTitleMenuOpen] = useState(false);
-  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
-  const [isDebugViewVisible, setIsDebugViewVisible] = useState(false);
-  const [isCustomGameSetupVisible, setIsCustomGameSetupVisible] = useState(false);
-  const [isManualShiftThemeSelectionVisible, setIsManualShiftThemeSelectionVisible] = useState(false);
-
-  const [shiftConfirmOpen, setShiftConfirmOpen] = useState(false);
-  const [newGameFromMenuConfirmOpen, setNewGameFromMenuConfirmOpen] = useState(false);
-  const [loadGameFromMenuConfirmOpen, setLoadGameFromMenuConfirmOpen] = useState(false);
-  const [newCustomGameConfirmOpen, setNewCustomGameConfirmOpen] = useState(false);
+  const {
+    isVisualizerVisible,
+    setIsVisualizerVisible,
+    visualizerImageUrl,
+    setVisualizerImageUrl,
+    visualizerImageScene,
+    setVisualizerImageScene,
+    isKnowledgeBaseVisible,
+    setIsKnowledgeBaseVisible,
+    isSettingsVisible,
+    setIsSettingsVisible,
+    isInfoVisible,
+    setIsInfoVisible,
+    isMapVisible,
+    setIsMapVisible,
+    userRequestedTitleMenuOpen,
+    setUserRequestedTitleMenuOpen,
+    isHistoryVisible,
+    setIsHistoryVisible,
+    isDebugViewVisible,
+    setIsDebugViewVisible,
+    isCustomGameSetupVisible,
+    setIsCustomGameSetupVisible,
+    isManualShiftThemeSelectionVisible,
+    setIsManualShiftThemeSelectionVisible,
+    shiftConfirmOpen,
+    setShiftConfirmOpen,
+    newGameFromMenuConfirmOpen,
+    setNewGameFromMenuConfirmOpen,
+    loadGameFromMenuConfirmOpen,
+    setLoadGameFromMenuConfirmOpen,
+    newCustomGameConfirmOpen,
+    setNewCustomGameConfirmOpen,
+  } = useModalState();
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
 
@@ -199,7 +201,7 @@ const App: React.FC = () => {
   useEffect(() => {
     setVisualizerImageUrl(null);
     setVisualizerImageScene(null);
-  }, [currentScene]);
+  }, [currentScene, setVisualizerImageUrl, setVisualizerImageScene]);
 
   useEffect(() => {
     if (isLoading || !hasGameBeenInitialized || !appReady || !!dialogueState) return;
@@ -221,62 +223,13 @@ const App: React.FC = () => {
   ]);
 
 
-  const handleSaveToFile = useCallback(() => {
-    if (isLoading || !currentTheme || !!dialogueState) {
-      setLogicError("Cannot save to file while loading, in dialogue, or without an active game.");
-      return;
-    }
-    const gameState = gatherCurrentGameState();
-    saveGameStateToFile(gameState);
-  }, [gatherCurrentGameState, isLoading, currentTheme, setLogicError, dialogueState]);
-
-  const handleLoadFromFileClick = () => {
-    if (isLoading || !!dialogueState) {
-      setLogicError("Cannot load from file while another operation is in progress or while in dialogue.");
-      return;
-    }
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (isLoading || !!dialogueState) {
-      setLogicError("Cannot load from file while another operation is in progress or while in dialogue.");
-      event.target.value = '';
-      return;
-    }
-    const file = event.target.files?.[0];
-    if (file) {
-      setLogicIsLoading(true);
-      setLogicError(null);
-      const loadedFullState = await loadGameStateFromFile(file);
-      if (loadedFullState) {
-        await applyLoadedGameState({ savedStateToLoad: loadedFullState });
-        setUserRequestedTitleMenuOpen(false);
-        setIsCustomGameSetupVisible(false);
-        setIsManualShiftThemeSelectionVisible(false);
-        saveGameStateToLocalStorage(loadedFullState);
-      } else {
-        setLogicError("Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file. Current game remains unchanged.");
-      }
-      setLogicIsLoading(false);
-    }
-    event.target.value = '';
-  };
-
-  /**
-   * Wrapper to satisfy lint rule by explicitly ignoring the returned Promise
-   * from the async file handler.
-   */
-  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    void handleFileSelected(event);
-  };
 
   const canPerformFreeAction = score >= FREE_FORM_ACTION_COST && !isLoading && hasGameBeenInitialized && !dialogueState;
 
   const setGeneratedImageCache = useCallback((url: string, scene: string) => {
     setVisualizerImageUrl(url);
     setVisualizerImageScene(scene);
-  }, []);
+  }, [setVisualizerImageUrl, setVisualizerImageScene]);
 
   const confirmShift = () => {
     executeManualRealityShift();
@@ -287,7 +240,7 @@ const App: React.FC = () => {
     if (isAwaitingManualShiftThemeSelection && !isManualShiftThemeSelectionVisible) {
       setIsManualShiftThemeSelectionVisible(true);
     }
-  }, [isAwaitingManualShiftThemeSelection, isManualShiftThemeSelectionVisible]);
+  }, [isAwaitingManualShiftThemeSelection, isManualShiftThemeSelectionVisible, setIsManualShiftThemeSelectionVisible]);
 
   const handleManualShiftThemeSelected = (themeName: string) => {
     setIsManualShiftThemeSelectionVisible(false);

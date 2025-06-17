@@ -86,7 +86,7 @@ This layer abstracts external interactions and complex data processing.
     *   `services/validationUtils.ts`: General data structure validation.
     *   `utils/mapUpdateValidationUtils.ts`: Specific validation for `AIMapUpdatePayload`.
 *   **Persistence Service:**
-   *   `services/saveLoadService.ts`: Handles saving and loading the entire `FullGameState`, including `mapData` and `currentMapNodeId`, and converts older save versions when necessary.
+   *   `services/saveLoad/`: Contains modules for validating, migrating and storing `FullGameState` data.
 *   **Utility Functions:**
    *   `utils/promptFormatters.ts` and the files under `utils/promptFormatters/`: format inventory, map context, and main turn.
    *   `utils/aiErrorUtils.ts`: Interprets errors from the Gemini API.
