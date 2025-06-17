@@ -30,7 +30,7 @@ const tsCompat = compat.config({
   },
   plugins: ['@typescript-eslint', 'react', 'react-hooks'],
   extends: [
-    'plugin:react/all',
+    'plugin:react/recommended',
     'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
