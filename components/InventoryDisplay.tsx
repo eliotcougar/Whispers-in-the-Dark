@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Item, KnownUse } from '../types';
 import { InventoryIcon, TrashIcon } from './icons.tsx';
+import ItemActionButton from './ItemActionButton';
 
 interface InventoryDisplayProps {
   items: Item[];
@@ -260,53 +261,35 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                   )}
 
                   {item.isJunk && !isConfirmingDiscard && (
-                     <button
-                        key={`${item.name}-discard`}
-                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                          setConfirmingDiscardItemName(item.name);
-                          event.currentTarget.blur();
-                        }}
-                        disabled={disabled}
-                        className="w-full text-sm bg-orange-700 hover:bg-orange-600 text-white font-medium py-1.5 px-3 rounded shadow
-                                   disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                                   transition-colors duration-150 ease-in-out flex items-center justify-center"
-                        aria-label={`Discard ${item.name}`}
-                      >
-                        <TrashIcon /> Discard
-                      </button>
+                    <ItemActionButton
+                      key={`${item.name}-discard`}
+                      onClick={() => setConfirmingDiscardItemName(item.name)}
+                      disabled={disabled}
+                      ariaLabel={`Discard ${item.name}`}
+                      className="bg-orange-700 hover:bg-orange-600"
+                      label={<><TrashIcon /> Discard</>}
+                    />
                   )}
 
                   {!item.isJunk && !isConfirmingDiscard && item.type != 'vehicle' && (
-                     <button
-                        key={`${item.name}-drop`}
-                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                          setConfirmingDiscardItemName(item.name);
-                          event.currentTarget.blur();
-                        }}
-                        disabled={disabled}
-                        className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
-                                   disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                                   transition-colors duration-150 ease-in-out"
-                        aria-label={`Drop ${item.name}`}
-                      >
-                        Drop
-                      </button>
+                    <ItemActionButton
+                      key={`${item.name}-drop`}
+                      onClick={() => setConfirmingDiscardItemName(item.name)}
+                      disabled={disabled}
+                      ariaLabel={`Drop ${item.name}`}
+                      className="bg-sky-700 hover:bg-sky-600"
+                      label="Drop"
+                    />
                   )}
                   {!item.isJunk && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
-                     <button
-                        key={`${item.name}-drop`}
-                        onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                          setConfirmingDiscardItemName(item.name);
-                          event.currentTarget.blur();
-                        }}
-                        disabled={disabled}
-                        className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
-                                   disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                                   transition-colors duration-150 ease-in-out"
-                        aria-label={`Park ${item.name} here`}
-                      >
-                        Park Here
-                      </button>
+                    <ItemActionButton
+                      key={`${item.name}-drop`}
+                      onClick={() => setConfirmingDiscardItemName(item.name)}
+                      disabled={disabled}
+                      ariaLabel={`Park ${item.name} here`}
+                      className="bg-sky-700 hover:bg-sky-600"
+                      label="Park Here"
+                    />
                   )}
                   {isConfirmingDiscard && (
                     <div className="grid grid-cols-2 gap-2 mt-2">
