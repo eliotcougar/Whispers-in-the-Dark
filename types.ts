@@ -11,12 +11,12 @@ import {
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
   LOADING_REASONS,
+  ThemePackNameConst,
 } from './constants';
-import { ALL_THEME_PACK_NAMES } from './themes'; // For ThemePackName
 
 export type ItemType = typeof VALID_ITEM_TYPES[number];
 export type PresenceStatus = typeof VALID_PRESENCE_STATUS_VALUES[number];
-export type ThemePackName = typeof ALL_THEME_PACK_NAMES[number];
+export type ThemePackName = ThemePackNameConst;
 
 export type LoadingReason = typeof LOADING_REASONS[number] | null;
 

@@ -573,7 +573,7 @@ const App: React.FC = () => {
               mapData={mapData.nodes}
             />
 
-            {actionOptions.length > 0 && (!error || !(error.includes("API Key"))) && hasGameBeenInitialized ? <>
+            {actionOptions.length > 0 && (typeof error !== 'string' || !error.includes("API Key")) && hasGameBeenInitialized ? <>
               <ActionOptions
                 allCharacters={allCharacters}
                 currentThemeName={currentTheme?.name || null}
