@@ -3,7 +3,7 @@
  * @file DebugView.tsx
  * @description Developer panel for inspecting game state.
  */
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { extractJsonFromFence } from '../utils/jsonUtils';
 import { GameStateStack, DebugPacket, MapNode } from '../types';
 import { TravelStep } from '../utils/mapPathfinding';
@@ -48,6 +48,32 @@ const DebugView: React.FC<DebugViewProps> = ({
   const [showMapAIRaw, setShowMapAIRaw] = useState<boolean>(true);
   const [showInventoryAIRaw, setShowInventoryAIRaw] = useState<boolean>(true);
   const [showConnectorChainRaw, setShowConnectorChainRaw] = useState<Record<number, boolean>>({});
+
+  const toggleShowMainAIRaw = useCallback(
+    () => setShowMainAIRaw(prev => !prev),
+    []
+  );
+
+  const toggleShowMapAIRaw = useCallback(
+    () => setShowMapAIRaw(prev => !prev),
+    []
+  );
+
+  const toggleShowInventoryAIRaw = useCallback(
+    () => setShowInventoryAIRaw(prev => !prev),
+    []
+  );
+
+  const toggleShowConnectorChainRaw = useCallback(
+    (idx: number) => () =>
+      setShowConnectorChainRaw(prev => ({ ...prev, [idx]: !prev[idx] })),
+    []
+  );
+
+  const handleTabClick = useCallback(
+    (name: DebugTab) => () => setActiveTab(name),
+    []
+  );
 
   const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === 'object' && value !== null;
@@ -204,7 +230,7 @@ const DebugView: React.FC<DebugViewProps> = ({
             <div className="my-2">
               <button
                 className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
-                onClick={() => setShowMainAIRaw(!showMainAIRaw)}
+                onClick={toggleShowMainAIRaw}
               >
                 Toggle Raw/Parsed Response
               </button>
@@ -236,7 +262,7 @@ const DebugView: React.FC<DebugViewProps> = ({
                 <div className="my-2">
                   <button
                     className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
-                    onClick={() => setShowMapAIRaw(!showMapAIRaw)}
+                    onClick={toggleShowMapAIRaw}
                   >
                     Toggle Raw/Parsed Map Update Response
                   </button>
@@ -275,9 +301,7 @@ const DebugView: React.FC<DebugViewProps> = ({
                       <div className="my-2">
                         <button
                           className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
-                          onClick={() =>
-                            setShowConnectorChainRaw(prev => ({ ...prev, [idx]: !prev[idx] }))
-                          }
+                          onClick={toggleShowConnectorChainRaw(idx)}
                         >
                           Toggle Raw/Parsed Connector Chains Response
                         </button>
@@ -372,7 +396,7 @@ const DebugView: React.FC<DebugViewProps> = ({
             <div className="my-2">
               <button
                 className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
-                onClick={() => setShowInventoryAIRaw(!showInventoryAIRaw)}
+                onClick={toggleShowInventoryAIRaw}
               >
                 Toggle Raw/Parsed Inventory Response
               </button>
@@ -490,7 +514,7 @@ const DebugView: React.FC<DebugViewProps> = ({
                             ? 'border-b-2 border-sky-400 text-sky-300' 
                             : 'text-slate-400 hover:text-sky-400'}`}
               key={tab.name}
-              onClick={() => setActiveTab(tab.name)}
+              onClick={handleTabClick(tab.name)}
             >
               {tab.label}
             </button>
