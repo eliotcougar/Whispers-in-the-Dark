@@ -340,21 +340,23 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                     </button>
                   )}
 
-                  {item.isJunk && !isConfirmingDiscard ? <ItemActionButton
-                    ariaLabel={`Discard ${item.name}`}
-                    className="bg-orange-700 hover:bg-orange-600"
-                    data-item-name={item.name}
-                    disabled={disabled}
-                    key={`${item.name}-discard`}
-                    label={<><TrashIcon /> Discard</>}
-                    onClick={handleStartConfirmDiscard}
-                    /> : null}
+                  {item.isJunk && !isConfirmingDiscard ? (
+                    <ItemActionButton
+                      ariaLabel={`Discard ${item.name}`}
+                      className="bg-orange-700 hover:bg-orange-600"
+                      dataItemName={item.name}
+                      disabled={disabled}
+                      key={`${item.name}-discard`}
+                      label={<><TrashIcon /> Discard</>}
+                      onClick={handleStartConfirmDiscard}
+                    />
+                  ) : null}
 
                   {!item.isJunk && !isConfirmingDiscard && item.type != 'vehicle' && (
                     <ItemActionButton
                       ariaLabel={`Drop ${item.name}`}
                       className="bg-sky-700 hover:bg-sky-600"
-                      data-item-name={item.name}
+                      dataItemName={item.name}
                       disabled={disabled}
                       key={`${item.name}-drop`}
                       label="Drop"
@@ -366,7 +368,7 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                     <ItemActionButton
                       ariaLabel={`Park ${item.name} here`}
                       className="bg-sky-700 hover:bg-sky-600"
-                      data-item-name={item.name}
+                      dataItemName={item.name}
                       disabled={disabled}
                       key={`${item.name}-drop`}
                       label="Park Here"
