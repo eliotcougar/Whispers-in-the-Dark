@@ -139,6 +139,18 @@ export const fetchConnectorChains_Service = async (
           nodeMap.set(p.id, p);
         }
       });
+      if (orderedParents.length === 0) {
+        if (!visited.has(r.originalSource.id)) {
+          orderedParents.push(r.originalSource);
+          visited.add(r.originalSource.id);
+          nodeMap.set(r.originalSource.id, r.originalSource);
+        }
+        if (!visited.has(r.originalTarget.id)) {
+          orderedParents.push(r.originalTarget);
+          visited.add(r.originalTarget.id);
+          nodeMap.set(r.originalTarget.id, r.originalTarget);
+        }
+      }
 
       for (let i = 0; i < orderedParents.length - 1; i++) {
         const a = orderedParents[i];

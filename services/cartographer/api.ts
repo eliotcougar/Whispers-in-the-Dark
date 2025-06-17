@@ -61,13 +61,13 @@ export const updateMapFromAIData_Service = async (
     ? `${referenceMapNodeId}`
     : "Player's Previous Map Node: Unknown or N/A.";
 
-  const existingMapContext = `Current Map Nodes (for your reference):\n$${
+  const existingMapContext = `Current Map Nodes (for your reference):\n${
     currentThemeNodesFromMapData.length > 0
       ? currentThemeNodesFromMapData
           .map(n => `- "${n.placeName}" (${n.data.nodeType})`)
           .join('\n')
       : 'None exist yet.'
-  }\n\nCurrent Map Edges (for your reference):\n$${
+  }\n\nCurrent Map Edges (for your reference):\n${
     currentThemeEdgesFromMapData.length > 0
       ? currentThemeEdgesFromMapData
           .map(e => `- ${e.id} from ${e.sourceNodeId} to ${e.targetNodeId}`)
