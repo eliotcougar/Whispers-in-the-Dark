@@ -80,6 +80,63 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
     event.currentTarget.blur();
   }, []);
 
+  const handleSpecificUse = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const { itemName, actionName, promptEffect } = event.currentTarget.dataset;
+      if (!itemName || !actionName || !promptEffect) return;
+      const item = items.find(i => i.name === itemName);
+      if (!item) return;
+      const knownUse: KnownUse = {
+        actionName,
+        promptEffect,
+      };
+      onItemInteract(item, 'specific', knownUse);
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract]
+  );
+
+  const handleInspect = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const name = event.currentTarget.dataset.itemName;
+      if (!name) return;
+      const item = items.find(i => i.name === name);
+      if (!item) return;
+      onItemInteract(item, 'inspect');
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract]
+  );
+
+  const handleGenericUse = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const name = event.currentTarget.dataset.itemName;
+      if (!name) return;
+      const item = items.find(i => i.name === name);
+      if (!item) return;
+      onItemInteract(item, 'generic');
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract]
+  );
+
+  const handleVehicleToggle = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const name = event.currentTarget.dataset.itemName;
+      if (!name) return;
+      const item = items.find(i => i.name === name);
+      if (!item) return;
+      const actionName = item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`;
+      const dynamicKnownUse: KnownUse = {
+        actionName,
+        promptEffect: actionName,
+      };
+      onItemInteract(item, 'specific', dynamicKnownUse);
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract]
+  );
+
 
   useEffect(() => {
     const currentItemNames = new Set(items.map(item => item.name));
@@ -226,12 +283,12 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                       className="w-full text-sm bg-teal-600 hover:bg-teal-500 text-white font-medium py-1.5 px-3 rounded shadow
                                  disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                                  transition-colors duration-150 ease-in-out"
+                      data-action-name={knownUse.actionName}
+                      data-item-name={item.name}
+                      data-prompt-effect={knownUse.promptEffect}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-knownuse-${knownUse.actionName}`}
-                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                        onItemInteract(item, 'specific', knownUse);
-                        event.currentTarget.blur();
-                      }}
+                      onClick={handleSpecificUse}
                       title={knownUse.description}
                     >
                       {knownUse.actionName}
@@ -243,12 +300,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                     className="w-full text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-1.5 px-3 rounded shadow
                                disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
                                transition-colors duration-150 ease-in-out"
+                    data-item-name={item.name}
                     disabled={disabled || isConfirmingDiscard}
                     key={`${item.name}-inspect`}
-                    onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                      onItemInteract(item, 'inspect');
-                      event.currentTarget.blur();
-                    }}
+                    onClick={handleInspect}
                   >
                     Inspect
                   </button>
@@ -259,12 +314,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                       className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
                                 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                                 transition-colors duration-150 ease-in-out"
+                      data-item-name={item.name}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-generic-use`}
-                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                        onItemInteract(item, 'generic');
-                        event.currentTarget.blur();
-                      }}
+                      onClick={handleGenericUse}
                     >
                       Attempt to Use (Generic)
                     </button>
@@ -276,17 +329,10 @@ const InventoryDisplay: React.FC<InventoryDisplayProps> = ({ items, onItemIntera
                       className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow
                                 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                                 transition-colors duration-150 ease-in-out"
+                      data-item-name={item.name}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-vehicle-action`}
-                      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                        const actionName = item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`;
-                        const dynamicKnownUse: KnownUse = {
-                          actionName: actionName,
-                          promptEffect: actionName,
-                        };
-                        onItemInteract(item, 'specific', dynamicKnownUse);
-                        event.currentTarget.blur();
-                      }}
+                      onClick={handleVehicleToggle}
                     >
                       {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
                     </button>
