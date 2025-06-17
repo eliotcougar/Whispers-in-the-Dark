@@ -80,7 +80,6 @@ const App: React.FC = () => {
     isLoading: gameLogicRef.current?.isLoading,
     dialogueState: gameLogicRef.current?.dialogueState,
     hasGameBeenInitialized: gameLogicRef.current?.hasGameBeenInitialized,
-    autoSaveDeps: [],
   });
 
 

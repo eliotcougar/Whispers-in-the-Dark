@@ -36,7 +36,7 @@ import {
   applyAllItemChanges,
 } from '../utils/gameLogicUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-import { handleMapUpdates } from '../utils/mapUpdateHandlers';
+import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { formatInventoryForPrompt } from '../utils/promptFormatters/inventory';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
@@ -101,6 +101,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     loadingReason,
   } = props;
 
+  const { processMapUpdates } = useMapUpdateProcessor({
+    loadingReason,
+    setLoadingReason,
+    setError,
+  });
   const objectiveAnimationClearTimerRef = useRef<number | null>(null);
 
   const processAiResponse: ProcessAiResponseFn = useCallback(
@@ -295,22 +300,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       let combinedItemChanges = [...correctedAndVerifiedItemChanges];
 
       if (themeContextForResponse) {
-        try {
-          await handleMapUpdates(
-            aiData,
-            draftState,
-            baseStateSnapshot,
-            themeContextForResponse,
-            loadingReason,
-            setLoadingReason,
-            turnChanges
-          );
-        } catch (mapErr) {
-          setError(
-            mapErr instanceof Error ? mapErr.message : String(mapErr)
-          );
-          throw mapErr;
-        }
+        await processMapUpdates(
+          aiData,
+          draftState,
+          baseStateSnapshot,
+          themeContextForResponse,
+          turnChanges
+        );
       }
 
         if (themeContextForResponse) {
@@ -370,7 +366,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
 
       draftState.lastTurnChanges = turnChanges;
-    }, [loadingReason, setLoadingReason, setError, setGameStateStack]);
+    }, [loadingReason, setLoadingReason, setError, setGameStateStack, processMapUpdates]);
 
   /**
    * Executes a player's chosen action by querying the AI storyteller.
