@@ -3,7 +3,7 @@
  * @file SettingsDisplay.tsx
  * @description Screen for adjusting game and user settings.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ThemePackName, ALL_THEME_PACK_NAMES } from '../themes';
 import { DEFAULT_PLAYER_GENDER } from '../constants';
 
@@ -83,6 +83,20 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
 
   const sliderControlOpacityClass = isCustomGameMode ? "opacity-50" : "";
 
+  const handleStabilitySliderChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onStabilityChange(parseInt(e.target.value, 10));
+    },
+    [onStabilityChange]
+  );
+
+  const handleChaosSliderChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChaosChange(parseInt(e.target.value, 10));
+    },
+    [onChaosChange]
+  );
+
   return (
     <div aria-labelledby="settings-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
       <div className="animated-frame-content">
@@ -120,7 +134,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
                 id="stabilitySlider"
                 max="100"
                 min="0"
-                onChange={(e) => onStabilityChange(parseInt(e.target.value, 10))}
+                onChange={handleStabilitySliderChange}
                 type="range"
                 value={stabilityLevel}
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
@@ -146,7 +160,7 @@ const SettingsDisplay: React.FC<SettingsDisplayProps> = ({
                 id="chaosSlider"
                 max="100"
                 min="0"
-                onChange={(e) => onChaosChange(parseInt(e.target.value, 10))}
+                onChange={handleChaosSliderChange}
                 type="range"
                 value={chaosLevel}
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
