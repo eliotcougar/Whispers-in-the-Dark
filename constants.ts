@@ -6,8 +6,8 @@
 
 import { ALL_THEME_PACK_NAMES } from './themes';
 
-// Using gemini-2.5-flash-preview-04-17 model specified by API guidelines for general text tasks.
-export const GEMINI_MODEL_NAME = "gemini-2.5-flash-preview-05-20";
+// Using gemini-2.5-flash model specified by API guidelines for general text tasks.
+export const GEMINI_MODEL_NAME = "gemini-2.5-flash";
 export const AUXILIARY_MODEL_NAME = "gemini-2.0-flash"; // Updated for better capability
 export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string outputs
 
