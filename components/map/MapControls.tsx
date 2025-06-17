@@ -31,7 +31,7 @@ interface ParameterControlProps {
   readonly value: number;
 }
 
-const ParameterControl: React.FC<ParameterControlProps> = ({
+function ParameterControl({
   label,
   id,
   value,
@@ -39,8 +39,8 @@ const ParameterControl: React.FC<ParameterControlProps> = ({
   min,
   max,
   step,
-  explanation,
-}) => {
+  explanation = '',
+}: ParameterControlProps) {
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange(parseFloat(e.target.value));
@@ -68,12 +68,12 @@ const ParameterControl: React.FC<ParameterControlProps> = ({
       {explanation ? <p className="map-control-explanation">{explanation}</p> : null}
     </div>
   );
-};
+}
 
 /**
  * Collapsible panel for adjusting map layout parameters.
  */
-const MapControls: React.FC<MapControlsProps> = props => {
+function MapControls(props: MapControlsProps) {
   const [expanded, setExpanded] = useState(false);
   const handleToggleExpanded = useCallback(() => {
     setExpanded(prev => !prev);
@@ -149,6 +149,6 @@ const MapControls: React.FC<MapControlsProps> = props => {
       </div>
     </div>
   );
-};
+}
 
 export default MapControls;

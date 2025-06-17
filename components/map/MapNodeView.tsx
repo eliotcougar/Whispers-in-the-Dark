@@ -138,18 +138,18 @@ const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: num
 /**
  * SVG view for rendering map nodes and edges with tooltips.
  */
-const MapNodeView: React.FC<MapNodeViewProps> = ({
+function MapNodeView({
   nodes,
   edges,
   currentMapNodeId,
   destinationNodeId,
-  itemPresenceByNode,
+  itemPresenceByNode = {},
   onSelectDestination,
   labelOverlapMarginPx,
   itemIconScale,
   initialViewBox,
   onViewBoxChange,
-}) => {
+}: MapNodeViewProps) {
   const interactions = useMapInteractions(initialViewBox, onViewBoxChange);
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{
@@ -710,6 +710,6 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
       </div> : null}
     </div>
   );
-};
+}
 
 export default MapNodeView;
