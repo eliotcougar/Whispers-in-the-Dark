@@ -2,25 +2,10 @@
  * @file responseParser.ts
  * @description Parsing helpers for cartographer AI responses.
  */
-import {
-  AIMapUpdatePayload,
-  MapNodeData,
-  MapEdgeData,
-} from '../../types';
+import { AIMapUpdatePayload } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isValidAIMapUpdatePayload } from '../../utils/mapUpdateValidationUtils';
-import {
-  VALID_NODE_STATUS_VALUES,
-  VALID_NODE_TYPE_VALUES,
-  VALID_EDGE_TYPE_VALUES,
-  VALID_EDGE_STATUS_VALUES,
-} from '../../constants';
-import {
-  NODE_STATUS_SYNONYMS,
-  NODE_TYPE_SYNONYMS,
-  EDGE_TYPE_SYNONYMS,
-  EDGE_STATUS_SYNONYMS,
-} from '../../utils/mapSynonyms';
+import { normalizeStatusAndTypeSynonyms } from './mapUpdateUtils';
 
 /**
  * Attempts to parse the AI response text into an AIMapUpdatePayload.
@@ -33,71 +18,6 @@ export const parseCartographerResponse = (
   return isValidAIMapUpdatePayload(parsed) ? parsed : null;
 };
 
-/**
- * Normalizes status and type fields within the payload to their canonical
- * values, accepting various synonyms. Returns an array of errors for any
- * values that remain invalid after synonym normalization.
- */
-const normalizeStatusAndTypeSynonyms = (payload: AIMapUpdatePayload): string[] => {
-  const errors: string[] = [];
-
-  const nodeStatusSynonyms = NODE_STATUS_SYNONYMS;
-  const nodeTypeSynonyms = NODE_TYPE_SYNONYMS;
-  const edgeTypeSynonyms = EDGE_TYPE_SYNONYMS;
-  const edgeStatusSynonyms = EDGE_STATUS_SYNONYMS;
-
-  const applyNodeDataFix = (data: Partial<MapNodeData> | undefined, context: string) => {
-    if (!data) return;
-    if (data.status) {
-      const mapped = nodeStatusSynonyms[data.status.toLowerCase()];
-      if (mapped) data.status = mapped;
-      if (!VALID_NODE_STATUS_VALUES.includes(data.status)) {
-        errors.push(`${context} invalid status "${data.status}"`);
-      }
-    }
-    if (data.nodeType) {
-      const mapped = nodeTypeSynonyms[data.nodeType.toLowerCase()];
-      if (mapped) data.nodeType = mapped;
-      if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType)) {
-        errors.push(`${context} invalid nodeType "${data.nodeType}"`);
-      }
-    }
-  };
-
-  const applyEdgeDataFix = (data: Partial<MapEdgeData> | undefined, context: string) => {
-    if (!data) return;
-    if (data.type) {
-      const mapped = edgeTypeSynonyms[data.type.toLowerCase()];
-      if (mapped) data.type = mapped;
-      if (!VALID_EDGE_TYPE_VALUES.includes(data.type)) {
-        errors.push(`${context} invalid type "${data.type}"`);
-      }
-    }
-    if (data.status) {
-      const mapped = edgeStatusSynonyms[data.status.toLowerCase()];
-      if (mapped) data.status = mapped;
-      if (!VALID_EDGE_STATUS_VALUES.includes(data.status)) {
-        errors.push(`${context} invalid status "${data.status}"`);
-      }
-    }
-  };
-
-  (payload.nodesToAdd || []).forEach((n, idx) => applyNodeDataFix(n.data, `nodesToAdd[${idx}]`));
-  (payload.nodesToUpdate || []).forEach((n, idx) => applyNodeDataFix(n.newData, `nodesToUpdate[${idx}].newData`));
-  (payload.edgesToAdd || []).forEach((e, idx) => applyEdgeDataFix(e.data, `edgesToAdd[${idx}]`));
-  (payload.edgesToUpdate || []).forEach((e, idx) => applyEdgeDataFix(e.newData, `edgesToUpdate[${idx}].newData`));
-  // edgesToRemove no longer requires type normalization
-
-  if (payload.splitFamily && payload.splitFamily.newNodeType) {
-    const mapped = nodeTypeSynonyms[payload.splitFamily.newNodeType.toLowerCase()];
-    if (mapped) payload.splitFamily.newNodeType = mapped;
-    if (!VALID_NODE_TYPE_VALUES.includes(payload.splitFamily.newNodeType)) {
-      errors.push(`splitFamily.newNodeType invalid "${payload.splitFamily.newNodeType}"`);
-    }
-  }
-
-  return errors;
-};
 
 /**
  * Parses the AI's map update response into an AIMapUpdatePayload structure.
