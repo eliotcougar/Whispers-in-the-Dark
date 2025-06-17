@@ -23,7 +23,7 @@ interface ConfirmationDialogProps {
 /**
  * Modal dialog prompting the user to confirm or cancel an action.
  */
-const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
+function ConfirmationDialog({
   isOpen,
   title,
   message,
@@ -33,7 +33,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   cancelText = "Cancel",
   confirmButtonClass = "bg-sky-600 hover:bg-sky-500",
   isCustomModeShift, // Destructure new prop
-}) => {
+}: ConfirmationDialogProps) {
   const stopPropagation = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
   }, []);
@@ -100,6 +100,6 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       `}</style>
     </div>
   );
-};
+}
 
 export default ConfirmationDialog;

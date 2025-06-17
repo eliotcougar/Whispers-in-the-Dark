@@ -5,7 +5,6 @@
  */
 import { useState, useCallback } from 'react';
 
-import * as React from 'react';
 import { extractJsonFromFence } from '../utils/jsonUtils';
 import { GameStateStack, DebugPacket, MapNode } from '../types';
 import { TravelStep } from '../utils/mapPathfinding';
@@ -37,14 +36,14 @@ type DebugTab =
 /**
  * Developer-only panel for inspecting and manipulating game state.
  */
-const DebugView: React.FC<DebugViewProps> = ({
+function DebugView({
   isVisible,
   onClose,
   debugPacket,
   gameStateStack,
   onUndoTurn,
   travelPath,
-}) => {
+}: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>("GameState");
   const [showMainAIRaw, setShowMainAIRaw] = useState<boolean>(true);
   const [showMapAIRaw, setShowMapAIRaw] = useState<boolean>(true);
@@ -529,6 +528,6 @@ const DebugView: React.FC<DebugViewProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default DebugView;

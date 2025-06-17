@@ -5,7 +5,6 @@
  */
 import { useRef } from 'react';
 
-import * as React from 'react';
 import { LogIcon } from './icons.tsx'; // Updated import
 
 interface GameLogDisplayProps {
@@ -15,7 +14,7 @@ interface GameLogDisplayProps {
 /**
  * Shows a scrollable log of important game events.
  */
-const GameLogDisplay: React.FC<GameLogDisplayProps> = ({ messages }) => {
+function GameLogDisplay({ messages }: GameLogDisplayProps) {
   const logEndRef = useRef<null | HTMLDivElement>(null);
   return (
     <div className="mt-6 bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 max-h-80 overflow-y-auto">
@@ -34,6 +33,6 @@ const GameLogDisplay: React.FC<GameLogDisplayProps> = ({ messages }) => {
       </ul>
     </div>
   );
-};
+}
 
 export default GameLogDisplay;

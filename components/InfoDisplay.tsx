@@ -3,7 +3,6 @@
  * @file InfoDisplay.tsx
  * @description Modal summarizing version and build info.
  */
-import * as React from 'react';
 import { CURRENT_SAVE_GAME_VERSION, GEMINI_MODEL_NAME } from '../constants'; // For displaying versions
 
 interface InfoDisplayProps {
@@ -14,7 +13,7 @@ interface InfoDisplayProps {
 /**
  * Shows build and version information in a modal window.
  */
-const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
+function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
   const textModel = GEMINI_MODEL_NAME; // from constants.ts
   const imageModel = "imagen-3.0-generate-002"; // primary image model
   const fallbackImageModel = "gemini-2.0-flash-preview-image-generation";
@@ -343,6 +342,6 @@ const InfoDisplay: React.FC<InfoDisplayProps> = ({ isVisible, onClose }) => {
       </div>
     </div>
   );
-};
+}
 
 export default InfoDisplay;

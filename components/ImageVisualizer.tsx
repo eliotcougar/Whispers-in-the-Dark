@@ -6,7 +6,6 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 
-import * as React from 'react';
 import { geminiClient as ai, isApiConfigured } from '../services/apiClient';
 import type { Part } from '@google/genai';
 import { AdventureTheme, Character, MapNode } from '../types';
@@ -37,10 +36,10 @@ interface ImageVisualizerProps {
 /**
  * Requests and displays AI-generated imagery for the current scene.
  */
-const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
+function ImageVisualizer({
   currentSceneDescription,
   currentTheme, // This is now AdventureTheme | null
-  mapData, 
+  mapData,
   allCharacters,
   localTime,
   localEnvironment,
@@ -50,7 +49,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
   setGeneratedImage,
   cachedImageUrl,
   cachedImageScene,
-}) => {
+}: ImageVisualizerProps) {
   const [internalImageUrl, setInternalImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -276,6 +275,6 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default ImageVisualizer;
