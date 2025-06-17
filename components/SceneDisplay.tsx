@@ -9,15 +9,15 @@ import { Item, Character, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
 interface SceneDisplayProps {
-  description: string;
-  lastActionLog?: string | null;
-  inventory: Item[];
-  mapData: MapNode[];
-  allCharacters: Character[];
-  currentThemeName: string | null;
-  localTime?: string | null;
-  localEnvironment?: string | null;
-  localPlace?: string | null;
+  readonly description: string;
+  readonly lastActionLog?: string | null;
+  readonly inventory: Item[];
+  readonly mapData: MapNode[];
+  readonly allCharacters: Character[];
+  readonly currentThemeName: string | null;
+  readonly localTime?: string | null;
+  readonly localEnvironment?: string | null;
+  readonly localPlace?: string | null;
 }
 
 /**

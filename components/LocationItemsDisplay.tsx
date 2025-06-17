@@ -4,11 +4,11 @@ import { InventoryIcon } from './icons';
 import { ItemTypeDisplay } from './InventoryDisplay';
 
 interface LocationItemsDisplayProps {
-  items: Item[];
-  onTakeItem: (itemName: string) => void;
-  disabled: boolean;
-  currentNodeId: string | null;
-  mapNodes: { id: string; placeName: string }[];
+  readonly items: Item[];
+  readonly onTakeItem: (itemName: string) => void;
+  readonly disabled: boolean;
+  readonly currentNodeId: string | null;
+  readonly mapNodes: { id: string; placeName: string }[];
 }
 
 const LocationItemsDisplay: React.FC<LocationItemsDisplayProps> = ({ items, onTakeItem, disabled, currentNodeId, mapNodes }) => {

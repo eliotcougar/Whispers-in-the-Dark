@@ -6,16 +6,16 @@
 import React, { useState } from 'react';
 
 interface MapControlsProps {
-  padding: number;
-  setPadding: (val: number) => void;
-  anglePadding: number;
-  setAnglePadding: (val: number) => void;
-  overlapMargin: number;
-  setOverlapMargin: (val: number) => void;
-  itemIconScale: number;
-  setItemIconScale: (val: number) => void;
-  onReset: () => void;
-  onRefreshLayout: () => void;
+  readonly padding: number;
+  readonly setPadding: (val: number) => void;
+  readonly anglePadding: number;
+  readonly setAnglePadding: (val: number) => void;
+  readonly overlapMargin: number;
+  readonly setOverlapMargin: (val: number) => void;
+  readonly itemIconScale: number;
+  readonly setItemIconScale: (val: number) => void;
+  readonly onReset: () => void;
+  readonly onRefreshLayout: () => void;
 }
 
 /** Renders parameter slider UI element. */

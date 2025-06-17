@@ -2,9 +2,9 @@ import React from 'react';
 import { DEVELOPER } from '../../constants';
 
 interface FooterProps {
-  isBlurred: boolean;
-  isDebugViewVisible: boolean;
-  setIsDebugViewVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly isBlurred: boolean;
+  readonly isDebugViewVisible: boolean;
+  readonly setIsDebugViewVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const Footer: React.FC<FooterProps> = ({

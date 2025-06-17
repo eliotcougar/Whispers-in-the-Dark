@@ -7,15 +7,15 @@ import React from 'react';
 import { CURRENT_GAME_VERSION } from '../constants'; // Import the version constant
 
 interface TitleMenuProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onNewGame: () => void;
-  onCustomGame: () => void; 
-  onSaveGame?: () => void;
-  onLoadGame: () => void;
-  onOpenSettings: () => void;
-  onOpenInfo: () => void;
-  isGameActive: boolean;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
+  readonly onNewGame: () => void;
+  readonly onCustomGame: () => void; 
+  readonly onSaveGame?: () => void;
+  readonly onLoadGame: () => void;
+  readonly onOpenSettings: () => void;
+  readonly onOpenInfo: () => void;
+  readonly isGameActive: boolean;
 }
 
 /**

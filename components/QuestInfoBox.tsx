@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 
 interface QuestInfoBoxProps {
-  mainQuest?: string | null;
-  currentObjective?: string | null;
-  objectiveAnimationType?: 'success' | 'neutral' | null;
+  readonly mainQuest?: string | null;
+  readonly currentObjective?: string | null;
+  readonly objectiveAnimationType?: 'success' | 'neutral' | null;
 }
 
 const QuestInfoBox: React.FC<QuestInfoBoxProps> = ({ mainQuest, currentObjective, objectiveAnimationType }) => {

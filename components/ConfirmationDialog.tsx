@@ -7,15 +7,15 @@
 import React from 'react';
 
 interface ConfirmationDialogProps {
-  isOpen: boolean;
-  title: string;
-  message: React.ReactNode; // Allow JSX for message content
-  onConfirm: () => void;
-  onCancel: () => void;
-  confirmText?: string;
-  cancelText?: string;
-  confirmButtonClass?: string;
-  isCustomModeShift?: boolean; // New prop
+  readonly isOpen: boolean;
+  readonly title: string;
+  readonly message: React.ReactNode; // Allow JSX for message content
+  readonly onConfirm: () => void;
+  readonly onCancel: () => void;
+  readonly confirmText?: string;
+  readonly cancelText?: string;
+  readonly confirmButtonClass?: string;
+  readonly isCustomModeShift?: boolean; // New prop
 }
 
 /**

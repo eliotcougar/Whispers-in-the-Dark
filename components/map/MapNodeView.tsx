@@ -36,18 +36,18 @@ const buildShortcutPath = (a: MapNode, b: MapNode): string => {
 };
 
 interface MapNodeViewProps {
-  nodes: MapNode[];
-  edges: MapEdge[];
-  currentMapNodeId: string | null;
-  destinationNodeId: string | null;
+  readonly nodes: MapNode[];
+  readonly edges: MapEdge[];
+  readonly currentMapNodeId: string | null;
+  readonly destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
-  itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (nodeId: string | null) => void;
-  labelOverlapMarginPx: number;
+  readonly itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
+  readonly onSelectDestination: (nodeId: string | null) => void;
+  readonly labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */
-  itemIconScale: number;
-  initialViewBox: string;
-  onViewBoxChange: (viewBox: string) => void;
+  readonly itemIconScale: number;
+  readonly initialViewBox: string;
+  readonly onViewBoxChange: (viewBox: string) => void;
 }
 
 /**

@@ -7,11 +7,11 @@ import { ThemeHistoryState } from '../types';
 import GameLogDisplay from './GameLogDisplay';
 
 interface HistoryDisplayProps {
-  themeHistory: ThemeHistoryState;
-  gameLog: string[];
+  readonly themeHistory: ThemeHistoryState;
+  readonly gameLog: string[];
   // mapData?: MapNode[]; // If we need to look up MapNode details by placeName from ThemeMemory
-  isVisible: boolean;
-  onClose: () => void;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
 }
 
 /**

@@ -18,68 +18,68 @@ import {
 
 interface AppModalsProps {
   // Visibility flags
-  isVisualizerVisible: boolean;
-  setIsVisualizerVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  visualizerImageUrl: string | null;
-  visualizerImageScene: string | null;
-  setGeneratedImage: (url: string, scene: string) => void;
-  currentScene: string;
-  currentTheme: AdventureTheme;
-  mapData: MapData;
-  allCharacters: Character[];
-  localTime: string | null;
-  localEnvironment: string | null;
-  localPlace: string | null;
+  readonly isVisualizerVisible: boolean;
+  readonly setIsVisualizerVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly visualizerImageUrl: string | null;
+  readonly visualizerImageScene: string | null;
+  readonly setGeneratedImage: (url: string, scene: string) => void;
+  readonly currentScene: string;
+  readonly currentTheme: AdventureTheme;
+  readonly mapData: MapData;
+  readonly allCharacters: Character[];
+  readonly localTime: string | null;
+  readonly localEnvironment: string | null;
+  readonly localPlace: string | null;
 
-  isKnowledgeBaseVisible: boolean;
-  setIsKnowledgeBaseVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly isKnowledgeBaseVisible: boolean;
+  readonly setIsKnowledgeBaseVisible: React.Dispatch<React.SetStateAction<boolean>>;
 
-  isHistoryVisible: boolean;
-  setIsHistoryVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  themeHistory: ThemeHistoryState;
-  gameLog: string[];
+  readonly isHistoryVisible: boolean;
+  readonly setIsHistoryVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly themeHistory: ThemeHistoryState;
+  readonly gameLog: string[];
 
-  isSettingsVisible: boolean;
-  onCloseSettings: () => void;
-  stabilityLevel: number;
-  chaosLevel: number;
-  onStabilityChange: (v: number) => void;
-  onChaosChange: (v: number) => void;
-  enabledThemePacks: ThemePackName[];
-  onToggleThemePack: (p: ThemePackName) => void;
-  playerGender: string;
-  onPlayerGenderChange: (g: string) => void;
-  isCustomGameMode: boolean;
+  readonly isSettingsVisible: boolean;
+  readonly onCloseSettings: () => void;
+  readonly stabilityLevel: number;
+  readonly chaosLevel: number;
+  readonly onStabilityChange: (v: number) => void;
+  readonly onChaosChange: (v: number) => void;
+  readonly enabledThemePacks: ThemePackName[];
+  readonly onToggleThemePack: (p: ThemePackName) => void;
+  readonly playerGender: string;
+  readonly onPlayerGenderChange: (g: string) => void;
+  readonly isCustomGameMode: boolean;
 
-  isInfoVisible: boolean;
-  onCloseInfo: () => void;
+  readonly isInfoVisible: boolean;
+  readonly onCloseInfo: () => void;
 
-  isMapVisible: boolean;
-  onCloseMap: () => void;
-  currentThemeName: string | null;
-  currentMapNodeId: string | null;
-  destinationNodeId: string | null;
-  itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (id: string | null) => void;
-  initialLayoutConfig: MapLayoutConfig;
-  initialViewBox: string;
-  onViewBoxChange: (viewBox: string) => void;
-  onNodesPositioned: (nodes: MapNode[]) => void;
-  onLayoutConfigChange: (cfg: MapLayoutConfig) => void;
+  readonly isMapVisible: boolean;
+  readonly onCloseMap: () => void;
+  readonly currentThemeName: string | null;
+  readonly currentMapNodeId: string | null;
+  readonly destinationNodeId: string | null;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
+  readonly onSelectDestination: (id: string | null) => void;
+  readonly initialLayoutConfig: MapLayoutConfig;
+  readonly initialViewBox: string;
+  readonly onViewBoxChange: (viewBox: string) => void;
+  readonly onNodesPositioned: (nodes: MapNode[]) => void;
+  readonly onLayoutConfigChange: (cfg: MapLayoutConfig) => void;
 
-  newGameFromMenuConfirmOpen: boolean;
-  confirmNewGameFromMenu: () => void;
-  cancelNewGameFromMenu: () => void;
-  newCustomGameConfirmOpen: boolean;
-  confirmNewCustomGame: () => void;
-  cancelNewCustomGame: () => void;
-  loadGameFromMenuConfirmOpen: boolean;
-  confirmLoadGameFromMenu: () => void;
-  cancelLoadGameFromMenu: () => void;
-  shiftConfirmOpen: boolean;
-  confirmShift: () => void;
-  cancelShift: () => void;
-  isCustomGameModeShift: boolean;
+  readonly newGameFromMenuConfirmOpen: boolean;
+  readonly confirmNewGameFromMenu: () => void;
+  readonly cancelNewGameFromMenu: () => void;
+  readonly newCustomGameConfirmOpen: boolean;
+  readonly confirmNewCustomGame: () => void;
+  readonly cancelNewCustomGame: () => void;
+  readonly loadGameFromMenuConfirmOpen: boolean;
+  readonly confirmLoadGameFromMenu: () => void;
+  readonly cancelLoadGameFromMenu: () => void;
+  readonly shiftConfirmOpen: boolean;
+  readonly confirmShift: () => void;
+  readonly cancelShift: () => void;
+  readonly isCustomGameModeShift: boolean;
 }
 
 const AppModals: React.FC<AppModalsProps> = (props) => {

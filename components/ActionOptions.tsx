@@ -10,13 +10,13 @@ import { Item, Character, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
 interface ActionOptionsProps {
-  options: string[];
-  onActionSelect: (action: string) => void;
-  disabled: boolean;
-  inventory: Item[];
-  mapData: MapNode[];
-  allCharacters: Character[];
-  currentThemeName: string | null;
+  readonly options: string[];
+  readonly onActionSelect: (action: string) => void;
+  readonly disabled: boolean;
+  readonly inventory: Item[];
+  readonly mapData: MapNode[];
+  readonly allCharacters: Character[];
+  readonly currentThemeName: string | null;
 }
 
 /**

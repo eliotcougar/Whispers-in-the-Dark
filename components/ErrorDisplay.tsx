@@ -6,8 +6,8 @@
 import React from 'react';
 
 interface ErrorDisplayProps {
-  message: string;
-  onRetry?: () => void;
+  readonly message: string;
+  readonly onRetry?: () => void;
 }
 
 /**

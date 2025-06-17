@@ -25,8 +25,8 @@ interface DisplayableItems {
 }
 
 interface ItemChangeAnimatorProps {
-  lastTurnChanges: TurnChanges | null;
-  isGameBusy: boolean;
+  readonly lastTurnChanges: TurnChanges | null;
+  readonly isGameBusy: boolean;
 }
 
 const ANIMATION_TRANSITION_DURATION_MS = 600;

@@ -8,17 +8,17 @@ import { ThemePackName, ALL_THEME_PACK_NAMES } from '../themes';
 import { DEFAULT_PLAYER_GENDER } from '../constants';
 
 interface SettingsDisplayProps {
-  isVisible: boolean;
-  onClose: () => void;
-  stabilityLevel: number;
-  chaosLevel: number;
-  onStabilityChange: (value: number) => void;
-  onChaosChange: (value: number) => void;
-  enabledThemePacks: ThemePackName[];
-  onToggleThemePack: (packName: ThemePackName) => void;
-  playerGender: string;
-  onPlayerGenderChange: (gender: string) => void;
-  isCustomGameMode: boolean;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
+  readonly stabilityLevel: number;
+  readonly chaosLevel: number;
+  readonly onStabilityChange: (value: number) => void;
+  readonly onChaosChange: (value: number) => void;
+  readonly enabledThemePacks: ThemePackName[];
+  readonly onToggleThemePack: (packName: ThemePackName) => void;
+  readonly playerGender: string;
+  readonly onPlayerGenderChange: (gender: string) => void;
+  readonly isCustomGameMode: boolean;
 }
 
 /**

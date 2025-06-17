@@ -10,19 +10,19 @@ import LoadingSpinner from './LoadingSpinner';
 import ModelUsageIndicators from './ModelUsageIndicators';
 
 interface DialogueDisplayProps {
-  isVisible: boolean;
-  onClose: () => void; 
-  history: DialogueHistoryEntry[];
-  options: string[];
-  onOptionSelect: (option: string) => void;
-  participants: string[];
-  isLoading: boolean; 
-  isDialogueExiting?: boolean;
-  inventory: Item[];
-  mapData: MapNode[]; 
-  allCharacters: Character[];
-  currentThemeName: string | null;
-  loadingReason: LoadingReason | null; // Added prop
+  readonly isVisible: boolean;
+  readonly onClose: () => void; 
+  readonly history: DialogueHistoryEntry[];
+  readonly options: string[];
+  readonly onOptionSelect: (option: string) => void;
+  readonly participants: string[];
+  readonly isLoading: boolean; 
+  readonly isDialogueExiting?: boolean;
+  readonly inventory: Item[];
+  readonly mapData: MapNode[]; 
+  readonly allCharacters: Character[];
+  readonly currentThemeName: string | null;
+  readonly loadingReason: LoadingReason | null; // Added prop
 }
 
 /**

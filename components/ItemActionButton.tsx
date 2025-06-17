@@ -1,11 +1,11 @@
 import React from 'react';
 
 interface ItemActionButtonProps {
-  label: React.ReactNode;
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  disabled?: boolean;
-  ariaLabel: string;
-  className?: string;
+  readonly label: React.ReactNode;
+  readonly onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly disabled?: boolean;
+  readonly ariaLabel: string;
+  readonly className?: string;
 }
 
 /**

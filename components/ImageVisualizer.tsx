@@ -18,18 +18,18 @@ if (!isApiConfigured()) {
 }
 
 interface ImageVisualizerProps {
-  currentSceneDescription: string;
-  currentTheme: AdventureTheme | null;
-  mapData: MapNode[]; 
-  allCharacters: Character[];
-  localTime: string | null; 
-  localEnvironment: string | null; 
-  localPlace: string | null;
-  isVisible: boolean;
-  onClose: () => void;
-  setGeneratedImage: (url: string, scene: string) => void; 
-  cachedImageUrl: string | null;
-  cachedImageScene: string | null;
+  readonly currentSceneDescription: string;
+  readonly currentTheme: AdventureTheme | null;
+  readonly mapData: MapNode[]; 
+  readonly allCharacters: Character[];
+  readonly localTime: string | null; 
+  readonly localEnvironment: string | null; 
+  readonly localPlace: string | null;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
+  readonly setGeneratedImage: (url: string, scene: string) => void; 
+  readonly cachedImageUrl: string | null;
+  readonly cachedImageScene: string | null;
 }
 
 /**

@@ -8,12 +8,12 @@ import { AdventureTheme, ThemePackName } from '../types';
 import { THEME_PACKS } from '../themes'; // To get pack names and structure
 
 interface CustomGameSetupScreenProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onThemeSelected: (themeName: string) => void;
-  disabledThemeName?: string | null; // Optional: Name of a theme to disable
-  titleText?: string; // Optional: Custom title for the screen
-  descriptionText?: string; // Optional: Custom description text
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
+  readonly onThemeSelected: (themeName: string) => void;
+  readonly disabledThemeName?: string | null; // Optional: Name of a theme to disable
+  readonly titleText?: string; // Optional: Custom title for the screen
+  readonly descriptionText?: string; // Optional: Custom description text
 }
 
 /**

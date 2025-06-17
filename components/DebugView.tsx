@@ -10,12 +10,12 @@ import { TravelStep } from '../utils/mapPathfinding';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
 interface DebugViewProps {
-  isVisible: boolean;
-  onClose: () => void;
-  debugPacket: DebugPacket | null;
-  gameStateStack: GameStateStack;
-  onUndoTurn: () => void; // New prop for undoing turn
-  travelPath: TravelStep[] | null;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
+  readonly debugPacket: DebugPacket | null;
+  readonly gameStateStack: GameStateStack;
+  readonly onUndoTurn: () => void; // New prop for undoing turn
+  readonly travelPath: TravelStep[] | null;
 }
 
 type DebugTab =

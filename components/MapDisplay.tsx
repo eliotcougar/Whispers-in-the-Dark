@@ -22,19 +22,19 @@ import MapControls from './map/MapControls';
 
 
 interface MapDisplayProps {
-  mapData: MapData;
-  currentThemeName: string | null;
-  currentMapNodeId: string | null;
-  destinationNodeId: string | null;
-  itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (nodeId: string | null) => void;
-  initialLayoutConfig: MapLayoutConfig;
-  initialViewBox: string;
-  onViewBoxChange: (newViewBox: string) => void;
-  onNodesPositioned: (nodes: MapNode[]) => void;
-  onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
-  isVisible: boolean;
-  onClose: () => void;
+  readonly mapData: MapData;
+  readonly currentThemeName: string | null;
+  readonly currentMapNodeId: string | null;
+  readonly destinationNodeId: string | null;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
+  readonly onSelectDestination: (nodeId: string | null) => void;
+  readonly initialLayoutConfig: MapLayoutConfig;
+  readonly initialViewBox: string;
+  readonly onViewBoxChange: (newViewBox: string) => void;
+  readonly onNodesPositioned: (nodes: MapNode[]) => void;
+  readonly onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
 }
 
 /**

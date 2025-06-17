@@ -7,8 +7,8 @@ import React from 'react';
 import { CURRENT_SAVE_GAME_VERSION, GEMINI_MODEL_NAME } from '../constants'; // For displaying versions
 
 interface InfoDisplayProps {
-  isVisible: boolean;
-  onClose: () => void;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
 }
 
 /**

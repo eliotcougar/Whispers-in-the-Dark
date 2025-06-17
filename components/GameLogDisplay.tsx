@@ -7,7 +7,7 @@ import React, { useRef } from 'react';
 import { LogIcon } from './icons.tsx'; // Updated import
 
 interface GameLogDisplayProps {
-  messages: string[];
+  readonly messages: string[];
 }
 
 /**

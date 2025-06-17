@@ -9,10 +9,10 @@ import { InventoryIcon, TrashIcon } from './icons.tsx';
 import ItemActionButton from './ItemActionButton';
 
 interface InventoryDisplayProps {
-  items: Item[];
-  onItemInteract: (item: Item, interactionType: 'generic' | 'specific' | 'inspect', knownUse?: KnownUse) => void;
-  onDropItem: (itemName: string) => void;
-  disabled: boolean;
+  readonly items: Item[];
+  readonly onItemInteract: (item: Item, interactionType: 'generic' | 'specific' | 'inspect', knownUse?: KnownUse) => void;
+  readonly onDropItem: (itemName: string) => void;
+  readonly disabled: boolean;
 }
 
 type SortOrder = 'default' | 'name' | 'type';
@@ -20,7 +20,7 @@ type SortOrder = 'default' | 'name' | 'type';
 /**
  * Displays the item type label with theme-based coloring.
  */
-export const ItemTypeDisplay: React.FC<{ type: Item['type'] }> = ({ type }) => {
+export const ItemTypeDisplay: React.FC<{ readonly type: Item['type'] }> = ({ type }) => {
   const colorMap: Record<Item['type'], string> = {
     'single-use': 'text-red-400',
     'multi-use': 'text-yellow-400',

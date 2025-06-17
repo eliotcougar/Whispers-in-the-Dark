@@ -8,10 +8,10 @@ import { Character, AdventureTheme } from '../types';
 import { CompanionIcon, NearbyNPCIcon } from './icons.tsx'; 
 
 interface KnowledgeBaseProps {
-  allCharacters: Character[];
-  currentTheme: AdventureTheme | null; // Changed to AdventureTheme object
-  isVisible: boolean;
-  onClose: () => void;
+  readonly allCharacters: Character[];
+  readonly currentTheme: AdventureTheme | null; // Changed to AdventureTheme object
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
 }
 
 interface GroupedEntities {

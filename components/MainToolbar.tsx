@@ -10,17 +10,17 @@ import {
 } from './icons.tsx';
 
 interface MainToolbarProps {
-  score: number;
-  isLoading: boolean;
-  currentThemeName: string | null;
-  currentSceneExists: boolean;
-  onOpenVisualizer: () => void;
-  onOpenKnowledgeBase: () => void;
-  onOpenHistory: () => void;
-  onOpenMap: () => void; // Added for Map
-  onOpenTitleMenu: () => void;
-  onManualRealityShift: () => void;
-  turnsSinceLastShift: number;
+  readonly score: number;
+  readonly isLoading: boolean;
+  readonly currentThemeName: string | null;
+  readonly currentSceneExists: boolean;
+  readonly onOpenVisualizer: () => void;
+  readonly onOpenKnowledgeBase: () => void;
+  readonly onOpenHistory: () => void;
+  readonly onOpenMap: () => void; // Added for Map
+  readonly onOpenTitleMenu: () => void;
+  readonly onManualRealityShift: () => void;
+  readonly turnsSinceLastShift: number;
 }
 
 /**
