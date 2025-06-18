@@ -237,13 +237,15 @@ function MapNodeView({
     const isParent = (n: MapNode) => childrenMap.has(n.id);
 
     const fontSizeFor = (n: MapNode) => (isSmallFontType(n.data.nodeType) ? 7 : 12);
-    const linesCache: Record<string, string[]> = {};
-    const getLines = (n: MapNode): string[] => {
-      if (linesCache[n.id]) return linesCache[n.id];
-      const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
-      linesCache[n.id] = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
-      return linesCache[n.id];
-    };
+      const linesCache: Record<string, string[] | undefined> = {};
+      const getLines = (n: MapNode): string[] => {
+        const cached = linesCache[n.id];
+        if (cached) return cached;
+        const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
+        const lines = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
+        linesCache[n.id] = lines;
+        return lines;
+      };
 
     const labelHeight = (n: MapNode) =>
       getLines(n).length * fontSizeFor(n) * DEFAULT_LABEL_LINE_HEIGHT_EM;
@@ -430,7 +432,7 @@ function MapNodeView({
       let content = `${node.placeName}`;
       if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
       if (node.data.description) content += `\n${node.data.description}`;
-      if (node.data.status) content += `\nStatus: ${node.data.status}`;
+      content += `\nStatus: ${node.data.status}`;
       const anchor = computeAnchor(x, y, svgRect);
       if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
       tooltipTimeout.current = window.setTimeout(() => {
@@ -462,7 +464,7 @@ function MapNodeView({
       let content = `${node.placeName}`;
       if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
       if (node.data.description) content += `\n${node.data.description}`;
-      if (node.data.status) content += `\nStatus: ${node.data.status}`;
+      content += `\nStatus: ${node.data.status}`;
       setIsTooltipLocked(true);
       const anchor = computeAnchor(x, y, svgRect);
       setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId });

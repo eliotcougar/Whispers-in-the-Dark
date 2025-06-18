@@ -233,6 +233,7 @@ function ItemChangeAnimator({
         setIsCardVisibleClass(true); // Add .visible class, triggers transition from base (scale 0.1, op 0)
         const item = currentAnimatingItem;
         activeTimeoutRef.current = window.setTimeout(() => {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (!isGameBusy && currentAnimatingItem === item) {
             setAnimationStep('visible');
           }
@@ -248,6 +249,7 @@ function ItemChangeAnimator({
 
         const itemAfterVisible = currentAnimatingItem;
         activeTimeoutRef.current = window.setTimeout(() => {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (!isGameBusy && currentAnimatingItem === itemAfterVisible) {
             setAnimationStep('disappearing');
           }

@@ -225,7 +225,7 @@ function DebugView({
               )
             </button>
 
-              {renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]")}
+            {renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]")}
 
             {previousState ? renderContent("Previous Game State (Stack[1] - Bottom)", previousState, true, "max-h-[30vh]") : null}
           </>

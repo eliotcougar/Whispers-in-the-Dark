@@ -87,13 +87,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       enabledThemePacks: enabledThemePacksProp,
       stabilityLevel: stabilityLevelProp,
       chaosLevel: chaosLevelProp,
-      mapData: currentFullState.mapData || { nodes: [], edges: [] },
-      currentMapNodeId: currentFullState.currentMapNodeId || null,
-      destinationNodeId: currentFullState.destinationNodeId || null,
-      mapLayoutConfig: currentFullState.mapLayoutConfig || getDefaultMapLayoutConfig(),
-      mapViewBox: currentFullState.mapViewBox,
-      isCustomGameMode: currentFullState.isCustomGameMode ?? false,
-      isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection ?? false,
+        mapData: currentFullState.mapData,
+        currentMapNodeId: currentFullState.currentMapNodeId,
+        destinationNodeId: currentFullState.destinationNodeId,
+        mapLayoutConfig: currentFullState.mapLayoutConfig,
+        mapViewBox: currentFullState.mapViewBox,
+        isCustomGameMode: currentFullState.isCustomGameMode,
+        isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection,
       globalTurnNumber: currentFullState.globalTurnNumber,
       currentThemeObject: currentFullState.currentThemeObject,
     };
@@ -132,10 +132,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           setError(`Failed to apply loaded state: Theme "${savedStateToLoad.currentThemeName}" not found. Game state may be unstable.`);
         }
 
-        const mapDataToApply = savedStateToLoad.mapData || { nodes: [], edges: [] };
-        const currentMapNodeIdToApply = savedStateToLoad.currentMapNodeId || null;
-        const destinationToApply = savedStateToLoad.destinationNodeId || null;
-        const mapLayoutConfigToApply = savedStateToLoad.mapLayoutConfig || getDefaultMapLayoutConfig();
+        const mapDataToApply = savedStateToLoad.mapData;
+        const currentMapNodeIdToApply = savedStateToLoad.currentMapNodeId;
+        const destinationToApply = savedStateToLoad.destinationNodeId;
+        const mapLayoutConfigToApply = savedStateToLoad.mapLayoutConfig;
         if (typeof mapLayoutConfigToApply.NESTED_PADDING !== 'number') {
           mapLayoutConfigToApply.NESTED_PADDING = getDefaultMapLayoutConfig().NESTED_PADDING;
         }
@@ -150,10 +150,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           currentMapNodeId: currentMapNodeIdToApply,
           destinationNodeId: destinationToApply,
           mapLayoutConfig: mapLayoutConfigToApply,
-          mapViewBox: savedStateToLoad.mapViewBox || DEFAULT_VIEWBOX,
-          isCustomGameMode: savedStateToLoad.isCustomGameMode ?? false,
-          isAwaitingManualShiftThemeSelection: savedStateToLoad.isAwaitingManualShiftThemeSelection ?? false,
-          globalTurnNumber: savedStateToLoad.globalTurnNumber ?? 0,
+          mapViewBox: savedStateToLoad.mapViewBox,
+          isCustomGameMode: savedStateToLoad.isCustomGameMode,
+          isAwaitingManualShiftThemeSelection: savedStateToLoad.isAwaitingManualShiftThemeSelection,
+          globalTurnNumber: savedStateToLoad.globalTurnNumber,
         } as FullGameState;
 
         commitGameState(stateWithMapData);
@@ -419,7 +419,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     if (!currentFullState.currentThemeName) {
       await loadInitialGame({
         isRestart: true,
-        customGameFlag: currentFullState.isCustomGameMode ?? false,
+        customGameFlag: currentFullState.isCustomGameMode,
       });
       return;
     }

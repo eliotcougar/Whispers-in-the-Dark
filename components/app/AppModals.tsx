@@ -85,7 +85,6 @@ function AppModals(props: AppModalsProps) {
     setIsHistoryVisible(false);
   }, [setIsHistoryVisible]);
 
-  if (!props.currentTheme) return null;
   return (
     <>
       <ImageVisualizer
