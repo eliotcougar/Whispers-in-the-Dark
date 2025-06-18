@@ -177,7 +177,7 @@ function MapDisplay({
     <div
       aria-labelledby="map-display-title"
       aria-modal="true"
-      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      className="animated-frame open"
       role="dialog"
     >
       <div className="animated-frame-content">

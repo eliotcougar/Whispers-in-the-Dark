@@ -31,11 +31,7 @@ import { useSaveLoad } from '../../hooks/useSaveLoad';
 import { useModalState } from '../../hooks/useModalState';
 import { findTravelPath, TravelStep } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
-import {
-  applyNestedCircleLayout,
-  DEFAULT_NESTED_PADDING,
-  DEFAULT_NESTED_ANGLE_PADDING,
-} from '../../utils/mapLayoutUtils';
+import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 
 import { saveGameStateToLocalStorage } from '../../services/storage';
 
@@ -464,12 +460,10 @@ function App() {
     if (isMapVisible && !prevMapVisibleRef.current) {
       const layoutNodes = applyNestedCircleLayout(
         mapData.nodes.filter(n => n.themeName === currentTheme?.name).map(n => ({ ...n })),
-        {
-          padding:
-            mapLayoutConfig?.NESTED_PADDING ?? DEFAULT_NESTED_PADDING,
-          anglePadding:
-            mapLayoutConfig?.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING,
-        }
+          {
+            padding: mapLayoutConfig.NESTED_PADDING,
+            anglePadding: mapLayoutConfig.NESTED_ANGLE_PADDING,
+          }
       );
       handleMapNodesPositionChange(layoutNodes);
 

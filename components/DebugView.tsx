@@ -474,17 +474,17 @@ function DebugView({
             No destination set.
           </p>);
         }
-        const mapData = currentState?.mapData;
+        const mapData = currentState.mapData;
         const expanded = travelPath.map(step => {
           if (step.step === 'node') {
-            const node = mapData?.nodes.find(n => n.id === step.id);
+            const node = mapData.nodes.find(n => n.id === step.id);
             return { step: 'node', data: node || { id: step.id, missing: true } };
           }
           if (step.id.startsWith('hierarchy:')) {
             const [from, to] = step.id.split(':')[1].split('->');
             return { step: 'hierarchy', from, to };
           }
-          const edge = mapData?.edges.find(e => e.id === step.id);
+          const edge = mapData.edges.find(e => e.id === step.id);
           return { step: 'edge', data: edge || { id: step.id, missing: true } };
         });
         return (

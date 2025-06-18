@@ -227,25 +227,33 @@ function ItemChangeAnimator({
     clearActiveTimeout(); // Clear any previous step's timeout
 
     switch (animationStep) {
-      case 'appearing':
+      case 'appearing': {
         setExplicitDisappearClass(null); // CRITICAL: Reset specific disappear styles for a clean "appear"
         setActiveGlowType(null);
         setIsCardVisibleClass(true); // Add .visible class, triggers transition from base (scale 0.1, op 0)
+        const item = currentAnimatingItem;
         activeTimeoutRef.current = window.setTimeout(() => {
-          if (!isGameBusy && currentAnimatingItem) setAnimationStep('visible');
+          if (!isGameBusy && currentAnimatingItem === item) {
+            setAnimationStep('visible');
+          }
         }, ANIMATION_TRANSITION_DURATION_MS);
         break;
+      }
 
-      case 'visible':
+      case 'visible': {
         // Apply glow based on item type
         if (currentAnimatingItem.type === 'gain') setActiveGlowType('gain');
         else if (currentAnimatingItem.type === 'loss') setActiveGlowType('loss');
-        else if (currentAnimatingItem.type === 'change') setActiveGlowType('change-new');
-        
+        else setActiveGlowType('change-new');
+
+        const itemAfterVisible = currentAnimatingItem;
         activeTimeoutRef.current = window.setTimeout(() => {
-          if (!isGameBusy && currentAnimatingItem) setAnimationStep('disappearing');
+          if (!isGameBusy && currentAnimatingItem === itemAfterVisible) {
+            setAnimationStep('disappearing');
+          }
         }, HOLD_DURATION_MS);
         break;
+      }
 
       case 'disappearing':
         setActiveGlowType(null); // Remove glow before disappearing
