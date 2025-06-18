@@ -304,7 +304,7 @@ async function handleCharacterChanges(
 
                 if (charInAddedList.presenceStatus === 'distant' || charInAddedList.presenceStatus === 'unknown') {
                     charInAddedList.preciseLocation = null;
-                } else if ((charInAddedList.presenceStatus === 'nearby' || charInAddedList.presenceStatus === 'companion') && charInAddedList.preciseLocation === null) {
+                } else if (charInAddedList.preciseLocation === null) {
                     charInAddedList.preciseLocation = charInAddedList.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
                 }
                 finalCharactersAdded[charAddedThisTurnIndex] = charInAddedList;
@@ -333,7 +333,9 @@ async function handleCharacterChanges(
                 );
                 if (correctedDetails) {
                     newCharDataFromUpdate.description = correctedDetails.description;
-                    newCharDataFromUpdate.aliases = Array.from(new Set([...(newCharDataFromUpdate.aliases || []), ...(correctedDetails.aliases || [])]));
+                    newCharDataFromUpdate.aliases = Array.from(
+                        new Set([...(newCharDataFromUpdate.aliases ?? []), ...correctedDetails.aliases])
+                    );
                     newCharDataFromUpdate.presenceStatus = correctedDetails.presenceStatus;
                     newCharDataFromUpdate.lastKnownLocation = correctedDetails.lastKnownLocation;
                     newCharDataFromUpdate.preciseLocation = correctedDetails.preciseLocation;
@@ -342,7 +344,7 @@ async function handleCharacterChanges(
 
             if (newCharDataFromUpdate.presenceStatus === 'distant' || newCharDataFromUpdate.presenceStatus === 'unknown') {
                 newCharDataFromUpdate.preciseLocation = null;
-            } else if ((newCharDataFromUpdate.presenceStatus === 'nearby' || newCharDataFromUpdate.presenceStatus === 'companion') && newCharDataFromUpdate.preciseLocation === null) {
+            } else if (newCharDataFromUpdate.preciseLocation === null) {
                 newCharDataFromUpdate.preciseLocation = newCharDataFromUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
             }
 
@@ -407,7 +409,7 @@ export async function parseAIResponse(
         validated.charactersAdded = charResult.charactersAdded;
         validated.charactersUpdated = charResult.charactersUpdated;
 
-        if (isDialogueTurn && validated.dialogueSetup && validated.dialogueSetup.participants) {
+        if (isDialogueTurn && validated.dialogueSetup) {
             const allAvailableCharacterNamesThisTurn = new Set([
                 ...allRelevantCharacters.map(c => c.name),
                 ...validated.charactersAdded.map(c => c.name),

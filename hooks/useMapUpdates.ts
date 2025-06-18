@@ -91,10 +91,9 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
             }
           }
         });
-        if (!changed) return prev;
         const newMapData = { ...baseState.mapData, nodes: Array.from(nodeMap.values()) };
         const newState = { ...baseState, mapData: newMapData };
-        return [newState, prev[1]];
+        return changed ? [newState, prev[1]] : prev;
       });
     },
     [setGameStateStack]

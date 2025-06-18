@@ -6,6 +6,7 @@ import {
   SavedGameDataShape,
   Item,
   ThemeHistoryState,
+  ThemeMemory,
   AdventureTheme,
   Character,
   ThemePackName,
@@ -19,8 +20,6 @@ import {
 } from '../../types';
 import {
   CURRENT_SAVE_GAME_VERSION,
-  DEFAULT_STABILITY_LEVEL,
-  DEFAULT_CHAOS_LEVEL,
   VALID_ITEM_TYPES,
   VALID_PRESENCE_STATUS_VALUES,
   PLAYER_HOLDER_ID,
@@ -73,7 +72,7 @@ export function isValidThemeHistory(history: unknown): history is ThemeHistorySt
   const record = history as Record<string, unknown>;
   for (const key in record) {
     if (Object.prototype.hasOwnProperty.call(record, key)) {
-      const entry = record[key] as Partial<ThemeHistoryState[string]>;
+      const entry = record[key] as Partial<ThemeMemory> | undefined;
       if (
         !entry ||
         typeof entry.summary !== 'string' ||
@@ -134,9 +133,7 @@ export function isValidMapNodeData(data: unknown): data is MapNodeData {
       ['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(maybe.status)) &&
     (maybe.visited === undefined || typeof maybe.visited === 'boolean') &&
     (maybe.isFeature === undefined || typeof maybe.isFeature === 'boolean') &&
-    (maybe.parentNodeId === undefined ||
-      maybe.parentNodeId === null ||
-      typeof maybe.parentNodeId === 'string')
+    (maybe.parentNodeId === undefined || typeof maybe.parentNodeId === 'string')
   );
 }
 
@@ -167,8 +164,7 @@ export function isValidMapEdge(edge: unknown): edge is MapEdge {
     maybe.sourceNodeId.trim() !== '' &&
     typeof maybe.targetNodeId === 'string' &&
     maybe.targetNodeId.trim() !== '' &&
-    typeof maybe.data === 'object' &&
-    maybe.data !== null
+    typeof maybe.data === 'object'
   );
 }
 
@@ -320,7 +316,7 @@ export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined):
     return;
   }
   mapData.nodes.forEach(node => {
-    if (!node.data || typeof node.data !== 'object') {
+    if (!node.data) {
       node.data = {} as MapNodeData;
     }
     if (typeof node.data.description !== 'string') {
@@ -331,7 +327,7 @@ export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined):
     } else {
       node.data.aliases = node.data.aliases.filter(alias => typeof alias === 'string');
     }
-    if (node.data.status === undefined || !['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(node.data.status)) {
+    if (!['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(node.data.status)) {
       node.data.status = 'discovered';
     }
     if (typeof node.data.visited !== 'boolean') {
@@ -350,12 +346,7 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     isJunk: item.isJunk ?? false,
     holderId: item.holderId || PLAYER_HOLDER_ID,
   }));
-  data.score = data.score ?? 0;
-  data.stabilityLevel = data.stabilityLevel ?? DEFAULT_STABILITY_LEVEL;
-  data.chaosLevel = data.chaosLevel ?? DEFAULT_CHAOS_LEVEL;
-  data.localTime = data.localTime ?? null;
-  data.localEnvironment = data.localEnvironment ?? null;
-  data.localPlace = data.localPlace ?? null;
+  // Numeric fields and nullable strings are guaranteed by validation
   data.allCharacters = data.allCharacters.map((c: unknown) => {
     const char = c as Partial<Character>;
     return {

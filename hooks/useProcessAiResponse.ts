@@ -179,7 +179,7 @@ export const useProcessAiResponse = ({
         ];
       }
 
-      const aiItemChangesFromParser = aiData.itemChange || [];
+      const aiItemChangesFromParser = aiData.itemChange;
       const correctedAndVerifiedItemChanges: ItemChange[] = [];
       if (themeContextForResponse) {
         for (const change of aiItemChangesFromParser) {
@@ -286,7 +286,7 @@ export const useProcessAiResponse = ({
         setLoadingReason(originalLoadingReason);
         if (invResult) {
           combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
-          if (draftState.lastDebugPacket) draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
+            draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
         }
       }
 

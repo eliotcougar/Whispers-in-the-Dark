@@ -148,7 +148,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const { dialogueState } = latestState;
         if (
           !isDialogueExiting &&
-          !(dialogueState?.options.length === 0 && dialogueState?.history.length > 0)
+          !(dialogueState && dialogueState.options.length === 0 && dialogueState.history.length > 0)
         ) {
           setIsLoading(false);
           setLoadingReason(null);
