@@ -52,9 +52,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   // applied to prevent re-loading it when starting a new game.
   const hasLoadedInitialSave = useRef<boolean>(false);
 
-  const triggerShiftRef = useRef<(c?: boolean) => void>(() => {});
-  const manualShiftRef = useRef<() => void>(() => {});
-  const loadInitialGameRef = useRef<(opts: LoadInitialGameOptions) => Promise<void>>(async () => {});
+  const triggerShiftRef = useRef<(c?: boolean) => void>(() => undefined);
+  const manualShiftRef = useRef<() => void>(() => undefined);
+  const loadInitialGameRef = useRef<(opts: LoadInitialGameOptions) => Promise<void>>(
+    () => Promise.resolve(),
+  );
 
   const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
   const commitGameState = useCallback((newGameState: FullGameState) => {

@@ -352,7 +352,7 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     const char = c as Partial<Character>;
     return {
       ...char,
-      id: char.id ?? buildCharacterId(char.name!),
+      id: char.id ?? buildCharacterId(char.name ?? ''),
       aliases: char.aliases ?? [],
       presenceStatus: char.presenceStatus ?? 'unknown',
       lastKnownLocation: char.lastKnownLocation ?? null,

@@ -158,8 +158,7 @@ Respond ONLY with the corrected JSON object.`;
       if (aiResponse) {
         const parsedResponse = parseDialogueTurnResponse(aiResponse, npcThoughts);
         if (
-          parsedResponse &&
-          parsedResponse.npcResponses.every(r => validParticipants.includes(r.speaker))
+          parsedResponse?.npcResponses.every(r => validParticipants.includes(r.speaker))
         ) {
           return { result: parsedResponse };
         }

@@ -283,7 +283,7 @@ Return ONLY a JSON object strictly matching this structure:
   } else if (typeof parsed === 'object') {
     result = parsed as AIMapUpdatePayload;
   }
-  debugInfo.parsedPayload = result!;
+  debugInfo.parsedPayload = result || undefined;
   if (result) {
     if (result.observations && !debugInfo.observations) debugInfo.observations = result.observations;
     if (result.rationale && !debugInfo.rationale) debugInfo.rationale = result.rationale;

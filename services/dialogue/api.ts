@@ -117,8 +117,8 @@ export const executeDialogueTurn = async (
           thought?: boolean;
         }>;
       const thoughtParts = parts
-        .filter(p => p.thought === true && typeof p.text === 'string')
-        .map(p => p.text!);
+        .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+        .map(p => p.text);
       let parsed = parseDialogueTurnResponse(response.text ?? '', thoughtParts);
       if (!parsed) {
         parsed = await fetchCorrectedDialogueTurn_Service(
@@ -178,7 +178,9 @@ export const executeDialogueSummary = async (
         label: 'Storyteller',
       });
       const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
-      const thoughtParts = parts.filter(p => p.thought === true && typeof p.text === 'string').map(p => p.text!);
+      const thoughtParts = parts
+        .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+        .map(p => p.text);
       const parsed = await parseAIResponse(
         response.text ?? '',
         summaryContext.playerGender,

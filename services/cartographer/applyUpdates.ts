@@ -698,7 +698,7 @@ export const applyMapUpdates = async ({
         );
         attempt++;
       }
-      if (chainResult && chainResult.payload) {
+      if (chainResult?.payload) {
         chainRequests = [];
         (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
           const nodeData = nAdd.data;

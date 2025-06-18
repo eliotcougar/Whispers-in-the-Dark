@@ -116,7 +116,7 @@ const turnChanges: TurnChanges = {
   scoreChangedBy: 0
 };
 
-await handleMapUpdates(aiData, draftState, baseState, theme, null, () => {}, turnChanges);
+await handleMapUpdates(aiData, draftState, baseState, theme, null, () => undefined, turnChanges);
 
 const updatedMaybe = draftState.mapData.nodes.find(n => n.id === 'node_rim_test');
 if (!updatedMaybe) throw new Error('node_rim_test not found');
@@ -132,7 +132,7 @@ const aiData2 = {
   currentMapNodeId: 'node_utility_entrance_test'
 } as Partial<GameStateFromAI> as GameStateFromAI;
 
-await handleMapUpdates(aiData2, draftState, baseState, theme, null, () => {}, turnChanges);
+await handleMapUpdates(aiData2, draftState, baseState, theme, null, () => undefined, turnChanges);
 
 const updated2Maybe = draftState.mapData.nodes.find(n => n.id === 'node_utility_entrance_test');
 const updated3Maybe = draftState.mapData.edges.find(n => n.id === 'edge_node_rim_test_to_node_utility_entrance_test_test');
@@ -165,7 +165,7 @@ const aiData3 = {
   currentMapNodeId: 'Yellow Door'
 } as Partial<GameStateFromAI> as GameStateFromAI;
 
-await handleMapUpdates(aiData3, draftState, baseState, theme, null, () => {}, turnChanges);
+await handleMapUpdates(aiData3, draftState, baseState, theme, null, () => undefined, turnChanges);
 
 const updated6Maybe = draftState.mapData.nodes.find(n => n.id === 'node_main_entrance_test');
 if (!updated6Maybe) throw new Error('node_main_entrance_test not found');
