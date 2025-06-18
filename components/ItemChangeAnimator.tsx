@@ -227,25 +227,33 @@ function ItemChangeAnimator({
     clearActiveTimeout(); // Clear any previous step's timeout
 
     switch (animationStep) {
-      case 'appearing':
+      case 'appearing': {
         setExplicitDisappearClass(null); // CRITICAL: Reset specific disappear styles for a clean "appear"
         setActiveGlowType(null);
         setIsCardVisibleClass(true); // Add .visible class, triggers transition from base (scale 0.1, op 0)
+        const item = currentAnimatingItem;
         activeTimeoutRef.current = window.setTimeout(() => {
-          if (!isGameBusy && currentAnimatingItem) setAnimationStep('visible');
+          if (currentAnimatingItem === item) {
+            setAnimationStep('visible');
+          }
         }, ANIMATION_TRANSITION_DURATION_MS);
         break;
+      }
 
-      case 'visible':
+      case 'visible': {
         // Apply glow based on item type
         if (currentAnimatingItem.type === 'gain') setActiveGlowType('gain');
         else if (currentAnimatingItem.type === 'loss') setActiveGlowType('loss');
-        else if (currentAnimatingItem.type === 'change') setActiveGlowType('change-new');
-        
+        else setActiveGlowType('change-new');
+
+        const itemAfterVisible = currentAnimatingItem;
         activeTimeoutRef.current = window.setTimeout(() => {
-          if (!isGameBusy && currentAnimatingItem) setAnimationStep('disappearing');
+          if (currentAnimatingItem === itemAfterVisible) {
+            setAnimationStep('disappearing');
+          }
         }, HOLD_DURATION_MS);
         break;
+      }
 
       case 'disappearing':
         setActiveGlowType(null); // Remove glow before disappearing
@@ -258,14 +266,12 @@ function ItemChangeAnimator({
         setIsCardVisibleClass(false); // Remove .visible class, triggers transition to disappear class target
         
         activeTimeoutRef.current = window.setTimeout(() => {
-          if (!isGameBusy) { // Ensure game didn't become busy during the timeout
-            setCurrentAnimatingItem(null); // Mark current item as done
-            setAnimationStep('idle');     // Ready for next item or to close overlay
-            setExplicitDisappearClass(null); // Reset for next cycle
-          }
+          setCurrentAnimatingItem(null); // Mark current item as done
+          setAnimationStep('idle');     // Ready for next item or to close overlay
+          setExplicitDisappearClass(null); // Reset for next cycle
         }, ANIMATION_TRANSITION_DURATION_MS);
         break;
-    }
+      }
 
     // Cleanup function for this effect
     return () => clearActiveTimeout();
@@ -391,7 +397,7 @@ function ItemChangeAnimator({
   return (
     <div
       aria-label="Skip item animations"
-      className={`item-change-overlay ${isVisibleOverlay ? 'active' : ''}`}
+      className="item-change-overlay active"
       onClick={handleSkipAnimations}
       onKeyDown={handleKeyDown}
       role="button"

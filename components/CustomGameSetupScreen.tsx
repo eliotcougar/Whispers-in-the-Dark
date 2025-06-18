@@ -53,7 +53,7 @@ function CustomGameSetupScreen({
     <div
       aria-labelledby="custom-game-setup-title"
       aria-modal="true"
-      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      className="animated-frame open"
       role="dialog"
     >
       <div className="animated-frame-content">

@@ -99,7 +99,7 @@ export const fetchMapUpdatePayload = async (
         fixDeleteIdMixups(parsedAttempt);
         const synonymErrors = normalizeStatusAndTypeSynonyms(parsedAttempt);
         dedupeEdgeOps(parsedAttempt);
-        if (parsedAttempt && !synonymErrors.length) {
+        if (!synonymErrors.length) {
           validParsedPayload = parsedAttempt;
           debugInfo.parsedPayload = parsedAttempt;
           debugInfo.validationError = undefined;

@@ -27,7 +27,7 @@ interface MapDisplayProps {
   readonly currentThemeName: string | null;
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
-  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
   readonly onSelectDestination: (nodeId: string | null) => void;
   readonly initialLayoutConfig: MapLayoutConfig;
   readonly initialViewBox: string;
@@ -58,32 +58,30 @@ function MapDisplay({
 }: MapDisplayProps) {
   const [displayedNodes, setDisplayedNodes] = useState<MapNode[]>([]);
 
-  const [layoutIdealEdgeLength, setLayoutIdealEdgeLength] = useState(initialLayoutConfig?.IDEAL_EDGE_LENGTH ?? DEFAULT_IDEAL_EDGE_LENGTH);
+  const [layoutIdealEdgeLength, setLayoutIdealEdgeLength] = useState(
+    initialLayoutConfig.IDEAL_EDGE_LENGTH
+  );
   const [layoutNestedPadding, setLayoutNestedPadding] = useState(
-    initialLayoutConfig?.NESTED_PADDING ?? DEFAULT_NESTED_PADDING
+    initialLayoutConfig.NESTED_PADDING
   );
   const [layoutNestedAnglePadding, setLayoutNestedAnglePadding] = useState(
-    initialLayoutConfig?.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
+    initialLayoutConfig.NESTED_ANGLE_PADDING
   );
   const labelMarginPx = DEFAULT_LABEL_MARGIN_PX;
   const labelLineHeightEm = DEFAULT_LABEL_LINE_HEIGHT_EM;
   const [labelOverlapMarginPx, setLabelOverlapMarginPx] = useState(
-    initialLayoutConfig?.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX
+    initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX
   );
   const [itemIconScale, setItemIconScale] = useState(
-    initialLayoutConfig?.ITEM_ICON_SCALE ?? DEFAULT_ITEM_ICON_SCALE
+    initialLayoutConfig.ITEM_ICON_SCALE
   );
 
   useEffect(() => {
-    if (!initialLayoutConfig) return;
     const edge = initialLayoutConfig.IDEAL_EDGE_LENGTH;
-    const pad = initialLayoutConfig.NESTED_PADDING ?? DEFAULT_NESTED_PADDING;
-    const angle =
-      initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING;
-    const overlap =
-      initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX;
-    const iconScale =
-      initialLayoutConfig.ITEM_ICON_SCALE ?? DEFAULT_ITEM_ICON_SCALE;
+    const pad = initialLayoutConfig.NESTED_PADDING;
+    const angle = initialLayoutConfig.NESTED_ANGLE_PADDING;
+    const overlap = initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX;
+    const iconScale = initialLayoutConfig.ITEM_ICON_SCALE;
     setLayoutIdealEdgeLength(prev => (prev === edge ? prev : edge));
     setLayoutNestedPadding(prev => (prev === pad ? prev : pad));
     setLayoutNestedAnglePadding(prev => (prev === angle ? prev : angle));
@@ -179,7 +177,7 @@ function MapDisplay({
     <div
       aria-labelledby="map-display-title"
       aria-modal="true"
-      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      className="animated-frame open"
       role="dialog"
     >
       <div className="animated-frame-content">

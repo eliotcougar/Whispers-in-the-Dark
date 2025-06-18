@@ -26,16 +26,21 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
       </h3>
 
       <ul className="space-y-2 text-sm">
-        {messages.map((message) => (
-          <li
-            className="text-slate-400 leading-snug"
-            key={message}
-          >
-            <span className="text-emerald-500">
-              &raquo;
-            </span> {message}
-          </li>
-        ))}
+        {(() => {
+          const counts = new Map<string, number>();
+          return messages.map(message => {
+            const count = counts.get(message) ?? 0;
+            counts.set(message, count + 1);
+            return (
+              <li className="text-slate-400 leading-snug" key={`${message}-${count}`}>
+                <span className="text-emerald-500">
+                  &raquo;
+                </span>{' '}
+                {message}
+              </li>
+            );
+          });
+        })()}
 
         <div ref={logEndRef} />
       </ul>
