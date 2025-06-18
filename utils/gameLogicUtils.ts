@@ -108,7 +108,9 @@ const applyItemActionCore = (
 
   if (fromId !== null && toId !== null && fromId === toId) {
     // Update item in-place
-    const updatePayload = payload as Item;
+    const updatePayload = payload as Partial<Omit<Item, 'activeDescription'>> & {
+      activeDescription?: string | null;
+    };
     const existingItem = findItemByIdentifier([updatePayload.id, updatePayload.name], newInventory, false, true) as Item | null;
     if (!existingItem) {
       const identifierForLog = updatePayload.id || updatePayload.name || 'unknown';
@@ -277,12 +279,12 @@ export const buildItemChangeRecords = (
   const records: ItemChangeRecord[] = [];
 
   for (const change of itemChanges) {
-    if (change.item === null || change.item === undefined) continue;
+    if (change.item === null) continue;
 
     const itemPayload = change.item;
     let record: ItemChangeRecord | null = null;
 
-    if (change.action === 'gain' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
+    if (change.action === 'gain') {
       const gainedItemData = itemPayload as Item;
       if (!gainedItemData.id) {
         gainedItemData.id = buildItemId(gainedItemData.name);
@@ -326,8 +328,10 @@ export const buildItemChangeRecords = (
       const ref = itemPayload as ItemReference;
       const lostItem = findItemByIdentifier([ref.id, ref.name], currentInventory, false, true) as Item | null;
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };
-    } else if (change.action === 'update' && typeof itemPayload === 'object' && itemPayload !== null && 'name' in itemPayload) {
-      const updatePayload = itemPayload as Item;
+    } else if (change.action === 'update') {
+      const updatePayload = itemPayload as Partial<Omit<Item, 'activeDescription'>> & {
+        activeDescription?: string | null;
+      };
       const oldItem = findItemByIdentifier([updatePayload.id, updatePayload.name], currentInventory, false, true) as Item | null;
 
       if (oldItem) {
@@ -340,7 +344,7 @@ export const buildItemChangeRecords = (
           updatePayload.name !== oldItemCopy.name;
         const newItemData: Item = {
           id: oldItemCopy.id,
-          name: updatePayload.newName || (renameOnly ? updatePayload.name : oldItemCopy.name),
+          name: updatePayload.newName ?? (renameOnly ? updatePayload.name! : oldItemCopy.name),
           type: updatePayload.type !== undefined ? updatePayload.type : oldItemCopy.type,
           description: updatePayload.description !== undefined ? updatePayload.description : oldItemCopy.description,
           activeDescription: updatePayload.activeDescription !== undefined ? (updatePayload.activeDescription === null ? undefined : updatePayload.activeDescription) : oldItemCopy.activeDescription,
@@ -378,7 +382,7 @@ export const applyAllItemChanges = (
 ): Item[] => {
   let newInventory = [...currentInventory];
   for (const change of itemChanges) {
-    if (change.item === null || change.item === undefined) continue; 
+    if (change.item === null) continue;
     newInventory = applyItemChangeAction(newInventory, change);
   }
   return newInventory;

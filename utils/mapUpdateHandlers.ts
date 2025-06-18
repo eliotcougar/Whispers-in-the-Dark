@@ -63,7 +63,7 @@ export const handleMapUpdates = async (
       throw new Error(`Map update failed: ${reason}`);
     }
 
-    if (mapUpdateResult.updatedMapData && JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
+    if (JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
       turnChanges.mapDataChanged = true;
       draftState.mapData = mapUpdateResult.updatedMapData;
     }
