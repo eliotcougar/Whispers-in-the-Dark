@@ -5,6 +5,8 @@
 
 import { useCallback, useState } from 'react';
 
+/* eslint-disable react/no-multi-comp */
+
 import * as React from 'react';
 
 interface MapControlsProps {
@@ -95,7 +97,8 @@ function MapControls(props: MapControlsProps) {
     setOverlapMargin,
     itemIconScale,
     setItemIconScale,
-    onReset
+    onReset,
+    onRefreshLayout
   } = props;
 
   return (
@@ -161,10 +164,15 @@ function MapControls(props: MapControlsProps) {
           onClick={handleToggleExpanded}
           type="button"
         >
-          {expanded ? 'Hide' : 'Show'}
+          {`${expanded ? 'Hide' : 'Show'} Layout Controls`}
+        </button>
 
-          {' '}
-          Layout Controls
+        <button
+          className="map-control-button"
+          onClick={onRefreshLayout}
+          type="button"
+        >
+          Refresh Layout
         </button>
       </div>
     </div>

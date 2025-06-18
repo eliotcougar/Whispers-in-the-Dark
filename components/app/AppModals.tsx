@@ -36,7 +36,6 @@ interface AppModalsProps {
   readonly themeHistory: ThemeHistoryState;
   readonly gameLog: string[];
 
-  readonly onCloseInfo: () => void;
 
   readonly isMapVisible: boolean;
   readonly onCloseMap: () => void;

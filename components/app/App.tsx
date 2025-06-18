@@ -799,7 +799,6 @@ function App() {
         mapData={mapData}
         newCustomGameConfirmOpen={newCustomGameConfirmOpen}
         newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
-        onCloseInfo={closeInfo}
         onCloseMap={handleCloseMap}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}

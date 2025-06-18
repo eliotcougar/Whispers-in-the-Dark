@@ -46,10 +46,16 @@ export interface IconProps {
 /**
  * Renders the requested icon.
  */
-export function Icon({ name, className, size }: IconProps) {
+export function Icon({ name, className = '', size }: IconProps) {
   const svgMarkup = iconMap[name];
   const attrs = `${className ? ` class="${className}"` : ''}` +
     `${size ? ` width="${size}" height="${size}"` : ''}`;
   const rendered = svgMarkup.replace('<svg', `<svg${attrs}`);
+  // eslint-disable-next-line react/no-danger
   return <g dangerouslySetInnerHTML={{ __html: rendered }} />;
 }
+
+Icon.defaultProps = {
+  className: '',
+  size: undefined,
+};

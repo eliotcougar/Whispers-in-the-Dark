@@ -5,6 +5,8 @@
  */
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
+/* eslint-disable react/no-multi-comp */
+
 import * as React from 'react';
 import { Item, KnownUse } from '../types';
 import { Icon } from './icons.tsx';
