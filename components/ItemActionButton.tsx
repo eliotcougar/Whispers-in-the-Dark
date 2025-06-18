@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import * as React from 'react';
+import Button from './elements/Button';
 
 type ButtonVariant = 'primary' | 'danger';
 
@@ -27,7 +28,6 @@ function ItemActionButton({
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       onClick(event);
-      event.currentTarget.blur();
     },
     [onClick]
   );
@@ -40,16 +40,16 @@ function ItemActionButton({
   const selectedVariant: ButtonVariant = variant ?? 'primary';
 
   return (
-    <button
-      aria-label={ariaLabel}
-      className={`w-full text-sm text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${variantClasses[selectedVariant]}`}
+    <Button
+      ariaLabel={ariaLabel}
+      className={`w-full text-white font-medium rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${variantClasses[selectedVariant]}`}
       data-item-name={dataItemName}
       disabled={disabled}
+      label={label}
       onClick={handleClick}
+      size="sm"
       type="button"
-    >
-      {label}
-    </button>
+    />
   );
 }
 

@@ -4,6 +4,7 @@
  * @description Top-level toolbar with action buttons.
  */
 import { Icon } from './icons.tsx';
+import Button from './elements/Button';
 
 interface MainToolbarProps {
   readonly score: number;
@@ -86,107 +87,95 @@ function MainToolbar({
 
       {/* Icon Buttons */}
       <div className="flex space-x-2">
-        <button
-          aria-label="Visualize Scene"
-          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                      transition-colors duration-150"
+        <Button
+          ariaLabel="Visualize Scene"
+          className="bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName || !currentSceneExists}
-          onClick={onOpenVisualizer}
-          title="Visualize Scene"
-          type="button"
-        >
-          <Icon
+          icon={<Icon
             inline
             name="visualize"
             size={20}
-          />
-        </button>
+                />}
+          onClick={onOpenVisualizer}
+          size="md"
+          title="Visualize Scene"
+          variant="toolbar"
+        />
 
-        <button
-          aria-label="Open Knowledge Base"
-          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                      transition-colors duration-150"
+        <Button
+          ariaLabel="Open Knowledge Base"
+          className="bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
-          onClick={onOpenKnowledgeBase}
-          title="Open Knowledge Base"
-          type="button"
-        >
-          <Icon
+          icon={<Icon
             inline
             name="bookOpen"
             size={20}
-          />
-        </button>
+                />}
+          onClick={onOpenKnowledgeBase}
+          size="md"
+          title="Open Knowledge Base"
+          variant="toolbar"
+        />
 
-        <button
-          aria-label="Open History"
-          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                      transition-colors duration-150"
+        <Button
+          ariaLabel="Open History"
+          className="bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
-          onClick={onOpenHistory}
-          title="Open History"
-          type="button"
-        >
-          <Icon
+          icon={<Icon
             inline
             name="scroll"
             size={20}
-          />
-        </button>
+                />}
+          onClick={onOpenHistory}
+          size="md"
+          title="Open History"
+          variant="toolbar"
+        />
 
-        <button
-          aria-label="Open Map"
-          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                      transition-colors duration-150"
+        <Button
+          ariaLabel="Open Map"
+          className="bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
-          onClick={onOpenMap}
-          title="Open Map"
-          type="button"
-        >
-          <Icon
+          icon={<Icon
             inline
             name="map"
             size={20}
-          />
-        </button>
+                />}
+          onClick={onOpenMap}
+          size="md"
+          title="Open Map"
+          variant="toolbar"
+        />
 
-        <button
-          aria-label="Force Reality Shift"
-          className="flex items-center justify-center w-9 h-9 p-2 bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md
-                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                      transition-colors duration-150"
+        <Button
+          ariaLabel="Force Reality Shift"
+          className="bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
-          onClick={onManualRealityShift}
-          title="Force Reality Shift"
-          type="button"
-        >
-          <Icon
+          icon={<Icon
             inline
             name="realityShift"
             size={20}
-          />
-        </button>
+                />}
+          onClick={onManualRealityShift}
+          size="md"
+          title="Force Reality Shift"
+          variant="toolbar"
+        />
 
-        <button
-          aria-label="Open Title Menu"
-          className="flex items-center justify-center w-9 h-9 p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md
-                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                      transition-colors duration-150"
+        <Button
+          ariaLabel="Open Title Menu"
+          className="bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading}
-          onClick={onOpenTitleMenu}
-          title="Open Title Menu"
-          type="button"
-        >
-          <Icon
+          icon={<Icon
             inline
             name="menu"
             size={20}
-          />
-        </button>
+                />}
+          onClick={onOpenTitleMenu}
+          size="md"
+          title="Open Title Menu"
+          variant="toolbar"
+        />
       </div>
     </div>
   );

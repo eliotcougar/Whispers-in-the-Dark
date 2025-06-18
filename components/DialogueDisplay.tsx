@@ -10,6 +10,7 @@ import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '.
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 import LoadingSpinner from './LoadingSpinner';
 import ModelUsageIndicators from './ModelUsageIndicators';
+import Button from './elements/Button';
 
 interface DialogueDisplayProps {
   readonly isVisible: boolean;
@@ -100,20 +101,16 @@ function DialogueDisplay({
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {options.map(option => (
-            <button
-              className={`w-full p-3 rounded-md shadow transition-all duration-150 ease-in-out
-                          text-left text-white font-medium animate-dialogue-new-entry
-                          bg-sky-700 hover:bg-sky-600 focus:ring-2 focus:ring-sky-500 focus:outline-none
-                          disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                          border border-sky-800 hover:border-sky-500`}
+            <Button
+              ariaLabel={option}
+              className="w-full p-3 rounded-md shadow transition-all duration-150 ease-in-out text-left text-white font-medium animate-dialogue-new-entry bg-sky-700 hover:bg-sky-600 focus:ring-2 focus:ring-sky-500 focus:outline-none disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed border border-sky-800 hover:border-sky-500"
               data-option={option}
               disabled={optionsDisabled}
               key={option}
+              label={highlightEntitiesInText(option, entitiesForHighlighting)}
               onClick={handleOptionClick}
-              type="button"
-            >
-              {highlightEntitiesInText(option, entitiesForHighlighting)}
-            </button>
+              size="md"
+            />
           ))}
         </div>
       );
@@ -125,13 +122,13 @@ function DialogueDisplay({
           Waiting for response or options...
         </p>
 
-        <button
-          className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow"
+        <Button
+          ariaLabel="Force end conversation"
+          className="mt-2 bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow"
+          label="Force End Conversation (if really stuck)"
           onClick={onClose}
-          type="button"
-        >
-          Force End Conversation (if really stuck)
-        </button>
+          size="sm"
+        />
       </div>
     );
   };
@@ -146,15 +143,14 @@ function DialogueDisplay({
       role="dialog"
     >
       <div className="dialogue-frame-content">
-        <button
-          aria-label="End Conversation"
+        <Button
+          ariaLabel="End Conversation"
           className="animated-frame-close-button"
-          disabled={isLoading || isDialogueExiting} // Updated disabled condition
+          disabled={isLoading || isDialogueExiting}
+          label="\u00D7"
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
 
         <h1
           className="text-2xl font-bold text-sky-300 mb-4 text-center"

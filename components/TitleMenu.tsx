@@ -4,6 +4,8 @@
  * @description Main title screen with game start options.
  */
 import { CURRENT_GAME_VERSION } from '../constants'; // Import the version constant
+import Button from './elements/Button';
+import VersionBadge from './elements/VersionBadge';
 
 interface TitleMenuProps {
   readonly isVisible: boolean;
@@ -43,14 +45,15 @@ function TitleMenu({
         {' '}
 
         {/* Added relative positioning for version number */}
-        {isGameActive ? <button
-          aria-label="Close Title Menu"
-          className="animated-frame-close-button"
-          onClick={onClose}
-          type="button"
-                        >
-          &times;
-        </button> : null}
+        {isGameActive ? (
+          <Button
+            ariaLabel="Close Title Menu"
+            className="animated-frame-close-button"
+            label="\u00D7"
+            onClick={onClose}
+            size="sm"
+          />
+        ) : null}
 
         <div className="flex flex-col items-center justify-center h-full w-full p-4 text-center">
           <header className="mb-10 md:mb-12">
@@ -67,85 +70,73 @@ function TitleMenu({
           </header>
 
           <div className="space-y-4 sm:space-y-5 w-full max-w-xs sm:max-w-sm">
-            <button
-              aria-label={isGameActive ? "Start a New Game (Random Shifts, Progress will be lost)" : "Start a New Game (Random Shifts)"}
-              className="w-full px-6 py-2.5 sm:py-3 bg-red-600 hover:bg-red-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
-                         transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-red-400 focus:outline-none"
+            <Button
+              ariaLabel={isGameActive ? 'Start a New Game (Random Shifts, Progress will be lost)' : 'Start a New Game (Random Shifts)'}
+              className="w-full bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-red-400 focus:outline-none"
+              label="New Game"
               onClick={onNewGame}
-              type="button"
-            >
-              New Game
-            </button>
+              size="lg"
+            />
 
-            <button
-              aria-label={isGameActive ? "Start a Custom Game (Choose Theme, No Random Shifts, Progress will be lost)" : "Start a Custom Game (Choose Theme, No Random Shifts)"}
-              className="w-full px-6 py-2.5 sm:py-3 bg-orange-600 hover:bg-orange-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
-                         transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-orange-400 focus:outline-none"
+            <Button
+              ariaLabel={isGameActive ? 'Start a Custom Game (Choose Theme, No Random Shifts, Progress will be lost)' : 'Start a Custom Game (Choose Theme, No Random Shifts)'}
+              className="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-orange-400 focus:outline-none"
+              label="Custom Game"
               onClick={onCustomGame}
-              type="button"
-            >
-              Custom Game
-            </button>
+              size="lg"
+            />
 
-            {isGameActive && onSaveGame ? <button
-              aria-label="Save Current Game to File"
-              className="w-full px-6 py-2.5 sm:py-3 bg-green-600 hover:bg-green-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
-                           transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-green-400 focus:outline-none"
-              onClick={onSaveGame}
-              type="button"
-                                          >
-              Save Game
-            </button> : null}
+            {isGameActive && onSaveGame ? (
+              <Button
+                ariaLabel="Save Current Game to File"
+                className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-green-400 focus:outline-none"
+                label="Save Game"
+                onClick={onSaveGame}
+                size="lg"
+              />
+            ) : null}
 
-            <button
-              aria-label={isGameActive ? "Load Game from File (Current progress will be lost)" : "Load Game from File"}
-              className="w-full px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
-                         transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-blue-400 focus:outline-none"
+            <Button
+              ariaLabel={isGameActive ? 'Load Game from File (Current progress will be lost)' : 'Load Game from File'}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-blue-400 focus:outline-none"
+              label="Load Game"
               onClick={onLoadGame}
-              type="button"
-            >
-              Load Game
-            </button>
+              size="lg"
+            />
 
-            <button
-              aria-label="Open Settings"
-              className="w-full px-6 py-2.5 sm:py-3 bg-gray-600 hover:bg-gray-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
-                         transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-gray-400 focus:outline-none"
+            <Button
+              ariaLabel="Open Settings"
+              className="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-gray-400 focus:outline-none"
+              label="Settings"
               onClick={onOpenSettings}
-              type="button"
-            >
-              Settings
-            </button>
+              size="lg"
+            />
 
-            <button
-              aria-label="About & Game Guide"
-              className="w-full px-6 py-2.5 sm:py-3 bg-cyan-700 hover:bg-cyan-600 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
-                         transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-cyan-400 focus:outline-none"
+            <Button
+              ariaLabel="About & Game Guide"
+              className="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-cyan-400 focus:outline-none"
+              label="About"
               onClick={onOpenInfo}
-              type="button"
-            >
-              About
-            </button>
+              size="lg"
+            />
 
-            {isGameActive ? <button
-              aria-label="Return to Game"
-              className="w-full mt-6 sm:mt-8 px-6 py-2.5 sm:py-3 bg-sky-700 hover:bg-sky-600 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
-                              transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-sky-500 focus:outline-none"
-              onClick={onClose}
-              type="button"
-                            >
-              Return to Game
-            </button> : null}
+            {isGameActive ? (
+              <Button
+                ariaLabel="Return to Game"
+                className="w-full mt-6 sm:mt-8 bg-sky-700 hover:bg-sky-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-sky-500 focus:outline-none"
+                label="Return to Game"
+                onClick={onClose}
+                size="lg"
+              />
+            ) : null}
           </div>
         </div>
 
         {/* Version Number Display */}
-        <div className="absolute bottom-4 right-4 text-xs text-slate-500">
-          Version: 
-          {' '}
-
-          {CURRENT_GAME_VERSION}
-        </div>
+        <VersionBadge
+          className="absolute bottom-4 right-4"
+          version={CURRENT_GAME_VERSION}
+        />
       </div>
     </div>
   );

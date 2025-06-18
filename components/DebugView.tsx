@@ -4,6 +4,7 @@
  * @description Developer panel for inspecting game state.
  */
 import { useState, useCallback } from 'react';
+import Button from './elements/Button';
 
 import { extractJsonFromFence } from '../utils/jsonUtils';
 import { GameStateStack, DebugPacket, MapNode } from '../types';
@@ -213,19 +214,14 @@ function DebugView({
       case "GameState":
         return (
           <>
-            <button
-              aria-label="Undo last turn"
-              className="mb-3 px-3 py-1.5 text-sm font-medium rounded shadow transition-colors duration-150 bg-orange-600 text-white hover:bg-orange-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed"
+            <Button
+              ariaLabel="Undo last turn"
+              className="mb-3 bg-orange-600 text-white hover:bg-orange-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed"
               disabled={!previousState || currentState.globalTurnNumber <= 1}
+              label={`Undo Turn (Global Turn: ${currentState.globalTurnNumber})`}
               onClick={onUndoTurn}
-              type="button"
-            >
-              Undo Turn (Global Turn: 
-              {' '}
-
-              {currentState.globalTurnNumber}
-              )
-            </button>
+              size="sm"
+            />
 
             {renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]")}
 
@@ -243,13 +239,15 @@ function DebugView({
             {renderContent("Last Storyteller AI Request", debugPacket?.prompt, false)}
 
             <div className="my-2">
-              <button
+              <Button
+                ariaLabel="Toggle raw parsed response"
                 className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+                label="Toggle Raw/Parsed Response"
                 onClick={toggleShowMainAIRaw}
-                type="button"
-              >
-                Toggle Raw/Parsed Response
-              </button>
+                pressed={showMainAIRaw}
+                size="sm"
+                variant="toggle"
+              />
             </div>
 
             {showMainAIRaw ?
@@ -278,13 +276,15 @@ function DebugView({
                 {renderContent("Cartographer AI Request", debugPacket.mapUpdateDebugInfo.prompt, false)}
 
                 <div className="my-2">
-                  <button
+                  <Button
+                    ariaLabel="Toggle raw parsed map response"
                     className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+                    label="Toggle Raw/Parsed Map Update Response"
                     onClick={toggleShowMapAIRaw}
-                    type="button"
-                  >
-                    Toggle Raw/Parsed Map Update Response
-                  </button>
+                    pressed={showMapAIRaw}
+                    size="sm"
+                    variant="toggle"
+                  />
                 </div>
 
                 {showMapAIRaw ?
@@ -320,13 +320,15 @@ function DebugView({
                       {renderContent(`Connector Chains Prompt (Round ${String(info.round)})`, info.prompt, false)}
 
                       <div className="my-2">
-                        <button
+                        <Button
+                          ariaLabel="Toggle raw parsed connector chain response"
                           className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+                          label="Toggle Raw/Parsed Connector Chains Response"
                           onClick={toggleShowConnectorChainRaw(idx)}
-                          type="button"
-                        >
-                          Toggle Raw/Parsed Connector Chains Response
-                        </button>
+                          pressed={showConnectorChainRaw[idx] ?? true}
+                          size="sm"
+                          variant="toggle"
+                        />
                       </div>
 
                       {(showConnectorChainRaw[idx] ?? true)
@@ -423,13 +425,15 @@ function DebugView({
             )}
 
             <div className="my-2">
-              <button
+              <Button
+                ariaLabel="Toggle raw parsed inventory response"
                 className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
+                label="Toggle Raw/Parsed Inventory Response"
                 onClick={toggleShowInventoryAIRaw}
-                type="button"
-              >
-                Toggle Raw/Parsed Inventory Response
-              </button>
+                pressed={showInventoryAIRaw}
+                size="sm"
+                variant="toggle"
+              />
             </div>
 
             {showInventoryAIRaw
@@ -535,14 +539,13 @@ function DebugView({
       role="dialog"
     >
       <div className="animated-frame-content flex flex-col">
-        <button
-          aria-label="Close debug view"
+        <Button
+          ariaLabel="Close debug view"
           className="animated-frame-close-button"
+          label="\u00D7"
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
 
         <h1
           className="text-2xl font-bold text-amber-400 mb-3 text-center flex-shrink-0"
@@ -553,17 +556,14 @@ function DebugView({
         
         <div className="flex flex-wrap border-b border-slate-700 mb-3 flex-shrink-0">
           {tabs.map(tab => (
-            <button
-              className={`px-3 py-2 text-sm font-medium transition-colors
-                          ${activeTab === tab.name
-                            ? 'border-b-2 border-sky-400 text-sky-300'
-                            : 'text-slate-400 hover:text-sky-400'}`}
+            <Button
+              ariaLabel={tab.label}
+              className={`px-3 py-2 text-sm font-medium transition-colors ${activeTab === tab.name ? 'border-b-2 border-sky-400 text-sky-300' : 'text-slate-400 hover:text-sky-400'}`}
               key={tab.name}
+              label={tab.label}
               onClick={handleTabClick(tab.name)}
-              type="button"
-            >
-              {tab.label}
-            </button>
+              size="sm"
+            />
           ))}
         </div>
 
