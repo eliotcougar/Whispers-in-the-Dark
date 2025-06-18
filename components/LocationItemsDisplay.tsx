@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import * as React from 'react';
 import { Item } from '../types';
 import { Icon } from './icons';
-import { ItemTypeDisplay } from './InventoryDisplay';
+import ItemTypeDisplay from './ItemTypeDisplay';
 
 interface LocationItemsDisplayProps {
   readonly items: Array<Item>;
