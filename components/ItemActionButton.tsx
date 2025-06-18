@@ -37,10 +37,12 @@ function ItemActionButton({
     danger: 'bg-orange-700 hover:bg-orange-600',
   };
 
+  const selectedVariant: ButtonVariant = variant ?? 'primary';
+
   return (
     <button
       aria-label={ariaLabel}
-      className={`w-full text-sm text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${variantClasses[variant]}`}
+      className={`w-full text-sm text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${variantClasses[selectedVariant]}`}
       data-item-name={dataItemName}
       disabled={disabled}
       onClick={handleClick}

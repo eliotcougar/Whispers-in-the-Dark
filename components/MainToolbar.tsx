@@ -88,7 +88,7 @@ function MainToolbar({
       <div className="flex space-x-2">
         <button
           aria-label="Visualize Scene"
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
+          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                       disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                       transition-colors duration-150"
           disabled={isLoading || !currentThemeName || !currentSceneExists}
@@ -105,7 +105,7 @@ function MainToolbar({
 
         <button
           aria-label="Open Knowledge Base"
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
+          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                       disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                       transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
@@ -122,7 +122,7 @@ function MainToolbar({
 
         <button
           aria-label="Open History"
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
+          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                       disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                       transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
@@ -139,7 +139,7 @@ function MainToolbar({
 
         <button
           aria-label="Open Map"
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
+          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
                       disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                       transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
@@ -156,7 +156,7 @@ function MainToolbar({
 
         <button
           aria-label="Force Reality Shift"
-          className="p-2 bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md
+          className="flex items-center justify-center w-9 h-9 p-2 bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md
                       disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                       transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
@@ -173,7 +173,7 @@ function MainToolbar({
 
         <button
           aria-label="Open Title Menu"
-          className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md
+          className="flex items-center justify-center w-9 h-9 p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md
                       disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
                       transition-colors duration-150"
           disabled={isLoading}
