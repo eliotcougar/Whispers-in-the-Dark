@@ -10,6 +10,7 @@ import { Item, KnownUse } from '../types';
 import { Icon } from './icons.tsx';
 import ItemActionButton from './ItemActionButton';
 import ItemTypeDisplay from './ItemTypeDisplay';
+import Button from './elements/Button';
 
 interface InventoryDisplayProps {
   readonly items: Array<Item>;
@@ -207,33 +208,27 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
       </h3>
 
       <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          aria-pressed={sortOrder === 'name'}
-          className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded shadow transition-colors duration-150
-                      ${sortOrder === 'name'
-                        ? 'bg-sky-600 text-white hover:bg-sky-500 ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800'
-                        : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
-                      } disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
+        <Button
+          ariaLabel="Sort by Name"
+          className={`${sortOrder === 'name' ? 'bg-sky-600 text-white hover:bg-sky-500 ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800' : 'bg-slate-600 text-slate-300 hover:bg-slate-500'} disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
           disabled={disabled}
+          label="Sort by Name"
           onClick={handleSortByName}
-          type="button"
-        >
-          Sort by Name
-        </button>
+          pressed={sortOrder === 'name'}
+          size="sm"
+          variant="toggle"
+        />
 
-        <button
-          aria-pressed={sortOrder === 'type'}
-          className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded shadow transition-colors duration-150
-                      ${sortOrder === 'type'
-                        ? 'bg-sky-600 text-white hover:bg-sky-500 ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800'
-                        : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
-                      } disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
+        <Button
+          ariaLabel="Sort by Type"
+          className={`${sortOrder === 'type' ? 'bg-sky-600 text-white hover:bg-sky-500 ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800' : 'bg-slate-600 text-slate-300 hover:bg-slate-500'} disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
           disabled={disabled}
+          label="Sort by Type"
           onClick={handleSortByType}
-          type="button"
-        >
-          Sort by Type
-        </button>
+          pressed={sortOrder === 'type'}
+          size="sm"
+          variant="toggle"
+        />
       </div>
 
       {displayedItems.length === 0 ? (
@@ -284,68 +279,56 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
 
                 <div className="space-y-2 mt-auto"> 
                   {applicableUses.map((knownUse) => (
-                    <button
-                      aria-label={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
-                      className="w-full text-sm bg-teal-600 hover:bg-teal-500 text-white font-medium py-1.5 px-3 rounded shadow
-                                 disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                                 transition-colors duration-150 ease-in-out"
+                    <Button
+                      ariaLabel={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
+                      className="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                       data-action-name={knownUse.actionName}
                       data-item-name={item.name}
                       data-prompt-effect={knownUse.promptEffect}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-knownuse-${knownUse.actionName}`}
+                      label={knownUse.actionName}
                       onClick={handleSpecificUse}
+                      size="sm"
                       title={knownUse.description}
-                      type="button"
-                    >
-                      {knownUse.actionName}
-                    </button>
+                    />
                   ))}
 
-                  <button
-                    aria-label={`Inspect ${item.name}`}
-                    className="w-full text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-1.5 px-3 rounded shadow
-                               disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                               transition-colors duration-150 ease-in-out"
+                  <Button
+                    ariaLabel={`Inspect ${item.name}`}
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                     data-item-name={item.name}
                     disabled={disabled || isConfirmingDiscard}
                     key={`${item.name}-inspect`}
+                    label="Inspect"
                     onClick={handleInspect}
-                    type="button"
-                  >
-                    Inspect
-                  </button>
+                    size="sm"
+                  />
 
                   {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
-                    <button
-                      aria-label={`Attempt to use ${item.name} (generic action)`}
-                      className="w-full text-sm bg-sky-700 hover:bg-sky-600 text-white font-medium py-1.5 px-3 rounded shadow
-                                disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                                transition-colors duration-150 ease-in-out"
+                    <Button
+                      ariaLabel={`Attempt to use ${item.name} (generic action)`}
+                      className="w-full bg-sky-700 hover:bg-sky-600 text-white font-medium rounded shadow disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                       data-item-name={item.name}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-generic-use`}
+                      label="Attempt to Use (Generic)"
                       onClick={handleGenericUse}
-                      type="button"
-                    >
-                      Attempt to Use (Generic)
-                    </button>
+                      size="sm"
+                    />
                   )}
 
                   {item.type === 'vehicle' && (
-                    <button
-                      aria-label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
-                      className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow
-                                disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                                transition-colors duration-150 ease-in-out"
+                    <Button
+                      ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
+                      className="w-full bg-green-700 hover:bg-green-600 text-white font-medium rounded shadow disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                       data-item-name={item.name}
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-vehicle-action`}
+                      label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
                       onClick={handleVehicleToggle}
-                      type="button"
-                    >
-                      {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
-                    </button>
+                      size="sm"
+                    />
                   )}
 
                   {item.isJunk && !isConfirmingDiscard ? (
@@ -396,32 +379,26 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                   )}
 
                   {isConfirmingDiscard ? <div className="grid grid-cols-2 gap-2 mt-2">
-                    <button
-                      aria-label={`Confirm drop of ${item.name}`}
-                      className="w-full text-sm bg-red-600 hover:bg-red-500 text-white font-semibold py-1.5 px-3 rounded shadow
-                                   disabled:bg-slate-500 disabled:cursor-not-allowed
-                                   transition-colors duration-150 ease-in-out"
+                    <Button
+                      ariaLabel={`Confirm drop of ${item.name}`}
+                      className="w-full bg-red-600 hover:bg-red-500 text-white font-semibold rounded shadow disabled:bg-slate-500 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                       data-item-name={item.name}
                       disabled={disabled}
                       key={`${item.name}-confirm-drop`}
+                      label={item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
                       onClick={handleConfirmDrop}
-                      type="button"
-                    >
-                      {item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
-                    </button>
+                      size="sm"
+                    />
 
-                    <button
-                      aria-label="Cancel discard"
-                      className="w-full text-sm bg-slate-600 hover:bg-slate-500 text-white font-medium py-1.5 px-3 rounded shadow
-                                   disabled:bg-slate-500 disabled:cursor-not-allowed
-                                   transition-colors duration-150 ease-in-out"
+                    <Button
+                      ariaLabel="Cancel discard"
+                      className="w-full bg-slate-600 hover:bg-slate-500 text-white font-medium rounded shadow disabled:bg-slate-500 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                       disabled={disabled}
                       key={`${item.name}-cancel-discard`}
+                      label="Cancel"
                       onClick={handleCancelDiscard}
-                      type="button"
-                    >
-                      Cancel
-                    </button>
+                      size="sm"
+                    />
                   </div> : null}
                 </div>
               </li>

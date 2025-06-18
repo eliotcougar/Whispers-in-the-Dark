@@ -6,6 +6,7 @@
 import * as React from 'react';
 import { Character, AdventureTheme } from '../types'; 
 import { Icon } from './icons.tsx';
+import Button from './elements/Button';
 
 interface KnowledgeBaseProps {
   readonly allCharacters: Array<Character>;
@@ -55,14 +56,16 @@ function KnowledgeBase({
       role="dialog"
     >
       <div className="animated-frame-content">
-        <button
-          aria-label="Close knowledge base"
+        <Button
+          ariaLabel="Close knowledge base"
           className="animated-frame-close-button"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
 
         <div className="knowledge-base-content-area"> 
           <h1

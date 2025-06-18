@@ -8,6 +8,8 @@ import GameMechanics from './elements/GameMechanics';
 import NotableFeatures from './elements/NotableFeatures';
 import SaveGameFunctionality from './elements/SaveGameFunctionality';
 import AiModels from './elements/AiModels';
+import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 import Changelog from './elements/Changelog';
 
 interface InfoDisplayProps {
@@ -28,14 +30,16 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
       role="dialog"
     >
       <div className="animated-frame-content">
-        <button
-          aria-label="Close game information"
+        <Button
+          ariaLabel="Close game information"
           className="animated-frame-close-button"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
 
         <div className="info-content-area">
           <h1

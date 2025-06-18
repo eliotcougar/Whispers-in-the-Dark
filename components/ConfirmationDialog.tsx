@@ -5,6 +5,7 @@
  * @description Modal dialog to confirm user actions.
  */
 import { useCallback } from 'react';
+import Button from './elements/Button';
 
 import * as React from 'react';
 
@@ -75,23 +76,21 @@ function ConfirmationDialog({
         </div>
 
         <div className="flex justify-end space-x-4">
-          <button
-            aria-label={cancelText}
-            className="px-5 py-2.5 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          <Button
+            ariaLabel={cancelText}
+            className="bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            label={cancelText}
             onClick={onCancel}
-            type="button"
-          >
-            {cancelText}
-          </button>
+            size="md"
+          />
 
-          <button
-            aria-label={confirmText}
-            className={`px-5 py-2.5 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 ${confirmButtonClass} focus:ring-opacity-75`}
+          <Button
+            ariaLabel={confirmText}
+            className={`text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 ${confirmButtonClass} focus:ring-opacity-75`}
+            label={confirmText}
             onClick={onConfirm}
-            type="button"
-          >
-            {confirmText}
-          </button>
+            size="md"
+          />
         </div>
       </div>
 

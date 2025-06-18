@@ -4,6 +4,8 @@
 */
 import { ThemeHistoryState } from '../types';
 import GameLogDisplay from './GameLogDisplay';
+import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 
 interface HistoryDisplayProps {
   readonly themeHistory: ThemeHistoryState;
@@ -33,14 +35,16 @@ function HistoryDisplay({
       role="dialog"
     >
       <div className="animated-frame-content">
-        <button
-          aria-label="Close history"
+        <Button
+          ariaLabel="Close history"
           className="animated-frame-close-button"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
 
         <div className="theme-memory-content-area">
           <h1

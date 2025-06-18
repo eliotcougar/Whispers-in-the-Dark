@@ -10,6 +10,8 @@ import { ALL_THEME_PACK_NAMES_CONST } from '../constants';
 import Slider from './elements/Slider';
 import RadioSelector from './elements/RadioSelector';
 import CheckboxSelector from './elements/CheckboxSelector';
+import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 
 interface SettingsDisplayProps {
   readonly isVisible: boolean;
@@ -66,14 +68,16 @@ function SettingsDisplay({
       role="dialog"
     >
       <div className="animated-frame-content">
-        <button
-          aria-label="Close settings"
+        <Button
+          ariaLabel="Close settings"
           className="animated-frame-close-button"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
 
         <div className="settings-content-area">
           <h1

@@ -16,6 +16,7 @@ import companionSvg from '../resources/companion.svg?raw';
 import nearbyNpcSvg from '../resources/nearby_npc.svg?raw';
 import mapItemBoxSvg from '../resources/map_item_box.svg?raw';
 import mapWheelSvg from '../resources/map_wheel.svg?raw';
+import xSvg from '../resources/x.svg?raw';
 
 /* eslint-disable react/no-danger */
 
@@ -35,6 +36,7 @@ const iconMap = {
   nearbyNpc: nearbyNpcSvg,
   mapItemBox: mapItemBoxSvg,
   mapWheel: mapWheelSvg,
+  x: xSvg,
 } as const;
 
 export type IconName = keyof typeof iconMap;
