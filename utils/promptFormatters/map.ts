@@ -364,7 +364,7 @@ export const formatMapContextForPrompt = (
     const nearbyNodeNames = Array.from(nearbyNodeIds)
       .map(id => allNodesForTheme.find(n => n.id === id)?.placeName)
       .filter(name => !!name)
-      .map(name => `"${name}"`);
+      .map(name => `"${String(name)}"`);
     if (nearbyNodeNames.length > 0) {
       context += `\nLocations nearby (within two hops): ${nearbyNodeNames.join(', ')}.`;
     }

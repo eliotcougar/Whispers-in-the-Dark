@@ -71,7 +71,7 @@ If no suitable match can be confidently made, respond with an empty string.`;
         correctedName = correctedName.replace(/^['"]+|['"]+$/g, '').trim();
         if (correctedName === '') {
           console.warn(
-            `fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`,
+            `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`,
           );
           return { result: null, retry: false };
         }
@@ -80,16 +80,16 @@ If no suitable match can be confidently made, respond with an empty string.`;
           return { result: correctedName };
         }
         console.warn(
-          `fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`,
+          `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`,
         );
       } else {
         console.warn(
-          `fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for ${entityTypeToCorrect}. Received: null`,
+          `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for ${entityTypeToCorrect}. Received: null`,
         );
       }
     } catch (error) {
       console.error(
-        `fetchCorrectedName_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        `fetchCorrectedName_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

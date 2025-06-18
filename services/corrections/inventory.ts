@@ -82,12 +82,12 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
         return { result: validatedChanges };
       }
       console.warn(
-        `fetchCorrectedItemChangeArray_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): corrected payload invalid.`,
+        `fetchCorrectedItemChangeArray_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected payload invalid.`,
         aiResponse,
       );
     } catch (error) {
       console.error(
-        `fetchCorrectedItemChangeArray_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        `fetchCorrectedItemChangeArray_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

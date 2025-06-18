@@ -53,7 +53,7 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
         if (cleaned.includes('convert') || cleaned.includes('sibling')) return { result: 'convert_child' };
       }
     } catch (error) {
-      console.error(`decideFeatureHierarchyUpgrade_Service error (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}):`, error);
+      console.error(`decideFeatureHierarchyUpgrade_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };

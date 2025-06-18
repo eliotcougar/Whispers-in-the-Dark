@@ -25,7 +25,7 @@ function ModelUsageIndicators() {
     >
       {Object.values(usage).map(info => {
         const pct = info.count / info.limit;
-        const title = `${info.model}: ${info.count}/${info.limit} calls last minute`;
+        const title = `${info.model}: ${String(info.count)}/${String(info.limit)} calls last minute`;
         return (
           <div
             aria-label={title}

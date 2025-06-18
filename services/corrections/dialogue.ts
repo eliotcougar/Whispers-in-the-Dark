@@ -89,11 +89,11 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
         return { result: aiResponse };
       }
       console.warn(
-        `fetchCorrectedDialogueSetup_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected dialogueSetup payload invalid. Response:`,
+        `fetchCorrectedDialogueSetup_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected dialogueSetup payload invalid. Response:`,
         aiResponse,
       );
     } catch (error) {
-      console.error(`fetchCorrectedDialogueSetup_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      console.error(`fetchCorrectedDialogueSetup_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };
@@ -163,17 +163,17 @@ Respond ONLY with the corrected JSON object.`;
           return { result: parsedResponse };
         }
         console.warn(
-          `fetchCorrectedDialogueTurn_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): corrected response invalid or speakers not in list.`,
+          `fetchCorrectedDialogueTurn_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected response invalid or speakers not in list.`,
           aiResponse,
         );
       } else {
         console.warn(
-          `fetchCorrectedDialogueTurn_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned empty response.`,
+          `fetchCorrectedDialogueTurn_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned empty response.`,
         );
       }
     } catch (error) {
       console.error(
-        `fetchCorrectedDialogueTurn_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        `fetchCorrectedDialogueTurn_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

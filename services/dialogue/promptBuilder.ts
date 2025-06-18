@@ -62,7 +62,7 @@ export const buildDialogueTurnPrompt = (
 
     const inventoryString =
       inventory.length > 0
-        ? inventory.map(item => `${item.name} (Type: ${item.type}, Active: ${!!item.isActive})`).join(', ')
+        ? inventory.map(item => `${item.name} (Type: ${item.type}, Active: ${String(!!item.isActive)})`).join(', ')
         : 'Empty';
   const knownPlacesString = formatKnownPlacesForPrompt(knownMainMapNodesInTheme, true);
 
