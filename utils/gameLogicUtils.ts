@@ -130,10 +130,11 @@ const applyItemActionCore = (
       updated.holderId = updatePayload.holderId;
     }
     if (updatePayload.addKnownUse) {
+      const { addKnownUse } = updatePayload;
       const currentUses = updated.knownUses ? [...updated.knownUses] : [];
-      const kuIndex = currentUses.findIndex(ku => ku.actionName === updatePayload.addKnownUse!.actionName);
-      if (kuIndex !== -1) currentUses[kuIndex] = updatePayload.addKnownUse;
-      else currentUses.push(updatePayload.addKnownUse);
+      const kuIndex = currentUses.findIndex(ku => ku.actionName === addKnownUse.actionName);
+      if (kuIndex !== -1) currentUses[kuIndex] = addKnownUse;
+      else currentUses.push(addKnownUse);
       updated.knownUses = currentUses;
     }
     const renameOnly =
@@ -349,10 +350,11 @@ export const buildItemChangeRecords = (
           holderId: updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '' ? updatePayload.holderId : oldItemCopy.holderId,
         };
         if (updatePayload.addKnownUse) {
+          const { addKnownUse } = updatePayload;
           const currentKnownUses = [...(newItemData.knownUses || [])];
-          const kuIndex = currentKnownUses.findIndex(ku => ku.actionName === updatePayload.addKnownUse!.actionName);
-          if (kuIndex !== -1) currentKnownUses[kuIndex] = updatePayload.addKnownUse;
-          else currentKnownUses.push(updatePayload.addKnownUse);
+          const kuIndex = currentKnownUses.findIndex(ku => ku.actionName === addKnownUse.actionName);
+          if (kuIndex !== -1) currentKnownUses[kuIndex] = addKnownUse;
+          else currentKnownUses.push(addKnownUse);
           newItemData.knownUses = currentKnownUses;
         }
         record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };

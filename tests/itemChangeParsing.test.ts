@@ -24,7 +24,9 @@ describe('parseInventoryResponse', () => {
     };
 
     const responseText = "```json\n" + JSON.stringify(rawPayload) + "\n```";
-    const result = parseInventoryResponse(responseText)!
+    const maybeResult = parseInventoryResponse(responseText);
+    if (!maybeResult) throw new Error('Failed to parse inventory response');
+    const result = maybeResult;
 
     expect(result.itemChanges.length).toBe(5);
     expect(result.itemChanges).toEqual([
@@ -50,7 +52,9 @@ describe('parseInventoryResponse', () => {
     };
 
     const text = '```json\n' + JSON.stringify(payload) + '\n```';
-    const res = parseInventoryResponse(text)!;
+    const maybeRes = parseInventoryResponse(text);
+    if (!maybeRes) throw new Error('Failed to parse inventory response');
+    const res = maybeRes;
 
     expect(res.itemChanges).toEqual([
       payload.itemChanges[0],

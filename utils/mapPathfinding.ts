@@ -56,12 +56,14 @@ export const findTravelPath = (
     const p = node.data.parentNodeId;
     if (!p) continue;
     if (!childrenByParent.has(p)) childrenByParent.set(p, []);
-    childrenByParent.get(p)!.push(node.id);
+    const arr = childrenByParent.get(p);
+    if (arr) arr.push(node.id);
   }
 
   const addAdj = (from: string, to: string, id: string, cost: number) => {
     if (!adjacency.has(from)) adjacency.set(from, []);
-    adjacency.get(from)!.push({ edgeId: id, to, cost });
+    const arr = adjacency.get(from);
+    if (arr) arr.push({ edgeId: id, to, cost });
   };
 
   for (const edge of mapData.edges) {
@@ -95,7 +97,8 @@ export const findTravelPath = (
     const p = node.data.parentNodeId;
     if (!p) continue;
     if (!siblingsMap.has(p)) siblingsMap.set(p, []);
-    siblingsMap.get(p)!.push(node);
+    const arr2 = siblingsMap.get(p);
+    if (arr2) arr2.push(node);
   }
 
   for (const siblings of siblingsMap.values()) {
@@ -121,7 +124,8 @@ export const findTravelPath = (
 
   while (queue.length > 0) {
     queue.sort((a, b) => a.cost - b.cost);
-    const current = queue.shift()!;
+    const current = queue.shift();
+    if (!current) break;
     if (current.nodeId === endNodeId) break;
     const neighbors = adjacency.get(current.nodeId) || [];
     for (const n of neighbors) {

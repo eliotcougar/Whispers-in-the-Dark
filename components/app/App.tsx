@@ -53,6 +53,12 @@ const AUTOSAVE_DEBOUNCE_TIME = 1500;
 function App() {
   const { clearProgress } = useLoadingProgress();
   const gameLogicRef = useRef<ReturnType<typeof useGameLogic> | null>(null);
+  const getGameLogic = () => {
+    if (!gameLogicRef.current) {
+      throw new Error('Game logic is not initialized');
+    }
+    return gameLogicRef.current;
+  };
   const {
     playerGender,
     setPlayerGender,
@@ -70,10 +76,10 @@ function App() {
     handleFileInputChange,
     updateSettingsFromLoad,
   } = useSaveLoad({
-    gatherCurrentGameState: () => gameLogicRef.current!.gatherCurrentGameState(),
-    applyLoadedGameState: (args) => gameLogicRef.current!.applyLoadedGameState(args),
-    setError: (msg) => gameLogicRef.current!.setError(msg),
-    setIsLoading: (val) => gameLogicRef.current!.setIsLoading(val),
+    gatherCurrentGameState: () => getGameLogic().gatherCurrentGameState(),
+    applyLoadedGameState: (args) => getGameLogic().applyLoadedGameState(args),
+    setError: (msg) => getGameLogic().setError(msg),
+    setIsLoading: (val) => getGameLogic().setIsLoading(val),
     isLoading: gameLogicRef.current?.isLoading,
     dialogueState: gameLogicRef.current?.dialogueState,
     hasGameBeenInitialized: gameLogicRef.current?.hasGameBeenInitialized,

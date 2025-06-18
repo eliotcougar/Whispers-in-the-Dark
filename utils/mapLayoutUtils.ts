@@ -41,7 +41,8 @@ export const applyNestedCircleLayout = (
     const pid = node.data.parentNodeId && node.data.parentNodeId !== 'Universe' ? node.data.parentNodeId : undefined;
     if (pid) {
       if (!childrenByParent.has(pid)) childrenByParent.set(pid, []);
-      childrenByParent.get(pid)!.push(node.id);
+      const arr = childrenByParent.get(pid);
+      if (arr) arr.push(node.id);
     }
   });
 
@@ -55,7 +56,8 @@ export const applyNestedCircleLayout = (
    * Positions are stored relative to the node itself.
    */
   const layoutNode = (nodeId: string): number => {
-    const node = nodeMap.get(nodeId)!;
+    const node = nodeMap.get(nodeId);
+    if (!node) throw new Error(`Node ${nodeId} missing in layout`);
     const childIds = childrenByParent.get(nodeId) || [];
 
     if (node.data.nodeType === 'feature' || childIds.length === 0) {
@@ -68,7 +70,8 @@ export const applyNestedCircleLayout = (
     childIds.forEach(cid => layoutNode(cid));
 
     if (childIds.length === 1) {
-      const onlyChild = nodeMap.get(childIds[0])!;
+      const onlyChild = nodeMap.get(childIds[0]);
+      if (!onlyChild) throw new Error('Child node missing');
       onlyChild.position = { x: 0, y: 0 };
       node.data.visualRadius = (onlyChild.data.visualRadius || BASE_FEATURE_RADIUS) + PADDING;
       node.position = { x: 0, y: 0 };
@@ -76,7 +79,11 @@ export const applyNestedCircleLayout = (
     }
 
     const children = childIds
-      .map(cid => nodeMap.get(cid)!)
+      .map(cid => {
+        const child = nodeMap.get(cid);
+        if (!child) throw new Error('Child node missing');
+        return child;
+      })
       .sort(
         (a, b) =>
           (b.data.visualRadius || BASE_FEATURE_RADIUS) -
@@ -138,7 +145,8 @@ export const applyNestedCircleLayout = (
 
   /** Apply parent offsets recursively to convert relative positions to absolute. */
   const applyOffset = (nodeId: string, offsetX: number, offsetY: number) => {
-    const node = nodeMap.get(nodeId)!;
+    const node = nodeMap.get(nodeId);
+    if (!node) throw new Error(`Node ${nodeId} missing in offset application`);
     if (nodeId !== pseudoRootId) {
       node.position = { x: node.position.x + offsetX, y: node.position.y + offsetY };
     }
