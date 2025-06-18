@@ -31,7 +31,7 @@ export const useInventoryActions = ({
       if (!itemToDiscard) return;
 
       const draftState = structuredCloneGameState(currentFullState);
-      const currentLocationId = currentFullState.currentMapNodeId || 'unknown';
+      const currentLocationId = currentFullState.currentMapNodeId ?? 'unknown';
       draftState.inventory = draftState.inventory.map((item) =>
         item.name === itemName && item.holderId === PLAYER_HOLDER_ID
           ? { ...item, holderId: currentLocationId }
@@ -56,8 +56,8 @@ export const useInventoryActions = ({
       let logMessage = logMessageOverride;
       if (!logMessage) {
         const placeName =
-          currentFullState.mapData.nodes.find((n) => n.id === currentLocationId)?.placeName ||
-          currentFullState.localPlace ||
+          currentFullState.mapData.nodes.find((n) => n.id === currentLocationId)?.placeName ??
+          currentFullState.localPlace ??
           'Unknown Place';
         if (itemToDiscard.type === 'vehicle' && !itemToDiscard.isActive) {
           logMessage = `You left your ${itemName} parked at ${placeName}.`;

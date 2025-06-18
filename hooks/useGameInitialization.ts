@@ -314,7 +314,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
         } else {
           const errorMessage = e instanceof Error ? e.message : String(e);
-          setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage || 'Unknown AI error'}`);
+          setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage ?? 'Unknown AI error'}`);
         }
         if (draftState.lastDebugPacket) {
           draftState.lastDebugPacket.error = e instanceof Error ? e.message : String(e);
@@ -502,7 +502,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         playerGenderProp,
         currentThemeObj,
         () => { setParseErrorCounter(1); },
-        currentFullState.lastActionLog || undefined,
+        currentFullState.lastActionLog ?? undefined,
         currentFullState.currentScene,
         currentThemeCharacters,
         currentThemeMapDataForParse,

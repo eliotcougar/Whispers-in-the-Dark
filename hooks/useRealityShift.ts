@@ -66,9 +66,9 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     const themeCharacters = finalStateBeforeShift.allCharacters.filter(c => c.themeName === themeToSummarize.name);
 
     const themeMemory: ThemeMemory = {
-      summary: summary || 'The details of this reality are hazy...',
-      mainQuest: finalStateBeforeShift.mainQuest || 'Unknown',
-      currentObjective: finalStateBeforeShift.currentObjective || 'Unknown',
+      summary: summary ?? 'The details of this reality are hazy...',
+      mainQuest: finalStateBeforeShift.mainQuest ?? 'Unknown',
+      currentObjective: finalStateBeforeShift.currentObjective ?? 'Unknown',
       placeNames: themeMainMapNodes.map(node => node.placeName),
       characterNames: themeCharacters.map(c => c.name)
     };

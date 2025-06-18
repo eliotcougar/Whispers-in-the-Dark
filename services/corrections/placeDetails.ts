@@ -50,8 +50,8 @@ Task: Determine the most logical "localPlace" based on the provided context. Thi
 Context for Inference:
 - Current Scene Description (primary source for inference): "${currentSceneDescription}"
 - Current Theme: "${currentTheme.name}" (Theme Guidance: ${currentTheme.systemInstructionModifier})
-- Current Local Time: "${localTime || 'Unknown'}"
-- Current Local Environment: "${localEnvironment || 'Undetermined'}"
+ - Current Local Time: "${localTime ?? 'Unknown'}"
+ - Current Local Environment: "${localEnvironment ?? 'Undetermined'}"
 - ${knownPlacesContextForPrompt}
 
 Guidance for "localPlace":
@@ -135,9 +135,9 @@ ${malformedMapNodePayloadString}
 (This might just be a name string like ${originalPlaceNameFromMalformed}, or an object missing required fields like 'description' or 'aliases'.)
 
 Narrative Context:
-- Log Message: "${logMessageContext || 'Not specified'}"
-- Scene Description: "${sceneDescriptionContext || 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
+- Log Message: "${logMessageContext ?? 'Not specified'}"
+- Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
+- Theme Guidance: "${currentTheme.systemInstructionModifier ?? 'General adventure theme.'}"
 
 Required JSON Structure for corrected map location details:
 {
@@ -212,9 +212,9 @@ Task: Given the name of this new map location and the current narrative context,
 Map Location Name to Detail: "${mapNodePlaceName}"
 
 Narrative Context:
-- Log Message: "${logMessageContext || 'Not specified'}"
-- Scene Description: "${sceneDescriptionContext || 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
+- Log Message: "${logMessageContext ?? 'Not specified'}"
+- Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
+- Theme Guidance: "${currentTheme.systemInstructionModifier ?? 'General adventure theme.'}"
 
 Required JSON Structure:
 {
@@ -306,7 +306,7 @@ export const fetchCorrectedNodeType_Service = async (
   const prompt = `Determine the most appropriate nodeType for a map location in a text adventure game.
 ${MAP_NODE_TYPE_GUIDE}
 Location Name: "${nodeInfo.placeName}"
-Description: "${nodeInfo.description || 'No description provided.'}"
+Description: "${nodeInfo.description ?? 'No description provided.'}"
 Valid node types: ${VALID_NODE_TYPE_VALUES.join(', ')}
 Respond ONLY with the single node type.`;
 

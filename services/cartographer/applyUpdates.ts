@@ -64,8 +64,8 @@ export const applyMapUpdates = async ({
 }: ApplyMapUpdatesParams): Promise<ApplyMapUpdatesResult> => {
   const sceneDesc =
     'sceneDescription' in aiData ? aiData.sceneDescription : '';
-  const logMsg = aiData.logMessage || '';
-  const localPlace = aiData.localPlace || 'Unknown';
+  const logMsg = aiData.logMessage ?? '';
+  const localPlace = aiData.localPlace ?? 'Unknown';
   const referenceMapNodeId =
     'currentMapNodeId' in aiData && aiData.currentMapNodeId
       ? aiData.currentMapNodeId
@@ -202,10 +202,10 @@ export const applyMapUpdates = async ({
   });
 
   // Annihilation Step (remains the same)
-  let nodesToAddOps_mut: AIMapUpdatePayload['nodesToAdd'] = [...(payload.nodesToAdd || [])];
-  const nodesToRemove_mut = [...(payload.nodesToRemove || [])];
-  let edgesToAdd_mut = [...(payload.edgesToAdd || [])];
-  const edgesToRemove_mut = [...(payload.edgesToRemove || [])];
+  let nodesToAddOps_mut: AIMapUpdatePayload['nodesToAdd'] = [...(payload.nodesToAdd ?? [])];
+  const nodesToRemove_mut = [...(payload.nodesToRemove ?? [])];
+  let edgesToAdd_mut = [...(payload.edgesToAdd ?? [])];
+  const edgesToRemove_mut = [...(payload.edgesToRemove ?? [])];
 
   const finalNodesToAddOps: typeof nodesToAddOps_mut = [];
   const ignoredNodeNames = new Set<string>();
@@ -233,7 +233,7 @@ export const applyMapUpdates = async ({
   for (const e of edgesToAdd_mut) {
       const src = e.sourcePlaceName.toLowerCase();
       const tgt = e.targetPlaceName.toLowerCase();
-      const type = e.data.type || 'path';
+      const type = e.data.type ?? 'path';
       const key = src < tgt ? `${src}|${tgt}|${type}` : `${tgt}|${src}|${type}`;
       if (!edgeKeySet.has(key)) {
           edgeKeySet.add(key);
@@ -250,7 +250,7 @@ export const applyMapUpdates = async ({
 
   // If a node is being renamed via nodesToUpdate, ignore any matching
   // nodesToRemove operation referencing either the old or new name.
-  (payload.nodesToUpdate || []).forEach(upd => {
+  (payload.nodesToUpdate ?? []).forEach(upd => {
     const updNames = [upd.placeName.toLowerCase()];
     if (upd.newData.placeName)
       updNames.push(upd.newData.placeName.toLowerCase());
@@ -314,7 +314,7 @@ export const applyMapUpdates = async ({
         if (canReuseExisting) {
           const existing = existingNode;
           if (nodeAddOp.data.aliases) {
-            const aliasSet = new Set([...(existing.data.aliases || [])]);
+            const aliasSet = new Set([...(existing.data.aliases ?? [])]);
             nodeAddOp.data.aliases.forEach(a => aliasSet.add(a));
             existing.data.aliases = Array.from(aliasSet);
           }
@@ -342,8 +342,8 @@ export const applyMapUpdates = async ({
       void _ignoredVisited;
 
       const newNodeData: MapNodeData = {
-        description: description || '',
-        aliases: aliases || [],
+        description: description ?? '',
+        aliases: aliases ?? [],
         status,
         parentNodeId: resolvedParentId,
         nodeType: nodeType ?? 'feature',
@@ -354,7 +354,7 @@ export const applyMapUpdates = async ({
         id: newNodeId,
         themeName: currentTheme.name,
         placeName: nodeAddOp.placeName,
-        position: nodeAddOp.initialPosition || { x: 0, y: 0 },
+        position: nodeAddOp.initialPosition ?? { x: 0, y: 0 },
         data: newNodeData,
       };
 
@@ -406,7 +406,7 @@ export const applyMapUpdates = async ({
             },
             minimalModelCalls
           );
-          unresolved.data.parentNodeId = guessed || 'Universe';
+          unresolved.data.parentNodeId = guessed ?? 'Universe';
         }
         triedParentInference = true;
         unresolvedQueue = nextQueue;
@@ -423,7 +423,7 @@ export const applyMapUpdates = async ({
   }
 
   // Process Node Updates (after all adds, so placeName changes are based on initial state of batch)
-  for (const nodeUpdateOp of payload.nodesToUpdate || []) {
+  for (const nodeUpdateOp of payload.nodesToUpdate ?? []) {
     const node = await resolveNodeRef(nodeUpdateOp.placeName);
 
     if (node) {
@@ -537,7 +537,7 @@ export const applyMapUpdates = async ({
           );
           if (batchKey) Reflect.deleteProperty(newNodesInBatchIdNameMap, batchKey);
       } else {
-          console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.nodeId || nodeRemoveOp.nodeName}" not found for removal.`);
+          console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.nodeId ?? nodeRemoveOp.nodeName}" not found for removal.`);
       }
   }
 
@@ -563,8 +563,8 @@ export const applyMapUpdates = async ({
 
         const pairKey =
           sourceNode.id < targetNode.id
-            ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.data.type || 'path'}`
-            : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.data.type || 'path'}`;
+            ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.data.type ?? 'path'}`
+            : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.data.type ?? 'path'}`;
         if (processedChainKeys.has(pairKey)) continue;
         processedChainKeys.add(pairKey);
 
@@ -580,7 +580,7 @@ export const applyMapUpdates = async ({
           {
             ...edgeAddOp.data,
             status:
-              edgeAddOp.data.status ||
+              edgeAddOp.data.status ??
               (sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored' ? 'rumored' : 'open'),
           },
           newMapData.edges,
@@ -605,13 +605,13 @@ export const applyMapUpdates = async ({
 
     // Find edge to update. If type is specified in newData, it's part of the match criteria.
     // Otherwise, find any edge and update its type.
-    const candidateEdges = (themeEdgesMap.get(sourceNodeId) || []).filter(
+    const candidateEdges = (themeEdgesMap.get(sourceNodeId) ?? []).filter(
       e =>
         (e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) ||
         (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)
     );
 
-    const checkType = edgeUpdateOp.newData.type || candidateEdges[0]?.data.type;
+    const checkType = edgeUpdateOp.newData.type ?? candidateEdges[0]?.data.type;
     if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType, themeNodeIdMap)) {
       console.warn(
         `MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`
@@ -721,7 +721,7 @@ export const applyMapUpdates = async ({
           ) as MapNode | undefined;
           if (existing) {
             if (nodeData.aliases) {
-              const aliasSet = new Set([...(existing.data.aliases || [])]);
+              const aliasSet = new Set([...(existing.data.aliases ?? [])]);
               nodeData.aliases.forEach(a => aliasSet.add(a));
               existing.data.aliases = Array.from(aliasSet);
             }
@@ -744,7 +744,7 @@ export const applyMapUpdates = async ({
           themeNodeIdMap.set(node.id, node);
           themeNodeNameMap.set(node.placeName, node);
         });
-        (chainResult.payload.edgesToAdd || []).forEach(eAdd => {
+        (chainResult.payload.edgesToAdd ?? []).forEach(eAdd => {
           const src =
             (findMapNodeByIdentifier(
               eAdd.sourcePlaceName,
@@ -761,8 +761,8 @@ export const applyMapUpdates = async ({
             ) as MapNode | undefined);
           if (src && tgt) {
             const pairKey = src.id < tgt.id
-              ? `${src.id}|${tgt.id}|${eAdd.data.type || 'path'}`
-              : `${tgt.id}|${src.id}|${eAdd.data.type || 'path'}`;
+              ? `${src.id}|${tgt.id}|${eAdd.data.type ?? 'path'}`
+              : `${tgt.id}|${src.id}|${eAdd.data.type ?? 'path'}`;
             if (processedChainKeys.has(pairKey)) return;
             processedChainKeys.add(pairKey);
             if (isEdgeConnectionAllowed(src, tgt, eAdd.data.type, themeNodeIdMap)) {

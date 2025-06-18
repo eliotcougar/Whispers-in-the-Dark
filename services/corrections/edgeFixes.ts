@@ -50,7 +50,7 @@ export const fetchCorrectedEdgeType_Service = async (
 
   const prompt = `Determine the most appropriate edge type for a map connection in a text adventure game.
 ${MAP_EDGE_TYPE_GUIDE}
-Description: "${edgeInfo.description || 'No description provided.'}"
+Description: "${edgeInfo.description ?? 'No description provided.'}"
 Valid edge types: ${VALID_EDGE_TYPE_VALUES.join(', ')}
 Respond ONLY with the single edge type.`;
 
@@ -167,15 +167,15 @@ export const fetchConnectorChains_Service = async (
       .map((p, i) => {
         const features = context.themeNodes
           .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
-          .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description || 'No description'})`)
+          .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description ?? 'No description'})`)
           .join('\n') || ' - None';
-        return `Node ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description || 'No description'})\n${features}`;
+        return `Node ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description ?? 'No description'})\n${features}`;
       })
       .join('\n');
 
     const edgeLines = Array.from(edgeMap.values())
       .map((e, i) => {
-        return `Edge ${i + 1}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${e.data.type || 'path'}, Status: ${e.data.status || 'open'}, Desc: ${e.data.description || 'None'})`;
+        return `Edge ${i + 1}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${e.data.type ?? 'path'}, Status: ${e.data.status ?? 'open'}, Desc: ${e.data.description ?? 'None'})`;
       })
       .join('\n');
 
@@ -266,10 +266,10 @@ Return ONLY a JSON object strictly matching this structure:
       if (entry && typeof entry === 'object') {
         const maybeObj = entry as Partial<AIMapUpdatePayload>;
         if (Array.isArray(maybeObj.nodesToAdd)) {
-          acc.nodesToAdd = [...(acc.nodesToAdd || []), ...maybeObj.nodesToAdd];
+          acc.nodesToAdd = [...(acc.nodesToAdd ?? []), ...maybeObj.nodesToAdd];
         }
         if (Array.isArray(maybeObj.edgesToAdd)) {
-          acc.edgesToAdd = [...(acc.edgesToAdd || []), ...maybeObj.edgesToAdd];
+          acc.edgesToAdd = [...(acc.edgesToAdd ?? []), ...maybeObj.edgesToAdd];
         }
         if (maybeObj.observations && !acc.observations) {
           acc.observations = maybeObj.observations;
@@ -283,7 +283,7 @@ Return ONLY a JSON object strictly matching this structure:
   } else if (typeof parsed === 'object') {
     result = parsed as AIMapUpdatePayload;
   }
-  debugInfo.parsedPayload = result || undefined;
+  debugInfo.parsedPayload = result ?? undefined;
   if (result) {
     if (result.observations && !debugInfo.observations) debugInfo.observations = result.observations;
     if (result.rationale && !debugInfo.rationale) debugInfo.rationale = result.rationale;

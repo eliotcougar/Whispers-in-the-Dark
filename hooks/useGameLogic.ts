@@ -178,9 +178,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
             dialogueDebugInfo: null,
           };
         }
-        draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt || draftState.lastDebugPacket.prompt}`;
-        draftState.lastDebugPacket.rawResponseText = debugInfo.summaryRawResponse || null;
-        draftState.lastDebugPacket.storytellerThoughts = debugInfo.summaryThoughts || null;
+        draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;
+        draftState.lastDebugPacket.rawResponseText = debugInfo.summaryRawResponse ?? null;
+        draftState.lastDebugPacket.storytellerThoughts = debugInfo.summaryThoughts ?? null;
         draftState.lastDebugPacket.parsedResponse = summaryPayload;
         draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
         commitGameState(draftState);
@@ -240,7 +240,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         currentFullState.mapData,
         currentFullState.currentMapNodeId
       );
-      const contextText = `${currentFullState.currentScene} ${currentFullState.lastActionLog || ''}`.toLowerCase();
+      const contextText = `${currentFullState.currentScene} ${currentFullState.lastActionLog ?? ''}`.toLowerCase();
       const nearbyItems = currentFullState.inventory.filter(
         i =>
           adjIds.includes(i.holderId) &&

@@ -104,7 +104,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           const newHistoryWithNpcResponses = [...historyWithPlayerChoice, ...turnData.npcResponses];
 
           const nextDialogueStateData: DialogueData = {
-            participants: turnData.updatedParticipants || latestStateAfterFetch.dialogueState.participants,
+            participants: turnData.updatedParticipants ?? latestStateAfterFetch.dialogueState.participants,
             history: newHistoryWithNpcResponses,
             options: turnData.playerOptions,
           };
