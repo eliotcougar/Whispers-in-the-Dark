@@ -36,37 +36,37 @@ export const parseAIMapUpdateResponse = (
           const maybeObj = entry as Partial<AIMapUpdatePayload>;
           if (Array.isArray(maybeObj.nodesToAdd)) {
             acc.nodesToAdd = [
-              ...(acc.nodesToAdd || []),
+              ...(acc.nodesToAdd ?? []),
               ...maybeObj.nodesToAdd,
             ];
           }
           if (Array.isArray(maybeObj.nodesToUpdate)) {
             acc.nodesToUpdate = [
-              ...(acc.nodesToUpdate || []),
+              ...(acc.nodesToUpdate ?? []),
               ...maybeObj.nodesToUpdate,
             ];
           }
           if (Array.isArray(maybeObj.nodesToRemove)) {
             acc.nodesToRemove = [
-              ...(acc.nodesToRemove || []),
+              ...(acc.nodesToRemove ?? []),
               ...maybeObj.nodesToRemove,
             ];
           }
           if (Array.isArray(maybeObj.edgesToAdd)) {
             acc.edgesToAdd = [
-              ...(acc.edgesToAdd || []),
+              ...(acc.edgesToAdd ?? []),
               ...maybeObj.edgesToAdd,
             ];
           }
           if (Array.isArray(maybeObj.edgesToUpdate)) {
             acc.edgesToUpdate = [
-              ...(acc.edgesToUpdate || []),
+              ...(acc.edgesToUpdate ?? []),
               ...maybeObj.edgesToUpdate,
             ];
           }
           if (Array.isArray(maybeObj.edgesToRemove)) {
             acc.edgesToRemove = [
-              ...(acc.edgesToRemove || []),
+              ...(acc.edgesToRemove ?? []),
               ...maybeObj.edgesToRemove,
             ];
           }
@@ -107,7 +107,7 @@ export const parseAIMapUpdateResponse = (
       const filterEdgeArray = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
         arr: Array<T> | undefined,
       ): Array<T> =>
-        (arr || []).filter(
+        (arr ?? []).filter(
           e => !nameIsUniverse(e.sourcePlaceName) && !nameIsUniverse(e.targetPlaceName),
         );
       if (Array.isArray(payload.edgesToAdd)) {

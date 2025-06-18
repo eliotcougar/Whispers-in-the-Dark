@@ -30,9 +30,9 @@ export const formatKnownCharactersForPrompt = (
       }
       details += ` (${c.presenceStatus}`;
       if (c.presenceStatus === 'companion' || c.presenceStatus === 'nearby') {
-        details += `, ${c.preciseLocation || (c.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
+        details += `, ${c.preciseLocation ?? (c.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
       } else {
-        details += `, Last Location: ${c.lastKnownLocation || 'Unknown'}`;
+        details += `, Last Location: ${c.lastKnownLocation ?? 'Unknown'}`;
       }
       details += `), "${c.description}"`;
       return details;
@@ -83,7 +83,7 @@ export const formatDetailedContextForMentionedEntities = (
 ): string => {
   const mentionedPlaces: Array<MapNode> = [];
   allKnownMainMapNodes.forEach(node => {
-    const allNames = [node.placeName, ...(node.data.aliases || [])];
+    const allNames = [node.placeName, ...(node.data.aliases ?? [])];
     const nameRegex = new RegExp(allNames.map(name => `\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`).join('|'), 'i');
     if (nameRegex.test(contextString)) {
       mentionedPlaces.push(node);
@@ -92,7 +92,7 @@ export const formatDetailedContextForMentionedEntities = (
 
   const mentionedCharacters: Array<Character> = [];
   allKnownCharacters.forEach(c => {
-    const allNames = [c.name, ...(c.aliases || [])];
+    const allNames = [c.name, ...(c.aliases ?? [])];
     const nameRegex = new RegExp(allNames.map(name => `\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`).join('|'), 'i');
     if (nameRegex.test(contextString)) {
       mentionedCharacters.push(c);
@@ -170,7 +170,7 @@ export const formatTravelPlanLine = (
   } else {
     const edge = mapData.edges.find(e => e.id === firstEdge.id);
     const edgeStatus = edge?.data.status ?? 'open';
-    const edgeName = edge?.data.description || edge?.data.type || 'path';
+    const edgeName = edge?.data.description ?? edge?.data.type ?? 'path';
     if (edgeStatus === 'rumored') {
       line += ` There is a rumor a path exists from here to ${nextRumored ? 'a rumored place - ' + nextName : nextName}.`;
     } else {

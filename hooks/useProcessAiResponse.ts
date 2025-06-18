@@ -110,8 +110,8 @@ export const useProcessAiResponse = ({
 
       draftState.lastDebugPacket = {
         ...(draftState.lastDebugPacket ?? {}),
-        prompt: draftState.lastDebugPacket?.prompt || 'Prompt not captured for this state transition',
-        rawResponseText: draftState.lastDebugPacket?.rawResponseText || 'Raw text not captured',
+        prompt: draftState.lastDebugPacket?.prompt ?? 'Prompt not captured for this state transition',
+        rawResponseText: draftState.lastDebugPacket?.rawResponseText ?? 'Raw text not captured',
         parsedResponse: aiData,
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
@@ -157,7 +157,7 @@ export const useProcessAiResponse = ({
       } else {
         draftState.objectiveAnimationType = null;
       }
-      turnChanges.objectiveAchieved = aiData.objectiveAchieved || false;
+      turnChanges.objectiveAchieved = aiData.objectiveAchieved ?? false;
       if (aiData.objectiveAchieved) {
         draftState.score = draftState.score + 1;
         turnChanges.scoreChangedBy += 1;
@@ -189,17 +189,17 @@ export const useProcessAiResponse = ({
             const itemNameFromAI = itemRef.name;
             const exactMatchInInventory = baseStateSnapshot.inventory
               .filter((i) => i.holderId === PLAYER_HOLDER_ID)
-              .find(
-                (invItem) =>
-                  (itemRef.id && invItem.id === itemRef.id) ||
-                  (itemRef.name && invItem.name === itemRef.name),
-              );
+              .find((invItem) => {
+                const matchId = itemRef.id !== undefined && invItem.id === itemRef.id;
+                const matchName = itemRef.name !== undefined && invItem.name === itemRef.name;
+                return matchId || matchName;
+              });
             if (!exactMatchInInventory) {
               const originalLoadingReason = loadingReason;
               setLoadingReason('correction');
               const correctedName = await fetchCorrectedName_Service(
                 'item',
-                itemNameFromAI || '',
+                itemNameFromAI ?? '',
                 aiData.logMessage,
                 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
                 baseStateSnapshot.inventory
@@ -213,22 +213,22 @@ export const useProcessAiResponse = ({
               setLoadingReason(originalLoadingReason);
             }
 
-            const dropText = `${aiData.logMessage || ''} ${
+            const dropText = `${aiData.logMessage ?? ''} ${
               'sceneDescription' in aiData ? aiData.sceneDescription : ''
-            } ${playerActionText || ''}`.toLowerCase();
+            } ${playerActionText ?? ''}`.toLowerCase();
             const dropIndicators = ['drop', 'dropped', 'leave', 'left', 'put down', 'set down', 'place', 'placed'];
             if (dropIndicators.some((word) => dropText.includes(word))) {
               const invItem = baseStateSnapshot.inventory.find(
                 (i) =>
                   i.holderId === PLAYER_HOLDER_ID &&
-                  ((itemRef.id && i.id === itemRef.id) ||
-                    (itemRef.name && i.name.toLowerCase() === itemRef.name.toLowerCase()))
+                  ((itemRef.id != null && i.id === itemRef.id) ||
+                    (itemRef.name != null && i.name.toLowerCase() === itemRef.name.toLowerCase()))
               );
               if (invItem) {
                 currentChange.action = 'put';
                 currentChange.item = {
                   ...invItem,
-                  holderId: baseStateSnapshot.currentMapNodeId || 'unknown',
+                  holderId: baseStateSnapshot.currentMapNodeId ?? 'unknown',
                 } as Item;
               }
             }
@@ -272,10 +272,10 @@ export const useProcessAiResponse = ({
           'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
           'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
           'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [],
-          playerActionText || '',
+          playerActionText ?? '',
           formatInventoryForPrompt(baseInventoryForPlayer),
           formatInventoryForPrompt(locationInventory),
-          baseStateSnapshot.currentMapNodeId || null,
+          baseStateSnapshot.currentMapNodeId ?? null,
           formatCharInventoryList(companionChars),
           formatCharInventoryList(nearbyChars),
           'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,

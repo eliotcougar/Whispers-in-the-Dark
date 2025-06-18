@@ -122,7 +122,7 @@ function KnowledgeBase({
                               />
 
                               <span className={`ml-1 ${colorClass} italic`}>
-                                {character.preciseLocation || ''} 
+                                {character.preciseLocation ?? ''}
 
                                 {' '}
 

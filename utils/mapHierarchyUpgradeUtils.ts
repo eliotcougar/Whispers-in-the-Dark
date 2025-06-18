@@ -57,7 +57,7 @@ export const upgradeFeatureToRegion = (
     position: { ...featureNode.position },
     data: {
       description: featureNode.data.description,
-      aliases: featureNode.data.aliases || [],
+      aliases: featureNode.data.aliases ?? [],
       status: featureNode.data.status,
       nodeType: 'feature',
       parentNodeId: featureNode.id,

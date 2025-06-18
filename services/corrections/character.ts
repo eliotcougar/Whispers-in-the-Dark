@@ -54,10 +54,10 @@ Task: Provide a suitable description, aliases, presenceStatus, lastKnownLocation
 Character Name: "${characterName}"
 
 Context:
-- Log Message (how they appeared/what they're doing): "${logMessage || 'Not specified, infer from scene.'}"
-- Scene Description (where they appeared/are relevant): "${sceneDescription || 'Not specified, infer from log.'}"
+- Log Message (how they appeared/what they're doing): "${logMessage ?? 'Not specified, infer from scene.'}"
+- Scene Description (where they appeared/are relevant): "${sceneDescription ?? 'Not specified, infer from log.'}"
 - ${knownPlacesString}
-- Theme Guidance (influences character style/role): "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
+- Theme Guidance (influences character style/role): "${currentTheme.systemInstructionModifier}"
 
 Respond ONLY in JSON format with the following structure:
 {
@@ -153,9 +153,9 @@ Character Name: "${characterName}" (This character is currently present in the s
 - It MUST be a short, descriptive phrase (ideally under 50 characters, absolute max ~60 characters).
 - Examples: "examining the bookshelf", "hiding behind barrels", "next to you", "across the room", "arguing with the guard".
 
-Narrative Context (use this to infer the location/activity):
-- Log Message (may describe character's actions): "${logMessage || 'Not specified, infer from scene.'}"
-- Scene Description (primary source for character's current state): "${sceneDescription || 'Not specified, infer from log.'}"
+- Narrative Context (use this to infer the location/activity):
+- Log Message (may describe character's actions): "${logMessage ?? 'Not specified, infer from scene.'}"
+- Scene Description (primary source for character's current state): "${sceneDescription ?? 'Not specified, infer from log.'}"
 - ${knownPlacesString}
 
 Malformed or Missing "preciseLocation" data from previous AI: "${invalidPreciseLocationPayload}"
@@ -168,7 +168,7 @@ Example Response: "near you"
 Example Response: If unclear from context, respond with a generic but plausible short phrase like "observing the surroundings" or "standing nearby".
 `;
 
-  const systemInstruction = `Infer or correct a character's "preciseLocation" (a short phrase, max ~50-60 chars, describing their in-scene activity/position) from narrative context and potentially malformed input. Respond ONLY with the string value. Adhere to theme context: ${currentTheme.systemInstructionModifier || 'General interpretation.'}`;
+  const systemInstruction = `Infer or correct a character's "preciseLocation" (a short phrase, max ~50-60 chars, describing their in-scene activity/position) from narrative context and potentially malformed input. Respond ONLY with the string value. Adhere to theme context: ${currentTheme.systemInstructionModifier}`;
 
   return retryAiCall<string>(async attempt => {
     try {

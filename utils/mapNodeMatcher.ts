@@ -268,7 +268,7 @@ export const selectBestMatchingMapNode = (
   const exactMatches: Array<ExactMatchCandidate> = [];
 
   for (const node of themeNodes) {
-    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases || [])];
+    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
 
     for (const nameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== "")) {
       const normName = normalizeStringForMatching(nameOrAlias);
@@ -317,7 +317,7 @@ export const selectBestMatchingMapNode = (
   }
 
   for (const node of themeNodes) {
-    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases || [])];
+    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
     let maxScoreForThisNodeCandidate = -1;
 
     for (const nodeNameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== "")) {

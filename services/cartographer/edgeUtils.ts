@@ -53,7 +53,7 @@ export function addEdgeWithTracking(
   edges: Array<MapEdge>,
   edgeLookup: Map<string, Array<MapEdge>>
 ): MapEdge {
-  const existing = (edgeLookup.get(a.id) || []).find(
+  const existing = (edgeLookup.get(a.id) ?? []).find(
     e =>
       ((e.sourceNodeId === a.id && e.targetNodeId === b.id) || (e.sourceNodeId === b.id && e.targetNodeId === a.id)) &&
       e.data.type === data.type,

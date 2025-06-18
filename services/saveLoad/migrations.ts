@@ -87,7 +87,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
       ...node,
       data: {
         description: node.data.description || 'Description missing in save prep',
-        aliases: node.data.aliases || [],
+        aliases: node.data.aliases ?? [],
         status: node.data.status,
         isFeature: node.data.isFeature,
         visited: node.data.visited,
@@ -106,11 +106,11 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     inventory: gameState.inventory.map(item => ({ ...item, isJunk: item.isJunk ?? false, holderId: item.holderId || PLAYER_HOLDER_ID })),
       allCharacters: gameState.allCharacters.map(c => ({
         ...c,
-        aliases: c.aliases || [],
+        aliases: c.aliases ?? [],
         presenceStatus: c.presenceStatus,
         lastKnownLocation: c.lastKnownLocation,
         preciseLocation: c.preciseLocation,
-        dialogueSummaries: c.dialogueSummaries || [],
+        dialogueSummaries: c.dialogueSummaries ?? [],
       })),
     mapData: mapDataForSave,
       currentMapNodeId: gameState.currentMapNodeId,
@@ -139,7 +139,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
       data: {
         ...node.data,
         description: node.data.description || 'Description missing on load',
-        aliases: node.data.aliases || []
+        aliases: node.data.aliases ?? []
       }
     })),
     edges: savedData.mapData.edges,
@@ -158,7 +158,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     currentThemeObject: themeObjectToUse,
     allCharacters: savedData.allCharacters.map(c => ({
       ...c,
-      dialogueSummaries: c.dialogueSummaries || [],
+      dialogueSummaries: c.dialogueSummaries ?? [],
     })),
     mapData: mapDataFromLoad,
     currentMapNodeId: savedData.currentMapNodeId,

@@ -70,13 +70,13 @@ function SceneDisplay({
 
       {highlightedDescription}
       
-      {(localTime || localEnvironment || localPlace) ? <div className="mt-4 pt-3 border-t border-slate-700">
+      {(localTime ?? localEnvironment ?? localPlace) ? <div className="mt-4 pt-3 border-t border-slate-700">
         <p className="text-lg text-slate-400">
           <strong className="text-slate-300">
             Time:
           </strong>
 
-          {localTime || "Unknown"}
+          {localTime ?? "Unknown"}
 
           {' '}
 
@@ -84,7 +84,7 @@ function SceneDisplay({
             Environment:
           </strong>
           
-          {localEnvironment || "Unknown"}
+          {localEnvironment ?? "Unknown"}
 
           {' '}
 
@@ -92,7 +92,7 @@ function SceneDisplay({
             Location:
           </strong>
           
-          {localPlace || "Unknown"}
+          {localPlace ?? "Unknown"}
         </p>
       </div> : null}
     </div>

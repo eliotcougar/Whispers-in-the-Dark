@@ -50,19 +50,19 @@ ${malformedResponseText}
 \`\`\`
 
 Narrative Context:
-- Log Message: "${logMessage || 'Not specified'}"
-- Scene Description: "${sceneDescription || 'Not specified'}"
+- Log Message: "${logMessage ?? 'Not specified'}"
+- Scene Description: "${sceneDescription ?? 'Not specified'}"
 - Player Items Hint: "${playerItemsHint}"
 - World Items Hint: "${worldItemsHint}"
 - NPC Items Hint: "${npcItemsHint}"
-- Current Place ID: "${currentNodeId || 'unknown'}"
+ - Current Place ID: "${currentNodeId ?? 'unknown'}"
 - Companions: ${companionsContext}
 - Nearby NPCs: ${nearbyNpcsContext}
 - Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
 
 Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
 
-  const systemInstruction = `Correct a JSON array of ItemChange objects for the inventory system. Each element must follow this structure:\n{ "action": (${VALID_ACTIONS_STRING}), "item": { ... } }\nValid item types: ${VALID_ITEM_TYPES_STRING}. Holder IDs can be "${PLAYER_HOLDER_ID}", "${currentNodeId || 'unknown'}", companion IDs, or nearby NPC IDs from the context. Respond ONLY with the corrected JSON array.`;
+  const systemInstruction = `Correct a JSON array of ItemChange objects for the inventory system. Each element must follow this structure:\n{ "action": (${VALID_ACTIONS_STRING}), "item": { ... } }\nValid item types: ${VALID_ITEM_TYPES_STRING}. Holder IDs can be "${PLAYER_HOLDER_ID}", "${currentNodeId ?? 'unknown'}", companion IDs, or nearby NPC IDs from the context. Respond ONLY with the corrected JSON array.`;
 
   return retryAiCall<Array<ItemChange>>(async attempt => {
     try {

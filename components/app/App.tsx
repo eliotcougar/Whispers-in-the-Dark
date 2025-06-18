@@ -700,7 +700,7 @@ function App() {
       <DialogueDisplay
         allCharacters={allCharacters}
         currentThemeName={currentTheme ? currentTheme.name : null}
-        history={dialogueState?.history || []}
+        history={dialogueState?.history ?? []}
         inventory={inventory}
         isDialogueExiting={isDialogueExiting}
         isLoading={isLoading}
@@ -709,8 +709,8 @@ function App() {
         mapData={mapData.nodes}
         onClose={handleForceExitDialogue}
         onOptionSelect={handleDialogueOptionSelectSafe}
-        options={dialogueState?.options || []}
-        participants={dialogueState?.participants || []}
+        options={dialogueState?.options ?? []}
+        participants={dialogueState?.participants ?? []}
       />
 
       <DebugView

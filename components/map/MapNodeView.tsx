@@ -216,7 +216,7 @@ function MapNodeView({
     const childrenMap = new Map<string, Array<MapNode>>();
     nodes.forEach(n => {
       if (n.data.parentNodeId) {
-        const arr = childrenMap.get(n.data.parentNodeId) || [];
+        const arr = childrenMap.get(n.data.parentNodeId) ?? [];
         arr.push(n);
         childrenMap.set(n.data.parentNodeId, arr);
       }
@@ -400,9 +400,8 @@ function MapNodeView({
         : { x: 0, y: 0 };
       const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
       const targetNode = nodes.find(n => n.id === edge.targetNodeId);
-      let content = edge.data.description
-        ? edge.data.description
-        : `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
+        let content = edge.data.description ??
+          `Path between ${sourceNode?.placeName ?? 'Unknown'} and ${targetNode?.placeName ?? 'Unknown'}`;
       if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
       if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
       const anchor = computeAnchor(x, y, svgRect);
@@ -673,7 +672,7 @@ function MapNodeView({
             );
             const radius = getRadiusForNode(node);
             const fontSize = isSmallFontType(node.data.nodeType) ? 7 : 12;
-            const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] || 0);
+            const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] ?? 0);
             const initialDyOffset =
               hasCenteredLabel(node.data.nodeType)
                 ? -(labelLines.length - 1) * 0.5 * DEFAULT_LABEL_LINE_HEIGHT_EM + 0.3

@@ -43,8 +43,8 @@ const areKnownUsesEffectivelyIdentical = (
   ku1Array?: Array<KnownUse>,
   ku2Array?: Array<KnownUse>
 ): boolean => {
-  const kus1 = ku1Array || [];
-  const kus2 = ku2Array || [];
+  const kus1 = ku1Array ?? [];
+  const kus2 = ku2Array ?? [];
   if (kus1.length !== kus2.length) return false;
   if (kus1.length === 0) return true;
 
@@ -77,7 +77,7 @@ const areItemsEffectivelyIdentical = (
   if (item1.name !== item2.name ||
       item1.type !== item2.type ||
       item1.description !== item2.description ||
-      (item1.activeDescription || '') !== (item2.activeDescription || '') ||
+      (item1.activeDescription ?? '') !== (item2.activeDescription ?? '') ||
       (item1.isActive ?? false) !== (item2.isActive ?? false) ||
       (item1.isJunk ?? false) !== (item2.isJunk ?? false)
   ) {
@@ -334,7 +334,7 @@ function ItemChangeAnimator({
             className="w-full text-xs bg-slate-500/70 text-slate-400 font-medium py-1 px-2 rounded shadow cursor-not-allowed"
             disabled
             key={`${item.name}-anim-ku-${ku.actionName}`}
-            title={ku.description || ku.actionName}
+            title={ku.description ?? ku.actionName}
             type="button"
           >
             {ku.actionName}

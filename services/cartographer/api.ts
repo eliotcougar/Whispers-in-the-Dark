@@ -36,9 +36,9 @@ export const updateMapFromAIData_Service = async (
   }
 
   const sceneDesc = 'sceneDescription' in aiData ? aiData.sceneDescription : '';
-  const logMsg = aiData.logMessage || '';
-  const localPlace = aiData.localPlace || 'Unknown';
-  const mapHint = aiData.mapHint || '';
+  const logMsg = aiData.logMessage ?? '';
+  const localPlace = aiData.localPlace ?? 'Unknown';
+  const mapHint = aiData.mapHint ?? '';
   const referenceMapNodeId =
     'currentMapNodeId' in aiData && aiData.currentMapNodeId
       ? aiData.currentMapNodeId
