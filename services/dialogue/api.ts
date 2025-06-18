@@ -109,7 +109,7 @@ export const executeDialogueTurn = async (
 
   for (let attempt = 1; attempt <= MAX_RETRIES; ) {
     try {
-      console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES})`);
+      console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES)})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, 512);
       const parts =
         (response.candidates?.[0]?.content?.parts ?? []) as Array<{
@@ -127,10 +127,10 @@ export const executeDialogueTurn = async (
         thoughtParts,
       );
       if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
-      console.warn(`Attempt ${attempt} failed to yield valid dialogue JSON even after correction.`);
+      console.warn(`Attempt ${String(attempt)} failed to yield valid dialogue JSON even after correction.`);
       attempt++;
     } catch (error) {
-      console.error(`Error fetching dialogue turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
+      console.error(`Error fetching dialogue turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
       if (!isServerOrClientError(error)) throw error;
       if (attempt === MAX_RETRIES) throw error;
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -160,7 +160,7 @@ export const executeDialogueSummary = async (
 
   for (let attempt = 1; attempt <= MAX_RETRIES + 2; ) {
     try {
-      console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 2})`);
+      console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES + 2)})`);
       let systemInstructionForCall = SYSTEM_INSTRUCTION;
       if (summaryContext.currentThemeObject.systemInstructionModifier) {
         systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${summaryContext.currentThemeObject.systemInstructionModifier}`;
@@ -191,10 +191,10 @@ export const executeDialogueSummary = async (
         summaryContext.inventory,
       );
       if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
-      console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
+      console.warn(`Attempt ${String(attempt)} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
       attempt++;
     } catch (error) {
-      console.error(`Error summarizing dialogue (Attempt ${attempt}/${MAX_RETRIES + 2}):`, error);
+      console.error(`Error summarizing dialogue (Attempt ${String(attempt)}/${String(MAX_RETRIES + 2)}):`, error);
       if (!isServerOrClientError(error)) throw error;
       if (attempt === MAX_RETRIES + 2) throw error;
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -223,7 +223,7 @@ export const executeMemorySummary = async (
 
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) {
     try {
-      console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 1})`);
+      console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES + 1)})`);
       addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_memory_creation.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME],
@@ -237,11 +237,11 @@ export const executeMemorySummary = async (
         console.log(`summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`);
         return memoryText;
       }
-      console.warn(`Attempt ${attempt} for memory summary yielded empty text after trim: '${memoryText}'`);
+        console.warn(`Attempt ${String(attempt)} for memory summary yielded empty text after trim: '${String(memoryText)}'`);
       if (attempt === MAX_RETRIES + 1) return null;
       attempt++;
     } catch (error) {
-      console.error(`Error generating memory summary (Attempt ${attempt}/${MAX_RETRIES + 1}):`, error);
+      console.error(`Error generating memory summary (Attempt ${String(attempt)}/${String(MAX_RETRIES + 1)}):`, error);
       if (!isServerOrClientError(error)) return null;
       if (attempt === MAX_RETRIES + 1) return null;
       await new Promise(resolve => setTimeout(resolve, 500));

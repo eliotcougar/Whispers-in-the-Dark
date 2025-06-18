@@ -315,9 +315,9 @@ function DebugView({
                   debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 ? debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
                     <div
                       className="my-2"
-                      key={`chain-${info.round}`}
+                      key={`chain-${String(info.round)}`}
                     >
-                      {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
+                      {renderContent(`Connector Chains Prompt (Round ${String(info.round)})`, info.prompt, false)}
 
                       <div className="my-2">
                         <button
@@ -332,30 +332,30 @@ function DebugView({
                       {(showConnectorChainRaw[idx] ?? true)
                         ? info.rawResponse &&
                           renderContent(
-                            `Connector Chains Raw Response (Round ${info.round})`,
+                            `Connector Chains Raw Response (Round ${String(info.round)})`,
                             filterObservationsAndRationale(info.rawResponse),
                             false,
                           )
                         : info.parsedPayload &&
                           renderContent(
-                            `Connector Chains Parsed Payload (Round ${info.round})`,
+                            `Connector Chains Parsed Payload (Round ${String(info.round)})`,
                             info.parsedPayload,
                           )}
 
                       {info.observations ? renderContent(
-                          `Connector Chains Observations (Round ${info.round})`,
+                          `Connector Chains Observations (Round ${String(info.round)})`,
                           info.observations,
                           false,
                         ) : null}
 
                       {info.rationale ? renderContent(
-                          `Connector Chains Rationale (Round ${info.round})`,
+                          `Connector Chains Rationale (Round ${String(info.round)})`,
                           info.rationale,
                           false,
                         ) : null}
 
                       {info.validationError ? renderContent(
-                          `Connector Chains Validation Error (Round ${info.round})`,
+                          `Connector Chains Validation Error (Round ${String(info.round)})`,
                           info.validationError,
                           false,
                         ) : null}
@@ -382,9 +382,9 @@ function DebugView({
                   className="mb-2"
                   key={t.prompt}
                 >
-                  {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
+                    {renderContent(`Turn ${String(idx + 1)} Request`, t.prompt, false)}
 
-                  {renderContent(`Turn ${idx + 1} Response`, responseWithThoughts, false)}
+                    {renderContent(`Turn ${String(idx + 1)} Response`, responseWithThoughts, false)}
                 </div>
               );
             })}

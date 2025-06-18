@@ -82,7 +82,7 @@ export const fetchMapUpdatePayload = async (
 
   for (let attempt = 0; attempt < MAX_RETRIES; ) {
     try {
-      console.log(`Map Update Service: Attempt ${attempt + 1}/${MAX_RETRIES}`);
+      console.log(`Map Update Service: Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}`);
       if (attempt > 0 && debugInfo.validationError) {
         prompt = `${basePrompt}\nCRITICALLY IMPORTANT: ${debugInfo.validationError}`;
       } else {
@@ -118,7 +118,7 @@ export const fetchMapUpdatePayload = async (
       }
       attempt++;
     } catch (error) {
-      console.error(`Error in map update request (Attempt ${attempt + 1}/${MAX_RETRIES}):`, error);
+      console.error(`Error in map update request (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}):`, error);
       debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
       debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
       if (attempt === MAX_RETRIES - 1) {

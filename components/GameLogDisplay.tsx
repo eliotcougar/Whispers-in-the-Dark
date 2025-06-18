@@ -40,7 +40,7 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
             return (
               <li
                 className="text-slate-400 leading-snug"
-                key={`${message}-${count}`}
+                key={`${message}-${String(count)}`}
               >
                 <span className="text-emerald-500">
                   &raquo;

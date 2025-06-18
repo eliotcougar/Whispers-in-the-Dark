@@ -83,11 +83,11 @@ Respond ONLY with the inferred "localPlace" as a single string.`;
         return { result: correctedLocalPlace };
       }
       console.warn(
-        `fetchCorrectedLocalPlace_Service (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}): AI call failed for localPlace. Received: null`,
+        `fetchCorrectedLocalPlace_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): AI call failed for localPlace. Received: null`,
       );
     } catch (error) {
       console.error(
-        `fetchCorrectedLocalPlace_Service error (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}):`,
+        `fetchCorrectedLocalPlace_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -179,12 +179,12 @@ Respond ONLY with the single, complete, corrected JSON object.`;
           return { result: aiResponse };
         }
         console.warn(
-          `fetchCorrectedPlaceDetails_Service (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}): Corrected map location payload invalid. Response:`,
+          `fetchCorrectedPlaceDetails_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): Corrected map location payload invalid. Response:`,
           aiResponse,
         );
       } catch (error) {
         console.error(
-          `fetchCorrectedPlaceDetails_Service error (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}):`,
+          `fetchCorrectedPlaceDetails_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
           error,
         );
         throw error;
@@ -256,12 +256,12 @@ Respond ONLY with the single, complete JSON object.`;
           return { result: aiResponse };
         }
         console.warn(
-          `fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`,
+          `fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`,
           aiResponse,
         );
       } catch (error) {
         console.error(
-          `fetchFullPlaceDetailsForNewMapNode_Service error (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}):`,
+          `fetchFullPlaceDetailsForNewMapNode_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
           error,
         );
         throw error;
@@ -331,7 +331,7 @@ Respond ONLY with the single node type.`;
       }
     } catch (error) {
       console.error(
-        `fetchCorrectedNodeType_Service error (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}):`,
+        `fetchCorrectedNodeType_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -419,7 +419,7 @@ Respond ONLY with the name or id of the best parent node, or "Universe" if none.
       }
     } catch (error) {
       console.error(
-        `fetchLikelyParentNode_Service error (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}):`,
+        `fetchLikelyParentNode_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -469,7 +469,7 @@ Known map nodes in the current theme:\n${nodeList}\nChoose the most likely inten
       }
     } catch (error) {
       console.error(
-        `fetchCorrectedNodeIdentifier_Service error (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}):`,
+        `fetchCorrectedNodeIdentifier_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

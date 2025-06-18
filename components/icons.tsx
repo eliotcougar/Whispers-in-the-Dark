@@ -83,7 +83,7 @@ export function Icon({
     .join(' ');
 
   const svgAttrs = (svgClasses ? ` class="${svgClasses}"` : '') +
-    (size ? ` width="${size}" height="${size}"` : '');
+    (size ? ` width="${String(size)}" height="${String(size)}"` : '');
   const rendered = svgMarkup.replace('<svg', `<svg${svgAttrs}`);
 
   const style = marginRight ? { marginRight } : undefined;
