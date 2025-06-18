@@ -7,6 +7,8 @@ import { useCallback } from 'react';
 
 import { AdventureTheme, ThemePackName } from '../types';
 import { THEME_PACKS } from '../themes'; // To get pack names and structure
+import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 
 interface CustomGameSetupScreenProps {
   readonly isVisible: boolean;
@@ -58,14 +60,16 @@ function CustomGameSetupScreen({
       role="dialog"
     >
       <div className="animated-frame-content">
-        <button
-          aria-label="Close theme selection"
+        <Button
+          ariaLabel="Close theme selection"
           className="animated-frame-close-button"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
 
         <div className="flex flex-col items-center w-full h-full p-2">
           <h1

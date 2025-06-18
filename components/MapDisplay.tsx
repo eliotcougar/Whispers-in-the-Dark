@@ -12,6 +12,8 @@ import {
   DEFAULT_NESTED_ANGLE_PADDING,
   applyNestedCircleLayout,
 } from '../utils/mapLayoutUtils';
+import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
@@ -181,14 +183,16 @@ function MapDisplay({
       role="dialog"
     >
       <div className="animated-frame-content">
-        <button
-          aria-label="Close map view"
+        <Button
+          ariaLabel="Close map view"
           className="animated-frame-close-button"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
 
         <h1
           className="text-xl font-bold text-teal-400 mb-2 text-center"

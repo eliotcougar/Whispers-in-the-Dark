@@ -5,6 +5,7 @@
  */
 import { CURRENT_GAME_VERSION } from '../constants'; // Import the version constant
 import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 import VersionBadge from './elements/VersionBadge';
 
 interface TitleMenuProps {
@@ -49,7 +50,10 @@ function TitleMenu({
           <Button
             ariaLabel="Close Title Menu"
             className="animated-frame-close-button"
-            label="\u00D7"
+            icon={<Icon
+              name="x"
+              size={20}
+                  />}
             onClick={onClose}
             size="sm"
           />

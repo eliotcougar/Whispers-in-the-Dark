@@ -11,6 +11,7 @@ import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/hi
 import LoadingSpinner from './LoadingSpinner';
 import ModelUsageIndicators from './ModelUsageIndicators';
 import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 
 interface DialogueDisplayProps {
   readonly isVisible: boolean;
@@ -147,7 +148,10 @@ function DialogueDisplay({
           ariaLabel="End Conversation"
           className="animated-frame-close-button"
           disabled={isLoading || isDialogueExiting}
-          label="\u00D7"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
           size="sm"
         />

@@ -13,6 +13,8 @@ import LoadingSpinner from './LoadingSpinner';
 import { extractStatusFromError } from '../utils/aiErrorUtils';
 import { dispatchAIRequest } from '../services/modelDispatcher';
 import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME } from '../constants';
+import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 
 if (!isApiConfigured()) {
   console.error("GEMINI_API_KEY for GoogleGenAI is not set. Image visualization will not work.");
@@ -241,14 +243,16 @@ function ImageVisualizer({
       role="dialog"
     >
       <div className="animated-frame-content visualizer-content-area"> 
-        <button
-          aria-label="Close visualizer"
+        <Button
+          ariaLabel="Close visualizer"
           className="animated-frame-close-button"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
-          type="button"
-        >
-          &times;
-        </button>
+          size="sm"
+        />
         
         {isLoading ? <div className="visualizer-spinner-container">
           <LoadingSpinner loadingReason="visualize" />

@@ -14,6 +14,4 @@ const VersionBadge: FC<VersionBadgeProps> = ({ version, className = '' }) => (
   </span>
 );
 
-VersionBadge.defaultProps = { className: '' };
-
 export default VersionBadge;

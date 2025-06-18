@@ -5,6 +5,7 @@
  */
 import { useState, useCallback } from 'react';
 import Button from './elements/Button';
+import { Icon } from './icons.tsx';
 
 import { extractJsonFromFence } from '../utils/jsonUtils';
 import { GameStateStack, DebugPacket, MapNode } from '../types';
@@ -542,7 +543,10 @@ function DebugView({
         <Button
           ariaLabel="Close debug view"
           className="animated-frame-close-button"
-          label="\u00D7"
+          icon={<Icon
+            name="x"
+            size={20}
+                />}
           onClick={onClose}
           size="sm"
         />
