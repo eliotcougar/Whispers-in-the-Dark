@@ -34,7 +34,7 @@ const tsCompat = compat.config({
     'plugin:react-hooks/recommended',
     'plugin:react/jsx-runtime',
     'plugin:@typescript-eslint/strict',
-    'plugin:@typescript-eslint/recommended-type-checked',
+    'plugin:@typescript-eslint/strict-type-checked',
     'plugin:@typescript-eslint/stylistic',
     'plugin:@typescript-eslint/stylistic-type-checked'
   ],
@@ -77,6 +77,7 @@ const tsCompat = compat.config({
     '@typescript-eslint/array-type': ['warn', { default: 'generic' }],
     '@typescript-eslint/consistent-indexed-object-style': ['warn', 'record'],
     '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+    '@typescript-eslint/restrict-template-expressions': 'off',
     "dot-notation": "off",
     "@typescript-eslint/dot-notation": "error"
   }
