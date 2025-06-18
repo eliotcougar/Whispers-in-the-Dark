@@ -45,8 +45,9 @@ function CustomGameSetupScreen({
       return acc;
     }, {} as Record<ThemePackName, Array<AdventureTheme>>);
 
-  const effectiveTitle = titleText || "Choose Your Adventure Theme";
-  const effectiveDescription = descriptionText || "Select a theme to start your custom game. In this mode, random reality shifts are disabled, allowing for a focused, single-theme experience. You can still manually trigger a reality shift if you wish to change themes later.";
+  const effectiveTitle = titleText ?? "Choose Your Adventure Theme";
+  const effectiveDescription = descriptionText ??
+    "Select a theme to start your custom game. In this mode, random reality shifts are disabled, allowing for a focused, single-theme experience. You can still manually trigger a reality shift if you wish to change themes later.";
 
 
   return (
