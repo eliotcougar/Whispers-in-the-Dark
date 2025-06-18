@@ -89,7 +89,7 @@ function ImageVisualizer({
 
     const prefix = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
     Aspect ratio 4:3.
-    It is ${localTime || 'now'}. ${localEnvironment || 'The air is okay'}. ${localPlace || 'Location is unimportant'}. ${currentSceneDescription}`;
+    It is ${localTime ?? 'now'}. ${localEnvironment ?? 'The air is okay'}. ${localPlace ?? 'Location is unimportant'}. ${currentSceneDescription}`;
     let rawPrompt = prefix;
 
     const mentionedPlaces: Array<string> = [];
@@ -185,7 +185,7 @@ function ImageVisualizer({
             const inlinePart = candidate?.content?.parts?.find(isInlinePart);
             const inlineData = inlinePart?.inlineData;
             if (inlineData?.data) {
-              const imageUrl = `data:${inlineData.mimeType || 'image/png'};base64,${inlineData.data}`;
+              const imageUrl = `data:${inlineData.mimeType ?? 'image/png'};base64,${inlineData.data}`;
               setInternalImageUrl(imageUrl);
               setGeneratedImage(imageUrl, currentSceneDescription);
               setError(null);

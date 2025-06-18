@@ -189,7 +189,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           playerGenderProp,
           currentThemeObj,
           () => { setParseErrorCounter(1); },
-          currentFullState.lastActionLog || undefined,
+          currentFullState.lastActionLog ?? undefined,
           currentFullState.currentScene,
           currentThemeCharacters,
           currentThemeMapDataForParse,

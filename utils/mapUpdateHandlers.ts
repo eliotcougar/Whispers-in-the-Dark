@@ -57,8 +57,8 @@ export const handleMapUpdates = async (
     }
     if (!mapUpdateResult.updatedMapData) {
       const reason =
-        mapUpdateResult.debugInfo?.validationError ||
-        mapUpdateResult.debugInfo?.rawResponse ||
+        mapUpdateResult.debugInfo?.validationError ??
+        mapUpdateResult.debugInfo?.rawResponse ??
         'Unknown error';
       throw new Error(`Map update failed: ${reason}`);
     }
@@ -98,8 +98,8 @@ export const handleMapUpdates = async (
                 const nodeIndexToUpdate = draftState.mapData.nodes.findIndex(n => n.id === newlyAddedNodeInDraft.id);
                 if (nodeIndexToUpdate !== -1) {
                   draftState.mapData.nodes[nodeIndexToUpdate].data.description = placeDetails.description;
-                  draftState.mapData.nodes[nodeIndexToUpdate].data.aliases = placeDetails.aliases || [];
-                  if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+                  draftState.mapData.nodes[nodeIndexToUpdate].data.aliases = placeDetails.aliases ?? [];
+                  turnChanges.mapDataChanged = true;
                 }
               }
             }
@@ -151,7 +151,7 @@ export const handleMapUpdates = async (
         draftState.mapData,
         currentThemeNodesFromDraftState,
         oldMapNodeId
-      ) || oldMapNodeId;
+      ) ?? oldMapNodeId;
   }
 
   draftState.currentMapNodeId = finalChosenNodeId;
@@ -180,7 +180,7 @@ export const handleMapUpdates = async (
         ) {
           draftState.mapData.nodes[currentNodeIndex].data.status = 'discovered';
         }
-        if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+        turnChanges.mapDataChanged = true;
       }
       const nodeMap = new Map(draftState.mapData.nodes.map(n => [n.id, n]));
       const currentNode = draftState.mapData.nodes[currentNodeIndex];
@@ -195,7 +195,7 @@ export const handleMapUpdates = async (
           ) {
             draftState.mapData.nodes[idx].data.status = 'discovered';
           }
-          if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+          turnChanges.mapDataChanged = true;
         }
       }
     }
@@ -219,7 +219,7 @@ export const handleMapUpdates = async (
           }
           else {
             edge.data.status = 'open';
-            if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+            turnChanges.mapDataChanged = true;
           }
         }
       }

@@ -116,8 +116,8 @@ const getFormattedConnectionsForNode = (
     const otherNode = allThemeNodes.find(node => node.id === targetNodeId);
     if (!otherNode) continue;
 
-    const statusText = bestEdge.data.status || 'open';
-    const typeText = bestEdge.data.type || 'path';
+    const statusText = bestEdge.data.status ?? 'open';
+    const typeText = bestEdge.data.type ?? 'path';
     const details: Array<string> = [];
     if (bestEdge.data.travelTime) {
       details.push(`travel time: ${bestEdge.data.travelTime}`);
@@ -216,8 +216,8 @@ export const formatLimitedMapContextForPrompt = (
   nearbyIds.forEach(id => {
     const node = allNodes.find(n => n.id === id);
     if (!node) return;
-    const parent = node.data.parentNodeId || 'Universe';
-    const desc = node.data.description || 'No description.';
+    const parent = node.data.parentNodeId ?? 'Universe';
+    const desc = node.data.description;
     const itemsAtNode = inventory.filter(item => item.holderId === id);
     const itemsStr =
       itemsAtNode.length > 0
@@ -299,8 +299,8 @@ export const formatMapContextForPrompt = (
                 node => node.id === entryFeature.data.parentNodeId && !(node.data.nodeType === "feature")
               );
               if (otherAreaMainNode) {
-                const edgeStatus = edge.data.status || 'open';
-                const edgeType = edge.data.type || 'path';
+                const edgeStatus = edge.data.status ?? 'open';
+                const edgeType = edge.data.type ?? 'path';
                 exitStrings.push(
                   ` - '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
                 );

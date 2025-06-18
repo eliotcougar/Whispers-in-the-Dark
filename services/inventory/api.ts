@@ -63,9 +63,9 @@ export const applyInventoryHints_Service = async (
   currentTheme: AdventureTheme,
   limitedMapContext: string,
 ): Promise<InventoryUpdateResult | null> => {
-  const pHint = playerItemsHint?.trim() || '';
-  const wHint = worldItemsHint?.trim() || '';
-  const nHint = npcItemsHint?.trim() || '';
+  const pHint = playerItemsHint?.trim() ?? '';
+  const wHint = worldItemsHint?.trim() ?? '';
+  const nHint = npcItemsHint?.trim() ?? '';
   if (!pHint && !wHint && !nHint && newItems.length === 0) {
     return { itemChanges: [], debugInfo: null };
   }
@@ -86,7 +86,7 @@ export const applyInventoryHints_Service = async (
   const response = await executeInventoryRequest(prompt);
   let parsed = parseInventoryResponse(response.text ?? '');
   if (!parsed ||
-      (parsed.itemChanges.length === 0 && (response.text?.trim() || '') !== '[]')) {
+      (parsed.itemChanges.length === 0 && (response.text?.trim() ?? '') !== '[]')) {
     const corrected = await fetchCorrectedItemChangeArray_Service(
       response.text ?? '',
       logMessage,

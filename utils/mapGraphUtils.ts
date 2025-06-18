@@ -48,7 +48,7 @@ export const getAncestors = (
   nodeMap: Map<string, MapNode>
 ): Array<MapNode> => {
   const ancestors: Array<MapNode> = [];
-  let current: MapNode | undefined = nodeMap.get(node.data.parentNodeId || '');
+  let current: MapNode | undefined = nodeMap.get(node.data.parentNodeId ?? '');
   while (current) {
     ancestors.push(current);
     if (!current.data.parentNodeId || current.data.parentNodeId === 'Universe') break;

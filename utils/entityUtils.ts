@@ -208,8 +208,8 @@ export const getEntityById = (
   }
 
   return (
-    state.mapData.nodes.find(n => n.id === id) ||
-    state.allCharacters.find(c => c.id === id) ||
+    state.mapData.nodes.find(n => n.id === id) ??
+    state.allCharacters.find(c => c.id === id) ??
     state.inventory.find(i => i.id === id)
   );
 };

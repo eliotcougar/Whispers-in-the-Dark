@@ -215,11 +215,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         draftState.globalTurnNumber = previousState.globalTurnNumber;
 
         draftState.mapData.nodes = previousState.mapData.nodes.filter((n) => n.themeName !== themeObjToLoad.name);
-        draftState.mapData.edges = previousState.mapData.edges.filter((e) => {
-          const sourceNode = previousState.mapData.nodes.find((n) => n.id === e.sourceNodeId);
-          const targetNode = previousState.mapData.nodes.find((n) => n.id === e.targetNodeId);
-          return (sourceNode && sourceNode.themeName !== themeObjToLoad.name) || (targetNode && targetNode.themeName !== themeObjToLoad.name);
-        });
+          draftState.mapData.edges = previousState.mapData.edges.filter((e) => {
+            const sourceNode = previousState.mapData.nodes.find((n) => n.id === e.sourceNodeId);
+            const targetNode = previousState.mapData.nodes.find((n) => n.id === e.targetNodeId);
+            return (
+              (sourceNode?.themeName !== themeObjToLoad.name) ||
+              (targetNode?.themeName !== themeObjToLoad.name)
+            );
+          });
         draftState.allCharacters = previousState.allCharacters.filter((c) => c.themeName !== themeObjToLoad.name);
       } else {
         draftState.mapData = { nodes: [], edges: [] };
@@ -308,14 +311,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         }
       } catch (e) {
         console.error('Error loading initial game:', e);
-        if (isServerOrClientError(e)) {
-          draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
-          const status = extractStatusFromError(e);
-          setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
-        } else {
-          const errorMessage = e instanceof Error ? e.message : String(e);
-          setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage || 'Unknown AI error'}`);
-        }
+          if (isServerOrClientError(e)) {
+            draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
+            const status = extractStatusFromError(e);
+            setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
+          } else {
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage}`);
+          }
         if (draftState.lastDebugPacket) {
           draftState.lastDebugPacket.error = e instanceof Error ? e.message : String(e);
         }
@@ -502,7 +505,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         playerGenderProp,
         currentThemeObj,
         () => { setParseErrorCounter(1); },
-        currentFullState.lastActionLog || undefined,
+        currentFullState.lastActionLog ?? undefined,
         currentFullState.currentScene,
         currentThemeCharacters,
         currentThemeMapDataForParse,

@@ -120,14 +120,12 @@ export const executeDialogueTurn = async (
         .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
         .map(p => p.text);
       let parsed = parseDialogueTurnResponse(response.text ?? '', thoughtParts);
-      if (!parsed) {
-        parsed = await fetchCorrectedDialogueTurn_Service(
-          response.text ?? '',
-          dialogueParticipants,
-          currentTheme,
-          thoughtParts,
-        );
-      }
+      parsed ??= await fetchCorrectedDialogueTurn_Service(
+        response.text ?? '',
+        dialogueParticipants,
+        currentTheme,
+        thoughtParts,
+      );
       if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
       console.warn(`Attempt ${attempt} failed to yield valid dialogue JSON even after correction.`);
       attempt++;
