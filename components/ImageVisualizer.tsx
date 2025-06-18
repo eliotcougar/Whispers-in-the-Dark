@@ -185,7 +185,7 @@ function ImageVisualizer({
             const inlinePart = candidate?.content?.parts?.find(isInlinePart);
             const inlineData = inlinePart?.inlineData;
             if (inlineData?.data) {
-              const imageUrl = `data:${inlineData.mimeType || 'image/png'};base64,${inlineData.data}`;
+              const imageUrl = `data:${inlineData.mimeType ?? 'image/png'};base64,${inlineData.data}`;
               setInternalImageUrl(imageUrl);
               setGeneratedImage(imageUrl, currentSceneDescription);
               setError(null);

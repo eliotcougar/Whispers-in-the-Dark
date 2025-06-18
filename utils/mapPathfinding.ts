@@ -81,7 +81,7 @@ export const findTravelPath = (
     const parentId = node.data.parentNodeId;
     if (!parentId || parentId === 'Universe') continue;
     if (!isTraversable(node.id) || !isTraversable(parentId)) continue;
-    const siblings = childrenByParent.get(parentId) || [];
+    const siblings = childrenByParent.get(parentId) ?? [];
     const hasOtherChild = siblings.some(
       id => id !== node.id && id !== startNodeId && isTraversable(id)
     );
@@ -127,7 +127,7 @@ export const findTravelPath = (
     const current = queue.shift();
     if (!current) break;
     if (current.nodeId === endNodeId) break;
-    const neighbors = adjacency.get(current.nodeId) || [];
+    const neighbors = adjacency.get(current.nodeId) ?? [];
     for (const n of neighbors) {
       const newCost = current.cost + n.cost;
       if (newCost < (distances.get(n.to) ?? Infinity)) {
