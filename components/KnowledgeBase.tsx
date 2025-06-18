@@ -5,7 +5,7 @@
  */
 import * as React from 'react';
 import { Character, AdventureTheme } from '../types'; 
-import { CompanionIcon, NearbyNPCIcon } from './icons.tsx'; 
+import { Icon } from './icons.tsx';
 
 interface KnowledgeBaseProps {
   readonly allCharacters: Character[];
@@ -113,12 +113,15 @@ function KnowledgeBase({
                         const isCurrentThemeCharacter = currentTheme && themeName === currentTheme.name;
 
                         if (isCurrentThemeCharacter && (character.presenceStatus === 'companion' || character.presenceStatus === 'nearby')) {
-                          const Icon = character.presenceStatus === 'companion' ? CompanionIcon : NearbyNPCIcon;
+                          const iconName = character.presenceStatus === 'companion' ? 'companion' : 'nearbyNpc';
                           const statusText = character.presenceStatus === 'companion' ? '(Companion)' : '(Nearby)';
                           const colorClass = character.presenceStatus === 'companion' ? 'text-green-300' : 'text-sky-300';
                           locationDisplay = (
                             <p className="text-sm text-slate-300 flex items-center">
-                              <Icon />
+                              <Icon
+                                name={iconName}
+                                className={iconName === 'companion' ? 'h-4 w-4 inline-block mr-1 text-green-400' : 'h-4 w-4 inline-block mr-1 text-sky-400'}
+                              />
 
                               <span className={`ml-1 ${colorClass} italic`}>
                                 {character.preciseLocation || ''} 
