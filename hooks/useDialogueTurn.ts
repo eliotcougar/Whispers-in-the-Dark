@@ -90,7 +90,12 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           playerGenderProp,
           historyWithPlayerChoice,
           option,
-          stateAfterPlayerChoice.dialogueState!.participants
+          (() => {
+            if (!stateAfterPlayerChoice.dialogueState) {
+              throw new Error('Dialogue state is not defined');
+            }
+            return stateAfterPlayerChoice.dialogueState.participants;
+          })()
         );
         addDebugEntry({ prompt: turnPrompt, rawResponse, thoughts });
 

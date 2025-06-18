@@ -95,8 +95,10 @@ export const applyMapUpdates = async ({
   currentThemeEdgesFromMapData.forEach(e => {
     if (!themeEdgesMap.has(e.sourceNodeId)) themeEdgesMap.set(e.sourceNodeId, []);
     if (!themeEdgesMap.has(e.targetNodeId)) themeEdgesMap.set(e.targetNodeId, []);
-    themeEdgesMap.get(e.sourceNodeId)!.push(e);
-    themeEdgesMap.get(e.targetNodeId)!.push(e);
+    const arr1 = themeEdgesMap.get(e.sourceNodeId);
+    if (arr1) arr1.push(e);
+    const arr2 = themeEdgesMap.get(e.targetNodeId);
+    if (arr2) arr2.push(e);
   });
 
   const resolveNodeRef = async (
@@ -192,8 +194,10 @@ export const applyMapUpdates = async ({
     if (themeNodeIdMap.has(e.sourceNodeId) && themeNodeIdMap.has(e.targetNodeId)) {
       if (!themeEdgesMap.has(e.sourceNodeId)) themeEdgesMap.set(e.sourceNodeId, []);
       if (!themeEdgesMap.has(e.targetNodeId)) themeEdgesMap.set(e.targetNodeId, []);
-      themeEdgesMap.get(e.sourceNodeId)!.push(e);
-      themeEdgesMap.get(e.targetNodeId)!.push(e);
+      const arr1 = themeEdgesMap.get(e.sourceNodeId);
+      if (arr1) arr1.push(e);
+      const arr2 = themeEdgesMap.get(e.targetNodeId);
+      if (arr2) arr2.push(e);
     }
   });
 
@@ -542,8 +546,12 @@ export const applyMapUpdates = async ({
           continue;
       }
 
-      const sourceNode = themeNodeIdMap.get(sourceNodeRef.id)!;
-      const targetNode = themeNodeIdMap.get(targetNodeRef.id)!;
+    const sourceNode = themeNodeIdMap.get(sourceNodeRef.id);
+    const targetNode = themeNodeIdMap.get(targetNodeRef.id);
+    if (!sourceNode || !targetNode) {
+      console.warn('MapUpdate: Failed to resolve edge nodes after lookup.');
+      continue;
+    }
 
       const pairKey =
         sourceNode.id < targetNode.id

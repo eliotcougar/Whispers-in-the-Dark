@@ -377,8 +377,10 @@ export const fetchLikelyParentNode_Service = async (
   context.themeEdges.forEach(e => {
     if (!adjacency.has(e.sourceNodeId)) adjacency.set(e.sourceNodeId, new Set());
     if (!adjacency.has(e.targetNodeId)) adjacency.set(e.targetNodeId, new Set());
-    adjacency.get(e.sourceNodeId)!.add(e.targetNodeId);
-    adjacency.get(e.targetNodeId)!.add(e.sourceNodeId);
+    const setA = adjacency.get(e.sourceNodeId);
+    if (setA) setA.add(e.targetNodeId);
+    const setB = adjacency.get(e.targetNodeId);
+    if (setB) setB.add(e.sourceNodeId);
   });
 
   const nodeLines = context.themeNodes
