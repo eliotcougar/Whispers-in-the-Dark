@@ -51,7 +51,7 @@ const tsCompat = compat.config({
   rules: {
     'react/jsx-no-literals': 'off',
     'react/forbid-component-props': 'off',
-    'react/destructuring-assignment': 'off',
+    'react/destructuring-assignment': 'warn',
     'react/jsx-max-depth': 'off',
     'react/jsx-no-leaked-render': 'error',  
     'react/no-array-index-key' : 'error',
