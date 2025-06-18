@@ -52,7 +52,7 @@ export function Icon({ name, className = '', size }: IconProps) {
     `${size ? ` width="${size}" height="${size}"` : ''}`;
   const rendered = svgMarkup.replace('<svg', `<svg${attrs}`);
   // eslint-disable-next-line react/no-danger
-  return <g dangerouslySetInnerHTML={{ __html: rendered }} />;
+  return <span dangerouslySetInnerHTML={{ __html: rendered }} />;
 }
 
 Icon.defaultProps = {
