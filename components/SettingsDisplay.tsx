@@ -258,6 +258,9 @@ function SettingsDisplay({
                 <strong>
                   In the Beta
                 </strong>
+                
+                {' '}
+
                 , manual reality shift can be triggered at any time regardless of these settings.
               </p>
             </div>

@@ -30,7 +30,7 @@ const tsCompat = compat.config({
   },
   plugins: ['@typescript-eslint', 'react', 'react-hooks'],
   extends: [
-    'plugin:react/recommended',
+    'plugin:react/all',
     'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/strict',
     'plugin:@typescript-eslint/recommended-type-checked',
@@ -49,6 +49,10 @@ const tsCompat = compat.config({
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
+    'react/jsx-no-literals': 'off',
+    'react/forbid-component-props': 'off',
+    'react/destructuring-assignment': 'off',
+    'react/jsx-max-depth': 'off',
     'react-hooks/exhaustive-deps': 'error',
     'react-hooks/rules-of-hooks': 'error',
     'react/jsx-no-leaked-render': 'error',  

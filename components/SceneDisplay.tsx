@@ -74,22 +74,25 @@ function SceneDisplay({
         <p className="text-lg text-slate-400">
           <strong className="text-slate-300">
             Time:
-          </strong> {localTime || "Unknown"}
+          </strong>
 
-          .
+          {localTime || "Unknown"}
+
           {' '}
 
           <strong className="text-slate-300">
             Environment:
-          </strong> {localEnvironment || "Unknown"}
+          </strong>
+          
+          {localEnvironment || "Unknown"}
 
-          .
           {' '}
 
           <strong className="text-slate-300">
             Location:
-          </strong> {localPlace || "Unknown"}
-          .
+          </strong>
+          
+          {localPlace || "Unknown"}
         </p>
       </div> : null}
     </div>

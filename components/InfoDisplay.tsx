@@ -226,6 +226,8 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
               <ul className="list-disc list-inside ml-4">
                 <li>
                   Text Generation:
+                  {' '}
+
                   <strong>
                     {textModel}
                   </strong>

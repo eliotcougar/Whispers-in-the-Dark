@@ -44,7 +44,10 @@ function MainToolbar({
           className="flex items-center p-2 border border-amber-500 rounded-md shadow-md"
           title={`Score: ${score} points`}
         >
-          <Icon className="w-5 h-5 mr-2 text-amber-400" name="coin" />
+          <Icon
+            className="w-5 h-5 mr-2 text-amber-400"
+            name="coin"
+          />
 
           <span className="text-amber-400 font-semibold text-lg">
             {score}
@@ -90,7 +93,10 @@ function MainToolbar({
           title="Visualize Scene"
           type="button"
         >
-          <Icon className="w-5 h-5" name="visualize" />
+          <Icon
+            className="w-5 h-5"
+            name="visualize"
+          />
         </button>
 
         <button
@@ -103,7 +109,10 @@ function MainToolbar({
           title="Open Knowledge Base"
           type="button"
         >
-          <Icon className="w-5 h-5" name="bookOpen" />
+          <Icon
+            className="w-5 h-5"
+            name="bookOpen"
+          />
         </button>
 
         <button
@@ -116,7 +125,10 @@ function MainToolbar({
           title="Open History"
           type="button"
         >
-          <Icon className="w-5 h-5" name="scroll" />
+          <Icon
+            className="w-5 h-5"
+            name="scroll"
+          />
         </button>
 
         <button
@@ -129,7 +141,10 @@ function MainToolbar({
           title="Open Map"
           type="button"
         >
-          <Icon className="w-5 h-5" name="map" />
+          <Icon
+            className="w-5 h-5"
+            name="map"
+          />
         </button>
 
         <button
@@ -142,7 +157,10 @@ function MainToolbar({
           title="Force Reality Shift"
           type="button"
         >
-          <Icon className="w-5 h-5" name="realityShift" />
+          <Icon
+            className="w-5 h-5"
+            name="realityShift"
+          />
         </button>
 
         <button
@@ -155,7 +173,10 @@ function MainToolbar({
           title="Open Title Menu"
           type="button"
         >
-          <Icon className="w-5 h-5" name="menu" />
+          <Icon
+            className="w-5 h-5"
+            name="menu"
+          />
         </button>
       </div>
     </div>

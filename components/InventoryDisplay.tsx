@@ -217,7 +217,10 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
       <h3 className="text-xl font-bold text-amber-400 mb-2 border-b-2 border-amber-700 pb-2 flex items-center">
-        <Icon className="h-5 w-5 mr-2 inline-block text-amber-400" name="inventory" />
+        <Icon
+          className="h-5 w-5 mr-2 inline-block text-amber-400"
+          name="inventory"
+        />
 
         {' '}
         Inventory
@@ -373,7 +376,10 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       disabled={disabled}
                       key={`${item.name}-discard`}
                       label={<>
-                        <Icon className="w-4 h-4 inline-block mr-1 text-white" name="trash" />
+                        <Icon
+                          className="w-4 h-4 inline-block mr-1 text-white"
+                          name="trash"
+                        />
 
                         {' '}
                         Discard

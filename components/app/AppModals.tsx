@@ -170,6 +170,8 @@ function AppModals(props: AppModalsProps) {
         isOpen={props.shiftConfirmOpen}
         message={<>
           This will destabilize the current reality, leading to an
+          {' '}
+          
           <strong className="text-purple-400">
             immediate and unpredictable shift
           </strong>

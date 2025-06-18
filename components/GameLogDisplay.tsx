@@ -19,7 +19,10 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
   return (
     <div className="mt-6 bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 max-h-80 overflow-y-auto">
       <h3 className="text-xl font-bold text-emerald-400 mb-4 border-b-2 border-emerald-700 pb-2 flex items-center">
-        <Icon className="h-5 w-5 mr-2 inline-block text-emerald-400" name="log" />
+        <Icon
+          className="h-5 w-5 mr-2 inline-block text-emerald-400"
+          name="log"
+        />
 
         {' '}
         Game Log
@@ -32,10 +35,16 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
             const count = counts.get(message) ?? 0;
             counts.set(message, count + 1);
             return (
-              <li className="text-slate-400 leading-snug" key={`${message}-${count}`}>
+              <li
+                className="text-slate-400 leading-snug"
+                key={`${message}-${count}`}
+              >
                 <span className="text-emerald-500">
                   &raquo;
-                </span>{' '}
+                </span>
+
+                {' '}
+
                 {message}
               </li>
             );
