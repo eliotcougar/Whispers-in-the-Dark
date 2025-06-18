@@ -51,8 +51,8 @@ export interface IconProps {
  */
 export function Icon({ name, className = '', size, wrapper = 'span' }: IconProps) {
   const svgMarkup = iconMap[name];
-  const attrs = `${className ? ` class="${className}"` : ''}` +
-    `${size ? ` width="${size}" height="${size}"` : ''}`;
+  const attrs = (className ? ` class="${className}"` : '') +
+    (size ? ` width="${size}" height="${size}"` : '');
   const rendered = svgMarkup.replace('<svg', `<svg${attrs}`);
   if (wrapper === 'g') {
     return <g dangerouslySetInnerHTML={{ __html: rendered }} />;

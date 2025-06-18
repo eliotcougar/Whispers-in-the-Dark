@@ -114,9 +114,9 @@ function DebugView({
     }
   };
 
-  const renderContent = <T,>(
+  const renderContent = (
     title: string,
-    content: T,
+    content: unknown,
     isJson = true,
     maxHeightClass = "max-h-60",
   ) => {
@@ -140,12 +140,12 @@ function DebugView({
                 const mapData = contentForDisplay.mapData as { nodes: Array<MapNode>; edges: Array<unknown> } | undefined;
 
                 if (mapData && Array.isArray(mapData.nodes) && Array.isArray(mapData.edges)) {
-                  (contentForDisplay as Record<string, unknown>).mapDataSummary = {
+                  contentForDisplay.mapDataSummary = {
                     nodeCount: mapData.nodes.length,
                     edgeCount: mapData.edges.length,
                     firstNNodeNames: mapData.nodes.slice(0, 5).map((n: MapNode) => n.placeName),
                   };
-                  delete (contentForDisplay as Record<string, unknown>).mapData;
+                  delete contentForDisplay.mapData;
                 }
               }
             }
@@ -168,7 +168,9 @@ function DebugView({
           return "Error stringifying JSON content.";
         }
       }
-      return String(content);
+      return typeof content === 'string'
+        ? content
+        : JSON.stringify(content, null, 2);
     })();
 
     return (

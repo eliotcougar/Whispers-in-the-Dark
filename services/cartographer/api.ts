@@ -57,9 +57,8 @@ export const updateMapFromAIData_Service = async (
 
   const minimalModelCalls: Array<MinimalModelCallRecord> = [];
 
-  const previousMapNodeContext = referenceMapNodeId
-    ? `${referenceMapNodeId}`
-    : "Player's Previous Map Node: Unknown or N/A.";
+  const previousMapNodeContext =
+    referenceMapNodeId ?? "Player's Previous Map Node: Unknown or N/A.";
 
   const existingMapContext = `Current Map Nodes (for your reference):\n${
     currentThemeNodesFromMapData.length > 0
