@@ -279,7 +279,7 @@ Return ONLY a JSON object strictly matching this structure:
         }
       }
       return acc;
-    }, {} as AIMapUpdatePayload);
+    }, {});
   } else if (typeof parsed === 'object') {
     result = parsed as AIMapUpdatePayload;
   }

@@ -428,7 +428,7 @@ function MapNodeView({
       const svgCoords = svgRef.current
         ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
         : { x: 0, y: 0 };
-      let content = `${node.placeName}`;
+      let content = node.placeName;
       if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
       if (node.data.description) content += `\n${node.data.description}`;
       content += `\nStatus: ${node.data.status}`;
@@ -460,7 +460,7 @@ function MapNodeView({
       const svgCoords = svgRef.current
         ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
         : { x: 0, y: 0 };
-      let content = `${node.placeName}`;
+      let content = node.placeName;
       if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
       if (node.data.description) content += `\n${node.data.description}`;
       content += `\nStatus: ${node.data.status}`;

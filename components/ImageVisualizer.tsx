@@ -124,7 +124,7 @@ function ImageVisualizer({
         temperature: 1,
         label: 'ImagePromptSanitizer',
       });
-      safePrompt = prefix + safeResp.text?.trim() || rawPrompt;
+      safePrompt = prefix + (safeResp.text?.trim() ?? rawPrompt);
       console.log("Sanitized prompt: ", safePrompt);
     } catch (safeErr) {
       console.warn('Prompt sanitization failed, using raw prompt.', safeErr);

@@ -87,7 +87,7 @@ export const parseAIMapUpdateResponse = (
           }
         }
         return acc;
-      }, {} as AIMapUpdatePayload);
+      }, {});
     } else if (parsed && typeof parsed === 'object') {
       payload = parsed as AIMapUpdatePayload;
     }
