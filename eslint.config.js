@@ -24,16 +24,18 @@ const tsCompat = compat.config({
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: ['./tsconfig.json'],
-    tsconfigRootDir: __dirname,
+    tsconfigRootDir: import.meta.dirname,
     ecmaVersion: 2020,
-    sourceType: 'module'
+    projectService: true
   },
   plugins: ['@typescript-eslint', 'react', 'react-hooks'],
   extends: [
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking'
+    'plugin:@typescript-eslint/strict',
+    'plugin:@typescript-eslint/recommended-type-checked',
+    /*'plugin:@typescript-eslint/stylistic',
+    'plugin:@typescript-eslint/stylistic-type-checked'*/
   ],
   env: {
     browser: true,
@@ -47,7 +49,29 @@ const tsCompat = compat.config({
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
-    'react-hooks/exhaustive-deps': 'error'
+    'react-hooks/exhaustive-deps': 'error',
+    'react-hooks/rules-of-hooks': 'error',
+    'react/jsx-no-leaked-render': 'error',  
+    'react/no-array-index-key' : 'error',
+    'react/jsx-no-bind': 'error',
+    'react/no-object-type-as-default-prop': 'error',
+    'react/prefer-read-only-props': 'error',
+    'react/jsx-indent-props': ['warn', 2],
+    'react/jsx-indent': ['warn', 2],
+    'react/jsx-sort-props': 'warn',
+    'react/sort-default-props': 'warn',
+    'react/function-component-definition': 'warn',
+    'react/require-default-props': 'warn',
+    'react/jsx-closing-tag-location': ['warn', 'line-aligned'],
+    'react/button-has-type': 'warn',
+    'react/jsx-handler-names': 'warn',
+    'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],
+    '@typescript-eslint/no-unnecessary-condition': 'warn',
+    '@typescript-eslint/no-non-null-assertion': 'error',
+    '@typescript-eslint/use-unknown-in-catch-callback-variable': 'warn',
+    '@typescript-eslint/no-confusing-void-expression': 'warn',
+    '@typescript-eslint/no-unnecessary-type-arguments': 'warn',
+    '@typescript-eslint/restrict-plus-operands': 'warn'
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
 

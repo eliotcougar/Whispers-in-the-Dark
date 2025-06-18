@@ -90,7 +90,12 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           playerGenderProp,
           historyWithPlayerChoice,
           option,
-          stateAfterPlayerChoice.dialogueState!.participants
+          (() => {
+            if (!stateAfterPlayerChoice.dialogueState) {
+              throw new Error('Dialogue state is not defined');
+            }
+            return stateAfterPlayerChoice.dialogueState.participants;
+          })()
         );
         addDebugEntry({ prompt: turnPrompt, rawResponse, thoughts });
 
@@ -140,12 +145,8 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         }
       } finally {
         const latestState = getCurrentGameState();
-        const stillInActiveNonExitingDialogue =
-          latestState.dialogueState !== null &&
-          !isDialogueExiting &&
-          !(latestState.dialogueState.options.length === 0 && latestState.dialogueState.history.length > 0);
-
-        if (stillInActiveNonExitingDialogue) {
+        const { dialogueState } = latestState;
+        if (!(dialogueState && dialogueState.options.length === 0 && dialogueState.history.length > 0)) {
           setIsLoading(false);
           setLoadingReason(null);
         }

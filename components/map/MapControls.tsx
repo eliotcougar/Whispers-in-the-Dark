@@ -3,46 +3,89 @@
  * @description UI component displaying map layout sliders and actions.
  */
 
-import React, { useState } from 'react';
+import { useCallback, useState } from 'react';
+
+import * as React from 'react';
 
 interface MapControlsProps {
-  padding: number;
-  setPadding: (val: number) => void;
-  anglePadding: number;
-  setAnglePadding: (val: number) => void;
-  overlapMargin: number;
-  setOverlapMargin: (val: number) => void;
-  itemIconScale: number;
-  setItemIconScale: (val: number) => void;
-  onReset: () => void;
-  onRefreshLayout: () => void;
+  readonly padding: number;
+  readonly setPadding: (val: number) => void;
+  readonly anglePadding: number;
+  readonly setAnglePadding: (val: number) => void;
+  readonly overlapMargin: number;
+  readonly setOverlapMargin: (val: number) => void;
+  readonly itemIconScale: number;
+  readonly setItemIconScale: (val: number) => void;
+  readonly onReset: () => void;
+  readonly onRefreshLayout: () => void;
 }
 
-/** Renders parameter slider UI element. */
-const renderParameterControl = (
-  label: string,
-  id: string,
-  value: number,
-  onChange: (val: number) => void,
-  min: number,
-  max: number,
-  step: number,
-  explanation?: string
-) => (
-  <div className="map-control-group">
-  <label htmlFor={id} className="map-control-label">
-      {label}: {value.toFixed(step < 1 ? 2 : 0)}
-  </label>
-    <input type="range" id={id} min={min} max={max} step={step} value={value} onChange={e => onChange(parseFloat(e.target.value))} className="map-control-input" />
-    {explanation && <p className="map-control-explanation">{explanation}</p>}
-  </div>
-);
+interface ParameterControlProps {
+  readonly explanation: string;
+  readonly id: string;
+  readonly label: string;
+  readonly max: number;
+  readonly min: number;
+  readonly onChange: (val: number) => void;
+  readonly step: number;
+  readonly value: number;
+}
+
+function ParameterControl({
+  label,
+  id,
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  explanation = '',
+}: ParameterControlProps) {
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange(parseFloat(e.target.value));
+    },
+    [onChange]
+  );
+
+  return (
+    <div className="map-control-group">
+      <label
+        className="map-control-label"
+        htmlFor={id}
+      >
+        {label}
+
+        :
+        {value.toFixed(step < 1 ? 2 : 0)}
+      </label>
+
+      <input
+        className="map-control-input"
+        id={id}
+        max={max}
+        min={min}
+        onChange={handleChange}
+        step={step}
+        type="range"
+        value={value}
+      />
+
+      {explanation ? <p className="map-control-explanation">
+        {explanation}
+      </p> : null}
+    </div>
+  );
+}
 
 /**
  * Collapsible panel for adjusting map layout parameters.
  */
-const MapControls: React.FC<MapControlsProps> = props => {
+function MapControls(props: MapControlsProps) {
   const [expanded, setExpanded] = useState(false);
+  const handleToggleExpanded = useCallback(() => {
+    setExpanded(prev => !prev);
+  }, []);
   const {
     padding,
     setPadding,
@@ -57,60 +100,75 @@ const MapControls: React.FC<MapControlsProps> = props => {
 
   return (
     <div className={`map-controls-container ${expanded ? 'controls-expanded' : ''}`}>
-      {expanded && (
-        <div className="map-layout-sliders-wrapper">
-          {renderParameterControl(
-            'Padding',
-            'layoutPadding',
-            padding,
-            setPadding,
-            5,
-            60,
-            1,
-            'Distance between parent and child levels'
-          )}
-          {renderParameterControl(
-            'Angle Padding',
-            'layoutAnglePadding',
-            anglePadding,
-            setAnglePadding,
-            0,
-            0.5,
-            0.01,
-            'Extra spacing between siblings'
-          )}
-          {renderParameterControl(
-            'Overlap Margin',
-            'overlapMargin',
-            overlapMargin,
-            setOverlapMargin,
-            0,
-            10,
-            1,
-            'Extra spacing when labels overlap'
-          )}
-          {renderParameterControl(
-            'Icon Size',
-            'itemIconScale',
-            itemIconScale,
-            setItemIconScale,
-            0.2,
-            1.0,
-            0.1,
-            'Relative size of item markers'
-          )}
-          <button onClick={onReset} className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
-            Reset to Defaults
-          </button>
-        </div>
-      )}
+      {expanded ? <div className="map-layout-sliders-wrapper">
+        <ParameterControl
+          explanation="Distance between parent and child levels"
+          id="layoutPadding"
+          label="Padding"
+          max={60}
+          min={5}
+          onChange={setPadding}
+          step={1}
+          value={padding}
+        />
+
+        <ParameterControl
+          explanation="Extra spacing between siblings"
+          id="layoutAnglePadding"
+          label="Angle Padding"
+          max={0.5}
+          min={0}
+          onChange={setAnglePadding}
+          step={0.01}
+          value={anglePadding}
+        />
+
+        <ParameterControl
+          explanation="Extra spacing when labels overlap"
+          id="overlapMargin"
+          label="Overlap Margin"
+          max={10}
+          min={0}
+          onChange={setOverlapMargin}
+          step={1}
+          value={overlapMargin}
+        />
+
+        <ParameterControl
+          explanation="Relative size of item markers"
+          id="itemIconScale"
+          label="Icon Size"
+          max={1.0}
+          min={0.2}
+          onChange={setItemIconScale}
+          step={0.1}
+          value={itemIconScale}
+        />
+
+        <button
+          className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500"
+          onClick={onReset}
+          style={{ flexBasis: '100%', marginTop: '0.5rem' }}
+          type="button"
+        >
+          Reset to Defaults
+        </button>
+      </div> : null}
+
       <div className="map-action-buttons-row">
-        <button onClick={() => setExpanded(!expanded)} className="map-control-button">
-          {expanded ? 'Hide' : 'Show'} Layout Controls
+        <button
+          className="map-control-button"
+          onClick={handleToggleExpanded}
+          type="button"
+        >
+          {expanded ? 'Hide' : 'Show'}
+
+          {' '}
+          Layout Controls
         </button>
       </div>
     </div>
   );
-};
+}
 
 export default MapControls;

@@ -26,10 +26,10 @@ import { MAP_EDGE_TYPE_GUIDE } from '../../prompts/helperPrompts';
 export const fetchCorrectedEdgeType_Service = async (
   edgeInfo: { type?: string; description?: string },
 ): Promise<MapEdgeData['type'] | null> => {
-  const synonyms = EDGE_TYPE_SYNONYMS;
+  const synonyms = EDGE_TYPE_SYNONYMS as Record<string, MapEdgeData['type'] | undefined>;
 
   if (edgeInfo.type) {
-    const normalized = synonyms[edgeInfo.type.toLowerCase()] || edgeInfo.type.toLowerCase();
+    const normalized = synonyms[edgeInfo.type.toLowerCase()] ?? edgeInfo.type.toLowerCase();
     if ((VALID_EDGE_TYPE_VALUES as readonly string[]).includes(normalized)) {
       return normalized as MapEdgeData['type'];
     }
@@ -68,7 +68,7 @@ Respond ONLY with the single edge type.`;
       const aiResponse = response.text?.trim();
       if (aiResponse) {
         const cleaned = aiResponse.trim().toLowerCase();
-        const mapped = synonyms[cleaned] || cleaned;
+        const mapped = synonyms[cleaned] ?? cleaned;
         if ((VALID_EDGE_TYPE_VALUES as readonly string[]).includes(mapped)) {
           return { result: mapped as MapEdgeData['type'] };
         }
@@ -280,7 +280,7 @@ Return ONLY a JSON object strictly matching this structure:
       }
       return acc;
     }, {} as AIMapUpdatePayload);
-  } else if (parsed && typeof parsed === 'object') {
+  } else if (typeof parsed === 'object') {
     result = parsed as AIMapUpdatePayload;
   }
   debugInfo.parsedPayload = result as AIMapUpdatePayload;

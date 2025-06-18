@@ -12,6 +12,7 @@ import {
   DialogueSetupPayload,
 } from '../../types';
 import { VALID_ITEM_TYPES, VALID_PRESENCE_STATUS_VALUES } from '../../constants';
+import { normalizeItemType } from '../../utils/itemSynonyms';
 
 export function isValidKnownUse(ku: unknown): ku is KnownUse {
   if (!ku || typeof ku !== 'object') return false;
@@ -27,6 +28,11 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
 export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
   if (!item || typeof item !== 'object') return false;
   const obj = item as Partial<Item>;
+
+  if (typeof obj.type === 'string') {
+    const normalized = normalizeItemType(obj.type);
+    if (normalized) obj.type = normalized;
+  }
 
   // Name is always required
   if (typeof obj.name !== 'string' || obj.name.trim() === '') {
@@ -51,7 +57,7 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
   }
 
   // Fields required for 'update' if it's a transformation (newName is present)
-  if (context === 'update' && obj.newName !== undefined && obj.newName !== null) {
+  if (context === 'update' && obj.newName != null) {
     if (typeof obj.newName !== 'string' || obj.newName.trim() === '') {
         console.warn("isValidItem (context: update, with newName): 'newName' is invalid.", item);
         return false;
@@ -61,9 +67,13 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
 
 
   // Validate optional fields if they are present, regardless of context (unless specific context requires them)
-  if (obj.type !== undefined && (typeof obj.type !== 'string' || !VALID_ITEM_TYPES.includes(obj.type))) {
-    console.warn("isValidItem: 'type' is present but invalid.", item);
-    return false;
+  if (obj.type !== undefined) {
+    const normalized = normalizeItemType(obj.type);
+    if (!normalized) {
+      console.warn("isValidItem: 'type' is present but invalid.", item);
+      return false;
+    }
+    obj.type = normalized;
   }
   if (obj.description !== undefined && (typeof obj.description !== 'string' || obj.description.trim() === '')) {
       // Allow empty description if it's an update payload and not a transformation,
@@ -113,6 +123,10 @@ export function isValidItemReference(obj: unknown): obj is ItemReference {
 export function isValidNewItemSuggestion(obj: unknown): obj is NewItemSuggestion {
   if (!obj || typeof obj !== 'object') return false;
   const maybe = obj as Partial<NewItemSuggestion>;
+  if (typeof maybe.type === 'string') {
+    const normalized = normalizeItemType(maybe.type);
+    if (normalized) maybe.type = normalized;
+  }
   return (
     typeof maybe.name === 'string' && maybe.name.trim() !== '' &&
     typeof maybe.description === 'string' && maybe.description.trim() !== '' &&
@@ -153,13 +167,13 @@ export function isValidCharacterUpdate(obj: unknown): obj is ValidCharacterUpdat
     if (maybe.newAliases !== undefined && !(Array.isArray(maybe.newAliases) && maybe.newAliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (maybe.addAlias !== undefined && typeof maybe.addAlias !== 'string') return false;
     if (maybe.newPresenceStatus !== undefined && !VALID_PRESENCE_STATUS_VALUES.includes(maybe.newPresenceStatus)) return false;
-    if (maybe.newLastKnownLocation !== undefined && maybe.newLastKnownLocation !== null && typeof maybe.newLastKnownLocation !== 'string') return false;
-    if (maybe.newPreciseLocation !== undefined && maybe.newPreciseLocation !== null && typeof maybe.newPreciseLocation !== 'string') return false;
+    if (maybe.newLastKnownLocation !== undefined && maybe.newLastKnownLocation != null && typeof maybe.newLastKnownLocation !== 'string') return false;
+    if (maybe.newPreciseLocation !== undefined && maybe.newPreciseLocation != null && typeof maybe.newPreciseLocation !== 'string') return false;
     
     if ((maybe.newPresenceStatus === 'nearby' || maybe.newPresenceStatus === 'companion') && maybe.newPreciseLocation === undefined) {
       // This could be problematic if AI intends to set a location but omits the field.
     }
-    if ((maybe.newPresenceStatus === 'distant' || maybe.newPresenceStatus === 'unknown') && maybe.newPreciseLocation !== undefined && maybe.newPreciseLocation !== null) {
+    if ((maybe.newPresenceStatus === 'distant' || maybe.newPresenceStatus === 'unknown') && maybe.newPreciseLocation != null) {
       // console.warn("Character update: preciseLocation provided for a non-present character. This will be ignored or nulled by game logic.");
     }
     return true;
@@ -173,14 +187,14 @@ export function isValidNewCharacterPayload(obj: unknown): obj is ValidNewCharact
     if (typeof maybe.description !== 'string' || maybe.description.trim() === '') return false;
     if (maybe.aliases !== undefined && !(Array.isArray(maybe.aliases) && maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (maybe.presenceStatus !== undefined && !VALID_PRESENCE_STATUS_VALUES.includes(maybe.presenceStatus)) return false;
-    if (maybe.lastKnownLocation !== undefined && maybe.lastKnownLocation !== null && typeof maybe.lastKnownLocation !== 'string') return false;
-    if (maybe.preciseLocation !== undefined && maybe.preciseLocation !== null && typeof maybe.preciseLocation !== 'string') return false;
+    if (maybe.lastKnownLocation !== undefined && maybe.lastKnownLocation != null && typeof maybe.lastKnownLocation !== 'string') return false;
+    if (maybe.preciseLocation !== undefined && maybe.preciseLocation != null && typeof maybe.preciseLocation !== 'string') return false;
 
     if ((maybe.presenceStatus === 'nearby' || maybe.presenceStatus === 'companion') && maybe.preciseLocation === undefined) {
       // console.warn("New character: preciseLocation undefined for a present character.");
     }
-    if ((maybe.presenceStatus === 'distant' || maybe.presenceStatus === 'unknown') && maybe.preciseLocation !== undefined && maybe.preciseLocation !== null) {
-       // console.warn("New character: preciseLocation provided for a non-present character.");
+    if ((maybe.presenceStatus === 'distant' || maybe.presenceStatus === 'unknown') && maybe.preciseLocation != null) {
+      // console.warn("New character: preciseLocation provided for a non-present character.");
     }
     return true;
 }

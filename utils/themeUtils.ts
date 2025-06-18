@@ -1,5 +1,5 @@
 /**
- * @file services/themeUtils.ts
+ * @file utils/themeUtils.ts
  * @description Helper functions related to theme lookups.
  */
 

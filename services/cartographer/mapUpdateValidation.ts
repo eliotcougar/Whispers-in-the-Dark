@@ -1,15 +1,14 @@
-
 /**
- * @file mapUpdateValidationUtils.ts
+ * @file mapUpdateValidation.ts
  * @description Utilities for validating the AIMapUpdatePayload structure from the map update AI.
  */
-import { AIMapUpdatePayload, MapNodeData, MapEdgeData } from '../types'; // AINodeUpdate is implicitly part of AIMapUpdatePayload
+import { AIMapUpdatePayload, MapNodeData, MapEdgeData } from '../../types'; // AINodeUpdate is implicitly part of AIMapUpdatePayload
 import {
   VALID_NODE_STATUS_VALUES,
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
-} from '../constants';
+} from '../../constants';
 
 /**
  * Validates a MapNodeData object used in map update operations.
@@ -173,9 +172,11 @@ function isValidAINodeOperationInternal(nodeOp: unknown, isNodeAddOperation: boo
 
   if (isNodeAddOperation && op.initialPosition !== undefined) {
     const pos = op.initialPosition as Record<string, unknown>;
-    if (typeof pos !== 'object' || pos === null ||
-        typeof pos.x !== 'number' || typeof pos.y !== 'number') {
-      console.warn("Validation Error (NodeAdd): 'initialPosition' must be {x: number, y: number}. Value:", op.initialPosition);
+    if (typeof pos.x !== 'number' || typeof pos.y !== 'number') {
+      console.warn(
+        "Validation Error (NodeAdd): 'initialPosition' must be {x: number, y: number}. Value:",
+        op.initialPosition,
+      );
       return false;
     }
   }
@@ -274,12 +275,12 @@ export function isValidAIMapUpdatePayload(payload: AIMapUpdatePayload | null): p
   }
 
   if (payload.nodesToAdd != null) {
-    if (!Array.isArray(payload.nodesToAdd) || !payload.nodesToAdd.every(n => isValidAINodeOperationInternal(n, true))) {
+    if (!Array.isArray(payload.nodesToAdd) || !payload.nodesToAdd.every((n: unknown) => isValidAINodeOperationInternal(n, true))) {
       console.warn("Validation Error (AIMapUpdatePayload): 'nodesToAdd' is invalid."); return false;
     }
   }
   if (payload.nodesToUpdate != null) {
-    if (!Array.isArray(payload.nodesToUpdate) || !payload.nodesToUpdate.every(n => isValidAINodeOperationInternal(n, false))) {
+    if (!Array.isArray(payload.nodesToUpdate) || !payload.nodesToUpdate.every((n: unknown) => isValidAINodeOperationInternal(n, false))) {
       console.warn("Validation Error (AIMapUpdatePayload): 'nodesToUpdate' is invalid."); return false;
     }
   }
@@ -289,12 +290,12 @@ export function isValidAIMapUpdatePayload(payload: AIMapUpdatePayload | null): p
     }
   }
   if (payload.edgesToAdd != null) {
-    if (!Array.isArray(payload.edgesToAdd) || !payload.edgesToAdd.every(e => isValidAIEdgeOperationInternal(e, true))) {
+    if (!Array.isArray(payload.edgesToAdd) || !payload.edgesToAdd.every((e: unknown) => isValidAIEdgeOperationInternal(e, true))) {
       console.warn("Validation Error (AIMapUpdatePayload): 'edgesToAdd' is invalid."); return false;
     }
   }
   if (payload.edgesToUpdate != null) {
-    if (!Array.isArray(payload.edgesToUpdate) || !payload.edgesToUpdate.every(e => isValidAIEdgeOperationInternal(e, false))) {
+    if (!Array.isArray(payload.edgesToUpdate) || !payload.edgesToUpdate.every((e: unknown) => isValidAIEdgeOperationInternal(e, false))) {
       console.warn("Validation Error (AIMapUpdatePayload): 'edgesToUpdate' is invalid."); return false;
     }
   }

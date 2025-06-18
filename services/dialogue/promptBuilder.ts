@@ -154,8 +154,8 @@ export const buildDialogueSummaryPrompt = (
 
   return `
 Context for Dialogue Summary:
-- Current Theme: "${summaryContext.currentThemeObject!.name}"
-- System Instruction Modifier for Theme: "${summaryContext.currentThemeObject!.systemInstructionModifier}"
+- Current Theme: "${summaryContext.currentThemeObject?.name ?? summaryContext.themeName}"
+- System Instruction Modifier for Theme: "${summaryContext.currentThemeObject?.systemInstructionModifier ?? 'None'}"
 - Current Main Quest (before dialogue): "${summaryContext.mainQuest || 'Not set'}"
 - Current Objective (before dialogue): "${summaryContext.currentObjective || 'Not set'}"
 - Scene Description (when dialogue started): "${summaryContext.currentScene}"
@@ -202,7 +202,7 @@ Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any 
 
   const userPromptPart = `Generate a memory summary for the following conversation:
  - Conversation Participants: ${context.dialogueParticipants.join(', ')}
- - Theme: "${context.currentThemeObject!.name}" (System Modifier: ${context.currentThemeObject!.systemInstructionModifier})
+ - Theme: "${context.currentThemeObject?.name ?? context.themeName}" (System Modifier: ${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
 - Scene at start of conversation: "${context.currentScene}"
 - Context: Time: "${context.localTime || 'Unknown'}", Environment: "${context.localEnvironment || 'Undetermined'}", Place: "${context.localPlace || 'Undetermined'}"
 - Full Dialogue Transcript:

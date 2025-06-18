@@ -100,8 +100,7 @@ Constraints:
         (aiResponse.preciseLocation === null || typeof aiResponse.preciseLocation === 'string') &&
         !(
           (aiResponse.presenceStatus === 'nearby' || aiResponse.presenceStatus === 'companion') &&
-          aiResponse.preciseLocation === null &&
-          aiResponse.preciseLocation !== ''
+          (aiResponse.preciseLocation === null || aiResponse.preciseLocation === '')
         ) &&
         !(
           (aiResponse.presenceStatus === 'distant' || aiResponse.presenceStatus === 'unknown') &&

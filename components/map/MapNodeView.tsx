@@ -3,7 +3,9 @@
  * @description SVG view rendering map nodes and edges with tooltip interactions.
  */
 
-import React, { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useLayoutEffect, useCallback } from 'react';
+
+import * as React from 'react';
 import { MapNode, MapEdge } from '../../types';
 import { useMapInteractions } from '../../hooks/useMapInteractions';
 import {
@@ -12,7 +14,7 @@ import {
   MAX_LABEL_LINES,
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
-} from '../../utils/mapConstants';
+} from '../../constants';
 import { MapItemBoxIcon, MapWheelIcon } from '../icons';
 import { isDescendantOf } from '../../utils/mapGraphUtils';
 import { getSVGCoordinates, getScreenCoordinates } from '../../utils/svgUtils';
@@ -36,19 +38,24 @@ const buildShortcutPath = (a: MapNode, b: MapNode): string => {
 };
 
 interface MapNodeViewProps {
-  nodes: MapNode[];
-  edges: MapEdge[];
-  currentMapNodeId: string | null;
-  destinationNodeId: string | null;
+  readonly nodes: MapNode[];
+  readonly edges: MapEdge[];
+  readonly currentMapNodeId: string | null;
+  readonly destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
-  itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (nodeId: string | null) => void;
-  labelOverlapMarginPx: number;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
+  readonly onSelectDestination: (nodeId: string | null) => void;
+  readonly labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */
-  itemIconScale: number;
-  initialViewBox: string;
-  onViewBoxChange: (viewBox: string) => void;
+  readonly itemIconScale: number;
+  readonly initialViewBox: string;
+  readonly onViewBoxChange: (viewBox: string) => void;
 }
+
+/**
+ * Empty map used as the default value for {@link MapNodeViewProps.itemPresenceByNode}.
+ */
+const EMPTY_ITEM_PRESENCE_BY_NODE: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
 
 /**
  * Returns the radius for a node's circle. Uses the computed visualRadius from
@@ -136,18 +143,18 @@ const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: num
 /**
  * SVG view for rendering map nodes and edges with tooltips.
  */
-const MapNodeView: React.FC<MapNodeViewProps> = ({
+function MapNodeView({
   nodes,
   edges,
   currentMapNodeId,
   destinationNodeId,
-  itemPresenceByNode,
+  itemPresenceByNode = EMPTY_ITEM_PRESENCE_BY_NODE,
   onSelectDestination,
   labelOverlapMarginPx,
   itemIconScale,
   initialViewBox,
   onViewBoxChange,
-}) => {
+}: MapNodeViewProps) {
   const interactions = useMapInteractions(initialViewBox, onViewBoxChange);
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
   const [tooltip, setTooltip] = useState<{
@@ -161,18 +168,25 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   const tooltipTimeout = useRef<number | null>(null);
   const TOOLTIP_DELAY_MS = 250;
 
+  const [tooltipScreenPosition, setTooltipScreenPosition] = useState<
+    { x: number; y: number } | null
+  >(null);
+
   // Recalculate tooltip position when viewBox changes so it stays anchored
   // during panning or zooming.
-  const tooltipScreenPosition = useMemo(() => {
-    if (!tooltip || !svgRef.current) return null;
+  useLayoutEffect(() => {
+    if (!tooltip || !svgRef.current) {
+      setTooltipScreenPosition(null);
+      return;
+    }
     const { x, y } = getScreenCoordinates(
       svgRef.current,
       tooltip.svgX,
       tooltip.svgY
     );
     const rect = svgRef.current.getBoundingClientRect();
-    return { x: x - rect.left, y: y - rect.top };
-  }, [tooltip, viewBox, svgRef]); // eslint-disable-line react-hooks/exhaustive-deps
+    setTooltipScreenPosition({ x: x - rect.left, y: y - rect.top });
+  }, [tooltip, viewBox, svgRef]);
 
   const isSmallFontType = (type: string | undefined) =>
     type === 'feature' || type === 'room' || type === 'interior';
@@ -223,13 +237,15 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     const isParent = (n: MapNode) => childrenMap.has(n.id);
 
     const fontSizeFor = (n: MapNode) => (isSmallFontType(n.data.nodeType) ? 7 : 12);
-    const linesCache: Record<string, string[]> = {};
-    const getLines = (n: MapNode): string[] => {
-      if (linesCache[n.id]) return linesCache[n.id];
-      const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
-      linesCache[n.id] = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
-      return linesCache[n.id];
-    };
+      const linesCache: Record<string, string[] | undefined> = {};
+      const getLines = (n: MapNode): string[] => {
+        const cached = linesCache[n.id];
+        if (cached) return cached;
+        const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
+        const lines = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
+        linesCache[n.id] = lines;
+        return lines;
+      };
 
     const labelHeight = (n: MapNode) =>
       getLines(n).length * fontSizeFor(n) * DEFAULT_LABEL_LINE_HEIGHT_EM;
@@ -330,87 +346,154 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     [nodes, depthMap]
   );
 
-  /** Shows node details in a tooltip. */
-  const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
-    if (isTooltipLocked) return;
-    const svgRect = svgRef.current?.getBoundingClientRect();
-    if (!svgRect) return;
-    const x = event.clientX - svgRect.left;
-    const y = event.clientY - svgRect.top;
-    const svgCoords = svgRef.current
-      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
-      : { x: 0, y: 0 };
-    let content = `${node.placeName}`;
-    if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
-    if (node.data.description) content += `\n${node.data.description}`;
-    if (node.data.status) content += `\nStatus: ${node.data.status}`;
-    const anchor = computeAnchor(x, y, svgRect);
-    if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
-    tooltipTimeout.current = window.setTimeout(() => {
-      setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId: node.id });
-    }, TOOLTIP_DELAY_MS);
-  };
-
-  const handleNodeClick = (node: MapNode, event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (tooltipTimeout.current) {
-      clearTimeout(tooltipTimeout.current);
-      tooltipTimeout.current = null;
+  const destinationMarker = useMemo(() => {
+    if (!destinationNodeId) return null;
+    const dest = nodes.find(n => n.id === destinationNodeId);
+    const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
+    if (!dest) return null;
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    if (current && (current.id === dest.id || isDescendantOf(current, dest, nodeMap))) {
+      return null;
     }
-    const svgRect = svgRef.current?.getBoundingClientRect();
-    if (!svgRect) return;
-    const x = event.clientX - svgRect.left;
-    const y = event.clientY - svgRect.top;
-    const svgCoords = svgRef.current
-      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
-      : { x: 0, y: 0 };
-    let content = `${node.placeName}`;
-    if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
-    if (node.data.description) content += `\n${node.data.description}`;
-    if (node.data.status) content += `\nStatus: ${node.data.status}`;
-    setIsTooltipLocked(true);
-    const anchor = computeAnchor(x, y, svgRect);
-    setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId: node.id });
-  };
+    return (
+      <polygon
+        className="map-destination-marker"
+        pointerEvents="none"
+        points="0,-14 10,0 0,14 -10,0"
+        transform={`translate(${dest.position.x}, ${dest.position.y})`}
+      />
+    );
+  }, [destinationNodeId, nodes, currentMapNodeId]);
 
-  /** Shows edge details in a tooltip. */
-  const handleEdgeMouseEnter = (edge: MapEdge, event: React.MouseEvent) => {
-    if (isTooltipLocked) return;
-    const svgRect = svgRef.current?.getBoundingClientRect();
-    if (!svgRect) return;
-    const x = event.clientX - svgRect.left;
-    const y = event.clientY - svgRect.top;
-    const svgCoords = svgRef.current
-      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
-      : { x: 0, y: 0 };
-    const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
-    const targetNode = nodes.find(n => n.id === edge.targetNodeId);
-    let content = edge.data.description
-      ? edge.data.description
-      : `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
-    /*if (edge.data.type) content += `\n${edge.data.type}`;*/
-    if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
-    if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
-    const anchor = computeAnchor(x, y, svgRect);
-    if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
-    tooltipTimeout.current = window.setTimeout(() => {
-      setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor });
-    }, TOOLTIP_DELAY_MS);
-  };
 
   /** Hides the tooltip. */
-  const handleMouseLeaveGeneral = () => {
+  const handleMouseLeaveGeneral = useCallback(function handleMouseLeaveGeneral() {
     if (tooltipTimeout.current) {
       clearTimeout(tooltipTimeout.current);
       tooltipTimeout.current = null;
     }
     if (!isTooltipLocked) setTooltip(null);
-  };
+  }, [isTooltipLocked]);
+
+  const handleSvgClick = useCallback(function handleSvgClick(event: React.MouseEvent<SVGSVGElement>) {
+    const target = event.target as Element;
+    if (!target.closest('.map-node') && !target.closest('.map-edge-group')) {
+      setIsTooltipLocked(false);
+      setTooltip(null);
+    }
+  }, []);
+
+  const handleEdgeMouseEnterById = useCallback(function handleEdgeMouseEnterById(
+    event: React.MouseEvent<SVGGElement>
+  ) {
+      if (isTooltipLocked) return;
+      const edgeId = event.currentTarget.dataset.edgeId;
+      if (!edgeId) return;
+      const edge = edges.find(e => e.id === edgeId);
+      if (!edge) return;
+      const svgRect = svgRef.current?.getBoundingClientRect();
+      if (!svgRect) return;
+      const x = event.clientX - svgRect.left;
+      const y = event.clientY - svgRect.top;
+      const svgCoords = svgRef.current
+        ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
+        : { x: 0, y: 0 };
+      const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
+      const targetNode = nodes.find(n => n.id === edge.targetNodeId);
+      let content = edge.data.description
+        ? edge.data.description
+        : `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
+      if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
+      if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
+      const anchor = computeAnchor(x, y, svgRect);
+      if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
+      tooltipTimeout.current = window.setTimeout(() => {
+        setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor });
+      }, TOOLTIP_DELAY_MS);
+    },
+    [edges, isTooltipLocked, nodes, svgRef]
+  );
+
+  const handleNodeMouseEnterById = useCallback(function handleNodeMouseEnterById(
+    event: React.MouseEvent
+  ) {
+      if (isTooltipLocked) return;
+      const nodeId = event.currentTarget.getAttribute('data-node-id');
+      if (!nodeId) return;
+      const node = nodes.find(n => n.id === nodeId);
+      if (!node) return;
+      const svgRect = svgRef.current?.getBoundingClientRect();
+      if (!svgRect) return;
+      const x = event.clientX - svgRect.left;
+      const y = event.clientY - svgRect.top;
+      const svgCoords = svgRef.current
+        ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
+        : { x: 0, y: 0 };
+      let content = `${node.placeName}`;
+      if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
+      if (node.data.description) content += `\n${node.data.description}`;
+      content += `\nStatus: ${node.data.status}`;
+      const anchor = computeAnchor(x, y, svgRect);
+      if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
+      tooltipTimeout.current = window.setTimeout(() => {
+        setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId });
+      }, TOOLTIP_DELAY_MS);
+    },
+    [isTooltipLocked, nodes, svgRef]
+  );
+
+  const handleNodeClickById = useCallback(function handleNodeClickById(
+    event: React.MouseEvent
+  ) {
+      event.stopPropagation();
+      const nodeId = event.currentTarget.getAttribute('data-node-id');
+      if (!nodeId) return;
+      const node = nodes.find(n => n.id === nodeId);
+      if (!node) return;
+      if (tooltipTimeout.current) {
+        clearTimeout(tooltipTimeout.current);
+        tooltipTimeout.current = null;
+      }
+      const svgRect = svgRef.current?.getBoundingClientRect();
+      if (!svgRect) return;
+      const x = event.clientX - svgRect.left;
+      const y = event.clientY - svgRect.top;
+      const svgCoords = svgRef.current
+        ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
+        : { x: 0, y: 0 };
+      let content = `${node.placeName}`;
+      if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
+      if (node.data.description) content += `\n${node.data.description}`;
+      content += `\nStatus: ${node.data.status}`;
+      setIsTooltipLocked(true);
+      const anchor = computeAnchor(x, y, svgRect);
+      setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId });
+    },
+    [nodes, svgRef]
+  );
+
+  const handleDestinationClick = useCallback(function handleDestinationClick(
+    event: React.MouseEvent<HTMLButtonElement>
+  ) {
+      const nodeId = event.currentTarget.dataset.nodeId;
+      if (!nodeId) return;
+      if (nodeId === destinationNodeId) {
+        onSelectDestination(null);
+      } else {
+        onSelectDestination(nodeId);
+      }
+      setIsTooltipLocked(false);
+      setTooltip(null);
+    },
+    [destinationNodeId, onSelectDestination]
+  );
 
   if (nodes.length === 0) {
     return (
       <div className="map-content-area">
-        <p className="text-slate-500 italic">No map data available for this theme yet.</p>
+        <p className="text-slate-500 italic">
+          No map data available for this theme yet.
+        </p>
       </div>
     );
   }
@@ -418,25 +501,19 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   return (
     <div className="map-content-area">
       <svg
-        ref={svgRef}
-        viewBox={viewBox}
         className="map-svg-container"
-        onClick={e => {
-          const target = e.target as Element;
-          if (!target.closest('.map-node') && !target.closest('.map-edge-group')) {
-            setIsTooltipLocked(false);
-            setTooltip(null);
-          }
-        }}
+        onClick={handleSvgClick}
         onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
+        onTouchStart={handleTouchStart}
+        onWheel={handleWheel}
         preserveAspectRatio="xMidYMid meet"
+        ref={svgRef}
+        viewBox={viewBox}
       >
         <g>
 
@@ -449,37 +526,43 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             if (edge.data.status) edgeClass += ` ${edge.data.status.replace(/\s+/g, '_').toLowerCase()}`;
             return (
               <g
-                key={edge.id}
                 className="map-edge-group"
-                onMouseEnter={e => handleEdgeMouseEnter(edge, e)}
+                data-edge-id={edge.id}
+                key={edge.id}
+                onMouseEnter={handleEdgeMouseEnterById}
                 onMouseLeave={handleMouseLeaveGeneral}
               >
                 {edge.data.type === 'shortcut' ? (
                   <>
                     <path
                       d={buildShortcutPath(sourceNode, targetNode)}
+                      fill="none"
                       stroke="transparent"
                       strokeWidth={EDGE_HOVER_WIDTH}
-                      fill="none"
                     />
-                    <path d={buildShortcutPath(sourceNode, targetNode)} className={edgeClass} />
+
+                    <path
+                      className={edgeClass}
+                      d={buildShortcutPath(sourceNode, targetNode)}
+                    />
                   </>
                 ) : (
                   <>
                     <line
-                      x1={sourceNode.position.x}
-                      y1={sourceNode.position.y}
-                      x2={targetNode.position.x}
-                      y2={targetNode.position.y}
                       stroke="transparent"
                       strokeWidth={EDGE_HOVER_WIDTH}
-                    />
-                    <line
                       x1={sourceNode.position.x}
-                      y1={sourceNode.position.y}
                       x2={targetNode.position.x}
+                      y1={sourceNode.position.y}
                       y2={targetNode.position.y}
+                    />
+
+                    <line
                       className={edgeClass}
+                      x1={sourceNode.position.x}
+                      x2={targetNode.position.x}
+                      y1={sourceNode.position.y}
+                      y2={targetNode.position.y}
                     />
                   </>
                 )}
@@ -489,100 +572,89 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
           {sortedNodes.map(node => {
             let nodeClass = 'map-node-circle';
-            if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
+            nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
-            if (node.data.status) {
-              const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
-              nodeClass += ` ${sanitizedStatus}`;
-            }
+            const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
+            nodeClass += ` ${sanitizedStatus}`;
             const radius = getRadiusForNode(node);
-            const handleEnter = (e: React.MouseEvent) => handleNodeMouseEnter(node, e);
             return (
               <g
-                key={node.id}
-                transform={`translate(${node.position.x}, ${node.position.y})`}
                 className="map-node"
+                data-node-id={node.id}
+                key={node.id}
+                onClick={handleNodeClickById}
                 onMouseLeave={handleMouseLeaveGeneral}
-                onClick={e => handleNodeClick(node, e)}
+                transform={`translate(${node.position.x}, ${node.position.y})`}
               >
                 <circle
                   className={nodeClass}
-                  r={radius}
-                  pointerEvents={
-                    node.data.nodeType === 'feature' ? 'visible' : 'none'
-                  }
+                  data-node-id={node.id}
                   onMouseEnter={
-                    node.data.nodeType === 'feature' ? handleEnter : undefined
+                    node.data.nodeType === 'feature' ? handleNodeMouseEnterById : undefined
                   }
                   onMouseLeave={
                     node.data.nodeType === 'feature'
                       ? handleMouseLeaveGeneral
                       : undefined
                   }
+                  pointerEvents={
+                    node.data.nodeType === 'feature' ? 'visible' : 'none'
+                  }
+                  r={radius}
                 />
+
                 <circle
                   className="map-node-hover-ring"
-                  r={radius}
+                  data-node-id={node.id}
                   fill="none"
+                  onMouseEnter={handleNodeMouseEnterById}
+                  onMouseLeave={handleMouseLeaveGeneral}
+                  pointerEvents="stroke"
+                  r={radius}
                   stroke="transparent"
                   strokeWidth={8}
-                  pointerEvents="stroke"
-                  onMouseEnter={handleEnter}
-                  onMouseLeave={handleMouseLeaveGeneral}
                 />
               </g>
             );
           })}
 
-          {destinationNodeId && (() => {
-            const dest = nodes.find(n => n.id === destinationNodeId);
-            const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
-            if (!dest) return null;
-            const nodeMap = new Map(nodes.map(n => [n.id, n]));
-            if (
-              current &&
-              (current.id === dest.id || isDescendantOf(current, dest, nodeMap))
-            ) {
-              return null;
-            }
-            return (
-              <polygon
-                className="map-destination-marker"
-                points="0,-14 10,0 0,14 -10,0"
-                transform={`translate(${dest.position.x}, ${dest.position.y})`}
-                pointerEvents="none"
-              />
-            );
-          })()}
+          {destinationMarker}
 
           {sortedNodes.map(node => {
-          const presence = itemPresenceByNode?.[node.id];
-          if (!presence) return null;
+          const presence = itemPresenceByNode[node.id] ?? { hasUseful: false, hasVehicle: false };
+          if (!presence.hasUseful && !presence.hasVehicle) return null;
           const radius = getRadiusForNode(node);
           const offset = radius + DEFAULT_LABEL_MARGIN_PX * 1.5;
           const iconSize = NODE_RADIUS * 2 * itemIconScale;
+          const usefulX = node.position.x + offset * Math.sin((20 * Math.PI) / 180) - iconSize / 2;
+          const usefulY = node.position.y - offset * Math.cos((20 * Math.PI) / 180) - iconSize / 2;
+          const vehicleX = node.position.x + offset * Math.sin((340 * Math.PI) / 180) - iconSize / 2;
+          const vehicleY = node.position.y - offset * Math.cos((340 * Math.PI) / 180) - iconSize / 2;
           return (
             <g key={`${node.id}-icons`}>
-              {presence.hasUseful && (() => {
-                const angle = (20 * Math.PI) / 180;
-                const x = node.position.x + offset * Math.sin(angle);
-                const y = node.position.y - offset * Math.cos(angle);
-                return (
-                    <g transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`} pointerEvents="none">
-                      <MapItemBoxIcon className="text-green-400" size={iconSize} />
-                    </g>
-                );
-              })()}
-              {presence.hasVehicle && (() => {
-                const angle = (340 * Math.PI) / 180;
-                const x = node.position.x + offset * Math.sin(angle);
-                const y = node.position.y - offset * Math.cos(angle);
-                return (
-                    <g transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`} pointerEvents="none">
-                      <MapWheelIcon className="text-green-400" size={iconSize} />
-                    </g>
-                );
-              })()}
+              {presence.hasUseful ? (
+                <g
+                  pointerEvents="none"
+                  transform={`translate(${usefulX}, ${usefulY})`}
+                >
+                  <MapItemBoxIcon
+                    className="text-green-400"
+                    size={iconSize}
+                  />
+                </g>
+              ) : null}
+
+              {presence.hasVehicle ? (
+                <g
+                  pointerEvents="none"
+                  transform={`translate(${vehicleX}, ${vehicleY})`}
+                >
+                  <MapWheelIcon
+                    className="text-green-400"
+                    size={iconSize}
+                  />
+                </g>
+              ) : null}
             </g>
           );
         })}
@@ -605,7 +677,6 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
             return (
               <text
-                key={`label-${node.id}`}
                 className={`map-node-label${
                   isSmallFontType(node.data.nodeType)
                     ? node.data.nodeType === 'feature'
@@ -615,16 +686,18 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                         : ' interior-label'
                     : ''
                 }`}
-                transform={`translate(${node.position.x}, ${node.position.y})`}
-                pointerEvents="visible"
-                onMouseEnter={e => handleNodeMouseEnter(node, e)}
+                data-node-id={node.id}
+                key={`label-${node.id}`}
+                onMouseEnter={handleNodeMouseEnterById}
                 onMouseLeave={handleMouseLeaveGeneral}
+                pointerEvents="visible"
+                transform={`translate(${node.position.x}, ${node.position.y})`}
               >
                 {labelLines.map((line, index) => (
                   <tspan
-                    key={`${node.id}-line-${index}`}
-                    x="0"
                     dy={index === 0 ? `${initialDyOffset}em` : `${DEFAULT_LABEL_LINE_HEIGHT_EM}em`}
+                    key={`${node.id}-${line}`}
+                    x="0"
                   >
                     {line}
                   </tspan>
@@ -634,39 +707,34 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           })}
         </g>
       </svg>
-      {tooltip && tooltipScreenPosition && (
-        <div
-          className={`map-tooltip anchor-${tooltip.anchor}`}
-          style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
-        >
-          {isTooltipLocked && tooltip.nodeId && (
-            <button
-              onClick={() => {
-                if (tooltip.nodeId === destinationNodeId) {
-                  onSelectDestination(null);
-                } else {
-                  onSelectDestination(tooltip.nodeId!);
-                }
-                setIsTooltipLocked(false);
-                setTooltip(null);
-              }}
-              className="map-set-destination-button"
-            >
-              {tooltip.nodeId === destinationNodeId
+
+      {tooltip && tooltipScreenPosition ? <div
+        className={`map-tooltip anchor-${tooltip.anchor}`}
+        style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
+                                          >
+        {isTooltipLocked && tooltip.nodeId ? <button
+          className="map-set-destination-button"
+          data-node-id={tooltip.nodeId}
+          onClick={handleDestinationClick}
+          type="button"
+                                             >
+          {tooltip.nodeId === destinationNodeId
                 ? 'Remove Destination'
                 : 'Set Destination'}
-            </button>
-          )}
-          {tooltip.content.split('\n').map((line, index) => (
-            <React.Fragment key={index}>
-              {index === 0 ? <strong>{line}</strong> : line}
-              {index < tooltip.content.split('\n').length - 1 && <br />}
-            </React.Fragment>
+        </button> : null}
+
+        {tooltip.content.split('\n').map((line, index) => (
+          <React.Fragment key={`${tooltip.nodeId}-${line}`}> 
+            {index === 0 ? <strong>
+              {line}
+            </strong> : line}
+
+            {index < tooltip.content.split('\n').length - 1 && <br />}
+          </React.Fragment>
           ))}
-        </div>
-      )}
+      </div> : null}
     </div>
   );
-};
+}
 
 export default MapNodeView;

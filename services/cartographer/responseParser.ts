@@ -4,7 +4,7 @@
  */
 import { AIMapUpdatePayload } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isValidAIMapUpdatePayload } from '../../utils/mapUpdateValidationUtils';
+import { isValidAIMapUpdatePayload } from './mapUpdateValidation';
 import { normalizeStatusAndTypeSynonyms } from './mapUpdateUtils';
 
 /**

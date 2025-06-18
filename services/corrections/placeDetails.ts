@@ -274,11 +274,11 @@ Respond ONLY with the single, complete JSON object.`;
 export const fetchCorrectedNodeType_Service = async (
   nodeInfo: { placeName: string; nodeType?: string; description?: string },
 ): Promise<NonNullable<MapNodeData['nodeType']> | null> => {
-  const synonyms = NODE_TYPE_SYNONYMS;
+  const synonyms = NODE_TYPE_SYNONYMS as Record<string, MapNodeData['nodeType'] | undefined>;
 
   if (nodeInfo.nodeType) {
-    const normalized =
-      synonyms[nodeInfo.nodeType.toLowerCase()] || nodeInfo.nodeType.toLowerCase();
+      const normalized =
+        synonyms[nodeInfo.nodeType.toLowerCase()] ?? nodeInfo.nodeType.toLowerCase();
     if ((VALID_NODE_TYPE_VALUES as readonly string[]).includes(normalized)) {
       return normalized as MapNodeData['nodeType'];
     }
@@ -324,7 +324,7 @@ Respond ONLY with the single node type.`;
       const aiResponse = response.text?.trim();
       if (aiResponse) {
         const cleaned = aiResponse.trim().toLowerCase();
-        const mapped = synonyms[cleaned] || cleaned;
+        const mapped = synonyms[cleaned] ?? cleaned;
         if ((VALID_NODE_TYPE_VALUES as readonly string[]).includes(mapped)) {
           return { result: mapped as MapNodeData['nodeType'] };
         }
@@ -377,8 +377,10 @@ export const fetchLikelyParentNode_Service = async (
   context.themeEdges.forEach(e => {
     if (!adjacency.has(e.sourceNodeId)) adjacency.set(e.sourceNodeId, new Set());
     if (!adjacency.has(e.targetNodeId)) adjacency.set(e.targetNodeId, new Set());
-    adjacency.get(e.sourceNodeId)!.add(e.targetNodeId);
-    adjacency.get(e.targetNodeId)!.add(e.sourceNodeId);
+    const setA = adjacency.get(e.sourceNodeId);
+    if (setA) setA.add(e.targetNodeId);
+    const setB = adjacency.get(e.targetNodeId);
+    if (setB) setB.add(e.sourceNodeId);
   });
 
   const nodeLines = context.themeNodes

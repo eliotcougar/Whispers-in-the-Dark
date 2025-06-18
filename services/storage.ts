@@ -46,7 +46,7 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
       console.warn('Saved data found in localStorage could not be parsed as JSON.');
       return null;
     }
-    if (typeof parsedData !== 'object' || parsedData === null) {
+    if (typeof parsedData !== 'object') {
       console.warn('Saved data found in localStorage is not an object.');
       return null;
     }
