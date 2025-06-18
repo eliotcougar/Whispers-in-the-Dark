@@ -219,7 +219,7 @@ function DebugView({
               ariaLabel="Undo last turn"
               className="mb-3 bg-orange-600 text-white hover:bg-orange-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed"
               disabled={!previousState || currentState.globalTurnNumber <= 1}
-              label={`Undo Turn (Global Turn: ${currentState.globalTurnNumber})`}
+              label={`Undo Turn (Global Turn: ${String(currentState.globalTurnNumber)})`}
               onClick={onUndoTurn}
               size="sm"
             />

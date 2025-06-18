@@ -90,7 +90,7 @@ function SettingsDisplay({
           <div
             className="mb-8"
             id="reality-shift-controls"
-          > 
+          >
             {' '}
 
             {/* Removed conditional class from here */}
@@ -128,17 +128,16 @@ function SettingsDisplay({
             />
 
             {/* Disclaimer is NOT greyed out */}
-            <div className="settings-disclaimer">
-              <p>
-                <strong>
-                  In the Beta
-                </strong>
-                
-                {' '}
+            <p className="settings-disclaimer">
+              {/* eslint-disable-next-line react/jsx-max-depth */}
+              <strong>
+                In the Beta
+              </strong>
 
-                , manual reality shift can be triggered at any time regardless of these settings.
-              </p>
-            </div>
+              {' '}
+
+              , manual reality shift can be triggered at any time regardless of these settings.
+            </p>
           </div>
 
           <div className="mb-8">

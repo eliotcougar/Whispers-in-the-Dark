@@ -58,6 +58,7 @@ function Button({
       className={`rounded shadow transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClasses[size]} ${variantClasses[variant]} ${pressedClasses} ${className}`}
       disabled={disabled}
       onClick={handleClick}
+      /* eslint-disable-next-line react/button-has-type */
       type={type}
       {...rest}
     >
@@ -74,14 +75,14 @@ function Button({
 }
 
 Button.defaultProps = {
-  label: undefined,
+  className: '',
   disabled: false,
   icon: undefined,
-  size: 'md',
-  className: '',
-  variant: 'standard',
+  label: undefined,
   pressed: false,
+  size: 'md',
   type: 'button',
+  variant: 'standard',
 };
 
 export default Button;
