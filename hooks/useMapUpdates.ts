@@ -15,7 +15,7 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
   DEFAULT_ITEM_ICON_SCALE,
-} from '../utils/mapConstants';
+} from '../constants';
 
 /** Returns the default configuration for the map layout force algorithm. */
 export const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
@@ -73,7 +73,7 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
         const baseState = prev[0];
         let changed = false;
         const nodeMap = new Map(baseState.mapData.nodes.map(n => [n.id, { ...n }]));
-        updatedNodes.forEach(n => {
+        for (const n of updatedNodes) {
           const existing = nodeMap.get(n.id);
           if (existing) {
             const posDiff =
@@ -90,11 +90,10 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
               changed = true;
             }
           }
-        });
-        if (!changed) return prev;
+        }
         const newMapData = { ...baseState.mapData, nodes: Array.from(nodeMap.values()) };
         const newState = { ...baseState, mapData: newMapData };
-        return [newState, prev[1]];
+        return changed ? [newState, prev[1]] : prev;
       });
     },
     [setGameStateStack]

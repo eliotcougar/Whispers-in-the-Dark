@@ -169,10 +169,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           prompt,
           currentThemeObj.systemInstructionModifier,
         );
-        if (draftState.lastDebugPacket) {
-          draftState.lastDebugPacket.rawResponseText = response.text ?? null;
-          draftState.lastDebugPacket.storytellerThoughts = thoughts;
-        }
+        draftState.lastDebugPacket = {
+          ...draftState.lastDebugPacket,
+          rawResponseText: response.text ?? null,
+          storytellerThoughts: thoughts,
+        };
 
         const currentThemeMapDataForParse = {
           nodes: draftState.mapData.nodes.filter((n) => n.themeName === currentThemeObj.name),
@@ -187,7 +188,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           response.text ?? '',
           playerGenderProp,
           currentThemeObj,
-          () => setParseErrorCounter(1),
+          () => { setParseErrorCounter(1); },
           currentFullState.lastActionLog || undefined,
           currentFullState.currentScene,
           currentThemeCharacters,
@@ -227,7 +228,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         setIsLoading(false);
         setLoadingReason(null);
 
-        if (!draftState.isCustomGameMode && !draftState.dialogueState && currentThemeObj) {
+        if (!draftState.isCustomGameMode && !draftState.dialogueState) {
           const stabilityThreshold = currentThemeObj.name === draftState.pendingNewThemeNameAfterShift ? 0 : stabilityLevelProp;
           if (draftState.turnsSinceLastShift > stabilityThreshold && Math.random() * 100 < chaosLevelProp) {
             setError('CHAOS SHIFT! Reality fractures without warning!');

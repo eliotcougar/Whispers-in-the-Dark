@@ -57,7 +57,7 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
   }
 
   // Fields required for 'update' if it's a transformation (newName is present)
-  if (context === 'update' && obj.newName !== undefined && obj.newName !== null) {
+  if (context === 'update' && obj.newName != null) {
     if (typeof obj.newName !== 'string' || obj.newName.trim() === '') {
         console.warn("isValidItem (context: update, with newName): 'newName' is invalid.", item);
         return false;
@@ -167,13 +167,13 @@ export function isValidCharacterUpdate(obj: unknown): obj is ValidCharacterUpdat
     if (maybe.newAliases !== undefined && !(Array.isArray(maybe.newAliases) && maybe.newAliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (maybe.addAlias !== undefined && typeof maybe.addAlias !== 'string') return false;
     if (maybe.newPresenceStatus !== undefined && !VALID_PRESENCE_STATUS_VALUES.includes(maybe.newPresenceStatus)) return false;
-    if (maybe.newLastKnownLocation !== undefined && maybe.newLastKnownLocation !== null && typeof maybe.newLastKnownLocation !== 'string') return false;
-    if (maybe.newPreciseLocation !== undefined && maybe.newPreciseLocation !== null && typeof maybe.newPreciseLocation !== 'string') return false;
+    if (maybe.newLastKnownLocation !== undefined && maybe.newLastKnownLocation != null && typeof maybe.newLastKnownLocation !== 'string') return false;
+    if (maybe.newPreciseLocation !== undefined && maybe.newPreciseLocation != null && typeof maybe.newPreciseLocation !== 'string') return false;
     
     if ((maybe.newPresenceStatus === 'nearby' || maybe.newPresenceStatus === 'companion') && maybe.newPreciseLocation === undefined) {
       // This could be problematic if AI intends to set a location but omits the field.
     }
-    if ((maybe.newPresenceStatus === 'distant' || maybe.newPresenceStatus === 'unknown') && maybe.newPreciseLocation !== undefined && maybe.newPreciseLocation !== null) {
+    if ((maybe.newPresenceStatus === 'distant' || maybe.newPresenceStatus === 'unknown') && maybe.newPreciseLocation != null) {
       // console.warn("Character update: preciseLocation provided for a non-present character. This will be ignored or nulled by game logic.");
     }
     return true;
@@ -187,14 +187,14 @@ export function isValidNewCharacterPayload(obj: unknown): obj is ValidNewCharact
     if (typeof maybe.description !== 'string' || maybe.description.trim() === '') return false;
     if (maybe.aliases !== undefined && !(Array.isArray(maybe.aliases) && maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (maybe.presenceStatus !== undefined && !VALID_PRESENCE_STATUS_VALUES.includes(maybe.presenceStatus)) return false;
-    if (maybe.lastKnownLocation !== undefined && maybe.lastKnownLocation !== null && typeof maybe.lastKnownLocation !== 'string') return false;
-    if (maybe.preciseLocation !== undefined && maybe.preciseLocation !== null && typeof maybe.preciseLocation !== 'string') return false;
+    if (maybe.lastKnownLocation !== undefined && maybe.lastKnownLocation != null && typeof maybe.lastKnownLocation !== 'string') return false;
+    if (maybe.preciseLocation !== undefined && maybe.preciseLocation != null && typeof maybe.preciseLocation !== 'string') return false;
 
     if ((maybe.presenceStatus === 'nearby' || maybe.presenceStatus === 'companion') && maybe.preciseLocation === undefined) {
       // console.warn("New character: preciseLocation undefined for a present character.");
     }
-    if ((maybe.presenceStatus === 'distant' || maybe.presenceStatus === 'unknown') && maybe.preciseLocation !== undefined && maybe.preciseLocation !== null) {
-       // console.warn("New character: preciseLocation provided for a non-present character.");
+    if ((maybe.presenceStatus === 'distant' || maybe.presenceStatus === 'unknown') && maybe.preciseLocation != null) {
+      // console.warn("New character: preciseLocation provided for a non-present character.");
     }
     return true;
 }

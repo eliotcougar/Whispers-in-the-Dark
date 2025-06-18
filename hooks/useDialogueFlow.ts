@@ -3,7 +3,7 @@
  * @description Orchestrates dialogue turns and summarization hooks.
  */
 
-import React from 'react';
+import { useRef } from 'react';
 import {
   GameStateFromAI,
   FullGameState,
@@ -46,7 +46,7 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     onDialogueConcluded,
   } = props;
 
-  const dialogueLogsRef = React.useRef<DialogueTurnDebugEntry[]>([]);
+  const dialogueLogsRef = useRef<DialogueTurnDebugEntry[]>([]);
 
   const addDebugEntry = (entry: DialogueTurnDebugEntry) => {
     dialogueLogsRef.current.push(entry);

@@ -1,37 +1,47 @@
-import React from 'react';
+import { useCallback } from 'react';
+import * as React from 'react';
 
 interface ItemActionButtonProps {
-  label: React.ReactNode;
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  disabled?: boolean;
-  ariaLabel: string;
-  className?: string;
+  readonly label: React.ReactNode;
+  readonly onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly disabled: boolean;
+  readonly ariaLabel: string;
+  readonly className: string;
+  readonly dataItemName: string;
 }
 
 /**
  * Button used for item actions like drop, discard or park.
  * Applies shared styling and ensures blur after click.
  */
-const ItemActionButton: React.FC<ItemActionButtonProps> = ({
+function ItemActionButton({
   label,
   onClick,
   disabled = false,
   ariaLabel,
   className = '',
-}) => {
+  dataItemName = '',
+}: ItemActionButtonProps) {
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      onClick(event);
+      event.currentTarget.blur();
+    },
+    [onClick]
+  );
+
   return (
     <button
-      onClick={(event) => {
-        onClick(event);
-        event.currentTarget.blur();
-      }}
-      disabled={disabled}
-      className={`w-full text-sm text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${className}`}
       aria-label={ariaLabel}
+      className={`w-full text-sm text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${className}`}
+      data-item-name={dataItemName}
+      disabled={disabled}
+      onClick={handleClick}
+      type="button"
     >
       {label}
     </button>
   );
-};
+}
 
 export default ItemActionButton;

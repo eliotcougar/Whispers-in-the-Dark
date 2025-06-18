@@ -6,7 +6,7 @@ export const useLoadingProgress = () => {
 
   useEffect(() => {
     onProgress(setProgress);
-    return () => offProgress(setProgress);
+    return () => { offProgress(setProgress); };
   }, []);
 
   const clearProgress = useCallback(() => {

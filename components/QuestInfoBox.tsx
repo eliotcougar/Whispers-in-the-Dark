@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 interface QuestInfoBoxProps {
-  mainQuest?: string | null;
-  currentObjective?: string | null;
-  objectiveAnimationType?: 'success' | 'neutral' | null;
+  readonly mainQuest?: string | null;
+  readonly currentObjective?: string | null;
+  readonly objectiveAnimationType?: 'success' | 'neutral' | null;
 }
 
-const QuestInfoBox: React.FC<QuestInfoBoxProps> = ({ mainQuest, currentObjective, objectiveAnimationType }) => {
+function QuestInfoBox({ mainQuest, currentObjective, objectiveAnimationType }: QuestInfoBoxProps) {
   const objectiveBoxClasses = useMemo(() => {
     const baseClass = 'p-3 bg-amber-900/50 border border-amber-700 rounded-md';
     if (objectiveAnimationType === 'success') return `${baseClass} animate-objective-success`;
@@ -16,20 +16,33 @@ const QuestInfoBox: React.FC<QuestInfoBoxProps> = ({ mainQuest, currentObjective
 
   return (
     <div className="space-y-4">
-      {mainQuest && (
-        <div className="p-3 bg-purple-900/50 border border-purple-700 rounded-md">
-          <h3 className="text-lg font-semibold text-purple-300">Main Quest:</h3>
-          <p className="text-purple-200 text-lg">{mainQuest}</p>
-        </div>
-      )}
-      {currentObjective && (
-        <div className={objectiveBoxClasses}>
-          <h3 className="text-lg font-semibold text-amber-300">Current Objective:</h3>
-          <p className="text-amber-200 text-lg">{currentObjective}</p>
-        </div>
-      )}
+      {mainQuest ? <div className="p-3 bg-purple-900/50 border border-purple-700 rounded-md">
+        <h3 className="text-lg font-semibold text-purple-300">
+          Main Quest:
+        </h3>
+
+        <p className="text-purple-200 text-lg">
+          {mainQuest}
+        </p>
+      </div> : null}
+
+      {currentObjective ? <div className={objectiveBoxClasses}>
+        <h3 className="text-lg font-semibold text-amber-300">
+          Current Objective:
+        </h3>
+
+        <p className="text-amber-200 text-lg">
+          {currentObjective}
+        </p>
+      </div> : null}
     </div>
   );
+}
+
+QuestInfoBox.defaultProps = {
+  currentObjective: null,
+  mainQuest: null,
+  objectiveAnimationType: null,
 };
 
 export default QuestInfoBox;

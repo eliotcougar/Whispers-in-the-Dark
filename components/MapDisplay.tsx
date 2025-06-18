@@ -3,7 +3,8 @@
  * @description Layout component composing the map view and controls.
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+
 import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
@@ -16,31 +17,31 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
   DEFAULT_ITEM_ICON_SCALE,
-} from '../utils/mapConstants';
+} from '../constants';
 import MapNodeView from './map/MapNodeView';
 import MapControls from './map/MapControls';
 
 
 interface MapDisplayProps {
-  mapData: MapData;
-  currentThemeName: string | null;
-  currentMapNodeId: string | null;
-  destinationNodeId: string | null;
-  itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (nodeId: string | null) => void;
-  initialLayoutConfig: MapLayoutConfig;
-  initialViewBox: string;
-  onViewBoxChange: (newViewBox: string) => void;
-  onNodesPositioned: (nodes: MapNode[]) => void;
-  onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
-  isVisible: boolean;
-  onClose: () => void;
+  readonly mapData: MapData;
+  readonly currentThemeName: string | null;
+  readonly currentMapNodeId: string | null;
+  readonly destinationNodeId: string | null;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
+  readonly onSelectDestination: (nodeId: string | null) => void;
+  readonly initialLayoutConfig: MapLayoutConfig;
+  readonly initialViewBox: string;
+  readonly onViewBoxChange: (newViewBox: string) => void;
+  readonly onNodesPositioned: (nodes: MapNode[]) => void;
+  readonly onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
 }
 
 /**
  * Renders the interactive map with controls for layout tweaking.
  */
-const MapDisplay: React.FC<MapDisplayProps> = ({
+function MapDisplay({
   mapData,
   currentThemeName,
   currentMapNodeId,
@@ -54,35 +55,33 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onLayoutConfigChange,
   isVisible,
   onClose,
-}) => {
+}: MapDisplayProps) {
   const [displayedNodes, setDisplayedNodes] = useState<MapNode[]>([]);
 
-  const [layoutIdealEdgeLength, setLayoutIdealEdgeLength] = useState(initialLayoutConfig?.IDEAL_EDGE_LENGTH ?? DEFAULT_IDEAL_EDGE_LENGTH);
+  const [layoutIdealEdgeLength, setLayoutIdealEdgeLength] = useState(
+    initialLayoutConfig.IDEAL_EDGE_LENGTH
+  );
   const [layoutNestedPadding, setLayoutNestedPadding] = useState(
-    initialLayoutConfig?.NESTED_PADDING ?? DEFAULT_NESTED_PADDING
+    initialLayoutConfig.NESTED_PADDING
   );
   const [layoutNestedAnglePadding, setLayoutNestedAnglePadding] = useState(
-    initialLayoutConfig?.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING
+    initialLayoutConfig.NESTED_ANGLE_PADDING
   );
   const labelMarginPx = DEFAULT_LABEL_MARGIN_PX;
   const labelLineHeightEm = DEFAULT_LABEL_LINE_HEIGHT_EM;
   const [labelOverlapMarginPx, setLabelOverlapMarginPx] = useState(
-    initialLayoutConfig?.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX
+    initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX
   );
   const [itemIconScale, setItemIconScale] = useState(
-    initialLayoutConfig?.ITEM_ICON_SCALE ?? DEFAULT_ITEM_ICON_SCALE
+    initialLayoutConfig.ITEM_ICON_SCALE
   );
 
   useEffect(() => {
-    if (!initialLayoutConfig) return;
     const edge = initialLayoutConfig.IDEAL_EDGE_LENGTH;
-    const pad = initialLayoutConfig.NESTED_PADDING ?? DEFAULT_NESTED_PADDING;
-    const angle =
-      initialLayoutConfig.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING;
-    const overlap =
-      initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX ?? DEFAULT_LABEL_OVERLAP_MARGIN_PX;
-    const iconScale =
-      initialLayoutConfig.ITEM_ICON_SCALE ?? DEFAULT_ITEM_ICON_SCALE;
+    const pad = initialLayoutConfig.NESTED_PADDING;
+    const angle = initialLayoutConfig.NESTED_ANGLE_PADDING;
+    const overlap = initialLayoutConfig.LABEL_OVERLAP_MARGIN_PX;
+    const iconScale = initialLayoutConfig.ITEM_ICON_SCALE;
     setLayoutIdealEdgeLength(prev => (prev === edge ? prev : edge));
     setLayoutNestedPadding(prev => (prev === pad ? prev : pad));
     setLayoutNestedAnglePadding(prev => (prev === angle ? prev : angle));
@@ -116,7 +115,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     const handler = setTimeout(() => {
       onLayoutConfigChange(currentConfigToPropagate);
     }, 500);
-    return () => clearTimeout(handler);
+    return () => { clearTimeout(handler); };
   }, [currentConfigToPropagate, onLayoutConfigChange]);
 
   /** Nodes belonging to the current theme. */
@@ -159,58 +158,77 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   }, [isVisible, runLayout]);
 
   /** Triggers a recalculation of node positions using the current settings. */
-  const handleRefreshLayout = () => {
+  const handleRefreshLayout = useCallback(() => {
     runLayout();
-  };
+  }, [runLayout]);
 
   /** Resets all layout parameters to default values. */
-  const handleResetLayoutToDefaults = () => {
+  const handleResetLayoutToDefaults = useCallback(() => {
     setLayoutIdealEdgeLength(DEFAULT_IDEAL_EDGE_LENGTH);
     setLayoutNestedPadding(DEFAULT_NESTED_PADDING);
     setLayoutNestedAnglePadding(DEFAULT_NESTED_ANGLE_PADDING);
     setLabelOverlapMarginPx(DEFAULT_LABEL_OVERLAP_MARGIN_PX);
     setItemIconScale(DEFAULT_ITEM_ICON_SCALE);
-  };
+  }, []);
 
   if (!isVisible) return null;
 
   return (
-    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="map-display-title">
+    <div
+      aria-labelledby="map-display-title"
+      aria-modal="true"
+      className="animated-frame open"
+      role="dialog"
+    >
       <div className="animated-frame-content">
-        <button onClick={onClose} className="animated-frame-close-button" aria-label="Close map view">
+        <button
+          aria-label="Close map view"
+          className="animated-frame-close-button"
+          onClick={onClose}
+          type="button"
+        >
           &times;
         </button>
-        <h1 id="map-display-title" className="text-xl font-bold text-teal-400 mb-2 text-center">
+
+        <h1
+          className="text-xl font-bold text-teal-400 mb-2 text-center"
+          id="map-display-title"
+        >
           {currentThemeName ? `Map: ${currentThemeName}` : 'Map'}
         </h1>
-        <p className="text-center text-xs text-slate-400 mb-1">Pan by dragging, zoom with the mouse wheel or pinch. Hover for details.</p>
+
+        <p className="text-center text-xs text-slate-400 mb-1">
+          Pan by dragging, zoom with the mouse wheel or pinch. Hover for details.
+        </p>
+
         <MapNodeView
-          nodes={displayedNodes}
-          edges={currentThemeEdges}
           currentMapNodeId={currentMapNodeId}
           destinationNodeId={destinationNodeId}
-          itemPresenceByNode={itemPresenceByNode}
-          onSelectDestination={onSelectDestination}
-          labelOverlapMarginPx={labelOverlapMarginPx}
-          itemIconScale={itemIconScale}
+          edges={currentThemeEdges}
           initialViewBox={initialViewBox}
+          itemIconScale={itemIconScale}
+          itemPresenceByNode={itemPresenceByNode}
+          labelOverlapMarginPx={labelOverlapMarginPx}
+          nodes={displayedNodes}
+          onSelectDestination={onSelectDestination}
           onViewBoxChange={onViewBoxChange}
         />
+
         <MapControls
-          padding={layoutNestedPadding}
-          setPadding={setLayoutNestedPadding}
           anglePadding={layoutNestedAnglePadding}
-          setAnglePadding={setLayoutNestedAnglePadding}
-          overlapMargin={labelOverlapMarginPx}
-          setOverlapMargin={setLabelOverlapMarginPx}
           itemIconScale={itemIconScale}
-          setItemIconScale={setItemIconScale}
-          onReset={handleResetLayoutToDefaults}
           onRefreshLayout={handleRefreshLayout}
+          onReset={handleResetLayoutToDefaults}
+          overlapMargin={labelOverlapMarginPx}
+          padding={layoutNestedPadding}
+          setAnglePadding={setLayoutNestedAnglePadding}
+          setItemIconScale={setItemIconScale}
+          setOverlapMargin={setLabelOverlapMarginPx}
+          setPadding={setLayoutNestedPadding}
         />
       </div>
     </div>
   );
-};
+}
 
 export default MapDisplay;

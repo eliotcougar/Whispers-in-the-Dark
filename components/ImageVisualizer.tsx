@@ -4,7 +4,8 @@
  * @file ImageVisualizer.tsx
  * @description Requests and displays AI generated images.
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
 import { geminiClient as ai, isApiConfigured } from '../services/apiClient';
 import type { Part } from '@google/genai';
 import { AdventureTheme, Character, MapNode } from '../types';
@@ -18,27 +19,27 @@ if (!isApiConfigured()) {
 }
 
 interface ImageVisualizerProps {
-  currentSceneDescription: string;
-  currentTheme: AdventureTheme | null;
-  mapData: MapNode[]; 
-  allCharacters: Character[];
-  localTime: string | null; 
-  localEnvironment: string | null; 
-  localPlace: string | null;
-  isVisible: boolean;
-  onClose: () => void;
-  setGeneratedImage: (url: string, scene: string) => void; 
-  cachedImageUrl: string | null;
-  cachedImageScene: string | null;
+  readonly currentSceneDescription: string;
+  readonly currentTheme: AdventureTheme | null;
+  readonly mapData: MapNode[]; 
+  readonly allCharacters: Character[];
+  readonly localTime: string | null; 
+  readonly localEnvironment: string | null; 
+  readonly localPlace: string | null;
+  readonly isVisible: boolean;
+  readonly onClose: () => void;
+  readonly setGeneratedImage: (url: string, scene: string) => void; 
+  readonly cachedImageUrl: string | null;
+  readonly cachedImageScene: string | null;
 }
 
 /**
  * Requests and displays AI-generated imagery for the current scene.
  */
-const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
+function ImageVisualizer({
   currentSceneDescription,
   currentTheme, // This is now AdventureTheme | null
-  mapData, 
+  mapData,
   allCharacters,
   localTime,
   localEnvironment,
@@ -48,7 +49,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
   setGeneratedImage,
   cachedImageUrl,
   cachedImageScene,
-}) => {
+}: ImageVisualizerProps) {
   const [internalImageUrl, setInternalImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +134,7 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
       const response = await ai.models.generateImages({
         model: 'imagen-3.0-generate-002',
         prompt: safePrompt,
-        config: { numberOfImages: 1, outputMimeType: 'image/jpeg' },
+        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
       });
 
       if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image?.imageBytes) {
@@ -216,6 +217,10 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
     }
   }, [currentSceneDescription, currentTheme, mapData, allCharacters, localTime, localEnvironment, localPlace, setGeneratedImage]);
 
+  const handleRetry = useCallback(() => {
+    void generateImage();
+  }, [generateImage]);
+
   useEffect(() => {
     if (isVisible) {
       if (cachedImageUrl && cachedImageScene === currentSceneDescription) {
@@ -229,50 +234,74 @@ const ImageVisualizer: React.FC<ImageVisualizerProps> = ({
   }, [isVisible, cachedImageUrl, cachedImageScene, currentSceneDescription, generateImage]);
 
   return (
-    <div className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="visualizer-title">
+    <div
+      aria-labelledby="visualizer-title"
+      aria-modal="true"
+      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      role="dialog"
+    >
       <div className="animated-frame-content visualizer-content-area"> 
         <button
-          onClick={onClose}
-          className="animated-frame-close-button"
           aria-label="Close visualizer"
+          className="animated-frame-close-button"
+          onClick={onClose}
+          type="button"
         >
           &times;
         </button>
         
-        {isLoading && (
-          <div className="visualizer-spinner-container">
-            <LoadingSpinner />
-            <p id="visualizer-title" className="mt-2 text-lg">Conjuring vision...</p>
-          </div>
-        )}
+        {isLoading ? <div className="visualizer-spinner-container">
+          <LoadingSpinner loadingReason="visualize" />
 
-        {!isLoading && error && (
-          <div className="visualizer-error-container">
-            <h2 id="visualizer-title" className="text-xl font-semibold text-red-400 mb-2">Vision Failed</h2>
-            <p>{error}</p>
-            <button
-              onClick={() => { void generateImage(); }}
-              className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow transition-colors"
-            >
-              Retry Visualization
-            </button>
-          </div>
-        )}
+        </div> : null}
 
-        {!isLoading && !error && internalImageUrl && (
-          <div className="visualizer-image-container">
-            <img src={internalImageUrl} alt="Scene visualization" className="visualizer-image" />
-            <h2 id="visualizer-title" className="sr-only">Scene Visualization</h2>
-          </div>
-        )}
-         {!isLoading && !error && !internalImageUrl && isVisible && ( 
-          <div className="visualizer-spinner-container">
-            <p id="visualizer-title" className="mt-2 text-lg text-slate-400">Preparing to visualize...</p>
-          </div>
-        )}
+        {!isLoading && error ? <div className="visualizer-error-container">
+          <h2
+            className="text-xl font-semibold text-red-400 mb-2"
+            id="visualizer-title"
+          >
+            Vision Failed
+          </h2>
+
+          <p>
+            {error}
+          </p>
+
+          <button
+            className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow transition-colors"
+            onClick={handleRetry}
+            type="button"
+          >
+            Retry Visualization
+          </button>
+        </div> : null}
+
+        {!isLoading && !error && internalImageUrl ? <div className="visualizer-image-container">
+          <img
+            alt="Scene visualization"
+            className="visualizer-image"
+            src={internalImageUrl}
+          />
+
+          <h2
+            className="sr-only"
+            id="visualizer-title"
+          >
+            Scene Visualization
+          </h2>
+        </div> : null}
+
+        {!isLoading && !error && !internalImageUrl && isVisible ? <div className="visualizer-spinner-container">
+          <p
+            className="mt-2 text-lg text-slate-400"
+            id="visualizer-title"
+          >
+            Preparing to visualize...
+          </p>
+        </div> : null}
       </div>
     </div>
   );
-};
+}
 
 export default ImageVisualizer;

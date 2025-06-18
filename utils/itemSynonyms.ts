@@ -1,7 +1,7 @@
 import { ItemType } from '../types';
 import { VALID_ITEM_TYPES } from '../constants';
 
-export const ITEM_TYPE_SYNONYMS: Record<string, ItemType> = {
+export const ITEM_TYPE_SYNONYMS: Record<string, ItemType | undefined> = {
   'single use': 'single-use',
   'single-use item': 'single-use',
   'one use': 'single-use',

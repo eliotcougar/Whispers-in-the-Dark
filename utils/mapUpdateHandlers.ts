@@ -63,15 +63,14 @@ export const handleMapUpdates = async (
       throw new Error(`Map update failed: ${reason}`);
     }
 
-    if (mapUpdateResult) {
-      if (mapUpdateResult.updatedMapData && JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
-        turnChanges.mapDataChanged = true;
-        draftState.mapData = mapUpdateResult.updatedMapData;
-      }
-      if (mapUpdateResult.debugInfo && draftState.lastDebugPacket) {
-        draftState.lastDebugPacket.mapUpdateDebugInfo = mapUpdateResult.debugInfo;
-      }
-      mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
+    if (JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
+      turnChanges.mapDataChanged = true;
+      draftState.mapData = mapUpdateResult.updatedMapData;
+    }
+    if (mapUpdateResult.debugInfo && draftState.lastDebugPacket) {
+      draftState.lastDebugPacket.mapUpdateDebugInfo = mapUpdateResult.debugInfo;
+    }
+    mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
 
       if (mapUpdateResult.newlyAddedNodes.length > 0) {
         for (const added of mapUpdateResult.newlyAddedNodes) {
@@ -108,7 +107,6 @@ export const handleMapUpdates = async (
         }
       }
     }
-  }
 
 
   // Upgrade any feature nodes that now have children into regions or adjust hierarchy

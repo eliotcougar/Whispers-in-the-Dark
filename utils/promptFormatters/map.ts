@@ -79,21 +79,24 @@ const getFormattedConnectionsForNode = (
     edge => edge.sourceNodeId === perspectiveNode.id || edge.targetNodeId === perspectiveNode.id
   );
 
-  const uniqueDestinations: { [targetNodeId: string]: MapEdge[] } = {};
+  const uniqueDestinations: Record<string, MapEdge[] | undefined> = {};
   connectedEdges.forEach(edge => {
     const otherNodeId = edge.sourceNodeId === perspectiveNode.id ? edge.targetNodeId : edge.sourceNodeId;
     if (otherNodeId === excludeTargetId || processedTargets.has(otherNodeId)) {
       return;
     }
-    if (!uniqueDestinations[otherNodeId]) {
-      uniqueDestinations[otherNodeId] = [];
+    let list = uniqueDestinations[otherNodeId];
+    if (!list) {
+      list = [];
+      uniqueDestinations[otherNodeId] = list;
     }
-    uniqueDestinations[otherNodeId].push(edge);
+    list.push(edge);
   });
 
   const formattedPaths: string[] = [];
   for (const targetNodeId in uniqueDestinations) {
     const candidateEdgesToTarget = uniqueDestinations[targetNodeId];
+    if (!candidateEdgesToTarget) continue;
     const validCandidateEdges = candidateEdgesToTarget.filter(edge => {
       if (edge.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) {
         return false;

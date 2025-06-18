@@ -118,7 +118,9 @@ const turnChanges: TurnChanges = {
 
 await handleMapUpdates(aiData, draftState, baseState, theme, null, () => {}, turnChanges);
 
-const updated = draftState.mapData.nodes.find(n => n.id === 'node_rim_test')!;
+const updatedMaybe = draftState.mapData.nodes.find(n => n.id === 'node_rim_test');
+if (!updatedMaybe) throw new Error('node_rim_test not found');
+const updated = updatedMaybe;
 describe('Update Visited Node by Name', () => {
     it('current mapNodeName should become discovered and visited', () => {
         expect(updated.data.status).toBe('discovered');
@@ -132,10 +134,15 @@ const aiData2 = {
 
 await handleMapUpdates(aiData2, draftState, baseState, theme, null, () => {}, turnChanges);
 
-const updated2 = draftState.mapData.nodes.find(n => n.id === 'node_utility_entrance_test')!;
-const updated3 = draftState.mapData.edges.find(n => n.id === 'edge_node_rim_test_to_node_utility_entrance_test_test')!;
-const updated4 = draftState.mapData.nodes.find(n => n.id === 'node_coastal_outpost_test')!;
-const updated5 = draftState.mapData.nodes.find(n => n.id === 'node_coast_test')!;
+const updated2Maybe = draftState.mapData.nodes.find(n => n.id === 'node_utility_entrance_test');
+const updated3Maybe = draftState.mapData.edges.find(n => n.id === 'edge_node_rim_test_to_node_utility_entrance_test_test');
+const updated4Maybe = draftState.mapData.nodes.find(n => n.id === 'node_coastal_outpost_test');
+const updated5Maybe = draftState.mapData.nodes.find(n => n.id === 'node_coast_test');
+if (!updated2Maybe || !updated3Maybe || !updated4Maybe || !updated5Maybe) throw new Error('Updated nodes not found');
+const updated2 = updated2Maybe;
+const updated3 = updated3Maybe;
+const updated4 = updated4Maybe;
+const updated5 = updated5Maybe;
 describe('Update Visited Node by ID', () => {
     it('current mapNodeId should become discovered and visited', () => {
         expect(updated2.data.status).toBe('discovered');
@@ -160,7 +167,9 @@ const aiData3 = {
 
 await handleMapUpdates(aiData3, draftState, baseState, theme, null, () => {}, turnChanges);
 
-const updated6 = draftState.mapData.nodes.find(n => n.id === 'node_main_entrance_test')!;
+const updated6Maybe = draftState.mapData.nodes.find(n => n.id === 'node_main_entrance_test');
+if (!updated6Maybe) throw new Error('node_main_entrance_test not found');
+const updated6 = updated6Maybe;
 describe('Update Visited Node by Alias', () => {
     it('current mapNode Alias should become discovered and visited', () => {
         expect(updated6.data.status).toBe('discovered');
