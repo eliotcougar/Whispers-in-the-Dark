@@ -17,7 +17,7 @@ import { findTravelPath } from '../mapPathfinding';
  */
 export const formatKnownCharactersForPrompt = (
   characters: Array<Character>,
-  detailed: boolean = false
+  detailed = false
 ): string => {
   if (characters.length === 0) {
     return 'None specifically known in this theme yet.';

@@ -117,8 +117,8 @@ function DebugView({
   const renderContent = <T,>(
     title: string,
     content: T,
-    isJson: boolean = true,
-    maxHeightClass: string = "max-h-60",
+    isJson = true,
+    maxHeightClass = "max-h-60",
   ) => {
     const displayContent: string = (() => {
       if (content === null || content === undefined) {

@@ -506,7 +506,7 @@ export type GameStateStack = [FullGameState, FullGameState?];
 
 
 // Payload for a validated character update, used in parsing
-export type ValidCharacterUpdatePayload = {
+export interface ValidCharacterUpdatePayload {
   name: string;
   newDescription?: string;
   newAliases?: Array<string>;
@@ -514,14 +514,14 @@ export type ValidCharacterUpdatePayload = {
   newPresenceStatus?: Character['presenceStatus'];
   newLastKnownLocation?: string | null;
   newPreciseLocation?: string | null;
-};
+}
 
 // Payload for a validated new character, used in parsing
-export type ValidNewCharacterPayload = {
+export interface ValidNewCharacterPayload {
   name: string;
   description: string;
   aliases?: Array<string>;
   presenceStatus?: Character['presenceStatus'];
   lastKnownLocation?: string | null;
   preciseLocation?: string | null;
-};
+}

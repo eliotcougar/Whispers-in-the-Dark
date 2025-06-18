@@ -40,7 +40,7 @@ export const executeMapUpdateRequest = async (
     throw new Error('API Key not configured.');
   }
   const result = await retryAiCall<GenerateContentResponse>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP['map'].icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,

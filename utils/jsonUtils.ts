@@ -11,7 +11,7 @@
 export const extractJsonFromFence = (raw: string): string => {
   let jsonStr = raw.trim();
   const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-  const match = jsonStr.match(fenceRegex);
+  const match = fenceRegex.exec(jsonStr);
   if (match && match[1]) {
     jsonStr = match[1].trim();
   }

@@ -67,7 +67,7 @@ export const isDescendantOf = (
   nodeMap: Map<string, MapNode>
 ): boolean => {
   let current: MapNode | undefined = possibleDescendant;
-  while (current && current.data.parentNodeId && current.data.parentNodeId !== 'Universe') {
+  while (current?.data.parentNodeId && current.data.parentNodeId !== 'Universe') {
     if (current.data.parentNodeId === possibleAncestor.id) return true;
     current = nodeMap.get(current.data.parentNodeId);
   }

@@ -51,7 +51,7 @@ const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
 export const highlightEntitiesInText = (
   text: string | null | undefined,
   entities: Array<HighlightableEntity>,
-  enableMobileTap: boolean = false
+  enableMobileTap = false
 ): Array<React.ReactNode> => {
   if (!text) return [text || '']; 
 

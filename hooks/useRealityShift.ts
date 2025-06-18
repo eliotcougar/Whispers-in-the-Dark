@@ -85,7 +85,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
   }, [setGameStateStack]);
 
   /** Initiates a reality shift, optionally as a chaos shift. */
-  const triggerRealityShift = useCallback((isChaosShift: boolean = false) => {
+  const triggerRealityShift = useCallback((isChaosShift = false) => {
     const currentFullState = getCurrentGameState();
     const currentThemeObj = currentFullState.currentThemeObject;
 

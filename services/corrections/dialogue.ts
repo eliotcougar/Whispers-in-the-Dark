@@ -75,7 +75,7 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
 
   return retryAiCall<DialogueSetupPayload>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -146,7 +146,7 @@ Respond ONLY with the corrected JSON object.`;
 
   return retryAiCall<DialogueAIResponse>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

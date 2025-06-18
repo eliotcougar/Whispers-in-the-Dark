@@ -50,8 +50,7 @@ export const findMapNodeByIdentifier = (
   const aliasMatches = nodes
     .filter(
       n =>
-        n.data.aliases &&
-        n.data.aliases.some(a => sanitize(a) === normalized)
+        n.data.aliases?.some(a => sanitize(a) === normalized)
     )
     .filter(n => !nameMatches.includes(n));
 
@@ -82,7 +81,7 @@ export const findMapNodeByIdentifier = (
   const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
   let base: string | null = null;
   if (!partialMatch) {
-    const m = identifier.match(idPattern);
+    const m = idPattern.exec(identifier);
     if (m) {
       const baseStr = m[1];
       base = baseStr;
@@ -96,7 +95,7 @@ export const findMapNodeByIdentifier = (
   const byName = nodes.find(n => sanitize(n.placeName) === normalizedBase);
   if (byName) return byName;
   const byAlias = nodes.find(
-    n => n.data.aliases && n.data.aliases.some(a => sanitize(a) === normalizedBase),
+    n => n.data.aliases?.some(a => sanitize(a) === normalizedBase),
   );
   if (byAlias) return byAlias;
 
@@ -116,7 +115,7 @@ export const findCharacterByIdentifier = (
   const lower = identifier.toLowerCase();
   const nameMatches = characters.filter(c => c.name.toLowerCase() === lower);
   const aliasMatches = characters.filter(c =>
-    c.aliases && c.aliases.some(a => a.toLowerCase() === lower)
+    c.aliases?.some(a => a.toLowerCase() === lower)
   ).filter(c => !nameMatches.includes(c));
 
   if (getAll) {
@@ -216,7 +215,7 @@ export const getEntityById = (
 };
 
 export const extractRandomSuffix = (id: string): string | null => {
-  const match = id.match(/([a-z0-9]{4})$/i);
+  const match = /([a-z0-9]{4})$/i.exec(id);
   return match ? match[1] : null;
 };
 

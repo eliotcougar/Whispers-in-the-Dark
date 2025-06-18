@@ -78,7 +78,7 @@ Constraints:
 
   return retryAiCall<CorrectedCharacterDetails>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -172,7 +172,7 @@ Example Response: If unclear from context, respond with a generic but plausible 
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

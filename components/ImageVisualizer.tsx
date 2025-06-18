@@ -193,7 +193,7 @@ function ImageVisualizer({
             }
           }
 
-          if (finishReason && finishReason.toUpperCase().includes('SAFETY')) {
+          if (finishReason?.toUpperCase().includes('SAFETY')) {
             setError(`Image blocked due to safety filter (${finishReason}).`);
           } else {
             setError('Fallback image generation failed to return image data.');

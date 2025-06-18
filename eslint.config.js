@@ -35,8 +35,8 @@ const tsCompat = compat.config({
     'plugin:react/jsx-runtime',
     'plugin:@typescript-eslint/strict',
     'plugin:@typescript-eslint/recommended-type-checked',
-    /*'plugin:@typescript-eslint/stylistic',
-    'plugin:@typescript-eslint/stylistic-type-checked'*/
+    'plugin:@typescript-eslint/stylistic',
+    'plugin:@typescript-eslint/stylistic-type-checked'
   ],
   env: {
     browser: true,
@@ -78,6 +78,9 @@ const tsCompat = compat.config({
     '@typescript-eslint/restrict-plus-operands': 'warn',
     '@typescript-eslint/array-type': ['warn', { default: 'generic' }],
     '@typescript-eslint/consistent-indexed-object-style': ['warn', 'record'],
+    '@typescript-eslint/prefer-nullish-coalescing': 'off',
+    "dot-notation": "off",
+    "@typescript-eslint/dot-notation": "error"
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
 

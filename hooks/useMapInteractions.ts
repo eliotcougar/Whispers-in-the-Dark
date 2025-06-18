@@ -22,7 +22,7 @@ export interface UseMapInteractionsResult {
 
 /** Provides pan and zoom interaction handlers for a map SVG element. */
 export const useMapInteractions = (
-  initialViewBox: string = `${-VIEWBOX_WIDTH_INITIAL / 2} ${-VIEWBOX_HEIGHT_INITIAL / 2} ${VIEWBOX_WIDTH_INITIAL} ${VIEWBOX_HEIGHT_INITIAL}`,
+  initialViewBox = `${-VIEWBOX_WIDTH_INITIAL / 2} ${-VIEWBOX_HEIGHT_INITIAL / 2} ${VIEWBOX_WIDTH_INITIAL} ${VIEWBOX_HEIGHT_INITIAL}`,
   onViewBoxChange?: (viewBox: string) => void
 ): UseMapInteractionsResult => {
   const [viewBox, setViewBox] = useState(initialViewBox);

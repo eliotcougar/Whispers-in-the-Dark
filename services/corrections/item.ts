@@ -125,7 +125,7 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
 
   return retryAiCall<Item>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -169,7 +169,7 @@ export const fetchCorrectedItemAction_Service = async (
   try {
     const parsed = safeParseJson<Record<string, unknown>>(malformedItemChangeString);
     if (parsed && typeof parsed === 'object') {
-      const rawAction = parsed['action'];
+      const rawAction = parsed.action;
       if (typeof rawAction === 'string' && ['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(rawAction)) {
         return rawAction as ItemChange['action'];
       }
@@ -207,7 +207,7 @@ If no action can be confidently determined, respond with an empty string.`;
 
   return retryAiCall<ItemChange['action']>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

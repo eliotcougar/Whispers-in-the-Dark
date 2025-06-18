@@ -90,7 +90,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * counters or score are affected.
    */
   const executePlayerAction = useCallback(
-    async (action: string, isFreeForm: boolean = false) => {
+    async (action: string, isFreeForm = false) => {
       const currentFullState = getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 

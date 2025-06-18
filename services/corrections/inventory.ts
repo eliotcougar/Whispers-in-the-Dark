@@ -66,7 +66,7 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
 
   return retryAiCall<Array<ItemChange>>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

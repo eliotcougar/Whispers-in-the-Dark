@@ -24,7 +24,7 @@ export const executeInventoryRequest = async (
     console.error('API Key not configured for Inventory Service.');
     return Promise.reject(new Error('API Key not configured.'));
   }
-  addProgressSymbol(LOADING_REASON_UI_MAP['inventory'].icon);
+  addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
   const { response } = await dispatchAIRequest({
     modelNames: [MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,

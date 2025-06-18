@@ -167,7 +167,7 @@ export const attemptMatchAndSetNode = (
     const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
     let extractedBase: string | null = null;
     if (!partialIdMatch) {
-      const m = suggestedIdentifier.match(idPattern);
+      const m = idPattern.exec(suggestedIdentifier);
       if (m) {
         const baseStr = m[1];
         extractedBase = baseStr;
@@ -184,7 +184,7 @@ export const attemptMatchAndSetNode = (
     const lowerSuggestedIdentifier = suggestedIdentifier.toLowerCase();
     const matchingNodesByNameOrAlias = currentThemeNodesFromDraft.filter(n =>
       n.placeName.toLowerCase() === lowerSuggestedIdentifier ||
-      (n.data.aliases && n.data.aliases.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
+      (n.data.aliases?.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
     );
 
     if (matchingNodesByNameOrAlias.length === 0) {
@@ -193,7 +193,7 @@ export const attemptMatchAndSetNode = (
       matchingNodesByNameOrAlias.push(
         ...currentThemeNodesFromDraft.filter(n =>
           n.placeName.toLowerCase() === normalizedBase ||
-          (n.data.aliases && n.data.aliases.some(a => a.toLowerCase() === normalizedBase)),
+          (n.data.aliases?.some(a => a.toLowerCase() === normalizedBase)),
         ),
       );
     }

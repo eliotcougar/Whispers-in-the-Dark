@@ -12,7 +12,7 @@ import { NON_DISPLAYABLE_EDGE_STATUSES } from '../../constants';
  */
 export const formatKnownPlacesForPrompt = (
   mapNodes: Array<MapNode>,
-  detailed: boolean = false
+  detailed = false
 ): string => {
   const mainNodes = mapNodes.filter(
     node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
