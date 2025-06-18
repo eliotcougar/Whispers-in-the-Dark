@@ -172,9 +172,11 @@ function isValidAINodeOperationInternal(nodeOp: unknown, isNodeAddOperation: boo
 
   if (isNodeAddOperation && op.initialPosition !== undefined) {
     const pos = op.initialPosition as Record<string, unknown>;
-    if (typeof pos !== 'object' || pos === null ||
-        typeof pos.x !== 'number' || typeof pos.y !== 'number') {
-      console.warn("Validation Error (NodeAdd): 'initialPosition' must be {x: number, y: number}. Value:", op.initialPosition);
+    if (typeof pos.x !== 'number' || typeof pos.y !== 'number') {
+      console.warn(
+        "Validation Error (NodeAdd): 'initialPosition' must be {x: number, y: number}. Value:",
+        op.initialPosition,
+      );
       return false;
     }
   }

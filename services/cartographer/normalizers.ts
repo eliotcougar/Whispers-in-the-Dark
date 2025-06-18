@@ -23,14 +23,14 @@ export const applyNodeDataFix = (
   if (!data) return;
   if (data.status) {
     const mapped = NODE_STATUS_SYNONYMS[data.status.toLowerCase()];
-    if (mapped) data.status = mapped;
+    if (mapped !== undefined) data.status = mapped;
     if (!VALID_NODE_STATUS_VALUES.includes(data.status)) {
       errors.push(`${context} invalid status "${data.status}"`);
     }
   }
   if (data.nodeType) {
     const mapped = NODE_TYPE_SYNONYMS[data.nodeType.toLowerCase()];
-    if (mapped) data.nodeType = mapped;
+    if (mapped !== undefined) data.nodeType = mapped;
     if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType)) {
       errors.push(`${context} invalid nodeType "${data.nodeType}"`);
     }
@@ -48,14 +48,14 @@ export const applyEdgeDataFix = (
   if (!data) return;
   if (data.type) {
     const mapped = EDGE_TYPE_SYNONYMS[data.type.toLowerCase()];
-    if (mapped) data.type = mapped;
+    if (mapped !== undefined) data.type = mapped;
     if (!VALID_EDGE_TYPE_VALUES.includes(data.type)) {
       errors.push(`${context} invalid type "${data.type}"`);
     }
   }
   if (data.status) {
     const mapped = EDGE_STATUS_SYNONYMS[data.status.toLowerCase()];
-    if (mapped) data.status = mapped;
+    if (mapped !== undefined) data.status = mapped;
     if (!VALID_EDGE_STATUS_VALUES.includes(data.status)) {
       errors.push(`${context} invalid status "${data.status}"`);
     }

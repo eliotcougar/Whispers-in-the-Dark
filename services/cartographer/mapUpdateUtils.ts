@@ -40,7 +40,7 @@ export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
   const updatedNodesToUpdate: typeof payload.nodesToUpdate = [];
   const updatedNodesToRemove: typeof payload.nodesToRemove = payload.nodesToRemove ? [...payload.nodesToRemove] : [];
   (payload.nodesToUpdate || []).forEach(nodeUpd => {
-    const statusVal = nodeUpd.newData?.status?.toLowerCase();
+    const statusVal = nodeUpd.newData.status?.toLowerCase();
     if (statusVal && nodeRemovalSynonyms.has(statusVal)) {
       updatedNodesToRemove.push({ nodeId: nodeUpd.placeName, nodeName: nodeUpd.placeName });
     } else {
@@ -53,7 +53,7 @@ export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
   const updatedEdgesToUpdate: typeof payload.edgesToUpdate = [];
   const updatedEdgesToRemove: typeof payload.edgesToRemove = payload.edgesToRemove ? [...payload.edgesToRemove] : [];
   (payload.edgesToUpdate || []).forEach(edgeUpd => {
-    const statusVal = edgeUpd.newData?.status?.toLowerCase();
+    const statusVal = edgeUpd.newData.status?.toLowerCase();
     if (statusVal && edgeRemovalSynonyms.has(statusVal)) {
       updatedEdgesToRemove.push({ edgeId: '', sourceId: edgeUpd.sourcePlaceName, targetId: edgeUpd.targetPlaceName });
     } else {
@@ -92,8 +92,8 @@ export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
     return result;
   };
 
-  payload.edgesToAdd = dedupeNamed(payload.edgesToAdd || undefined, e => e.data?.type);
-  payload.edgesToUpdate = dedupeNamed(payload.edgesToUpdate || undefined, e => e.newData?.type);
+  payload.edgesToAdd = dedupeNamed(payload.edgesToAdd || undefined, e => e.data.type);
+  payload.edgesToUpdate = dedupeNamed(payload.edgesToUpdate || undefined, e => e.newData.type);
 
   if (payload.edgesToRemove) {
     const seen = new Set<string>();

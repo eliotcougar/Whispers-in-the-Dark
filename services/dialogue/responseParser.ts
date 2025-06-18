@@ -15,7 +15,6 @@ const parseDialogueResponse = (
   try {
     if (!parsed) throw new Error('JSON parse failed');
     if (
-      !parsed ||
       !Array.isArray(parsed.npcResponses) ||
       !parsed.npcResponses.every(
         r => r && typeof r.speaker === 'string' && typeof r.line === 'string',
