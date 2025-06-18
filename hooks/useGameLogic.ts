@@ -208,6 +208,41 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const currentFullState = getCurrentGameState();
 
+  useEffect(() => {
+    if (!hasGameBeenInitialized) return;
+    setGameStateStack(prevStack => {
+      const curr = prevStack[0];
+      const packsEqual =
+        curr.enabledThemePacks.length === enabledThemePacksProp.length &&
+        curr.enabledThemePacks.every((p, i) => p === enabledThemePacksProp[i]);
+
+      if (
+        curr.playerGender === playerGenderProp &&
+        packsEqual &&
+        curr.stabilityLevel === stabilityLevelProp &&
+        curr.chaosLevel === chaosLevelProp
+      ) {
+        return prevStack;
+      }
+
+      const updatedCurrent = {
+        ...curr,
+        playerGender: playerGenderProp,
+        enabledThemePacks: [...enabledThemePacksProp],
+        stabilityLevel: stabilityLevelProp,
+        chaosLevel: chaosLevelProp,
+      } as FullGameState;
+
+      return [updatedCurrent, prevStack[1]];
+    });
+  }, [
+    playerGenderProp,
+    enabledThemePacksProp,
+    stabilityLevelProp,
+    chaosLevelProp,
+    hasGameBeenInitialized,
+  ]);
+
   const itemPresenceByNode = useMemo(() => {
     const map: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
     const nodeIds = new Set(currentFullState.mapData.nodes.map(n => n.id));
