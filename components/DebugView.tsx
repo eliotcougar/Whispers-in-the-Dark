@@ -382,9 +382,9 @@ function DebugView({
                   className="mb-2"
                   key={t.prompt}
                 >
-                    {renderContent(`Turn ${String(idx + 1)} Request`, t.prompt, false)}
+                  {renderContent(`Turn ${String(idx + 1)} Request`, t.prompt, false)}
 
-                    {renderContent(`Turn ${String(idx + 1)} Response`, responseWithThoughts, false)}
+                  {renderContent(`Turn ${String(idx + 1)} Response`, responseWithThoughts, false)}
                 </div>
               );
             })}
