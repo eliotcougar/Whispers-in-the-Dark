@@ -64,7 +64,10 @@ function ActionOptions({
             key={option}
             onClick={handleOptionClick(option)}
           >
-            {index + 1}. {highlightEntitiesInText(option, entitiesForHighlighting)}
+            {index + 1}
+
+            .
+            {highlightEntitiesInText(option, entitiesForHighlighting)}
           </button>
         ))}
       </div>

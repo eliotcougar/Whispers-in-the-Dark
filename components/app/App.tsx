@@ -500,7 +500,9 @@ function App() {
       <div className="min-h-screen bg-slate-900 text-slate-200 flex flex-col items-center justify-center p-4">
         <LoadingSpinner loadingReason="initial_load" />
 
-        <p className="mt-4 text-xl text-sky-400">Initializing application...</p>
+        <p className="mt-4 text-xl text-sky-400">
+          Initializing application...
+        </p>
       </div>
     );
   }
@@ -514,10 +516,16 @@ function App() {
             Whispers in the Dark
           </h1>
 
-          {hasGameBeenInitialized ? <p className="text-slate-400 text-lg">An Adventure in Shifting Realities
-            {isCustomGameMode ? <span className="block text-xs text-orange-400">(Custom Game - Random Shifts Disabled)</span> : null}
+          {hasGameBeenInitialized ? <p className="text-slate-400 text-lg">
+            An Adventure in Shifting Realities
+            {isCustomGameMode ? <span className="block text-xs text-orange-400">
+              (Custom Game - Random Shifts Disabled)
+            </span> : null}
 
-            {currentTheme ? <span className="block text-xs text-purple-400">Current Theme: {currentTheme.name}</span> : null}
+            {currentTheme ? <span className="block text-xs text-purple-400">
+              Current Theme:
+              {currentTheme.name}
+            </span> : null}
           </p> : null}
         </header>
 
@@ -525,11 +533,14 @@ function App() {
           <ErrorDisplay
             message={error}
             onRetry={isLoading ? undefined : handleRetryClick}
-            />
+          />
         </div> : null}
 
         {error && !hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
-          <ErrorDisplay message={error} onRetry={handleRetryClick} />
+          <ErrorDisplay
+            message={error}
+            onRetry={handleRetryClick}
+          />
         </div> : null}
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
@@ -546,7 +557,7 @@ function App() {
               onOpenVisualizer={handleOpenVisualizer}
               score={score}
               turnsSinceLastShift={turnsSinceLastShift}
-                /> : null}
+                                      /> : null}
 
             {hasGameBeenInitialized ? <div className="flex items-center my-2">
               <ModelUsageIndicators />
@@ -582,11 +593,20 @@ function App() {
                 mapData={mapData.nodes}
                 onActionSelect={handleActionSelect}
                 options={actionOptions}
-                />
+              />
 
               <div className="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-lg shadow">
-                <label className="block text-sm font-medium text-amber-300 mb-1" htmlFor="freeFormAction">
-                  Perform Custom Action (Cost: {FREE_FORM_ACTION_COST} Score Points)
+                <label
+                  className="block text-sm font-medium text-amber-300 mb-1"
+                  htmlFor="freeFormAction"
+                >
+                  Perform Custom Action (Cost: 
+                  {' '}
+
+                  {FREE_FORM_ACTION_COST}
+
+                  {' '}
+                  Score Points)
                 </label>
 
                 <div className="flex space-x-2">
@@ -600,7 +620,7 @@ function App() {
                     placeholder="Type your custom action here..."
                     type="text"
                     value={freeFormActionText}
-                    />
+                  />
 
                   <button
                     aria-label="Submit custom action"
@@ -609,16 +629,24 @@ function App() {
                                 transition-colors duration-150"
                     disabled={!canPerformFreeAction || freeFormActionText.trim() === ""}
                     onClick={handleFreeFormActionSubmit}
-                    >
+                  >
                     Submit
                   </button>
                 </div>
 
                 {!canPerformFreeAction && score < FREE_FORM_ACTION_COST && !isLoading && (
-                <p className="text-xs text-red-400 mt-1">Not enough score points.</p>
+                <p className="text-xs text-red-400 mt-1">
+                  Not enough score points.
+                </p>
                   )}
 
-                {canPerformFreeAction ? <p className="text-xs text-slate-400 mt-1">Max {FREE_FORM_ACTION_MAX_LENGTH} characters.</p> : null}
+                {canPerformFreeAction ? <p className="text-xs text-slate-400 mt-1">
+                  Max
+                  {FREE_FORM_ACTION_MAX_LENGTH}
+
+                  {' '}
+                  characters.
+                </p> : null}
               </div>
             </> : null}
           </div>
@@ -628,18 +656,18 @@ function App() {
               currentObjective={hasGameBeenInitialized ? currentObjective : null}
               mainQuest={hasGameBeenInitialized ? mainQuest : null}
               objectiveAnimationType={objectiveAnimationType}
-          />
+            />
 
             <LocationItemsDisplay
               currentNodeId={currentMapNodeId}
-              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
               items={itemsHere}
               mapNodes={mapData.nodes}
               onTakeItem={handleTakeLocationItem}
-          />
+            />
 
             <InventoryDisplay
-              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible }
+              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
               items={inventory}
               onDropItem={gameLogic.handleDropItem}
               onItemInteract={handleItemInteraction}
@@ -691,7 +719,7 @@ function App() {
         onClose={handleCloseDebugView}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
-        />
+      />
 
       <TitleMenu
         isGameActive={hasGameBeenInitialized}
@@ -734,7 +762,10 @@ function App() {
         stabilityLevel={stabilityLevel}
       />
 
-      <InfoDisplay isVisible={isInfoVisible} onClose={closeInfo} />
+      <InfoDisplay
+        isVisible={isInfoVisible}
+        onClose={closeInfo}
+      />
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allCharacters={allCharacters}
@@ -781,7 +812,7 @@ function App() {
         themeHistory={themeHistory}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
-      /> : null}
+                                                /> : null}
     </>
   );
 }

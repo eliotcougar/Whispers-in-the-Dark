@@ -173,10 +173,14 @@ function DebugView({
 
     return (
       <section className="mb-4">
-        <h3 className="text-lg font-semibold text-sky-400 mb-1">{title}</h3>
+        <h3 className="text-lg font-semibold text-sky-400 mb-1">
+          {title}
+        </h3>
 
         <pre className={`bg-slate-900 p-2 rounded-md text-xs text-slate-200 overflow-auto ${maxHeightClass} whitespace-pre-wrap break-all`}>
-          <code>{displayContent}</code>
+          <code>
+            {displayContent}
+          </code>
         </pre>
       </section>
     );
@@ -213,7 +217,11 @@ function DebugView({
               disabled={!previousState || currentState.globalTurnNumber <= 1}
               onClick={onUndoTurn}
             >
-              Undo Turn (Global Turn: {currentState.globalTurnNumber})
+              Undo Turn (Global Turn: 
+              {' '}
+
+              {currentState.globalTurnNumber}
+              )
             </button>
 
             {currentState ? renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]") : null}
@@ -224,7 +232,10 @@ function DebugView({
       case "MainAI":
         return (
           <>
-            <p className="text-sm text-slate-400 mb-2">Timestamp: {timestamp}</p>
+            <p className="text-sm text-slate-400 mb-2">
+              Timestamp:
+              {timestamp}
+            </p>
 
             {renderContent("Last Storyteller AI Request", debugPacket?.prompt, false)}
 
@@ -239,8 +250,7 @@ function DebugView({
 
             {showMainAIRaw ?
               renderContent("Storyteller AI Response Raw", debugPacket?.rawResponseText, false) :
-              renderContent("Storyteller AI Response Parsed ", debugPacket?.parsedResponse)
-            }
+              renderContent("Storyteller AI Response Parsed ", debugPacket?.parsedResponse)}
 
             {debugPacket?.storytellerThoughts && debugPacket.storytellerThoughts.length > 0 ? renderContent(
                 "Storyteller Thoughts",
@@ -254,7 +264,10 @@ function DebugView({
       case "MapLocationAI":
         return (
           <>
-            <p className="text-sm text-slate-400 mb-2">Map Update related to interaction at: {timestamp}</p>
+            <p className="text-sm text-slate-400 mb-2">
+              Map Update related to interaction at:
+              {timestamp}
+            </p>
 
             {debugPacket?.mapUpdateDebugInfo ? (
               <>
@@ -275,8 +288,7 @@ function DebugView({
                     filterObservationsAndRationale(debugPacket.mapUpdateDebugInfo.rawResponse),
                     false,
                   ) :
-                  renderContent("Cartographer AI Response Parsed", debugPacket.mapUpdateDebugInfo.parsedPayload)
-                }
+                  renderContent("Cartographer AI Response Parsed", debugPacket.mapUpdateDebugInfo.parsedPayload)}
 
                 {debugPacket.mapUpdateDebugInfo.observations ? renderContent(
                     "Cartographer Observations",
@@ -296,7 +308,10 @@ function DebugView({
 
                 {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
                   debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 ? debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
-                    <div className="my-2" key={`chain-${info.round}`}>
+                    <div
+                      className="my-2"
+                      key={`chain-${info.round}`}
+                    >
                       {renderContent(`Connector Chains Prompt (Round ${info.round})`, info.prompt, false)}
 
                       <div className="my-2">
@@ -342,7 +357,9 @@ function DebugView({
                   )) : null}
               </>
             ) : (
-              <p className="italic text-slate-400">No Map Update AI interaction debug packet captured for the last main AI turn.</p>
+              <p className="italic text-slate-400">
+                No Map Update AI interaction debug packet captured for the last main AI turn.
+              </p>
             )}
           </>
         );
@@ -355,7 +372,10 @@ function DebugView({
                 : null;
               const responseWithThoughts = thoughtsText ? `${thoughtsText}\n${t.rawResponse}` : t.rawResponse;
               return (
-                <div className="mb-2" key={t.prompt}>
+                <div
+                  className="mb-2"
+                  key={t.prompt}
+                >
                   {renderContent(`Turn ${idx + 1} Request`, t.prompt, false)}
 
                   {renderContent(`Turn ${idx + 1} Response`, responseWithThoughts, false)}
@@ -383,7 +403,9 @@ function DebugView({
               ) : null}
           </>
         ) : (
-          <p className="italic text-slate-400">No Dialogue debug info captured.</p>
+          <p className="italic text-slate-400">
+            No Dialogue debug info captured.
+          </p>
         );
       case "InventoryAI":
         return debugPacket?.inventoryDebugInfo ? (
@@ -427,7 +449,9 @@ function DebugView({
               ) : null}
           </>
         ) : (
-          <p className="italic text-slate-400">No Inventory AI interaction debug packet captured.</p>
+          <p className="italic text-slate-400">
+            No Inventory AI interaction debug packet captured.
+          </p>
         );
       case "Inventory":
         return renderContent("Current Inventory", currentState?.inventory, true, "max-h-[70vh]");
@@ -441,7 +465,9 @@ function DebugView({
         return renderContent("Current Game Log", currentState?.gameLog, true, "max-h-[70vh]");
       case "TravelPath": {
         if (!travelPath || travelPath.length === 0) {
-          return <p className="italic text-slate-400">No destination set.</p>;
+          return (<p className="italic text-slate-400">
+            No destination set.
+          </p>);
         }
         const mapData = currentState?.mapData;
         const expanded = travelPath.map(step => {
@@ -488,12 +514,19 @@ function DebugView({
             } : null,
         }, true, "max-h-[70vh]");
       default:
-        return <p>Select a tab</p>;
+        return (<p>
+          Select a tab
+        </p>);
     }
   };
 
   return (
-    <div aria-labelledby="debug-view-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
+    <div
+      aria-labelledby="debug-view-title"
+      aria-modal="true"
+      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      role="dialog"
+    >
       <div className="animated-frame-content flex flex-col">
         <button
           aria-label="Close debug view"
@@ -503,7 +536,10 @@ function DebugView({
           &times;
         </button>
 
-        <h1 className="text-2xl font-bold text-amber-400 mb-3 text-center flex-shrink-0" id="debug-view-title">
+        <h1
+          className="text-2xl font-bold text-amber-400 mb-3 text-center flex-shrink-0"
+          id="debug-view-title"
+        >
           Debug View & Game Internals
         </h1>
         

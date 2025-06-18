@@ -29,7 +29,10 @@ function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapN
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700">
       <h3 className="text-xl font-bold text-amber-400 mb-2 border-b-2 border-amber-700 pb-2 flex items-center">
-        <InventoryIcon /> Items Here
+        <InventoryIcon />
+
+        {' '}
+        Items Here
       </h3>
 
       <ul className="flex flex-wrap justify-center gap-4 list-none p-0">
@@ -45,16 +48,25 @@ function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapN
               <div className="flex justify-between items-center mb-1 text-xs">
                 <ItemTypeDisplay type={item.type} />
 
-                {item.isActive ? <span className="text-green-400 font-semibold">Active</span> : null}
+                {item.isActive ? <span className="text-green-400 font-semibold">
+                  Active
+                </span> : null}
               </div>
 
               <div className="mb-1">
-                <span className="font-semibold text-lg text-slate-100">{item.name}</span>
+                <span className="font-semibold text-lg text-slate-100">
+                  {item.name}
+                </span>
               </div>
 
-              <p className="text-sm text-slate-300 mb-1 italic leading-tight flex-grow">{description}</p>
+              <p className="text-sm text-slate-300 mb-1 italic leading-tight flex-grow">
+                {description}
+              </p>
 
-              {!atCurrent && holderName ? <p className="text-xs text-slate-400 mb-2">Reachable at {holderName}</p> : null}
+              {!atCurrent && holderName ? <p className="text-xs text-slate-400 mb-2">
+                Reachable at
+                {holderName}
+              </p> : null}
 
               <div className="mt-auto">
                 <button

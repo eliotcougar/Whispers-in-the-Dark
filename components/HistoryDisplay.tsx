@@ -26,7 +26,12 @@ function HistoryDisplay({
   const rememberedThemes = Object.entries(themeHistory);
 
   return (
-    <div aria-labelledby="history-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
+    <div
+      aria-labelledby="history-title"
+      aria-modal="true"
+      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      role="dialog"
+    >
       <div className="animated-frame-content">
         <button
           aria-label="Close history"
@@ -37,7 +42,10 @@ function HistoryDisplay({
         </button>
 
         <div className="theme-memory-content-area">
-          <h1 className="text-3xl font-bold text-purple-400 mb-6 text-center" id="history-title">
+          <h1
+            className="text-3xl font-bold text-purple-400 mb-6 text-center"
+            id="history-title"
+          >
             History
           </h1>
 
@@ -48,7 +56,9 @@ function HistoryDisplay({
           </h2>
           
           {rememberedThemes.length === 0 && (
-            <p className="text-slate-400 italic text-center">No alternate timelines have been chronicled yet.</p>
+            <p className="text-slate-400 italic text-center">
+              No alternate timelines have been chronicled yet.
+            </p>
           )}
 
           {rememberedThemes.length > 0 && (
@@ -58,12 +68,20 @@ function HistoryDisplay({
                   className="text-slate-300 bg-slate-700/80 p-4 rounded-lg shadow-lg border border-slate-600 transition-all hover:shadow-purple-500/40 hover:border-purple-500" 
                   key={themeName}
                 >
-                  <h4 className="font-semibold text-xl text-purple-300 mb-2">{themeName}</h4>
+                  <h4 className="font-semibold text-xl text-purple-300 mb-2">
+                    {themeName}
+                  </h4>
 
                   {memory.summary && memory.summary !== "The details of this reality are hazy..." ? (
-                    <p className="text-sm text-slate-300 mb-2 italic leading-relaxed">&ldquo;{memory.summary}&rdquo;</p>
+                    <p className="text-sm text-slate-300 mb-2 italic leading-relaxed">
+                      &ldquo;
+                      {memory.summary}
+                      &rdquo;
+                    </p>
                   ) : (
-                    <p className="text-sm text-slate-400 mb-2 italic">The memories of this reality are too fragmented to recall clearly.</p>
+                    <p className="text-sm text-slate-400 mb-2 italic">
+                      The memories of this reality are too fragmented to recall clearly.
+                    </p>
                   )}
 
                   {/* 

@@ -17,15 +17,23 @@ function QuestInfoBox({ mainQuest, currentObjective, objectiveAnimationType }: Q
   return (
     <div className="space-y-4">
       {mainQuest ? <div className="p-3 bg-purple-900/50 border border-purple-700 rounded-md">
-        <h3 className="text-lg font-semibold text-purple-300">Main Quest:</h3>
+        <h3 className="text-lg font-semibold text-purple-300">
+          Main Quest:
+        </h3>
 
-        <p className="text-purple-200 text-lg">{mainQuest}</p>
+        <p className="text-purple-200 text-lg">
+          {mainQuest}
+        </p>
       </div> : null}
 
       {currentObjective ? <div className={objectiveBoxClasses}>
-        <h3 className="text-lg font-semibold text-amber-300">Current Objective:</h3>
+        <h3 className="text-lg font-semibold text-amber-300">
+          Current Objective:
+        </h3>
 
-        <p className="text-amber-200 text-lg">{currentObjective}</p>
+        <p className="text-amber-200 text-lg">
+          {currentObjective}
+        </p>
       </div> : null}
     </div>
   );

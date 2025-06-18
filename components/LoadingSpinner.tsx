@@ -34,12 +34,17 @@ function LoadingSpinner({ loadingReason = null }: LoadingSpinnerProps) {
   return (
     <div
       aria-live="polite"
-      className={`flex flex-col items-center my-8`}
+      className="flex flex-col items-center my-8"
       role="status"
     >
-      <div aria-hidden="true" className={spinnerClass}></div>
+      <div
+        aria-hidden="true"
+        className={spinnerClass}
+      />
 
-      <p className={`mt-2 text-xl ${textColor}`}>{textMessage}</p>
+      <p className={`mt-2 text-xl ${textColor}`}>
+        {textMessage}
+      </p>
 
       {progressDisplay ? <div className="mt-2 text-2xl text-sky-300 font-mono">
         {progressDisplay}

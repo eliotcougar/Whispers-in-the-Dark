@@ -63,9 +63,16 @@ function ConfirmationDialog({
         onClick={stopPropagation} // Prevent dialog close when clicking inside
         style={{animationFillMode: 'forwards'}} // Keep final state of animation
       >
-        <h2 className="text-2xl font-bold text-sky-300 mb-5" id="confirmation-dialog-title">{title}</h2>
+        <h2
+          className="text-2xl font-bold text-sky-300 mb-5"
+          id="confirmation-dialog-title"
+        >
+          {title}
+        </h2>
 
-        <div className="text-slate-300 mb-8 text-base leading-relaxed">{displayMessage}</div>
+        <div className="text-slate-300 mb-8 text-base leading-relaxed">
+          {displayMessage}
+        </div>
 
         <div className="flex justify-end space-x-4">
           <button
@@ -87,7 +94,8 @@ function ConfirmationDialog({
       </div>
 
       {/* Removed non-standard 'jsx' and 'global' attributes from style tag */}
-      <style>{`
+      <style>
+        {`
         @keyframes dialog-enter {
           to {
             opacity: 1;
@@ -97,7 +105,8 @@ function ConfirmationDialog({
         .animate-dialog-enter {
           animation: dialog-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-      `}</style>
+      `}
+      </style>
     </div>
   );
 }
