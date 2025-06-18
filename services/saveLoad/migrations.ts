@@ -3,10 +3,8 @@
  * @description Functions for normalizing and converting saved game data between versions.
  */
 import { FullGameState, SavedGameDataShape, MapData } from '../../types';
-import { CURRENT_SAVE_GAME_VERSION, DEFAULT_STABILITY_LEVEL, DEFAULT_CHAOS_LEVEL, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_PLAYER_GENDER, PLAYER_HOLDER_ID } from '../../constants';
+import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../../constants';
 import { findThemeByName } from '../../utils/themeUtils';
-import { getDefaultMapLayoutConfig } from '../../hooks/useMapUpdates';
-import { DEFAULT_VIEWBOX } from '../../constants';
 import {
   ensureCompleteMapLayoutConfig,
   ensureCompleteMapNodeDataDefaults,
@@ -41,11 +39,7 @@ export function normalizeLoadedSaveData(
     ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
   }
 
-  if (
-    dataToValidateAndExpand &&
-    !dataToValidateAndExpand.currentThemeObject &&
-    dataToValidateAndExpand.currentThemeName
-  ) {
+  if (!dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
     dataToValidateAndExpand.currentThemeObject = findThemeByName(
       dataToValidateAndExpand.currentThemeName
     );
@@ -56,18 +50,16 @@ export function normalizeLoadedSaveData(
     }
   }
 
-  if (dataToValidateAndExpand) {
-    const gtRaw = (parsedObj as { globalTurnNumber?: unknown }).globalTurnNumber;
-    if (typeof gtRaw === 'string') {
-      const parsed = parseInt(gtRaw, 10);
-      dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
-    } else if (gtRaw === undefined || gtRaw === null) {
-      dataToValidateAndExpand.globalTurnNumber = 0;
-    }
-    dataToValidateAndExpand.destinationNodeId = dataToValidateAndExpand.destinationNodeId ?? null;
+  const gtRaw = (parsedObj as { globalTurnNumber?: unknown }).globalTurnNumber;
+  if (typeof gtRaw === 'string') {
+    const parsed = parseInt(gtRaw, 10);
+    dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
+  } else if (gtRaw === undefined || gtRaw === null) {
+    dataToValidateAndExpand.globalTurnNumber = 0;
   }
+  dataToValidateAndExpand.destinationNodeId = dataToValidateAndExpand.destinationNodeId ?? null;
 
-  if (dataToValidateAndExpand && validateSavedGameState(dataToValidateAndExpand)) {
+  if (validateSavedGameState(dataToValidateAndExpand)) {
     return postProcessValidatedData(dataToValidateAndExpand);
   }
 
@@ -91,7 +83,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   void isAwaitingManualShiftThemeSelection;
 
   const mapDataForSave: MapData = {
-    nodes: (gameState.mapData?.nodes || []).map(node => ({
+      nodes: gameState.mapData.nodes.map(node => ({
       ...node,
       data: {
         description: node.data.description || 'Description missing in save prep',
@@ -104,7 +96,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
         ...Object.fromEntries(Object.entries(node.data).filter(([key]) => !['description', 'aliases'].includes(key)))
       }
     })),
-    edges: gameState.mapData?.edges || [],
+      edges: gameState.mapData.edges,
   };
 
   const savedData: SavedGameDataShape = {
@@ -112,37 +104,37 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
     currentThemeObject: gameState.currentThemeObject,
     inventory: gameState.inventory.map(item => ({ ...item, isJunk: item.isJunk ?? false, holderId: item.holderId || PLAYER_HOLDER_ID })),
-    allCharacters: gameState.allCharacters.map(c => ({
-      ...c,
-      aliases: c.aliases || [],
-      presenceStatus: c.presenceStatus || 'unknown',
-      lastKnownLocation: c.lastKnownLocation,
-      preciseLocation: c.preciseLocation,
-      dialogueSummaries: c.dialogueSummaries || [],
-    })),
+      allCharacters: gameState.allCharacters.map(c => ({
+        ...c,
+        aliases: c.aliases || [],
+        presenceStatus: c.presenceStatus,
+        lastKnownLocation: c.lastKnownLocation,
+        preciseLocation: c.preciseLocation,
+        dialogueSummaries: c.dialogueSummaries || [],
+      })),
     mapData: mapDataForSave,
-    currentMapNodeId: gameState.currentMapNodeId || null,
-    destinationNodeId: gameState.destinationNodeId || null,
-    mapLayoutConfig: gameState.mapLayoutConfig || getDefaultMapLayoutConfig(),
-    mapViewBox: gameState.mapViewBox ?? DEFAULT_VIEWBOX,
-    score: gameState.score ?? 0,
-    stabilityLevel: gameState.stabilityLevel ?? DEFAULT_STABILITY_LEVEL,
-    chaosLevel: gameState.chaosLevel ?? DEFAULT_CHAOS_LEVEL,
-    localTime: gameState.localTime ?? null,
-    localEnvironment: gameState.localEnvironment ?? null,
-    localPlace: gameState.localPlace ?? null,
-    enabledThemePacks: gameState.enabledThemePacks ?? [...DEFAULT_ENABLED_THEME_PACKS],
-    playerGender: gameState.playerGender ?? DEFAULT_PLAYER_GENDER,
-    turnsSinceLastShift: gameState.turnsSinceLastShift ?? 0,
-    globalTurnNumber: gameState.globalTurnNumber ?? 0,
-    isCustomGameMode: gameState.isCustomGameMode ?? false,
+      currentMapNodeId: gameState.currentMapNodeId,
+      destinationNodeId: gameState.destinationNodeId,
+    mapLayoutConfig: gameState.mapLayoutConfig,
+    mapViewBox: gameState.mapViewBox,
+    score: gameState.score,
+    stabilityLevel: gameState.stabilityLevel,
+    chaosLevel: gameState.chaosLevel,
+      localTime: gameState.localTime,
+      localEnvironment: gameState.localEnvironment,
+      localPlace: gameState.localPlace,
+      enabledThemePacks: gameState.enabledThemePacks,
+    playerGender: gameState.playerGender,
+    turnsSinceLastShift: gameState.turnsSinceLastShift,
+    globalTurnNumber: gameState.globalTurnNumber,
+    isCustomGameMode: gameState.isCustomGameMode,
   };
   return savedData;
 };
 
 export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullGameState => {
   const mapDataFromLoad: MapData = {
-    nodes: (savedData.mapData?.nodes || []).map(node => ({
+    nodes: savedData.mapData.nodes.map(node => ({
       ...node,
       data: {
         ...node.data,
@@ -150,7 +142,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
         aliases: node.data.aliases || []
       }
     })),
-    edges: savedData.mapData?.edges || [],
+    edges: savedData.mapData.edges,
   };
 
   let themeObjectToUse = savedData.currentThemeObject;
@@ -169,12 +161,12 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
       dialogueSummaries: c.dialogueSummaries || [],
     })),
     mapData: mapDataFromLoad,
-    currentMapNodeId: savedData.currentMapNodeId || null,
-    destinationNodeId: savedData.destinationNodeId || null,
+    currentMapNodeId: savedData.currentMapNodeId,
+    destinationNodeId: savedData.destinationNodeId,
     mapLayoutConfig: savedData.mapLayoutConfig,
-    mapViewBox: savedData.mapViewBox || DEFAULT_VIEWBOX,
-    isCustomGameMode: savedData.isCustomGameMode ?? false,
-    globalTurnNumber: savedData.globalTurnNumber ?? 0,
+    mapViewBox: savedData.mapViewBox,
+    isCustomGameMode: savedData.isCustomGameMode,
+    globalTurnNumber: savedData.globalTurnNumber,
     isAwaitingManualShiftThemeSelection: false,
     dialogueState: null,
     objectiveAnimationType: null,

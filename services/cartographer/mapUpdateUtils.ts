@@ -121,9 +121,11 @@ export function normalizeStatusAndTypeSynonyms(payload: AIMapUpdatePayload): str
   (payload.edgesToAdd || []).forEach((e, idx) => applyEdgeDataFix(e.data, errors, `edgesToAdd[${idx}]`));
   (payload.edgesToUpdate || []).forEach((e, idx) => applyEdgeDataFix(e.newData, errors, `edgesToUpdate[${idx}].newData`));
 
-  if (payload.splitFamily && payload.splitFamily.newNodeType) {
-    const mapped = NODE_TYPE_SYNONYMS[payload.splitFamily.newNodeType.toLowerCase()];
-    if (mapped) payload.splitFamily.newNodeType = mapped as MapNodeData['nodeType'];
+  if (payload.splitFamily) {
+    const mapped = (NODE_TYPE_SYNONYMS as Record<string, MapNodeData['nodeType'] | undefined>)[
+      payload.splitFamily.newNodeType.toLowerCase()
+    ];
+    if (mapped) payload.splitFamily.newNodeType = mapped;
     if (!VALID_NODE_TYPE_VALUES.includes(payload.splitFamily.newNodeType)) {
       errors.push(`splitFamily.newNodeType invalid "${payload.splitFamily.newNodeType}"`);
     }

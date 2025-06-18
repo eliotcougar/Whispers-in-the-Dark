@@ -316,7 +316,8 @@ export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined):
     return;
   }
   mapData.nodes.forEach(node => {
-    if (!node.data) {
+    const data = (node as { data?: MapNodeData }).data;
+    if (!data) {
       node.data = {} as MapNodeData;
     }
     if (typeof node.data.description !== 'string') {

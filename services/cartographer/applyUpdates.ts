@@ -263,7 +263,7 @@ export const applyMapUpdates = async ({
 
 
   // --- Hierarchical Node Addition ---
-  let unresolvedQueue: AIMapUpdatePayload['nodesToAdd'] = [...(nodesToAddOps_mut || [])];
+  let unresolvedQueue: AIMapUpdatePayload['nodesToAdd'] = [...nodesToAddOps_mut];
   let triedParentInference = false;
 
   while (unresolvedQueue.length > 0) {
@@ -431,16 +431,17 @@ export const applyMapUpdates = async ({
         // Handle parentNodeId update
         let resolvedParentIdOnUpdate: string | undefined | null = node.data.parentNodeId; // Default to existing
 
-        if (nodeUpdateOp.newData?.parentNodeId !== undefined) {
-            if (nodeUpdateOp.newData.parentNodeId === null) { // Explicitly clearing parent
+        if (nodeUpdateOp.newData.parentNodeId !== undefined) {
+            const parentField = (nodeUpdateOp.newData as { parentNodeId?: string | null }).parentNodeId;
+            if (parentField === null) { // Explicitly clearing parent
                 resolvedParentIdOnUpdate = undefined; // Store as undefined if cleared
-            } else if (typeof nodeUpdateOp.newData.parentNodeId === 'string') {
-                if (nodeUpdateOp.newData.parentNodeId === 'Universe') {
+            } else if (typeof parentField === 'string') {
+                if (parentField === 'Universe') {
                     resolvedParentIdOnUpdate = undefined;
                 } else {
                     // Allow parent to be ANY node
                     const parentNode = await resolveNodeRef(
-                      nodeUpdateOp.newData.parentNodeId,
+                      parentField,
                     );
                     if (parentNode) {
                         resolvedParentIdOnUpdate = parentNode.id;
@@ -457,7 +458,7 @@ export const applyMapUpdates = async ({
         }
 
         // Apply general data updates
-        if (nodeUpdateOp.newData) {
+        {
             if (nodeUpdateOp.newData.description !== undefined) node.data.description = nodeUpdateOp.newData.description;
             if (nodeUpdateOp.newData.aliases !== undefined) {
                 node.data.aliases = nodeUpdateOp.newData.aliases;
@@ -560,31 +561,31 @@ export const applyMapUpdates = async ({
       continue;
     }
 
-      const pairKey =
-        sourceNode.id < targetNode.id
-          ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.data.type || 'path'}`
-          : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.data.type || 'path'}`;
-      if (processedChainKeys.has(pairKey)) continue;
-      processedChainKeys.add(pairKey);
+        const pairKey =
+          sourceNode.id < targetNode.id
+            ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.data.type || 'path'}`
+            : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.data.type || 'path'}`;
+        if (processedChainKeys.has(pairKey)) continue;
+        processedChainKeys.add(pairKey);
 
-        const chainReq = buildChainRequest(sourceNode, targetNode, edgeAddOp.data || { type: 'path', status: 'open' }, themeNodeIdMap);
+        const chainReq = buildChainRequest(sourceNode, targetNode, edgeAddOp.data, themeNodeIdMap);
         if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data.type, themeNodeIdMap)) {
           pendingChainRequests.push(chainReq);
           continue;
         }
 
-      addEdgeWithTracking(
-        sourceNode,
-        targetNode,
-        {
-          ...(edgeAddOp.data || {}),
-          status:
-            edgeAddOp.data.status ||
-            (sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored' ? 'rumored' : 'open'),
-        },
-        newMapData.edges,
-        themeEdgesMap,
-      );
+        addEdgeWithTracking(
+          sourceNode,
+          targetNode,
+          {
+            ...edgeAddOp.data,
+            status:
+              edgeAddOp.data.status ||
+              (sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored' ? 'rumored' : 'open'),
+          },
+          newMapData.edges,
+          themeEdgesMap,
+        );
   }
 
   for (const edgeUpdateOp of payload.edgesToUpdate || []) {
@@ -617,14 +618,18 @@ export const applyMapUpdates = async ({
       );
       continue;
     }
-    let edgeToUpdate = candidateEdges.find(e => edgeUpdateOp.newData.type ? e.data.type === edgeUpdateOp.newData.type : true);
-    if (!edgeToUpdate) edgeToUpdate = candidateEdges[0];
+    const edgeToUpdate = candidateEdges.find(e =>
+      edgeUpdateOp.newData.type ? e.data.type === edgeUpdateOp.newData.type : true,
+    );
 
-    if (edgeToUpdate) {
-        edgeToUpdate.data = { ...edgeToUpdate.data, ...edgeUpdateOp.newData };
-    } else {
-        console.warn(`MapUpdate (edgesToUpdate): Edge between "${edgeUpdateOp.sourcePlaceName}" and "${edgeUpdateOp.targetPlaceName}" not found for update.`);
+    if (!edgeToUpdate) {
+      console.warn(
+        `MapUpdate (edgesToUpdate): Edge between "${edgeUpdateOp.sourcePlaceName}" and "${edgeUpdateOp.targetPlaceName}" not found for update.`,
+      );
+      continue;
     }
+
+    edgeToUpdate.data = { ...edgeToUpdate.data, ...edgeUpdateOp.newData };
   }
 
   for (const edgeRemoveOp of edgesToRemove_mut) {
@@ -696,7 +701,7 @@ export const applyMapUpdates = async ({
       if (chainResult && chainResult.payload) {
         chainRequests = [];
         (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
-          const nodeData = nAdd.data || { status: 'discovered', nodeType: 'feature', parentNodeId: 'Universe', description: '', aliases: [] };
+          const nodeData = nAdd.data;
           const parent =
             nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
               ? (findMapNodeByIdentifier(
@@ -764,7 +769,7 @@ export const applyMapUpdates = async ({
               addEdgeWithTracking(
                 src,
                 tgt,
-                eAdd.data || { type: 'path', status: 'open' },
+                eAdd.data,
                 newMapData.edges,
                 themeEdgesMap,
               );
@@ -772,7 +777,7 @@ export const applyMapUpdates = async ({
               console.warn(
                 `Connector chain edge between "${src.placeName}" and "${tgt.placeName}" violates hierarchy rules. Reprocessing.`,
               );
-              chainRequests.push(buildChainRequest(src, tgt, eAdd.data || { type: 'path', status: 'open' }, themeNodeIdMap));
+              chainRequests.push(buildChainRequest(src, tgt, eAdd.data, themeNodeIdMap));
             }
           }
         });

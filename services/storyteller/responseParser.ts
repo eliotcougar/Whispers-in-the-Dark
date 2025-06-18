@@ -447,7 +447,7 @@ export async function parseAIResponse(
                     console.warn('parseAIResponse: options invalid after dialogue cancellation. Resetting to default failsafe.', validated.options);
                     validated.options = ['Look around.', 'Ponder the situation.', 'Check inventory.', 'Try to move on.', 'Consider your objective.', 'Plan your next steps.'];
                 }
-            } else if (validated.dialogueSetup) {
+            } else {
                 validated.dialogueSetup.participants = finalValidParticipants;
             }
         }
