@@ -189,11 +189,11 @@ export const useProcessAiResponse = ({
             const itemNameFromAI = itemRef.name;
             const exactMatchInInventory = baseStateSnapshot.inventory
               .filter((i) => i.holderId === PLAYER_HOLDER_ID)
-              .find(
-                (invItem) =>
-                  (itemRef.id && invItem.id === itemRef.id) ||
-                  (itemRef.name && invItem.name === itemRef.name),
-              );
+              .find((invItem) => {
+                const matchId = itemRef.id !== undefined && invItem.id === itemRef.id;
+                const matchName = itemRef.name !== undefined && invItem.name === itemRef.name;
+                return matchId || matchName;
+              });
             if (!exactMatchInInventory) {
               const originalLoadingReason = loadingReason;
               setLoadingReason('correction');

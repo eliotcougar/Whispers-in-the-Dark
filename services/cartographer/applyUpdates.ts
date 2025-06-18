@@ -150,12 +150,12 @@ export const applyMapUpdates = async ({
     tokens: tokenize(i.name),
   }));
   const charNameTokens: Array<{ norm: string; tokens: Array<string> }> = [];
-  knownCharacters.forEach(c => {
-    charNameTokens.push({ norm: normalizeName(c.name), tokens: tokenize(c.name) });
-    (c.aliases || []).forEach(a => {
-      charNameTokens.push({ norm: normalizeName(a), tokens: tokenize(a) });
+    knownCharacters.forEach(c => {
+      charNameTokens.push({ norm: normalizeName(c.name), tokens: tokenize(c.name) });
+      (c.aliases ?? []).forEach(a => {
+        charNameTokens.push({ norm: normalizeName(a), tokens: tokenize(a) });
+      });
     });
-  });
 
   const nameMatchesItemOrChar = (name: string): boolean => {
     const norm = normalizeName(name);
@@ -494,7 +494,7 @@ export const applyMapUpdates = async ({
                 const oldName = node.placeName;
                 node.placeName = nodeUpdateOp.newData.placeName;
                 themeNodeNameMap.set(node.placeName, node);
-                if (!node.data.aliases) node.data.aliases = [];
+                node.data.aliases ??= [];
                 if (!node.data.aliases.includes(oldName)) node.data.aliases.push(oldName);
                 for (const [k, v] of Array.from(themeNodeAliasMap.entries())) {
                   if (v.id === node.id) themeNodeAliasMap.delete(k);
@@ -536,9 +536,9 @@ export const applyMapUpdates = async ({
             k => newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.nodeName
           );
           if (batchKey) Reflect.deleteProperty(newNodesInBatchIdNameMap, batchKey);
-      } else {
-          console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.nodeId ?? nodeRemoveOp.nodeName}" not found for removal.`);
-      }
+        } else {
+            console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.nodeId}" not found for removal.`);
+        }
   }
 
 
@@ -588,7 +588,7 @@ export const applyMapUpdates = async ({
         );
   }
 
-  for (const edgeUpdateOp of payload.edgesToUpdate || []) {
+    for (const edgeUpdateOp of payload.edgesToUpdate ?? []) {
     const sourceNodeRef = await resolveNodeRef(edgeUpdateOp.sourcePlaceName);
     const targetNodeRef = await resolveNodeRef(edgeUpdateOp.targetPlaceName);
     if (!sourceNodeRef || !targetNodeRef) {
@@ -633,8 +633,8 @@ export const applyMapUpdates = async ({
   }
 
   for (const edgeRemoveOp of edgesToRemove_mut) {
-      let edge = newMapData.edges.find(e => e.id === edgeRemoveOp.edgeId) ||
-                 newMapData.edges.find(e => e.id.toLowerCase().includes(edgeRemoveOp.edgeId.toLowerCase()));
+        let edge = newMapData.edges.find(e => e.id === edgeRemoveOp.edgeId) ??
+                   newMapData.edges.find(e => e.id.toLowerCase().includes(edgeRemoveOp.edgeId.toLowerCase()));
       if (!edge && edgeRemoveOp.sourceId && edgeRemoveOp.targetId) {
           const sourceNodeRef = await resolveNodeRef(edgeRemoveOp.sourceId);
           const targetNodeRef = await resolveNodeRef(edgeRemoveOp.targetId);
@@ -699,8 +699,8 @@ export const applyMapUpdates = async ({
         attempt++;
       }
       if (chainResult?.payload) {
-        chainRequests = [];
-        (chainResult.payload.nodesToAdd || []).forEach(nAdd => {
+          chainRequests = [];
+          (chainResult.payload.nodesToAdd ?? []).forEach(nAdd => {
           const nodeData = nAdd.data;
           const parent =
             nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'

@@ -166,18 +166,16 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         isFromDialogueSummary: true,
         playerActionText: undefined,
       }).then(() => {
-        if (!draftState.lastDebugPacket) {
-          draftState.lastDebugPacket = {
-            prompt: '',
-            rawResponseText: null,
-            parsedResponse: null,
-            timestamp: new Date().toISOString(),
-            storytellerThoughts: null,
-            mapUpdateDebugInfo: null,
-            inventoryDebugInfo: null,
-            dialogueDebugInfo: null,
-          };
-        }
+        draftState.lastDebugPacket ??= {
+          prompt: '',
+          rawResponseText: null,
+          parsedResponse: null,
+          timestamp: new Date().toISOString(),
+          storytellerThoughts: null,
+          mapUpdateDebugInfo: null,
+          inventoryDebugInfo: null,
+          dialogueDebugInfo: null,
+        };
         draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;
         draftState.lastDebugPacket.rawResponseText = debugInfo.summaryRawResponse ?? null;
         draftState.lastDebugPacket.storytellerThoughts = debugInfo.summaryThoughts ?? null;

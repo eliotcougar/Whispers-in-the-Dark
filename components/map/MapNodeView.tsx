@@ -400,9 +400,8 @@ function MapNodeView({
         : { x: 0, y: 0 };
       const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
       const targetNode = nodes.find(n => n.id === edge.targetNodeId);
-      let content = edge.data.description
-        ? edge.data.description
-        : `Path between ${sourceNode?.placeName ?? 'Unknown'} and ${targetNode?.placeName ?? 'Unknown'}`;
+        let content = edge.data.description ??
+          `Path between ${sourceNode?.placeName ?? 'Unknown'} and ${targetNode?.placeName ?? 'Unknown'}`;
       if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
       if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
       const anchor = computeAnchor(x, y, svgRect);

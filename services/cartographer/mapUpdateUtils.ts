@@ -68,12 +68,12 @@ export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
  * Filters duplicate edge operations within an AIMapUpdatePayload.
  */
 export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
-  const normalizeKey = (source: string, target: string, type: string | undefined): string => {
-    const a = source.toLowerCase();
-    const b = target.toLowerCase();
-    const t = (type || 'any').toLowerCase();
-    return a < b ? `${a}|${b}|${t}` : `${b}|${a}|${t}`;
-  };
+    const normalizeKey = (source: string, target: string, type: string | undefined): string => {
+      const a = source.toLowerCase();
+      const b = target.toLowerCase();
+      const t = (type ?? 'any').toLowerCase();
+      return a < b ? `${a}|${b}|${t}` : `${b}|${a}|${t}`;
+    };
 
   const dedupeNamed = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
     arr: Array<T> | undefined,
@@ -152,7 +152,7 @@ export function fixDeleteIdMixups(payload: AIMapUpdatePayload): void {
     }
   }
 
-  for (const edgeDel of payload.edgesToRemove || []) {
+    for (const edgeDel of payload.edgesToRemove ?? []) {
     if (/^node_/i.test(edgeDel.edgeId)) {
       correctedNodes.push({ nodeId: edgeDel.edgeId, nodeName: edgeDel.edgeId });
     } else {
