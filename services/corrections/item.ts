@@ -140,11 +140,11 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
         return { result: aiResponse };
       }
       console.warn(
-        `fetchCorrectedItemPayload_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected '${actionType}' payload invalid after validation. Response:`,
+        `fetchCorrectedItemPayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
         aiResponse,
       );
     } catch (error) {
-      console.error(`fetchCorrectedItemPayload_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      console.error(`fetchCorrectedItemPayload_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };
@@ -223,15 +223,15 @@ If no action can be confidently determined, respond with an empty string.`;
           return { result: candidateAction as ItemChange['action'] };
         }
         if (candidateAction === '') {
-          console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
+          console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
           return { result: null, retry: false };
         }
-        console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned invalid action "${candidateAction}".`);
+          console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned invalid action "${candidateAction}".`);
       } else {
-        console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for item action. Received: null`);
+        console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for item action. Received: null`);
       }
     } catch (error) {
-      console.error(`fetchCorrectedItemAction_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+      console.error(`fetchCorrectedItemAction_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };

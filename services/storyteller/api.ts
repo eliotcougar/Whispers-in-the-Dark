@@ -46,7 +46,7 @@ export const executeAIMainTurn = async (
               .map(p => p.text);
             return { response, thoughts };
         } catch (error) {
-            console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
+            console.error(`Error executing AI Main Turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
             if (!isServerOrClientError(error)) {
                 throw error;
             }
@@ -96,7 +96,7 @@ Do not include any preamble. Just provide the summary text itself.
 
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) { // Extra retry for summarization
     try {
-      console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1})`);
+      console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(attempt)}/${String(MAX_RETRIES +1)})`);
       const { response } = await dispatchAIRequest({
           modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt: summarizationPrompt,
@@ -107,10 +107,10 @@ Do not include any preamble. Just provide the summary text itself.
       if (text && text.length > 0) {
         return text;
       }
-      console.warn(`Attempt ${attempt} failed to yield non-empty summary for theme "${themeToSummarize.name}". Text was: '${response.text}'`);
+        console.warn(`Attempt ${String(attempt)} failed to yield non-empty summary for theme "${themeToSummarize.name}". Text was: '${String(response.text)}'`);
       if (attempt === MAX_RETRIES +1 && (!text || text.length === 0)) return null;
     } catch (error) {
-      console.error(`Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1}):`, error);
+      console.error(`Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(attempt)}/${String(MAX_RETRIES +1)}):`, error);
       if (!isServerOrClientError(error)) {
         throw error;
       }

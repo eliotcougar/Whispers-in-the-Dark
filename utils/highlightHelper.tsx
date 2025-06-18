@@ -18,8 +18,8 @@ const showMobileTooltip = (text: string, rect: DOMRect) => {
   const offset = 8;
   const left = rect.left + rect.width / 2 - div.offsetWidth / 2 + window.scrollX;
   const top = rect.bottom + offset + window.scrollY;
-  div.style.left = `${Math.max(4, Math.min(left, window.innerWidth - div.offsetWidth - 4))}px`;
-  div.style.top = `${top}px`;
+  div.style.left = `${String(Math.max(4, Math.min(left, window.innerWidth - div.offsetWidth - 4)))}px`;
+  div.style.top = `${String(top)}px`;
 
   const remove = () => { div.remove(); };
   div.addEventListener('click', remove);
@@ -120,7 +120,7 @@ export const highlightEntitiesInText = (
       results.push(
         <span
           className={getEntityHighlightClass(matchedTermInfo.entityData.type)}
-          key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${match.index}`}
+          key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${String(match.index)}`}
           onClick={enableMobileTap ? handleMobileTap : undefined}
           title={matchedTermInfo.entityData.description}
         >

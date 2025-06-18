@@ -34,7 +34,7 @@ const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   const perpY = dx / dist;
   const cx = midX + perpX * offset;
   const cy = midY + perpY * offset;
-  return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+  return `M ${String(x1)} ${String(y1)} Q ${String(cx)} ${String(cy)} ${String(x2)} ${String(y2)}`;
 };
 
 interface MapNodeViewProps {
@@ -360,7 +360,7 @@ function MapNodeView({
         className="map-destination-marker"
         pointerEvents="none"
         points="0,-14 10,0 0,14 -10,0"
-        transform={`translate(${dest.position.x}, ${dest.position.y})`}
+        transform={`translate(${String(dest.position.x)}, ${String(dest.position.y)})`}
       />
     );
   }, [destinationNodeId, nodes, currentMapNodeId]);
@@ -583,7 +583,7 @@ function MapNodeView({
                 key={node.id}
                 onClick={handleNodeClickById}
                 onMouseLeave={handleMouseLeaveGeneral}
-                transform={`translate(${node.position.x}, ${node.position.y})`}
+                transform={`translate(${String(node.position.x)}, ${String(node.position.y)})`}
               >
                 <circle
                   className={nodeClass}
@@ -634,7 +634,7 @@ function MapNodeView({
               {presence.hasUseful ? (
                 <g
                   pointerEvents="none"
-                  transform={`translate(${usefulX}, ${usefulY})`}
+                  transform={`translate(${String(usefulX)}, ${String(usefulY)})`}
                 >
                   <Icon
                     color="green"
@@ -648,7 +648,7 @@ function MapNodeView({
               {presence.hasVehicle ? (
                 <g
                   pointerEvents="none"
-                  transform={`translate(${vehicleX}, ${vehicleY})`}
+                  transform={`translate(${String(vehicleX)}, ${String(vehicleY)})`}
                 >
                   <Icon
                     color="green"
@@ -694,11 +694,11 @@ function MapNodeView({
                 onMouseEnter={handleNodeMouseEnterById}
                 onMouseLeave={handleMouseLeaveGeneral}
                 pointerEvents="visible"
-                transform={`translate(${node.position.x}, ${node.position.y})`}
+                transform={`translate(${String(node.position.x)}, ${String(node.position.y)})`}
               >
                 {labelLines.map((line, index) => (
                   <tspan
-                    dy={index === 0 ? `${initialDyOffset}em` : `${DEFAULT_LABEL_LINE_HEIGHT_EM}em`}
+                    dy={index === 0 ? `${String(initialDyOffset)}em` : `${String(DEFAULT_LABEL_LINE_HEIGHT_EM)}em`}
                     key={`${node.id}-${line}`}
                     x="0"
                   >
@@ -727,7 +727,7 @@ function MapNodeView({
         </button> : null}
 
         {tooltip.content.split('\n').map((line, index) => (
-          <React.Fragment key={`${tooltip.nodeId}-${line}`}> 
+          <React.Fragment key={`${String(tooltip.nodeId)}-${String(line)}`}>
             {index === 0 ? <strong>
               {line}
             </strong> : line}

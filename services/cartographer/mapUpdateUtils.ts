@@ -116,10 +116,10 @@ export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
 export function normalizeStatusAndTypeSynonyms(payload: AIMapUpdatePayload): Array<string> {
   const errors: Array<string> = [];
 
-  (payload.nodesToAdd ?? []).forEach((n, idx) => { applyNodeDataFix(n.data, errors, `nodesToAdd[${idx}]`); });
-  (payload.nodesToUpdate ?? []).forEach((n, idx) => { applyNodeDataFix(n.newData, errors, `nodesToUpdate[${idx}].newData`); });
-  (payload.edgesToAdd ?? []).forEach((e, idx) => { applyEdgeDataFix(e.data, errors, `edgesToAdd[${idx}]`); });
-  (payload.edgesToUpdate ?? []).forEach((e, idx) => { applyEdgeDataFix(e.newData, errors, `edgesToUpdate[${idx}].newData`); });
+  (payload.nodesToAdd ?? []).forEach((n, idx) => { applyNodeDataFix(n.data, errors, `nodesToAdd[${String(idx)}]`); });
+  (payload.nodesToUpdate ?? []).forEach((n, idx) => { applyNodeDataFix(n.newData, errors, `nodesToUpdate[${String(idx)}].newData`); });
+  (payload.edgesToAdd ?? []).forEach((e, idx) => { applyEdgeDataFix(e.data, errors, `edgesToAdd[${String(idx)}]`); });
+  (payload.edgesToUpdate ?? []).forEach((e, idx) => { applyEdgeDataFix(e.newData, errors, `edgesToUpdate[${String(idx)}].newData`); });
 
   if (payload.splitFamily) {
     const mapped = (NODE_TYPE_SYNONYMS as Record<string, MapNodeData['nodeType'] | undefined>)[

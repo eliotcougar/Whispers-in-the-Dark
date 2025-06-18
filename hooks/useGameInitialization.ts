@@ -314,7 +314,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           if (isServerOrClientError(e)) {
             draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
             const status = extractStatusFromError(e);
-            setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
+            setError(`AI service error (${String(status ?? 'unknown')}). Please retry.`);
           } else {
             const errorMessage = e instanceof Error ? e.message : String(e);
             setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage}`);

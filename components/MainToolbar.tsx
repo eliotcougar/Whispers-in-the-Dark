@@ -40,9 +40,9 @@ function MainToolbar({
       {/* Score and Turns Display */}
       <div className="flex items-center space-x-3">
         <div
-          aria-label={`Current score: ${score} points`}
+          aria-label={`Current score: ${String(score)} points`}
           className="flex items-center p-2 border border-amber-500 rounded-md shadow-md"
-          title={`Score: ${score} points`}
+          title={`Score: ${String(score)} points`}
         >
           <Icon
             color="amber"
@@ -58,9 +58,9 @@ function MainToolbar({
         </div>
 
         {currentThemeName ? <div
-          aria-label={`Turns since last reality shift: ${turnsSinceLastShift}`}
+          aria-label={`Turns since last reality shift: ${String(turnsSinceLastShift)}`}
           className="flex items-center p-2 border border-indigo-500 rounded-md shadow-md"
-          title={`Turns since last reality shift: ${turnsSinceLastShift}`}
+          title={`Turns since last reality shift: ${String(turnsSinceLastShift)}`}
                             >
           <svg
             className="h-5 w-5 mr-2 text-indigo-400"

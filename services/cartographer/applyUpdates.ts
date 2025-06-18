@@ -677,9 +677,9 @@ export const applyMapUpdates = async ({
       let chainResult: ConnectorChainsServiceResult | null = null;
       for (let attempt = 0; attempt < MAX_RETRIES; ) {
         console.log(
-          `Connector Chains Refinement: Round ${refineAttempts + 1}/${MAX_CHAIN_REFINEMENT_ROUNDS}, Attempt ${
-            attempt + 1
-          }/${MAX_RETRIES}`,
+          `Connector Chains Refinement: Round ${String(refineAttempts + 1)}/${String(MAX_CHAIN_REFINEMENT_ROUNDS)}, Attempt ${
+            String(attempt + 1)
+          }/${String(MAX_RETRIES)}`,
         );
         chainResult = await fetchConnectorChains_Service(chainRequests, chainContext);
         if (chainResult.debugInfo) {
@@ -692,8 +692,8 @@ export const applyMapUpdates = async ({
           break;
         }
         console.warn(
-          `Connector Chains Refinement (Round ${refineAttempts + 1}, Attempt ${
-            attempt + 1
+          `Connector Chains Refinement (Round ${String(refineAttempts + 1)}, Attempt ${
+            String(attempt + 1)
           }): invalid or empty response. Retrying.`,
         );
         attempt++;
@@ -786,8 +786,8 @@ export const applyMapUpdates = async ({
         );
       } else {
         console.warn(
-          `Connector Chains Refinement failed after ${MAX_RETRIES} attempts for round ${
-            refineAttempts + 1
+          `Connector Chains Refinement failed after ${String(MAX_RETRIES)} attempts for round ${
+            String(refineAttempts + 1)
           }. Giving up on these chain requests.`,
         );
         break;

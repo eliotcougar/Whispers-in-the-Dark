@@ -110,12 +110,12 @@ Constraints:
         return { result: aiResponse };
       }
       console.warn(
-        `fetchCorrectedCharacterDetails_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected details for "${characterName}" invalid or incomplete. Response:`,
+        `fetchCorrectedCharacterDetails_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected details for "${characterName}" invalid or incomplete. Response:`,
         aiResponse,
       );
     } catch (error) {
       console.error(
-        `fetchCorrectedCharacterDetails_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        `fetchCorrectedCharacterDetails_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -188,16 +188,16 @@ Example Response: If unclear from context, respond with a generic but plausible 
           return { result: correctedLocation };
         }
         console.warn(
-          `fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected preciseLocation for "${characterName}" was empty or too long: "${correctedLocation}"`,
+          `fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected preciseLocation for "${characterName}" was empty or too long: "${correctedLocation}"`,
         );
       } else {
         console.warn(
-          `fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for preciseLocation of "${characterName}". Received: null`,
+          `fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for preciseLocation of "${characterName}". Received: null`,
         );
       }
     } catch (error) {
       console.error(
-        `fetchCorrectedCompanionOrNPCLocation_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`,
+        `fetchCorrectedCompanionOrNPCLocation_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

@@ -74,7 +74,7 @@ Respond ONLY with the single edge type.`;
         }
       }
     } catch (error) {
-      console.error(`fetchCorrectedEdgeType_Service error (Attempt ${attempt + 1}/$${MAX_RETRIES + 1}):`, error);
+      console.error(`fetchCorrectedEdgeType_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };
@@ -160,7 +160,7 @@ export const fetchConnectorChains_Service = async (
         if (!edgeMap.has(key)) edgeMap.set(key, { source: a, target: b, data: r.edgeData });
       }
 
-      chainLines.push(`Chain ${idx + 1}: ${orderedParents.map(p => `"${p.placeName}"`).join(' -> ')}`);
+      chainLines.push(`Chain ${String(idx + 1)}: ${orderedParents.map(p => `"${p.placeName}"`).join(' -> ')}`);
     });
 
     const nodeLines = Array.from(nodeMap.values())
@@ -169,13 +169,13 @@ export const fetchConnectorChains_Service = async (
           .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
           .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description})`)
           .join('\n') || ' - None';
-        return `Node ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description})\n${features}`;
+        return `Node ${String(i + 1)}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description})\n${features}`;
       })
       .join('\n');
 
     const edgeLines = Array.from(edgeMap.values())
       .map((e, i) => {
-        return `Edge ${i + 1}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${e.data.type ?? 'path'}, Status: ${e.data.status ?? 'open'}, Desc: ${e.data.description ?? 'None'})`;
+        return `Edge ${String(i + 1)}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${e.data.type ?? 'path'}, Status: ${e.data.status ?? 'open'}, Desc: ${e.data.description ?? 'None'})`;
       })
       .join('\n');
 

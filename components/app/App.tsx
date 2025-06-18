@@ -473,7 +473,7 @@ function App() {
         const node = layoutNodes.find(n => n.id === currentMapNodeId);
         if (node && !isNaN(vw) && !isNaN(vh)) {
           setMapInitialViewBox(
-            `${node.position.x - vw / 2} ${node.position.y - vh / 2} ${vw} ${vh}`
+            `${String(node.position.x - vw / 2)} ${String(node.position.y - vh / 2)} ${String(vw)} ${String(vh)}`
           );
         } else {
           setMapInitialViewBox(mapViewBox);

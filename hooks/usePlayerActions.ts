@@ -202,7 +202,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         console.error('Error executing player action:', e);
         if (isServerOrClientError(e)) {
           const status = extractStatusFromError(e);
-          setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
+          setError(`AI service error (${String(status ?? 'unknown')}). Please retry.`);
         } else {
           const errMsg = e instanceof Error ? e.message : String(e);
           setError(`The Dungeon Master's connection seems unstable. Error: (${errMsg}). Please try again or consult the game log.`);

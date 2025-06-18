@@ -22,7 +22,7 @@ export interface UseMapInteractionsResult {
 
 /** Provides pan and zoom interaction handlers for a map SVG element. */
 export const useMapInteractions = (
-  initialViewBox = `${-VIEWBOX_WIDTH_INITIAL / 2} ${-VIEWBOX_HEIGHT_INITIAL / 2} ${VIEWBOX_WIDTH_INITIAL} ${VIEWBOX_HEIGHT_INITIAL}`,
+  initialViewBox = `${String(-VIEWBOX_WIDTH_INITIAL / 2)} ${String(-VIEWBOX_HEIGHT_INITIAL / 2)} ${String(VIEWBOX_WIDTH_INITIAL)} ${String(VIEWBOX_HEIGHT_INITIAL)}`,
   onViewBoxChange?: (viewBox: string) => void
 ): UseMapInteractionsResult => {
   const [viewBox, setViewBox] = useState(initialViewBox);
@@ -63,7 +63,7 @@ export const useMapInteractions = (
     const deltaViewBoxY = prevSVGPoint.y - currentSVGPoint.y;
 
     const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
-    updateViewBox(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
+      updateViewBox(`${String(vx + deltaViewBoxX)} ${String(vy + deltaViewBoxY)} ${String(vw)} ${String(vh)}`);
     setLastScreenDragPoint({ x: e.clientX, y: e.clientY });
   };
 
@@ -104,7 +104,7 @@ export const useMapInteractions = (
     const newVx = svgPoint.x - (svgPoint.x - vx) * (newVw / vw);
     const newVy = svgPoint.y - (svgPoint.y - vy) * (newVh / vh);
 
-    updateViewBox(`${newVx} ${newVy} ${newVw} ${newVh}`);
+      updateViewBox(`${String(newVx)} ${String(newVy)} ${String(newVw)} ${String(newVh)}`);
   };
 
   /** Returns the distance between two touch points. */
@@ -153,7 +153,7 @@ export const useMapInteractions = (
       const deltaViewBoxY = prevSVGPoint.y - currentSVGPoint.y;
 
       const [vx, vy, vw, vh] = viewBox.split(' ').map(parseFloat);
-      updateViewBox(`${vx + deltaViewBoxX} ${vy + deltaViewBoxY} ${vw} ${vh}`);
+      updateViewBox(`${String(vx + deltaViewBoxX)} ${String(vy + deltaViewBoxY)} ${String(vw)} ${String(vh)}`);
       setLastScreenDragPoint({ x: touch.clientX, y: touch.clientY });
     } else if (e.touches.length === 2 && lastPinchDistance !== null) {
       const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
@@ -196,7 +196,7 @@ export const useMapInteractions = (
       const newVx = svgPinchCenter.x - (svgPinchCenter.x - vx) * (newVw / vw);
       const newVy = svgPinchCenter.y - (svgPinchCenter.y - vy) * (newVh / vh);
 
-      updateViewBox(`${newVx} ${newVy} ${newVw} ${newVh}`);
+      updateViewBox(`${String(newVx)} ${String(newVy)} ${String(newVw)} ${String(newVh)}`);
       setLastPinchDistance(currentDistance);
     }
   };
