@@ -251,13 +251,14 @@ async function handleCharacterChanges(
                 ...(cUpdate as Record<string, unknown>),
                 name: (cUpdate as { name: string }).name,
             };
+            const payloadNameForLogs = currentCUpdatePayload.name;
             const allKnownAndCurrentlyAddedCharNames = new Set([
                 ...context.allRelevantCharacters.map(c => c.name),
                 ...finalCharactersAdded.map(c => c.name),
             ]);
 
             if (!allKnownAndCurrentlyAddedCharNames.has(currentCUpdatePayload.name)) {
-                console.warn(`parseAIResponse ('charactersUpdated'): Original target name "${currentCUpdatePayload.name}" not found. Attempting name correction.`);
+                console.warn(`parseAIResponse ('charactersUpdated'): Original target name "${payloadNameForLogs}" not found. Attempting name correction.`);
                 const correctedName = await fetchCorrectedName_Service(
                     'character name',
                     currentCUpdatePayload.name,
@@ -270,14 +271,14 @@ async function handleCharacterChanges(
                     currentCUpdatePayload.name = correctedName;
                     console.log(`parseAIResponse ('charactersUpdated'): Corrected target name to "${correctedName}".`);
                 } else {
-                    console.warn(`parseAIResponse ('charactersUpdated'): Failed to correct target name for "${currentCUpdatePayload.name}". Will attempt to process as is, may convert to 'add'.`);
+                    console.warn(`parseAIResponse ('charactersUpdated'): Failed to correct target name for "${payloadNameForLogs}". Will attempt to process as is, may convert to 'add'.`);
                 }
             }
 
             if (isValidCharacterUpdate(currentCUpdatePayload)) {
                 tempFinalCharactersUpdatedPayloads.push(currentCUpdatePayload);
             } else {
-                console.warn(`parseAIResponse ('charactersUpdated'): Payload for "${currentCUpdatePayload.name}" is invalid after potential name correction. Discarding. Payload:`, currentCUpdatePayload);
+                console.warn(`parseAIResponse ('charactersUpdated'): Payload for "${payloadNameForLogs}" is invalid after potential name correction. Discarding. Payload:`, currentCUpdatePayload);
             }
         } else {
             console.warn("parseAIResponse ('charactersUpdated'): Update missing or has invalid 'name'. Discarding.", cUpdate);

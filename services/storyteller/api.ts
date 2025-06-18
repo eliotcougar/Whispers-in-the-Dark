@@ -42,8 +42,8 @@ export const executeAIMainTurn = async (
             });
             const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
             const thoughts = parts
-              .filter(p => p.thought === true && typeof p.text === 'string')
-              .map(p => p.text!);
+              .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+              .map(p => p.text);
             return { response, thoughts };
         } catch (error) {
             console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
