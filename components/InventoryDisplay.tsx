@@ -382,7 +382,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                     />
                   ) : null}
 
-                  {!item.isJunk && !isConfirmingDiscard && item.type != 'vehicle' && (
+                  {!item.isJunk && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
                     <ItemActionButton
                       ariaLabel={`Drop ${item.name}`}
                       className="bg-sky-700 hover:bg-sky-600"
