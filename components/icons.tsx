@@ -51,5 +51,5 @@ export function Icon({ name, className, size }: IconProps) {
   const attrs = `${className ? ` class="${className}"` : ''}` +
     `${size ? ` width="${size}" height="${size}"` : ''}`;
   const rendered = svgMarkup.replace('<svg', `<svg${attrs}`);
-  return <span dangerouslySetInnerHTML={{ __html: rendered }} />;
+  return <g dangerouslySetInnerHTML={{ __html: rendered }} />;
 }
