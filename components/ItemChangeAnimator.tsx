@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import * as React from 'react';
 import { Item, TurnChanges, KnownUse } from '../types';
-import { ItemTypeDisplay } from './InventoryDisplay';
+import ItemTypeDisplay from './ItemTypeDisplay';
 
 type AnimationType = 'gain' | 'loss' | 'change';
 interface AnimationQueueItem {

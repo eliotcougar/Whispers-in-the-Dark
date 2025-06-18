@@ -5,12 +5,11 @@
  */
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
-/* eslint-disable react/no-multi-comp */
-
 import * as React from 'react';
 import { Item, KnownUse } from '../types';
 import { Icon } from './icons.tsx';
 import ItemActionButton from './ItemActionButton';
+import ItemTypeDisplay from './ItemTypeDisplay';
 
 interface InventoryDisplayProps {
   readonly items: Array<Item>;
@@ -20,30 +19,6 @@ interface InventoryDisplayProps {
 }
 
 type SortOrder = 'default' | 'name' | 'type';
-
-/**
- * Displays the item type label with theme-based coloring.
- */
-export function ItemTypeDisplay({ type }: { readonly type: Item['type'] }) {
-  const colorMap: Record<Item['type'], string> = {
-    'single-use': 'text-red-400',
-    'multi-use': 'text-yellow-400',
-    equipment: 'text-sky-400',
-    container: 'text-orange-400',
-    key: 'text-lime-400',
-    weapon: 'text-amber-400',
-    ammunition: 'text-cyan-400',
-    vehicle: 'text-indigo-400',
-    knowledge: 'text-purple-400',
-    'status effect': 'text-pink-400',
-  };
-
-  const color = colorMap[type];
-
-  return (<span className={`text-xs italic ${color}`}>
-    {type}
-  </span>);
-}
 
 /**
  * Shows the player's inventory and handles item interactions.
