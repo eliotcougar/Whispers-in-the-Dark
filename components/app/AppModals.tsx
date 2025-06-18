@@ -43,7 +43,7 @@ interface AppModalsProps {
   readonly currentThemeName: string | null;
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
-  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
   readonly onSelectDestination: (id: string | null) => void;
   readonly initialLayoutConfig: MapLayoutConfig;
   readonly initialViewBox: string;

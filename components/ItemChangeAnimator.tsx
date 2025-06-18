@@ -233,8 +233,7 @@ function ItemChangeAnimator({
         setIsCardVisibleClass(true); // Add .visible class, triggers transition from base (scale 0.1, op 0)
         const item = currentAnimatingItem;
         activeTimeoutRef.current = window.setTimeout(() => {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          if (!isGameBusy && currentAnimatingItem === item) {
+          if (currentAnimatingItem === item) {
             setAnimationStep('visible');
           }
         }, ANIMATION_TRANSITION_DURATION_MS);
@@ -249,8 +248,7 @@ function ItemChangeAnimator({
 
         const itemAfterVisible = currentAnimatingItem;
         activeTimeoutRef.current = window.setTimeout(() => {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          if (!isGameBusy && currentAnimatingItem === itemAfterVisible) {
+          if (currentAnimatingItem === itemAfterVisible) {
             setAnimationStep('disappearing');
           }
         }, HOLD_DURATION_MS);
@@ -268,14 +266,12 @@ function ItemChangeAnimator({
         setIsCardVisibleClass(false); // Remove .visible class, triggers transition to disappear class target
         
         activeTimeoutRef.current = window.setTimeout(() => {
-          if (!isGameBusy) { // Ensure game didn't become busy during the timeout
-            setCurrentAnimatingItem(null); // Mark current item as done
-            setAnimationStep('idle');     // Ready for next item or to close overlay
-            setExplicitDisappearClass(null); // Reset for next cycle
-          }
+          setCurrentAnimatingItem(null); // Mark current item as done
+          setAnimationStep('idle');     // Ready for next item or to close overlay
+          setExplicitDisappearClass(null); // Reset for next cycle
         }, ANIMATION_TRANSITION_DURATION_MS);
         break;
-    }
+      }
 
     // Cleanup function for this effect
     return () => clearActiveTimeout();

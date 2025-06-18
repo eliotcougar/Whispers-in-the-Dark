@@ -232,7 +232,11 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
       let prompt = '';
-      if (isTransitioningFromShift && draftState.themeHistory[themeObjToLoad.name]) {
+      const hasExistingHistory = Object.prototype.hasOwnProperty.call(
+        draftState.themeHistory,
+        themeObjToLoad.name
+      );
+      if (isTransitioningFromShift && hasExistingHistory) {
         const currentThemeCharacters = draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name);
         prompt = buildReturnToThemePostShiftPrompt(
           themeObjToLoad,
@@ -267,10 +271,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           prompt,
           themeObjToLoad.systemInstructionModifier,
         );
-        if (draftState.lastDebugPacket) {
-          draftState.lastDebugPacket.rawResponseText = response.text ?? null;
-          draftState.lastDebugPacket.storytellerThoughts = thoughts;
-        }
+        draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+        draftState.lastDebugPacket.storytellerThoughts = thoughts;
 
         const currentThemeMapDataForParse = {
           nodes: draftState.mapData.nodes.filter((n) => n.themeName === themeObjToLoad.name),
@@ -471,10 +473,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         lastPrompt,
         currentThemeObj.systemInstructionModifier,
       );
-      if (draftState.lastDebugPacket) {
-        draftState.lastDebugPacket.rawResponseText = response.text ?? null;
-        draftState.lastDebugPacket.storytellerThoughts = thoughts;
-      }
+      draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+      draftState.lastDebugPacket.storytellerThoughts = thoughts;
 
       const currentThemeCharacters = draftState.allCharacters.filter(
         (c) => c.themeName === currentThemeObj.name,
@@ -533,8 +533,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         'Plan your next steps.'
       ];
       draftState.dialogueState = null;
-      if (draftState.lastDebugPacket)
-        draftState.lastDebugPacket.error = errMsg;
+      if (draftState.lastDebugPacket) draftState.lastDebugPacket.error = errMsg;
     } finally {
       commitGameState(draftState);
       setIsLoading(false);

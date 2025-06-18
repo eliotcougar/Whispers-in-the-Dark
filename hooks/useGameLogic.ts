@@ -208,11 +208,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const currentFullState = getCurrentGameState();
 
   const itemPresenceByNode = useMemo(() => {
-    const map: Record<string, { hasUseful: boolean; hasVehicle: boolean }> = {};
+    const map: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
     const nodeIds = new Set(currentFullState.mapData.nodes.map(n => n.id));
     currentFullState.inventory.forEach(item => {
       if (nodeIds.has(item.holderId)) {
-        const entry = map[item.holderId] || { hasUseful: false, hasVehicle: false };
+        const entry = map[item.holderId] ?? { hasUseful: false, hasVehicle: false };
         if (!item.isJunk) entry.hasUseful = true;
         if (item.type === 'vehicle') entry.hasVehicle = true;
         map[item.holderId] = entry;
@@ -278,8 +278,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     localPlace: currentFullState.localPlace,
     turnsSinceLastShift: currentFullState.turnsSinceLastShift,
     globalTurnNumber: currentFullState.globalTurnNumber,
-    isCustomGameMode: currentFullState.isCustomGameMode ?? false,
-    isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection ?? false,
+    isCustomGameMode: currentFullState.isCustomGameMode,
+    isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection,
 
     dialogueState: currentFullState.dialogueState,
     isDialogueExiting,

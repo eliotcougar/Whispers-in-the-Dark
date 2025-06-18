@@ -43,7 +43,7 @@ interface MapNodeViewProps {
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
-  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
   readonly onSelectDestination: (nodeId: string | null) => void;
   readonly labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */
@@ -55,7 +55,7 @@ interface MapNodeViewProps {
 /**
  * Empty map used as the default value for {@link MapNodeViewProps.itemPresenceByNode}.
  */
-const EMPTY_ITEM_PRESENCE_BY_NODE: Record<string, { hasUseful: boolean; hasVehicle: boolean }> = {};
+const EMPTY_ITEM_PRESENCE_BY_NODE: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
 
 /**
  * Returns the radius for a node's circle. Uses the computed visualRadius from
@@ -572,12 +572,10 @@ function MapNodeView({
 
           {sortedNodes.map(node => {
             let nodeClass = 'map-node-circle';
-            if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
+            nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
-            if (node.data.status) {
-              const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
-              nodeClass += ` ${sanitizedStatus}`;
-            }
+            const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
+            nodeClass += ` ${sanitizedStatus}`;
             const radius = getRadiusForNode(node);
             return (
               <g
@@ -623,8 +621,8 @@ function MapNodeView({
           {destinationMarker}
 
           {sortedNodes.map(node => {
-          const presence = itemPresenceByNode?.[node.id];
-          if (!presence) return null;
+          const presence = itemPresenceByNode[node.id] ?? { hasUseful: false, hasVehicle: false };
+          if (!presence.hasUseful && !presence.hasVehicle) return null;
           const radius = getRadiusForNode(node);
           const offset = radius + DEFAULT_LABEL_MARGIN_PX * 1.5;
           const iconSize = NODE_RADIUS * 2 * itemIconScale;

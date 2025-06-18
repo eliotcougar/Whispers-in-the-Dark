@@ -402,7 +402,7 @@ export const buildCharacterChangeRecords = (
   currentAllCharacters: Character[] 
 ): CharacterChangeRecord[] => {
   const records: CharacterChangeRecord[] = [];
-  (charactersAddedFromAI || []).forEach(cAdd => {
+  charactersAddedFromAI.forEach(cAdd => {
     const newChar: Character = {
       ...cAdd,
       id: buildCharacterId(cAdd.name),
@@ -416,7 +416,7 @@ export const buildCharacterChangeRecords = (
     records.push({ type: 'add', characterName: newChar.name, addedCharacter: newChar });
   });
 
-  (charactersUpdatedFromAI || []).forEach(cUpdate => {
+  charactersUpdatedFromAI.forEach(cUpdate => {
     const oldChar = currentAllCharacters.find(c => c.name === cUpdate.name && c.themeName === currentThemeName);
     if (oldChar) {
       const newCharData: Character = { ...oldChar, dialogueSummaries: oldChar.dialogueSummaries || [] }; // Preserve summaries
@@ -431,8 +431,8 @@ export const buildCharacterChangeRecords = (
       
       if (newCharData.presenceStatus === 'distant' || newCharData.presenceStatus === 'unknown') {
         newCharData.preciseLocation = null;
-      } else if ((newCharData.presenceStatus === 'nearby' || newCharData.presenceStatus === 'companion') && newCharData.preciseLocation === null) {
-         newCharData.preciseLocation = newCharData.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
+      } else if (newCharData.preciseLocation === null) {
+        newCharData.preciseLocation = newCharData.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
       }
       records.push({ type: 'update', characterName: cUpdate.name, oldCharacter: { ...oldChar }, newCharacter: newCharData });
     }
@@ -457,7 +457,7 @@ export const applyAllCharacterChanges = (
   currentAllCharacters: Character[]
 ): Character[] => {
   const newAllCharacters = [...currentAllCharacters];
-  (charactersAddedFromAI || []).forEach(cAdd => {
+  charactersAddedFromAI.forEach(cAdd => {
     if (!newAllCharacters.some(c => c.name === cAdd.name && c.themeName === currentThemeName)) {
       const newChar: Character = {
         ...cAdd,
@@ -476,7 +476,7 @@ export const applyAllCharacterChanges = (
     }
   });
 
-  (charactersUpdatedFromAI || []).forEach(cUpdate => {
+  charactersUpdatedFromAI.forEach(cUpdate => {
     const idx = newAllCharacters.findIndex(c => c.name === cUpdate.name && c.themeName === currentThemeName);
     if (idx !== -1) {
       const charToUpdate: Character = { ...newAllCharacters[idx], dialogueSummaries: newAllCharacters[idx].dialogueSummaries || [] }; // Preserve summaries
@@ -491,8 +491,8 @@ export const applyAllCharacterChanges = (
 
       if (charToUpdate.presenceStatus === 'distant' || charToUpdate.presenceStatus === 'unknown') {
         charToUpdate.preciseLocation = null;
-      } else if ((charToUpdate.presenceStatus === 'nearby' || charToUpdate.presenceStatus === 'companion') && charToUpdate.preciseLocation === null) {
-         charToUpdate.preciseLocation = charToUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
+      } else if (charToUpdate.preciseLocation === null) {
+        charToUpdate.preciseLocation = charToUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
       }
       newAllCharacters[idx] = charToUpdate;
     }
