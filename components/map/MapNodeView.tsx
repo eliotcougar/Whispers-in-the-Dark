@@ -641,6 +641,7 @@ function MapNodeView({
                     className="text-green-400"
                     name="mapItemBox"
                     size={iconSize}
+                    wrapper="g"
                   />
                 </g>
               ) : null}
@@ -654,6 +655,7 @@ function MapNodeView({
                     className="text-green-400"
                     name="mapWheel"
                     size={iconSize}
+                    wrapper="g"
                   />
                 </g>
               ) : null}
