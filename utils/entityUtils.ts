@@ -29,11 +29,11 @@ const getHopDistance = (
 
 export const findMapNodeByIdentifier = (
   identifier: string | undefined | null,
-  nodes: MapNode[],
+  nodes: Array<MapNode>,
   mapData?: MapData,
   currentNodeId?: string | null,
   getAll = false
-): MapNode | MapNode[] | undefined => {
+): MapNode | Array<MapNode> | undefined => {
   if (!identifier) return getAll ? [] : undefined;
 
   const idMatch = nodes.find(n => n.id === identifier);
@@ -55,7 +55,7 @@ export const findMapNodeByIdentifier = (
     )
     .filter(n => !nameMatches.includes(n));
 
-  const sortByDistance = (arr: MapNode[]) => {
+  const sortByDistance = (arr: Array<MapNode>) => {
     if (!mapData || !currentNodeId) return arr;
     return [...arr].sort(
       (a, b) => getHopDistance(mapData, currentNodeId, a.id) - getHopDistance(mapData, currentNodeId, b.id)
@@ -66,7 +66,7 @@ export const findMapNodeByIdentifier = (
   const sortedAliases = sortByDistance(aliasMatches);
 
   if (getAll) {
-    const results: MapNode[] = [];
+    const results: Array<MapNode> = [];
     if (idMatch) results.push(idMatch);
     results.push(...sortedNames);
     results.push(...sortedAliases);
@@ -105,9 +105,9 @@ export const findMapNodeByIdentifier = (
 
 export const findCharacterByIdentifier = (
   identifier: string | undefined | null,
-  characters: Character[],
+  characters: Array<Character>,
   getAll = false
-): Character | Character[] | undefined => {
+): Character | Array<Character> | undefined => {
   if (!identifier) return getAll ? [] : undefined;
 
   const idMatch = characters.find(c => c.id === identifier);
@@ -120,7 +120,7 @@ export const findCharacterByIdentifier = (
   ).filter(c => !nameMatches.includes(c));
 
   if (getAll) {
-    const results: Character[] = [];
+    const results: Array<Character> = [];
     if (idMatch) results.push(idMatch);
     results.push(...nameMatches);
     results.push(...aliasMatches);
@@ -133,17 +133,17 @@ export const findCharacterByIdentifier = (
 };
 
 export const findItemByIdentifier = (
-  identifiers: (string | null | undefined)[],
-  items: Item[],
+  identifiers: Array<string | null | undefined>,
+  items: Array<Item>,
   getAll = false,
   ignoreCase = false,
-): Item | Item[] | null => {
+): Item | Array<Item> | null => {
   if (!Array.isArray(identifiers) || identifiers.length === 0) {
     return getAll ? [] : null;
   }
 
   const [id, name] = identifiers;
-  const results: Item[] = [];
+  const results: Array<Item> = [];
   const nameToCheck = typeof name === 'string' ? name : undefined;
   const cmp = (a: string, b: string) => {
     const aCore = stripBracketText(a);

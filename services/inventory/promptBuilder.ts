@@ -13,7 +13,7 @@ export const buildInventoryPrompt = (
   playerItemsHint: string,
   worldItemsHint: string,
   npcItemsHint: string,
-  newItems: NewItemSuggestion[],
+  newItems: Array<NewItemSuggestion>,
   playerInventory: string,
   locationInventory: string,
   currentNodeId: string | null,

@@ -32,6 +32,7 @@ const tsCompat = compat.config({
   extends: [
     'plugin:react/all',
     'plugin:react-hooks/recommended',
+    'plugin:react/jsx-runtime',
     'plugin:@typescript-eslint/strict',
     'plugin:@typescript-eslint/recommended-type-checked',
     /*'plugin:@typescript-eslint/stylistic',
@@ -48,7 +49,6 @@ const tsCompat = compat.config({
     }
   },
   rules: {
-    'react/react-in-jsx-scope': 'off',
     'react/jsx-no-literals': 'off',
     'react/forbid-component-props': 'off',
     'react/destructuring-assignment': 'off',
@@ -75,7 +75,9 @@ const tsCompat = compat.config({
     '@typescript-eslint/use-unknown-in-catch-callback-variable': 'warn',
     '@typescript-eslint/no-confusing-void-expression': 'warn',
     '@typescript-eslint/no-unnecessary-type-arguments': 'warn',
-    '@typescript-eslint/restrict-plus-operands': 'warn'
+    '@typescript-eslint/restrict-plus-operands': 'warn',
+    '@typescript-eslint/array-type': ['warn', { default: 'generic' }],
+    '@typescript-eslint/consistent-indexed-object-style': ['warn', 'record'],
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
 

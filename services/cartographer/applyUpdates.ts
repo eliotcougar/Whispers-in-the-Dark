@@ -37,17 +37,17 @@ export interface ApplyMapUpdatesParams {
   currentMapData: MapData;
   currentTheme: AdventureTheme;
   previousMapNodeId: string | null;
-  inventoryItems: Item[];
-  knownCharacters: Character[];
+  inventoryItems: Array<Item>;
+  knownCharacters: Array<Character>;
   aiData: GameStateFromAI;
-  minimalModelCalls: MinimalModelCallRecord[];
+  minimalModelCalls: Array<MinimalModelCallRecord>;
   debugInfo: MapUpdateDebugInfo;
 }
 
 export interface ApplyMapUpdatesResult {
   updatedMapData: MapData;
-  newlyAddedNodes: MapNode[];
-  newlyAddedEdges: MapEdge[];
+  newlyAddedNodes: Array<MapNode>;
+  newlyAddedEdges: Array<MapEdge>;
   debugInfo: MapUpdateDebugInfo;
 }
 
@@ -84,7 +84,7 @@ export const applyMapUpdates = async ({
   const themeNodeIdMap = new Map<string, MapNode>();
   const themeNodeNameMap = new Map<string, MapNode>();
   const themeNodeAliasMap = new Map<string, MapNode>();
-  const themeEdgesMap = new Map<string, MapEdge[]>();
+  const themeEdgesMap = new Map<string, Array<MapEdge>>();
   currentThemeNodesFromMapData.forEach(n => {
     themeNodeIdMap.set(n.id, n);
     themeNodeNameMap.set(n.placeName, n);
@@ -140,7 +140,7 @@ export const applyMapUpdates = async ({
       .replace(/\s+/g, ' ')
       .trim();
 
-  const tokenize = (text: string): string[] =>
+  const tokenize = (text: string): Array<string> =>
     normalizeName(text)
       .split(' ')
       .filter(t => t.length > 0);
@@ -149,7 +149,7 @@ export const applyMapUpdates = async ({
     norm: normalizeName(i.name),
     tokens: tokenize(i.name),
   }));
-  const charNameTokens: { norm: string; tokens: string[] }[] = [];
+  const charNameTokens: Array<{ norm: string; tokens: Array<string> }> = [];
   knownCharacters.forEach(c => {
     charNameTokens.push({ norm: normalizeName(c.name), tokens: tokenize(c.name) });
     (c.aliases || []).forEach(a => {
@@ -160,7 +160,7 @@ export const applyMapUpdates = async ({
   const nameMatchesItemOrChar = (name: string): boolean => {
     const norm = normalizeName(name);
     const tokens = tokenize(name);
-    const checkTokens = (candidate: { norm: string; tokens: string[] }): boolean => {
+    const checkTokens = (candidate: { norm: string; tokens: Array<string> }): boolean => {
       if (candidate.norm === norm) return true;
       const intersection = tokens.filter(t => candidate.tokens.includes(t));
       const ratioA = intersection.length / tokens.length;
@@ -173,9 +173,9 @@ export const applyMapUpdates = async ({
   // Proceed with map data processing using payload
   const newMapData: MapData = structuredCloneGameState(currentMapData);
   const newNodesInBatchIdNameMap: Record<string, { id: string; name: string }> = {};
-  const newlyAddedNodes: MapNode[] = [];
-  const newlyAddedEdges: MapEdge[] = [];
-  const pendingChainRequests: EdgeChainRequest[] = [];
+  const newlyAddedNodes: Array<MapNode> = [];
+  const newlyAddedEdges: Array<MapEdge> = [];
+  const pendingChainRequests: Array<EdgeChainRequest> = [];
   const processedChainKeys = new Set<string>();
 
   // Refresh lookup maps for the cloned map data
@@ -524,7 +524,7 @@ export const applyMapUpdates = async ({
           themeNodeIdMap.delete(removedNodeId);
           // Also remove edges connected to this node
           newMapData.edges = newMapData.edges.filter(edge => edge.sourceNodeId !== removedNodeId && edge.targetNodeId !== removedNodeId);
-          themeEdgesMap.forEach((edgesArr: MapEdge[], nid: string) => {
+          themeEdgesMap.forEach((edgesArr: Array<MapEdge>, nid: string) => {
               themeEdgesMap.set(nid, edgesArr.filter(e => e.sourceNodeId !== removedNodeId && e.targetNodeId !== removedNodeId));
           });
           themeEdgesMap.delete(removedNodeId);
@@ -664,7 +664,7 @@ export const applyMapUpdates = async ({
       if (arr2) themeEdgesMap.set(edge.targetNodeId, arr2.filter(e2 => e2 !== edge));
   }
 
-  let chainRequests: EdgeChainRequest[] = pendingChainRequests.splice(0);
+  let chainRequests: Array<EdgeChainRequest> = pendingChainRequests.splice(0);
   let refineAttempts = 0;
   const chainContext = {
       sceneDescription: sceneDesc,
@@ -814,7 +814,7 @@ export const applyMapUpdates = async ({
       });
       const originalSet = new Set(sf.originalChildren);
       const newSet = new Set(sf.newChildren);
-      const orphans: MapNode[] = [];
+      const orphans: Array<MapNode> = [];
       newMapData.nodes.forEach(n => {
         if (n.data.parentNodeId === originalParent.id && n.id !== newParent.id && n.id !== connector.id) {
           if (newSet.has(n.id)) {

@@ -54,7 +54,7 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
 export const buildNewThemePostShiftPrompt = (
 
   theme: AdventureTheme,
-  inventory: Item[],
+  inventory: Array<Item>,
   playerGender: string
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
@@ -83,11 +83,11 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
 export const buildReturnToThemePostShiftPrompt = (
 
   theme: AdventureTheme,
-  inventory: Item[],
+  inventory: Array<Item>,
   playerGender: string,
   themeMemory: ThemeMemory,
   mapDataForTheme: MapData,
-  allCharactersForTheme: Character[]
+  allCharactersForTheme: Array<Character>
 ): string => {
   const inventoryPrompt = formatInventoryForPrompt(inventory);
   const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
@@ -124,14 +124,14 @@ Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRU
 export const buildMainGameTurnPrompt = (
   currentScene: string,
   playerAction: string,
-  inventory: Item[],
-  locationItems: Item[],
+  inventory: Array<Item>,
+  locationItems: Array<Item>,
   mainQuest: string | null,
   currentObjective: string | null,
   currentTheme: AdventureTheme,
-  recentLogEntries: string[],
-  currentThemeMainMapNodes: MapNode[],
-  currentThemeCharacters: Character[],
+  recentLogEntries: Array<string>,
+  currentThemeMainMapNodes: Array<MapNode>,
+  currentThemeCharacters: Array<Character>,
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,

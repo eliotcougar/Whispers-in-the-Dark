@@ -17,7 +17,7 @@ import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 
 export interface UseGameLogicProps {
   playerGenderProp: string;
-  enabledThemePacksProp: ThemePackName[];
+  enabledThemePacksProp: Array<ThemePackName>;
   stabilityLevelProp: number;
   chaosLevelProp: number;
   onSettingsUpdateFromLoad: (

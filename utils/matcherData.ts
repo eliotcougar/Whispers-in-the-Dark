@@ -7,7 +7,7 @@
  * Describes a preposition keyword grouping and its matching behavior.
  */
 export interface PrepositionDefinition {
-  keywords: string[];
+  keywords: Array<string>;
   type: 'direct' | 'relational' | 'negating' | 'contextual_linking';
   weight: number;
 }
@@ -15,7 +15,7 @@ export interface PrepositionDefinition {
 /**
  * Base list of prepositions with weights before sorting by length.
  */
-const unsortedPrepositions: PrepositionDefinition[] = [
+const unsortedPrepositions: Array<PrepositionDefinition> = [
   { keywords: ['inside of', 'inside'], type: 'direct', weight: 100 },
   { keywords: ['atop of', 'atop'], type: 'direct', weight: 100 },
   { keywords: ['at the center of', 'at the heart of', 'at the'], type: 'direct', weight: 90 },
@@ -48,14 +48,14 @@ const unsortedPrepositions: PrepositionDefinition[] = [
 /**
  * Prepositions sorted so longer keywords are matched first.
  */
-export const PREPOSITIONS: PrepositionDefinition[] = [...unsortedPrepositions].sort(
+export const PREPOSITIONS: Array<PrepositionDefinition> = [...unsortedPrepositions].sort(
   (a, b) => Math.max(...b.keywords.map(k => k.length)) - Math.max(...a.keywords.map(k => k.length))
 );
 
 /**
  * Flattened list of keywords used when constructing regular expressions.
  */
-export const ALL_PREPOSITION_KEYWORDS_FOR_REGEX: string[] = PREPOSITIONS
+export const ALL_PREPOSITION_KEYWORDS_FOR_REGEX: Array<string> = PREPOSITIONS
   .filter(p => p.type !== 'contextual_linking')
   .flatMap(p => p.keywords)
   .sort((a, b) => b.length - a.length);

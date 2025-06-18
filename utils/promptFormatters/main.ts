@@ -16,7 +16,7 @@ import { findTravelPath } from '../mapPathfinding';
  * Formats a list of known characters for AI prompts.
  */
 export const formatKnownCharactersForPrompt = (
-  characters: Character[],
+  characters: Array<Character>,
   detailed: boolean = false
 ): string => {
   if (characters.length === 0) {
@@ -45,7 +45,7 @@ export const formatKnownCharactersForPrompt = (
     c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown'
   );
 
-  const promptParts: string[] = [];
+  const promptParts: Array<string> = [];
   if (companions.length > 0) {
     const companionStrings = companions.map(c => `${c.id} - "${c.name}"`);
     promptParts.push(`Companions traveling with the Player: ${companionStrings.join(', ')}.`);
@@ -64,7 +64,7 @@ export const formatKnownCharactersForPrompt = (
 /**
  * Formats recent log events for inclusion in prompts.
  */
-export const formatRecentEventsForPrompt = (logMessages: string[]): string => {
+export const formatRecentEventsForPrompt = (logMessages: Array<string>): string => {
   if (logMessages.length === 0) {
     return '';
   }
@@ -75,13 +75,13 @@ export const formatRecentEventsForPrompt = (logMessages: string[]): string => {
  * Provides detailed context for places or characters mentioned in a string.
  */
 export const formatDetailedContextForMentionedEntities = (
-  allKnownMainMapNodes: MapNode[],
-  allKnownCharacters: Character[],
+  allKnownMainMapNodes: Array<MapNode>,
+  allKnownCharacters: Array<Character>,
   contextString: string,
   placesPrefixIfAny: string,
   charactersPrefixIfAny: string
 ): string => {
-  const mentionedPlaces: MapNode[] = [];
+  const mentionedPlaces: Array<MapNode> = [];
   allKnownMainMapNodes.forEach(node => {
     const allNames = [node.placeName, ...(node.data.aliases || [])];
     const nameRegex = new RegExp(allNames.map(name => `\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`).join('|'), 'i');
@@ -90,7 +90,7 @@ export const formatDetailedContextForMentionedEntities = (
     }
   });
 
-  const mentionedCharacters: Character[] = [];
+  const mentionedCharacters: Array<Character> = [];
   allKnownCharacters.forEach(c => {
     const allNames = [c.name, ...(c.aliases || [])];
     const nameRegex = new RegExp(allNames.map(name => `\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`).join('|'), 'i');

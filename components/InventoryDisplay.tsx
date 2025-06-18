@@ -13,7 +13,7 @@ import { Icon } from './icons.tsx';
 import ItemActionButton from './ItemActionButton';
 
 interface InventoryDisplayProps {
-  readonly items: Item[];
+  readonly items: Array<Item>;
   readonly onItemInteract: (item: Item, interactionType: 'generic' | 'specific' | 'inspect', knownUse?: KnownUse) => void;
   readonly onDropItem: (itemName: string) => void;
   readonly disabled: boolean;
@@ -50,7 +50,7 @@ export function ItemTypeDisplay({ type }: { readonly type: Item['type'] }) {
  */
 function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: InventoryDisplayProps) {
   const [newlyAddedItemNames, setNewlyAddedItemNames] = useState<Set<string>>(new Set());
-  const prevItemsRef = useRef<Item[]>(items);
+  const prevItemsRef = useRef<Array<Item>>(items);
   const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
 
@@ -147,7 +147,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
   useEffect(() => {
     const currentItemNames = new Set(items.map(item => item.name));
     const prevItemNames = new Set(prevItemsRef.current.map(item => item.name));
-    const added: string[] = [];
+    const added: Array<string> = [];
 
     currentItemNames.forEach(name => {
       if (!prevItemNames.has(name)) {
@@ -198,7 +198,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
   /**
    * Filters known uses based on the item's active state.
    */
-  const getApplicableKnownUses = (item: Item): KnownUse[] => {
+  const getApplicableKnownUses = (item: Item): Array<KnownUse> => {
     if (!item.knownUses) return [];
     return item.knownUses.filter(ku => {
       const isActive = !!item.isActive; 

@@ -38,7 +38,7 @@ export const handleMapUpdates = async (
   if ('mapUpdated' in aiData && aiData.mapUpdated || (draftState.localPlace !== baseStateSnapshot.localPlace)) {
     const originalLoadingReason = loadingReason;
     setLoadingReason('map');
-    const knownMainMapNodesForTheme: MapNode[] = draftState.mapData.nodes.filter(
+    const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
       node => node.themeName === themeContextForResponse.name && node.data.nodeType !== 'feature'
     );
     mapUpdateResult = await updateMapFromAIData_Service(
@@ -124,8 +124,8 @@ export const handleMapUpdates = async (
   );
 
   const themeName = themeContextForResponse.name;
-  const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as ValidNewCharacterPayload[];
-  const charactersUpdatedFromAI = ('charactersUpdated' in aiData && aiData.charactersUpdated ? aiData.charactersUpdated : []) as ValidCharacterUpdatePayload[];
+  const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as Array<ValidNewCharacterPayload>;
+  const charactersUpdatedFromAI = ('charactersUpdated' in aiData && aiData.charactersUpdated ? aiData.charactersUpdated : []) as Array<ValidCharacterUpdatePayload>;
   if (charactersAddedFromAI.length > 0 || charactersUpdatedFromAI.length > 0) {
     turnChanges.characterChanges = buildCharacterChangeRecords(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
     draftState.allCharacters = applyAllCharacterChanges(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
@@ -203,7 +203,7 @@ export const handleMapUpdates = async (
 
   if (turnChanges.mapDataChanged) {
     const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
-    const edgesToRemoveIndices: number[] = [];
+    const edgesToRemoveIndices: Array<number> = [];
     draftState.mapData.edges.forEach((edge, index) => {
       if (newlyAddedEdgeIds.has(edge.id)) return;
       if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {

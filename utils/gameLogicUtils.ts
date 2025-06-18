@@ -22,11 +22,11 @@ import { PLAYER_HOLDER_ID } from '../constants';
  * combination of `fromId`, `toId`, and the provided payload.
  */
 const applyItemActionCore = (
-  currentInventory: Item[],
+  currentInventory: Array<Item>,
   fromId: string | null,
   toId: string | null,
   payload: Item | ItemReference | GiveItemPayload,
-): Item[] => {
+): Array<Item> => {
   let newInventory = [...currentInventory];
 
   if (fromId === null && toId === PLAYER_HOLDER_ID) {
@@ -176,22 +176,22 @@ const applyItemActionCore = (
   return newInventory;
 };
 
-export const gainItem = (inv: Item[], item: Item): Item[] =>
+export const gainItem = (inv: Array<Item>, item: Item): Array<Item> =>
   applyItemActionCore(inv, null, PLAYER_HOLDER_ID, item);
 
-export const putItem = (inv: Item[], item: Item): Item[] =>
+export const putItem = (inv: Array<Item>, item: Item): Array<Item> =>
   applyItemActionCore(inv, null, item.holderId, item);
 
-export const loseItem = (inv: Item[], ref: ItemReference): Item[] =>
+export const loseItem = (inv: Array<Item>, ref: ItemReference): Array<Item> =>
   applyItemActionCore(inv, PLAYER_HOLDER_ID, null, ref);
 
-export const updateItem = (inv: Item[], item: Item): Item[] =>
+export const updateItem = (inv: Array<Item>, item: Item): Array<Item> =>
   applyItemActionCore(inv, item.holderId, item.holderId, item);
 
-export const giveItem = (inv: Item[], payload: GiveItemPayload): Item[] =>
+export const giveItem = (inv: Array<Item>, payload: GiveItemPayload): Array<Item> =>
   applyItemActionCore(inv, payload.fromId, payload.toId, payload);
 
-export const takeItem = (inv: Item[], payload: GiveItemPayload): Item[] =>
+export const takeItem = (inv: Array<Item>, payload: GiveItemPayload): Array<Item> =>
   applyItemActionCore(inv, payload.fromId, payload.toId, payload);
 
 /**
@@ -203,7 +203,7 @@ export const takeItem = (inv: Item[], payload: GiveItemPayload): Item[] =>
  * @param itemChange - The item change object received from the AI, specifying the action and item.
  * @returns A new array representing the updated inventory.
 */
-export const applyItemChangeAction = (currentInventory: Item[], itemChange: ItemChange): Item[] => {
+export const applyItemChangeAction = (currentInventory: Array<Item>, itemChange: ItemChange): Array<Item> => {
   switch (itemChange.action) {
     case "gain":
       return gainItem(currentInventory, itemChange.item as Item);
@@ -231,10 +231,10 @@ export const applyItemChangeAction = (currentInventory: Item[], itemChange: Item
  * @returns A new array of log messages with the new message added and older messages potentially removed.
  */
 export const addLogMessageToList = (
-  currentLog: string[],
+  currentLog: Array<string>,
   message: string,
   maxLogMessages: number
-): string[] => {
+): Array<string> => {
   const newLog = [...currentLog, message];
   return newLog.length > maxLogMessages
     ? newLog.slice(newLog.length - maxLogMessages)
@@ -250,7 +250,7 @@ export const addLogMessageToList = (
  * @returns The name of the selected theme, or `null` if no themes are available.
  */
 export const selectNextThemeName = (
-  availableThemes: AdventureTheme[],
+  availableThemes: Array<AdventureTheme>,
   currentThemeName?: string | null
 ): string | null => {
   if (availableThemes.length === 0) {
@@ -273,10 +273,10 @@ export const selectNextThemeName = (
  * @returns An array of `ItemChangeRecord` objects.
  */
 export const buildItemChangeRecords = (
-  itemChanges: ItemChange[],
-  currentInventory: Item[] 
-): ItemChangeRecord[] => {
-  const records: ItemChangeRecord[] = [];
+  itemChanges: Array<ItemChange>,
+  currentInventory: Array<Item> 
+): Array<ItemChangeRecord> => {
+  const records: Array<ItemChangeRecord> = [];
 
   for (const change of itemChanges) {
     if (change.item === null) continue;
@@ -385,9 +385,9 @@ export const buildItemChangeRecords = (
  * @returns A new array representing the inventory after all changes have been applied.
  */
 export const applyAllItemChanges = (
-  itemChanges: ItemChange[],
-  currentInventory: Item[]
-): Item[] => {
+  itemChanges: Array<ItemChange>,
+  currentInventory: Array<Item>
+): Array<Item> => {
   let newInventory = [...currentInventory];
   for (const change of itemChanges) {
     if (change.item === null) continue;
@@ -408,12 +408,12 @@ export const applyAllItemChanges = (
  * @returns An array of `CharacterChangeRecord` objects.
  */
 export const buildCharacterChangeRecords = (
-  charactersAddedFromAI: ValidNewCharacterPayload[],
-  charactersUpdatedFromAI: ValidCharacterUpdatePayload[],
+  charactersAddedFromAI: Array<ValidNewCharacterPayload>,
+  charactersUpdatedFromAI: Array<ValidCharacterUpdatePayload>,
   currentThemeName: string,
-  currentAllCharacters: Character[] 
-): CharacterChangeRecord[] => {
-  const records: CharacterChangeRecord[] = [];
+  currentAllCharacters: Array<Character> 
+): Array<CharacterChangeRecord> => {
+  const records: Array<CharacterChangeRecord> = [];
   charactersAddedFromAI.forEach(cAdd => {
     const newChar: Character = {
       ...cAdd,
@@ -463,11 +463,11 @@ export const buildCharacterChangeRecords = (
  * @returns A new array representing the updated list of all characters.
  */
 export const applyAllCharacterChanges = (
-  charactersAddedFromAI: ValidNewCharacterPayload[],
-  charactersUpdatedFromAI: ValidCharacterUpdatePayload[],
+  charactersAddedFromAI: Array<ValidNewCharacterPayload>,
+  charactersUpdatedFromAI: Array<ValidCharacterUpdatePayload>,
   currentThemeName: string,
-  currentAllCharacters: Character[]
-): Character[] => {
+  currentAllCharacters: Array<Character>
+): Array<Character> => {
   const newAllCharacters = [...currentAllCharacters];
   charactersAddedFromAI.forEach(cAdd => {
     if (!newAllCharacters.some(c => c.name === cAdd.name && c.themeName === currentThemeName)) {

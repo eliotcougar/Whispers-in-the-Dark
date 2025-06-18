@@ -21,7 +21,7 @@ export interface UseRealityShiftProps {
   getCurrentGameState: () => FullGameState;
   setGameStateStack: Dispatch<SetStateAction<GameStateStack>>;
   loadInitialGame: (options: { explicitThemeName?: string | null; isRestart?: boolean; isTransitioningFromShift?: boolean; customGameFlag?: boolean; savedStateToLoad?: FullGameState | null; }) => void;
-  enabledThemePacksProp: ThemePackName[];
+  enabledThemePacksProp: Array<ThemePackName>;
   playerGenderProp: string;
   stabilityLevelProp: number;
   chaosLevelProp: number;

@@ -22,7 +22,7 @@ import { retryAiCall } from '../../utils/retry';
 /** Structure returned when correcting character details. */
 export interface CorrectedCharacterDetails {
   description: string;
-  aliases: string[];
+  aliases: Array<string>;
   presenceStatus: Character['presenceStatus'];
   lastKnownLocation: string | null;
   preciseLocation: string | null;
@@ -36,7 +36,7 @@ export const fetchCorrectedCharacterDetails_Service = async (
   logMessage: string | undefined,
   sceneDescription: string | undefined,
   currentTheme: AdventureTheme,
-  allRelevantMapNodes: MapNode[]
+  allRelevantMapNodes: Array<MapNode>
 ): Promise<CorrectedCharacterDetails | null> => {
   if (!isApiConfigured()) {
     console.error(`fetchCorrectedCharacterDetails_Service: API Key not configured. Cannot fetch details for "${characterName}".`);
@@ -131,7 +131,7 @@ export const fetchCorrectedCompanionOrNPCLocation_Service = async (
   characterName: string,
   logMessage: string | undefined,
   sceneDescription: string | undefined,
-  allRelevantMapNodes: MapNode[],
+  allRelevantMapNodes: Array<MapNode>,
   invalidPreciseLocationPayload: string,
   currentTheme: AdventureTheme
 ): Promise<string | null> => {

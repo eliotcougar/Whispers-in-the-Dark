@@ -16,7 +16,7 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 export const executeAIMainTurn = async (
     fullPrompt: string,
     themeSystemInstructionModifier: string | undefined // Retain as string for direct use
-): Promise<{ response: GenerateContentResponse; thoughts: string[] }> => {
+): Promise<{ response: GenerateContentResponse; thoughts: Array<string> }> => {
     addProgressSymbol(LOADING_REASON_UI_MAP['storyteller'].icon);
     if (!isApiConfigured()) {
       console.error("API Key not configured for Gemini Service.");
@@ -68,7 +68,7 @@ export const executeAIMainTurn = async (
 export const summarizeThemeAdventure_Service = async (
   themeToSummarize: AdventureTheme, // Changed to AdventureTheme object
   lastSceneDescription: string,
-  actionLog: string[]
+  actionLog: Array<string>
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error("API Key not configured for Gemini Service. Cannot summarize.");

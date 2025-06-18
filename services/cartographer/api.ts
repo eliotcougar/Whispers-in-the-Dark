@@ -25,10 +25,10 @@ export const updateMapFromAIData_Service = async (
   aiData: GameStateFromAI,
   currentMapData: MapData,
   currentTheme: AdventureTheme,
-  allKnownMainMapNodesForTheme: MapNode[],
+  allKnownMainMapNodesForTheme: Array<MapNode>,
   previousMapNodeId: string | null,
-  inventoryItems: Item[],
-  knownCharacters: Character[],
+  inventoryItems: Array<Item>,
+  knownCharacters: Array<Character>,
 ): Promise<MapUpdateServiceResult | null> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Map Update Service.');
@@ -55,7 +55,7 @@ export const updateMapFromAIData_Service = async (
     currentThemeNodeIdsSet.has(e.targetNodeId),
   );
 
-  const minimalModelCalls: MinimalModelCallRecord[] = [];
+  const minimalModelCalls: Array<MinimalModelCallRecord> = [];
 
   const previousMapNodeContext = referenceMapNodeId
     ? `${referenceMapNodeId}`

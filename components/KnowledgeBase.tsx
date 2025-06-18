@@ -8,15 +8,13 @@ import { Character, AdventureTheme } from '../types';
 import { Icon } from './icons.tsx';
 
 interface KnowledgeBaseProps {
-  readonly allCharacters: Character[];
+  readonly allCharacters: Array<Character>;
   readonly currentTheme: AdventureTheme | null; // Changed to AdventureTheme object
   readonly isVisible: boolean;
   readonly onClose: () => void;
 }
 
-interface GroupedEntities {
-  [themeName: string]: Character[] | undefined;
-}
+type GroupedEntities = Record<string, Array<Character> | undefined>;
 
 /**
  * Lists discovered characters grouped by their associated theme.

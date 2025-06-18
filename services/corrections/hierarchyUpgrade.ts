@@ -21,7 +21,7 @@ export const decideFeatureHierarchyUpgrade_Service = async (
   parentFeature: MapNode,
   childNode: MapNode,
   currentTheme: AdventureTheme,
-  debugLog?: MinimalModelCallRecord[],
+  debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<'convert_child' | 'upgrade_parent' | null> => {
   if (!isApiConfigured()) {
     console.error('decideFeatureHierarchyUpgrade_Service: API Key not configured.');
@@ -66,10 +66,10 @@ export const resolveSplitFamilyOrphans_Service = async (
     logMessage: string | undefined;
     originalParent: MapNode;
     newParent: MapNode;
-    orphanNodes: MapNode[];
+    orphanNodes: Array<MapNode>;
     currentTheme: AdventureTheme;
   },
-): Promise<{ originalChildren: string[]; newChildren: string[] }> => {
+): Promise<{ originalChildren: Array<string>; newChildren: Array<string> }> => {
   if (!isApiConfigured() || context.orphanNodes.length === 0)
     return { originalChildren: [], newChildren: [] };
 
@@ -85,7 +85,7 @@ Return JSON {"originalChildren": ["ids"], "newChildren": ["ids"]}`;
 
   const systemInstruction = 'Assign orphan nodes to either the original or new parent. Respond only with JSON.';
 
-  const result = await retryAiCall<{ originalChildren: string[]; newChildren: string[] }>(async () => {
+  const result = await retryAiCall<{ originalChildren: Array<string>; newChildren: Array<string> }>(async () => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
       const { response } = await dispatchAIRequest({
@@ -96,7 +96,7 @@ Return JSON {"originalChildren": ["ids"], "newChildren": ["ids"]}`;
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
       });
-      const payload = safeParseJson<{ originalChildren: string[]; newChildren: string[] }>(extractJsonFromFence(response.text ?? ''));
+      const payload = safeParseJson<{ originalChildren: Array<string>; newChildren: Array<string> }>(extractJsonFromFence(response.text ?? ''));
       if (
         payload &&
         Array.isArray(payload.originalChildren) &&

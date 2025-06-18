@@ -5,11 +5,11 @@ import { Icon } from './icons';
 import { ItemTypeDisplay } from './InventoryDisplay';
 
 interface LocationItemsDisplayProps {
-  readonly items: Item[];
+  readonly items: Array<Item>;
   readonly onTakeItem: (itemName: string) => void;
   readonly disabled: boolean;
   readonly currentNodeId: string | null;
-  readonly mapNodes: { id: string; placeName: string }[];
+  readonly mapNodes: Array<{ id: string; placeName: string }>;
 }
 
 function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapNodes }: LocationItemsDisplayProps) {

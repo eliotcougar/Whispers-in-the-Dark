@@ -77,14 +77,14 @@ export const executeDialogueTurn = async (
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
-  knownMainMapNodesInTheme: MapNode[],
-  knownCharactersInTheme: Character[],
-  inventory: Item[],
+  knownMainMapNodesInTheme: Array<MapNode>,
+  knownCharactersInTheme: Array<Character>,
+  inventory: Array<Item>,
   playerGender: string,
-  dialogueHistory: DialogueHistoryEntry[],
+  dialogueHistory: Array<DialogueHistoryEntry>,
   playerLastUtterance: string,
-  dialogueParticipants: string[],
-): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string; thoughts: string[] }> => {
+  dialogueParticipants: Array<string>,
+): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -147,7 +147,7 @@ export const executeDialogueTurn = async (
  */
 export const executeDialogueSummary = async (
   summaryContext: DialogueSummaryContext,
-): Promise<{ parsed: GameStateFromAI | null; prompt: string; rawResponse: string; thoughts: string[] }> => {
+): Promise<{ parsed: GameStateFromAI | null; prompt: string; rawResponse: string; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Summary Service.');
     return Promise.reject(new Error('API Key not configured.'));

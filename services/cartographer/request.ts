@@ -68,7 +68,7 @@ export interface MapUpdateRequestResult {
 export const fetchMapUpdatePayload = async (
   basePrompt: string,
   systemInstruction: string,
-  minimalModelCalls: MinimalModelCallRecord[],
+  minimalModelCalls: Array<MinimalModelCallRecord>,
 ): Promise<MapUpdateRequestResult> => {
   let prompt = basePrompt;
   const debugInfo: MapUpdateDebugInfo = {

@@ -23,7 +23,7 @@ export const fetchCorrectedName_Service = async (
   malformedOrPartialName: string,
   contextualLogMessage: string | undefined,
   contextualSceneDescription: string | undefined,
-  validNamesList: string[],
+  validNamesList: Array<string>,
   currentTheme: AdventureTheme
 ): Promise<string | null> => {
   if (!isApiConfigured()) {

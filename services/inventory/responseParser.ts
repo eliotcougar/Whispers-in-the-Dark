@@ -9,7 +9,7 @@ import { isValidItem, isValidItemReference } from '../parsers/validation';
 import { normalizeItemType, DESTROY_SYNONYMS } from '../../utils/itemSynonyms';
 
 export interface InventoryAIPayload {
-  itemChanges: ItemChange[];
+  itemChanges: Array<ItemChange>;
   observations?: string;
   rationale?: string;
 }
@@ -26,8 +26,8 @@ export const parseInventoryResponse = (
 
   let payload: InventoryAIPayload | null = null;
 
-  const validateArray = (arr: unknown[]): ItemChange[] => {
-    const valid: ItemChange[] = [];
+  const validateArray = (arr: Array<unknown>): Array<ItemChange> => {
+    const valid: Array<ItemChange> = [];
     for (const raw of arr) {
       if (!raw || typeof raw !== 'object') continue;
       const change = raw as ItemChange;

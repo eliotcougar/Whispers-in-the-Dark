@@ -180,7 +180,7 @@ export const useProcessAiResponse = ({
       }
 
       const aiItemChangesFromParser = aiData.itemChange;
-      const correctedAndVerifiedItemChanges: ItemChange[] = [];
+      const correctedAndVerifiedItemChanges: Array<ItemChange> = [];
       if (themeContextForResponse) {
         for (const change of aiItemChangesFromParser) {
           const currentChange = { ...change };

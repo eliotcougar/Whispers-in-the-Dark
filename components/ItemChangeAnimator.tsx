@@ -40,8 +40,8 @@ const HOLD_DURATION_MS = 2000;
  * effective set of uses, ignoring property order.
  */
 const areKnownUsesEffectivelyIdentical = (
-  ku1Array?: KnownUse[],
-  ku2Array?: KnownUse[]
+  ku1Array?: Array<KnownUse>,
+  ku2Array?: Array<KnownUse>
 ): boolean => {
   const kus1 = ku1Array || [];
   const kus2 = ku2Array || [];
@@ -93,7 +93,7 @@ function ItemChangeAnimator({
   lastTurnChanges,
   isGameBusy,
 }: ItemChangeAnimatorProps) {
-  const [animationQueue, setAnimationQueue] = useState<AnimationQueueItem[]>([]);
+  const [animationQueue, setAnimationQueue] = useState<Array<AnimationQueueItem>>([]);
   const [currentAnimatingItem, setCurrentAnimatingItem] = useState<AnimationQueueItem | null>(null);
   const [animationStep, setAnimationStep] = useState<AnimationStep>('idle');
   const [itemForCardDisplay, setItemForCardDisplay] = useState<DisplayableItems | null>(null);
@@ -147,7 +147,7 @@ function ItemChangeAnimator({
 
     setCurrentProcessingChanges(lastTurnChanges);
 
-    const newAnimationQueue: AnimationQueueItem[] = [];
+    const newAnimationQueue: Array<AnimationQueueItem> = [];
     for (const change of lastTurnChanges.itemChanges) {
       if (change.type === 'gain' && change.gainedItem) {
         newAnimationQueue.push({ type: 'gain', item: change.gainedItem });

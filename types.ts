@@ -41,7 +41,7 @@ export interface Item {
   description: string; // Default/inactive description
   activeDescription?: string; // Optional: Description when item.isActive is true
   isActive?: boolean; // Defaults to false if undefined
-  knownUses?: KnownUse[]; // Discovered specific ways to use the item
+  knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
   isJunk?: boolean; // Flag for unimportant items
   holderId: string; // ID of the entity holding this item or 'player'
   // --- Fields for "update" action payloads ---
@@ -82,7 +82,7 @@ export interface ItemChange {
 
 export interface DialogueSummaryRecord {
   summaryText: string;
-  participants: string[]; // Names of characters involved in that dialogue
+  participants: Array<string>; // Names of characters involved in that dialogue
   timestamp: string; // localTime when the dialogue occurred
   location: string; // localPlace where the dialogue occurred
 }
@@ -92,11 +92,11 @@ export interface Character {
   themeName: string;
   name: string;
   description: string;
-  aliases?: string[];
+  aliases?: Array<string>;
   presenceStatus: PresenceStatus;
   lastKnownLocation: string | null; // General location when not 'nearby' or 'companion', can be a MapNode.placeName or descriptive
   preciseLocation: string | null;    // Specific location in scene if 'nearby' or 'companion'
-  dialogueSummaries?: DialogueSummaryRecord[]; // Stores summaries of past dialogues
+  dialogueSummaries?: Array<DialogueSummaryRecord>; // Stores summaries of past dialogues
 }
 
 // --- Dialogue Mode Types ---
@@ -111,23 +111,23 @@ export type DialogueHistoryEntry = DialogueTurnResponsePart;
 
 // New structure for active dialogue state
 export interface DialogueData {
-  participants: string[];
-  history: DialogueHistoryEntry[];
-  options: string[];
+  participants: Array<string>;
+  history: Array<DialogueHistoryEntry>;
+  options: Array<string>;
 }
 
 // Structure for AI to return when initiating dialogue
 export interface DialogueSetupPayload {
-  participants: string[];
-  initialNpcResponses: DialogueTurnResponsePart[];
-  initialPlayerOptions: string[];
+  participants: Array<string>;
+  initialNpcResponses: Array<DialogueTurnResponsePart>;
+  initialPlayerOptions: Array<string>;
 }
 
 export interface DialogueAIResponse { // AI response for a single turn *during* dialogue
-  npcResponses: DialogueTurnResponsePart[];
-  playerOptions: string[];
+  npcResponses: Array<DialogueTurnResponsePart>;
+  playerOptions: Array<string>;
   dialogueEnds?: boolean;
-  updatedParticipants?: string[];
+  updatedParticipants?: Array<string>;
 }
 
 // Context object for building a dialogue turn prompt
@@ -139,13 +139,13 @@ export interface DialogueTurnContext {
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null;
-  knownMainMapNodesInTheme: MapNode[];
-  knownCharactersInTheme: Character[];
-  inventory: Item[];
+  knownMainMapNodesInTheme: Array<MapNode>;
+  knownCharactersInTheme: Array<Character>;
+  inventory: Array<Item>;
   playerGender: string;
-  dialogueHistory: DialogueHistoryEntry[];
+  dialogueHistory: Array<DialogueHistoryEntry>;
   playerLastUtterance: string;
-  dialogueParticipants: string[];
+  dialogueParticipants: Array<string>;
 }
 
 export interface DialogueSummaryContext {
@@ -156,11 +156,11 @@ export interface DialogueSummaryContext {
   localEnvironment: string | null;
   localPlace: string | null; // The free-text local place string
   mapDataForTheme: MapData; // Map data for the current theme (nodes and edges)
-  knownCharactersInTheme: Character[];
-  inventory: Item[];
+  knownCharactersInTheme: Array<Character>;
+  inventory: Array<Item>;
   playerGender: string;
-  dialogueLog: DialogueHistoryEntry[]; 
-  dialogueParticipants: string[];
+  dialogueLog: Array<DialogueHistoryEntry>; 
+  dialogueParticipants: Array<string>;
   themeName: string; // Retained for direct theme name access if needed
   currentThemeObject: AdventureTheme | null; // Added for full theme object access
 }
@@ -173,8 +173,8 @@ export interface DialogueMemorySummaryContext {
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null;
-  dialogueParticipants: string[];
-  dialogueLog: DialogueHistoryEntry[];
+  dialogueParticipants: Array<string>;
+  dialogueLog: Array<DialogueHistoryEntry>;
 }
 
 
@@ -184,29 +184,29 @@ export type DialogueSummaryResponse = GameStateFromAI;
 
 export interface GameStateFromAI {
   sceneDescription: string; 
-  options: string[]; 
+  options: Array<string>; 
 
   mainQuest?: string; 
   currentObjective?: string;
-  itemChange: ItemChange[]; 
+  itemChange: Array<ItemChange>; 
   logMessage?: string;
-  charactersAdded?: { 
+  charactersAdded?: Array<{ 
     name: string; 
     description: string; 
-    aliases?: string[]; 
+    aliases?: Array<string>; 
     presenceStatus?: Character['presenceStatus'];
     lastKnownLocation?: string | null; 
     preciseLocation?: string | null;
-  }[]; 
-  charactersUpdated?: { 
+  }>; 
+  charactersUpdated?: Array<{ 
     name: string; 
     newDescription?: string; 
-    newAliases?: string[]; 
+    newAliases?: Array<string>; 
     addAlias?: string; 
     newPresenceStatus?: Character['presenceStatus'];
     newLastKnownLocation?: string | null; 
     newPreciseLocation?: string | null;
-  }[];
+  }>;
   objectiveAchieved?: boolean;
   localTime?: string;
   localEnvironment?: string;
@@ -218,7 +218,7 @@ export interface GameStateFromAI {
   playerItemsHint?: string;
   worldItemsHint?: string;
   npcItemsHint?: string;
-  newItems?: NewItemSuggestion[];
+  newItems?: Array<NewItemSuggestion>;
   // placesAdded and placesUpdated are removed from storyteller responsibility
 }
 
@@ -235,13 +235,11 @@ export interface ThemeMemory {
   summary: string;
   mainQuest: string;
   currentObjective: string;
-  placeNames: string[]; // These will be MapNode.placeName of main map nodes in the theme
-  characterNames: string[];
+  placeNames: Array<string>; // These will be MapNode.placeName of main map nodes in the theme
+  characterNames: Array<string>;
 }
 
-export interface ThemeHistoryState {
-  [themeName: string]: ThemeMemory;
-}
+export type ThemeHistoryState = Record<string, ThemeMemory>;
 
 // --- TurnChanges Data Structures ---
 export interface ItemChangeRecord {
@@ -261,8 +259,8 @@ export interface CharacterChangeRecord {
 }
 
 export interface TurnChanges {
-  itemChanges: ItemChangeRecord[];
-  characterChanges: CharacterChangeRecord[];
+  itemChanges: Array<ItemChangeRecord>;
+  characterChanges: Array<CharacterChangeRecord>;
   objectiveAchieved: boolean;
   objectiveTextChanged: boolean;
   mainQuestTextChanged: boolean;
@@ -289,7 +287,7 @@ export interface MapLayoutConfig {
 
 export interface MapNodeData {
   description: string; // Description is ALWAYS REQUIRED.
-  aliases?: string[];  // Optional, can be updated.
+  aliases?: Array<string>;  // Optional, can be updated.
   status: MapNodeStatus;
   visited?: boolean; // Managed by game logic, not AI directly.
   parentNodeId?: string; // ID of parent node for hierarchical placement.
@@ -323,8 +321,8 @@ export interface MapEdge {
 }
 
 export interface MapData {
-  nodes: MapNode[];
-  edges: MapEdge[];
+  nodes: Array<MapNode>;
+  edges: Array<MapEdge>;
 }
 // --- End Map Data Structures ---
 
@@ -346,8 +344,8 @@ export interface AISplitFamilyOperation {
   newNodeId: string;
   newNodeType: MapNodeData['nodeType'];
   newConnectorNodeId: string;
-  originalChildren: string[];
-  newChildren: string[];
+  originalChildren: Array<string>;
+  newChildren: Array<string>;
 }
 
 export interface AIMapUpdatePayload {
@@ -356,17 +354,17 @@ export interface AIMapUpdatePayload {
   // Description and aliases are required for all new nodes.
   observations?: string | null;
   rationale?: string | null;
-  nodesToAdd?: (AINodeUpdate & {
+  nodesToAdd?: Array<AINodeUpdate & {
     data: {
       status: MapNodeData['status'];
       parentNodeId: string;
     } & Partial<Omit<MapNodeData, 'status' | 'parentNodeId'>>;
-  })[] | null;
-  nodesToUpdate?: { placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }[] | null; // Added placeName to newData for renaming
-  nodesToRemove?: { nodeId: string; nodeName?: string; }[] | null;
-  edgesToAdd?: { sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }[] | null;
-  edgesToUpdate?: AIEdgeUpdate[] | null;
-  edgesToRemove?: { edgeId: string; sourceId?: string; targetId?: string; }[] | null;
+  }> | null;
+  nodesToUpdate?: Array<{ placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }> | null; // Added placeName to newData for renaming
+  nodesToRemove?: Array<{ nodeId: string; nodeName?: string; }> | null;
+  edgesToAdd?: Array<{ sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }> | null;
+  edgesToUpdate?: Array<AIEdgeUpdate> | null;
+  edgesToRemove?: Array<{ edgeId: string; sourceId?: string; targetId?: string; }> | null;
   suggestedCurrentMapNodeId?: string | null | undefined;
   splitFamily?: AISplitFamilyOperation | null | undefined;
 }
@@ -383,7 +381,7 @@ export interface MinimalModelCallRecord {
 export interface DialogueTurnDebugEntry {
   prompt: string;
   rawResponse: string;
-  thoughts?: string[];
+  thoughts?: Array<string>;
 }
 
 
@@ -393,7 +391,7 @@ export interface DebugPacket {
   parsedResponse: GameStateFromAI | null;
   error?: string;
   timestamp: string;
-  storytellerThoughts?: string[] | null;
+  storytellerThoughts?: Array<string> | null;
   mapUpdateDebugInfo?: {
     prompt: string;
     rawResponse?: string;
@@ -401,8 +399,8 @@ export interface DebugPacket {
     validationError?: string;
     observations?: string;
     rationale?: string;
-    minimalModelCalls?: MinimalModelCallRecord[];
-    connectorChainsDebugInfo?: {
+    minimalModelCalls?: Array<MinimalModelCallRecord>;
+    connectorChainsDebugInfo?: Array<{
       round: number;
       prompt: string;
       rawResponse?: string;
@@ -410,20 +408,20 @@ export interface DebugPacket {
       validationError?: string;
       observations?: string;
       rationale?: string;
-    }[] | null;
+    }> | null;
   } | null;
   inventoryDebugInfo?: {
     prompt: string;
     rawResponse?: string;
-    parsedItemChanges?: ItemChange[];
+    parsedItemChanges?: Array<ItemChange>;
     observations?: string;
     rationale?: string;
   } | null;
   dialogueDebugInfo?: {
-    turns: DialogueTurnDebugEntry[];
+    turns: Array<DialogueTurnDebugEntry>;
     summaryPrompt?: string;
     summaryRawResponse?: string;
-    summaryThoughts?: string[];
+    summaryThoughts?: Array<string>;
   } | null;
 }
 
@@ -433,15 +431,15 @@ export interface FullGameState {
   currentThemeName: string | null; // Retained for quick access and backward compatibility
   currentThemeObject: AdventureTheme | null; // Stores the full theme object
   currentScene: string;
-  actionOptions: string[]; 
+  actionOptions: Array<string>; 
   mainQuest: string | null;
   currentObjective: string | null;
-  inventory: Item[];
-  gameLog: string[]; 
+  inventory: Array<Item>;
+  gameLog: Array<string>; 
   lastActionLog: string | null;
   themeHistory: ThemeHistoryState;
   pendingNewThemeNameAfterShift: string | null; 
-  allCharacters: Character[];
+  allCharacters: Array<Character>;
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
   destinationNodeId: string | null; // Optional destination node ID
@@ -458,7 +456,7 @@ export interface FullGameState {
 
   // Configuration snapshot (remains part of FullGameState for runtime and saving)
   playerGender: string;
-  enabledThemePacks: ThemePackName[];
+  enabledThemePacks: Array<ThemePackName>;
   stabilityLevel: number;
   chaosLevel: number;
 
@@ -511,7 +509,7 @@ export type GameStateStack = [FullGameState, FullGameState?];
 export type ValidCharacterUpdatePayload = {
   name: string;
   newDescription?: string;
-  newAliases?: string[];
+  newAliases?: Array<string>;
   addAlias?: string;
   newPresenceStatus?: Character['presenceStatus'];
   newLastKnownLocation?: string | null;
@@ -522,7 +520,7 @@ export type ValidCharacterUpdatePayload = {
 export type ValidNewCharacterPayload = {
   name: string;
   description: string;
-  aliases?: string[];
+  aliases?: Array<string>;
   presenceStatus?: Character['presenceStatus'];
   lastKnownLocation?: string | null;
   preciseLocation?: string | null;

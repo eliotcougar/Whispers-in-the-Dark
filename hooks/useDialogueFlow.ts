@@ -24,10 +24,10 @@ interface UseDialogueFlowProps {
     summaryPayload: GameStateFromAI | null,
     preparedGameState: FullGameState,
     debugInfo: {
-      turns: DialogueTurnDebugEntry[];
+      turns: Array<DialogueTurnDebugEntry>;
       summaryPrompt?: string;
       summaryRawResponse?: string;
-      summaryThoughts?: string[];
+      summaryThoughts?: Array<string>;
     }
   ) => void;
 }
@@ -46,7 +46,7 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     onDialogueConcluded,
   } = props;
 
-  const dialogueLogsRef = useRef<DialogueTurnDebugEntry[]>([]);
+  const dialogueLogsRef = useRef<Array<DialogueTurnDebugEntry>>([]);
 
   const addDebugEntry = (entry: DialogueTurnDebugEntry) => {
     dialogueLogsRef.current.push(entry);

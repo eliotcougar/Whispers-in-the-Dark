@@ -16,7 +16,7 @@ interface DebugViewProps {
   readonly debugPacket: DebugPacket | null;
   readonly gameStateStack: GameStateStack;
   readonly onUndoTurn: () => void; // New prop for undoing turn
-  readonly travelPath: TravelStep[] | null;
+  readonly travelPath: Array<TravelStep> | null;
 }
 
 type DebugTab =
@@ -137,7 +137,7 @@ function DebugView({
               if ('lastTurnChanges' in contentForDisplay) delete contentForDisplay.lastTurnChanges;
 
               if ('mapData' in contentForDisplay) {
-                const mapData = contentForDisplay.mapData as { nodes: MapNode[]; edges: unknown[] } | undefined;
+                const mapData = contentForDisplay.mapData as { nodes: Array<MapNode>; edges: Array<unknown> } | undefined;
 
                 if (mapData && Array.isArray(mapData.nodes) && Array.isArray(mapData.edges)) {
                   (contentForDisplay as Record<string, unknown>).mapDataSummary = {
@@ -188,7 +188,7 @@ function DebugView({
   
   const timestamp = debugPacket?.timestamp ? new Date(debugPacket.timestamp).toLocaleString() : "N/A";
 
-  const tabs: { name: DebugTab; label: string }[] = [
+  const tabs: Array<{ name: DebugTab; label: string }> = [
     { name: "GameState", label: "Game State" },
     { name: "MainAI", label: "Storyteller AI" },
     { name: "MapLocationAI", label: "Cartographer AI" },

@@ -28,9 +28,9 @@ export const fetchCorrectedDialogueSetup_Service = async (
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
   currentTheme: AdventureTheme,
-  allRelevantCharacters: Character[],
-  allRelevantMapNodes: MapNode[],
-  currentInventory: Item[],
+  allRelevantCharacters: Array<Character>,
+  allRelevantMapNodes: Array<MapNode>,
+  currentInventory: Array<Item>,
   playerGender: string,
   malformedDialogueSetup: Partial<DialogueSetupPayload>
 ): Promise<DialogueSetupPayload | null> => {
@@ -107,9 +107,9 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
  */
 export const fetchCorrectedDialogueTurn_Service = async (
   malformedResponseText: string,
-  validParticipants: string[],
+  validParticipants: Array<string>,
   currentTheme: AdventureTheme,
-  npcThoughts?: string[],
+  npcThoughts?: Array<string>,
 ): Promise<DialogueAIResponse | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedDialogueTurn_Service: API Key not configured.');

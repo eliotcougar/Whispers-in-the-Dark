@@ -32,7 +32,7 @@ interface MapDisplayProps {
   readonly initialLayoutConfig: MapLayoutConfig;
   readonly initialViewBox: string;
   readonly onViewBoxChange: (newViewBox: string) => void;
-  readonly onNodesPositioned: (nodes: MapNode[]) => void;
+  readonly onNodesPositioned: (nodes: Array<MapNode>) => void;
   readonly onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
   readonly isVisible: boolean;
   readonly onClose: () => void;
@@ -56,7 +56,7 @@ function MapDisplay({
   isVisible,
   onClose,
 }: MapDisplayProps) {
-  const [displayedNodes, setDisplayedNodes] = useState<MapNode[]>([]);
+  const [displayedNodes, setDisplayedNodes] = useState<Array<MapNode>>([]);
 
   const [layoutIdealEdgeLength, setLayoutIdealEdgeLength] = useState(
     initialLayoutConfig.IDEAL_EDGE_LENGTH
@@ -120,13 +120,13 @@ function MapDisplay({
 
   /** Nodes belonging to the current theme. */
   const currentThemeNodes = useMemo(() => {
-    if (!currentThemeName) return [] as MapNode[];
+    if (!currentThemeName) return [] as Array<MapNode>;
     return mapData.nodes.filter(node => node.themeName === currentThemeName);
   }, [mapData.nodes, currentThemeName]);
 
   /** Edges belonging to the current theme. */
   const currentThemeEdges = useMemo(() => {
-    if (!currentThemeName) return [] as MapEdge[];
+    if (!currentThemeName) return [] as Array<MapEdge>;
     const themeNodeIds = new Set(currentThemeNodes.map(node => node.id));
     return mapData.edges.filter(
       edge =>

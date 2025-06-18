@@ -29,7 +29,7 @@ import {
 const supportsSystemInstruction = (model: string): boolean => !model.startsWith('gemma-');
 
 export interface ModelDispatchOptions {
-  modelNames: string[];
+  modelNames: Array<string>;
   prompt: string;
   systemInstruction?: string;
   temperature?: number;
@@ -38,7 +38,7 @@ export interface ModelDispatchOptions {
   includeThoughts?: boolean;
   responseSchema?: object;
   label?: string;
-  debugLog?: MinimalModelCallRecord[];
+  debugLog?: Array<MinimalModelCallRecord>;
 }
 
 /**

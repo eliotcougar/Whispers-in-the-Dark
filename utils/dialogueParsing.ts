@@ -14,7 +14,7 @@ export interface DialogueHints {
   playerItemsHint?: string;
   worldItemsHint?: string;
   npcItemsHint?: string;
-  newItems?: NewItemSuggestion[];
+  newItems?: Array<NewItemSuggestion>;
 }
 
 /**
