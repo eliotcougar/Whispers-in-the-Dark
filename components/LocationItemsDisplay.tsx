@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import * as React from 'react';
 import { Item } from '../types';
-import { InventoryIcon } from './icons';
+import { Icon } from './icons';
 import { ItemTypeDisplay } from './InventoryDisplay';
 
 interface LocationItemsDisplayProps {
@@ -29,7 +29,7 @@ function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapN
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700">
       <h3 className="text-xl font-bold text-amber-400 mb-2 border-b-2 border-amber-700 pb-2 flex items-center">
-        <InventoryIcon />
+        <Icon name="inventory" className="h-5 w-5 mr-2 inline-block text-amber-400" />
 
         {' '}
         Items Here

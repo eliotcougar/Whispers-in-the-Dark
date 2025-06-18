@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import * as React from 'react';
 import { Item, KnownUse } from '../types';
-import { InventoryIcon, TrashIcon } from './icons.tsx';
+import { Icon } from './icons.tsx';
 import ItemActionButton from './ItemActionButton';
 
 interface InventoryDisplayProps {
@@ -217,7 +217,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
       <h3 className="text-xl font-bold text-amber-400 mb-2 border-b-2 border-amber-700 pb-2 flex items-center">
-        <InventoryIcon />
+        <Icon name="inventory" className="h-5 w-5 mr-2 inline-block text-amber-400" />
 
         {' '}
         Inventory
@@ -373,7 +373,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       disabled={disabled}
                       key={`${item.name}-discard`}
                       label={<>
-                        <TrashIcon />
+                        <Icon name="trash" className="w-4 h-4 inline-block mr-1 text-white" />
 
                         {' '}
                         Discard

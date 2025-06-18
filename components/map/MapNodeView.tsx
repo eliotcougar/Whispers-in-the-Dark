@@ -15,7 +15,7 @@ import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
 } from '../../constants';
-import { MapItemBoxIcon, MapWheelIcon } from '../icons';
+import { Icon } from '../icons';
 import { isDescendantOf } from '../../utils/mapGraphUtils';
 import { getSVGCoordinates, getScreenCoordinates } from '../../utils/svgUtils';
 
@@ -637,7 +637,8 @@ function MapNodeView({
                   pointerEvents="none"
                   transform={`translate(${usefulX}, ${usefulY})`}
                 >
-                  <MapItemBoxIcon
+                  <Icon
+                    name="mapItemBox"
                     className="text-green-400"
                     size={iconSize}
                   />
@@ -649,7 +650,8 @@ function MapNodeView({
                   pointerEvents="none"
                   transform={`translate(${vehicleX}, ${vehicleY})`}
                 >
-                  <MapWheelIcon
+                  <Icon
+                    name="mapWheel"
                     className="text-green-400"
                     size={iconSize}
                   />
