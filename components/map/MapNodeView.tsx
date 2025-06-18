@@ -638,8 +638,8 @@ function MapNodeView({
                   transform={`translate(${usefulX}, ${usefulY})`}
                 >
                   <Icon
-                    name="mapItemBox"
                     className="text-green-400"
+                    name="mapItemBox"
                     size={iconSize}
                   />
                 </g>
@@ -651,8 +651,8 @@ function MapNodeView({
                   transform={`translate(${vehicleX}, ${vehicleY})`}
                 >
                   <Icon
-                    name="mapWheel"
                     className="text-green-400"
+                    name="mapWheel"
                     size={iconSize}
                   />
                 </g>
