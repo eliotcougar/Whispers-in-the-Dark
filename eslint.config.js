@@ -32,7 +32,7 @@ const tsCompat = compat.config({
   extends: [
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
-    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/strict',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     /*'plugin:@typescript-eslint/stylistic',
     'plugin:@typescript-eslint/stylistic-type-checked'*/
@@ -49,25 +49,25 @@ const tsCompat = compat.config({
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
-    'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],
     'react-hooks/exhaustive-deps': 'error',
     'react-hooks/rules-of-hooks': 'error',
     'react/jsx-no-leaked-render': 'error',  
     'react/no-array-index-key' : 'error',
+    'react/jsx-no-bind': 'error',
+    'react/no-object-type-as-default-prop': 'error',
+    'react/prefer-read-only-props': 'error',
     'react/jsx-indent-props': ['warn', 2],
     'react/jsx-indent': ['warn', 2],
-    'react/jsx-no-bind': 'error',
     'react/jsx-sort-props': 'warn',
     'react/sort-default-props': 'warn',
-    'react/prefer-read-only-props': 'error',
     'react/function-component-definition': 'warn',
     'react/require-default-props': 'warn',
     'react/jsx-closing-tag-location': ['warn', 'line-aligned'],
     'react/button-has-type': 'warn',
     'react/jsx-handler-names': 'warn',
-    'react/no-object-type-as-default-prop': 'error',
+    'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],
     /*'@typescript-eslint/no-unnecessary-condition': 'error'*/
-    '@typescript-eslint/no-non-null-assertion': 'warn'
+    '@typescript-eslint/no-non-null-assertion': 'error'
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
 
