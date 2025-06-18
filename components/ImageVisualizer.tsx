@@ -245,6 +245,7 @@ function ImageVisualizer({
           aria-label="Close visualizer"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>
@@ -269,6 +270,7 @@ function ImageVisualizer({
           <button
             className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow transition-colors"
             onClick={handleRetry}
+            type="button"
           >
             Retry Visualization
           </button>

@@ -187,6 +187,7 @@ function MapDisplay({
           aria-label="Close map view"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>

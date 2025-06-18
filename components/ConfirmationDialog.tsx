@@ -79,6 +79,7 @@ function ConfirmationDialog({
             aria-label={cancelText}
             className="px-5 py-2.5 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-400"
             onClick={onCancel}
+            type="button"
           >
             {cancelText}
           </button>
@@ -87,6 +88,7 @@ function ConfirmationDialog({
             aria-label={confirmText}
             className={`px-5 py-2.5 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 ${confirmButtonClass} focus:ring-opacity-75`}
             onClick={onConfirm}
+            type="button"
           >
             {confirmText}
           </button>
@@ -112,10 +114,10 @@ function ConfirmationDialog({
 }
 
 ConfirmationDialog.defaultProps = {
-  confirmText: 'Confirm',
   cancelText: 'Cancel',
   confirmButtonClass: 'bg-sky-600 hover:bg-sky-500',
-  isCustomModeShift: false
+  confirmText: 'Confirm',
+  isCustomModeShift: false,
 };
 
 export default ConfirmationDialog;

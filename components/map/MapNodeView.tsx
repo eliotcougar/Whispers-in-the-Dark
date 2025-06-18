@@ -711,6 +711,7 @@ function MapNodeView({
           className="map-set-destination-button"
           data-node-id={tooltip.nodeId}
           onClick={handleDestinationClick}
+          type="button"
                                              >
           {tooltip.nodeId === destinationNodeId
                 ? 'Remove Destination'

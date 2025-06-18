@@ -149,6 +149,7 @@ function MapControls(props: MapControlsProps) {
           className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500"
           onClick={onReset}
           style={{ flexBasis: '100%', marginTop: '0.5rem' }}
+          type="button"
         >
           Reset to Defaults
         </button>
@@ -158,6 +159,7 @@ function MapControls(props: MapControlsProps) {
         <button
           className="map-control-button"
           onClick={handleToggleExpanded}
+          type="button"
         >
           {expanded ? 'Hide' : 'Show'}
 

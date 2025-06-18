@@ -41,6 +41,7 @@ function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
         <button
           className="bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded shadow transition duration-150 ease-in-out"
           onClick={onRetry}
+          type="button"
         >
           Try Again
         </button>

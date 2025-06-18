@@ -37,6 +37,7 @@ function ItemActionButton({
       data-item-name={dataItemName}
       disabled={disabled}
       onClick={handleClick}
+      type="button"
     >
       {label}
     </button>

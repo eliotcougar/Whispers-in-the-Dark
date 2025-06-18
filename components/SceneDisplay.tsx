@@ -98,9 +98,9 @@ function SceneDisplay({
 
 SceneDisplay.defaultProps = {
   lastActionLog: null,
-  localTime: null,
   localEnvironment: null,
-  localPlace: null
+  localPlace: null,
+  localTime: null,
 };
 
 export default SceneDisplay;

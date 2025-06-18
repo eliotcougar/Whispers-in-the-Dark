@@ -40,9 +40,9 @@ function QuestInfoBox({ mainQuest, currentObjective, objectiveAnimationType }: Q
 }
 
 QuestInfoBox.defaultProps = {
-  mainQuest: null,
   currentObjective: null,
-  objectiveAnimationType: null
+  mainQuest: null,
+  objectiveAnimationType: null,
 };
 
 export default QuestInfoBox;

@@ -143,6 +143,7 @@ function SettingsDisplay({
           aria-label="Close settings"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>

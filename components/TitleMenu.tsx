@@ -47,6 +47,7 @@ function TitleMenu({
           aria-label="Close Title Menu"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
                         >
           &times;
         </button> : null}
@@ -71,6 +72,7 @@ function TitleMenu({
               className="w-full px-6 py-2.5 sm:py-3 bg-red-600 hover:bg-red-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
                          transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-red-400 focus:outline-none"
               onClick={onNewGame}
+              type="button"
             >
               New Game
             </button>
@@ -80,6 +82,7 @@ function TitleMenu({
               className="w-full px-6 py-2.5 sm:py-3 bg-orange-600 hover:bg-orange-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
                          transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-orange-400 focus:outline-none"
               onClick={onCustomGame}
+              type="button"
             >
               Custom Game
             </button>
@@ -89,6 +92,7 @@ function TitleMenu({
               className="w-full px-6 py-2.5 sm:py-3 bg-green-600 hover:bg-green-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
                            transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-green-400 focus:outline-none"
               onClick={onSaveGame}
+              type="button"
                                           >
               Save Game
             </button> : null}
@@ -98,6 +102,7 @@ function TitleMenu({
               className="w-full px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
                          transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-blue-400 focus:outline-none"
               onClick={onLoadGame}
+              type="button"
             >
               Load Game
             </button>
@@ -107,6 +112,7 @@ function TitleMenu({
               className="w-full px-6 py-2.5 sm:py-3 bg-gray-600 hover:bg-gray-500 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
                          transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-gray-400 focus:outline-none"
               onClick={onOpenSettings}
+              type="button"
             >
               Settings
             </button>
@@ -116,6 +122,7 @@ function TitleMenu({
               className="w-full px-6 py-2.5 sm:py-3 bg-cyan-700 hover:bg-cyan-600 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
                          transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-cyan-400 focus:outline-none"
               onClick={onOpenInfo}
+              type="button"
             >
               About
             </button>
@@ -125,6 +132,7 @@ function TitleMenu({
               className="w-full mt-6 sm:mt-8 px-6 py-2.5 sm:py-3 bg-sky-700 hover:bg-sky-600 text-white text-lg sm:text-xl font-semibold rounded-lg shadow-lg
                               transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-sky-500 focus:outline-none"
               onClick={onClose}
+              type="button"
                             >
               Return to Game
             </button> : null}
