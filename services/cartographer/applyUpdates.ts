@@ -646,7 +646,7 @@ export const applyMapUpdates = async ({
               const matchesNodes = (e.sourceNodeId === sourceNodeRef.id && e.targetNodeId === targetNodeRef.id) ||
                                    (e.sourceNodeId === targetNodeRef.id && e.targetNodeId === sourceNodeRef.id);
               return matchesNodes;
-          }) || undefined;
+          }) ?? undefined;
       } else if (edge) {
           if ((edgeRemoveOp.sourceId && edge.sourceNodeId !== edgeRemoveOp.sourceId && edge.targetNodeId !== edgeRemoveOp.sourceId) ||
               (edgeRemoveOp.targetId && edge.sourceNodeId !== edgeRemoveOp.targetId && edge.targetNodeId !== edgeRemoveOp.targetId)) {

@@ -45,14 +45,14 @@ const applyItemActionCore = (
         activeDescription: itemData.activeDescription,
         isActive: itemData.isActive ?? existing.isActive ?? false,
         isJunk: itemData.isJunk ?? existing.isJunk ?? false,
-        knownUses: itemData.knownUses || existing.knownUses || [],
+        knownUses: itemData.knownUses ?? existing.knownUses ?? [],
         holderId: PLAYER_HOLDER_ID,
       };
       newInventory[idx] = updated;
       return newInventory;
     }
 
-    const id = existing ? existing.id : (itemData as Partial<Item>).id || buildItemId(itemData.name);
+    const id = existing ? existing.id : (itemData as Partial<Item>).id ?? buildItemId(itemData.name);
     const finalItem: Item = {
       id,
       name: itemData.name,
@@ -61,7 +61,7 @@ const applyItemActionCore = (
       activeDescription: itemData.activeDescription,
       isActive: itemData.isActive ?? false,
       isJunk: itemData.isJunk ?? false,
-      knownUses: itemData.knownUses || [],
+      knownUses: itemData.knownUses ?? [],
       holderId: PLAYER_HOLDER_ID,
     };
     if (existing) {
@@ -77,7 +77,7 @@ const applyItemActionCore = (
     // Put new item elsewhere (no player animation)
     const itemData = payload as Item;
     const existing = findItemByIdentifier([itemData.id, itemData.name], newInventory, false, true) as Item | null;
-    const id = existing ? existing.id : (itemData as Partial<Item>).id || buildItemId(itemData.name);
+    const id = existing ? existing.id : (itemData as Partial<Item>).id ?? buildItemId(itemData.name);
     const finalItem: Item = {
       id,
       name: itemData.name,
@@ -86,7 +86,7 @@ const applyItemActionCore = (
       activeDescription: itemData.activeDescription,
       isActive: itemData.isActive ?? false,
       isJunk: itemData.isJunk ?? false,
-      knownUses: itemData.knownUses || [],
+      knownUses: itemData.knownUses ?? [],
       holderId: toId,
     };
     if (existing) {
@@ -113,7 +113,7 @@ const applyItemActionCore = (
     };
     const existingItem = findItemByIdentifier([updatePayload.id, updatePayload.name], newInventory, false, true) as Item | null;
     if (!existingItem) {
-      const identifierForLog = updatePayload.id || updatePayload.name || 'unknown';
+      const identifierForLog = updatePayload.id ?? updatePayload.name ?? 'unknown';
       console.warn(`applyItemActionCore ('update'): Item "${identifierForLog}" not found in inventory.`);
       return newInventory;
     }
@@ -144,7 +144,7 @@ const applyItemActionCore = (
       !!updatePayload.name &&
       updatePayload.newName === undefined &&
       updatePayload.name !== existingItem.name;
-    const finalName = updatePayload.newName || (renameOnly ? updatePayload.name : undefined);
+    const finalName = updatePayload.newName ?? (renameOnly ? updatePayload.name : undefined);
     if (finalName && finalName.trim() !== '' && finalName !== existingItem.name) {
       updated.name = finalName;
     }
@@ -419,8 +419,8 @@ export const buildCharacterChangeRecords = (
       ...cAdd,
       id: buildCharacterId(cAdd.name),
       themeName: currentThemeName,
-      aliases: cAdd.aliases || [],
-      presenceStatus: cAdd.presenceStatus || 'unknown',
+      aliases: cAdd.aliases ?? [],
+      presenceStatus: cAdd.presenceStatus ?? 'unknown',
       lastKnownLocation: cAdd.lastKnownLocation === undefined ? null : cAdd.lastKnownLocation,
       preciseLocation: cAdd.preciseLocation === undefined ? null : cAdd.preciseLocation,
       dialogueSummaries: [], // Initialize dialogueSummaries
@@ -431,11 +431,11 @@ export const buildCharacterChangeRecords = (
   charactersUpdatedFromAI.forEach(cUpdate => {
     const oldChar = currentAllCharacters.find(c => c.name === cUpdate.name && c.themeName === currentThemeName);
     if (oldChar) {
-      const newCharData: Character = { ...oldChar, dialogueSummaries: oldChar.dialogueSummaries || [] }; // Preserve summaries
+      const newCharData: Character = { ...oldChar, dialogueSummaries: oldChar.dialogueSummaries ?? [] }; // Preserve summaries
       if (cUpdate.newDescription !== undefined) newCharData.description = cUpdate.newDescription;
       if (cUpdate.newAliases !== undefined) newCharData.aliases = cUpdate.newAliases;
       if (cUpdate.addAlias) {
-        newCharData.aliases = Array.from(new Set([...(newCharData.aliases || []), cUpdate.addAlias]));
+        newCharData.aliases = Array.from(new Set([...(newCharData.aliases ?? []), cUpdate.addAlias]));
       }
       if (cUpdate.newPresenceStatus !== undefined) newCharData.presenceStatus = cUpdate.newPresenceStatus;
       if (cUpdate.newLastKnownLocation !== undefined) newCharData.lastKnownLocation = cUpdate.newLastKnownLocation;
@@ -471,12 +471,12 @@ export const applyAllCharacterChanges = (
   const newAllCharacters = [...currentAllCharacters];
   charactersAddedFromAI.forEach(cAdd => {
     if (!newAllCharacters.some(c => c.name === cAdd.name && c.themeName === currentThemeName)) {
-      const newChar: Character = {
-        ...cAdd,
-        id: buildCharacterId(cAdd.name),
-        themeName: currentThemeName,
-        aliases: cAdd.aliases || [],
-        presenceStatus: cAdd.presenceStatus || 'unknown',
+        const newChar: Character = {
+          ...cAdd,
+          id: buildCharacterId(cAdd.name),
+          themeName: currentThemeName,
+          aliases: cAdd.aliases ?? [],
+          presenceStatus: cAdd.presenceStatus ?? 'unknown',
         lastKnownLocation: cAdd.lastKnownLocation === undefined ? null : cAdd.lastKnownLocation,
         preciseLocation: cAdd.preciseLocation === undefined ? null : cAdd.preciseLocation,
         dialogueSummaries: [], // Initialize dialogueSummaries
@@ -491,11 +491,11 @@ export const applyAllCharacterChanges = (
   charactersUpdatedFromAI.forEach(cUpdate => {
     const idx = newAllCharacters.findIndex(c => c.name === cUpdate.name && c.themeName === currentThemeName);
     if (idx !== -1) {
-      const charToUpdate: Character = { ...newAllCharacters[idx], dialogueSummaries: newAllCharacters[idx].dialogueSummaries || [] }; // Preserve summaries
+      const charToUpdate: Character = { ...newAllCharacters[idx], dialogueSummaries: newAllCharacters[idx].dialogueSummaries ?? [] }; // Preserve summaries
       if (cUpdate.newDescription !== undefined) charToUpdate.description = cUpdate.newDescription;
       if (cUpdate.newAliases !== undefined) charToUpdate.aliases = cUpdate.newAliases;
       if (cUpdate.addAlias) {
-        charToUpdate.aliases = Array.from(new Set([...(charToUpdate.aliases || []), cUpdate.addAlias]));
+        charToUpdate.aliases = Array.from(new Set([...(charToUpdate.aliases ?? []), cUpdate.addAlias]));
       }
       if (cUpdate.newPresenceStatus !== undefined) charToUpdate.presenceStatus = cUpdate.newPresenceStatus;
       if (cUpdate.newLastKnownLocation !== undefined) charToUpdate.lastKnownLocation = cUpdate.newLastKnownLocation;

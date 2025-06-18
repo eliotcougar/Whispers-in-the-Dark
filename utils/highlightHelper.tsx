@@ -53,7 +53,7 @@ export const highlightEntitiesInText = (
   entities: Array<HighlightableEntity>,
   enableMobileTap = false
 ): Array<React.ReactNode> => {
-  if (!text) return [text || '']; 
+  if (!text) return [text ?? ''];
 
   const results: Array<React.ReactNode> = [];
   
@@ -70,7 +70,7 @@ export const highlightEntitiesInText = (
     };
 
     addTermToMap(entity.name, entity.name);
-    (entity.aliases || []).forEach((alias: string) => {
+    (entity.aliases ?? []).forEach((alias: string) => {
       addTermToMap(alias, alias);
     });
 
@@ -113,7 +113,7 @@ export const highlightEntitiesInText = (
       const handleMobileTap = (e: React.MouseEvent<HTMLSpanElement>) => {
         if (window.matchMedia('(hover: none)').matches) {
           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-          const text = e.currentTarget.getAttribute('title') || '';
+          const text = e.currentTarget.getAttribute('title') ?? '';
           showMobileTooltip(text, rect);
         }
       };
@@ -122,7 +122,7 @@ export const highlightEntitiesInText = (
           className={getEntityHighlightClass(matchedTermInfo.entityData.type)}
           key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${match.index}`}
           onClick={enableMobileTap ? handleMobileTap : undefined}
-          title={matchedTermInfo.entityData.description || matchedTermInfo.entityData.name}
+          title={matchedTermInfo.entityData.description ?? matchedTermInfo.entityData.name}
         >
           {matchedString}
         </span>
@@ -163,8 +163,8 @@ export const buildHighlightableEntities = (
         .map(node => ({
           name: node.placeName,
           type: 'place',
-          description: node.data.description || 'A location of interest.',
-          aliases: node.data.aliases || [],
+          description: node.data.description ?? 'A location of interest.',
+          aliases: node.data.aliases ?? [],
         }))
     : [];
 

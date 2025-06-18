@@ -33,5 +33,5 @@ export function normalizeItemType(type: unknown): ItemType | null {
     return lower as ItemType;
   }
   const mapped = ITEM_TYPE_SYNONYMS[lower];
-  return mapped || null;
+  return mapped ?? null;
 }
