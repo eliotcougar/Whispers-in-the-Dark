@@ -20,8 +20,11 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
     <div className="mt-6 bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 max-h-80 overflow-y-auto">
       <h3 className="text-xl font-bold text-emerald-400 mb-4 border-b-2 border-emerald-700 pb-2 flex items-center">
         <Icon
-          className="h-5 w-5 mr-2 inline-block text-emerald-400"
+          color="emerald"
+          inline
+          marginRight={8}
           name="log"
+          size={20}
         />
 
         {' '}

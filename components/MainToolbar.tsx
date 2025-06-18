@@ -45,8 +45,11 @@ function MainToolbar({
           title={`Score: ${score} points`}
         >
           <Icon
-            className="w-5 h-5 mr-2 text-amber-400"
+            color="amber"
+            inline
+            marginRight={8}
             name="coin"
+            size={20}
           />
 
           <span className="text-amber-400 font-semibold text-lg">
@@ -85,97 +88,103 @@ function MainToolbar({
       <div className="flex space-x-2">
         <button
           aria-label="Visualize Scene"
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
+                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                      transition-colors duration-150"
           disabled={isLoading || !currentThemeName || !currentSceneExists}
           onClick={onOpenVisualizer}
           title="Visualize Scene"
           type="button"
         >
           <Icon
-            className="w-5 h-5"
+            inline
             name="visualize"
+            size={20}
           />
         </button>
 
         <button
           aria-label="Open Knowledge Base"
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
+                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                      transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
           onClick={onOpenKnowledgeBase}
           title="Open Knowledge Base"
           type="button"
         >
           <Icon
-            className="w-5 h-5"
+            inline
             name="bookOpen"
+            size={20}
           />
         </button>
 
         <button
           aria-label="Open History"
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
+                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                      transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
           onClick={onOpenHistory}
           title="Open History"
           type="button"
         >
           <Icon
-            className="w-5 h-5"
+            inline
             name="scroll"
+            size={20}
           />
         </button>
 
         <button
           aria-label="Open Map"
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          className="flex items-center justify-center w-9 h-9 p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
+                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                      transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
           onClick={onOpenMap}
           title="Open Map"
           type="button"
         >
           <Icon
-            className="w-5 h-5"
+            inline
             name="map"
+            size={20}
           />
         </button>
 
         <button
           aria-label="Force Reality Shift"
-          className="p-2 bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          className="flex items-center justify-center w-9 h-9 p-2 bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md
+                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                      transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
           onClick={onManualRealityShift}
           title="Force Reality Shift"
           type="button"
         >
           <Icon
-            className="w-5 h-5"
+            inline
             name="realityShift"
+            size={20}
           />
         </button>
 
         <button
           aria-label="Open Title Menu"
-          className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          className="flex items-center justify-center w-9 h-9 p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md
+                      disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
+                      transition-colors duration-150"
           disabled={isLoading}
           onClick={onOpenTitleMenu}
           title="Open Title Menu"
           type="button"
         >
           <Icon
-            className="w-5 h-5"
+            inline
             name="menu"
+            size={20}
           />
         </button>
       </div>

@@ -220,8 +220,11 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
       <h3 className="text-xl font-bold text-amber-400 mb-2 border-b-2 border-amber-700 pb-2 flex items-center">
         <Icon
-          className="h-5 w-5 mr-2 inline-block text-amber-400"
+          color="amber"
+          inline
+          marginRight={8}
           name="inventory"
+          size={20}
         />
 
         {' '}
@@ -373,44 +376,47 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                   {item.isJunk && !isConfirmingDiscard ? (
                     <ItemActionButton
                       ariaLabel={`Discard ${item.name}`}
-                      className="bg-orange-700 hover:bg-orange-600"
                       dataItemName={item.name}
                       disabled={disabled}
                       key={`${item.name}-discard`}
                       label={<>
                         <Icon
-                          className="w-4 h-4 inline-block mr-1 text-white"
+                          color="white"
+                          inline
+                          marginRight={4}
                           name="trash"
+                          size={16}
                         />
 
                         {' '}
                         Discard
                       </>}
                       onClick={handleStartConfirmDiscard}
+                      variant="danger"
                     />
                   ) : null}
 
                   {!item.isJunk && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
                     <ItemActionButton
                       ariaLabel={`Drop ${item.name}`}
-                      className="bg-sky-700 hover:bg-sky-600"
                       dataItemName={item.name}
                       disabled={disabled}
                       key={`${item.name}-drop`}
                       label="Drop"
                       onClick={handleStartConfirmDiscard}
+                      variant="primary"
                     />
                   )}
 
                   {!item.isJunk && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
                     <ItemActionButton
                       ariaLabel={`Park ${item.name} here`}
-                      className="bg-sky-700 hover:bg-sky-600"
                       dataItemName={item.name}
                       disabled={disabled}
                       key={`${item.name}-drop`}
                       label="Park Here"
                       onClick={handleStartConfirmDiscard}
+                      variant="primary"
                     />
                   )}
 
