@@ -22,7 +22,7 @@ const purgeOld = () => {
 };
 
 const notify = () => {
-  subscribers.forEach(fn => fn());
+  subscribers.forEach(fn => { fn(); });
 };
 
 export const recordModelCall = (model: string) => {

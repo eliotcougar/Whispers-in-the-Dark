@@ -274,7 +274,7 @@ function ItemChangeAnimator({
       }
 
     // Cleanup function for this effect
-    return () => clearActiveTimeout();
+    return () => { clearActiveTimeout(); };
   }, [currentAnimatingItem, animationStep, isGameBusy, clearActiveTimeout]);
 
 

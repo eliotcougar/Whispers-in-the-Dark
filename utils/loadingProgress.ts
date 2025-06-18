@@ -2,7 +2,7 @@ let progressString = '';
 const listeners: Array<(s: string) => void> = [];
 
 const emit = () => {
-  listeners.forEach(fn => fn(progressString));
+  listeners.forEach(fn => { fn(progressString); });
 };
 
 export const onProgress = (fn: (s: string) => void): void => {

@@ -415,7 +415,7 @@ function MapNodeView({
   );
 
   const handleNodeMouseEnterById = useCallback(function handleNodeMouseEnterById(
-    event: React.MouseEvent<Element>
+    event: React.MouseEvent
   ) {
       if (isTooltipLocked) return;
       const nodeId = event.currentTarget.getAttribute('data-node-id');
@@ -443,7 +443,7 @@ function MapNodeView({
   );
 
   const handleNodeClickById = useCallback(function handleNodeClickById(
-    event: React.MouseEvent<Element>
+    event: React.MouseEvent
   ) {
       event.stopPropagation();
       const nodeId = event.currentTarget.getAttribute('data-node-id');

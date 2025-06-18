@@ -21,7 +21,7 @@ const showMobileTooltip = (text: string, rect: DOMRect) => {
   div.style.left = `${Math.max(4, Math.min(left, window.innerWidth - div.offsetWidth - 4))}px`;
   div.style.top = `${top}px`;
 
-  const remove = () => div.remove();
+  const remove = () => { div.remove(); };
   div.addEventListener('click', remove);
   setTimeout(remove, 2500);
 };

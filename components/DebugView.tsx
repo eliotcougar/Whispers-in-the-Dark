@@ -51,28 +51,28 @@ function DebugView({
   const [showConnectorChainRaw, setShowConnectorChainRaw] = useState<Record<number, boolean>>({});
 
   const toggleShowMainAIRaw = useCallback(
-    () => setShowMainAIRaw(prev => !prev),
+    () => { setShowMainAIRaw(prev => !prev); },
     []
   );
 
   const toggleShowMapAIRaw = useCallback(
-    () => setShowMapAIRaw(prev => !prev),
+    () => { setShowMapAIRaw(prev => !prev); },
     []
   );
 
   const toggleShowInventoryAIRaw = useCallback(
-    () => setShowInventoryAIRaw(prev => !prev),
+    () => { setShowInventoryAIRaw(prev => !prev); },
     []
   );
 
   const toggleShowConnectorChainRaw = useCallback(
     (idx: number) => () =>
-      setShowConnectorChainRaw(prev => ({ ...prev, [idx]: !prev[idx] })),
+      { setShowConnectorChainRaw(prev => ({ ...prev, [idx]: !prev[idx] })); },
     []
   );
 
   const handleTabClick = useCallback(
-    (name: DebugTab) => () => setActiveTab(name),
+    (name: DebugTab) => () => { setActiveTab(name); },
     []
   );
 

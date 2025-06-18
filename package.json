@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint --ext .ts,.tsx .",
+    "lint:fix": "eslint --ext .ts,.tsx . --fix",
     "test": "npm run lint",
     "test:unit": "vitest --run",
     "typecheck": "tsc --noEmit"

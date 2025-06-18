@@ -151,7 +151,7 @@ export const applyNestedCircleLayout = (
       node.position = { x: node.position.x + offsetX, y: node.position.y + offsetY };
     }
     const childIds = childrenByParent.get(nodeId) || [];
-    childIds.forEach(cid => applyOffset(cid, node.position.x, node.position.y));
+    childIds.forEach(cid => { applyOffset(cid, node.position.x, node.position.y); });
   };
 
   applyOffset(pseudoRootId, 0, 0);

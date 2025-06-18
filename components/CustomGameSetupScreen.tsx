@@ -29,7 +29,7 @@ function CustomGameSetupScreen({
   descriptionText = undefined,
 }: CustomGameSetupScreenProps) {
   const handleThemeSelect = useCallback(
-    (themeName: string) => () => onThemeSelected(themeName),
+    (themeName: string) => () => { onThemeSelected(themeName); },
     [onThemeSelected]
   );
 

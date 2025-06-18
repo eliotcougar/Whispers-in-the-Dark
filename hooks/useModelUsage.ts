@@ -42,7 +42,7 @@ export const useModelUsage = () => {
   );
 
   useEffect(() => {
-    const update = () => setUsage(buildUsageMap());
+    const update = () => { setUsage(buildUsageMap()); };
 
     const unsub = subscribeToModelUsage(update);
     const intervalId = setInterval(update, 1000);

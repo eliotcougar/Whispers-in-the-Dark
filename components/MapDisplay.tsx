@@ -115,7 +115,7 @@ function MapDisplay({
     const handler = setTimeout(() => {
       onLayoutConfigChange(currentConfigToPropagate);
     }, 500);
-    return () => clearTimeout(handler);
+    return () => { clearTimeout(handler); };
   }, [currentConfigToPropagate, onLayoutConfigChange]);
 
   /** Nodes belonging to the current theme. */

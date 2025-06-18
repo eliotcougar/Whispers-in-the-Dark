@@ -188,7 +188,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           response.text ?? '',
           playerGenderProp,
           currentThemeObj,
-          () => setParseErrorCounter(1),
+          () => { setParseErrorCounter(1); },
           currentFullState.lastActionLog || undefined,
           currentFullState.currentScene,
           currentThemeCharacters,

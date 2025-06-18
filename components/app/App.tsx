@@ -74,8 +74,8 @@ function App() {
   } = useSaveLoad({
     gatherCurrentGameState: () => getGameLogic().gatherCurrentGameState(),
     applyLoadedGameState: (args) => getGameLogic().applyLoadedGameState(args),
-    setError: (msg) => getGameLogic().setError(msg),
-    setIsLoading: (val) => getGameLogic().setIsLoading(val),
+    setError: (msg) => { getGameLogic().setError(msg); },
+    setIsLoading: (val) => { getGameLogic().setIsLoading(val); },
     isLoading: gameLogicRef.current?.isLoading,
     dialogueState: gameLogicRef.current?.dialogueState,
     hasGameBeenInitialized: gameLogicRef.current?.hasGameBeenInitialized,
@@ -238,43 +238,43 @@ function App() {
   }, [executeManualRealityShift, setShiftConfirmOpen]);
 
   const handleOpenManualShiftConfirm = useCallback(
-    () => setShiftConfirmOpen(true),
+    () => { setShiftConfirmOpen(true); },
     [setShiftConfirmOpen]
   );
 
   const handleOpenHistory = useCallback(
-    () => setIsHistoryVisible(true),
+    () => { setIsHistoryVisible(true); },
     [setIsHistoryVisible]
   );
 
   const handleOpenKnowledgeBase = useCallback(
-    () => setIsKnowledgeBaseVisible(true),
+    () => { setIsKnowledgeBaseVisible(true); },
     [setIsKnowledgeBaseVisible]
   );
 
-  const handleOpenMap = useCallback(() => setIsMapVisible(true), [setIsMapVisible]);
+  const handleOpenMap = useCallback(() => { setIsMapVisible(true); }, [setIsMapVisible]);
 
   const handleOpenTitleMenu = useCallback(
-    () => setUserRequestedTitleMenuOpen(true),
+    () => { setUserRequestedTitleMenuOpen(true); },
     [setUserRequestedTitleMenuOpen]
   );
 
   const handleOpenVisualizer = useCallback(
-    () => setIsVisualizerVisible(true),
+    () => { setIsVisualizerVisible(true); },
     [setIsVisualizerVisible]
   );
 
   const handleCloseDebugView = useCallback(
-    () => setIsDebugViewVisible(false),
+    () => { setIsDebugViewVisible(false); },
     [setIsDebugViewVisible]
   );
 
   const handleCloseTitleMenu = useCallback(
-    () => setUserRequestedTitleMenuOpen(false),
+    () => { setUserRequestedTitleMenuOpen(false); },
     [setUserRequestedTitleMenuOpen]
   );
 
-  const handleCloseMap = useCallback(() => setIsMapVisible(false), [setIsMapVisible]);
+  const handleCloseMap = useCallback(() => { setIsMapVisible(false); }, [setIsMapVisible]);
 
   const handleRetryClick = useCallback(() => {
     void handleRetry();
@@ -293,7 +293,7 @@ function App() {
   }, [setLoadGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
 
   const handleCancelShift = useCallback(
-    () => setShiftConfirmOpen(false),
+    () => { setShiftConfirmOpen(false); },
     [setShiftConfirmOpen]
   );
 
