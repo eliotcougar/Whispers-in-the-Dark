@@ -36,7 +36,7 @@ export function ItemTypeDisplay({ type }: { readonly type: Item['type'] }) {
     'status effect': 'text-pink-400',
   };
 
-  const color = colorMap[type] ?? 'text-slate-400';
+  const color = colorMap[type];
 
   return (<span className={`text-xs italic ${color}`}>
     {type}
