@@ -92,7 +92,7 @@ export const applyNestedCircleLayout = (
 
     let R = Math.max(...children.map(c => c.data.visualRadius || BASE_FEATURE_RADIUS)) + PADDING;
 
-    while (true) {
+    for (;;) {
       let totalAngle = 0;
       for (let i = 0; i < children.length; i++) {
         const r1 = children[i].data.visualRadius || BASE_FEATURE_RADIUS;

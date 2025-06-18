@@ -225,7 +225,7 @@ function DebugView({
               )
             </button>
 
-            {currentState ? renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]") : null}
+              {renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]")}
 
             {previousState ? renderContent("Previous Game State (Stack[1] - Bottom)", previousState, true, "max-h-[30vh]") : null}
           </>
@@ -459,15 +459,15 @@ function DebugView({
           </p>
         );
       case "Inventory":
-        return renderContent("Current Inventory", currentState?.inventory, true, "max-h-[70vh]");
+        return renderContent("Current Inventory", currentState.inventory, true, "max-h-[70vh]");
       case "Characters":
-        return renderContent("Current Characters", currentState?.allCharacters, true, "max-h-[70vh]");
+        return renderContent("Current Characters", currentState.allCharacters, true, "max-h-[70vh]");
       case "MapDataFull":
-        return renderContent("Current Map Data (Full)", currentState?.mapData, true, "max-h-[70vh]");
+        return renderContent("Current Map Data (Full)", currentState.mapData, true, "max-h-[70vh]");
       case "ThemeHistory":
-        return renderContent("Current Theme History", currentState?.themeHistory, true, "max-h-[70vh]");
+        return renderContent("Current Theme History", currentState.themeHistory, true, "max-h-[70vh]");
       case "GameLog":
-        return renderContent("Current Game Log", currentState?.gameLog, true, "max-h-[70vh]");
+        return renderContent("Current Game Log", currentState.gameLog, true, "max-h-[70vh]");
       case "TravelPath": {
         if (!travelPath || travelPath.length === 0) {
           return (<p className="italic text-slate-400">
@@ -497,21 +497,21 @@ function DebugView({
       }
       case "MiscState":
         return renderContent("Miscellaneous State Values", {
-            currentThemeName: currentState?.currentThemeName,
-            mainQuest: currentState?.mainQuest,
-            currentObjective: currentState?.currentObjective,
-            score: currentState?.score,
-            localTime: currentState?.localTime,
-            localEnvironment: currentState?.localEnvironment,
-            localPlace: currentState?.localPlace,
-            currentMapNodeId: currentState?.currentMapNodeId,
-            turnsSinceLastShift: currentState?.turnsSinceLastShift,
-            globalTurnNumber: currentState?.globalTurnNumber,
-            isCustomGameMode: currentState?.isCustomGameMode,
-            pendingNewThemeNameAfterShift: currentState?.pendingNewThemeNameAfterShift,
-            isAwaitingManualShiftThemeSelection: currentState?.isAwaitingManualShiftThemeSelection,
-            objectiveAnimationType: currentState?.objectiveAnimationType,
-            lastTurnChangesBrief: currentState?.lastTurnChanges ? {
+            currentThemeName: currentState.currentThemeName,
+            mainQuest: currentState.mainQuest,
+            currentObjective: currentState.currentObjective,
+            score: currentState.score,
+            localTime: currentState.localTime,
+            localEnvironment: currentState.localEnvironment,
+            localPlace: currentState.localPlace,
+            currentMapNodeId: currentState.currentMapNodeId,
+            turnsSinceLastShift: currentState.turnsSinceLastShift,
+            globalTurnNumber: currentState.globalTurnNumber,
+            isCustomGameMode: currentState.isCustomGameMode,
+            pendingNewThemeNameAfterShift: currentState.pendingNewThemeNameAfterShift,
+            isAwaitingManualShiftThemeSelection: currentState.isAwaitingManualShiftThemeSelection,
+            objectiveAnimationType: currentState.objectiveAnimationType,
+            lastTurnChangesBrief: currentState.lastTurnChanges ? {
                 items: currentState.lastTurnChanges.itemChanges.length,
                 chars: currentState.lastTurnChanges.characterChanges.length,
                 objAchieved: currentState.lastTurnChanges.objectiveAchieved,
@@ -529,7 +529,7 @@ function DebugView({
     <div
       aria-labelledby="debug-view-title"
       aria-modal="true"
-      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      className="animated-frame open"
       role="dialog"
     >
       <div className="animated-frame-content flex flex-col">

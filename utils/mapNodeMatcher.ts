@@ -254,7 +254,7 @@ export const selectBestMatchingMapNode = (
   allNodesForTheme: MapNode[], // Pre-filtered nodes for the current theme
   previousMapNodeId: string | null
 ): string | null => {
-  if (!localPlace || !currentTheme || !mapData || allNodesForTheme.length === 0) {
+  if (!localPlace || !currentTheme || allNodesForTheme.length === 0) {
     return null;
   }
 
@@ -309,7 +309,7 @@ export const selectBestMatchingMapNode = (
   let overallBestScore = -1;
 
   const directNeighborIds = new Set<string>();
-  if (previousMapNodeId && mapData.edges) {
+  if (previousMapNodeId) {
     mapData.edges.forEach(edge => {
       if (edge.sourceNodeId === previousMapNodeId) directNeighborIds.add(edge.targetNodeId);
       else if (edge.targetNodeId === previousMapNodeId) directNeighborIds.add(edge.sourceNodeId);
