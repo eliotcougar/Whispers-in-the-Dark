@@ -64,7 +64,8 @@ const tsCompat = compat.config({
     'react/require-default-props': 'warn',
     'react/jsx-closing-tag-location': ['warn', 'line-aligned'],
     'react/button-has-type': 'warn',
-    'react/jsx-handler-names': 'warn'
+    'react/jsx-handler-names': 'warn',
+    'react/no-object-type-as-default-prop': 'error'
     /*'@typescript-eslint/no-unnecessary-condition': 'error'*/
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
