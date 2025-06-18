@@ -79,7 +79,9 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       return [newFullState, prevStack[1]];
     });
 
-    delete isSummarizingThemeRef.current[themeToSummarize.name];
+    // Mark summarization as finished without removing the key entirely
+    // to comply with the no-dynamic-delete lint rule
+    isSummarizingThemeRef.current[themeToSummarize.name] = false;
   }, [setGameStateStack]);
 
   /** Initiates a reality shift, optionally as a chaos shift. */

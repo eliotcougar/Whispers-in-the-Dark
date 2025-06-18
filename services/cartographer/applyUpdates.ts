@@ -481,8 +481,11 @@ export const applyMapUpdates = async ({
                 // If this node was newly added in THIS batch, update its entry in newNodesInBatchIdNameMap
                 const oldBatchEntryKey = Object.keys(newNodesInBatchIdNameMap).find(key => newNodesInBatchIdNameMap[key].id === node.id);
                 if (oldBatchEntryKey) {
-                    delete newNodesInBatchIdNameMap[oldBatchEntryKey];
-                    newNodesInBatchIdNameMap[nodeUpdateOp.newData.placeName] = { id: node.id, name: nodeUpdateOp.newData.placeName };
+                    Reflect.deleteProperty(newNodesInBatchIdNameMap, oldBatchEntryKey);
+                    newNodesInBatchIdNameMap[nodeUpdateOp.newData.placeName] = {
+                        id: node.id,
+                        name: nodeUpdateOp.newData.placeName,
+                    };
                 }
                 themeNodeNameMap.delete(node.placeName);
                 const oldName = node.placeName;
@@ -526,8 +529,10 @@ export const applyMapUpdates = async ({
               if (v.id === removedNodeId) themeNodeAliasMap.delete(k);
           }
           // Remove from newNodesInBatchIdNameMap if it was added then removed in same batch
-          const batchKey = Object.keys(newNodesInBatchIdNameMap).find(k => newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.nodeName);
-          if (batchKey) delete newNodesInBatchIdNameMap[batchKey];
+          const batchKey = Object.keys(newNodesInBatchIdNameMap).find(
+            k => newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.nodeName
+          );
+          if (batchKey) Reflect.deleteProperty(newNodesInBatchIdNameMap, batchKey);
       } else {
           console.warn(`MapUpdate (nodesToRemove): Node "${nodeRemoveOp.nodeId || nodeRemoveOp.nodeName}" not found for removal.`);
       }
