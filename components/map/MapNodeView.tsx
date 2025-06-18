@@ -53,6 +53,11 @@ interface MapNodeViewProps {
 }
 
 /**
+ * Empty map used as the default value for {@link MapNodeViewProps.itemPresenceByNode}.
+ */
+const EMPTY_ITEM_PRESENCE_BY_NODE: Record<string, { hasUseful: boolean; hasVehicle: boolean }> = {};
+
+/**
  * Returns the radius for a node's circle. Uses the computed visualRadius from
  * nested layouts when available, otherwise falls back to a default based on the
  * node type.
@@ -143,7 +148,7 @@ function MapNodeView({
   edges,
   currentMapNodeId,
   destinationNodeId,
-  itemPresenceByNode = {},
+  itemPresenceByNode = EMPTY_ITEM_PRESENCE_BY_NODE,
   onSelectDestination,
   labelOverlapMarginPx,
   itemIconScale,
