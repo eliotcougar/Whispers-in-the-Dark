@@ -22,8 +22,6 @@ import {
   DEFAULT_STABILITY_LEVEL,
   DEFAULT_CHAOS_LEVEL,
   VALID_ITEM_TYPES,
-  DEFAULT_ENABLED_THEME_PACKS,
-  DEFAULT_PLAYER_GENDER,
   VALID_PRESENCE_STATUS_VALUES,
   PLAYER_HOLDER_ID,
 } from '../../constants';
@@ -360,23 +358,17 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
   data.localEnvironment = data.localEnvironment ?? null;
   data.localPlace = data.localPlace ?? null;
   data.allCharacters = data.allCharacters.map((c: unknown) => {
-    const char = c as Character;
+    const char = c as Partial<Character>;
     return {
       ...char,
-      id: char.id || buildCharacterId(char.name),
-      aliases: char.aliases || [],
-      presenceStatus: char.presenceStatus || 'unknown',
+      id: char.id ?? buildCharacterId(char.name as string),
+      aliases: char.aliases ?? [],
+      presenceStatus: char.presenceStatus ?? 'unknown',
       lastKnownLocation: char.lastKnownLocation ?? null,
-      preciseLocation: char.preciseLocation || null,
-      dialogueSummaries: char.dialogueSummaries || [],
-    };
+      preciseLocation: char.preciseLocation ?? null,
+      dialogueSummaries: char.dialogueSummaries ?? [],
+    } as Character;
   });
-  data.enabledThemePacks = data.enabledThemePacks ?? [...DEFAULT_ENABLED_THEME_PACKS];
-  data.playerGender = data.playerGender ?? DEFAULT_PLAYER_GENDER;
-  data.turnsSinceLastShift = data.turnsSinceLastShift ?? 0;
-  data.globalTurnNumber = data.globalTurnNumber ?? 0;
   data.mapViewBox = typeof data.mapViewBox === 'string' ? data.mapViewBox : DEFAULT_VIEWBOX;
-  data.mainQuest = data.mainQuest ?? null;
-  data.isCustomGameMode = data.isCustomGameMode ?? false;
   return data;
 }

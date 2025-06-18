@@ -50,10 +50,10 @@ export const useSaveLoad = ({
   useEffect(() => {
     const loadedState = loadGameStateFromLocalStorage();
     if (loadedState) {
-      setPlayerGender(loadedState.playerGender ?? DEFAULT_PLAYER_GENDER);
-      setEnabledThemePacks(loadedState.enabledThemePacks ?? [...DEFAULT_ENABLED_THEME_PACKS]);
-      setStabilityLevel(loadedState.stabilityLevel ?? DEFAULT_STABILITY_LEVEL);
-      setChaosLevel(loadedState.chaosLevel ?? DEFAULT_CHAOS_LEVEL);
+      setPlayerGender(loadedState.playerGender);
+      setEnabledThemePacks(loadedState.enabledThemePacks);
+      setStabilityLevel(loadedState.stabilityLevel);
+      setChaosLevel(loadedState.chaosLevel);
       setInitialSavedState(loadedState);
     } else {
       setInitialSavedState(null);

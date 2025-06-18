@@ -8,7 +8,7 @@ import { ThemePackName, FullGameState, GameStateStack, LoadingReason } from '../
 import { getInitialGameStates } from '../utils/initialStates';
 import { useDialogueFlow } from './useDialogueFlow';
 import { useRealityShift } from './useRealityShift';
-import { useMapUpdates, getDefaultMapLayoutConfig } from './useMapUpdates';
+import { useMapUpdates } from './useMapUpdates';
 import { usePlayerActions } from './usePlayerActions';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -266,7 +266,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     mapData: currentFullState.mapData,
     currentMapNodeId: currentFullState.currentMapNodeId,
     destinationNodeId: currentFullState.destinationNodeId,
-    mapLayoutConfig: currentFullState.mapLayoutConfig || getDefaultMapLayoutConfig(),
+    mapLayoutConfig: currentFullState.mapLayoutConfig,
     mapViewBox: currentFullState.mapViewBox,
     score: currentFullState.score,
     freeFormActionText,

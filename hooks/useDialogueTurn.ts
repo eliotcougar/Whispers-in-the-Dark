@@ -145,12 +145,12 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         }
       } finally {
         const latestState = getCurrentGameState();
-        const stillInActiveNonExitingDialogue =
-          latestState.dialogueState !== null &&
+        const { dialogueState } = latestState;
+        if (
+          dialogueState &&
           !isDialogueExiting &&
-          !(latestState.dialogueState.options.length === 0 && latestState.dialogueState.history.length > 0);
-
-        if (stillInActiveNonExitingDialogue) {
+          !(dialogueState.options.length === 0 && dialogueState.history.length > 0)
+        ) {
           setIsLoading(false);
           setLoadingReason(null);
         }
