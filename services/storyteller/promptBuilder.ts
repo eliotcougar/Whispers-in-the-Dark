@@ -156,7 +156,7 @@ export const buildMainGameTurnPrompt = (
   });
   const mapContext = formatMapContextForPrompt(
     fullMapData,
-    currentMapNodeDetails?.id || null,
+    currentMapNodeDetails?.id ?? null,
     currentTheme,
     allNodesForCurrentTheme,
     allEdgesForCurrentTheme
@@ -164,7 +164,7 @@ export const buildMainGameTurnPrompt = (
 
   const travelPlanLine = formatTravelPlanLine(
     fullMapData,
-    currentMapNodeDetails?.id || null,
+    currentMapNodeDetails?.id ?? null,
     destinationNodeId
   );
 
@@ -173,11 +173,11 @@ export const buildMainGameTurnPrompt = (
     travelPlanOrUnknown = travelPlanLine;
   } else if (destinationNodeId) {
     const destNode = fullMapData.nodes.find(n => n.id === destinationNodeId);
-    const placeName = destNode?.placeName || destinationNodeId;
+    const placeName = destNode?.placeName ?? destinationNodeId;
     const destParentId = destNode?.data.parentNodeId;
     const destParent =
       destParentId && destParentId !== 'Universe'
-        ? fullMapData.nodes.find(n => n.id === destParentId)?.placeName || destParentId
+        ? fullMapData.nodes.find(n => n.id === destParentId)?.placeName ?? destParentId
         : null;
     const displayName = destParent ? `${placeName} in ${destParent}` : placeName;
     travelPlanOrUnknown = `Player wants to reach ${displayName}, but does not know how to get there.`;
@@ -195,11 +195,11 @@ export const buildMainGameTurnPrompt = (
 
 ## Context:
 Player's Character Gender: "${playerGender}"
-Previous Local Time: "${localTime || 'Unknown'}"
-Previous Local Environment: "${localEnvironment || 'Undetermined'}"
-Previous Local Place: "${localPlace || 'Undetermined Location'}"
-Main Quest: "${mainQuest || 'Not set'}"
-Current Objective: "${currentObjective || 'Not set'}"
+Previous Local Time: "${localTime ?? 'Unknown'}"
+Previous Local Environment: "${localEnvironment ?? 'Undetermined'}"
+Previous Local Place: "${localPlace ?? 'Undetermined Location'}"
+Main Quest: "${mainQuest ?? 'Not set'}"
+Current Objective: "${currentObjective ?? 'Not set'}"
 
 ### Current Inventory:
 ${inventorySection}
@@ -225,7 +225,7 @@ IMPORTANT: Recent events are provided only for additional context. These actions
 Current Theme: "${currentTheme.name}"
 Previous Scene: "${currentScene}"
 Player Action: "${playerAction}"
-${travelPlanOrUnknown ? travelPlanOrUnknown : ''}`;
+${travelPlanOrUnknown}`;
 
   return prompt;
 };

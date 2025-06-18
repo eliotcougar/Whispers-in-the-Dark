@@ -43,15 +43,15 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
   // Fields required for 'gain' or if it's not an 'update' context
   if (context === 'gain' || !context) {
     if (typeof obj.type !== 'string' || !VALID_ITEM_TYPES.includes(obj.type)) {
-        console.warn(`isValidItem (context: ${context || 'default'}): 'type' is missing or invalid.`, item);
+        console.warn(`isValidItem (context: ${context ?? 'default'}): 'type' is missing or invalid.`, item);
         return false;
     }
     if (typeof obj.description !== 'string' || obj.description.trim() === '') {
-        console.warn(`isValidItem (context: ${context || 'default'}): 'description' is missing or invalid.`, item);
+        console.warn(`isValidItem (context: ${context ?? 'default'}): 'description' is missing or invalid.`, item);
         return false;
     }
     if (typeof obj.holderId !== 'string' || obj.holderId.trim() === '') {
-        console.warn(`isValidItem (context: ${context || 'default'}): 'holderId' is missing or invalid.`, item);
+        console.warn(`isValidItem (context: ${context ?? 'default'}): 'holderId' is missing or invalid.`, item);
         return false;
     }
   }

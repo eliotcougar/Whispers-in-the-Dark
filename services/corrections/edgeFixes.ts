@@ -167,9 +167,9 @@ export const fetchConnectorChains_Service = async (
       .map((p, i) => {
         const features = context.themeNodes
           .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
-          .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description ?? 'No description'})`)
+          .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description})`)
           .join('\n') || ' - None';
-        return `Node ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description ?? 'No description'})\n${features}`;
+        return `Node ${i + 1}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description})\n${features}`;
       })
       .join('\n');
 

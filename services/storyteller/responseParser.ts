@@ -204,17 +204,18 @@ async function handleCharacterChanges(
                     themeName: '',
                 });
             } else {
-                console.warn(`parseAIResponse ('charactersAdded'): Invalid character structure for "${originalName || 'Unknown Name'}". Attempting correction.`);
+                console.warn(`parseAIResponse ('charactersAdded'): Invalid character structure for "${originalName ?? 'Unknown Name'}". Attempting correction.`);
                 const correctedDetails = await fetchCorrectedCharacterDetails_Service(
-                    originalName || 'Newly Mentioned Character',
+                    originalName ?? 'Newly Mentioned Character',
                     context.logMessageFromPayload ?? baseData.logMessage,
                     context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
                     context.currentTheme,
                     context.allRelevantMainMapNodesForCorrection
                 );
                 if (correctedDetails) {
+                    const fallbackName = correctedDetails.description.split(' ').slice(0, 2).join(' ') || 'Corrected Character';
                     const correctedCharAddPayload: ValidNewCharacterPayload = {
-                        name: originalName || (correctedDetails.description.split(' ').slice(0, 2).join(' ') || 'Corrected Character'),
+                        name: originalName ?? fallbackName,
                         description: correctedDetails.description,
                         aliases: correctedDetails.aliases,
                         presenceStatus: correctedDetails.presenceStatus,
@@ -225,10 +226,10 @@ async function handleCharacterChanges(
                         finalCharactersAdded.push({ ...correctedCharAddPayload, id: buildCharacterId(correctedCharAddPayload.name), themeName: '' } as Character);
                         console.log(`parseAIResponse ('charactersAdded'): Successfully corrected character:`, correctedCharAddPayload.name);
                     } else {
-                        console.warn(`parseAIResponse ('charactersAdded'): Corrected character "${originalName || 'Unknown Name'}" still invalid. Discarding. Corrected Data:`, correctedCharAddPayload);
+                        console.warn(`parseAIResponse ('charactersAdded'): Corrected character "${originalName ?? 'Unknown Name'}" still invalid. Discarding. Corrected Data:`, correctedCharAddPayload);
                     }
                 } else {
-                    console.warn(`parseAIResponse ('charactersAdded'): Failed to correct character "${originalName || 'Unknown Name'}". Discarding.`);
+                    console.warn(`parseAIResponse ('charactersAdded'): Failed to correct character "${originalName ?? 'Unknown Name'}". Discarding.`);
                 }
             }
         }
@@ -262,8 +263,8 @@ async function handleCharacterChanges(
                 const correctedName = await fetchCorrectedName_Service(
                     'character name',
                     currentCUpdatePayload.name,
-                    context.logMessageFromPayload || baseData.logMessage,
-                    context.sceneDescriptionFromPayload || baseData.sceneDescription,
+                    context.logMessageFromPayload ?? baseData.logMessage,
+                    context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
                     Array.from(allKnownAndCurrentlyAddedCharNames),
                     context.currentTheme
                 );
@@ -298,15 +299,15 @@ async function handleCharacterChanges(
                 const charInAddedList = finalCharactersAdded[charAddedThisTurnIndex];
                 if (charUpdatePayload.newDescription !== undefined) charInAddedList.description = charUpdatePayload.newDescription;
                 if (charUpdatePayload.newAliases !== undefined) charInAddedList.aliases = charUpdatePayload.newAliases;
-                if (charUpdatePayload.addAlias) charInAddedList.aliases = Array.from(new Set([...(charInAddedList.aliases || []), charUpdatePayload.addAlias]));
+                if (charUpdatePayload.addAlias) charInAddedList.aliases = Array.from(new Set([...(charInAddedList.aliases ?? []), charUpdatePayload.addAlias]));
                 if (charUpdatePayload.newPresenceStatus !== undefined) charInAddedList.presenceStatus = charUpdatePayload.newPresenceStatus;
                 if (charUpdatePayload.newLastKnownLocation !== undefined) charInAddedList.lastKnownLocation = charUpdatePayload.newLastKnownLocation;
                 if (charUpdatePayload.newPreciseLocation !== undefined) charInAddedList.preciseLocation = charUpdatePayload.newPreciseLocation;
 
                 if (charInAddedList.presenceStatus === 'distant' || charInAddedList.presenceStatus === 'unknown') {
                     charInAddedList.preciseLocation = null;
-                } else if (charInAddedList.preciseLocation === null) {
-                    charInAddedList.preciseLocation = charInAddedList.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
+                } else {
+                    charInAddedList.preciseLocation ??= charInAddedList.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
                 }
                 finalCharactersAdded[charAddedThisTurnIndex] = charInAddedList;
             }
@@ -345,8 +346,8 @@ async function handleCharacterChanges(
 
             if (newCharDataFromUpdate.presenceStatus === 'distant' || newCharDataFromUpdate.presenceStatus === 'unknown') {
                 newCharDataFromUpdate.preciseLocation = null;
-            } else if (newCharDataFromUpdate.preciseLocation === null) {
-                newCharDataFromUpdate.preciseLocation = newCharDataFromUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
+            } else {
+                newCharDataFromUpdate.preciseLocation ??= newCharDataFromUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
             }
 
             const existingIndexInAdded = finalCharactersAdded.findIndex(c => c.name === newCharDataFromUpdate.name);
@@ -426,8 +427,8 @@ export async function parseAIResponse(
                     const correctedParticipantName = await fetchCorrectedName_Service(
                         'dialogue participant',
                         participant,
-                        logMessageFromPayload || validated.logMessage,
-                        sceneDescriptionFromPayload || validated.sceneDescription,
+                        logMessageFromPayload ?? validated.logMessage,
+                        sceneDescriptionFromPayload ?? validated.sceneDescription,
                         Array.from(allAvailableCharacterNamesThisTurn),
                         currentTheme
                     );
@@ -466,9 +467,9 @@ export async function parseAIResponse(
         }
 
         validated.objectiveAchieved = validated.objectiveAchieved ?? false;
-        validated.localTime = validated.localTime?.trim() || 'Time Unknown';
-        validated.localEnvironment = validated.localEnvironment?.trim() || 'Environment Undetermined';
-        validated.localPlace = validated.localPlace?.trim() || 'Undetermined Location';
+        validated.localTime = validated.localTime?.trim() ?? 'Time Unknown';
+        validated.localEnvironment = validated.localEnvironment?.trim() ?? 'Environment Undetermined';
+        validated.localPlace = validated.localPlace?.trim() ?? 'Undetermined Location';
         trimDialogueHints(validated);
 
         delete (validated as Record<string, unknown>).placesAdded;

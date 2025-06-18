@@ -448,8 +448,8 @@ export const buildCharacterChangeRecords = (
       
       if (newCharData.presenceStatus === 'distant' || newCharData.presenceStatus === 'unknown') {
         newCharData.preciseLocation = null;
-      } else if (newCharData.preciseLocation === null) {
-        newCharData.preciseLocation = newCharData.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
+      } else {
+        newCharData.preciseLocation ??= newCharData.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
       }
       records.push({ type: 'update', characterName: cUpdate.name, oldCharacter: { ...oldChar }, newCharacter: newCharData });
     }
@@ -508,8 +508,8 @@ export const applyAllCharacterChanges = (
 
       if (charToUpdate.presenceStatus === 'distant' || charToUpdate.presenceStatus === 'unknown') {
         charToUpdate.preciseLocation = null;
-      } else if (charToUpdate.preciseLocation === null) {
-        charToUpdate.preciseLocation = charToUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
+      } else {
+        charToUpdate.preciseLocation ??= charToUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
       }
       newAllCharacters[idx] = charToUpdate;
     }

@@ -41,7 +41,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
 
   const characterContext = formatKnownCharactersForPrompt(allRelevantCharacters, true);
   const placeContext = formatKnownPlacesForPrompt(allRelevantMapNodes, true);
-  const inventoryContext = currentInventory.map(i => i.name).join(', ') ?? 'Empty';
+  const inventoryContext = currentInventory.map(i => i.name).join(', ') || 'Empty';
   const malformedString = JSON.stringify(malformedDialogueSetup);
 
   const prompt = `
@@ -54,9 +54,9 @@ ${malformedString}
 \`\`\`
 
 Narrative Context:
-- Log Message: "${logMessageContext ?? 'Not specified'}"
-- Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier ?? 'General adventure theme.'}"
+ - Log Message: "${logMessageContext ?? 'Not specified'}"
+ - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
+ - Theme Guidance: "${currentTheme.systemInstructionModifier}"
 - Known/Available Characters for Dialogue: ${characterContext}
 - Known Map Locations: ${placeContext}
 - Player Inventory: ${inventoryContext}
@@ -116,12 +116,12 @@ export const fetchCorrectedDialogueTurn_Service = async (
     return null;
   }
 
-  const participantList = validParticipants.map(n => `"${n}"`).join(', ') ?? 'None';
+  const participantList = validParticipants.map(n => `"${n}"`).join(', ') || 'None';
 
   const prompt = `
 Role: You fix malformed JSON for a dialogue turn in a text adventure game.
 
-Theme Guidance: "${currentTheme.systemInstructionModifier ?? 'General adventure theme.'}"
+Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Malformed Dialogue Response:
 \`\`\`

@@ -112,7 +112,7 @@ export const dispatchAIRequest = async (
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
-            systemInstruction: options.systemInstruction || '',
+            systemInstruction: options.systemInstruction ?? '',
             modelUsed: model,
             responseText: response.text ?? '',
           });
@@ -123,7 +123,7 @@ export const dispatchAIRequest = async (
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
-            systemInstruction: options.systemInstruction || '',
+            systemInstruction: options.systemInstruction ?? '',
             modelUsed: model,
             responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
           });

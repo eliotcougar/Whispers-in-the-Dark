@@ -53,7 +53,7 @@ Task: Based on the context and the list of valid names, determine the correct fu
 Respond ONLY with the single, corrected ${entityTypeToCorrect} name as a string.
 If no suitable match can be confidently made, respond with an empty string.`;
 
-  const systemInstruction = `Your task is to match a malformed ${entityTypeToCorrect} name against a provided list of valid names, using narrative context. Respond ONLY with the best-matched string from the valid list, or an empty string if no confident match is found. Adhere to the theme context: ${currentTheme.systemInstructionModifier ?? 'General interpretation.'}`;
+  const systemInstruction = `Your task is to match a malformed ${entityTypeToCorrect} name against a provided list of valid names, using narrative context. Respond ONLY with the best-matched string from the valid list, or an empty string if no confident match is found. Adhere to the theme context: ${currentTheme.systemInstructionModifier}`;
 
   return retryAiCall<string>(async attempt => {
     try {

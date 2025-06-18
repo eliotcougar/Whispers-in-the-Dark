@@ -137,7 +137,7 @@ ${malformedMapNodePayloadString}
 Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier ?? 'General adventure theme.'}"
+ - Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Required JSON Structure for corrected map location details:
 {
@@ -214,7 +214,7 @@ Map Location Name to Detail: "${mapNodePlaceName}"
 Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier ?? 'General adventure theme.'}"
+ - Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Required JSON Structure:
 {
