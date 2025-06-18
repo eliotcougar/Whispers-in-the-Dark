@@ -122,7 +122,7 @@ export const highlightEntitiesInText = (
           className={getEntityHighlightClass(matchedTermInfo.entityData.type)}
           key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${match.index}`}
           onClick={enableMobileTap ? handleMobileTap : undefined}
-          title={matchedTermInfo.entityData.description ?? matchedTermInfo.entityData.name}
+          title={matchedTermInfo.entityData.description}
         >
           {matchedString}
         </span>
@@ -163,7 +163,7 @@ export const buildHighlightableEntities = (
         .map(node => ({
           name: node.placeName,
           type: 'place',
-          description: node.data.description ?? 'A location of interest.',
+          description: node.data.description,
           aliases: node.data.aliases ?? [],
         }))
     : [];

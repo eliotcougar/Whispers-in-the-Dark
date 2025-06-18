@@ -111,37 +111,37 @@ async function handleDialogueSetup(
         if (!dialogueSetupIsValid) {
             console.warn("parseAIResponse: 'dialogueSetup' is present but malformed. Attempting correction.");
             const charactersForDialogueContext: Array<Character> = [...context.allRelevantCharacters];
-            (data.charactersAdded || []).forEach(cAdd => {
+              (data.charactersAdded ?? []).forEach(cAdd => {
                 if (isValidNewCharacterPayload(cAdd)) {
                     charactersForDialogueContext.push({
                         ...cAdd,
                         id: buildCharacterId(cAdd.name),
                         themeName: '',
-                        presenceStatus: cAdd.presenceStatus || 'unknown',
-                        lastKnownLocation: cAdd.lastKnownLocation === undefined ? null : cAdd.lastKnownLocation,
-                        preciseLocation: cAdd.preciseLocation === undefined ? null : cAdd.preciseLocation,
+                          presenceStatus: cAdd.presenceStatus ?? 'unknown',
+                          lastKnownLocation: cAdd.lastKnownLocation ?? null,
+                          preciseLocation: cAdd.preciseLocation ?? null,
                     } as Character);
                 }
             });
-            (data.charactersUpdated || []).forEach(cUpd => {
+              (data.charactersUpdated ?? []).forEach(cUpd => {
                 if (isValidCharacterUpdate(cUpd)) {
                     const existing = context.allRelevantCharacters.find(ex => ex.name === cUpd.name);
                     charactersForDialogueContext.push({
                         id: buildCharacterId(cUpd.name),
                         name: cUpd.name,
-                        description: cUpd.newDescription || existing?.description || 'Updated character',
-                        aliases: cUpd.newAliases || existing?.aliases || [],
+                          description: cUpd.newDescription ?? existing?.description ?? 'Updated character',
+                          aliases: cUpd.newAliases ?? existing?.aliases ?? [],
                         themeName: '',
-                        presenceStatus: cUpd.newPresenceStatus || existing?.presenceStatus || 'unknown',
-                        lastKnownLocation: cUpd.newLastKnownLocation === undefined ? (existing?.lastKnownLocation ?? null) : cUpd.newLastKnownLocation,
-                        preciseLocation: cUpd.newPreciseLocation === undefined ? (existing?.preciseLocation ?? null) : cUpd.newPreciseLocation,
+                          presenceStatus: cUpd.newPresenceStatus ?? existing?.presenceStatus ?? 'unknown',
+                          lastKnownLocation: cUpd.newLastKnownLocation ?? (existing?.lastKnownLocation ?? null),
+                          preciseLocation: cUpd.newPreciseLocation ?? (existing?.preciseLocation ?? null),
                     } as Character);
                 }
             });
 
             const correctedDialogueSetup = await fetchCorrectedDialogueSetup_Service(
-                context.logMessageFromPayload || data.logMessage,
-                context.sceneDescriptionFromPayload || data.sceneDescription,
+                context.logMessageFromPayload ?? data.logMessage,
+                context.sceneDescriptionFromPayload ?? data.sceneDescription,
                 context.currentTheme,
                 charactersForDialogueContext,
                 context.allRelevantMainMapNodesForCorrection,
@@ -198,17 +198,17 @@ async function handleCharacterChanges(
                 finalCharactersAdded.push({
                     ...(originalCharAdd as Character),
                     id: buildCharacterId(originalCharAdd.name),
-                    presenceStatus: originalCharAdd.presenceStatus || 'unknown',
-                    lastKnownLocation: originalCharAdd.lastKnownLocation === undefined ? null : originalCharAdd.lastKnownLocation,
-                    preciseLocation: originalCharAdd.preciseLocation === undefined ? null : originalCharAdd.preciseLocation,
+                    presenceStatus: originalCharAdd.presenceStatus ?? 'unknown',
+                    lastKnownLocation: originalCharAdd.lastKnownLocation ?? null,
+                    preciseLocation: originalCharAdd.preciseLocation ?? null,
                     themeName: '',
                 });
             } else {
                 console.warn(`parseAIResponse ('charactersAdded'): Invalid character structure for "${originalName || 'Unknown Name'}". Attempting correction.`);
                 const correctedDetails = await fetchCorrectedCharacterDetails_Service(
                     originalName || 'Newly Mentioned Character',
-                    context.logMessageFromPayload || baseData.logMessage,
-                    context.sceneDescriptionFromPayload || baseData.sceneDescription,
+                    context.logMessageFromPayload ?? baseData.logMessage,
+                    context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
                     context.currentTheme,
                     context.allRelevantMainMapNodesForCorrection
                 );
@@ -313,22 +313,22 @@ async function handleCharacterChanges(
         } else {
             console.warn(`parseAIResponse ('charactersUpdated'): Target character "${targetName}" for update not found. Converting to an add operation.`);
 
-            const newCharDataFromUpdate: Character = {
-                id: buildCharacterId(targetName),
-                name: targetName,
-                description: charUpdatePayload.newDescription || `Details for ${targetName} are emerging.`,
-                aliases: charUpdatePayload.newAliases || (charUpdatePayload.addAlias ? [charUpdatePayload.addAlias] : []),
-                themeName: '',
-                presenceStatus: charUpdatePayload.newPresenceStatus || 'unknown',
-                lastKnownLocation: charUpdatePayload.newLastKnownLocation === undefined ? null : charUpdatePayload.newLastKnownLocation,
-                preciseLocation: charUpdatePayload.newPreciseLocation === undefined ? null : charUpdatePayload.newPreciseLocation,
-            };
+                const newCharDataFromUpdate: Character = {
+                    id: buildCharacterId(targetName),
+                    name: targetName,
+                    description: charUpdatePayload.newDescription ?? `Details for ${targetName} are emerging.`,
+                    aliases: charUpdatePayload.newAliases ?? (charUpdatePayload.addAlias ? [charUpdatePayload.addAlias] : []),
+                    themeName: '',
+                    presenceStatus: charUpdatePayload.newPresenceStatus ?? 'unknown',
+                    lastKnownLocation: charUpdatePayload.newLastKnownLocation ?? null,
+                    preciseLocation: charUpdatePayload.newPreciseLocation ?? null,
+                };
 
             if (newCharDataFromUpdate.description === `Details for ${targetName} are emerging.`) {
-                const correctedDetails = await fetchCorrectedCharacterDetails_Service(
-                    targetName,
-                    context.logMessageFromPayload || baseData.logMessage,
-                    context.sceneDescriptionFromPayload || baseData.sceneDescription,
+                    const correctedDetails = await fetchCorrectedCharacterDetails_Service(
+                      targetName,
+                      context.logMessageFromPayload ?? baseData.logMessage,
+                      context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
                     context.currentTheme,
                     context.allRelevantMainMapNodesForCorrection
                 );

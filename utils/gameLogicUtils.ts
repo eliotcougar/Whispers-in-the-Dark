@@ -123,7 +123,7 @@ const applyItemActionCore = (
     if (updatePayload.type !== undefined) updated.type = updatePayload.type;
     if (updatePayload.description !== undefined) updated.description = updatePayload.description;
     if (updatePayload.activeDescription !== undefined) {
-      updated.activeDescription = updatePayload.activeDescription === null ? undefined : updatePayload.activeDescription;
+      updated.activeDescription = updatePayload.activeDescription ?? undefined;
     }
     if (updatePayload.isActive !== undefined) updated.isActive = updatePayload.isActive;
     if (updatePayload.isJunk !== undefined) updated.isJunk = updatePayload.isJunk;
@@ -133,7 +133,7 @@ const applyItemActionCore = (
     }
     if (updatePayload.addKnownUse) {
       const { addKnownUse } = updatePayload;
-      const currentUses = updated.knownUses ? [...updated.knownUses] : [];
+      const currentUses = [...(updated.knownUses ?? [])];
       const kuIndex = currentUses.findIndex(ku => ku.actionName === addKnownUse.actionName);
       if (kuIndex !== -1) currentUses[kuIndex] = addKnownUse;
       else currentUses.push(addKnownUse);
@@ -311,7 +311,7 @@ export const buildItemChangeRecords = (
           activeDescription: gainedItemData.activeDescription,
           isActive: gainedItemData.isActive ?? false,
           isJunk: gainedItemData.isJunk ?? false,
-          knownUses: gainedItemData.knownUses || [],
+          knownUses: gainedItemData.knownUses ?? [],
           holderId: gainedItemData.holderId,
         };
         record = { type: 'gain', gainedItem: cleanGainedItem };
@@ -353,17 +353,22 @@ export const buildItemChangeRecords = (
         const newItemData: Item = {
           id: oldItemCopy.id,
           name: finalName,
-          type: updatePayload.type !== undefined ? updatePayload.type : oldItemCopy.type,
-          description: updatePayload.description !== undefined ? updatePayload.description : oldItemCopy.description,
-          activeDescription: updatePayload.activeDescription !== undefined ? (updatePayload.activeDescription === null ? undefined : updatePayload.activeDescription) : oldItemCopy.activeDescription,
-          isActive: updatePayload.isActive !== undefined ? updatePayload.isActive : (oldItemCopy.isActive ?? false),
-          isJunk: updatePayload.isJunk !== undefined ? updatePayload.isJunk : (oldItemCopy.isJunk ?? false),
-          knownUses: Array.isArray(updatePayload.knownUses) ? updatePayload.knownUses : (oldItemCopy.knownUses || []),
+          type: updatePayload.type ?? oldItemCopy.type,
+          description: updatePayload.description ?? oldItemCopy.description,
+          activeDescription:
+            updatePayload.activeDescription === null
+              ? undefined
+              : updatePayload.activeDescription ?? oldItemCopy.activeDescription,
+          isActive: updatePayload.isActive ?? (oldItemCopy.isActive ?? false),
+          isJunk: updatePayload.isJunk ?? (oldItemCopy.isJunk ?? false),
+          knownUses: Array.isArray(updatePayload.knownUses)
+            ? updatePayload.knownUses
+            : oldItemCopy.knownUses ?? [],
           holderId: updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '' ? updatePayload.holderId : oldItemCopy.holderId,
         };
         if (updatePayload.addKnownUse) {
           const { addKnownUse } = updatePayload;
-          const currentKnownUses = [...(newItemData.knownUses || [])];
+          const currentKnownUses = [...(newItemData.knownUses ?? [])];
           const kuIndex = currentKnownUses.findIndex(ku => ku.actionName === addKnownUse.actionName);
           if (kuIndex !== -1) currentKnownUses[kuIndex] = addKnownUse;
           else currentKnownUses.push(addKnownUse);
@@ -421,8 +426,8 @@ export const buildCharacterChangeRecords = (
       themeName: currentThemeName,
       aliases: cAdd.aliases ?? [],
       presenceStatus: cAdd.presenceStatus ?? 'unknown',
-      lastKnownLocation: cAdd.lastKnownLocation === undefined ? null : cAdd.lastKnownLocation,
-      preciseLocation: cAdd.preciseLocation === undefined ? null : cAdd.preciseLocation,
+      lastKnownLocation: cAdd.lastKnownLocation ?? null,
+      preciseLocation: cAdd.preciseLocation ?? null,
       dialogueSummaries: [], // Initialize dialogueSummaries
     };
     records.push({ type: 'add', characterName: newChar.name, addedCharacter: newChar });
@@ -477,8 +482,8 @@ export const applyAllCharacterChanges = (
           themeName: currentThemeName,
           aliases: cAdd.aliases ?? [],
           presenceStatus: cAdd.presenceStatus ?? 'unknown',
-        lastKnownLocation: cAdd.lastKnownLocation === undefined ? null : cAdd.lastKnownLocation,
-        preciseLocation: cAdd.preciseLocation === undefined ? null : cAdd.preciseLocation,
+        lastKnownLocation: cAdd.lastKnownLocation ?? null,
+        preciseLocation: cAdd.preciseLocation ?? null,
         dialogueSummaries: [], // Initialize dialogueSummaries
       };
       if (newChar.presenceStatus === 'distant' || newChar.presenceStatus === 'unknown') {
