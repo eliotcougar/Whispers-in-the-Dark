@@ -33,7 +33,7 @@ const tsCompat = compat.config({
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/strict',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:@typescript-eslint/recommended-type-checked',
     /*'plugin:@typescript-eslint/stylistic',
     'plugin:@typescript-eslint/stylistic-type-checked'*/
   ],
@@ -66,7 +66,7 @@ const tsCompat = compat.config({
     'react/button-has-type': 'warn',
     'react/jsx-handler-names': 'warn',
     'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],
-    /*'@typescript-eslint/no-unnecessary-condition': 'error'*/
+    '@typescript-eslint/no-unnecessary-condition': 'warn',
     '@typescript-eslint/no-non-null-assertion': 'error'
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
