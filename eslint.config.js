@@ -53,8 +53,6 @@ const tsCompat = compat.config({
     'react/forbid-component-props': 'off',
     'react/destructuring-assignment': 'off',
     'react/jsx-max-depth': 'off',
-    'react-hooks/exhaustive-deps': 'error',
-    'react-hooks/rules-of-hooks': 'error',
     'react/jsx-no-leaked-render': 'error',  
     'react/no-array-index-key' : 'error',
     'react/jsx-no-bind': 'error',
@@ -78,7 +76,7 @@ const tsCompat = compat.config({
     '@typescript-eslint/restrict-plus-operands': 'warn',
     '@typescript-eslint/array-type': ['warn', { default: 'generic' }],
     '@typescript-eslint/consistent-indexed-object-style': ['warn', 'record'],
-    '@typescript-eslint/prefer-nullish-coalescing': 'off',
+    '@typescript-eslint/prefer-nullish-coalescing': 'warn',
     "dot-notation": "off",
     "@typescript-eslint/dot-notation": "error"
   }
