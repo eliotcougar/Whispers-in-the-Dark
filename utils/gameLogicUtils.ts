@@ -338,13 +338,21 @@ export const buildItemChangeRecords = (
         const oldItemCopy = { ...oldItem };
         itemPayload.id = oldItemCopy.id;
         const renameOnly =
-          !!updatePayload.id &&
-          !!updatePayload.name &&
+          updatePayload.id !== undefined &&
+          updatePayload.name !== undefined &&
           updatePayload.newName === undefined &&
           updatePayload.name !== oldItemCopy.name;
+
+        let finalName = oldItemCopy.name;
+        if (updatePayload.newName !== undefined) {
+          finalName = updatePayload.newName;
+        } else if (renameOnly && updatePayload.name !== undefined) {
+          finalName = updatePayload.name;
+        }
+
         const newItemData: Item = {
           id: oldItemCopy.id,
-          name: updatePayload.newName ?? (renameOnly ? updatePayload.name! : oldItemCopy.name),
+          name: finalName,
           type: updatePayload.type !== undefined ? updatePayload.type : oldItemCopy.type,
           description: updatePayload.description !== undefined ? updatePayload.description : oldItemCopy.description,
           activeDescription: updatePayload.activeDescription !== undefined ? (updatePayload.activeDescription === null ? undefined : updatePayload.activeDescription) : oldItemCopy.activeDescription,

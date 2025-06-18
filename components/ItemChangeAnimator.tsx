@@ -397,7 +397,7 @@ function ItemChangeAnimator({
   return (
     <div
       aria-label="Skip item animations"
-      className={`item-change-overlay ${isVisibleOverlay ? 'active' : ''}`}
+      className="item-change-overlay active"
       onClick={handleSkipAnimations}
       onKeyDown={handleKeyDown}
       role="button"
