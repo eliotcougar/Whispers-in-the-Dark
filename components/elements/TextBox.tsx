@@ -37,4 +37,14 @@ function TextBox({
   );
 }
 
+TextBox.defaultProps = {
+  backgroundColorClass: '',
+  borderColorClass: 'border-amber-700',
+  borderWidthClass: 'border-b',
+  contentColorClass: 'text-slate-300',
+  contentFontClass: '',
+  headerColorClass: 'text-amber-400',
+  headerFontClass: 'text-2xl font-semibold',
+};
+
 export default TextBox;
