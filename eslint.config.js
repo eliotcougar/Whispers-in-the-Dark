@@ -77,7 +77,7 @@ const tsCompat = compat.config({
     '@typescript-eslint/array-type': ['warn', { default: 'generic' }],
     '@typescript-eslint/consistent-indexed-object-style': ['warn', 'record'],
     '@typescript-eslint/prefer-nullish-coalescing': 'warn',
-    '@typescript-eslint/restrict-template-expressions': 'off',
+    '@typescript-eslint/restrict-template-expressions': 'warn',
     "dot-notation": "off",
     "@typescript-eslint/dot-notation": "error"
   }
