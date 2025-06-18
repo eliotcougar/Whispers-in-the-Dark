@@ -87,7 +87,7 @@ export const buildDialogueTurnPrompt = (
   let pastDialogueSummariesContext = '';
   dialogueParticipants.forEach(participantName => {
     const participantChar = knownCharactersInTheme.find(char => char.name === participantName);
-    if (participantChar && participantChar.dialogueSummaries && participantChar.dialogueSummaries.length > 0) {
+    if (participantChar?.dialogueSummaries && participantChar.dialogueSummaries.length > 0) {
       pastDialogueSummariesContext += `\nRecent Past Conversations involving ${participantName}:\n`;
       const summariesToShow = participantChar.dialogueSummaries.slice(-MAX_DIALOGUE_SUMMARIES_IN_PROMPT);
       summariesToShow.forEach(summary => {

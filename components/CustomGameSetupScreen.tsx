@@ -37,13 +37,13 @@ function CustomGameSetupScreen({
     return null;
   }
 
-  const groupedThemesByPack: Record<ThemePackName, AdventureTheme[]> = 
+  const groupedThemesByPack: Record<ThemePackName, Array<AdventureTheme>> = 
     Object.keys(THEME_PACKS).reduce((acc, packKey) => {
       const packName = packKey as ThemePackName;
       // Use THEME_PACKS directly to group themes by their pack.
       acc[packName] = THEME_PACKS[packName];
       return acc;
-    }, {} as Record<ThemePackName, AdventureTheme[]>);
+    }, {} as Record<ThemePackName, Array<AdventureTheme>>);
 
   const effectiveTitle = titleText || "Choose Your Adventure Theme";
   const effectiveDescription = descriptionText || "Select a theme to start your custom game. In this mode, random reality shifts are disabled, allowing for a focused, single-theme experience. You can still manually trigger a reality shift if you wish to change themes later.";

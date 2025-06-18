@@ -32,7 +32,7 @@ export interface HighlightableEntity {
   name: string;
   type: 'item' | 'place' | 'character';
   description: string; 
-  aliases?: string[];   
+  aliases?: Array<string>;   
 }
 
 const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
@@ -50,12 +50,12 @@ const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
 
 export const highlightEntitiesInText = (
   text: string | null | undefined,
-  entities: HighlightableEntity[],
-  enableMobileTap: boolean = false
-): React.ReactNode[] => {
+  entities: Array<HighlightableEntity>,
+  enableMobileTap = false
+): Array<React.ReactNode> => {
   if (!text) return [text || '']; 
 
-  const results: React.ReactNode[] = [];
+  const results: Array<React.ReactNode> = [];
   
   const uniqueMatchTerms = new Map<string, { term: string; entityData: HighlightableEntity }>();
 
@@ -145,19 +145,19 @@ export const highlightEntitiesInText = (
  * characters for the current theme.
  */
 export const buildHighlightableEntities = (
-  inventory: Item[],
-  mapData: MapNode[],
-  allCharacters: Character[],
+  inventory: Array<Item>,
+  mapData: Array<MapNode>,
+  allCharacters: Array<Character>,
   currentThemeName: string | null
-): HighlightableEntity[] => {
-  const items: HighlightableEntity[] = inventory.map(item => ({
+): Array<HighlightableEntity> => {
+  const items: Array<HighlightableEntity> = inventory.map(item => ({
     name: item.name,
     type: 'item',
     description:
       item.isActive && item.activeDescription ? item.activeDescription : item.description,
   }));
 
-  const places: HighlightableEntity[] = currentThemeName
+  const places: Array<HighlightableEntity> = currentThemeName
     ? mapData
         .filter(node => node.themeName === currentThemeName)
         .map(node => ({
@@ -168,7 +168,7 @@ export const buildHighlightableEntities = (
         }))
     : [];
 
-  const characters: HighlightableEntity[] = currentThemeName
+  const characters: Array<HighlightableEntity> = currentThemeName
     ? allCharacters
         .filter(c => c.themeName === currentThemeName)
         .map(c => ({

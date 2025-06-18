@@ -9,7 +9,7 @@ import { Item } from '../../types';
 /**
  * Formats a list of items for use in AI prompts.
  */
-export const formatInventoryForPrompt = (inventory: Item[]): string => {
+export const formatInventoryForPrompt = (inventory: Array<Item>): string => {
   if (inventory.length === 0) return "Empty.";
   return inventory
     .map(item => {

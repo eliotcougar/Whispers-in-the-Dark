@@ -28,7 +28,7 @@ import { MAP_NODE_TYPE_GUIDE } from '../../prompts/helperPrompts';
 export const fetchCorrectedLocalPlace_Service = async (
   currentSceneDescription: string,
   currentTheme: AdventureTheme,
-  knownMapNodes: MapNode[],
+  knownMapNodes: Array<MapNode>,
   localTime: string | null,
   localEnvironment: string | null,
 ): Promise<string | null> => {
@@ -64,7 +64,7 @@ Respond ONLY with the inferred "localPlace" as a single string.`;
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -101,7 +101,7 @@ export const fetchCorrectedPlaceDetails_Service = async (
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
   currentTheme: AdventureTheme,
-): Promise<{ name: string; description: string; aliases?: string[] } | null> => {
+): Promise<{ name: string; description: string; aliases?: Array<string> } | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedPlaceDetails_Service: API Key not configured.');
     return null;
@@ -150,10 +150,10 @@ Respond ONLY with the single, complete, corrected JSON object.`;
 
   const systemInstruction = `Correct or complete a JSON payload for a map location. Ensure "name" (string, non-empty), "description" (${NODE_DESCRIPTION_INSTRUCTION}), and "aliases" (${ALIAS_INSTRUCTION}, array, can be empty) are provided. Adhere strictly to the JSON format.`;
 
-  return retryAiCall<{ name: string; description: string; aliases?: string[] }>(
+  return retryAiCall<{ name: string; description: string; aliases?: Array<string> }>(
     async attempt => {
       try {
-        addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+        addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
         const { response } = await dispatchAIRequest({
           modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt,
@@ -165,7 +165,7 @@ Respond ONLY with the single, complete, corrected JSON object.`;
         const aiResponse = safeParseJson<{
           name: string;
           description: string;
-          aliases?: string[];
+          aliases?: Array<string>;
         }>(extractJsonFromFence(response.text ?? ''));
         if (
           aiResponse &&
@@ -199,7 +199,7 @@ export const fetchFullPlaceDetailsForNewMapNode_Service = async (
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
   currentTheme: AdventureTheme,
-): Promise<{ name: string; description: string; aliases?: string[] } | null> => {
+): Promise<{ name: string; description: string; aliases?: Array<string> } | null> => {
   if (!isApiConfigured()) {
     console.error('fetchFullPlaceDetailsForNewMapNode_Service: API Key not configured.');
     return null;
@@ -227,10 +227,10 @@ Respond ONLY with the single, complete JSON object.`;
 
   const systemInstruction = `Generate detailed JSON for a new game map location. The 'name' field in the output is predetermined and MUST match the input. Focus on creating ${NODE_DESCRIPTION_INSTRUCTION} and aliases (${ALIAS_INSTRUCTION}, array, can be empty). Adhere strictly to the JSON format.`;
 
-  return retryAiCall<{ name: string; description: string; aliases?: string[] }>(
+  return retryAiCall<{ name: string; description: string; aliases?: Array<string> }>(
     async attempt => {
       try {
-        addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+        addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
         const { response } = await dispatchAIRequest({
           modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt,
@@ -242,7 +242,7 @@ Respond ONLY with the single, complete JSON object.`;
         const aiResponse = safeParseJson<{
           name: string;
           description: string;
-          aliases?: string[];
+          aliases?: Array<string>;
         }>(extractJsonFromFence(response.text ?? ''));
         if (
           aiResponse &&
@@ -279,7 +279,7 @@ export const fetchCorrectedNodeType_Service = async (
   if (nodeInfo.nodeType) {
       const normalized =
         synonyms[nodeInfo.nodeType.toLowerCase()] ?? nodeInfo.nodeType.toLowerCase();
-    if ((VALID_NODE_TYPE_VALUES as readonly string[]).includes(normalized)) {
+    if ((VALID_NODE_TYPE_VALUES as ReadonlyArray<string>).includes(normalized)) {
       return normalized as MapNodeData['nodeType'];
     }
   }
@@ -313,7 +313,7 @@ Respond ONLY with the single node type.`;
   const systemInstruction = `Infer a map node's type. Answer with one of: ${VALID_NODE_TYPE_VALUES.join(', ')}.`;
   return retryAiCall<NonNullable<MapNodeData['nodeType']>>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -325,7 +325,7 @@ Respond ONLY with the single node type.`;
       if (aiResponse) {
         const cleaned = aiResponse.trim().toLowerCase();
         const mapped = synonyms[cleaned] ?? cleaned;
-        if ((VALID_NODE_TYPE_VALUES as readonly string[]).includes(mapped)) {
+        if ((VALID_NODE_TYPE_VALUES as ReadonlyArray<string>).includes(mapped)) {
           return { result: mapped as MapNodeData['nodeType'] };
         }
       }
@@ -347,7 +347,7 @@ export const fetchLikelyParentNode_Service = async (
     description?: string;
     nodeType?: string;
     status?: string;
-    aliases?: string[];
+    aliases?: Array<string>;
   },
   context: {
     sceneDescription: string;
@@ -355,10 +355,10 @@ export const fetchLikelyParentNode_Service = async (
     localPlace: string;
     currentTheme: AdventureTheme;
     currentMapNodeId: string | null;
-    themeNodes: MapNode[];
-    themeEdges: MapEdge[];
+    themeNodes: Array<MapNode>;
+    themeEdges: Array<MapEdge>;
   },
-  debugLog?: MinimalModelCallRecord[],
+  debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error('fetchLikelyParentNode_Service: API Key not configured.');
@@ -404,7 +404,7 @@ Respond ONLY with the name or id of the best parent node, or "Universe" if none.
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -431,10 +431,10 @@ Respond ONLY with the name or id of the best parent node, or "Universe" if none.
 export const fetchCorrectedNodeIdentifier_Service = async (
   malformedIdentifier: string,
   context: {
-    themeNodes: MapNode[];
+    themeNodes: Array<MapNode>;
     currentLocationId: string | null;
   },
-  debugLog?: MinimalModelCallRecord[],
+  debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedNodeIdentifier_Service: API Key not configured.');
@@ -450,7 +450,7 @@ Known map nodes in the current theme:\n${nodeList}\nChoose the most likely inten
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

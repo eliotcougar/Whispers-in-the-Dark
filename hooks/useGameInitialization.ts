@@ -39,7 +39,7 @@ export interface LoadInitialGameOptions {
 
 export interface UseGameInitializationProps {
   playerGenderProp: string;
-  enabledThemePacksProp: ThemePackName[];
+  enabledThemePacksProp: Array<ThemePackName>;
   stabilityLevelProp: number;
   chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;

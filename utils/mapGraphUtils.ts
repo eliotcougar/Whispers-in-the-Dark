@@ -31,8 +31,8 @@ export const getParent = (
 export const getChildren = (
   node: MapNode,
   nodeMap: Map<string, MapNode>
-): MapNode[] => {
-  const children: MapNode[] = [];
+): Array<MapNode> => {
+  const children: Array<MapNode> = [];
   nodeMap.forEach(n => {
     if (n.data.parentNodeId === node.id) children.push(n);
   });
@@ -46,8 +46,8 @@ export const getChildren = (
 export const getAncestors = (
   node: MapNode,
   nodeMap: Map<string, MapNode>
-): MapNode[] => {
-  const ancestors: MapNode[] = [];
+): Array<MapNode> => {
+  const ancestors: Array<MapNode> = [];
   let current: MapNode | undefined = nodeMap.get(node.data.parentNodeId || '');
   while (current) {
     ancestors.push(current);
@@ -67,7 +67,7 @@ export const isDescendantOf = (
   nodeMap: Map<string, MapNode>
 ): boolean => {
   let current: MapNode | undefined = possibleDescendant;
-  while (current && current.data.parentNodeId && current.data.parentNodeId !== 'Universe') {
+  while (current?.data.parentNodeId && current.data.parentNodeId !== 'Universe') {
     if (current.data.parentNodeId === possibleAncestor.id) return true;
     current = nodeMap.get(current.data.parentNodeId);
   }
@@ -93,8 +93,8 @@ export const isDescendantIdOf = (
 export const getAdjacentNodeIds = (
   mapData: MapData,
   nodeId: string,
-): string[] => {
-  const allowed: MapEdgeStatus[] = ['open', 'accessible', 'active'];
+): Array<string> => {
+  const allowed: Array<MapEdgeStatus> = ['open', 'accessible', 'active'];
   const ids = new Set<string>();
   for (const edge of mapData.edges) {
     if (!allowed.includes(edge.data.status ?? 'open')) continue;
@@ -124,7 +124,7 @@ export const existsNonRumoredPath = (
   excludeEdgeId?: string
 ): boolean => {
   const visited = new Set<string>();
-  const queue: string[] = [];
+  const queue: Array<string> = [];
   visited.add(startNodeId);
   queue.push(startNodeId);
 

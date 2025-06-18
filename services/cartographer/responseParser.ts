@@ -105,8 +105,8 @@ export const parseAIMapUpdateResponse = (
         payload.nodesToRemove = payload.nodesToRemove.filter(n => !nameIsUniverse(n.nodeName));
       }
       const filterEdgeArray = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
-        arr: T[] | undefined,
-      ): T[] =>
+        arr: Array<T> | undefined,
+      ): Array<T> =>
         (arr || []).filter(
           e => !nameIsUniverse(e.sourcePlaceName) && !nameIsUniverse(e.targetPlaceName),
         );

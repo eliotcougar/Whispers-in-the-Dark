@@ -38,8 +38,8 @@ const buildShortcutPath = (a: MapNode, b: MapNode): string => {
 };
 
 interface MapNodeViewProps {
-  readonly nodes: MapNode[];
-  readonly edges: MapEdge[];
+  readonly nodes: Array<MapNode>;
+  readonly edges: Array<MapEdge>;
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
@@ -88,10 +88,10 @@ const getRadiusForNode = (node: MapNode): number => {
 };
 
 /** Splits a label into multiple lines for display. */
-const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: number): string[] => {
+const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: number): Array<string> => {
   if (!text) return [];
   const words = text.split(' ');
-  const lines: string[] = [];
+  const lines: Array<string> = [];
   let currentLine = '';
 
   for (const word of words) {
@@ -213,7 +213,7 @@ function MapNodeView({
   const labelOffsetMap = useMemo(() => {
     const idToNode = new Map(nodes.map(n => [n.id, n]));
 
-    const childrenMap = new Map<string, MapNode[]>();
+    const childrenMap = new Map<string, Array<MapNode>>();
     nodes.forEach(n => {
       if (n.data.parentNodeId) {
         const arr = childrenMap.get(n.data.parentNodeId) || [];
@@ -237,8 +237,8 @@ function MapNodeView({
     const isParent = (n: MapNode) => childrenMap.has(n.id);
 
     const fontSizeFor = (n: MapNode) => (isSmallFontType(n.data.nodeType) ? 7 : 12);
-      const linesCache: Record<string, string[] | undefined> = {};
-      const getLines = (n: MapNode): string[] => {
+      const linesCache: Record<string, Array<string> | undefined> = {};
+      const getLines = (n: MapNode): Array<string> => {
         const cached = linesCache[n.id];
         if (cached) return cached;
         const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
@@ -641,6 +641,7 @@ function MapNodeView({
                     className="text-green-400"
                     name="mapItemBox"
                     size={iconSize}
+                    wrapper="g"
                   />
                 </g>
               ) : null}
@@ -654,6 +655,7 @@ function MapNodeView({
                     className="text-green-400"
                     name="mapWheel"
                     size={iconSize}
+                    wrapper="g"
                   />
                 </g>
               ) : null}

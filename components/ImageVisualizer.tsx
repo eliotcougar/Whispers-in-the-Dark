@@ -21,8 +21,8 @@ if (!isApiConfigured()) {
 interface ImageVisualizerProps {
   readonly currentSceneDescription: string;
   readonly currentTheme: AdventureTheme | null;
-  readonly mapData: MapNode[]; 
-  readonly allCharacters: Character[];
+  readonly mapData: Array<MapNode>; 
+  readonly allCharacters: Array<Character>;
   readonly localTime: string | null; 
   readonly localEnvironment: string | null; 
   readonly localPlace: string | null;
@@ -92,7 +92,7 @@ function ImageVisualizer({
     It is ${localTime || 'now'}. ${localEnvironment || 'The air is okay'}. ${localPlace || 'Location is unimportant'}. ${currentSceneDescription}`;
     let rawPrompt = prefix;
 
-    const mentionedPlaces: string[] = [];
+    const mentionedPlaces: Array<string> = [];
     // Derive places from mapData (main nodes)
     mapData
       .filter(node => node.themeName === currentTheme.name)
@@ -103,7 +103,7 @@ function ImageVisualizer({
         }
       });
 
-    const mentionedCharacters: string[] = [];
+    const mentionedCharacters: Array<string> = [];
     allCharacters.forEach(character => {
       if (character.themeName === currentTheme.name && currentSceneDescription.toLowerCase().includes(character.name.toLowerCase())) {
         rawPrompt += ` ${character.name} here, appearing as: ${character.description}.`;
@@ -193,7 +193,7 @@ function ImageVisualizer({
             }
           }
 
-          if (finishReason && finishReason.toUpperCase().includes('SAFETY')) {
+          if (finishReason?.toUpperCase().includes('SAFETY')) {
             setError(`Image blocked due to safety filter (${finishReason}).`);
           } else {
             setError('Fallback image generation failed to return image data.');

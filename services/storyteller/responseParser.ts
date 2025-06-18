@@ -33,15 +33,15 @@ interface ParserContext {
     onParseAttemptFailed?: () => void;
     logMessageFromPayload?: string;
     sceneDescriptionFromPayload?: string;
-    allRelevantCharacters: Character[];
-    allRelevantMainMapNodesForCorrection: MapNode[];
-    currentInventoryForCorrection: Item[];
+    allRelevantCharacters: Array<Character>;
+    allRelevantMainMapNodesForCorrection: Array<MapNode>;
+    currentInventoryForCorrection: Array<Item>;
 }
 
 /** Result object returned from the dialogue setup handler. */
 interface DialogueResult {
     dialogueSetup?: DialogueSetupPayload;
-    options: string[];
+    options: Array<string>;
     isDialogueTurn: boolean;
 }
 
@@ -103,14 +103,14 @@ async function handleDialogueSetup(
     context: ParserContext
 ): Promise<DialogueResult | null> {
     let dialogueSetup = data.dialogueSetup;
-    let options: unknown[] = Array.isArray(data.options) ? data.options : [];
+    let options: Array<unknown> = Array.isArray(data.options) ? data.options : [];
     let isDialogueTurn = false;
 
     if (dialogueSetup) {
         let dialogueSetupIsValid = isDialogueSetupPayloadStructurallyValid(dialogueSetup);
         if (!dialogueSetupIsValid) {
             console.warn("parseAIResponse: 'dialogueSetup' is present but malformed. Attempting correction.");
-            const charactersForDialogueContext: Character[] = [...context.allRelevantCharacters];
+            const charactersForDialogueContext: Array<Character> = [...context.allRelevantCharacters];
             (data.charactersAdded || []).forEach(cAdd => {
                 if (isValidNewCharacterPayload(cAdd)) {
                     charactersForDialogueContext.push({
@@ -175,7 +175,7 @@ async function handleDialogueSetup(
         }
     }
 
-    return { dialogueSetup, options: options as string[], isDialogueTurn };
+    return { dialogueSetup, options: options as Array<string>, isDialogueTurn };
 }
 
 
@@ -187,8 +187,8 @@ async function handleCharacterChanges(
     rawUpdated: unknown,
     baseData: Partial<GameStateFromAI>,
     context: ParserContext
-): Promise<{ charactersAdded: Character[]; charactersUpdated: ValidCharacterUpdatePayload[] }> {
-    const finalCharactersAdded: Character[] = [];
+): Promise<{ charactersAdded: Array<Character>; charactersUpdated: Array<ValidCharacterUpdatePayload> }> {
+    const finalCharactersAdded: Array<Character> = [];
     if (Array.isArray(rawAdded)) {
         for (const originalCharAdd of rawAdded) {
             const originalName = (typeof originalCharAdd === 'object' && originalCharAdd !== null && 'name' in originalCharAdd)
@@ -236,8 +236,8 @@ async function handleCharacterChanges(
         console.warn("parseAIResponse ('charactersAdded'): Field was present but not an array.", rawAdded);
     }
 
-    const rawCharacterUpdates: unknown[] = Array.isArray(rawUpdated) ? rawUpdated : [];
-    const tempFinalCharactersUpdatedPayloads: ValidCharacterUpdatePayload[] = [];
+    const rawCharacterUpdates: Array<unknown> = Array.isArray(rawUpdated) ? rawUpdated : [];
+    const tempFinalCharactersUpdatedPayloads: Array<ValidCharacterUpdatePayload> = [];
 
     for (const cUpdate of rawCharacterUpdates) {
         if (
@@ -284,7 +284,7 @@ async function handleCharacterChanges(
         }
     }
 
-    const finalCharacterUpdateInstructions: ValidCharacterUpdatePayload[] = [];
+    const finalCharacterUpdateInstructions: Array<ValidCharacterUpdatePayload> = [];
     for (const charUpdatePayload of tempFinalCharactersUpdatedPayloads) {
         const targetName = charUpdatePayload.name;
         const isAlreadyKnownFromPreviousTurns = context.allRelevantCharacters.some(char => char.name === targetName);
@@ -370,13 +370,13 @@ export async function parseAIResponse(
     onParseAttemptFailed?: () => void,
     logMessageFromPayload?: string,
     sceneDescriptionFromPayload?: string,
-    allRelevantCharacters: Character[] = [],
+    allRelevantCharacters: Array<Character> = [],
     currentThemeMapData: MapData = { nodes: [], edges: [] },
-    currentInventoryForCorrection: Item[] = []
+    currentInventoryForCorrection: Array<Item> = []
 ): Promise<GameStateFromAI | null> {
     const jsonStr = extractJsonFromFence(responseText);
 
-    const allRelevantMainMapNodesForCorrection: MapNode[] = currentThemeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
+    const allRelevantMainMapNodesForCorrection: Array<MapNode> = currentThemeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
 
     try {
         const parsedData = safeParseJson<Partial<GameStateFromAI>>(jsonStr);
@@ -416,7 +416,7 @@ export async function parseAIResponse(
                 ...validated.charactersUpdated.map(cUpd => cUpd.name)
             ]);
 
-            const finalValidParticipants: string[] = [];
+            const finalValidParticipants: Array<string> = [];
             for (const participant of validated.dialogueSetup.participants) {
                 if (allAvailableCharacterNamesThisTurn.has(participant)) {
                     finalValidParticipants.push(participant);

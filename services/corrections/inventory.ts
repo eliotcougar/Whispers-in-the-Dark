@@ -36,7 +36,7 @@ export const fetchCorrectedItemChangeArray_Service = async (
   companionsContext: string,
   nearbyNpcsContext: string,
   currentTheme: AdventureTheme,
-): Promise<ItemChange[] | null> => {
+): Promise<Array<ItemChange> | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedItemChangeArray_Service: API Key not configured.');
     return null;
@@ -64,9 +64,9 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
 
   const systemInstruction = `Correct a JSON array of ItemChange objects for the inventory system. Each element must follow this structure:\n{ "action": (${VALID_ACTIONS_STRING}), "item": { ... } }\nValid item types: ${VALID_ITEM_TYPES_STRING}. Holder IDs can be "${PLAYER_HOLDER_ID}", "${currentNodeId || 'unknown'}", companion IDs, or nearby NPC IDs from the context. Respond ONLY with the corrected JSON array.`;
 
-  return retryAiCall<ItemChange[]>(async attempt => {
+  return retryAiCall<Array<ItemChange>>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -75,7 +75,7 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
       });
-      const aiResponse = safeParseJson<ItemChange[]>(extractJsonFromFence(response.text ?? ''));
+      const aiResponse = safeParseJson<Array<ItemChange>>(extractJsonFromFence(response.text ?? ''));
       const parsedResult = aiResponse ? parseInventoryResponse(JSON.stringify(aiResponse)) : null;
       const validatedChanges = parsedResult ? parsedResult.itemChanges : null;
       if (validatedChanges) {

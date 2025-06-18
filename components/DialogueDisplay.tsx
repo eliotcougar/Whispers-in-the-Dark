@@ -14,15 +14,15 @@ import ModelUsageIndicators from './ModelUsageIndicators';
 interface DialogueDisplayProps {
   readonly isVisible: boolean;
   readonly onClose: () => void; 
-  readonly history: DialogueHistoryEntry[];
-  readonly options: string[];
+  readonly history: Array<DialogueHistoryEntry>;
+  readonly options: Array<string>;
   readonly onOptionSelect: (option: string) => void;
-  readonly participants: string[];
+  readonly participants: Array<string>;
   readonly isLoading: boolean; 
   readonly isDialogueExiting?: boolean;
-  readonly inventory: Item[];
-  readonly mapData: MapNode[]; 
-  readonly allCharacters: Character[];
+  readonly inventory: Array<Item>;
+  readonly mapData: Array<MapNode>; 
+  readonly allCharacters: Array<Character>;
   readonly currentThemeName: string | null;
   readonly loadingReason: LoadingReason | null; // Added prop
 }

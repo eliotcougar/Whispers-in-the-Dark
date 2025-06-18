@@ -12,9 +12,9 @@ import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/hi
 interface SceneDisplayProps {
   readonly description: string;
   readonly lastActionLog?: string | null;
-  readonly inventory: Item[];
-  readonly mapData: MapNode[];
-  readonly allCharacters: Character[];
+  readonly inventory: Array<Item>;
+  readonly mapData: Array<MapNode>;
+  readonly allCharacters: Array<Character>;
   readonly currentThemeName: string | null;
   readonly localTime?: string | null;
   readonly localEnvironment?: string | null;

@@ -17,6 +17,8 @@ import nearbyNpcSvg from '../resources/nearby_npc.svg?raw';
 import mapItemBoxSvg from '../resources/map_item_box.svg?raw';
 import mapWheelSvg from '../resources/map_wheel.svg?raw';
 
+/* eslint-disable react/no-danger */
+
 const iconMap = {
   realityShift: realityShiftSvg,
   coin: coinSvg,
@@ -41,15 +43,25 @@ export interface IconProps {
   readonly name: IconName;
   readonly className?: string;
   readonly size?: number;
+  readonly wrapper?: 'span' | 'g';
 }
 
 /**
  * Renders the requested icon.
  */
-export function Icon({ name, className, size }: IconProps) {
+export function Icon({ name, className = '', size, wrapper = 'span' }: IconProps) {
   const svgMarkup = iconMap[name];
   const attrs = `${className ? ` class="${className}"` : ''}` +
     `${size ? ` width="${size}" height="${size}"` : ''}`;
   const rendered = svgMarkup.replace('<svg', `<svg${attrs}`);
-  return <g dangerouslySetInnerHTML={{ __html: rendered }} />;
+  if (wrapper === 'g') {
+    return <g dangerouslySetInnerHTML={{ __html: rendered }} />;
+  }
+  return <span dangerouslySetInnerHTML={{ __html: rendered }} />;
 }
+
+Icon.defaultProps = {
+  className: '',
+  size: undefined,
+  wrapper: 'span',
+};

@@ -11,8 +11,8 @@ import { NON_DISPLAYABLE_EDGE_STATUSES } from '../../constants';
  * Formats a list of main map nodes for AI prompts.
  */
 export const formatKnownPlacesForPrompt = (
-  mapNodes: MapNode[],
-  detailed: boolean = false
+  mapNodes: Array<MapNode>,
+  detailed = false
 ): string => {
   const mainNodes = mapNodes.filter(
     node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
@@ -49,7 +49,7 @@ export const formatKnownPlacesForPrompt = (
 };
 
 const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
-  const scores: { [key: string]: number } = {
+  const scores: Record<string, number> = {
     open: 10,
     accessible: 9,
     active: 8,
@@ -70,16 +70,16 @@ const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
  */
 const getFormattedConnectionsForNode = (
   perspectiveNode: MapNode,
-  allThemeNodes: MapNode[],
-  allThemeEdges: MapEdge[],
+  allThemeNodes: Array<MapNode>,
+  allThemeEdges: Array<MapEdge>,
   excludeTargetId: string | null,
   processedTargets: Set<string>
-): string[] => {
+): Array<string> => {
   const connectedEdges = allThemeEdges.filter(
     edge => edge.sourceNodeId === perspectiveNode.id || edge.targetNodeId === perspectiveNode.id
   );
 
-  const uniqueDestinations: Record<string, MapEdge[] | undefined> = {};
+  const uniqueDestinations: Record<string, Array<MapEdge> | undefined> = {};
   connectedEdges.forEach(edge => {
     const otherNodeId = edge.sourceNodeId === perspectiveNode.id ? edge.targetNodeId : edge.sourceNodeId;
     if (otherNodeId === excludeTargetId || processedTargets.has(otherNodeId)) {
@@ -93,7 +93,7 @@ const getFormattedConnectionsForNode = (
     list.push(edge);
   });
 
-  const formattedPaths: string[] = [];
+  const formattedPaths: Array<string> = [];
   for (const targetNodeId in uniqueDestinations) {
     const candidateEdgesToTarget = uniqueDestinations[targetNodeId];
     if (!candidateEdgesToTarget) continue;
@@ -118,7 +118,7 @@ const getFormattedConnectionsForNode = (
 
     const statusText = bestEdge.data.status || 'open';
     const typeText = bestEdge.data.type || 'path';
-    const details: string[] = [];
+    const details: Array<string> = [];
     if (bestEdge.data.travelTime) {
       details.push(`travel time: ${bestEdge.data.travelTime}`);
     }
@@ -139,13 +139,13 @@ const getFormattedConnectionsForNode = (
 const getNearbyNodeIds = (
   startNodeId: string,
   maxHops: number,
-  allNodes: MapNode[],
-  allEdges: MapEdge[],
-  typesToInclude?: ('node' | 'feature')[],
-  typesToTraverse?: ('node' | 'feature')[]
+  allNodes: Array<MapNode>,
+  allEdges: Array<MapEdge>,
+  typesToInclude?: Array<'node' | 'feature'>,
+  typesToTraverse?: Array<'node' | 'feature'>
 ): Set<string> => {
   const allReachableNodeIds = new Set<string>();
-  const queue: { nodeId: string; hop: number }[] = [{ nodeId: startNodeId, hop: 0 }];
+  const queue: Array<{ nodeId: string; hop: number }> = [{ nodeId: startNodeId, hop: 0 }];
   const visitedForHops = new Set<string>();
   const allowedEdgeStatuses: Array<MapEdge['data']['status']> = ['open', 'accessible', 'active'];
 
@@ -205,14 +205,14 @@ const getNearbyNodeIds = (
 export const formatLimitedMapContextForPrompt = (
   mapData: MapData,
   currentMapNodeId: string | null,
-  inventory: Item[] = [],
+  inventory: Array<Item> = [],
 ): string => {
   if (!currentMapNodeId) return 'Current location unknown.';
   const allNodes = mapData.nodes;
   const allEdges = mapData.edges;
   const nearbyIds = getNearbyNodeIds(currentMapNodeId, 2, allNodes, allEdges);
   nearbyIds.add(currentMapNodeId);
-  const lines: string[] = [];
+  const lines: Array<string> = [];
   nearbyIds.forEach(id => {
     const node = allNodes.find(n => n.id === id);
     if (!node) return;
@@ -237,8 +237,8 @@ export const formatMapContextForPrompt = (
   mapData: MapData,
   currentMapNodeId: string | null,
   currentTheme: AdventureTheme | null,
-  allNodesForTheme: MapNode[],
-  allEdgesForTheme: MapEdge[]
+  allNodesForTheme: Array<MapNode>,
+  allEdgesForTheme: Array<MapEdge>
 ): string => {
   if (!currentMapNodeId || !currentTheme) {
     return "Player's precise map location is currently unknown or they are between known locations.";
@@ -279,7 +279,7 @@ export const formatMapContextForPrompt = (
       const exitFeatureNodesInCurrentArea = allNodesForTheme.filter(
         node => node.data.nodeType === "feature" && node.data.parentNodeId === areaMainNode.id
       );
-      const exitStrings: string[] = [];
+      const exitStrings: Array<string> = [];
       if (exitFeatureNodesInCurrentArea.length > 0) {
         for (const exitFeature of exitFeatureNodesInCurrentArea) {
           if (exitFeature.id === currentNode.id) continue;

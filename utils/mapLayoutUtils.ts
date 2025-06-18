@@ -30,13 +30,13 @@ export interface NestedCircleLayoutConfig {
 }
 
 export const applyNestedCircleLayout = (
-  nodes: MapNode[],
+  nodes: Array<MapNode>,
   config?: Partial<NestedCircleLayoutConfig>
-): MapNode[] => {
+): Array<MapNode> => {
   if (nodes.length === 0) return [];
 
   const nodeMap = new Map(nodes.map(n => [n.id, structuredCloneGameState(n)]));
-  const childrenByParent: Map<string, string[]> = new Map();
+  const childrenByParent = new Map<string, Array<string>>();
   nodeMap.forEach(node => {
     const pid = node.data.parentNodeId && node.data.parentNodeId !== 'Universe' ? node.data.parentNodeId : undefined;
     if (pid) {

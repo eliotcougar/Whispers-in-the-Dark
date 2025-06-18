@@ -443,7 +443,7 @@ function App() {
   );
 
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
-  const travelPath: TravelStep[] | null = React.useMemo(() => {
+  const travelPath: Array<TravelStep> | null = React.useMemo(() => {
     // Using globalTurnNumber to force recalculation each turn
     void globalTurnNumber;
     if (!destinationNodeId || !currentMapNodeId) return null;
@@ -799,7 +799,6 @@ function App() {
         mapData={mapData}
         newCustomGameConfirmOpen={newCustomGameConfirmOpen}
         newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
-        onCloseInfo={closeInfo}
         onCloseMap={handleCloseMap}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}

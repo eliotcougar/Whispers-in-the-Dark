@@ -12,12 +12,12 @@ import { Item, Character, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 
 interface ActionOptionsProps {
-  readonly options: string[];
+  readonly options: Array<string>;
   readonly onActionSelect: (action: string) => void;
   readonly disabled: boolean;
-  readonly inventory: Item[];
-  readonly mapData: MapNode[];
-  readonly allCharacters: Character[];
+  readonly inventory: Array<Item>;
+  readonly mapData: Array<MapNode>;
+  readonly allCharacters: Array<Character>;
   readonly currentThemeName: string | null;
 }
 

@@ -21,7 +21,7 @@ export interface UseRealityShiftProps {
   getCurrentGameState: () => FullGameState;
   setGameStateStack: Dispatch<SetStateAction<GameStateStack>>;
   loadInitialGame: (options: { explicitThemeName?: string | null; isRestart?: boolean; isTransitioningFromShift?: boolean; customGameFlag?: boolean; savedStateToLoad?: FullGameState | null; }) => void;
-  enabledThemePacksProp: ThemePackName[];
+  enabledThemePacksProp: Array<ThemePackName>;
   playerGenderProp: string;
   stabilityLevelProp: number;
   chaosLevelProp: number;
@@ -85,7 +85,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
   }, [setGameStateStack]);
 
   /** Initiates a reality shift, optionally as a chaos shift. */
-  const triggerRealityShift = useCallback((isChaosShift: boolean = false) => {
+  const triggerRealityShift = useCallback((isChaosShift = false) => {
     const currentFullState = getCurrentGameState();
     const currentThemeObj = currentFullState.currentThemeObject;
 

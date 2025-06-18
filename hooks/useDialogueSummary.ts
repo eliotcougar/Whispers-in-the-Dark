@@ -36,13 +36,13 @@ export interface UseDialogueSummaryProps {
     summaryPayload: GameStateFromAI | null,
     preparedGameState: FullGameState,
     debugInfo: {
-      turns: DialogueTurnDebugEntry[];
+      turns: Array<DialogueTurnDebugEntry>;
       summaryPrompt?: string;
       summaryRawResponse?: string;
-      summaryThoughts?: string[];
+      summaryThoughts?: Array<string>;
     }
   ) => void;
-  getDialogueDebugLogs: () => DialogueTurnDebugEntry[];
+  getDialogueDebugLogs: () => Array<DialogueTurnDebugEntry>;
   clearDialogueDebugLogs: () => void;
 }
 

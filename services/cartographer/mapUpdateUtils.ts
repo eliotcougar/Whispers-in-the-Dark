@@ -76,12 +76,12 @@ export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
   };
 
   const dedupeNamed = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
-    arr: T[] | undefined,
+    arr: Array<T> | undefined,
     typeGetter: (e: T) => string | undefined,
-  ): T[] | undefined => {
+  ): Array<T> | undefined => {
     if (!arr) return arr;
     const seen = new Set<string>();
-    const result: T[] = [];
+    const result: Array<T> = [];
     for (const e of arr) {
       const key = normalizeKey(e.sourcePlaceName, e.targetPlaceName, typeGetter(e));
       if (!seen.has(key)) {
@@ -113,8 +113,8 @@ export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
  * Normalizes status and type fields within the payload to their canonical values.
  * Returns an array of error strings for values that remain invalid.
  */
-export function normalizeStatusAndTypeSynonyms(payload: AIMapUpdatePayload): string[] {
-  const errors: string[] = [];
+export function normalizeStatusAndTypeSynonyms(payload: AIMapUpdatePayload): Array<string> {
+  const errors: Array<string> = [];
 
   (payload.nodesToAdd || []).forEach((n, idx) => { applyNodeDataFix(n.data, errors, `nodesToAdd[${idx}]`); });
   (payload.nodesToUpdate || []).forEach((n, idx) => { applyNodeDataFix(n.newData, errors, `nodesToUpdate[${idx}].newData`); });

@@ -17,7 +17,7 @@ import {
  */
 export const applyNodeDataFix = (
   data: Partial<MapNodeData> | undefined,
-  errors: string[],
+  errors: Array<string>,
   context: string,
 ): void => {
   if (!data) return;
@@ -46,7 +46,7 @@ export const applyNodeDataFix = (
  */
 export const applyEdgeDataFix = (
   data: Partial<MapEdgeData> | undefined,
-  errors: string[],
+  errors: Array<string>,
   context: string,
 ): void => {
   if (!data) return;

@@ -24,7 +24,7 @@ export const executeInventoryRequest = async (
     console.error('API Key not configured for Inventory Service.');
     return Promise.reject(new Error('API Key not configured.'));
   }
-  addProgressSymbol(LOADING_REASON_UI_MAP['inventory'].icon);
+  addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
   const { response } = await dispatchAIRequest({
     modelNames: [MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
@@ -37,11 +37,11 @@ export const executeInventoryRequest = async (
 };
 
 export interface InventoryUpdateResult {
-  itemChanges: ItemChange[];
+  itemChanges: Array<ItemChange>;
   debugInfo: {
     prompt: string;
     rawResponse?: string;
-    parsedItemChanges?: ItemChange[];
+    parsedItemChanges?: Array<ItemChange>;
     observations?: string;
     rationale?: string;
   } | null;
@@ -51,7 +51,7 @@ export const applyInventoryHints_Service = async (
   playerItemsHint: string | undefined,
   worldItemsHint: string | undefined,
   npcItemsHint: string | undefined,
-  newItems: NewItemSuggestion[],
+  newItems: Array<NewItemSuggestion>,
   playerLastAction: string,
   playerInventory: string,
   locationInventory: string,

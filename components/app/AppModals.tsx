@@ -23,7 +23,7 @@ interface AppModalsProps {
   readonly currentScene: string;
   readonly currentTheme: AdventureTheme;
   readonly mapData: MapData;
-  readonly allCharacters: Character[];
+  readonly allCharacters: Array<Character>;
   readonly localTime: string | null;
   readonly localEnvironment: string | null;
   readonly localPlace: string | null;
@@ -34,9 +34,8 @@ interface AppModalsProps {
   readonly isHistoryVisible: boolean;
   readonly setIsHistoryVisible: React.Dispatch<React.SetStateAction<boolean>>;
   readonly themeHistory: ThemeHistoryState;
-  readonly gameLog: string[];
+  readonly gameLog: Array<string>;
 
-  readonly onCloseInfo: () => void;
 
   readonly isMapVisible: boolean;
   readonly onCloseMap: () => void;
@@ -48,7 +47,7 @@ interface AppModalsProps {
   readonly initialLayoutConfig: MapLayoutConfig;
   readonly initialViewBox: string;
   readonly onViewBoxChange: (viewBox: string) => void;
-  readonly onNodesPositioned: (nodes: MapNode[]) => void;
+  readonly onNodesPositioned: (nodes: Array<MapNode>) => void;
   readonly onLayoutConfigChange: (cfg: MapLayoutConfig) => void;
 
   readonly newGameFromMenuConfirmOpen: boolean;

@@ -141,7 +141,7 @@ export function isValidNewItemSuggestion(obj: unknown): obj is NewItemSuggestion
  */
 export function isValidNameDescAliasesPair(
   obj: unknown,
-): obj is { name: string; description: string; aliases?: string[] } {
+): obj is { name: string; description: string; aliases?: Array<string> } {
   if (!obj || typeof obj !== 'object') return false;
   const maybe = obj as {
     name?: unknown;

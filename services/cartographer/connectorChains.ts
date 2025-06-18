@@ -21,8 +21,8 @@ export function buildChainRequest(
   nodeLookup: Map<string, MapNode>,
 ): EdgeChainRequest {
   const chainPairs: EdgeChainRequest['pairs'] = [];
-  const sourceChain: MapNode[] = [sourceNode];
-  const targetChain: MapNode[] = [targetNode];
+  const sourceChain: Array<MapNode> = [sourceNode];
+  const targetChain: Array<MapNode> = [targetNode];
   let nodeA: MapNode = sourceNode;
   let nodeB: MapNode = targetNode;
   let attempts = 0;

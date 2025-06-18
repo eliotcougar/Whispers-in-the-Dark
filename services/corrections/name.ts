@@ -23,7 +23,7 @@ export const fetchCorrectedName_Service = async (
   malformedOrPartialName: string,
   contextualLogMessage: string | undefined,
   contextualSceneDescription: string | undefined,
-  validNamesList: string[],
+  validNamesList: Array<string>,
   currentTheme: AdventureTheme
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
@@ -57,7 +57,7 @@ If no suitable match can be confidently made, respond with an empty string.`;
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

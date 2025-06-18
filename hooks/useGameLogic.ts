@@ -17,7 +17,7 @@ import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 
 export interface UseGameLogicProps {
   playerGenderProp: string;
-  enabledThemePacksProp: ThemePackName[];
+  enabledThemePacksProp: Array<ThemePackName>;
   stabilityLevelProp: number;
   chaosLevelProp: number;
   onSettingsUpdateFromLoad: (
@@ -43,7 +43,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingReason, setLoadingReason] = useState<LoadingReason>(null);
   const [error, setError] = useState<string | null>(null);
-  const [, setParseErrorCounter] = useState<number>(0);
+  const [parseErrorCounter, setParseErrorCounter] = useState<number>(0);
+  void parseErrorCounter;
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
 

@@ -30,7 +30,7 @@ export const fetchCorrectedEdgeType_Service = async (
 
   if (edgeInfo.type) {
     const normalized = synonyms[edgeInfo.type.toLowerCase()] ?? edgeInfo.type.toLowerCase();
-    if ((VALID_EDGE_TYPE_VALUES as readonly string[]).includes(normalized)) {
+    if ((VALID_EDGE_TYPE_VALUES as ReadonlyArray<string>).includes(normalized)) {
       return normalized as MapEdgeData['type'];
     }
   }
@@ -57,7 +57,7 @@ Respond ONLY with the single edge type.`;
   const systemInstruction = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(', ')}.`;
   return retryAiCall<MapEdgeData['type']>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -69,7 +69,7 @@ Respond ONLY with the single edge type.`;
       if (aiResponse) {
         const cleaned = aiResponse.trim().toLowerCase();
         const mapped = synonyms[cleaned] ?? cleaned;
-        if ((VALID_EDGE_TYPE_VALUES as readonly string[]).includes(mapped)) {
+        if ((VALID_EDGE_TYPE_VALUES as ReadonlyArray<string>).includes(mapped)) {
           return { result: mapped as MapEdgeData['type'] };
         }
       }
@@ -89,9 +89,9 @@ export interface ChainParentPair {
 export interface EdgeChainRequest {
   originalSource: MapNode;
   originalTarget: MapNode;
-  pairs: ChainParentPair[];
-  sourceChain: MapNode[];
-  targetChain: MapNode[];
+  pairs: Array<ChainParentPair>;
+  sourceChain: Array<MapNode>;
+  targetChain: Array<MapNode>;
   edgeData: MapEdgeData;
 }
 
@@ -108,19 +108,19 @@ export interface ConnectorChainsServiceResult {
 }
 
 export const fetchConnectorChains_Service = async (
-  requests: EdgeChainRequest[],
+  requests: Array<EdgeChainRequest>,
   context: {
     sceneDescription: string;
     logMessage: string | undefined;
     currentTheme: AdventureTheme;
-    themeNodes: MapNode[];
+    themeNodes: Array<MapNode>;
   },
 ): Promise<ConnectorChainsServiceResult> => {
-  addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+  addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
   if (!isApiConfigured() || requests.length === 0)
     return { payload: null, debugInfo: null };
 
-  const formatValues = (arr: readonly string[]) => `[${arr.map(v => `'${v}'`).join(', ')}]`;
+  const formatValues = (arr: ReadonlyArray<string>) => `[${arr.map(v => `'${v}'`).join(', ')}]`;
   const NODE_STATUS_LIST = formatValues(VALID_NODE_STATUS_VALUES);
   const EDGE_TYPE_LIST = formatValues(VALID_EDGE_TYPE_VALUES);
   const EDGE_STATUS_LIST = formatValues(VALID_EDGE_STATUS_VALUES);
@@ -128,11 +128,11 @@ export const fetchConnectorChains_Service = async (
   const buildGraph = () => {
     const nodeMap = new Map<string, MapNode>();
     const edgeMap = new Map<string, { source: MapNode; target: MapNode; data: MapEdgeData }>();
-    const chainLines: string[] = [];
+    const chainLines: Array<string> = [];
 
     requests.forEach((r, idx) => {
       const visited = new Set<string>();
-      const orderedParents: MapNode[] = [];
+      const orderedParents: Array<MapNode> = [];
       [...r.sourceChain, ...r.targetChain.slice().reverse()].forEach(p => {
         if (p.data.nodeType !== 'feature' && !visited.has(p.id)) {
           orderedParents.push(p);
@@ -283,7 +283,7 @@ Return ONLY a JSON object strictly matching this structure:
   } else if (typeof parsed === 'object') {
     result = parsed as AIMapUpdatePayload;
   }
-  debugInfo.parsedPayload = result as AIMapUpdatePayload;
+  debugInfo.parsedPayload = result!;
   if (result) {
     if (result.observations && !debugInfo.observations) debugInfo.observations = result.observations;
     if (result.rationale && !debugInfo.rationale) debugInfo.rationale = result.rationale;

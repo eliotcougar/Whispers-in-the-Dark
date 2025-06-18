@@ -14,7 +14,7 @@ import {
   ALIAS_INSTRUCTION,
 } from '../../constants';
 
-const formatValues = (arr: readonly string[]) => `['${arr.join("', '")}']`;
+const formatValues = (arr: ReadonlyArray<string>) => `['${arr.join("', '")}']`;
 
 const VALID_NODE_STATUSES_FOR_MAP_AI = formatValues(VALID_NODE_STATUS_VALUES);
 const VALID_EDGE_TYPES_FOR_MAP_AI = formatValues(VALID_EDGE_TYPE_VALUES);

@@ -28,9 +28,9 @@ export const fetchCorrectedDialogueSetup_Service = async (
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
   currentTheme: AdventureTheme,
-  allRelevantCharacters: Character[],
-  allRelevantMapNodes: MapNode[],
-  currentInventory: Item[],
+  allRelevantCharacters: Array<Character>,
+  allRelevantMapNodes: Array<MapNode>,
+  currentInventory: Array<Item>,
   playerGender: string,
   malformedDialogueSetup: Partial<DialogueSetupPayload>
 ): Promise<DialogueSetupPayload | null> => {
@@ -75,7 +75,7 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
 
   return retryAiCall<DialogueSetupPayload>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -107,9 +107,9 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
  */
 export const fetchCorrectedDialogueTurn_Service = async (
   malformedResponseText: string,
-  validParticipants: string[],
+  validParticipants: Array<string>,
   currentTheme: AdventureTheme,
-  npcThoughts?: string[],
+  npcThoughts?: Array<string>,
 ): Promise<DialogueAIResponse | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedDialogueTurn_Service: API Key not configured.');
@@ -146,7 +146,7 @@ Respond ONLY with the corrected JSON object.`;
 
   return retryAiCall<DialogueAIResponse>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP['correction'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

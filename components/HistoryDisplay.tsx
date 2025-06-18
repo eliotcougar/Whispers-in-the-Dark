@@ -7,7 +7,7 @@ import GameLogDisplay from './GameLogDisplay';
 
 interface HistoryDisplayProps {
   readonly themeHistory: ThemeHistoryState;
-  readonly gameLog: string[];
+  readonly gameLog: Array<string>;
   // mapData?: MapNode[]; // If we need to look up MapNode details by placeName from ThemeMemory
   readonly isVisible: boolean;
   readonly onClose: () => void;

@@ -44,7 +44,7 @@ interface GeminiRequestConfig {
 const callDialogueGeminiAPI = async (
   prompt: string,
   systemInstruction: string,
-  thinkingBudgetLimit: number = 0 // Default to 0 (disabled thinking)
+  thinkingBudgetLimit = 0 // Default to 0 (disabled thinking)
 ): Promise<GenerateContentResponse> => {
   const config: GeminiRequestConfig = {
     systemInstruction,
@@ -77,14 +77,14 @@ export const executeDialogueTurn = async (
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
-  knownMainMapNodesInTheme: MapNode[],
-  knownCharactersInTheme: Character[],
-  inventory: Item[],
+  knownMainMapNodesInTheme: Array<MapNode>,
+  knownCharactersInTheme: Array<Character>,
+  inventory: Array<Item>,
   playerGender: string,
-  dialogueHistory: DialogueHistoryEntry[],
+  dialogueHistory: Array<DialogueHistoryEntry>,
   playerLastUtterance: string,
-  dialogueParticipants: string[],
-): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string; thoughts: string[] }> => {
+  dialogueParticipants: Array<string>,
+): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -118,7 +118,7 @@ export const executeDialogueTurn = async (
         }>;
       const thoughtParts = parts
         .filter(p => p.thought === true && typeof p.text === 'string')
-        .map(p => p.text as string);
+        .map(p => p.text!);
       let parsed = parseDialogueTurnResponse(response.text ?? '', thoughtParts);
       if (!parsed) {
         parsed = await fetchCorrectedDialogueTurn_Service(
@@ -147,7 +147,7 @@ export const executeDialogueTurn = async (
  */
 export const executeDialogueSummary = async (
   summaryContext: DialogueSummaryContext,
-): Promise<{ parsed: GameStateFromAI | null; prompt: string; rawResponse: string; thoughts: string[] }> => {
+): Promise<{ parsed: GameStateFromAI | null; prompt: string; rawResponse: string; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Summary Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -178,7 +178,7 @@ export const executeDialogueSummary = async (
         label: 'Storyteller',
       });
       const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
-      const thoughtParts = parts.filter(p => p.thought === true && typeof p.text === 'string').map(p => p.text as string);
+      const thoughtParts = parts.filter(p => p.thought === true && typeof p.text === 'string').map(p => p.text!);
       const parsed = await parseAIResponse(
         response.text ?? '',
         summaryContext.playerGender,
@@ -224,7 +224,7 @@ export const executeMemorySummary = async (
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) {
     try {
       console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 1})`);
-      addProgressSymbol(LOADING_REASON_UI_MAP['dialogue_memory_creation'].icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_memory_creation.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME],
         prompt: userPromptPart,

@@ -49,7 +49,7 @@ export function isValidItemForSave(item: unknown): item is Item {
     typeof maybe.id === 'string' &&
     typeof maybe.name === 'string' &&
     typeof maybe.type === 'string' &&
-    (VALID_ITEM_TYPES as readonly string[]).includes(maybe.type) &&
+    (VALID_ITEM_TYPES as ReadonlyArray<string>).includes(maybe.type) &&
     typeof maybe.description === 'string' &&
     typeof maybe.holderId === 'string' &&
     (maybe.activeDescription === undefined || typeof maybe.activeDescription === 'string') &&
@@ -117,7 +117,7 @@ export function isValidCharacterForSave(character: unknown): character is Charac
   );
 }
 
-export function isValidThemePackNameArray(packs: unknown): packs is ThemePackName[] {
+export function isValidThemePackNameArray(packs: unknown): packs is Array<ThemePackName> {
   return Array.isArray(packs) && packs.every(p => typeof p === 'string' && ALL_THEME_PACK_NAMES.includes(p as ThemePackName));
 }
 
@@ -220,7 +220,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     console.warn(`Save data version mismatch. Expected ${CURRENT_SAVE_GAME_VERSION}, got ${String(providedVersion)}. Attempting to load anyway if structure is V3-compatible.`);
   }
 
-  const fields: (keyof SavedGameDataShape)[] = [
+  const fields: Array<keyof SavedGameDataShape> = [
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
     'inventory', 'gameLog', 'lastActionLog', 'themeHistory',
     'pendingNewThemeNameAfterShift',
@@ -230,7 +230,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   ];
   for (const field of fields) {
     if (!(field in obj)) {
-      const nullableFields: (keyof SavedGameDataShape)[] = [
+      const nullableFields: Array<keyof SavedGameDataShape> = [
         'currentThemeName',
         'currentThemeObject',
         'mainQuest',
@@ -282,7 +282,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (typeof obj.globalTurnNumber !== 'number') { console.warn('Invalid save data(V3): globalTurnNumber type.'); return false; }
   if (obj.isCustomGameMode !== undefined && typeof obj.isCustomGameMode !== 'boolean') { console.warn('Invalid save data (V3): isCustomGameMode type.'); return false; }
 
-  const dialogueFields: string[] = ['dialogueState'];
+  const dialogueFields: Array<string> = ['dialogueState'];
   for (const field of dialogueFields) {
     if (field in obj && obj[field as keyof SavedGameDataShape] !== null && obj[field as keyof SavedGameDataShape] !== undefined) {
       console.warn(`Invalid save data (V3): Unexpected dialogue field '${field}' found in SavedGameDataShape. It should be null/undefined here.`); return false;
@@ -352,7 +352,7 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     const char = c as Partial<Character>;
     return {
       ...char,
-      id: char.id ?? buildCharacterId(char.name as string),
+      id: char.id ?? buildCharacterId(char.name!),
       aliases: char.aliases ?? [],
       presenceStatus: char.presenceStatus ?? 'unknown',
       lastKnownLocation: char.lastKnownLocation ?? null,

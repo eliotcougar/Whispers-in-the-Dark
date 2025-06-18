@@ -68,7 +68,7 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
 
   /** Stores node positions back into the game state's map data. */
   const handleMapNodesPositionChange = useCallback(
-    (updatedNodes: MapNode[]) => {
+    (updatedNodes: Array<MapNode>) => {
       setGameStateStack(prev => {
         const baseState = prev[0];
         let changed = false;

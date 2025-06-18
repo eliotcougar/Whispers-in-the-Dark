@@ -29,7 +29,7 @@ export const DESTROY_SYNONYMS = new Set([
 export function normalizeItemType(type: unknown): ItemType | null {
   if (typeof type !== 'string') return null;
   const lower = type.toLowerCase().trim();
-  if ((VALID_ITEM_TYPES as readonly string[]).includes(lower as ItemType)) {
+  if ((VALID_ITEM_TYPES as ReadonlyArray<string>).includes(lower as ItemType)) {
     return lower as ItemType;
   }
   const mapped = ITEM_TYPE_SYNONYMS[lower];

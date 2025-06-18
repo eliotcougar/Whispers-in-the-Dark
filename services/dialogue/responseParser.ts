@@ -8,7 +8,7 @@ import { trimDialogueHints } from '../../utils/dialogueParsing';
 
 const parseDialogueResponse = (
   responseText: string,
-  thoughts?: string[],
+  thoughts?: Array<string>,
 ): DialogueAIResponse | null => {
   const jsonStr = extractJsonFromFence(responseText);
   const parsed = safeParseJson<Partial<DialogueAIResponse>>(jsonStr);
@@ -48,14 +48,14 @@ const parseDialogueResponse = (
 
 export const parseDialogueAIResponse = (
   responseText: string,
-  thoughts?: string[],
+  thoughts?: Array<string>,
 ): DialogueAIResponse | null => {
   return parseDialogueResponse(responseText, thoughts);
 };
 
 export const parseDialogueTurnResponse = (
   responseText: string,
-  thoughts?: string[],
+  thoughts?: Array<string>,
 ): DialogueAIResponse | null => {
   return parseDialogueResponse(responseText, thoughts);
 };

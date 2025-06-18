@@ -42,7 +42,7 @@ export const findTravelPath = (
   mapData: MapData,
   startNodeId: string,
   endNodeId: string
-): TravelStep[] | null => {
+): Array<TravelStep> | null => {
   const adjacency = new Map<string, Array<{ edgeId: string; to: string; cost: number }>>();
 
   const nodeMap = new Map(mapData.nodes.map(n => [n.id, n]));
@@ -51,7 +51,7 @@ export const findTravelPath = (
     return !!node && node.data.status !== 'blocked';
   };
 
-  const childrenByParent = new Map<string, string[]>();
+  const childrenByParent = new Map<string, Array<string>>();
   for (const node of mapData.nodes) {
     const p = node.data.parentNodeId;
     if (!p) continue;
@@ -119,7 +119,7 @@ export const findTravelPath = (
 
   const distances = new Map<string, number>();
   const prev = new Map<string, { from: string; edgeId: string }>();
-  const queue: QueueItem[] = [{ nodeId: startNodeId, cost: 0 }];
+  const queue: Array<QueueItem> = [{ nodeId: startNodeId, cost: 0 }];
   distances.set(startNodeId, 0);
 
   while (queue.length > 0) {
@@ -142,7 +142,7 @@ export const findTravelPath = (
 
   if (!distances.has(endNodeId)) return null;
 
-  const steps: TravelStep[] = [];
+  const steps: Array<TravelStep> = [];
   let current = endNodeId;
   steps.unshift({ step: 'node', id: current });
   while (current !== startNodeId) {

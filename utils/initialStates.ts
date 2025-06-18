@@ -93,7 +93,7 @@ export const getInitialGameStates = (): FullGameState => {
  */
 export const getInitialGameStatesWithSettings = (
   playerGender: string,
-  enabledThemePacks: ThemePackName[],
+  enabledThemePacks: Array<ThemePackName>,
   stabilityLevel: number,
   chaosLevel: number
 ): FullGameState => {

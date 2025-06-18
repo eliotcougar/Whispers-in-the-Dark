@@ -5,7 +5,7 @@ import {
   MINIMAL_MODEL_NAME,
 } from '../constants';
 
-const usageHistories: Record<string, number[] | undefined> = {
+const usageHistories: Record<string, Array<number> | undefined> = {
   [GEMINI_MODEL_NAME]: [],
   [AUXILIARY_MODEL_NAME]: [],
   [MINIMAL_MODEL_NAME]: [],

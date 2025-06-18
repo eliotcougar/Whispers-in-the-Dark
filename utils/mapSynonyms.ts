@@ -199,9 +199,9 @@ function escapeForRegExp(text: string): string {
  */
 export function createHeuristicRegexes<T extends string>(
   synonymMap: Record<string, T>,
-  canonicalValues: readonly T[]
-): [RegExp, T][] {
-  const phrasesByValue: Partial<Record<string, string[]>> = {};
+  canonicalValues: ReadonlyArray<T>
+): Array<[RegExp, T]> {
+  const phrasesByValue: Partial<Record<string, Array<string>>> = {};
   for (const val of canonicalValues) {
     phrasesByValue[val] = [escapeForRegExp(val)];
   }
@@ -213,7 +213,7 @@ export function createHeuristicRegexes<T extends string>(
     }
     list.push(escapeForRegExp(phrase));
   }
-  const heuristics: [RegExp, T][] = [];
+  const heuristics: Array<[RegExp, T]> = [];
   for (const [canonical, phrases] of Object.entries(phrasesByValue)) {
     if (!phrases) continue;
     const pattern = phrases.map(p => p.replace(/\s+/g, '\\s+')).join('|');

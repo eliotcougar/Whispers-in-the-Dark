@@ -16,7 +16,7 @@ interface SettingsDisplayProps {
   readonly chaosLevel: number;
   readonly onStabilityChange: (value: number) => void;
   readonly onChaosChange: (value: number) => void;
-  readonly enabledThemePacks: ThemePackName[];
+  readonly enabledThemePacks: Array<ThemePackName>;
   readonly onToggleThemePack: (packName: ThemePackName) => void;
   readonly playerGender: string;
   readonly onPlayerGenderChange: (gender: string) => void;
