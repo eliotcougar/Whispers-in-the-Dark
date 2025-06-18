@@ -183,7 +183,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         commitGameState(draftState);
         setIsLoading(false);
         setLoadingReason(null);
-      }).catch((e) => {
+      }).catch((e: unknown) => {
         console.error('Error in post-dialogue processAiResponse:', e);
         setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
         commitGameState(preparedGameState);

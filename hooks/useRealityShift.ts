@@ -153,7 +153,11 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     });
 
     if (!currentFullState.isAwaitingManualShiftThemeSelection && targetThemeName) {
-      void loadInitialGame({ explicitThemeName: targetThemeName, isTransitioningFromShift: true, customGameFlag: previousCustomMode });
+      loadInitialGame({
+        explicitThemeName: targetThemeName,
+        isTransitioningFromShift: true,
+        customGameFlag: previousCustomMode
+      });
     }
   }, [
     getCurrentGameState,
@@ -199,7 +203,11 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       lastActionLog: `You chose to shift reality to: ${themeName}. The world warps around you!`
     }, prev[1]]);
 
-    void loadInitialGame({ explicitThemeName: themeName, isTransitioningFromShift: true, customGameFlag: true });
+    loadInitialGame({
+      explicitThemeName: themeName,
+      isTransitioningFromShift: true,
+      customGameFlag: true
+    });
   }, [getCurrentGameState, setGameStateStack, loadInitialGame, setLoadingReason]);
 
   /** Cancels the manual shift selection process. */
