@@ -20,10 +20,9 @@ export function normalizeLoadedSaveData(
 ): SavedGameDataShape | null {
   let dataToValidateAndExpand: SavedGameDataShape | null = null;
   if (
-    parsedObj &&
-    (parsedObj.saveGameVersion === CURRENT_SAVE_GAME_VERSION ||
-      (typeof parsedObj.saveGameVersion === 'string' &&
-        parsedObj.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0])))
+    parsedObj.saveGameVersion === CURRENT_SAVE_GAME_VERSION ||
+    (typeof parsedObj.saveGameVersion === 'string' &&
+      parsedObj.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0]))
   ) {
     if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
       console.warn(
@@ -33,15 +32,13 @@ export function normalizeLoadedSaveData(
     dataToValidateAndExpand = parsedObj as SavedGameDataShape;
     ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
     ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
-  } else if (parsedObj) {
+  } else {
     console.warn(
       `Unknown save version '${String(parsedObj.saveGameVersion)}' from ${sourceLabel}. This might fail validation.`
     );
     dataToValidateAndExpand = parsedObj as SavedGameDataShape;
-    if (dataToValidateAndExpand) {
-      ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
-      ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
-    }
+    ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
+    ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
   }
 
   if (

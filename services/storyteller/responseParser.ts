@@ -410,8 +410,8 @@ export async function parseAIResponse(
         if (isDialogueTurn && validated.dialogueSetup && validated.dialogueSetup.participants) {
             const allAvailableCharacterNamesThisTurn = new Set([
                 ...allRelevantCharacters.map(c => c.name),
-                ...(validated.charactersAdded?.map(c => c.name) || []),
-                ...(validated.charactersUpdated?.map(cUpd => cUpd.name) || [])
+                ...validated.charactersAdded.map(c => c.name),
+                ...validated.charactersUpdated.map(cUpd => cUpd.name)
             ]);
 
             const finalValidParticipants: string[] = [];

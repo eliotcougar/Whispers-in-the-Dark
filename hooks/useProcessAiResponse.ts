@@ -166,14 +166,9 @@ export const useProcessAiResponse = ({
       if ('sceneDescription' in aiData && aiData.sceneDescription) {
         draftState.currentScene = aiData.sceneDescription;
       }
-      if (
-        'options' in aiData &&
-        aiData.options &&
-        aiData.options.length > 0 &&
-        !('dialogueSetup' in aiData && aiData.dialogueSetup)
-      ) {
+      if (aiData.options.length > 0 && !aiData.dialogueSetup) {
         draftState.actionOptions = aiData.options;
-      } else if (!isFromDialogueSummary && !('dialogueSetup' in aiData && aiData.dialogueSetup)) {
+      } else if (!isFromDialogueSummary && !aiData.dialogueSetup) {
         draftState.actionOptions = [
           'Look around.',
           'Ponder your situation.',

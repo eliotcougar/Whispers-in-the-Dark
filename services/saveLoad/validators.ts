@@ -59,7 +59,6 @@ export function isValidItemForSave(item: unknown): item is Item {
     (maybe.knownUses === undefined ||
       (Array.isArray(maybe.knownUses) &&
         maybe.knownUses.every((ku: KnownUse) =>
-          ku &&
           typeof ku.actionName === 'string' &&
           typeof ku.promptEffect === 'string' &&
           (ku.description === undefined || typeof ku.description === 'string') &&
