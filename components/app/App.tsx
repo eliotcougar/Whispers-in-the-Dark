@@ -31,11 +31,7 @@ import { useSaveLoad } from '../../hooks/useSaveLoad';
 import { useModalState } from '../../hooks/useModalState';
 import { findTravelPath, TravelStep } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
-import {
-  applyNestedCircleLayout,
-  DEFAULT_NESTED_PADDING,
-  DEFAULT_NESTED_ANGLE_PADDING,
-} from '../../utils/mapLayoutUtils';
+import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 
 import { saveGameStateToLocalStorage } from '../../services/storage';
 
@@ -464,12 +460,10 @@ function App() {
     if (isMapVisible && !prevMapVisibleRef.current) {
       const layoutNodes = applyNestedCircleLayout(
         mapData.nodes.filter(n => n.themeName === currentTheme?.name).map(n => ({ ...n })),
-        {
-          padding:
-            mapLayoutConfig?.NESTED_PADDING ?? DEFAULT_NESTED_PADDING,
-          anglePadding:
-            mapLayoutConfig?.NESTED_ANGLE_PADDING ?? DEFAULT_NESTED_ANGLE_PADDING,
-        }
+          {
+            padding: mapLayoutConfig.NESTED_PADDING,
+            anglePadding: mapLayoutConfig.NESTED_ANGLE_PADDING,
+          }
       );
       handleMapNodesPositionChange(layoutNodes);
 
@@ -538,7 +532,7 @@ function App() {
         {error && !isLoading && !dialogueState && hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
           <ErrorDisplay
             message={error}
-            onRetry={isLoading ? undefined : handleRetryClick}
+            onRetry={handleRetryClick}
           />
         </div> : null}
 
@@ -553,7 +547,7 @@ function App() {
           <div className="lg:col-span-2 space-y-2">
             {hasGameBeenInitialized ? <MainToolbar
               currentSceneExists={!!currentScene}
-              currentThemeName={currentTheme?.name || null}
+              currentThemeName={currentTheme ? currentTheme.name : null}
               isLoading={isLoading || !!dialogueState}
               onManualRealityShift={handleOpenManualShiftConfirm}
               onOpenHistory={handleOpenHistory}
@@ -580,7 +574,7 @@ function App() {
 
             <SceneDisplay
               allCharacters={allCharacters}
-              currentThemeName={currentTheme?.name || null}
+              currentThemeName={currentTheme ? currentTheme.name : null}
               description={hasGameBeenInitialized ? currentScene : " "}
               inventory={inventory}
               lastActionLog={hasGameBeenInitialized ? lastActionLog : null}
@@ -593,7 +587,7 @@ function App() {
             {actionOptions.length > 0 && (typeof error !== 'string' || !error.includes("API Key")) && hasGameBeenInitialized ? <>
               <ActionOptions
                 allCharacters={allCharacters}
-                currentThemeName={currentTheme?.name || null}
+                currentThemeName={currentTheme ? currentTheme.name : null}
                 disabled={isLoading || !!dialogueState}
                 inventory={inventory}
                 mapData={mapData.nodes}
@@ -705,7 +699,7 @@ function App() {
 
       <DialogueDisplay
         allCharacters={allCharacters}
-        currentThemeName={currentTheme?.name || null}
+        currentThemeName={currentTheme ? currentTheme.name : null}
         history={dialogueState?.history || []}
         inventory={inventory}
         isDialogueExiting={isDialogueExiting}
@@ -748,7 +742,7 @@ function App() {
 
       <CustomGameSetupScreen
         descriptionText="Choose the theme you wish to manually shift your reality to. The current theme is disabled."
-        disabledThemeName={currentTheme?.name || null}
+        disabledThemeName={currentTheme ? currentTheme.name : null}
         isVisible={isManualShiftThemeSelectionVisible}
         onClose={handleCancelManualShiftThemeSelection}
         onThemeSelected={handleManualShiftThemeSelected}
@@ -779,7 +773,7 @@ function App() {
         currentMapNodeId={currentMapNodeId}
         currentScene={currentScene}
         currentTheme={currentTheme}
-        currentThemeName={currentTheme?.name || null}
+        currentThemeName={currentTheme.name}
         destinationNodeId={destinationNodeId}
         gameLog={gameLog}
         handleCancelLoadGameFromMenu={handleCancelLoadGameFromMenu}

@@ -43,7 +43,7 @@ interface MapNodeViewProps {
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
-  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
   readonly onSelectDestination: (nodeId: string | null) => void;
   readonly labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */
@@ -55,7 +55,7 @@ interface MapNodeViewProps {
 /**
  * Empty map used as the default value for {@link MapNodeViewProps.itemPresenceByNode}.
  */
-const EMPTY_ITEM_PRESENCE_BY_NODE: Record<string, { hasUseful: boolean; hasVehicle: boolean }> = {};
+const EMPTY_ITEM_PRESENCE_BY_NODE: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
 
 /**
  * Returns the radius for a node's circle. Uses the computed visualRadius from
@@ -237,13 +237,15 @@ function MapNodeView({
     const isParent = (n: MapNode) => childrenMap.has(n.id);
 
     const fontSizeFor = (n: MapNode) => (isSmallFontType(n.data.nodeType) ? 7 : 12);
-    const linesCache: Record<string, string[]> = {};
-    const getLines = (n: MapNode): string[] => {
-      if (linesCache[n.id]) return linesCache[n.id];
-      const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
-      linesCache[n.id] = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
-      return linesCache[n.id];
-    };
+      const linesCache: Record<string, string[] | undefined> = {};
+      const getLines = (n: MapNode): string[] => {
+        const cached = linesCache[n.id];
+        if (cached) return cached;
+        const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
+        const lines = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
+        linesCache[n.id] = lines;
+        return lines;
+      };
 
     const labelHeight = (n: MapNode) =>
       getLines(n).length * fontSizeFor(n) * DEFAULT_LABEL_LINE_HEIGHT_EM;
@@ -430,7 +432,7 @@ function MapNodeView({
       let content = `${node.placeName}`;
       if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
       if (node.data.description) content += `\n${node.data.description}`;
-      if (node.data.status) content += `\nStatus: ${node.data.status}`;
+      content += `\nStatus: ${node.data.status}`;
       const anchor = computeAnchor(x, y, svgRect);
       if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
       tooltipTimeout.current = window.setTimeout(() => {
@@ -462,7 +464,7 @@ function MapNodeView({
       let content = `${node.placeName}`;
       if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
       if (node.data.description) content += `\n${node.data.description}`;
-      if (node.data.status) content += `\nStatus: ${node.data.status}`;
+      content += `\nStatus: ${node.data.status}`;
       setIsTooltipLocked(true);
       const anchor = computeAnchor(x, y, svgRect);
       setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId });
@@ -570,12 +572,10 @@ function MapNodeView({
 
           {sortedNodes.map(node => {
             let nodeClass = 'map-node-circle';
-            if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
+            nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
-            if (node.data.status) {
-              const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
-              nodeClass += ` ${sanitizedStatus}`;
-            }
+            const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
+            nodeClass += ` ${sanitizedStatus}`;
             const radius = getRadiusForNode(node);
             return (
               <g
@@ -621,8 +621,8 @@ function MapNodeView({
           {destinationMarker}
 
           {sortedNodes.map(node => {
-          const presence = itemPresenceByNode?.[node.id];
-          if (!presence) return null;
+          const presence = itemPresenceByNode[node.id] ?? { hasUseful: false, hasVehicle: false };
+          if (!presence.hasUseful && !presence.hasVehicle) return null;
           const radius = getRadiusForNode(node);
           const offset = radius + DEFAULT_LABEL_MARGIN_PX * 1.5;
           const iconSize = NODE_RADIUS * 2 * itemIconScale;

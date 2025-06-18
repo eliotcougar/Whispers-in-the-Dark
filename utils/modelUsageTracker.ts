@@ -5,7 +5,7 @@ import {
   MINIMAL_MODEL_NAME,
 } from '../constants';
 
-const usageHistories: Record<string, number[]> = {
+const usageHistories: Record<string, number[] | undefined> = {
   [GEMINI_MODEL_NAME]: [],
   [AUXILIARY_MODEL_NAME]: [],
   [MINIMAL_MODEL_NAME]: [],
@@ -16,6 +16,7 @@ let subscribers: Array<() => void> = [];
 const purgeOld = () => {
   const cutoff = Date.now() - 60_000;
   Object.values(usageHistories).forEach(arr => {
+    if (!arr) return;
     while (arr.length && arr[0] < cutoff) arr.shift();
   });
 };
@@ -25,17 +26,19 @@ const notify = () => {
 };
 
 export const recordModelCall = (model: string) => {
-  if (!usageHistories[model]) {
-    usageHistories[model] = [];
+  let history = usageHistories[model];
+  if (!history) {
+    history = [];
+    usageHistories[model] = history;
   }
-  usageHistories[model].push(Date.now());
+  history.push(Date.now());
   purgeOld();
   notify();
 };
 
 export const getModelUsageCount = (model: string): number => {
   purgeOld();
-  return usageHistories[model]?.length || 0;
+  return usageHistories[model]?.length ?? 0;
 };
 
 export const subscribeToModelUsage = (fn: () => void): (() => void) => {
@@ -51,7 +54,7 @@ export const subscribeToModelUsage = (fn: () => void): (() => void) => {
  */
 export const getDelayUntilUnderLimit = (model: string, limit: number): number => {
   purgeOld();
-  const history = usageHistories[model] || [];
+  const history = usageHistories[model] ?? [];
   if (history.length < limit) return 0;
   const index = history.length - limit;
   const targetTime = history[index] + 60_000;

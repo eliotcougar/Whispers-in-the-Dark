@@ -114,7 +114,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       return;
     }
 
-    const previousCustomMode = currentFullState.isCustomGameMode ?? false;
+    const previousCustomMode = currentFullState.isCustomGameMode;
 
     setGameStateStack((prevStack: GameStateStack) => {
       let newStateForShiftStart = { ...prevStack[0] };

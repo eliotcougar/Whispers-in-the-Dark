@@ -248,14 +248,12 @@ export const ALL_THEME_PACK_NAMES = Object.keys(THEME_PACKS) as ThemePackName[];
  * @returns AdventureTheme[]
  */
 export const getThemesFromPacks = (packNames: ThemePackName[]): AdventureTheme[] => {
-  if (!packNames || packNames.length === 0) {
+  if (packNames.length === 0) {
     return [];
   }
   let selectedThemes: AdventureTheme[] = [];
   packNames.forEach(packName => {
-    if (THEME_PACKS[packName]) {
-      selectedThemes = selectedThemes.concat(THEME_PACKS[packName]);
-    }
+    selectedThemes = selectedThemes.concat(THEME_PACKS[packName]);
   });
   return selectedThemes;
 };

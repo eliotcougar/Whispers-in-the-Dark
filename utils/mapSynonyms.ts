@@ -201,18 +201,21 @@ export function createHeuristicRegexes<T extends string>(
   synonymMap: Record<string, T>,
   canonicalValues: readonly T[]
 ): [RegExp, T][] {
-  const phrasesByValue: Record<string, string[]> = {};
+  const phrasesByValue: Partial<Record<string, string[]>> = {};
   for (const val of canonicalValues) {
     phrasesByValue[val] = [escapeForRegExp(val)];
   }
   for (const [phrase, canonical] of Object.entries(synonymMap)) {
-    if (!phrasesByValue[canonical]) {
-      phrasesByValue[canonical] = [escapeForRegExp(canonical)];
+    let list = phrasesByValue[canonical];
+    if (!list) {
+      list = [escapeForRegExp(canonical)];
+      phrasesByValue[canonical] = list;
     }
-    phrasesByValue[canonical].push(escapeForRegExp(phrase));
+    list.push(escapeForRegExp(phrase));
   }
   const heuristics: [RegExp, T][] = [];
   for (const [canonical, phrases] of Object.entries(phrasesByValue)) {
+    if (!phrases) continue;
     const pattern = phrases.map(p => p.replace(/\s+/g, '\\s+')).join('|');
     heuristics.push([new RegExp(pattern, 'i'), canonical as T]);
   }

@@ -15,9 +15,7 @@ interface KnowledgeBaseProps {
 }
 
 interface GroupedEntities {
-  [themeName: string]: {
-    characters: Character[];
-  };
+  [themeName: string]: Character[] | undefined;
 }
 
 /**
@@ -33,10 +31,12 @@ function KnowledgeBase({
     const grouped: GroupedEntities = {};
 
     allCharacters.forEach(character => {
-      if (!grouped[character.themeName]) {
-        grouped[character.themeName] = { characters: [] };
+      let bucket = grouped[character.themeName];
+      if (!bucket) {
+        bucket = [];
+        grouped[character.themeName] = bucket;
       }
-      grouped[character.themeName].characters.push(character);
+      bucket.push(character);
     });
     return grouped;
   }, [allCharacters]);
@@ -79,8 +79,7 @@ function KnowledgeBase({
           </p> : null}
 
           {isVisible ? sortedThemeNames.map(themeName => {
-            const themeData = groupedEntities[themeName];
-            const characters = themeData.characters || [];
+            const characters = groupedEntities[themeName] ?? [];
 
             if (characters.length === 0) { 
               return null; 
@@ -110,7 +109,7 @@ function KnowledgeBase({
 
                     <div className="kb-card-grid">
                       {characters.map(character => {
-                        let locationDisplay = null;
+                        let locationDisplay: React.ReactNode;
                         const isCurrentThemeCharacter = currentTheme && themeName === currentTheme.name;
 
                         if (isCurrentThemeCharacter && (character.presenceStatus === 'companion' || character.presenceStatus === 'nearby')) {
@@ -174,9 +173,9 @@ function KnowledgeBase({
                               {character.description}
                             </p>
 
-                            {locationDisplay ? <div className="mt-2 pt-2 border-t border-slate-600">
+                            <div className="mt-2 pt-2 border-t border-slate-600">
                               {locationDisplay}
-                            </div> : null}
+                            </div>
                           </div>
                         );
                       })}

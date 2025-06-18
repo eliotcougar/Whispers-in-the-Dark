@@ -20,12 +20,9 @@ function LoadingSpinner({ loadingReason = null }: LoadingSpinnerProps) {
   const spinnerClass = `${spinnerBaseClass} animate-spin border-sky-600`;
   const textColor = "text-sky-400";
   
+  const entry = loadingReason ? LOADING_REASON_UI_MAP[loadingReason] : undefined;
   const textMessage =
-    loadingReason && LOADING_REASON_UI_MAP[loadingReason]
-      ? LOADING_REASON_UI_MAP[loadingReason].text
-      : loadingReason === null
-      ? 'Hmmmmmm...'
-      : 'Loading...';
+    entry?.text ?? (loadingReason === null ? 'Hmmmmmm...' : 'Loading...');
 
   const progressDisplay = progress
     ? progress + progress.split('').reverse().join('')
