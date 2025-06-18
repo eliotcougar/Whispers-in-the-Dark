@@ -117,8 +117,11 @@ function KnowledgeBase({
                           locationDisplay = (
                             <p className="text-sm text-slate-300 flex items-center">
                               <Icon
-                                className={iconName === 'companion' ? 'h-4 w-4 inline-block mr-1 text-green-400' : 'h-4 w-4 inline-block mr-1 text-sky-400'}
+                                color={iconName === 'companion' ? 'green' : 'sky'}
+                                inline
+                                marginRight={4}
                                 name={iconName}
+                                size={16}
                               />
 
                               <span className={`ml-1 ${colorClass} italic`}>

@@ -1,13 +1,15 @@
 import { useCallback } from 'react';
 import * as React from 'react';
 
+type ButtonVariant = 'primary' | 'danger';
+
 interface ItemActionButtonProps {
   readonly label: React.ReactNode;
   readonly onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly disabled: boolean;
   readonly ariaLabel: string;
-  readonly className: string;
   readonly dataItemName: string;
+  readonly variant?: ButtonVariant;
 }
 
 /**
@@ -19,8 +21,8 @@ function ItemActionButton({
   onClick,
   disabled = false,
   ariaLabel,
-  className = '',
   dataItemName = '',
+  variant,
 }: ItemActionButtonProps) {
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -30,10 +32,15 @@ function ItemActionButton({
     [onClick]
   );
 
+  const variantClasses: Record<ButtonVariant, string> = {
+    primary: 'bg-sky-700 hover:bg-sky-600',
+    danger: 'bg-orange-700 hover:bg-orange-600',
+  };
+
   return (
     <button
       aria-label={ariaLabel}
-      className={`w-full text-sm text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${className}`}
+      className={`w-full text-sm text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out flex items-center justify-center ${variantClasses[variant]}`}
       data-item-name={dataItemName}
       disabled={disabled}
       onClick={handleClick}
@@ -43,5 +50,9 @@ function ItemActionButton({
     </button>
   );
 }
+
+ItemActionButton.defaultProps = {
+  variant: 'primary',
+};
 
 export default ItemActionButton;

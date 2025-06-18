@@ -39,29 +39,78 @@ const iconMap = {
 
 export type IconName = keyof typeof iconMap;
 
+export type IconColor =
+  | 'amber'
+  | 'emerald'
+  | 'green'
+  | 'white'
+  | 'sky'
+  | 'indigo';
+
 export interface IconProps {
   readonly name: IconName;
-  readonly className?: string;
   readonly size?: number;
+  readonly color?: IconColor;
+  readonly inline?: boolean;
+  readonly marginRight?: number;
   readonly wrapper?: 'span' | 'g';
 }
 
 /**
  * Renders the requested icon.
  */
-export function Icon({ name, className = '', size, wrapper = 'span' }: IconProps) {
+export function Icon({
+  name,
+  size,
+  color,
+  inline = false,
+  marginRight,
+  wrapper = 'span',
+}: IconProps) {
   const svgMarkup = iconMap[name];
-  const attrs = (className ? ` class="${className}"` : '') +
+
+  const colorClasses: Record<IconColor, string> = {
+    amber: 'text-amber-400',
+    emerald: 'text-emerald-400',
+    green: 'text-green-400',
+    white: 'text-white',
+    sky: 'text-sky-400',
+    indigo: 'text-indigo-400',
+  };
+
+  const svgClasses = [color ? colorClasses[color] : '']
+    .filter(Boolean)
+    .join(' ');
+
+  const svgAttrs = (svgClasses ? ` class="${svgClasses}"` : '') +
     (size ? ` width="${size}" height="${size}"` : '');
-  const rendered = svgMarkup.replace('<svg', `<svg${attrs}`);
+  const rendered = svgMarkup.replace('<svg', `<svg${svgAttrs}`);
+
+  const style = marginRight ? { marginRight } : undefined;
+  const wrapperClasses = inline ? 'inline-block' : undefined;
+
   if (wrapper === 'g') {
-    return <g dangerouslySetInnerHTML={{ __html: rendered }} />;
+    return (
+      <g
+        className={wrapperClasses}
+        dangerouslySetInnerHTML={{ __html: rendered }}
+        style={style}
+      />
+    );
   }
-  return <span dangerouslySetInnerHTML={{ __html: rendered }} />;
+  return (
+    <span
+      className={wrapperClasses}
+      dangerouslySetInnerHTML={{ __html: rendered }}
+      style={style}
+    />
+  );
 }
 
 Icon.defaultProps = {
-  className: '',
+  color: undefined,
+  inline: false,
+  marginRight: undefined,
   size: undefined,
   wrapper: 'span',
 };

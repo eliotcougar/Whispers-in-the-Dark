@@ -637,13 +637,13 @@ function MapNodeView({
                   transform={`translate(${usefulX}, ${usefulY})`}
                 >
                   <Icon
-                    className="text-green-400"
+                    color="green"
                     name="mapItemBox"
                     size={iconSize}
                     wrapper="g"
                   />
                 </g>
-              ) : null}
+                ) : null}
 
               {presence.hasVehicle ? (
                 <g
@@ -651,13 +651,13 @@ function MapNodeView({
                   transform={`translate(${vehicleX}, ${vehicleY})`}
                 >
                   <Icon
-                    className="text-green-400"
+                    color="green"
                     name="mapWheel"
                     size={iconSize}
                     wrapper="g"
                   />
                 </g>
-              ) : null}
+                ) : null}
             </g>
           );
         })}
