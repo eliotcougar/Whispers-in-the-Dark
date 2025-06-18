@@ -65,12 +65,56 @@ interface AppModalsProps {
   readonly isCustomGameModeShift: boolean;
 }
 
-function AppModals(props: AppModalsProps) {
-  const {
-    setIsVisualizerVisible,
-    setIsKnowledgeBaseVisible,
-    setIsHistoryVisible,
-  } = props;
+function AppModals({
+  // Visibility flags
+  isVisualizerVisible,
+  setIsVisualizerVisible,
+  visualizerImageUrl,
+  visualizerImageScene,
+  setGeneratedImage,
+  currentScene,
+  currentTheme,
+  mapData,
+  allCharacters,
+  localTime,
+  localEnvironment,
+  localPlace,
+
+  isKnowledgeBaseVisible,
+  setIsKnowledgeBaseVisible,
+
+  isHistoryVisible,
+  setIsHistoryVisible,
+  themeHistory,
+  gameLog,
+
+  isMapVisible,
+  onCloseMap,
+  currentThemeName,
+  currentMapNodeId,
+  destinationNodeId,
+  itemPresenceByNode,
+  onSelectDestination,
+  initialLayoutConfig,
+  initialViewBox,
+  onViewBoxChange,
+  onNodesPositioned,
+  onLayoutConfigChange,
+
+  newGameFromMenuConfirmOpen,
+  handleConfirmNewGameFromMenu,
+  handleCancelNewGameFromMenu,
+  newCustomGameConfirmOpen,
+  handleConfirmNewCustomGame,
+  handleCancelNewCustomGame,
+  loadGameFromMenuConfirmOpen,
+  handleConfirmLoadGameFromMenu,
+  handleCancelLoadGameFromMenu,
+  shiftConfirmOpen,
+  handleConfirmShift,
+  handleCancelShift,
+  isCustomGameModeShift,
+}: AppModalsProps) {
 
   const handleCloseVisualizer = React.useCallback(() => {
     setIsVisualizerVisible(false);
@@ -87,90 +131,90 @@ function AppModals(props: AppModalsProps) {
   return (
     <>
       <ImageVisualizer
-        allCharacters={props.allCharacters}
-        cachedImageScene={props.visualizerImageScene}
-        cachedImageUrl={props.visualizerImageUrl}
-        currentSceneDescription={props.currentScene}
-        currentTheme={props.currentTheme}
-        isVisible={props.isVisualizerVisible}
-        localEnvironment={props.localEnvironment}
-        localPlace={props.localPlace}
-        localTime={props.localTime}
-        mapData={props.mapData.nodes}
+        allCharacters={allCharacters}
+        cachedImageScene={visualizerImageScene}
+        cachedImageUrl={visualizerImageUrl}
+        currentSceneDescription={currentScene}
+        currentTheme={currentTheme}
+        isVisible={isVisualizerVisible}
+        localEnvironment={localEnvironment}
+        localPlace={localPlace}
+        localTime={localTime}
+        mapData={mapData.nodes}
         onClose={handleCloseVisualizer}
-        setGeneratedImage={props.setGeneratedImage}
+        setGeneratedImage={setGeneratedImage}
       />
 
       <KnowledgeBase
-        allCharacters={props.allCharacters}
-        currentTheme={props.currentTheme}
-        isVisible={props.isKnowledgeBaseVisible}
+        allCharacters={allCharacters}
+        currentTheme={currentTheme}
+        isVisible={isKnowledgeBaseVisible}
         onClose={handleCloseKnowledgeBase}
       />
 
       <HistoryDisplay
-        gameLog={props.gameLog}
-        isVisible={props.isHistoryVisible}
+        gameLog={gameLog}
+        isVisible={isHistoryVisible}
         onClose={handleCloseHistory}
-        themeHistory={props.themeHistory}
+        themeHistory={themeHistory}
       />
 
       <MapDisplay
-        currentMapNodeId={props.currentMapNodeId}
-        currentThemeName={props.currentThemeName}
-        destinationNodeId={props.destinationNodeId}
-        initialLayoutConfig={props.initialLayoutConfig}
-        initialViewBox={props.initialViewBox}
-        isVisible={props.isMapVisible}
-        itemPresenceByNode={props.itemPresenceByNode}
-        mapData={props.mapData}
-        onClose={props.onCloseMap}
-        onLayoutConfigChange={props.onLayoutConfigChange}
-        onNodesPositioned={props.onNodesPositioned}
-        onSelectDestination={props.onSelectDestination}
-        onViewBoxChange={props.onViewBoxChange}
+        currentMapNodeId={currentMapNodeId}
+        currentThemeName={currentThemeName}
+        destinationNodeId={destinationNodeId}
+        initialLayoutConfig={initialLayoutConfig}
+        initialViewBox={initialViewBox}
+        isVisible={isMapVisible}
+        itemPresenceByNode={itemPresenceByNode}
+        mapData={mapData}
+        onClose={onCloseMap}
+        onLayoutConfigChange={onLayoutConfigChange}
+        onNodesPositioned={onNodesPositioned}
+        onSelectDestination={onSelectDestination}
+        onViewBoxChange={onViewBoxChange}
       />
 
 
       <ConfirmationDialog
         confirmButtonClass="bg-red-600 hover:bg-red-500"
         confirmText="Start New Game"
-        isOpen={props.newGameFromMenuConfirmOpen}
+        isOpen={newGameFromMenuConfirmOpen}
         message="Are you sure you want to start a new game? Your current progress will be lost."
-        onCancel={props.handleCancelNewGameFromMenu}
-        onConfirm={props.handleConfirmNewGameFromMenu}
+        onCancel={handleCancelNewGameFromMenu}
+        onConfirm={handleConfirmNewGameFromMenu}
         title="Confirm New Game"
       />
 
       <ConfirmationDialog
         confirmButtonClass="bg-orange-600 hover:bg-orange-500"
         confirmText="Start Custom Game"
-        isOpen={props.newCustomGameConfirmOpen}
+        isOpen={newCustomGameConfirmOpen}
         message="Are you sure you want to start a new custom game? Your current progress will be lost."
-        onCancel={props.handleCancelNewCustomGame}
-        onConfirm={props.handleConfirmNewCustomGame}
+        onCancel={handleCancelNewCustomGame}
+        onConfirm={handleConfirmNewCustomGame}
         title="Confirm Custom Game"
       />
 
       <ConfirmationDialog
         confirmButtonClass="bg-blue-600 hover:bg-blue-500"
         confirmText="Load Game"
-        isOpen={props.loadGameFromMenuConfirmOpen}
+        isOpen={loadGameFromMenuConfirmOpen}
         message="Are you sure you want to load a game? Your current progress will be overwritten if you load a new game."
-        onCancel={props.handleCancelLoadGameFromMenu}
-        onConfirm={props.handleConfirmLoadGameFromMenu}
+        onCancel={handleCancelLoadGameFromMenu}
+        onConfirm={handleConfirmLoadGameFromMenu}
         title="Confirm Load Game"
       />
 
       <ConfirmationDialog
         confirmButtonClass="bg-purple-600 hover:bg-purple-500"
         confirmText="Shift Reality"
-        isCustomModeShift={props.isCustomGameModeShift}
-        isOpen={props.shiftConfirmOpen}
+        isCustomModeShift={isCustomGameModeShift}
+        isOpen={shiftConfirmOpen}
         message={<>
           This will destabilize the current reality, leading to an
           {' '}
-          
+
           <strong className="text-purple-400">
             immediate and unpredictable shift
           </strong>
@@ -178,8 +222,8 @@ function AppModals(props: AppModalsProps) {
           {' '}
           to a new theme. Are you sure you wish to proceed?
         </>}
-        onCancel={props.handleCancelShift}
-        onConfirm={props.handleConfirmShift}
+        onCancel={handleCancelShift}
+        onConfirm={handleConfirmShift}
         title="Confirm Reality Shift"
       />
     </>
