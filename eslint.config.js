@@ -24,9 +24,9 @@ const tsCompat = compat.config({
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: ['./tsconfig.json'],
-    tsconfigRootDir: __dirname,
+    tsconfigRootDir: import.meta.dirname,
     ecmaVersion: 2020,
-    sourceType: 'module'
+    projectService: true
   },
   plugins: ['@typescript-eslint', 'react', 'react-hooks'],
   extends: [
@@ -67,7 +67,11 @@ const tsCompat = compat.config({
     'react/jsx-handler-names': 'warn',
     'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],
     '@typescript-eslint/no-unnecessary-condition': 'warn',
-    '@typescript-eslint/no-non-null-assertion': 'error'
+    '@typescript-eslint/no-non-null-assertion': 'error',
+    '@typescript-eslint/use-unknown-in-catch-callback-variable': 'warn',
+    '@typescript-eslint/no-confusing-void-expression': 'warn',
+    '@typescript-eslint/no-unnecessary-type-arguments': 'warn',
+    '@typescript-eslint/restrict-plus-operands': 'warn'
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
 
