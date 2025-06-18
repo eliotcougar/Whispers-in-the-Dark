@@ -120,12 +120,14 @@ function DialogueDisplay({
 
     return (
       <div className="text-center py-4">
-        <p className="text-slate-400 italic">Waiting for response or options...</p>
+        <p className="text-slate-400 italic">
+          Waiting for response or options...
+        </p>
 
         <button
           className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow" 
           onClick={onClose}
-          >
+        >
           Force End Conversation (if really stuck)
         </button>
       </div>
@@ -134,7 +136,13 @@ function DialogueDisplay({
 
 
   return (
-    <div aria-labelledby="dialogue-title" aria-modal="true" className="dialogue-frame open" ref={dialogueFrameRef} role="dialog">
+    <div
+      aria-labelledby="dialogue-title"
+      aria-modal="true"
+      className="dialogue-frame open"
+      ref={dialogueFrameRef}
+      role="dialog"
+    >
       <div className="dialogue-frame-content">
         <button
           aria-label="End Conversation"
@@ -145,8 +153,14 @@ function DialogueDisplay({
           &times;
         </button>
 
-        <h1 className="text-2xl font-bold text-sky-300 mb-4 text-center" id="dialogue-title">
-          Conversation with: {participantsString}
+        <h1
+          className="text-2xl font-bold text-sky-300 mb-4 text-center"
+          id="dialogue-title"
+        >
+          Conversation with: 
+          {' '}
+
+          {participantsString}
         </h1>
 
         <div className="dialogue-log-area flex-grow mb-4 pr-2 min-h-[200px] overflow-y-auto"> 
@@ -159,7 +173,8 @@ function DialogueDisplay({
                 ref={index === history.length - 1 ? lastHistoryEntryRef : null}
               >
                 <strong className={isPlayer ? 'text-amber-400' : 'text-emerald-400'}>
-                  {entry.speaker}:
+                  {entry.speaker}
+                  :
                 </strong>
 
                 <span className="text-slate-200 ml-2">

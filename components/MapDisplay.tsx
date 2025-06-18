@@ -176,17 +176,31 @@ function MapDisplay({
   if (!isVisible) return null;
 
   return (
-    <div aria-labelledby="map-display-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
+    <div
+      aria-labelledby="map-display-title"
+      aria-modal="true"
+      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      role="dialog"
+    >
       <div className="animated-frame-content">
-        <button aria-label="Close map view" className="animated-frame-close-button" onClick={onClose}>
+        <button
+          aria-label="Close map view"
+          className="animated-frame-close-button"
+          onClick={onClose}
+        >
           &times;
         </button>
 
-        <h1 className="text-xl font-bold text-teal-400 mb-2 text-center" id="map-display-title">
+        <h1
+          className="text-xl font-bold text-teal-400 mb-2 text-center"
+          id="map-display-title"
+        >
           {currentThemeName ? `Map: ${currentThemeName}` : 'Map'}
         </h1>
 
-        <p className="text-center text-xs text-slate-400 mb-1">Pan by dragging, zoom with the mouse wheel or pinch. Hover for details.</p>
+        <p className="text-center text-xs text-slate-400 mb-1">
+          Pan by dragging, zoom with the mouse wheel or pinch. Hover for details.
+        </p>
 
         <MapNodeView
           currentMapNodeId={currentMapNodeId}

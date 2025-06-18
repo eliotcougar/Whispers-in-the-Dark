@@ -25,9 +25,22 @@ function Footer({
     >
       <div className="flex justify-between items-center">
         <p className="text-left">
-          &copy; {new Date().getFullYear()}. Developed by {DEVELOPER}, Codex, and
+          &copy; 
+          {' '}
 
-          Gemini. <br />Powered by Gemini.
+          {new Date().getFullYear()}
+          . Developed by 
+
+          {' '}
+
+          {DEVELOPER}
+          , Codex, and
+
+          Gemini. 
+          {' '}
+
+          <br />
+          Powered by Gemini.
         </p>
 
         <button

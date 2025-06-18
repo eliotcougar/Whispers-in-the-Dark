@@ -484,7 +484,9 @@ function MapNodeView({
   if (nodes.length === 0) {
     return (
       <div className="map-content-area">
-        <p className="text-slate-500 italic">No map data available for this theme yet.</p>
+        <p className="text-slate-500 italic">
+          No map data available for this theme yet.
+        </p>
       </div>
     );
   }
@@ -532,7 +534,10 @@ function MapNodeView({
                       strokeWidth={EDGE_HOVER_WIDTH}
                     />
 
-                    <path className={edgeClass} d={buildShortcutPath(sourceNode, targetNode)} />
+                    <path
+                      className={edgeClass}
+                      d={buildShortcutPath(sourceNode, targetNode)}
+                    />
                   </>
                 ) : (
                   <>
@@ -623,14 +628,26 @@ function MapNodeView({
           return (
             <g key={`${node.id}-icons`}>
               {presence.hasUseful ? (
-                <g pointerEvents="none" transform={`translate(${usefulX}, ${usefulY})`}>
-                  <MapItemBoxIcon className="text-green-400" size={iconSize} />
+                <g
+                  pointerEvents="none"
+                  transform={`translate(${usefulX}, ${usefulY})`}
+                >
+                  <MapItemBoxIcon
+                    className="text-green-400"
+                    size={iconSize}
+                  />
                 </g>
               ) : null}
 
               {presence.hasVehicle ? (
-                <g pointerEvents="none" transform={`translate(${vehicleX}, ${vehicleY})`}>
-                  <MapWheelIcon className="text-green-400" size={iconSize} />
+                <g
+                  pointerEvents="none"
+                  transform={`translate(${vehicleX}, ${vehicleY})`}
+                >
+                  <MapWheelIcon
+                    className="text-green-400"
+                    size={iconSize}
+                  />
                 </g>
               ) : null}
             </g>
@@ -689,12 +706,12 @@ function MapNodeView({
       {tooltip && tooltipScreenPosition ? <div
         className={`map-tooltip anchor-${tooltip.anchor}`}
         style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
-        >
+                                          >
         {isTooltipLocked && tooltip.nodeId ? <button
           className="map-set-destination-button"
           data-node-id={tooltip.nodeId}
           onClick={handleDestinationClick}
-        >
+                                             >
           {tooltip.nodeId === destinationNodeId
                 ? 'Remove Destination'
                 : 'Set Destination'}
@@ -702,7 +719,9 @@ function MapNodeView({
 
         {tooltip.content.split('\n').map((line, index) => (
           <React.Fragment key={`${tooltip.nodeId}-${line}`}> 
-            {index === 0 ? <strong>{line}</strong> : line}
+            {index === 0 ? <strong>
+              {line}
+            </strong> : line}
 
             {index < tooltip.content.split('\n').length - 1 && <br />}
           </React.Fragment>

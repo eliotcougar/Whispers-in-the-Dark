@@ -169,7 +169,15 @@ function AppModals(props: AppModalsProps) {
         confirmText="Shift Reality"
         isCustomModeShift={props.isCustomGameModeShift}
         isOpen={props.shiftConfirmOpen}
-        message={<>This will destabilize the current reality, leading to an <strong className="text-purple-400">immediate and unpredictable shift</strong> to a new theme. Are you sure you wish to proceed?</>}
+        message={<>
+          This will destabilize the current reality, leading to an
+          <strong className="text-purple-400">
+            immediate and unpredictable shift
+          </strong>
+
+          {' '}
+          to a new theme. Are you sure you wish to proceed?
+        </>}
         onCancel={props.cancelShift}
         onConfirm={props.confirmShift}
         title="Confirm Reality Shift"

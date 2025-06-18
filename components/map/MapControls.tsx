@@ -50,8 +50,14 @@ function ParameterControl({
 
   return (
     <div className="map-control-group">
-      <label className="map-control-label" htmlFor={id}>
-        {label}: {value.toFixed(step < 1 ? 2 : 0)}
+      <label
+        className="map-control-label"
+        htmlFor={id}
+      >
+        {label}
+
+        :
+        {value.toFixed(step < 1 ? 2 : 0)}
       </label>
 
       <input
@@ -65,7 +71,9 @@ function ParameterControl({
         value={value}
       />
 
-      {explanation ? <p className="map-control-explanation">{explanation}</p> : null}
+      {explanation ? <p className="map-control-explanation">
+        {explanation}
+      </p> : null}
     </div>
   );
 }
@@ -137,14 +145,24 @@ function MapControls(props: MapControlsProps) {
           value={itemIconScale}
         />
 
-        <button className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500" onClick={onReset} style={{ flexBasis: '100%', marginTop: '0.5rem' }}>
+        <button
+          className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500"
+          onClick={onReset}
+          style={{ flexBasis: '100%', marginTop: '0.5rem' }}
+        >
           Reset to Defaults
         </button>
       </div> : null}
 
       <div className="map-action-buttons-row">
-        <button className="map-control-button" onClick={handleToggleExpanded}>
-          {expanded ? 'Hide' : 'Show'} Layout Controls
+        <button
+          className="map-control-button"
+          onClick={handleToggleExpanded}
+        >
+          {expanded ? 'Hide' : 'Show'}
+
+          {' '}
+          Layout Controls
         </button>
       </div>
     </div>

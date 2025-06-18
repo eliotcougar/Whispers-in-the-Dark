@@ -38,7 +38,9 @@ export function ItemTypeDisplay({ type }: { readonly type: Item['type'] }) {
 
   const color = colorMap[type] ?? 'text-slate-400';
 
-  return <span className={`text-xs italic ${color}`}>{type}</span>;
+  return (<span className={`text-xs italic ${color}`}>
+    {type}
+  </span>);
 }
 
 /**
@@ -215,7 +217,10 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
       <h3 className="text-xl font-bold text-amber-400 mb-2 border-b-2 border-amber-700 pb-2 flex items-center">
-        <InventoryIcon /> Inventory
+        <InventoryIcon />
+
+        {' '}
+        Inventory
       </h3>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -247,7 +252,9 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
       </div>
 
       {displayedItems.length === 0 ? (
-        <p className="text-slate-400 italic">Your pockets are empty.</p>
+        <p className="text-slate-400 italic">
+          Your pockets are empty.
+        </p>
       ) : (
         <ul className="flex flex-wrap justify-center gap-4 list-none p-0">
           {displayedItems.map((item) => {
@@ -261,21 +268,33 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                 className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} flex flex-col`} 
                 key={item.name} 
               >
-                <div className="flex justify-between items-center mb-1 text-xs"> {/* New top row */}
+                <div className="flex justify-between items-center mb-1 text-xs"> 
+                  {' '}
+
+                  {/* New top row */}
                   <ItemTypeDisplay type={item.type} />
 
-                  {item.isActive ? <span className="text-green-400 font-semibold">Active</span> : null}
+                  {item.isActive ? <span className="text-green-400 font-semibold">
+                    Active
+                  </span> : null}
                 </div>
 
-                <div className="mb-1"> {/* Name row */}
+                <div className="mb-1"> 
+                  {' '}
+
+                  {/* Name row */}
                   <span className="font-semibold text-lg text-slate-100">
                     {item.name}
                   </span>
                 </div>
 
-                <p className="text-sm text-slate-300 mb-3 italic leading-tight flex-grow">{displayDescription}</p> 
+                <p className="text-sm text-slate-300 mb-3 italic leading-tight flex-grow">
+                  {displayDescription}
+                </p> 
 
-                {item.isJunk ? <p className="text-xs text-orange-400 mb-1 italic">(Marked as junk)</p> : null}
+                {item.isJunk ? <p className="text-xs text-orange-400 mb-1 italic">
+                  (Marked as junk)
+                </p> : null}
 
 
                 <div className="space-y-2 mt-auto"> 
@@ -347,7 +366,12 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       dataItemName={item.name}
                       disabled={disabled}
                       key={`${item.name}-discard`}
-                      label={<><TrashIcon /> Discard</>}
+                      label={<>
+                        <TrashIcon />
+
+                        {' '}
+                        Discard
+                      </>}
                       onClick={handleStartConfirmDiscard}
                     />
                   ) : null}
@@ -386,7 +410,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       disabled={disabled}
                       key={`${item.name}-confirm-drop`}
                       onClick={handleConfirmDrop}
-                      >
+                    >
                       {item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
                     </button>
 
@@ -398,7 +422,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       disabled={disabled}
                       key={`${item.name}-cancel-discard`}
                       onClick={handleCancelDiscard}
-                      >
+                    >
                       Cancel
                     </button>
                   </div> : null}

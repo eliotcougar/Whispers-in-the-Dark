@@ -132,7 +132,12 @@ function SettingsDisplay({
   );
 
   return (
-    <div aria-labelledby="settings-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
+    <div
+      aria-labelledby="settings-title"
+      aria-modal="true"
+      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      role="dialog"
+    >
       <div className="animated-frame-content">
         <button
           aria-label="Close settings"
@@ -143,20 +148,45 @@ function SettingsDisplay({
         </button>
 
         <div className="settings-content-area">
-          <h1 className="text-3xl font-bold text-sky-300 mb-8 text-center" id="settings-title">Game Settings</h1>
+          <h1
+            className="text-3xl font-bold text-sky-300 mb-8 text-center"
+            id="settings-title"
+          >
+            Game Settings
+          </h1>
           
-          <div className="mb-8" id="reality-shift-controls"> {/* Removed conditional class from here */}
-            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">Reality Shift Controls</h2>
+          <div
+            className="mb-8"
+            id="reality-shift-controls"
+          > 
+            {' '}
+
+            {/* Removed conditional class from here */}
+            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
+              Reality Shift Controls
+            </h2>
 
             {isCustomGameMode ? <div className="p-3 mb-3 bg-indigo-800/70 border border-indigo-600 rounded-md text-indigo-200 text-sm">
-              <p>Random Reality Shifts are disabled in Custom Game mode.</p>
+              <p>
+                Random Reality Shifts are disabled in Custom Game mode.
+              </p>
 
-              <p>You can still change these settings, and they will apply if you start a regular &quot;New Game&quot; from the Main Menu.</p>
+              <p>
+                You can still change these settings, and they will apply if you start a regular &quot;New Game&quot; from the Main Menu.
+              </p>
             </div> : null}
 
             <div className="settings-slider-container">
-              <label className={`settings-slider-label ${sliderControlOpacityClass}`} htmlFor="stabilitySlider">
-                Stability: <span>{stabilityLevel}</span>
+              <label
+                className={`settings-slider-label ${sliderControlOpacityClass}`}
+                htmlFor="stabilitySlider"
+              >
+                Stability: 
+                {' '}
+
+                <span>
+                  {stabilityLevel}
+                </span>
               </label>
 
               <input
@@ -174,15 +204,27 @@ function SettingsDisplay({
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
               />
 
-              <p className={`settings-explanation ${sliderControlOpacityClass}`} id="stabilitySliderLabel">
+              <p
+                className={`settings-explanation ${sliderControlOpacityClass}`}
+                id="stabilitySliderLabel"
+              >
                 Number of turns after any reality shift before random chaos shifts can occur again.
                 Higher values mean longer periods of stability (e.g., 0 = chaos can happen immediately, 10 = 10 turns of safety). Max 100.
               </p>
             </div>
 
             <div className="settings-slider-container">
-              <label className={`settings-slider-label ${sliderControlOpacityClass}`} htmlFor="chaosSlider">
-                Chaos: <span>{chaosLevel}%</span>
+              <label
+                className={`settings-slider-label ${sliderControlOpacityClass}`}
+                htmlFor="chaosSlider"
+              >
+                Chaos: 
+                {' '}
+
+                <span>
+                  {chaosLevel}
+                  %
+                </span>
               </label>
 
               <input
@@ -200,7 +242,10 @@ function SettingsDisplay({
                 // disabled={isCustomGameMode} // REMOVED: Slider is now interactive
               />
 
-              <p className={`settings-explanation ${sliderControlOpacityClass}`} id="chaosSliderLabel">
+              <p
+                className={`settings-explanation ${sliderControlOpacityClass}`}
+                id="chaosSliderLabel"
+              >
                 Percentage chance (0-100%) of a random reality shift occurring each turn, *after* the &apos;Stability&apos; period has passed.
                 Higher values mean more frequent shifts.
               </p>
@@ -208,12 +253,19 @@ function SettingsDisplay({
 
             {/* Disclaimer is NOT greyed out */}
             <div className="settings-disclaimer">
-              <p><strong>In the Beta</strong>, manual reality shift can be triggered at any time regardless of these settings.</p>
+              <p>
+                <strong>
+                  In the Beta
+                </strong>
+                , manual reality shift can be triggered at any time regardless of these settings.
+              </p>
             </div>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">Player Character Gender</h2>
+            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
+              Player Character Gender
+            </h2>
 
             <p className="settings-explanation mb-3">
               Choose your character&apos;s gender. This may subtly influence descriptions and interactions in the game. Changing it in the middle of the game can have unexpected effects.
@@ -221,7 +273,10 @@ function SettingsDisplay({
 
             <div className="space-y-3">
               {(['Male', 'Female', 'Custom'] as const).map(option => (
-                <label className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors" key={option}>
+                <label
+                  className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors"
+                  key={option}
+                >
                   <input
                     aria-labelledby={`gender-label-${option.toLowerCase()}`}
                     checked={selectedGenderOption === option}
@@ -231,9 +286,14 @@ function SettingsDisplay({
                     onChange={handleGenderRadioChangeByData}
                     type="radio"
                     value={option}
-                    />
+                  />
 
-                  <span className="text-slate-200 text-lg" id={`gender-label-${option.toLowerCase()}`}>{option}</span>
+                  <span
+                    className="text-slate-200 text-lg"
+                    id={`gender-label-${option.toLowerCase()}`}
+                  >
+                    {option}
+                  </span>
                 </label>
               ))}
 
@@ -252,7 +312,9 @@ function SettingsDisplay({
 
 
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">Theme Pack Preferences</h2>
+            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
+              Theme Pack Preferences
+            </h2>
 
             <p className="settings-explanation mb-3">
               Select which genre packs to include in the pool for random reality shifts. At least one pack must be enabled. Can be safely changed at any time.
@@ -260,7 +322,10 @@ function SettingsDisplay({
 
             <div className="space-y-3">
               {ALL_THEME_PACK_NAMES_CONST.map(packName => (
-                <label className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors" key={packName}>
+                <label
+                  className="flex items-center space-x-3 cursor-pointer p-2 bg-slate-700/50 rounded-md hover:bg-slate-600/50 transition-colors"
+                  key={packName}
+                >
                   <input
                     aria-labelledby={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}
                     checked={enabledThemePacks.includes(packName)}
@@ -268,9 +333,14 @@ function SettingsDisplay({
                     data-pack-name={packName}
                     onChange={handleThemePackToggleByData}
                     type="checkbox"
-                    />
+                  />
 
-                  <span className="text-slate-200 text-lg" id={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}>{packName}</span>
+                  <span
+                    className="text-slate-200 text-lg"
+                    id={`theme-pack-label-${packName.replace(/\s|&/g, '-')}`}
+                  >
+                    {packName}
+                  </span>
                 </label>
               ))}
             </div>

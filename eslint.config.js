@@ -49,6 +49,7 @@ const tsCompat = compat.config({
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
+    'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],
     'react-hooks/exhaustive-deps': 'error',
     'react-hooks/rules-of-hooks': 'error',
     'react/jsx-no-leaked-render': 'error',  
@@ -59,7 +60,9 @@ const tsCompat = compat.config({
     'react/jsx-sort-props': 'warn',
     'react/prefer-read-only-props': 'error',
     'react/function-component-definition': 'warn',
-    'react/require-default-props': 'warn'
+    'react/require-default-props': 'warn',
+    'react/jsx-closing-tag-location': ['warn', 'line-aligned'],
+    'react/button-has-type': 'warn',
     /*'@typescript-eslint/no-unnecessary-condition': 'error'*/
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));

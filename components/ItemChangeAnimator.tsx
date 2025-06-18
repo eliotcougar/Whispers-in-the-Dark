@@ -302,34 +302,62 @@ function ItemChangeAnimator({
       <div className="flex justify-between items-center mb-1 text-xs">
         <ItemTypeDisplay type={item.type} />
 
-        {item.isActive ? <span className="text-green-400 font-semibold">Active</span> : null}
+        {item.isActive ? <span className="text-green-400 font-semibold">
+          Active
+        </span> : null}
       </div>
 
       <div className="mb-1">
-        <span className="font-semibold text-lg text-slate-100">{item.name}</span>
+        <span className="font-semibold text-lg text-slate-100">
+          {item.name}
+        </span>
       </div>
 
       <p className="text-sm text-slate-300 mb-3 italic leading-tight flex-grow">
         {item.isActive && item.activeDescription ? item.activeDescription : item.description}
       </p>
 
-      {item.isJunk ? <p className="text-xs text-orange-400 mb-1 italic">(Marked as junk)</p> : null}
+      {item.isJunk ? <p className="text-xs text-orange-400 mb-1 italic">
+        (Marked as junk)
+      </p> : null}
 
       <div className="space-y-1 mt-auto">
         {item.knownUses?.map(ku => (
-          <button aria-hidden="true" className="w-full text-xs bg-slate-500/70 text-slate-400 font-medium py-1 px-2 rounded shadow cursor-not-allowed" disabled key={`${item.name}-anim-ku-${ku.actionName}`} title={ku.description || ku.actionName}>
+          <button
+            aria-hidden="true"
+            className="w-full text-xs bg-slate-500/70 text-slate-400 font-medium py-1 px-2 rounded shadow cursor-not-allowed"
+            disabled
+            key={`${item.name}-anim-ku-${ku.actionName}`}
+            title={ku.description || ku.actionName}
+          >
             {ku.actionName}
           </button>
         ))}
 
-        <button aria-hidden="true" className="w-full text-sm bg-slate-500/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" disabled>Inspect</button>
+        <button
+          aria-hidden="true"
+          className="w-full text-sm bg-slate-500/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
+          disabled
+        >
+          Inspect
+        </button>
 
         {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
-          <button aria-hidden="true" className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" disabled>Attempt to Use (Generic)</button>
+          <button
+            aria-hidden="true"
+            className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
+            disabled
+          >
+            Attempt to Use (Generic)
+          </button>
         )}
 
         {item.type === 'vehicle' && (
-          <button aria-hidden="true" className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed" disabled>
+          <button
+            aria-hidden="true"
+            className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
+            disabled
+          >
             {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
           </button>
         )}

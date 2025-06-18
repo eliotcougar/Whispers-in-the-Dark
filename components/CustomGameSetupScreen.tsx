@@ -50,7 +50,12 @@ function CustomGameSetupScreen({
 
 
   return (
-    <div aria-labelledby="custom-game-setup-title" aria-modal="true" className={`animated-frame ${isVisible ? 'open' : ''}`} role="dialog">
+    <div
+      aria-labelledby="custom-game-setup-title"
+      aria-modal="true"
+      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      role="dialog"
+    >
       <div className="animated-frame-content">
         <button
           aria-label="Close theme selection"
@@ -61,7 +66,10 @@ function CustomGameSetupScreen({
         </button>
 
         <div className="flex flex-col items-center w-full h-full p-2">
-          <h1 className="text-3xl font-bold text-sky-300 mb-4 text-center" id="custom-game-setup-title">
+          <h1
+            className="text-3xl font-bold text-sky-300 mb-4 text-center"
+            id="custom-game-setup-title"
+          >
             {effectiveTitle}
           </h1>
 
@@ -70,12 +78,17 @@ function CustomGameSetupScreen({
           </p>
           
           {Object.keys(groupedThemesByPack).length === 0 ? (
-            <p className="text-slate-400 italic">No themes available. Please check configuration.</p>
+            <p className="text-slate-400 italic">
+              No themes available. Please check configuration.
+            </p>
           ) : (
             <div className="overflow-y-auto flex-grow w-full max-w-5xl px-6">
               {Object.entries(groupedThemesByPack).map(([packName, themesInPack]) => (
                 themesInPack.length > 0 && (
-                  <section className="mb-8" key={packName}>
+                  <section
+                    className="mb-8"
+                    key={packName}
+                  >
                     <h2 className="text-2xl font-semibold text-purple-400 mb-3 pb-1 border-b border-purple-600">
                       {packName}
                     </h2>
@@ -94,13 +107,17 @@ function CustomGameSetupScreen({
                             onClick={handleThemeSelect(theme.name)}
                             style={{ minHeight: '180px' }}
                           >
-                            <h3 className="text-xl font-semibold text-amber-400 mb-2">{theme.name}</h3>
+                            <h3 className="text-xl font-semibold text-amber-400 mb-2">
+                              {theme.name}
+                            </h3>
 
                             <p className="text-sm text-slate-300 leading-snug line-clamp-8">
                               {theme.initialSceneDescriptionSeed}
                             </p>
 
-                            {isDisabled ? <p className="text-xs text-orange-300 mt-1 italic">(Currently active theme)</p> : null}
+                            {isDisabled ? <p className="text-xs text-orange-300 mt-1 italic">
+                              (Currently active theme)
+                            </p> : null}
                           </button>
                         );
                       })}
