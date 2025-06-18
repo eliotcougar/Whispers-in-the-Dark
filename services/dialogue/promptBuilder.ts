@@ -60,9 +60,10 @@ export const buildDialogueTurnPrompt = (
     })
     .join('\n');
 
-  const inventoryString =
-    inventory.map(item => `${item.name} (Type: ${item.type}, Active: ${!!item.isActive})`).join(', ') ||
-    'Empty';
+    const inventoryString =
+      inventory.length > 0
+        ? inventory.map(item => `${item.name} (Type: ${item.type}, Active: ${!!item.isActive})`).join(', ')
+        : 'Empty';
   const knownPlacesString = formatKnownPlacesForPrompt(knownMainMapNodesInTheme, true);
 
   let characterContextString = 'Known Characters: ';
@@ -72,9 +73,9 @@ export const buildDialogueTurnPrompt = (
         .map(c => {
           let charStr = `"${c.name}" (Description: ${c.description.substring(0, 70)}...; Presence: ${c.presenceStatus}`;
           if (c.presenceStatus === 'nearby' || c.presenceStatus === 'companion') {
-            charStr += ` at ${c.preciseLocation || 'around'}`;
+            charStr += ` at ${c.preciseLocation ?? 'around'}`;
           } else {
-            charStr += `, last seen: ${c.lastKnownLocation || 'Unknown'}`;
+            charStr += `, last seen: ${c.lastKnownLocation ?? 'Unknown'}`;
           }
           charStr += ')';
           return charStr;
@@ -100,10 +101,10 @@ export const buildDialogueTurnPrompt = (
 Context for Dialogue Turn:
 - Current Theme: "${currentTheme.name}"
 - System Instruction Modifier for Theme: "${currentTheme.systemInstructionModifier}"
-- Current Main Quest: "${currentQuest || 'Not set'}"
-- Current Objective: "${currentObjective || 'Not set'}"
-- Scene Description (for environmental context): "${currentScene}"
-- Local Time: "${localTime || 'Unknown'}", Environment: "${localEnvironment || 'Undetermined'}", Place: "${localPlace || 'Undetermined'}"
+  - Current Main Quest: "${currentQuest ?? 'Not set'}"
+  - Current Objective: "${currentObjective ?? 'Not set'}"
+  - Scene Description (for environmental context): "${currentScene}"
+  - Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}"
 - Player's Character Gender: ${playerGender}
 - Player's Inventory: ${inventoryString}
 - Known Locations: ${knownPlacesString}
@@ -127,7 +128,10 @@ export const buildDialogueSummaryPrompt = (
   summaryContext: DialogueSummaryContext,
 ): string => {
   const dialogueLogString = summaryContext.dialogueLog.map(entry => `${entry.speaker}: "${entry.line}"`).join('\n');
-  const inventoryString = summaryContext.inventory.map(item => `${item.name} (Type: ${item.type})`).join(', ') || 'Empty';
+  const inventoryString =
+    summaryContext.inventory.length > 0
+      ? summaryContext.inventory.map(item => `${item.name} (Type: ${item.type})`).join(', ')
+      : 'Empty';
   const knownPlacesString = formatKnownPlacesForPrompt(
     summaryContext.mapDataForTheme.nodes.filter(n => n.data.nodeType !== 'feature'),
     true,
@@ -140,9 +144,9 @@ export const buildDialogueSummaryPrompt = (
         .map(c => {
           let charStr = `"${c.name}" (Description: ${c.description.substring(0, 70)}...; Presence: ${c.presenceStatus}`;
           if (c.presenceStatus === 'nearby' || c.presenceStatus === 'companion') {
-            charStr += ` at ${c.preciseLocation || 'around'}`;
+            charStr += ` at ${c.preciseLocation ?? 'around'}`;
           } else {
-            charStr += `, last seen: ${c.lastKnownLocation || 'Unknown'}`;
+            charStr += `, last seen: ${c.lastKnownLocation ?? 'Unknown'}`;
           }
           charStr += ')';
           return charStr;
@@ -156,10 +160,10 @@ export const buildDialogueSummaryPrompt = (
 Context for Dialogue Summary:
 - Current Theme: "${summaryContext.currentThemeObject?.name ?? summaryContext.themeName}"
 - System Instruction Modifier for Theme: "${summaryContext.currentThemeObject?.systemInstructionModifier ?? 'None'}"
-- Current Main Quest (before dialogue): "${summaryContext.mainQuest || 'Not set'}"
-- Current Objective (before dialogue): "${summaryContext.currentObjective || 'Not set'}"
+  - Current Main Quest (before dialogue): "${summaryContext.mainQuest ?? 'Not set'}"
+  - Current Objective (before dialogue): "${summaryContext.currentObjective ?? 'Not set'}"
 - Scene Description (when dialogue started): "${summaryContext.currentScene}"
-- Local Time: "${summaryContext.localTime || 'Unknown'}", Environment: "${summaryContext.localEnvironment || 'Undetermined'}", Place: "${summaryContext.localPlace || 'Undetermined'}"
+  - Local Time: "${summaryContext.localTime ?? 'Unknown'}", Environment: "${summaryContext.localEnvironment ?? 'Undetermined'}", Place: "${summaryContext.localPlace ?? 'Undetermined'}"
 - Player's Character Gender: "${summaryContext.playerGender}"
 - Player's Inventory (before dialogue): ${inventoryString}
 - Known Locations (before dialogue): ${knownPlacesString}
@@ -204,7 +208,7 @@ Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any 
  - Conversation Participants: ${context.dialogueParticipants.join(', ')}
  - Theme: "${context.currentThemeObject?.name ?? context.themeName}" (System Modifier: ${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
 - Scene at start of conversation: "${context.currentScene}"
-- Context: Time: "${context.localTime || 'Unknown'}", Environment: "${context.localEnvironment || 'Undetermined'}", Place: "${context.localPlace || 'Undetermined'}"
+  - Context: Time: "${context.localTime ?? 'Unknown'}", Environment: "${context.localEnvironment ?? 'Undetermined'}", Place: "${context.localPlace ?? 'Undetermined'}"
 - Full Dialogue Transcript:
 ${dialogueLogString}
 

@@ -221,8 +221,8 @@ export const useProcessAiResponse = ({
               const invItem = baseStateSnapshot.inventory.find(
                 (i) =>
                   i.holderId === PLAYER_HOLDER_ID &&
-                  ((itemRef.id && i.id === itemRef.id) ||
-                    (itemRef.name && i.name.toLowerCase() === itemRef.name.toLowerCase()))
+                  ((itemRef.id != null && i.id === itemRef.id) ||
+                    (itemRef.name != null && i.name.toLowerCase() === itemRef.name.toLowerCase()))
               );
               if (invItem) {
                 currentChange.action = 'put';
