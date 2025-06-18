@@ -47,12 +47,18 @@ export interface IconProps {
  * Renders the requested icon.
  */
 export function Icon({ name, className = '', size }: IconProps) {
-  const svgString = iconMap[name];
-  return (
-    <span
-      className={className}
-      style={size ? { width: size, height: size, display: 'inline-block' } : undefined}
-      dangerouslySetInnerHTML={{ __html: svgString }}
-    />
-  );
+  let svgString = iconMap[name];
+
+  if (className || size) {
+    const attributes = [
+      className ? `class="${className}"` : '',
+      size ? `width="${size}" height="${size}"` : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    svgString = svgString.replace('<svg', `<svg ${attributes}`);
+  }
+
+  return <span dangerouslySetInnerHTML={{ __html: svgString }} />;
 }
