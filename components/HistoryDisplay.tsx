@@ -37,6 +37,7 @@ function HistoryDisplay({
           aria-label="Close history"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>

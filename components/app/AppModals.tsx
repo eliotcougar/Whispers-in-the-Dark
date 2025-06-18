@@ -52,17 +52,17 @@ interface AppModalsProps {
   readonly onLayoutConfigChange: (cfg: MapLayoutConfig) => void;
 
   readonly newGameFromMenuConfirmOpen: boolean;
-  readonly confirmNewGameFromMenu: () => void;
-  readonly cancelNewGameFromMenu: () => void;
+  readonly handleConfirmNewGameFromMenu: () => void;
+  readonly handleCancelNewGameFromMenu: () => void;
   readonly newCustomGameConfirmOpen: boolean;
-  readonly confirmNewCustomGame: () => void;
-  readonly cancelNewCustomGame: () => void;
+  readonly handleConfirmNewCustomGame: () => void;
+  readonly handleCancelNewCustomGame: () => void;
   readonly loadGameFromMenuConfirmOpen: boolean;
-  readonly confirmLoadGameFromMenu: () => void;
-  readonly cancelLoadGameFromMenu: () => void;
+  readonly handleConfirmLoadGameFromMenu: () => void;
+  readonly handleCancelLoadGameFromMenu: () => void;
   readonly shiftConfirmOpen: boolean;
-  readonly confirmShift: () => void;
-  readonly cancelShift: () => void;
+  readonly handleConfirmShift: () => void;
+  readonly handleCancelShift: () => void;
   readonly isCustomGameModeShift: boolean;
 }
 
@@ -139,8 +139,8 @@ function AppModals(props: AppModalsProps) {
         confirmText="Start New Game"
         isOpen={props.newGameFromMenuConfirmOpen}
         message="Are you sure you want to start a new game? Your current progress will be lost."
-        onCancel={props.cancelNewGameFromMenu}
-        onConfirm={props.confirmNewGameFromMenu}
+        onCancel={props.handleCancelNewGameFromMenu}
+        onConfirm={props.handleConfirmNewGameFromMenu}
         title="Confirm New Game"
       />
 
@@ -149,8 +149,8 @@ function AppModals(props: AppModalsProps) {
         confirmText="Start Custom Game"
         isOpen={props.newCustomGameConfirmOpen}
         message="Are you sure you want to start a new custom game? Your current progress will be lost."
-        onCancel={props.cancelNewCustomGame}
-        onConfirm={props.confirmNewCustomGame}
+        onCancel={props.handleCancelNewCustomGame}
+        onConfirm={props.handleConfirmNewCustomGame}
         title="Confirm Custom Game"
       />
 
@@ -159,8 +159,8 @@ function AppModals(props: AppModalsProps) {
         confirmText="Load Game"
         isOpen={props.loadGameFromMenuConfirmOpen}
         message="Are you sure you want to load a game? Your current progress will be overwritten if you load a new game."
-        onCancel={props.cancelLoadGameFromMenu}
-        onConfirm={props.confirmLoadGameFromMenu}
+        onCancel={props.handleCancelLoadGameFromMenu}
+        onConfirm={props.handleConfirmLoadGameFromMenu}
         title="Confirm Load Game"
       />
 
@@ -178,8 +178,8 @@ function AppModals(props: AppModalsProps) {
           {' '}
           to a new theme. Are you sure you wish to proceed?
         </>}
-        onCancel={props.cancelShift}
-        onConfirm={props.confirmShift}
+        onCancel={props.handleCancelShift}
+        onConfirm={props.handleConfirmShift}
         title="Confirm Reality Shift"
       />
     </>

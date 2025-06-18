@@ -30,6 +30,7 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
           aria-label="Close game information"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>

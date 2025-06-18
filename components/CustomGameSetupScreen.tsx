@@ -61,6 +61,7 @@ function CustomGameSetupScreen({
           aria-label="Close theme selection"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>
@@ -99,13 +100,14 @@ function CustomGameSetupScreen({
                         return (
                           <button
                             aria-label={`Start a new game in the theme: ${theme.name}${isDisabled ? ' (Current theme, cannot select)' : ''}`}
-                            className={`p-3 bg-slate-700 hover:bg-slate-600/80 border border-slate-600 hover:border-sky-500 rounded-lg shadow-md 
+                            className={`p-3 bg-slate-700 hover:bg-slate-600/80 border border-slate-600 hover:border-sky-500 rounded-lg shadow-md
                                        text-left text-slate-100 transition-all duration-150 ease-in-out transform hover:scale-[1.03] focus:ring-2 focus:ring-sky-400 focus:outline-none
                                        ${isDisabled ? 'opacity-50 cursor-not-allowed hover:bg-slate-700 hover:border-slate-600 hover:scale-100' : ''}`}
                             disabled={isDisabled}
                             key={theme.name}
                             onClick={handleThemeSelect(theme.name)}
                             style={{ minHeight: '180px' }}
+                            type="button"
                           >
                             <h3 className="text-xl font-semibold text-amber-400 mb-2">
                               {theme.name}
@@ -134,9 +136,9 @@ function CustomGameSetupScreen({
 }
 
 CustomGameSetupScreen.defaultProps = {
+  descriptionText: undefined,
   disabledThemeName: null,
   titleText: undefined,
-  descriptionText: undefined
 };
 
 export default CustomGameSetupScreen;

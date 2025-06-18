@@ -629,6 +629,7 @@ function App() {
                                 transition-colors duration-150"
                     disabled={!canPerformFreeAction || freeFormActionText.trim() === ""}
                     onClick={handleFreeFormActionSubmit}
+                    type="button"
                   >
                     Submit
                   </button>
@@ -769,20 +770,20 @@ function App() {
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allCharacters={allCharacters}
-        cancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
-        cancelNewCustomGame={handleCancelNewCustomGame}
-        cancelNewGameFromMenu={handleCancelNewGameFromMenu}
-        cancelShift={handleCancelShift}
-        confirmLoadGameFromMenu={confirmLoadGameFromMenu}
-        confirmNewCustomGame={confirmNewCustomGame}
-        confirmNewGameFromMenu={confirmNewGameFromMenu}
-        confirmShift={confirmShift}
         currentMapNodeId={currentMapNodeId}
         currentScene={currentScene}
         currentTheme={currentTheme}
         currentThemeName={currentTheme?.name || null}
         destinationNodeId={destinationNodeId}
         gameLog={gameLog}
+        handleCancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
+        handleCancelNewCustomGame={handleCancelNewCustomGame}
+        handleCancelNewGameFromMenu={handleCancelNewGameFromMenu}
+        handleCancelShift={handleCancelShift}
+        handleConfirmLoadGameFromMenu={confirmLoadGameFromMenu}
+        handleConfirmNewCustomGame={confirmNewCustomGame}
+        handleConfirmNewGameFromMenu={confirmNewGameFromMenu}
+        handleConfirmShift={confirmShift}
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
         isCustomGameModeShift={isCustomGameMode}

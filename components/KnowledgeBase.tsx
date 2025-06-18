@@ -61,6 +61,7 @@ function KnowledgeBase({
           aria-label="Close knowledge base"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>

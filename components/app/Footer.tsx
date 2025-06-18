@@ -47,6 +47,7 @@ function Footer({
           aria-label={isDebugViewVisible ? 'Hide Debug View' : 'Open Debug View'}
           className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-400 text-xs rounded shadow-md transition-colors"
           onClick={handleToggleDebug}
+          type="button"
         >
           Debug
         </button>

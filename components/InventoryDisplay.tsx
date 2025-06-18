@@ -233,6 +233,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       } disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
           disabled={disabled}
           onClick={handleSortByName}
+          type="button"
         >
           Sort by Name
         </button>
@@ -246,6 +247,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       } disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
           disabled={disabled}
           onClick={handleSortByType}
+          type="button"
         >
           Sort by Type
         </button>
@@ -311,6 +313,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       key={`${item.name}-knownuse-${knownUse.actionName}`}
                       onClick={handleSpecificUse}
                       title={knownUse.description}
+                      type="button"
                     >
                       {knownUse.actionName}
                     </button>
@@ -325,6 +328,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                     disabled={disabled || isConfirmingDiscard}
                     key={`${item.name}-inspect`}
                     onClick={handleInspect}
+                    type="button"
                   >
                     Inspect
                   </button>
@@ -339,6 +343,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-generic-use`}
                       onClick={handleGenericUse}
+                      type="button"
                     >
                       Attempt to Use (Generic)
                     </button>
@@ -354,6 +359,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       disabled={disabled || isConfirmingDiscard}
                       key={`${item.name}-vehicle-action`}
                       onClick={handleVehicleToggle}
+                      type="button"
                     >
                       {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
                     </button>
@@ -410,6 +416,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       disabled={disabled}
                       key={`${item.name}-confirm-drop`}
                       onClick={handleConfirmDrop}
+                      type="button"
                     >
                       {item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
                     </button>
@@ -422,6 +429,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                       disabled={disabled}
                       key={`${item.name}-cancel-discard`}
                       onClick={handleCancelDiscard}
+                      type="button"
                     >
                       Cancel
                     </button>

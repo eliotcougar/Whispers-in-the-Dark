@@ -216,6 +216,7 @@ function DebugView({
               className="mb-3 px-3 py-1.5 text-sm font-medium rounded shadow transition-colors duration-150 bg-orange-600 text-white hover:bg-orange-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed"
               disabled={!previousState || currentState.globalTurnNumber <= 1}
               onClick={onUndoTurn}
+              type="button"
             >
               Undo Turn (Global Turn: 
               {' '}
@@ -243,6 +244,7 @@ function DebugView({
               <button
                 className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                 onClick={toggleShowMainAIRaw}
+                type="button"
               >
                 Toggle Raw/Parsed Response
               </button>
@@ -277,6 +279,7 @@ function DebugView({
                   <button
                     className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                     onClick={toggleShowMapAIRaw}
+                    type="button"
                   >
                     Toggle Raw/Parsed Map Update Response
                   </button>
@@ -318,6 +321,7 @@ function DebugView({
                         <button
                           className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                           onClick={toggleShowConnectorChainRaw(idx)}
+                          type="button"
                         >
                           Toggle Raw/Parsed Connector Chains Response
                         </button>
@@ -420,6 +424,7 @@ function DebugView({
               <button
                 className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                 onClick={toggleShowInventoryAIRaw}
+                type="button"
               >
                 Toggle Raw/Parsed Inventory Response
               </button>
@@ -532,6 +537,7 @@ function DebugView({
           aria-label="Close debug view"
           className="animated-frame-close-button"
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>
@@ -547,11 +553,12 @@ function DebugView({
           {tabs.map(tab => (
             <button
               className={`px-3 py-2 text-sm font-medium transition-colors
-                          ${activeTab === tab.name 
-                            ? 'border-b-2 border-sky-400 text-sky-300' 
+                          ${activeTab === tab.name
+                            ? 'border-b-2 border-sky-400 text-sky-300'
                             : 'text-slate-400 hover:text-sky-400'}`}
               key={tab.name}
               onClick={handleTabClick(tab.name)}
+              type="button"
             >
               {tab.label}
             </button>

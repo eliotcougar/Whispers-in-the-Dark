@@ -91,6 +91,7 @@ function MainToolbar({
           disabled={isLoading || !currentThemeName || !currentSceneExists}
           onClick={onOpenVisualizer}
           title="Visualize Scene"
+          type="button"
         >
           <VisualizeIcon />
         </button>
@@ -103,6 +104,7 @@ function MainToolbar({
           disabled={isLoading || !currentThemeName}
           onClick={onOpenKnowledgeBase}
           title="Open Knowledge Base"
+          type="button"
         >
           <BookOpenIcon />
         </button>
@@ -115,6 +117,7 @@ function MainToolbar({
           disabled={isLoading || !currentThemeName}
           onClick={onOpenHistory}
           title="Open History"
+          type="button"
         >
           <ScrollIcon />
         </button>
@@ -127,6 +130,7 @@ function MainToolbar({
           disabled={isLoading || !currentThemeName}
           onClick={onOpenMap}
           title="Open Map"
+          type="button"
         >
           <MapIcon />
         </button>
@@ -139,6 +143,7 @@ function MainToolbar({
           disabled={isLoading || !currentThemeName}
           onClick={onManualRealityShift}
           title="Force Reality Shift"
+          type="button"
         >
           <RealityShiftIcon />
         </button>
@@ -151,6 +156,7 @@ function MainToolbar({
           disabled={isLoading}
           onClick={onOpenTitleMenu}
           title="Open Title Menu"
+          type="button"
         >
           <MenuIcon />
         </button>

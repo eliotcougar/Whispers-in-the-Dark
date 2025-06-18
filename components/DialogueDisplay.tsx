@@ -110,6 +110,7 @@ function DialogueDisplay({
               disabled={optionsDisabled}
               key={option}
               onClick={handleOptionClick}
+              type="button"
             >
               {highlightEntitiesInText(option, entitiesForHighlighting)}
             </button>
@@ -125,8 +126,9 @@ function DialogueDisplay({
         </p>
 
         <button
-          className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow" 
+          className="mt-2 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white font-medium rounded shadow"
           onClick={onClose}
+          type="button"
         >
           Force End Conversation (if really stuck)
         </button>
@@ -146,9 +148,10 @@ function DialogueDisplay({
       <div className="dialogue-frame-content">
         <button
           aria-label="End Conversation"
-          className="animated-frame-close-button" 
+          className="animated-frame-close-button"
           disabled={isLoading || isDialogueExiting} // Updated disabled condition
           onClick={onClose}
+          type="button"
         >
           &times;
         </button>

@@ -329,6 +329,7 @@ function ItemChangeAnimator({
             disabled
             key={`${item.name}-anim-ku-${ku.actionName}`}
             title={ku.description || ku.actionName}
+            type="button"
           >
             {ku.actionName}
           </button>
@@ -338,6 +339,7 @@ function ItemChangeAnimator({
           aria-hidden="true"
           className="w-full text-sm bg-slate-500/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
           disabled
+          type="button"
         >
           Inspect
         </button>
@@ -347,6 +349,7 @@ function ItemChangeAnimator({
             aria-hidden="true"
             className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
             disabled
+            type="button"
           >
             Attempt to Use (Generic)
           </button>
@@ -357,6 +360,7 @@ function ItemChangeAnimator({
             aria-hidden="true"
             className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
             disabled
+            type="button"
           >
             {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
           </button>

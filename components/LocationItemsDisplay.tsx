@@ -75,6 +75,7 @@ function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapN
                   data-item-name={item.name}
                   disabled={disabled}
                   onClick={handleTakeItem}
+                  type="button"
                 >
                   {item.type === 'vehicle' ? 'Enter Vehicle' : 'Take'}
                 </button>
