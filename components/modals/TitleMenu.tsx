@@ -3,10 +3,10 @@
  * @file TitleMenu.tsx
  * @description Main title screen with game start options.
  */
-import { CURRENT_GAME_VERSION } from '../constants'; // Import the version constant
-import Button from './elements/Button';
-import { Icon } from './elements/icons';
-import VersionBadge from './elements/VersionBadge';
+import { CURRENT_GAME_VERSION } from '../../constants';
+import Button from '../elements/Button';
+import { Icon } from '../elements/icons';
+import VersionBadge from '../elements/VersionBadge';
 
 interface TitleMenuProps {
   readonly isVisible: boolean;

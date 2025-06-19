@@ -5,23 +5,23 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
-import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../types';
+import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../../types';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
   DEFAULT_NESTED_PADDING,
   DEFAULT_NESTED_ANGLE_PADDING,
   applyNestedCircleLayout,
-} from '../utils/mapLayoutUtils';
-import Button from './elements/Button';
-import { Icon } from './elements/icons';
+} from '../../utils/mapLayoutUtils';
+import Button from '../elements/Button';
+import { Icon } from '../elements/icons';
 import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
   DEFAULT_LABEL_OVERLAP_MARGIN_PX,
   DEFAULT_ITEM_ICON_SCALE,
-} from '../constants';
-import MapNodeView from './map/MapNodeView';
-import MapControls from './map/MapControls';
+} from '../../constants';
+import MapNodeView from './MapNodeView';
+import MapControls from './MapControls';
 
 
 interface MapDisplayProps {

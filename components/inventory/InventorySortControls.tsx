@@ -1,6 +1,6 @@
 import * as React from 'react';
-import Button from './elements/Button';
-import { SortOrder } from '../hooks/useInventoryDisplay';
+import Button from '../elements/Button';
+import { SortOrder } from '../../hooks/useInventoryDisplay';
 
 interface InventorySortControlsProps {
   readonly sortOrder: SortOrder;

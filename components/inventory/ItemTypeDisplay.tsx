@@ -3,7 +3,7 @@
  * @description Displays the item type label with theme-based coloring.
  */
 import * as React from 'react';
-import { Item } from '../types';
+import { Item } from '../../types';
 
 export interface ItemTypeDisplayProps {
   readonly type: Item['type'];

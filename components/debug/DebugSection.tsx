@@ -1,5 +1,5 @@
-import { structuredCloneGameState } from '../utils/cloneUtils';
-import type { MapNode } from '../types';
+import { structuredCloneGameState } from '../../utils/cloneUtils';
+import type { MapNode } from '../../types';
 
 interface DebugSectionProps {
   readonly title: string;

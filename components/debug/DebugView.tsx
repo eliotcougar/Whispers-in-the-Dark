@@ -4,14 +4,14 @@
  * @description Developer panel for inspecting game state.
  */
 import { useState, useCallback } from 'react';
-import Button from './elements/Button';
-import { Icon } from './elements/icons';
+import Button from '../elements/Button';
+import { Icon } from '../elements/icons';
 import DebugSection from './DebugSection';
-import { useToggle, useToggleMap } from '../hooks/useToggle';
+import { useToggle, useToggleMap } from '../../hooks/useToggle';
 
-import { extractJsonFromFence } from '../utils/jsonUtils';
-import { GameStateStack, DebugPacket } from '../types';
-import { TravelStep } from '../utils/mapPathfinding';
+import { extractJsonFromFence } from '../../utils/jsonUtils';
+import { GameStateStack, DebugPacket } from '../../types';
+import { TravelStep } from '../../utils/mapPathfinding';
 
 interface DebugViewProps {
   readonly isVisible: boolean;

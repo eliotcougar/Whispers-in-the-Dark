@@ -2,10 +2,10 @@
  * @file HistoryDisplay.tsx
  * @description Shows the game log and memory of previously visited realities.
 */
-import { ThemeHistoryState } from '../types';
-import GameLogDisplay from './GameLogDisplay';
-import Button from './elements/Button';
-import { Icon } from './elements/icons';
+import { ThemeHistoryState } from '../../types';
+import GameLogDisplay from '../GameLogDisplay';
+import Button from '../elements/Button';
+import { Icon } from '../elements/icons';
 
 interface HistoryDisplayProps {
   readonly themeHistory: ThemeHistoryState;

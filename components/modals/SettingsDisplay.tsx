@@ -5,13 +5,13 @@
  */
 import { useCallback } from 'react';
 
-import { ThemePackName } from '../types';
-import { ALL_THEME_PACK_NAMES_CONST } from '../constants';
-import Slider from './elements/Slider';
-import RadioSelector from './elements/RadioSelector';
-import CheckboxSelector from './elements/CheckboxSelector';
-import Button from './elements/Button';
-import { Icon } from './elements/icons';
+import { ThemePackName } from '../../types';
+import { ALL_THEME_PACK_NAMES_CONST } from '../../constants';
+import Slider from '../elements/Slider';
+import RadioSelector from '../elements/RadioSelector';
+import CheckboxSelector from '../elements/CheckboxSelector';
+import Button from '../elements/Button';
+import { Icon } from '../elements/icons';
 
 interface SettingsDisplayProps {
   readonly isVisible: boolean;
