@@ -12,12 +12,9 @@ import {
 import {
   executeAIMainTurn,
   parseAIResponse,
-  buildNewGameFirstTurnPrompt,
-  buildNewThemePostShiftPrompt,
-  buildReturnToThemePostShiftPrompt
 } from '../services/storyteller';
 import { getThemesFromPacks } from '../themes';
-import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../constants';
+import { PLAYER_HOLDER_ID } from '../constants';
 import { findThemeByName } from '../utils/themeUtils';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
@@ -26,6 +23,8 @@ import {
 } from '../utils/initialStates';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';
+import { buildInitialGamePrompt } from './initPromptHelpers';
+import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
 
@@ -80,23 +79,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
   /** Returns a snapshot of the current game state suitable for saving. */
   const gatherCurrentGameStateForSave = useCallback((): FullGameState => {
     const currentFullState = getCurrentGameState();
-    return {
-      ...currentFullState,
-      saveGameVersion: CURRENT_SAVE_GAME_VERSION,
+    return buildSaveStateSnapshot({
+      currentState: currentFullState,
       playerGender: playerGenderProp,
       enabledThemePacks: enabledThemePacksProp,
       stabilityLevel: stabilityLevelProp,
       chaosLevel: chaosLevelProp,
-        mapData: currentFullState.mapData,
-        currentMapNodeId: currentFullState.currentMapNodeId,
-        destinationNodeId: currentFullState.destinationNodeId,
-        mapLayoutConfig: currentFullState.mapLayoutConfig,
-        mapViewBox: currentFullState.mapViewBox,
-        isCustomGameMode: currentFullState.isCustomGameMode,
-        isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection,
-      globalTurnNumber: currentFullState.globalTurnNumber,
-      currentThemeObject: currentFullState.currentThemeObject,
-    };
+    });
   }, [
     getCurrentGameState,
     playerGenderProp,
@@ -234,30 +223,19 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       }
 
       const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
-      let prompt = '';
       const hasExistingHistory = Object.prototype.hasOwnProperty.call(
         draftState.themeHistory,
         themeObjToLoad.name
       );
-      if (isTransitioningFromShift && hasExistingHistory) {
-        const currentThemeCharacters = draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name);
-        prompt = buildReturnToThemePostShiftPrompt(
-          themeObjToLoad,
-          draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-          playerGenderProp,
-          draftState.themeHistory[themeObjToLoad.name],
-          draftState.mapData,
-          currentThemeCharacters
-        );
-      } else if (isTransitioningFromShift) {
-        prompt = buildNewThemePostShiftPrompt(
-          themeObjToLoad,
-          draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-          playerGenderProp
-        );
-      } else {
-        prompt = buildNewGameFirstTurnPrompt(themeObjToLoad, playerGenderProp);
-      }
+      const prompt = buildInitialGamePrompt({
+        theme: themeObjToLoad,
+        inventory: draftState.inventory,
+        playerGender: playerGenderProp,
+        isTransitioningFromShift,
+        themeMemory: hasExistingHistory ? draftState.themeHistory[themeObjToLoad.name] : undefined,
+        mapDataForTheme: draftState.mapData,
+        charactersForTheme: draftState.allCharacters.filter(c => c.themeName === themeObjToLoad.name),
+      });
       draftState.lastDebugPacket = {
         prompt,
         rawResponseText: null,
