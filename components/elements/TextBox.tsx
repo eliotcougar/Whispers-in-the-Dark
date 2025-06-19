@@ -18,10 +18,12 @@ export interface TextBoxProps {
   readonly headerColorClass?: string;
   readonly contentFontClass?: string;
   readonly contentColorClass?: string;
+  readonly headerIcon?: ReactNode;
 }
 
 function TextBox({
   header,
+  headerIcon,
   children,
   text,
   highlightEntities,
@@ -39,7 +41,7 @@ function TextBox({
   const content = text
     ? text.split('\n').map(para => (
       <p
-        className="mb-3"
+        className="mb-3 last:mb-0"
         key={para}
       >
         {highlightEntities
@@ -61,6 +63,12 @@ function TextBox({
         <HeadingTag
           className={`${headerFontClass} ${headerColorClass} mb-3 pb-1 ${borderWidthClass} ${borderColorClass}`}
         >
+          {headerIcon ? (
+            <span className="mr-2 inline-flex">
+              {headerIcon}
+            </span>
+          ) : null}
+
           {header}
         </HeadingTag>
       ) : null}
@@ -84,6 +92,7 @@ TextBox.defaultProps = {
   header: undefined,
   headerColorClass: 'text-amber-400',
   headerFontClass: 'text-2xl font-semibold',
+  headerIcon: undefined,
   headerTag: 'h2',
   highlightEntities: undefined,
   text: undefined,

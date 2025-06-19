@@ -17,17 +17,15 @@ interface GameLogDisplayProps {
  */
 function GameLogDisplay({ messages }: GameLogDisplayProps) {
   const logEndRef = useRef<null | HTMLDivElement>(null);
-  const header = (
-    <>
-      <Icon
-        color="emerald"
-        inline
-        marginRight={8}
-        name="log"
-        size={20}
-      />
-      Game Log
-    </>
+  const header = 'Game Log';
+  const headerIcon = (
+    <Icon
+      color="emerald"
+      inline
+      marginRight={8}
+      name="log"
+      size={20}
+    />
   );
 
   const logItems = (() => {
@@ -60,6 +58,7 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
       header={header}
       headerColorClass="text-emerald-400"
       headerFontClass="text-xl font-bold flex items-center"
+      headerIcon={headerIcon}
       headerTag="h3"
     >
       <ul className="space-y-2 text-sm">
