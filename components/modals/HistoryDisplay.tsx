@@ -98,15 +98,6 @@ function HistoryDisplay({
                       The memories of this reality are too fragmented to recall clearly.
                     </p>
                   )}
-
-                  {/* 
-                  Future enhancements could include looking up MapNode details using memory.placeNames from mapData.
-                  Currently, memory.placeNames are just strings (MapNode.placeName).
-                  <p className="text-xs text-slate-400">Main Quest: {memory.mainQuest}</p>
-                  <p className="text-xs text-slate-400">Objective: {memory.currentObjective}</p>
-                  {memory.placeNames.length > 0 && <p className="text-xs text-slate-400">Recalled Places: {memory.placeNames.join(', ')}</p>}
-                  {memory.characterNames.length > 0 && <p className="text-xs text-slate-400">Recalled Characters: {memory.characterNames.join(', ')}</p>}
-                  */}
                 </li>
               ))}
             </ul>
