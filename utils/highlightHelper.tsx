@@ -40,9 +40,9 @@ const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
     case 'item':
       return 'font-semibold text-yellow-400 hover:text-yellow-300 cursor-pointer'; 
     case 'place':
-      return 'font-semibold text-sky-400 hover:text-sky-300 cursor-pointer';
+      return 'font-semibold text-sky-300 hover:text-sky-200 cursor-pointer';
     case 'character':
-      return 'font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer';
+      return 'font-semibold text-emerald-500 hover:text-emerald-400 cursor-pointer';
     default:
       return '';
   }
