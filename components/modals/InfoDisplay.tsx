@@ -80,9 +80,9 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
 
           {infoContent.sections.map(section => (
             <TextBox
-              key={section.header}
               contentFontClass="leading-relaxed space-y-3"
               header={section.header}
+              key={section.header}
               text={section.text.map(t => replacePlaceholders(t)).join('\n')}
             />
           ))}
