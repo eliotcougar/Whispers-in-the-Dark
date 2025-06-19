@@ -580,15 +580,15 @@ function App() {
           <div className="lg:col-span-2 space-y-2 flex flex-col">
             {hasGameBeenInitialized && mainQuest ? (
               <TextBox
-                backgroundColorClass=""
+                backgroundColorClass="bg-purple-700/50"
                 borderColorClass=""
                 borderWidthClass=""
-                containerClassName="p-3 bg-purple-900/50 border border-purple-700 rounded-md"
+                containerClassName="p-3 border border-purple-600 rounded-md"
                 contentColorClass="text-purple-200"
                 contentFontClass="text-lg"
                 enableMobileTap={enableMobileTap}
                 header="Main Quest"
-                headerColorClass="text-purple-300"
+                headerColorClass="text-purple-200"
                 headerFontClass="text-lg font-semibold"
                 headerTag="h3"
                 highlightEntities={questHighlightEntities}
@@ -598,10 +598,10 @@ function App() {
 
             {hasGameBeenInitialized && currentObjective ? (
               <TextBox
-                backgroundColorClass=""
+                backgroundColorClass="bg-amber-700/50"
                 borderColorClass=""
                 borderWidthClass=""
-                containerClassName={`p-3 bg-amber-900/50 border border-amber-700 rounded-md ${
+                containerClassName={`p-3 border border-amber-600 rounded-md ${
                   objectiveAnimationType === 'success'
                     ? 'animate-objective-success'
                     : objectiveAnimationType === 'neutral'
@@ -612,7 +612,7 @@ function App() {
                 contentFontClass="text-lg"
                 enableMobileTap={enableMobileTap}
                 header="Current Objective"
-                headerColorClass="text-amber-300"
+                headerColorClass="text-amber-200"
                 headerFontClass="text-lg font-semibold"
                 headerTag="h3"
                 highlightEntities={questHighlightEntities}
