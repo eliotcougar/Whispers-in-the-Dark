@@ -13,7 +13,7 @@ import {
 import { useDialogueTurn } from './useDialogueTurn';
 import { useDialogueSummary } from './useDialogueSummary';
 
-interface UseDialogueFlowProps {
+export interface UseDialogueFlowProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (newGameState: FullGameState) => void;
   playerGenderProp: string;
