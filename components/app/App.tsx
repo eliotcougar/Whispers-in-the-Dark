@@ -30,7 +30,7 @@ import AppHeader from './AppHeader';
 import FreeActionInput from './FreeActionInput';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
-import { useModalState } from '../../hooks/useModalState';
+import { useAppModals } from '../../hooks/useAppModals';
 import { useAutosave } from '../../hooks/useAutosave';
 import { findTravelPath, TravelStep } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
@@ -136,40 +136,54 @@ function App() {
 
   const {
     isVisualizerVisible,
-    setIsVisualizerVisible,
     visualizerImageUrl,
     setVisualizerImageUrl,
     visualizerImageScene,
     setVisualizerImageScene,
     isKnowledgeBaseVisible,
-    setIsKnowledgeBaseVisible,
     isSettingsVisible,
-    setIsSettingsVisible,
     isInfoVisible,
-    setIsInfoVisible,
     isMapVisible,
-    setIsMapVisible,
     userRequestedTitleMenuOpen,
-    setUserRequestedTitleMenuOpen,
-    shouldReturnToTitleMenu,
     setShouldReturnToTitleMenu,
+    shouldReturnToTitleMenu,
     isHistoryVisible,
-    setIsHistoryVisible,
     isDebugViewVisible,
-    setIsDebugViewVisible,
     isCustomGameSetupVisible,
-    setIsCustomGameSetupVisible,
     isManualShiftThemeSelectionVisible,
-    setIsManualShiftThemeSelectionVisible,
     shiftConfirmOpen,
-    setShiftConfirmOpen,
     newGameFromMenuConfirmOpen,
-    setNewGameFromMenuConfirmOpen,
     loadGameFromMenuConfirmOpen,
-    setLoadGameFromMenuConfirmOpen,
     newCustomGameConfirmOpen,
-    setNewCustomGameConfirmOpen,
-  } = useModalState();
+    openVisualizer,
+    closeVisualizer,
+    openKnowledgeBase,
+    closeKnowledgeBase,
+    openMap,
+    closeMap,
+    openSettings: openSettingsModal,
+    closeSettings: closeSettingsModal,
+    openInfo: openInfoModal,
+    closeInfo: closeInfoModal,
+    openTitleMenu,
+    closeTitleMenu,
+    openHistory,
+    closeHistory,
+    closeDebugView,
+    setIsDebugViewVisible,
+    openCustomGameSetup,
+    closeCustomGameSetup,
+    openManualShiftThemeSelection,
+    closeManualShiftThemeSelection,
+    openShiftConfirm,
+    closeShiftConfirm,
+    openNewGameFromMenuConfirm,
+    closeNewGameFromMenuConfirm,
+    openLoadGameFromMenuConfirm,
+    closeLoadGameFromMenuConfirm,
+    openNewCustomGameConfirm,
+    closeNewCustomGameConfirm,
+  } = useAppModals();
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
 
@@ -227,47 +241,8 @@ function App() {
 
   const confirmShift = useCallback(() => {
     executeManualRealityShift();
-    setShiftConfirmOpen(false);
-  }, [executeManualRealityShift, setShiftConfirmOpen]);
-
-  const handleOpenManualShiftConfirm = useCallback(
-    () => { setShiftConfirmOpen(true); },
-    [setShiftConfirmOpen]
-  );
-
-  const handleOpenHistory = useCallback(
-    () => { setIsHistoryVisible(true); },
-    [setIsHistoryVisible]
-  );
-
-  const handleOpenKnowledgeBase = useCallback(
-    () => { setIsKnowledgeBaseVisible(true); },
-    [setIsKnowledgeBaseVisible]
-  );
-
-  const handleOpenMap = useCallback(() => { setIsMapVisible(true); }, [setIsMapVisible]);
-
-  const handleOpenTitleMenu = useCallback(
-    () => { setUserRequestedTitleMenuOpen(true); },
-    [setUserRequestedTitleMenuOpen]
-  );
-
-  const handleOpenVisualizer = useCallback(
-    () => { setIsVisualizerVisible(true); },
-    [setIsVisualizerVisible]
-  );
-
-  const handleCloseDebugView = useCallback(
-    () => { setIsDebugViewVisible(false); },
-    [setIsDebugViewVisible]
-  );
-
-  const handleCloseTitleMenu = useCallback(
-    () => { setUserRequestedTitleMenuOpen(false); },
-    [setUserRequestedTitleMenuOpen]
-  );
-
-  const handleCloseMap = useCallback(() => { setIsMapVisible(false); }, [setIsMapVisible]);
+    closeShiftConfirm();
+  }, [executeManualRealityShift, closeShiftConfirm]);
 
   const handleRetryClick = useCallback(() => {
     void handleRetry();
@@ -281,24 +256,24 @@ function App() {
   );
 
   const handleCancelLoadGameFromMenu = useCallback(() => {
-    setLoadGameFromMenuConfirmOpen(false);
-    setUserRequestedTitleMenuOpen(true);
-  }, [setLoadGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
+    closeLoadGameFromMenuConfirm();
+    openTitleMenu();
+  }, [closeLoadGameFromMenuConfirm, openTitleMenu]);
 
   const handleCancelShift = useCallback(
-    () => { setShiftConfirmOpen(false); },
-    [setShiftConfirmOpen]
+    () => { closeShiftConfirm(); },
+    [closeShiftConfirm]
   );
 
   const handleCancelNewCustomGame = useCallback(() => {
-    setNewCustomGameConfirmOpen(false);
-    setUserRequestedTitleMenuOpen(true);
-  }, [setNewCustomGameConfirmOpen, setUserRequestedTitleMenuOpen]);
+    closeNewCustomGameConfirm();
+    openTitleMenu();
+  }, [closeNewCustomGameConfirm, openTitleMenu]);
 
   const handleCancelNewGameFromMenu = useCallback(() => {
-    setNewGameFromMenuConfirmOpen(false);
-    setUserRequestedTitleMenuOpen(true);
-  }, [setNewGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
+    closeNewGameFromMenuConfirm();
+    openTitleMenu();
+  }, [closeNewGameFromMenuConfirm, openTitleMenu]);
 
   const handleToggleThemePackStable = useCallback(
     (packName: ThemePackName) => {
@@ -318,22 +293,22 @@ function App() {
 
   useEffect(() => {
     if (isAwaitingManualShiftThemeSelection && !isManualShiftThemeSelectionVisible) {
-      setIsManualShiftThemeSelectionVisible(true);
+      openManualShiftThemeSelection();
     }
-  }, [isAwaitingManualShiftThemeSelection, isManualShiftThemeSelectionVisible, setIsManualShiftThemeSelectionVisible]);
+  }, [isAwaitingManualShiftThemeSelection, isManualShiftThemeSelectionVisible, openManualShiftThemeSelection]);
 
   const handleManualShiftThemeSelected = useCallback(
     (themeName: string) => {
-      setIsManualShiftThemeSelectionVisible(false);
+      closeManualShiftThemeSelection();
       completeManualShiftWithSelectedTheme(themeName);
     },
-    [completeManualShiftWithSelectedTheme, setIsManualShiftThemeSelectionVisible]
+    [closeManualShiftThemeSelection, completeManualShiftWithSelectedTheme]
   );
 
   const handleCancelManualShiftThemeSelection = useCallback(() => {
-    setIsManualShiftThemeSelectionVisible(false);
+    closeManualShiftThemeSelection();
     cancelManualShiftThemeSelection();
-  }, [cancelManualShiftThemeSelection, setIsManualShiftThemeSelectionVisible]);
+  }, [closeManualShiftThemeSelection, cancelManualShiftThemeSelection]);
 
   /**
    * Wrapper ensuring lint compliance for the async dialogue option handler.
@@ -347,92 +322,92 @@ function App() {
 
 
   const handleNewGameFromMenu = useCallback(() => {
-    setUserRequestedTitleMenuOpen(false);
+    closeTitleMenu();
     if (hasGameBeenInitialized) {
-      setNewGameFromMenuConfirmOpen(true);
+      openNewGameFromMenuConfirm();
     } else {
       handleStartNewGameFromButton();
     }
-  }, [hasGameBeenInitialized, handleStartNewGameFromButton, setNewGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
+  }, [closeTitleMenu, hasGameBeenInitialized, handleStartNewGameFromButton, openNewGameFromMenuConfirm]);
 
   const confirmNewGameFromMenu = useCallback(() => {
-    setNewGameFromMenuConfirmOpen(false);
+    closeNewGameFromMenuConfirm();
     handleStartNewGameFromButton();
-  }, [handleStartNewGameFromButton, setNewGameFromMenuConfirmOpen]);
+  }, [closeNewGameFromMenuConfirm, handleStartNewGameFromButton]);
 
   const handleLoadGameFromMenu = useCallback(() => {
-    setUserRequestedTitleMenuOpen(false);
+    closeTitleMenu();
     if (hasGameBeenInitialized) {
-      setLoadGameFromMenuConfirmOpen(true);
+      openLoadGameFromMenuConfirm();
     } else {
       handleLoadFromFileClick();
     }
-  }, [hasGameBeenInitialized, handleLoadFromFileClick, setLoadGameFromMenuConfirmOpen, setUserRequestedTitleMenuOpen]);
+  }, [closeTitleMenu, hasGameBeenInitialized, handleLoadFromFileClick, openLoadGameFromMenuConfirm]);
 
   const confirmLoadGameFromMenu = useCallback(() => {
-    setLoadGameFromMenuConfirmOpen(false);
+    closeLoadGameFromMenuConfirm();
     handleLoadFromFileClick();
-  }, [handleLoadFromFileClick, setLoadGameFromMenuConfirmOpen]);
+  }, [closeLoadGameFromMenuConfirm, handleLoadFromFileClick]);
 
   const handleSaveGameFromMenu = useCallback(() => {
-    setUserRequestedTitleMenuOpen(false);
+    closeTitleMenu();
     handleSaveToFile();
-  }, [handleSaveToFile, setUserRequestedTitleMenuOpen]);
+  }, [closeTitleMenu, handleSaveToFile]);
 
   const openSettingsFromMenu = useCallback(() => {
-    setUserRequestedTitleMenuOpen(false);
+    closeTitleMenu();
     setShouldReturnToTitleMenu(true);
-    setIsSettingsVisible(true);
-  }, [setUserRequestedTitleMenuOpen, setShouldReturnToTitleMenu, setIsSettingsVisible]);
+    openSettingsModal();
+  }, [closeTitleMenu, setShouldReturnToTitleMenu, openSettingsModal]);
 
   const closeSettings = useCallback(() => {
-    setIsSettingsVisible(false);
+    closeSettingsModal();
     if (shouldReturnToTitleMenu || !hasGameBeenInitialized) {
-      setUserRequestedTitleMenuOpen(true);
+      openTitleMenu();
     }
     setShouldReturnToTitleMenu(false);
-  }, [shouldReturnToTitleMenu, hasGameBeenInitialized, setIsSettingsVisible, setShouldReturnToTitleMenu, setUserRequestedTitleMenuOpen]);
+  }, [closeSettingsModal, shouldReturnToTitleMenu, hasGameBeenInitialized, openTitleMenu, setShouldReturnToTitleMenu]);
 
   const openInfoFromMenu = useCallback(() => {
-    setUserRequestedTitleMenuOpen(false);
+    closeTitleMenu();
     setShouldReturnToTitleMenu(true);
-    setIsInfoVisible(true);
-  }, [setUserRequestedTitleMenuOpen, setShouldReturnToTitleMenu, setIsInfoVisible]);
+    openInfoModal();
+  }, [closeTitleMenu, setShouldReturnToTitleMenu, openInfoModal]);
 
   const closeInfo = useCallback(() => {
-    setIsInfoVisible(false);
+    closeInfoModal();
     if (shouldReturnToTitleMenu || !hasGameBeenInitialized) {
-      setUserRequestedTitleMenuOpen(true);
+      openTitleMenu();
     }
     setShouldReturnToTitleMenu(false);
-  }, [shouldReturnToTitleMenu, hasGameBeenInitialized, setIsInfoVisible, setShouldReturnToTitleMenu, setUserRequestedTitleMenuOpen]);
+  }, [closeInfoModal, shouldReturnToTitleMenu, hasGameBeenInitialized, openTitleMenu, setShouldReturnToTitleMenu]);
 
 
   const handleOpenCustomGameSetup = useCallback(() => {
-    setUserRequestedTitleMenuOpen(false);
+    closeTitleMenu();
     if (hasGameBeenInitialized) {
-      setNewCustomGameConfirmOpen(true);
+      openNewCustomGameConfirm();
     } else {
-      setIsCustomGameSetupVisible(true);
+      openCustomGameSetup();
     }
-  }, [hasGameBeenInitialized, setIsCustomGameSetupVisible, setNewCustomGameConfirmOpen, setUserRequestedTitleMenuOpen]);
+  }, [closeTitleMenu, hasGameBeenInitialized, openCustomGameSetup, openNewCustomGameConfirm]);
 
   const confirmNewCustomGame = useCallback(() => {
-    setNewCustomGameConfirmOpen(false);
-    setIsCustomGameSetupVisible(true);
-  }, [setIsCustomGameSetupVisible, setNewCustomGameConfirmOpen]);
+    closeNewCustomGameConfirm();
+    openCustomGameSetup();
+  }, [closeNewCustomGameConfirm, openCustomGameSetup]);
 
   const handleCloseCustomGameSetup = useCallback(() => {
-    setIsCustomGameSetupVisible(false);
-    setUserRequestedTitleMenuOpen(true);
-  }, [setIsCustomGameSetupVisible, setUserRequestedTitleMenuOpen]);
+    closeCustomGameSetup();
+    openTitleMenu();
+  }, [closeCustomGameSetup, openTitleMenu]);
 
   const handleCustomThemeSelectedForNewGame = useCallback(
     (themeName: string) => {
-      setIsCustomGameSetupVisible(false);
+      closeCustomGameSetup();
       startCustomGame(themeName);
     },
-    [setIsCustomGameSetupVisible, startCustomGame]
+    [closeCustomGameSetup, startCustomGame]
   );
 
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
@@ -530,12 +505,12 @@ function App() {
               currentSceneExists={!!currentScene}
               currentThemeName={currentTheme ? currentTheme.name : null}
               isLoading={isLoading || !!dialogueState}
-              onManualRealityShift={handleOpenManualShiftConfirm}
-              onOpenHistory={handleOpenHistory}
-              onOpenKnowledgeBase={handleOpenKnowledgeBase}
-              onOpenMap={handleOpenMap}
-              onOpenTitleMenu={handleOpenTitleMenu}
-              onOpenVisualizer={handleOpenVisualizer}
+              onManualRealityShift={openShiftConfirm}
+              onOpenHistory={openHistory}
+              onOpenKnowledgeBase={openKnowledgeBase}
+              onOpenMap={openMap}
+              onOpenTitleMenu={openTitleMenu}
+              onOpenVisualizer={openVisualizer}
               score={score}
               turnsSinceLastShift={turnsSinceLastShift}
                                       /> : null}
@@ -651,7 +626,7 @@ function App() {
         debugPacket={lastDebugPacket}
         gameStateStack={gameStateStack}
         isVisible={isDebugViewVisible}
-        onClose={handleCloseDebugView}
+        onClose={closeDebugView}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
       />
@@ -659,7 +634,7 @@ function App() {
       <TitleMenu
         isGameActive={hasGameBeenInitialized}
         isVisible={effectiveIsTitleMenuOpen}
-        onClose={handleCloseTitleMenu}
+        onClose={closeTitleMenu}
         onCustomGame={handleOpenCustomGameSetup}
         onLoadGame={handleLoadGameFromMenu}
         onNewGame={handleNewGameFromMenu}
@@ -733,15 +708,15 @@ function App() {
         mapData={mapData}
         newCustomGameConfirmOpen={newCustomGameConfirmOpen}
         newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
-        onCloseMap={handleCloseMap}
+        onCloseHistory={closeHistory}
+        onCloseKnowledgeBase={closeKnowledgeBase}
+        onCloseMap={closeMap}
+        onCloseVisualizer={closeVisualizer}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
         setGeneratedImage={setGeneratedImageCache}
-        setIsHistoryVisible={setIsHistoryVisible}
-        setIsKnowledgeBaseVisible={setIsKnowledgeBaseVisible}
-        setIsVisualizerVisible={setIsVisualizerVisible}
         shiftConfirmOpen={shiftConfirmOpen}
         themeHistory={themeHistory}
         visualizerImageScene={visualizerImageScene}

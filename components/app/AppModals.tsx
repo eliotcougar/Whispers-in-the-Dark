@@ -1,4 +1,3 @@
-import * as React from 'react';
 import KnowledgeBase from '../KnowledgeBase';
 import MapDisplay from '../MapDisplay';
 import ConfirmationDialog from '../ConfirmationDialog';
@@ -16,7 +15,7 @@ import {
 interface AppModalsProps {
   // Visibility flags
   readonly isVisualizerVisible: boolean;
-  readonly setIsVisualizerVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly onCloseVisualizer: () => void;
   readonly visualizerImageUrl: string | null;
   readonly visualizerImageScene: string | null;
   readonly setGeneratedImage: (url: string, scene: string) => void;
@@ -29,10 +28,10 @@ interface AppModalsProps {
   readonly localPlace: string | null;
 
   readonly isKnowledgeBaseVisible: boolean;
-  readonly setIsKnowledgeBaseVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly onCloseKnowledgeBase: () => void;
 
   readonly isHistoryVisible: boolean;
-  readonly setIsHistoryVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly onCloseHistory: () => void;
   readonly themeHistory: ThemeHistoryState;
   readonly gameLog: Array<string>;
 
@@ -68,7 +67,7 @@ interface AppModalsProps {
 function AppModals({
   // Visibility flags
   isVisualizerVisible,
-  setIsVisualizerVisible,
+  onCloseVisualizer,
   visualizerImageUrl,
   visualizerImageScene,
   setGeneratedImage,
@@ -81,10 +80,10 @@ function AppModals({
   localPlace,
 
   isKnowledgeBaseVisible,
-  setIsKnowledgeBaseVisible,
+  onCloseKnowledgeBase,
 
   isHistoryVisible,
-  setIsHistoryVisible,
+  onCloseHistory,
   themeHistory,
   gameLog,
 
@@ -116,17 +115,6 @@ function AppModals({
   isCustomGameModeShift,
 }: AppModalsProps) {
 
-  const handleCloseVisualizer = React.useCallback(() => {
-    setIsVisualizerVisible(false);
-  }, [setIsVisualizerVisible]);
-
-  const handleCloseKnowledgeBase = React.useCallback(() => {
-    setIsKnowledgeBaseVisible(false);
-  }, [setIsKnowledgeBaseVisible]);
-
-  const handleCloseHistory = React.useCallback(() => {
-    setIsHistoryVisible(false);
-  }, [setIsHistoryVisible]);
 
   return (
     <>
@@ -141,7 +129,7 @@ function AppModals({
         localPlace={localPlace}
         localTime={localTime}
         mapData={mapData.nodes}
-        onClose={handleCloseVisualizer}
+        onClose={onCloseVisualizer}
         setGeneratedImage={setGeneratedImage}
       />
 
@@ -149,13 +137,13 @@ function AppModals({
         allCharacters={allCharacters}
         currentTheme={currentTheme}
         isVisible={isKnowledgeBaseVisible}
-        onClose={handleCloseKnowledgeBase}
+        onClose={onCloseKnowledgeBase}
       />
 
       <HistoryDisplay
         gameLog={gameLog}
         isVisible={isHistoryVisible}
-        onClose={handleCloseHistory}
+        onClose={onCloseHistory}
         themeHistory={themeHistory}
       />
 
