@@ -50,5 +50,20 @@ ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,
 ## Teach the user:
  - The user is learning programming. Take an opportunity to shortly teach the user about the logic behind the changes you make in the general chat (not in the code).
 
+## Code Style Guide (ESLint)
+- Prefer arrow function components and avoid binding in JSX. (`react/function-component-definition`, `react/jsx-no-bind`)
+- Do not use array indices as keys. (`react/no-array-index-key`)
+- Keep JSX indentation at 2 spaces and limit nesting depth to 4. (`react/jsx-indent`, `react/jsx-indent-props`, `react/jsx-max-depth`)
+- Alphabetically sort JSX props and default props. (`react/jsx-sort-props`, `react/sort-default-props`)
+- Provide default props for optional values. (`react/require-default-props`)
+- Component props should be read-only. (`react/prefer-read-only-props`)
+- Use `Array<T>` syntax instead of `T[]`. (`@typescript-eslint/array-type`)
+- Use `Record<K, V>` for indexed objects. (`@typescript-eslint/consistent-indexed-object-style`)
+- Avoid non-null assertions and prefer nullish coalescing. (`@typescript-eslint/no-non-null-assertion`, `@typescript-eslint/prefer-nullish-coalescing`)
+- Use `unknown` in catch clauses. (`@typescript-eslint/use-unknown-in-catch-callback-variable`)
+- Limit template and arithmetic expressions to compatible types. (`@typescript-eslint/restrict-template-expressions`, `@typescript-eslint/restrict-plus-operands`)
+- Use dot notation whenever possible. (`@typescript-eslint/dot-notation`)
+- Hooks must follow the rules of hooks. (`react-hooks/rules-of-hooks`)
+
 ## Reference
  - Read `ARCHITECTURE.md` for a general overview of the codebase structure.
