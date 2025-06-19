@@ -107,8 +107,10 @@ function DialogueDisplay({
               className="w-full p-3 rounded-md shadow transition-all duration-150 ease-in-out text-left text-white font-medium animate-dialogue-new-entry bg-sky-700 hover:bg-sky-600 focus:ring-2 focus:ring-sky-500 focus:outline-none disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed border border-sky-800 hover:border-sky-500"
               data-option={option}
               disabled={optionsDisabled}
+              enableHighlightTap
+              highlightEntities={entitiesForHighlighting}
               key={option}
-              label={highlightEntitiesInText(option, entitiesForHighlighting)}
+              label={option}
               onClick={handleOptionClick}
               size="md"
             />

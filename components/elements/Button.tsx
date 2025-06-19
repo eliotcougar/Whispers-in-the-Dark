@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import type { ReactNode, MouseEvent } from 'react';
+import type { HighlightableEntity } from '../../utils/highlightHelper';
+import { highlightEntitiesInText } from '../../utils/highlightHelper';
 
 export interface ButtonProps {
   readonly ariaLabel: string;
@@ -8,6 +10,8 @@ export interface ButtonProps {
   readonly disabled?: boolean;
   readonly icon?: ReactNode;
   readonly label?: ReactNode;
+  readonly highlightEntities?: Array<HighlightableEntity>;
+  readonly enableHighlightTap?: boolean;
   readonly pressed?: boolean;
   readonly size?: 'sm' | 'md' | 'lg';
   readonly title?: string;
@@ -22,6 +26,8 @@ function Button({
   disabled = false,
   icon,
   label,
+  highlightEntities,
+  enableHighlightTap = false,
   pressed = false,
   size = 'md',
   title,
@@ -52,6 +58,11 @@ function Button({
 
   const pressedClasses = variant === 'toggle' && pressed ? 'ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800' : '';
 
+  const displayLabel =
+    highlightEntities && typeof label === 'string'
+      ? highlightEntitiesInText(label, highlightEntities, enableHighlightTap)
+      : label;
+
   return (
     <button
       aria-label={ariaLabel}
@@ -68,7 +79,7 @@ function Button({
         </span>
       ) : null}
 
-      {label}
+      {displayLabel}
     </button>
   );
 }
@@ -76,6 +87,8 @@ function Button({
 Button.defaultProps = {
   className: '',
   disabled: false,
+  enableHighlightTap: false,
+  highlightEntities: undefined,
   icon: undefined,
   label: undefined,
   pressed: false,
