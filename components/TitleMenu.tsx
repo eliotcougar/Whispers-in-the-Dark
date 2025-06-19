@@ -5,7 +5,7 @@
  */
 import { CURRENT_GAME_VERSION } from '../constants'; // Import the version constant
 import Button from './elements/Button';
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 import VersionBadge from './elements/VersionBadge';
 
 interface TitleMenuProps {

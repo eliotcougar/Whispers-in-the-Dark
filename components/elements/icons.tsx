@@ -1,22 +1,22 @@
 /**
- * Provides a single Icon component that renders SVGs from the resources folder.
- */
-import realityShiftSvg from '../resources/reality_shift.svg?raw';
-import coinSvg from '../resources/coin.svg?raw';
-import visualizeSvg from '../resources/visualize.svg?raw';
-import bookOpenSvg from '../resources/book_open.svg?raw';
-import menuSvg from '../resources/menu.svg?raw';
-import infoSvg from '../resources/info.svg?raw';
-import scrollSvg from '../resources/scroll.svg?raw';
-import mapSvg from '../resources/map.svg?raw';
-import inventorySvg from '../resources/inventory.svg?raw';
-import trashSvg from '../resources/trash.svg?raw';
-import logSvg from '../resources/log.svg?raw';
-import companionSvg from '../resources/companion.svg?raw';
-import nearbyNpcSvg from '../resources/nearby_npc.svg?raw';
-import mapItemBoxSvg from '../resources/map_item_box.svg?raw';
-import mapWheelSvg from '../resources/map_wheel.svg?raw';
-import xSvg from '../resources/x.svg?raw';
+ * Provides a single Icon component that renders SVGs from the icons folder.
+*/
+import realityShiftSvg from './icons/reality_shift.svg?raw';
+import coinSvg from './icons/coin.svg?raw';
+import visualizeSvg from './icons/visualize.svg?raw';
+import bookOpenSvg from './icons/book_open.svg?raw';
+import menuSvg from './icons/menu.svg?raw';
+import infoSvg from './icons/info.svg?raw';
+import scrollSvg from './icons/scroll.svg?raw';
+import mapSvg from './icons/map.svg?raw';
+import inventorySvg from './icons/inventory.svg?raw';
+import trashSvg from './icons/trash.svg?raw';
+import logSvg from './icons/log.svg?raw';
+import companionSvg from './icons/companion.svg?raw';
+import nearbyNpcSvg from './icons/nearby_npc.svg?raw';
+import mapItemBoxSvg from './icons/map_item_box.svg?raw';
+import mapWheelSvg from './icons/map_wheel.svg?raw';
+import xSvg from './icons/x.svg?raw';
 
 /* eslint-disable react/no-danger */
 

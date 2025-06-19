@@ -1,5 +1,5 @@
 import { Item, KnownUse } from '../types';
-import { Icon } from './icons';
+import { Icon } from './elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from './elements/Button';
 

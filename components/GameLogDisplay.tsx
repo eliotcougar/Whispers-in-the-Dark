@@ -5,7 +5,7 @@
  */
 import { useRef } from 'react';
 
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 
 interface GameLogDisplayProps {
   readonly messages: Array<string>;

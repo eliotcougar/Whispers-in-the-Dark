@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import * as React from 'react';
 import { Item } from '../types';
-import { Icon } from './icons';
+import { Icon } from './elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 
 interface LocationItemsDisplayProps {

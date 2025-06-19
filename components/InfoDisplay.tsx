@@ -9,7 +9,7 @@ import NotableFeatures from './elements/NotableFeatures';
 import SaveGameFunctionality from './elements/SaveGameFunctionality';
 import AiModels from './elements/AiModels';
 import Button from './elements/Button';
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 import Changelog from './elements/Changelog';
 
 interface InfoDisplayProps {

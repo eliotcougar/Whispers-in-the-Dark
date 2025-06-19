@@ -5,7 +5,7 @@
  */
 import { useState, useCallback } from 'react';
 import Button from './elements/Button';
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 import DebugSection from './DebugSection';
 import { useToggle, useToggleMap } from '../hooks/useToggle';
 

@@ -3,7 +3,7 @@
  * @file MainToolbar.tsx
  * @description Top-level toolbar with action buttons.
  */
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 import Button from './elements/Button';
 
 interface MainToolbarProps {

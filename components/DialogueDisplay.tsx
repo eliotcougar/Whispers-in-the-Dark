@@ -11,7 +11,7 @@ import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/hi
 import LoadingSpinner from './LoadingSpinner';
 import ModelUsageIndicators from './ModelUsageIndicators';
 import Button from './elements/Button';
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 
 interface DialogueDisplayProps {
   readonly isVisible: boolean;

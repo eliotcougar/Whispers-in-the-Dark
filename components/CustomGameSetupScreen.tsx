@@ -8,7 +8,7 @@ import { useCallback } from 'react';
 import { AdventureTheme, ThemePackName } from '../types';
 import { THEME_PACKS } from '../themes'; // To get pack names and structure
 import Button from './elements/Button';
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 
 interface CustomGameSetupScreenProps {
   readonly isVisible: boolean;
