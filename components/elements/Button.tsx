@@ -1,32 +1,32 @@
 import { useCallback } from 'react';
-import * as React from 'react';
 import type { ReactNode, MouseEvent } from 'react';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  readonly label?: ReactNode;
+export interface ButtonProps {
   readonly ariaLabel: string;
   readonly onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  readonly className?: string;
   readonly disabled?: boolean;
   readonly icon?: ReactNode;
-  readonly size?: 'sm' | 'md' | 'lg';
-  readonly className?: string;
-  readonly variant?: 'standard' | 'toolbar' | 'toggle' | 'primary' | 'danger';
+  readonly label?: ReactNode;
   readonly pressed?: boolean;
+  readonly size?: 'sm' | 'md' | 'lg';
+  readonly title?: string;
   readonly type?: 'button' | 'submit' | 'reset';
+  readonly variant?: 'standard' | 'toolbar' | 'toggle' | 'primary' | 'danger';
 }
 
 function Button({
-  label,
   ariaLabel,
   onClick,
+  className = '',
   disabled = false,
   icon,
-  size = 'md',
-  className = '',
-  variant = 'standard',
+  label,
   pressed = false,
+  size = 'md',
+  title,
   type = 'button',
-  ...rest
+  variant = 'standard',
 }: ButtonProps) {
   const handleClick = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -59,8 +59,8 @@ function Button({
       className={`rounded shadow transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClasses[size]} ${variantClasses[variant]} ${pressedClasses} ${className}`}
       disabled={disabled}
       onClick={handleClick}
-      type={type}
-      {...rest}
+      title={title}
+      type={type === 'submit' ? 'submit' : type === 'reset' ? 'reset' : 'button'}
     >
       {icon ? (
         <span className={label ? 'mr-2 inline-flex' : 'inline-flex'}>
@@ -80,6 +80,7 @@ Button.defaultProps = {
   label: undefined,
   pressed: false,
   size: 'md',
+  title: undefined,
   type: 'button',
   variant: 'standard',
 };

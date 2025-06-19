@@ -27,6 +27,8 @@ export function useAutosave({
 }: UseAutosaveOptions) {
   const autosaveTimeoutRef = useRef<number | null>(null);
 
+  const dependenciesKey = JSON.stringify(dependencies);
+
   useEffect(() => {
     if (isLoading || !hasGameBeenInitialized || !appReady || !!dialogueState) {
       return;
@@ -50,6 +52,6 @@ export function useAutosave({
     hasGameBeenInitialized,
     appReady,
     dialogueState,
-    ...dependencies,
+    dependenciesKey,
   ]);
 }
