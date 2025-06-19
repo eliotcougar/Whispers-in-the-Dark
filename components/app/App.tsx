@@ -26,24 +26,21 @@ import SettingsDisplay from '../SettingsDisplay';
 import InfoDisplay from '../InfoDisplay';
 import Footer from './Footer';
 import AppModals from './AppModals';
+import AppHeader from './AppHeader';
+import FreeActionInput from './FreeActionInput';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
 import { useModalState } from '../../hooks/useModalState';
+import { useAutosave } from '../../hooks/useAutosave';
 import { findTravelPath, TravelStep } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
 import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 
-import { saveGameStateToLocalStorage } from '../../services/storage';
 
 import {
   FREE_FORM_ACTION_COST,
-  FREE_FORM_ACTION_MAX_LENGTH,
 } from '../../constants';
 import { ThemePackName } from '../../types';
-
-
-
-const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 
 function App() {
@@ -136,7 +133,6 @@ function App() {
 
   const prevGameLogLength = useRef(gameLog.length);
   const prevSceneRef = useRef(currentScene);
-  const autosaveTimeoutRef = useRef<number | null>(null);
 
   const {
     isVisualizerVisible,
@@ -204,24 +200,21 @@ function App() {
     setVisualizerImageScene(null);
   }, [currentScene, setVisualizerImageUrl, setVisualizerImageScene]);
 
-  useEffect(() => {
-    if (isLoading || !hasGameBeenInitialized || !appReady || !!dialogueState) return;
-    if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current);
+  useAutosave({
+    gatherCurrentGameState,
+    isLoading,
+    hasGameBeenInitialized,
+    appReady,
+    dialogueState,
+    dependencies: [
+      currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
+      inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId,
+      mapLayoutConfig, allCharacters, score, localTime, localEnvironment, localPlace,
+      playerGender, enabledThemePacks, stabilityLevel, chaosLevel, turnsSinceLastShift,
+      isCustomGameMode, isAwaitingManualShiftThemeSelection,
+    ],
+  });
 
-    autosaveTimeoutRef.current = window.setTimeout(() => {
-      const gameStateToSave = gatherCurrentGameState();
-      saveGameStateToLocalStorage(gameStateToSave);
-    }, AUTOSAVE_DEBOUNCE_TIME);
-
-    return () => { if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current); };
-  }, [
-    gatherCurrentGameState, isLoading, hasGameBeenInitialized, appReady, dialogueState,
-    currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
-    inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId, mapLayoutConfig,
-    allCharacters, score,
-    localTime, localEnvironment, localPlace, playerGender, enabledThemePacks,
-    stabilityLevel, chaosLevel, turnsSinceLastShift, isCustomGameMode, isAwaitingManualShiftThemeSelection,
-  ]);
 
 
 
@@ -511,23 +504,11 @@ function App() {
   return (
     <>
       <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-8 flex flex-col items-center">
-        <header className="w-full max-w-screen-xl mb-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-sky-400 tracking-wider title-font">
-            Whispers in the Dark
-          </h1>
-
-          {hasGameBeenInitialized ? <p className="text-slate-400 text-lg">
-            An Adventure in Shifting Realities
-            {isCustomGameMode ? <span className="block text-xs text-orange-400">
-              (Custom Game - Random Shifts Disabled)
-            </span> : null}
-
-            {currentTheme ? <span className="block text-xs text-purple-400">
-              Current Theme:
-              {currentTheme.name}
-            </span> : null}
-          </p> : null}
-        </header>
+        <AppHeader
+          currentTheme={currentTheme}
+          hasGameBeenInitialized={hasGameBeenInitialized}
+          isCustomGameMode={isCustomGameMode}
+        />
 
         {error && !isLoading && !dialogueState && hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
           <ErrorDisplay
@@ -595,60 +576,13 @@ function App() {
                 options={actionOptions}
               />
 
-              <div className="mt-4 p-4 bg-slate-800 border border-slate-700 rounded-lg shadow">
-                <label
-                  className="block text-sm font-medium text-amber-300 mb-1"
-                  htmlFor="freeFormAction"
-                >
-                  Perform Custom Action (Cost: 
-                  {' '}
+              <FreeActionInput
+                canPerformFreeAction={canPerformFreeAction}
+                freeFormActionText={freeFormActionText}
+                onChange={handleFreeFormActionChange}
+                onSubmit={handleFreeFormActionSubmit}
+              />
 
-                  {FREE_FORM_ACTION_COST}
-
-                  {' '}
-                  Score Points)
-                </label>
-
-                <div className="flex space-x-2">
-                  <input
-                    aria-label="Custom action input"
-                    className="flex-grow p-2 bg-slate-700 text-slate-200 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-600 disabled:text-slate-400"
-                    disabled={!canPerformFreeAction}
-                    id="freeFormAction"
-                    maxLength={FREE_FORM_ACTION_MAX_LENGTH}
-                    onChange={handleFreeFormActionChange}
-                    placeholder="Type your custom action here..."
-                    type="text"
-                    value={freeFormActionText}
-                  />
-
-                  <button
-                    aria-label="Submit custom action"
-                    className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white font-semibold rounded-md shadow
-                                disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed
-                                transition-colors duration-150"
-                    disabled={!canPerformFreeAction || freeFormActionText.trim() === ""}
-                    onClick={handleFreeFormActionSubmit}
-                    type="button"
-                  >
-                    Submit
-                  </button>
-                </div>
-
-                {!canPerformFreeAction && score < FREE_FORM_ACTION_COST && !isLoading && (
-                <p className="text-xs text-red-400 mt-1">
-                  Not enough score points.
-                </p>
-                  )}
-
-                {canPerformFreeAction ? <p className="text-xs text-slate-400 mt-1">
-                  Max
-                  {FREE_FORM_ACTION_MAX_LENGTH}
-
-                  {' '}
-                  characters.
-                </p> : null}
-              </div>
             </> : null}
           </div>
 
