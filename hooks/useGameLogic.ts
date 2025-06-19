@@ -6,10 +6,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ThemePackName, FullGameState, GameStateStack, LoadingReason } from '../types';
 import { getInitialGameStates } from '../utils/initialStates';
-import { useDialogueFlow } from './useDialogueFlow';
+import { useDialogueManagement } from './useDialogueManagement';
 import { useRealityShift } from './useRealityShift';
-import { useMapUpdates } from './useMapUpdates';
-import { usePlayerActions } from './usePlayerActions';
+import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
@@ -71,13 +70,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   }, []);
 
   const {
-    handleMapLayoutConfigChange,
-    handleMapViewBoxChange,
-    handleMapNodesPositionChange,
-    handleSelectDestinationNode,
-  } = useMapUpdates({ setGameStateStack });
-
-  const {
     triggerRealityShift,
     executeManualRealityShift,
     completeManualShiftWithSelectedTheme,
@@ -99,6 +91,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   manualShiftRef.current = executeManualRealityShift;
 
   const {
+    handleMapLayoutConfigChange,
+    handleMapViewBoxChange,
+    handleMapNodesPositionChange,
+    handleSelectDestinationNode,
     processAiResponse,
     handleActionSelect,
     handleItemInteraction,
@@ -106,7 +102,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleTakeLocationItem,
     handleFreeFormActionSubmit,
     handleUndoTurn,
-  } = usePlayerActions({
+  } = useGameTurn({
     getCurrentGameState,
     commitGameState,
     setGameStateStack,
@@ -152,7 +148,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   loadInitialGameRef.current = loadInitialGame;
 
 
-  const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue } = useDialogueFlow({
+  const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue } = useDialogueManagement({
     getCurrentGameState,
     commitGameState,
     playerGenderProp,
