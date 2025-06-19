@@ -1,39 +1,13 @@
 import type { AIMapUpdatePayload, MapNodeData } from '../../types';
 import { VALID_NODE_TYPE_VALUES } from '../../constants';
-import { NODE_TYPE_SYNONYMS } from '../../utils/mapSynonyms';
+import {
+  NODE_TYPE_SYNONYMS,
+  NODE_REMOVAL_SYNONYMS,
+  EDGE_REMOVAL_SYNONYMS,
+} from '../../utils/mapSynonyms';
 import { applyNodeDataFix, applyEdgeDataFix } from './normalizers';
 
-/** Synonym lists for interpreting node and edge removal operations. */
-export const NODE_REMOVAL_SYNONYMS = [
-  'removed',
-  'deleted',
-  'destroyed',
-  'eliminated',
-  'erased',
-  'gone',
-  'lost',
-  'obliterated',
-  'terminated',
-  'discarded',
-] as const;
-
-export const EDGE_REMOVAL_SYNONYMS = [
-  'removed',
-  'deleted',
-  'destroyed',
-  'eliminated',
-  'erased',
-  'gone',
-  'lost',
-  'severed',
-  'cut',
-  'broken',
-  'disconnected',
-  'obliterated',
-  'terminated',
-  'dismantled',
-] as const;
-
+// Synonym lists for interpreting node and edge removal operations
 export const NODE_REMOVAL_SYNONYM_SET = new Set<string>(NODE_REMOVAL_SYNONYMS);
 export const EDGE_REMOVAL_SYNONYM_SET = new Set<string>(EDGE_REMOVAL_SYNONYMS);
 
