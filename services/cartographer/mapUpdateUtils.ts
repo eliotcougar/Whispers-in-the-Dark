@@ -3,45 +3,51 @@ import { VALID_NODE_TYPE_VALUES } from '../../constants';
 import { NODE_TYPE_SYNONYMS } from '../../utils/mapSynonyms';
 import { applyNodeDataFix, applyEdgeDataFix } from './normalizers';
 
+/** Synonym lists for interpreting node and edge removal operations. */
+export const NODE_REMOVAL_SYNONYMS = [
+  'removed',
+  'deleted',
+  'destroyed',
+  'eliminated',
+  'erased',
+  'gone',
+  'lost',
+  'obliterated',
+  'terminated',
+  'discarded',
+] as const;
+
+export const EDGE_REMOVAL_SYNONYMS = [
+  'removed',
+  'deleted',
+  'destroyed',
+  'eliminated',
+  'erased',
+  'gone',
+  'lost',
+  'severed',
+  'cut',
+  'broken',
+  'disconnected',
+  'obliterated',
+  'terminated',
+  'dismantled',
+] as const;
+
+export const NODE_REMOVAL_SYNONYM_SET = new Set<string>(NODE_REMOVAL_SYNONYMS);
+export const EDGE_REMOVAL_SYNONYM_SET = new Set<string>(EDGE_REMOVAL_SYNONYMS);
+
 /**
  * Converts node/edge update operations that merely set a status suggesting removal
  * into explicit remove operations.
  */
 export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
-  const nodeRemovalSynonyms = new Set([
-    'removed',
-    'deleted',
-    'destroyed',
-    'eliminated',
-    'erased',
-    'gone',
-    'lost',
-    'obliterated',
-    'terminated',
-    'discarded',
-  ]);
-  const edgeRemovalSynonyms = new Set([
-    'removed',
-    'deleted',
-    'destroyed',
-    'eliminated',
-    'erased',
-    'gone',
-    'lost',
-    'severed',
-    'cut',
-    'broken',
-    'disconnected',
-    'obliterated',
-    'terminated',
-    'dismantled',
-  ]);
 
   const updatedNodesToUpdate: typeof payload.nodesToUpdate = [];
   const updatedNodesToRemove: typeof payload.nodesToRemove = payload.nodesToRemove ? [...payload.nodesToRemove] : [];
   (payload.nodesToUpdate ?? []).forEach(nodeUpd => {
     const statusVal = nodeUpd.newData.status?.toLowerCase();
-    if (statusVal && nodeRemovalSynonyms.has(statusVal)) {
+    if (statusVal && NODE_REMOVAL_SYNONYM_SET.has(statusVal)) {
       updatedNodesToRemove.push({ nodeId: nodeUpd.placeName, nodeName: nodeUpd.placeName });
     } else {
       updatedNodesToUpdate.push(nodeUpd);
@@ -54,7 +60,7 @@ export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
   const updatedEdgesToRemove: typeof payload.edgesToRemove = payload.edgesToRemove ? [...payload.edgesToRemove] : [];
   (payload.edgesToUpdate ?? []).forEach(edgeUpd => {
     const statusVal = edgeUpd.newData.status?.toLowerCase();
-    if (statusVal && edgeRemovalSynonyms.has(statusVal)) {
+    if (statusVal && EDGE_REMOVAL_SYNONYM_SET.has(statusVal)) {
       updatedEdgesToRemove.push({ edgeId: '', sourceId: edgeUpd.sourcePlaceName, targetId: edgeUpd.targetPlaceName });
     } else {
       updatedEdgesToUpdate.push(edgeUpd);
