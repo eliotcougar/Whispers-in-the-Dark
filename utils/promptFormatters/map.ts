@@ -37,6 +37,55 @@ export const formatNodeLine = (
 export const formatEdgeLine = (edge: MapEdge): string =>
   `- ${edge.id} from ${edge.sourceNodeId} to ${edge.targetNodeId}`;
 
+/**
+ * Formats map nodes as a tree structure for prompt context.
+ */
+export const formatNodesAsTree = (
+  nodes: Array<MapNode>,
+): Array<string> => {
+  const childMap = new Map<string, Array<MapNode>>();
+  nodes.forEach(node => {
+    const parent =
+      node.data.parentNodeId && node.data.parentNodeId !== 'Universe'
+        ? node.data.parentNodeId
+        : 'Universe';
+    const list = childMap.get(parent);
+    if (list) {
+      list.push(node);
+    } else {
+      childMap.set(parent, [node]);
+    }
+  });
+
+  const sortByName = (a: MapNode, b: MapNode) =>
+    a.placeName.localeCompare(b.placeName);
+  for (const list of childMap.values()) list.sort(sortByName);
+
+  const lines: Array<string> = [];
+  const traverse = (node: MapNode, prefix: string, isLast: boolean) => {
+    const connector = isLast ? '└─' : '├─';
+    lines.push(
+      `${prefix}${connector} ${node.id} - "${node.placeName}" (Type: ${node.data.nodeType}, Visited: ${String(
+        Boolean(node.data.visited),
+      )}, ParentNodeId: ${node.data.parentNodeId ?? 'N/A'}, Status: ${
+        node.data.status
+      })`,
+    );
+    const childPrefix = prefix + (isLast ? '   ' : '│  ');
+    const children = childMap.get(node.id) ?? [];
+    children.forEach((child, idx) => {
+      traverse(child, childPrefix, idx === children.length - 1);
+    });
+  };
+
+  const roots = childMap.get('Universe') ?? [];
+  roots.forEach((rootNode, idx) => {
+    traverse(rootNode, '', idx === roots.length - 1);
+  });
+
+  return lines;
+};
+
 const formatConnectionToNode = (edge: MapEdge, otherNode: MapNode): string => {
   const statusText = edge.data.status ?? 'open';
   const typeText = edge.data.type ?? 'path';

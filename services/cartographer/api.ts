@@ -17,7 +17,10 @@ import { fetchMapUpdatePayload } from './request';
 import { applyMapUpdates } from './applyUpdates';
 import type { MapUpdateServiceResult } from './types';
 import { isApiConfigured } from '../apiClient';
-import { formatNodeLine, formatEdgeLine } from '../../utils/promptFormatters/map';
+import {
+  formatNodesAsTree,
+  formatEdgeLine,
+} from '../../utils/promptFormatters/map';
 
 /**
  * Combines prompt creation, AI request and payload application.
@@ -63,7 +66,7 @@ export const updateMapFromAIData_Service = async (
 
   const existingMapContext = `Current Map Nodes (for your reference):\n${
     currentThemeNodesFromMapData.length > 0
-      ? currentThemeNodesFromMapData.map(n => formatNodeLine(n)).join('\n')
+      ? formatNodesAsTree(currentThemeNodesFromMapData).join('\n')
       : 'None exist yet.'
   }\n\nCurrent Map Edges (for your reference):\n${
     currentThemeEdgesFromMapData.length > 0
