@@ -15,51 +15,45 @@ import { findTravelPath } from '../mapPathfinding';
 /**
  * Formats a list of known characters for AI prompts.
  */
-export const formatKnownCharactersForPrompt = (
-  characters: Array<Character>,
-  detailed = false
+export const charactersToString = (
+  characters: Character | Array<Character>,
+  prefix = '',
+  addAliases = true,
+  addStatus = true,
+  addDescription = true,
+  singleLine = false,
 ): string => {
-  if (characters.length === 0) {
-    return 'None specifically known in this theme yet.';
+  const charList = Array.isArray(characters) ? characters : [characters];
+  if (charList.length === 0) {
+    return '';
   }
-  if (detailed) {
-    const formatSingleCharacterDetailed = (c: Character): string => {
-      let details = ` - ${c.id} - "${c.name}"`;
-      if (c.aliases && c.aliases.length > 0) {
-        details += ` (aka ${c.aliases.map(a => `"${a}"`).join(', ')})`;
-      }
-      details += ` (${c.presenceStatus}`;
-      if (c.presenceStatus === 'companion' || c.presenceStatus === 'nearby') {
-        details += `, ${c.preciseLocation ?? (c.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
-      } else {
-        details += `, Last Location: ${c.lastKnownLocation ?? 'Unknown'}`;
-      }
-      details += `), "${c.description}"`;
-      return details;
-    };
-    return characters.map(formatSingleCharacterDetailed).join(';\n') + '.';
-  }
-  const companions = characters.filter(c => c.presenceStatus === 'companion');
-  const nearbyCharacters = characters.filter(c => c.presenceStatus === 'nearby');
-  const otherKnownCharacters = characters.filter(
-    c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown'
-  );
+  const delimiter = singleLine ? '; ' : ';\n';
 
-  const promptParts: Array<string> = [];
-  if (companions.length > 0) {
-    const companionStrings = companions.map(c => `${c.id} - "${c.name}"`);
-    promptParts.push(`Companions traveling with the Player: ${companionStrings.join(', ')}.`);
-  }
-  if (nearbyCharacters.length > 0) {
-    const nearbyStrings = nearbyCharacters.map(c => `${c.id} - "${c.name}"`);
-    promptParts.push(`Characters Player can interact with (nearby): ${nearbyStrings.join(', ')}.`);
-  }
-  if (otherKnownCharacters.length > 0) {
-    const otherStrings = otherKnownCharacters.map(c => `${c.id} - "${c.name}"`);
-    promptParts.push(`Other known characters: ${otherStrings.join(', ')}.`);
-  }
-  return promptParts.length > 0 ? promptParts.join('\n') : 'None specifically known in this theme yet.';
+  const result = charList
+    .map(c => {
+      let str = `${prefix}${c.id} - "${c.name}"`;
+      if (addAliases && c.aliases && c.aliases.length > 0) {
+        str += ` (aka ${c.aliases.map(a => `"${a}"`).join(', ')})`;
+      }
+      if (addStatus) {
+        str += ` (${c.presenceStatus}`;
+        if (c.presenceStatus === 'companion' || c.presenceStatus === 'nearby') {
+          str += `, ${c.preciseLocation ?? (c.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
+        } else {
+          str += `, Last Location: ${c.lastKnownLocation ?? 'Unknown'}`;
+        }
+        str += ')';
+      }
+      if (addDescription) {
+        str += `, "${c.description}"`;
+      }
+      return str;
+    })
+    .join(delimiter);
+
+  return result + '.';
 };
+
 
 /**
  * Formats recent log events for inclusion in prompts.
@@ -104,12 +98,9 @@ export const formatDetailedContextForMentionedEntities = (
   if (formattedMentionedPlaces && formattedMentionedPlaces !== 'None specifically known in this theme yet.') {
     detailedContext += `${placesPrefixIfAny}\n${formattedMentionedPlaces}\n`;
   }
-  const formattedMentionedCharacters = formatKnownCharactersForPrompt(mentionedCharacters, true);
-  if (
-    formattedMentionedCharacters &&
-    formattedMentionedCharacters !== 'None specifically known in this theme yet.'
-  ) {
-    detailedContext += `${charactersPrefixIfAny}\n${formattedMentionedCharacters}`;
+  const mentionedCharactersString = charactersToString(mentionedCharacters, ' - ');
+  if (mentionedCharactersString) {
+    detailedContext += `${charactersPrefixIfAny}\n${mentionedCharactersString}`;
   }
   return detailedContext.trimStart();
 };

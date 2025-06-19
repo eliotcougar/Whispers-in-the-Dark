@@ -10,7 +10,7 @@ import {
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
-import { formatKnownCharactersForPrompt } from '../../utils/promptFormatters';
+import { charactersToString } from '../../utils/promptFormatters';
 import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
 import { CORRECTION_TEMPERATURE } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -39,7 +39,10 @@ export const fetchCorrectedDialogueSetup_Service = async (
     return null;
   }
 
-  const characterContext = formatKnownCharactersForPrompt(allRelevantCharacters, true);
+  const characterContext =
+    allRelevantCharacters.length > 0
+      ? charactersToString(allRelevantCharacters, ' - ')
+      : 'None specifically known in this theme yet.';
   const placeContext = formatKnownPlacesForPrompt(allRelevantMapNodes, true);
   const inventoryContext = currentInventory.map(i => i.name).join(', ') || 'Empty';
   const malformedString = JSON.stringify(malformedDialogueSetup);
