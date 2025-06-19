@@ -16,6 +16,19 @@ import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME } from '../constants';
 import Button from './elements/Button';
 import { Icon } from './icons.tsx';
 
+const THEME_STYLE_PROMPTS: Record<string, string> = {
+  dungeon: 'a dark, gritty medieval fantasy style, dungeons and dragons concept art',
+  cyberpunk: 'a neon-drenched, futuristic cyberpunk cityscape style, Blade Runner aesthetic',
+  eldritch: 'a Lovecraftian horror style, cosmic dread, 1920s period',
+  'post-apocalyptic': 'a desolate, rusty post-apocalyptic wasteland style, Mad Max aesthetic',
+  steampunk: 'a steampunk style with clockwork machines and airships, Victorian era',
+  'victorian mansion': 'a haunted Victorian mansion style, gothic horror, moody and atmospheric',
+  'deep space': 'a deep space sci-fi style, cosmic anomaly, advanced technology',
+  'lost world': 'a prehistoric lost world style, lush jungles, dinosaurs, ancient ruins',
+  'greek hero': 'a mythic Greek hero style, classical art, epic battles',
+  'wild west': 'a Wild West outlaw style, dusty frontier, cinematic western',
+};
+
 if (!isApiConfigured()) {
   console.error("GEMINI_API_KEY for GoogleGenAI is not set. Image visualization will not work.");
 }
@@ -60,18 +73,13 @@ function ImageVisualizer({
    * Maps the current theme to a concise style string for the prompt.
    */
   const getThemeStylePrompt = (theme: AdventureTheme | null): string => {
-    if (!theme) return "a general fantasy style";
-    // Simple mapping for style, can be expanded
-    if (theme.name.toLowerCase().includes("dungeon")) return "a dark, gritty medieval fantasy style, dungeons and dragons concept art";
-    if (theme.name.toLowerCase().includes("cyberpunk")) return "a neon-drenched, futuristic cyberpunk cityscape style, Blade Runner aesthetic";
-    if (theme.name.toLowerCase().includes("eldritch")) return "a Lovecraftian horror style, cosmic dread, 1920s period";
-    if (theme.name.toLowerCase().includes("post-apocalyptic")) return "a desolate, rusty post-apocalyptic wasteland style, Mad Max aesthetic";
-    if (theme.name.toLowerCase().includes("steampunk")) return "a steampunk style with clockwork machines and airships, Victorian era";
-    if (theme.name.toLowerCase().includes("victorian mansion")) return "a haunted Victorian mansion style, gothic horror, moody and atmospheric";
-    if (theme.name.toLowerCase().includes("deep space")) return "a deep space sci-fi style, cosmic anomaly, advanced technology";
-    if (theme.name.toLowerCase().includes("lost world")) return "a prehistoric lost world style, lush jungles, dinosaurs, ancient ruins";
-    if (theme.name.toLowerCase().includes("greek hero")) return "a mythic Greek hero style, classical art, epic battles";
-    if (theme.name.toLowerCase().includes("wild west")) return "a Wild West outlaw style, dusty frontier, cinematic western";
+    if (!theme) return 'a general fantasy style';
+    const lowerName = theme.name.toLowerCase();
+    for (const keyword in THEME_STYLE_PROMPTS) {
+      if (lowerName.includes(keyword)) {
+        return THEME_STYLE_PROMPTS[keyword];
+      }
+    }
     return `a style fitting for ${theme.name}`;
   };
   
