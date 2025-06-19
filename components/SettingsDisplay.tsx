@@ -11,7 +11,7 @@ import Slider from './elements/Slider';
 import RadioSelector from './elements/RadioSelector';
 import CheckboxSelector from './elements/CheckboxSelector';
 import Button from './elements/Button';
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 
 interface SettingsDisplayProps {
   readonly isVisible: boolean;

@@ -15,7 +15,7 @@ import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
 } from '../../constants';
-import { Icon } from '../icons';
+import { Icon } from '../elements/icons';
 import { isDescendantOf } from '../../utils/mapGraphUtils';
 import { calculateLabelOffsets, getRadiusForNode, splitTextIntoLines, isSmallFontType, hasCenteredLabel } from '../../utils/mapLabelUtils';
 import { useMapTooltip } from '../../hooks/useMapTooltip';

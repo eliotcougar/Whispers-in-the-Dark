@@ -5,7 +5,7 @@
  */
 import * as React from 'react';
 import { Character, AdventureTheme } from '../types'; 
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 import Button from './elements/Button';
 
 interface KnowledgeBaseProps {

@@ -13,7 +13,7 @@ import {
   applyNestedCircleLayout,
 } from '../utils/mapLayoutUtils';
 import Button from './elements/Button';
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 import {
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,

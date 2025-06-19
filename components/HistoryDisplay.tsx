@@ -5,7 +5,7 @@
 import { ThemeHistoryState } from '../types';
 import GameLogDisplay from './GameLogDisplay';
 import Button from './elements/Button';
-import { Icon } from './icons.tsx';
+import { Icon } from './elements/icons';
 
 interface HistoryDisplayProps {
   readonly themeHistory: ThemeHistoryState;
