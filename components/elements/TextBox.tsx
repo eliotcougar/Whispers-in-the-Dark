@@ -4,13 +4,13 @@ import type { HighlightableEntity } from '../../utils/highlightHelper';
 import { highlightEntitiesInText } from '../../utils/highlightHelper';
 
 export interface TextBoxProps {
-  readonly header: string;
+  readonly header?: ReactNode;
   readonly children?: ReactNode;
   readonly text?: string;
   readonly highlightEntities?: Array<HighlightableEntity>;
   readonly enableMobileTap?: boolean;
   readonly containerClassName?: string;
-  readonly headerTag?: 'h2' | 'h3' | 'h4' | 'h5';
+  readonly headerTag?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5';
   readonly borderColorClass?: string;
   readonly backgroundColorClass?: string;
   readonly borderWidthClass?: string;
@@ -57,9 +57,13 @@ function TextBox({
 
   return (
     <section className={`${containerClassName} ${backgroundColorClass}`}>
-      <HeadingTag className={`${headerFontClass} ${headerColorClass} mb-3 pb-1 ${borderWidthClass} ${borderColorClass}`}>
-        {header}
-      </HeadingTag>
+      {header ? (
+        <HeadingTag
+          className={`${headerFontClass} ${headerColorClass} mb-3 pb-1 ${borderWidthClass} ${borderColorClass}`}
+        >
+          {header}
+        </HeadingTag>
+      ) : null}
 
       <div className={`${contentFontClass} ${contentColorClass}`}>
         {content}
@@ -77,6 +81,7 @@ TextBox.defaultProps = {
   contentColorClass: 'text-slate-300',
   contentFontClass: '',
   enableMobileTap: false,
+  header: undefined,
   headerColorClass: 'text-amber-400',
   headerFontClass: 'text-2xl font-semibold',
   headerTag: 'h2',

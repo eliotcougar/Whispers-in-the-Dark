@@ -7,7 +7,8 @@
 import { useMemo } from 'react';
 
 import { Item, Character, MapNode } from '../types';
-import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
+import { buildHighlightableEntities } from '../utils/highlightHelper';
+import TextBox from './elements/TextBox';
 
 interface SceneDisplayProps {
   readonly description: string;
@@ -44,57 +45,60 @@ function SceneDisplay({
   const enableMobileTap =
     typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
 
-  const highlightedDescription = useMemo(() => {
-    return description.split('\n').map((para) => (
-      <p
-        className="mb-4 leading-relaxed text-lg text-slate-300"
-        key={para}
-      >
-        {highlightEntitiesInText(para, entitiesForHighlighting, enableMobileTap)}
-      </p>
-    ));
-  }, [description, entitiesForHighlighting, enableMobileTap]);
+  const descriptionTextBox = (
+    <TextBox
+      containerClassName="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 min-h-[200px]"
+      contentFontClass="leading-relaxed text-lg"
+      enableMobileTap={enableMobileTap}
+      header="Scene"
+      headerColorClass="text-slate-300"
+      headerFontClass="text-2xl font-semibold"
+      highlightEntities={entitiesForHighlighting}
+      text={description}
+    />
+  );
 
-  const highlightedLastActionLog = useMemo(() => {
-    return highlightEntitiesInText(lastActionLog, entitiesForHighlighting, enableMobileTap);
-  }, [lastActionLog, entitiesForHighlighting, enableMobileTap]);
+  const lastActionBox = lastActionLog ? (
+    <TextBox
+      containerClassName="mb-4 p-3 bg-slate-700/50 border border-slate-600 rounded-md"
+      contentColorClass="text-yellow-200"
+      contentFontClass="text-lg"
+      enableMobileTap={enableMobileTap}
+      header="Last Action"
+      headerColorClass="text-yellow-200"
+      headerFontClass="text-lg font-semibold"
+      headerTag="h3"
+      highlightEntities={entitiesForHighlighting}
+      text={lastActionLog || undefined}
+    />
+  ) : null;
+
+  const contextBox =
+    localTime || localEnvironment || localPlace ? (
+      <TextBox
+        borderColorClass="border-slate-700"
+        borderWidthClass="border-b"
+        containerClassName="mt-4 pt-3 border-t border-slate-700"
+        contentColorClass="text-slate-400"
+        contentFontClass="text-lg"
+        header="Local Context"
+        headerColorClass="text-slate-300"
+        headerFontClass="text-lg font-semibold"
+        headerTag="h3"
+      >
+        <p>
+          {`Time: ${localTime ?? 'Unknown'} Environment: ${localEnvironment ?? 'Unknown'} Location: ${localPlace ?? 'Unknown'}`}
+        </p>
+      </TextBox>
+    ) : null;
 
   return (
-    <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 min-h-[200px]">
+    <div className="space-y-4">
+      {lastActionBox}
 
-      {lastActionLog ? <div className="mb-4 p-3 bg-slate-700/50 border border-slate-600 rounded-md">
-        <p className="text-yellow-200 text-lg">
-          {highlightedLastActionLog}
-        </p>
-      </div> : null}
+      {descriptionTextBox}
 
-      {highlightedDescription}
-      
-      {(localTime ?? localEnvironment ?? localPlace) ? <div className="mt-4 pt-3 border-t border-slate-700">
-        <p className="text-lg text-slate-400">
-          <strong className="text-slate-300">
-            Time:
-          </strong>
-
-          {localTime ?? "Unknown"}
-
-          {' '}
-
-          <strong className="text-slate-300">
-            Environment:
-          </strong>
-          
-          {localEnvironment ?? "Unknown"}
-
-          {' '}
-
-          <strong className="text-slate-300">
-            Location:
-          </strong>
-          
-          {localPlace ?? "Unknown"}
-        </p>
-      </div> : null}
+      {contextBox}
     </div>
   );
 }

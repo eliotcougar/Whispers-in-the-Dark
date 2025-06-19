@@ -6,6 +6,7 @@ import { ThemeHistoryState } from '../../types';
 import GameLogDisplay from '../GameLogDisplay';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
+import TextBox from '../elements/TextBox';
 
 interface HistoryDisplayProps {
   readonly themeHistory: ThemeHistoryState;
@@ -47,18 +48,27 @@ function HistoryDisplay({
         />
 
         <div className="theme-memory-content-area">
-          <h1
-            className="text-3xl font-bold text-purple-400 mb-6 text-center"
-            id="history-title"
-          >
-            History
-          </h1>
+          <TextBox
+            borderColorClass="border-purple-700"
+            borderWidthClass="border-b-2"
+            containerClassName="mb-6"
+            header="History"
+            headerColorClass="text-purple-400"
+            headerFontClass="text-3xl font-bold text-center"
+            headerTag="h1"
+          />
 
           <GameLogDisplay messages={gameLog} />
 
-          <h2 className="text-2xl font-semibold text-purple-300 mt-8 mb-4 text-center">
-            Echoes of Past Realities
-          </h2>
+          <TextBox
+            borderColorClass="border-purple-600"
+            borderWidthClass="border-b"
+            containerClassName="mt-8 mb-4"
+            header="Echoes of Past Realities"
+            headerColorClass="text-purple-300"
+            headerFontClass="text-2xl font-semibold text-center"
+            headerTag="h2"
+          />
           
           {rememberedThemes.length === 0 && (
             <p className="text-slate-400 italic text-center">
