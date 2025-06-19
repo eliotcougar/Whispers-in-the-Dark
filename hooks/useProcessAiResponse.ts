@@ -17,7 +17,7 @@ import {
   buildItemChangeRecords,
   applyAllItemChanges,
 } from '../utils/gameLogicUtils';
-import { formatInventoryForPrompt } from '../utils/promptFormatters/inventory';
+import { itemsToString } from '../utils/promptFormatters/inventory';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { applyInventoryHints_Service } from '../services/inventory';
@@ -180,7 +180,7 @@ const handleInventoryHints = async ({
     return chars
       .map((ch) => {
         const items = baseState.inventory.filter((i) => i.holderId === ch.id);
-        return `ID: ${ch.id} - ${ch.name}: ${formatInventoryForPrompt(items)}`;
+        return `ID: ${ch.id} - ${ch.name}: ${itemsToString(items, ' - ')}`;
       })
       .join('\n');
   };
@@ -201,8 +201,8 @@ const handleInventoryHints = async ({
       'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
       'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [],
       playerActionText ?? '',
-      formatInventoryForPrompt(baseInventoryForPlayer),
-      formatInventoryForPrompt(locationInventory),
+      itemsToString(baseInventoryForPlayer, ' - '),
+      itemsToString(locationInventory, ' - '),
       baseState.currentMapNodeId ?? null,
       formatCharInventoryList(companionChars),
       formatCharInventoryList(nearbyChars),

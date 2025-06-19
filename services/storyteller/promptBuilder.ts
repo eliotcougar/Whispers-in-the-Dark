@@ -13,7 +13,7 @@ import {
   ThemeHistoryState,
 } from '../../types';
 import {
-  formatInventoryForPrompt,
+  itemsToString,
   formatKnownPlacesForPrompt,
   formatMapContextForPrompt,
   formatKnownCharactersForPrompt,
@@ -57,7 +57,7 @@ export const buildNewThemePostShiftPrompt = (
   inventory: Array<Item>,
   playerGender: string
 ): string => {
-  const inventoryPrompt = formatInventoryForPrompt(inventory);
+  const inventoryPrompt = itemsToString(inventory, ' - ');
   const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
 Initial Scene: "${theme.initialSceneDescriptionSeed}" (adapt to an arrival scene describing the disorienting transition).
@@ -89,7 +89,7 @@ export const buildReturnToThemePostShiftPrompt = (
   mapDataForTheme: MapData,
   allCharactersForTheme: Array<Character>
 ): string => {
-  const inventoryPrompt = formatInventoryForPrompt(inventory);
+  const inventoryPrompt = itemsToString(inventory, ' - ');
   const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
     n => n.themeName === theme.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
   );
@@ -141,8 +141,9 @@ export const buildMainGameTurnPrompt = (
   fullMapData: MapData,
   destinationNodeId: string | null
 ): string => {
-  const inventoryPrompt = formatInventoryForPrompt(inventory);
-  const locationItemsPrompt = locationItems.length > 0 ? formatInventoryForPrompt(locationItems) : '';
+  const inventoryPrompt = itemsToString(inventory, ' - ');
+  const locationItemsPrompt =
+    locationItems.length > 0 ? itemsToString(locationItems, ' - ') : '';
   const inventorySection = `${inventoryPrompt}${locationItemsPrompt ? `\nThere are items at this location:\n${locationItemsPrompt}` : ''}`;
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
   const charactersContext = formatKnownCharactersForPrompt(currentThemeCharacters, true);
