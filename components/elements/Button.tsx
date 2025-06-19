@@ -10,7 +10,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   readonly icon?: ReactNode;
   readonly size?: 'sm' | 'md' | 'lg';
   readonly className?: string;
-  readonly variant?: 'standard' | 'toolbar' | 'toggle';
+  readonly variant?: 'standard' | 'toolbar' | 'toggle' | 'primary' | 'danger';
   readonly pressed?: boolean;
   readonly type?: 'button' | 'submit' | 'reset';
 }
@@ -42,10 +42,12 @@ function Button({
     lg: 'px-6 py-3 text-lg',
   };
 
-  const variantClasses: Record<'standard' | 'toolbar' | 'toggle', string> = {
+  const variantClasses: Record<'standard' | 'toolbar' | 'toggle' | 'primary' | 'danger', string> = {
     standard: '',
     toolbar: 'flex items-center justify-center w-9 h-9 p-2',
     toggle: 'px-3 py-1.5 text-xs',
+    primary: 'w-full text-white font-medium bg-sky-700 hover:bg-sky-600 disabled:bg-slate-500 disabled:text-slate-400 flex items-center justify-center transition-colors duration-150 ease-in-out',
+    danger: 'w-full text-white font-medium bg-orange-700 hover:bg-orange-600 disabled:bg-slate-500 disabled:text-slate-400 flex items-center justify-center transition-colors duration-150 ease-in-out',
   };
 
   const pressedClasses = variant === 'toggle' && pressed ? 'ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800' : '';
