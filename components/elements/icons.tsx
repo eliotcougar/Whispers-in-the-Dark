@@ -18,8 +18,6 @@ import mapItemBoxSvg from './icons/map_item_box.svg?raw';
 import mapWheelSvg from './icons/map_wheel.svg?raw';
 import xSvg from './icons/x.svg?raw';
 
-/* eslint-disable react/no-danger */
-
 const iconMap = {
   realityShift: realityShiftSvg,
   coin: coinSvg,

@@ -52,7 +52,6 @@ function Button({
 
   const pressedClasses = variant === 'toggle' && pressed ? 'ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800' : '';
 
-  /* eslint-disable react/jsx-props-no-spreading */
   return (
     <button
       aria-label={ariaLabel}
@@ -60,7 +59,6 @@ function Button({
       className={`rounded shadow transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${sizeClasses[size]} ${variantClasses[variant]} ${pressedClasses} ${className}`}
       disabled={disabled}
       onClick={handleClick}
-      /* eslint-disable-next-line react/button-has-type */
       type={type}
       {...rest}
     >
@@ -73,7 +71,6 @@ function Button({
       {label}
     </button>
   );
-  /* eslint-enable react/jsx-props-no-spreading */
 }
 
 Button.defaultProps = {
