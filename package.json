@@ -31,6 +31,7 @@
     "typescript": "~5.8.3",
     "vite": "^6.2.0",
     "vitest": "^3.2.3",
-    "ts-prune": "^0.10.3"
+    "ts-prune": "^0.10.3",
+    "vite-plugin-svgr": "^4.3.0"
   }
 }
