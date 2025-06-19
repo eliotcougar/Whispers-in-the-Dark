@@ -51,21 +51,21 @@ function HistoryDisplay({
           <TextBox
             borderColorClass="border-purple-700"
             borderWidthClass="border-b-2"
-            containerClassName="mb-6"
+            containerClassName="mt-4 mb-4"
             header="History"
             headerColorClass="text-purple-400"
-            headerFontClass="text-3xl font-bold text-center"
-            headerTag="h1"
+            headerFontClass="text-2xl font-semibold text-center"
+            headerTag="h2"
           />
 
           <GameLogDisplay messages={gameLog} />
 
           <TextBox
-            borderColorClass="border-purple-600"
-            borderWidthClass="border-b"
-            containerClassName="mt-8 mb-4"
+            borderColorClass="border-purple-700"
+            borderWidthClass="border-b-2"
+            containerClassName="mt-4 mb-4"
             header="Echoes of Past Realities"
-            headerColorClass="text-purple-300"
+            headerColorClass="text-purple-400"
             headerFontClass="text-2xl font-semibold text-center"
             headerTag="h2"
           />
