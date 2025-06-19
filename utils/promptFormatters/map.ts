@@ -4,8 +4,60 @@
  * @description Utilities for formatting map related context for AI prompts.
  */
 
-import { AdventureTheme, MapData, MapNode, MapEdge, Item } from '../../types';
+import {
+  AdventureTheme,
+  MapData,
+  MapNode,
+  MapEdge,
+  Item,
+} from '../../types';
 import { NON_DISPLAYABLE_EDGE_STATUSES } from '../../constants';
+import { extractJsonFromFence } from '../jsonUtils';
+
+/**
+ * Formats a single map node line including optional items present at the node.
+ */
+export const formatNodeLine = (
+  node: MapNode,
+  inventory: Array<Item> = [],
+): string => {
+  const parent = node.data.parentNodeId ?? 'Universe';
+  const desc = node.data.description;
+  const itemsAtNode = inventory.filter(item => item.holderId === node.id);
+  const itemsStr =
+    itemsAtNode.length > 0
+      ? ` Items: ${itemsAtNode.map(i => `"${i.name}"`).join(', ')}`
+      : '';
+  return ` - ${node.id} - "${node.placeName}" (parent: ${parent}), "${desc}"${itemsStr}`;
+};
+
+/**
+ * Formats a single map edge line for prompt context.
+ */
+export const formatEdgeLine = (edge: MapEdge): string =>
+  `- ${edge.id} from ${edge.sourceNodeId} to ${edge.targetNodeId}`;
+
+const formatConnectionToNode = (edge: MapEdge, otherNode: MapNode): string => {
+  const statusText = edge.data.status ?? 'open';
+  const typeText = edge.data.type ?? 'path';
+  const details: Array<string> = [];
+  if (edge.data.travelTime) {
+    details.push(`travel time: ${edge.data.travelTime}`);
+  }
+  if (edge.data.description) {
+    details.push(edge.data.description);
+  }
+  const detailText = details.length > 0 ? ` (${details.join(', ')})` : '';
+  return ` - ${statusText} ${typeText} to "${otherNode.placeName}"${detailText}.`;
+};
+
+/**
+ * Cleans up an observations string for display in prompts.
+ */
+export const formatObservationsForPrompt = (observations?: string): string => {
+  if (!observations) return '';
+  return extractJsonFromFence(observations).trim();
+};
 
 /**
  * Formats a list of main map nodes for AI prompts.
@@ -116,17 +168,7 @@ const getFormattedConnectionsForNode = (
     const otherNode = allThemeNodes.find(node => node.id === targetNodeId);
     if (!otherNode) continue;
 
-    const statusText = bestEdge.data.status ?? 'open';
-    const typeText = bestEdge.data.type ?? 'path';
-    const details: Array<string> = [];
-    if (bestEdge.data.travelTime) {
-      details.push(`travel time: ${bestEdge.data.travelTime}`);
-    }
-    if (bestEdge.data.description) {
-      details.push(bestEdge.data.description);
-    }
-    const detailText = details.length > 0 ? ` (${details.join(', ')})` : '';
-    const pathString = ` - ${statusText} ${typeText} to "${otherNode.placeName}"${detailText}.`;
+    const pathString = formatConnectionToNode(bestEdge, otherNode);
     formattedPaths.push(pathString);
     processedTargets.add(targetNodeId);
   }
@@ -216,16 +258,7 @@ export const formatLimitedMapContextForPrompt = (
   nearbyIds.forEach(id => {
     const node = allNodes.find(n => n.id === id);
     if (!node) return;
-    const parent = node.data.parentNodeId ?? 'Universe';
-    const desc = node.data.description;
-    const itemsAtNode = inventory.filter(item => item.holderId === id);
-    const itemsStr =
-      itemsAtNode.length > 0
-        ? ` Items: ${itemsAtNode.map(i => `"${i.name}"`).join(', ')}`
-        : '';
-    lines.push(
-      ` - ${node.id} - "${node.placeName}" (parent: ${parent}), "${desc}"${itemsStr}`,
-    );
+    lines.push(formatNodeLine(node, inventory));
   });
   return lines.join(';\n') + '.';
 };
