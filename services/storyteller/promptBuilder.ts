@@ -16,7 +16,7 @@ import {
   itemsToString,
   formatKnownPlacesForPrompt,
   formatMapContextForPrompt,
-  formatKnownCharactersForPrompt,
+  charactersToString,
   formatRecentEventsForPrompt,
   formatDetailedContextForMentionedEntities,
   formatTravelPlanLine,
@@ -94,7 +94,24 @@ export const buildReturnToThemePostShiftPrompt = (
     n => n.themeName === theme.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
   );
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
-  const charactersContext = formatKnownCharactersForPrompt(allCharactersForTheme, false);
+  const companions = allCharactersForTheme.filter(c => c.presenceStatus === 'companion');
+  const nearbyChars = allCharactersForTheme.filter(c => c.presenceStatus === 'nearby');
+  const knownChars = allCharactersForTheme.filter(
+    c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown',
+  );
+
+  const charactersStrings =
+    knownChars.length > 0
+      ? charactersToString(knownChars, '', false, false, false, true)
+      : 'None specifically known in this theme yet.';
+  const companionStrings =
+    companions.length > 0
+      ? charactersToString(companions, '', false, false, false, true)
+      : 'None';
+  const nearbyStrings =
+    nearbyChars.length > 0
+      ? charactersToString(nearbyChars, '', false, false, false, true)
+      : 'None';
   const prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
 The Adventure Summary: "${themeMemory.summary}"
@@ -108,7 +125,9 @@ IMPORTANT:
   - CRITICALLY IMPORTANT: ALWAYS transform some items into important quest items you must have already had in this reality, based on Main Quest, Current Objective, or the Adventure Summary even if they are NOT anachronistic, using an "itemChange" "update" action with "newName" and optional "type" and "description". Creatively explain this transformation in the "logMessage".
 
 Known Locations: ${placesContext}
-Known Characters (including presence): ${charactersContext}
+Known Characters (including presence): ${charactersStrings}
+Companions traveling with the Player: ${companionStrings}
+Characters Player can interact with (nearby): ${nearbyStrings}
 
 Describe the scene as they re-enter, potentially in a state of confusion from the shift, making it feel like a continuation or a new starting point consistent with the Adventure Summary and current quest/objective.
 Provide appropriate action options for the player to orient themselves.
@@ -146,7 +165,10 @@ export const buildMainGameTurnPrompt = (
     locationItems.length > 0 ? itemsToString(locationItems, ' - ') : '';
   const inventorySection = `${inventoryPrompt}${locationItemsPrompt ? `\nThere are items at this location:\n${locationItemsPrompt}` : ''}`;
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
-  const charactersContext = formatKnownCharactersForPrompt(currentThemeCharacters, true);
+  const charactersContext =
+    currentThemeCharacters.length > 0
+      ? charactersToString(currentThemeCharacters, ' - ')
+      : 'None specifically known in this theme yet.';
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
 
   const allNodesForCurrentTheme = fullMapData.nodes.filter(node => node.themeName === currentTheme.name);
