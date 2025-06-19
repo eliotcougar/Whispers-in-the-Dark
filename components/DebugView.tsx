@@ -6,11 +6,12 @@
 import { useState, useCallback } from 'react';
 import Button from './elements/Button';
 import { Icon } from './icons.tsx';
+import DebugSection from './DebugSection';
+import { useToggle, useToggleMap } from '../hooks/useToggle';
 
 import { extractJsonFromFence } from '../utils/jsonUtils';
-import { GameStateStack, DebugPacket, MapNode } from '../types';
+import { GameStateStack, DebugPacket } from '../types';
 import { TravelStep } from '../utils/mapPathfinding';
-import { structuredCloneGameState } from '../utils/cloneUtils';
 
 interface DebugViewProps {
   readonly isVisible: boolean;
@@ -46,40 +47,16 @@ function DebugView({
   onUndoTurn,
   travelPath,
 }: DebugViewProps) {
-  const [activeTab, setActiveTab] = useState<DebugTab>("GameState");
-  const [showMainAIRaw, setShowMainAIRaw] = useState<boolean>(true);
-  const [showMapAIRaw, setShowMapAIRaw] = useState<boolean>(true);
-  const [showInventoryAIRaw, setShowInventoryAIRaw] = useState<boolean>(true);
-  const [showConnectorChainRaw, setShowConnectorChainRaw] = useState<Record<number, boolean>>({});
-
-  const toggleShowMainAIRaw = useCallback(
-    () => { setShowMainAIRaw(prev => !prev); },
-    []
-  );
-
-  const toggleShowMapAIRaw = useCallback(
-    () => { setShowMapAIRaw(prev => !prev); },
-    []
-  );
-
-  const toggleShowInventoryAIRaw = useCallback(
-    () => { setShowInventoryAIRaw(prev => !prev); },
-    []
-  );
-
-  const toggleShowConnectorChainRaw = useCallback(
-    (idx: number) => () =>
-      { setShowConnectorChainRaw(prev => ({ ...prev, [idx]: !prev[idx] })); },
-    []
-  );
+  const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
+  const { value: showMainAIRaw, toggle: toggleShowMainAIRaw } = useToggle(true);
+  const { value: showMapAIRaw, toggle: toggleShowMapAIRaw } = useToggle(true);
+  const { value: showInventoryAIRaw, toggle: toggleShowInventoryAIRaw } = useToggle(true);
+  const { map: showConnectorChainRaw, toggle: toggleShowConnectorChainRaw } = useToggleMap<number>({});
 
   const handleTabClick = useCallback(
     (name: DebugTab) => () => { setActiveTab(name); },
     []
   );
-
-  const isRecord = (value: unknown): value is Record<string, unknown> =>
-    typeof value === 'object' && value !== null;
 
   if (!isVisible) return null;
 
@@ -87,7 +64,7 @@ function DebugView({
   const previousState = gameStateStack[1];
 
   /**
-   * Renders a single debugging section with a JSON or text payload.
+   * Decodes escaped newline sequences within JSON strings.
    */
   const decodeEscapedString = (text: string): string => {
     try {
@@ -116,79 +93,6 @@ function DebugView({
     }
   };
 
-  const renderContent = (
-    title: string,
-    content: unknown,
-    isJson = true,
-    maxHeightClass = "max-h-60",
-  ) => {
-    const displayContent: string = (() => {
-      if (content === null || content === undefined) {
-        return "N/A";
-      }
-      if (typeof content === 'string') {
-        return content;
-      }
-      if (isJson) {
-        try {
-          const contentForDisplay = structuredCloneGameState(content);
-
-          if (title.startsWith("Current Game State") || title.startsWith("Previous Game State")) {
-            if (isRecord(contentForDisplay)) {
-              if ('lastDebugPacket' in contentForDisplay) delete contentForDisplay.lastDebugPacket;
-              if ('lastTurnChanges' in contentForDisplay) delete contentForDisplay.lastTurnChanges;
-
-              if ('mapData' in contentForDisplay) {
-                const mapData = contentForDisplay.mapData as { nodes: Array<MapNode>; edges: Array<unknown> } | undefined;
-
-                if (mapData && Array.isArray(mapData.nodes) && Array.isArray(mapData.edges)) {
-                  contentForDisplay.mapDataSummary = {
-                    nodeCount: mapData.nodes.length,
-                    edgeCount: mapData.edges.length,
-                    firstNNodeNames: mapData.nodes.slice(0, 5).map((n: MapNode) => n.placeName),
-                  };
-                  delete contentForDisplay.mapData;
-                }
-              }
-            }
-          }
-
-          if (title.toLowerCase().includes('parsed')) {
-            const strip = (obj: unknown) => {
-              if (obj && typeof obj === 'object') {
-                delete (obj as Record<string, unknown>).observations;
-                delete (obj as Record<string, unknown>).rationale;
-                Object.values(obj).forEach(strip);
-              }
-            };
-            strip(contentForDisplay);
-          }
-
-          return JSON.stringify(contentForDisplay, null, 2);
-        } catch (e) {
-          console.error("Error stringifying debug content:", e, content);
-          return "Error stringifying JSON content.";
-        }
-      }
-      return typeof content === 'string'
-        ? content
-        : JSON.stringify(content, null, 2);
-    })();
-
-    return (
-      <section className="mb-4">
-        <h3 className="text-lg font-semibold text-sky-400 mb-1">
-          {title}
-        </h3>
-
-        <pre className={`bg-slate-900 p-2 rounded-md text-xs text-slate-200 overflow-auto ${maxHeightClass} whitespace-pre-wrap break-all`}>
-          <code>
-            {displayContent}
-          </code>
-        </pre>
-      </section>
-    );
-  };
   
   const timestamp = debugPacket?.timestamp ? new Date(debugPacket.timestamp).toLocaleString() : "N/A";
 
@@ -224,9 +128,19 @@ function DebugView({
               size="sm"
             />
 
-            {renderContent("Current Game State (Stack[0] - Top)", currentState, true, "max-h-[30vh]")}
+            <DebugSection
+              content={currentState}
+              maxHeightClass="max-h-[30vh]"
+              title="Current Game State (Stack[0] - Top)"
+            />
 
-            {previousState ? renderContent("Previous Game State (Stack[1] - Bottom)", previousState, true, "max-h-[30vh]") : null}
+            {previousState ? (
+              <DebugSection
+                content={previousState}
+                maxHeightClass="max-h-[30vh]"
+                title="Previous Game State (Stack[1] - Bottom)"
+              />
+            ) : null}
           </>
         );
       case "MainAI":
@@ -237,7 +151,11 @@ function DebugView({
               {timestamp}
             </p>
 
-            {renderContent("Last Storyteller AI Request", debugPacket?.prompt, false)}
+            <DebugSection
+              content={debugPacket?.prompt}
+              isJson={false}
+              title="Last Storyteller AI Request"
+            />
 
             <div className="my-2">
               <Button
@@ -251,17 +169,34 @@ function DebugView({
               />
             </div>
 
-            {showMainAIRaw ?
-              renderContent("Storyteller AI Response Raw", debugPacket?.rawResponseText, false) :
-              renderContent("Storyteller AI Response Parsed ", debugPacket?.parsedResponse)}
+            {showMainAIRaw ? (
+              <DebugSection
+                content={debugPacket?.rawResponseText}
+                isJson={false}
+                title="Storyteller AI Response Raw"
+              />
+            ) : (
+              <DebugSection
+                content={debugPacket?.parsedResponse}
+                title="Storyteller AI Response Parsed "
+              />
+            )}
 
-            {debugPacket?.storytellerThoughts && debugPacket.storytellerThoughts.length > 0 ? renderContent(
-                "Storyteller Thoughts",
-                debugPacket.storytellerThoughts.map(decodeEscapedString).join("\n"),
-                false,
-              ) : null}
+            {debugPacket?.storytellerThoughts && debugPacket.storytellerThoughts.length > 0 ? (
+              <DebugSection
+                content={debugPacket.storytellerThoughts.map(decodeEscapedString).join('\n')}
+                isJson={false}
+                title="Storyteller Thoughts"
+              />
+            ) : null}
 
-            {debugPacket?.error ? renderContent("Error During Storyteller AI Interaction", debugPacket.error, false) : null}
+            {debugPacket?.error ? (
+              <DebugSection
+                content={debugPacket.error}
+                isJson={false}
+                title="Error During Storyteller AI Interaction"
+              />
+            ) : null}
           </>
         );
       case "MapLocationAI":
@@ -274,7 +209,11 @@ function DebugView({
 
             {debugPacket?.mapUpdateDebugInfo ? (
               <>
-                {renderContent("Cartographer AI Request", debugPacket.mapUpdateDebugInfo.prompt, false)}
+                <DebugSection
+                  content={debugPacket.mapUpdateDebugInfo.prompt}
+                  isJson={false}
+                  title="Cartographer AI Request"
+                />
 
                 <div className="my-2">
                   <Button
@@ -288,29 +227,49 @@ function DebugView({
                   />
                 </div>
 
-                {showMapAIRaw ?
-                  renderContent(
-                    "Cartographer AI Response Raw",
-                    filterObservationsAndRationale(debugPacket.mapUpdateDebugInfo.rawResponse),
-                    false,
-                  ) :
-                  renderContent("Cartographer AI Response Parsed", debugPacket.mapUpdateDebugInfo.parsedPayload)}
+                {showMapAIRaw ? (
+                  <DebugSection
+                    content={filterObservationsAndRationale(debugPacket.mapUpdateDebugInfo.rawResponse)}
+                    isJson={false}
+                    title="Cartographer AI Response Raw"
+                  />
+                ) : (
+                  <DebugSection
+                    content={debugPacket.mapUpdateDebugInfo.parsedPayload}
+                    title="Cartographer AI Response Parsed"
+                  />
+                )}
 
-                {debugPacket.mapUpdateDebugInfo.observations ? renderContent(
-                    "Cartographer Observations",
-                    debugPacket.mapUpdateDebugInfo.observations,
-                    false,
-                  ) : null}
+                {debugPacket.mapUpdateDebugInfo.observations ? (
+                  <DebugSection
+                    content={debugPacket.mapUpdateDebugInfo.observations}
+                    isJson={false}
+                    title="Cartographer Observations"
+                  />
+                ) : null}
 
-                {debugPacket.mapUpdateDebugInfo.rationale ? renderContent(
-                    "Cartographer Rationale",
-                    debugPacket.mapUpdateDebugInfo.rationale,
-                    false,
-                  ) : null}
+                {debugPacket.mapUpdateDebugInfo.rationale ? (
+                  <DebugSection
+                    content={debugPacket.mapUpdateDebugInfo.rationale}
+                    isJson={false}
+                    title="Cartographer Rationale"
+                  />
+                ) : null}
 
-                {debugPacket.mapUpdateDebugInfo.validationError ? renderContent("Map Update Validation Error", debugPacket.mapUpdateDebugInfo.validationError, false) : null}
+                {debugPacket.mapUpdateDebugInfo.validationError ? (
+                  <DebugSection
+                    content={debugPacket.mapUpdateDebugInfo.validationError}
+                    isJson={false}
+                    title="Map Update Validation Error"
+                  />
+                ) : null}
 
-                {debugPacket.mapUpdateDebugInfo.minimalModelCalls ? renderContent("Minimal Model Calls", debugPacket.mapUpdateDebugInfo.minimalModelCalls) : null}
+                {debugPacket.mapUpdateDebugInfo.minimalModelCalls ? (
+                  <DebugSection
+                    content={debugPacket.mapUpdateDebugInfo.minimalModelCalls}
+                    title="Minimal Model Calls"
+                  />
+                ) : null}
 
                 {debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo &&
                   debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.length > 0 ? debugPacket.mapUpdateDebugInfo.connectorChainsDebugInfo.map((info, idx) => (
@@ -318,7 +277,11 @@ function DebugView({
                       className="my-2"
                       key={`chain-${String(info.round)}`}
                     >
-                      {renderContent(`Connector Chains Prompt (Round ${String(info.round)})`, info.prompt, false)}
+                      <DebugSection
+                        content={info.prompt}
+                        isJson={false}
+                        title={`Connector Chains Prompt (Round ${String(info.round)})`}
+                      />
 
                       <div className="my-2">
                         <Button
@@ -332,36 +295,46 @@ function DebugView({
                         />
                       </div>
 
-                      {(showConnectorChainRaw[idx] ?? true)
-                        ? info.rawResponse &&
-                          renderContent(
-                            `Connector Chains Raw Response (Round ${String(info.round)})`,
-                            filterObservationsAndRationale(info.rawResponse),
-                            false,
-                          )
-                        : info.parsedPayload &&
-                          renderContent(
-                            `Connector Chains Parsed Payload (Round ${String(info.round)})`,
-                            info.parsedPayload,
-                          )}
+                      {(showConnectorChainRaw[idx] ?? true) ? (
+                        info.rawResponse && (
+                          <DebugSection
+                            content={filterObservationsAndRationale(info.rawResponse)}
+                            isJson={false}
+                            title={`Connector Chains Raw Response (Round ${String(info.round)})`}
+                          />
+                        )
+                      ) : (
+                        info.parsedPayload && (
+                          <DebugSection
+                            content={info.parsedPayload}
+                            title={`Connector Chains Parsed Payload (Round ${String(info.round)})`}
+                          />
+                        )
+                      )}
 
-                      {info.observations ? renderContent(
-                          `Connector Chains Observations (Round ${String(info.round)})`,
-                          info.observations,
-                          false,
-                        ) : null}
+                      {info.observations ? (
+                        <DebugSection
+                          content={info.observations}
+                          isJson={false}
+                          title={`Connector Chains Observations (Round ${String(info.round)})`}
+                        />
+                      ) : null}
 
-                      {info.rationale ? renderContent(
-                          `Connector Chains Rationale (Round ${String(info.round)})`,
-                          info.rationale,
-                          false,
-                        ) : null}
+                      {info.rationale ? (
+                        <DebugSection
+                          content={info.rationale}
+                          isJson={false}
+                          title={`Connector Chains Rationale (Round ${String(info.round)})`}
+                        />
+                      ) : null}
 
-                      {info.validationError ? renderContent(
-                          `Connector Chains Validation Error (Round ${String(info.round)})`,
-                          info.validationError,
-                          false,
-                        ) : null}
+                      {info.validationError ? (
+                        <DebugSection
+                          content={info.validationError}
+                          isJson={false}
+                          title={`Connector Chains Validation Error (Round ${String(info.round)})`}
+                        />
+                      ) : null}
                     </div>
                   )) : null}
               </>
@@ -385,31 +358,45 @@ function DebugView({
                   className="mb-2"
                   key={t.prompt}
                 >
-                  {renderContent(`Turn ${String(idx + 1)} Request`, t.prompt, false)}
+                  <DebugSection
+                    content={t.prompt}
+                    isJson={false}
+                    title={`Turn ${String(idx + 1)} Request`}
+                  />
 
-                  {renderContent(`Turn ${String(idx + 1)} Response`, responseWithThoughts, false)}
+                  <DebugSection
+                    content={responseWithThoughts}
+                    isJson={false}
+                    title={`Turn ${String(idx + 1)} Response`}
+                  />
                 </div>
               );
             })}
 
-            {debugPacket.dialogueDebugInfo.summaryPrompt ? renderContent(
-                "Dialogue Summary Prompt",
-                debugPacket.dialogueDebugInfo.summaryPrompt,
-                false,
-              ) : null}
+            {debugPacket.dialogueDebugInfo.summaryPrompt ? (
+              <DebugSection
+                content={debugPacket.dialogueDebugInfo.summaryPrompt}
+                isJson={false}
+                title="Dialogue Summary Prompt"
+              />
+            ) : null}
 
-            {debugPacket.dialogueDebugInfo.summaryRawResponse ? renderContent(
-                "Dialogue Summary Response",
-                debugPacket.dialogueDebugInfo.summaryRawResponse,
-                false,
-              ) : null}
+            {debugPacket.dialogueDebugInfo.summaryRawResponse ? (
+              <DebugSection
+                content={debugPacket.dialogueDebugInfo.summaryRawResponse}
+                isJson={false}
+                title="Dialogue Summary Response"
+              />
+            ) : null}
 
             {debugPacket.dialogueDebugInfo.summaryThoughts &&
-              debugPacket.dialogueDebugInfo.summaryThoughts.length > 0 ? renderContent(
-                "Dialogue Summary Thoughts",
-                debugPacket.dialogueDebugInfo.summaryThoughts.map(decodeEscapedString).join("\n"),
-                false,
-              ) : null}
+              debugPacket.dialogueDebugInfo.summaryThoughts.length > 0 ? (
+                <DebugSection
+                  content={debugPacket.dialogueDebugInfo.summaryThoughts.map(decodeEscapedString).join('\n')}
+                  isJson={false}
+                  title="Dialogue Summary Thoughts"
+                />
+            ) : null}
           </>
         ) : (
           <p className="italic text-slate-400">
@@ -419,11 +406,11 @@ function DebugView({
       case "InventoryAI":
         return debugPacket?.inventoryDebugInfo ? (
           <>
-            {renderContent(
-              "Inventory AI Request",
-              debugPacket.inventoryDebugInfo.prompt,
-              false,
-            )}
+            <DebugSection
+              content={debugPacket.inventoryDebugInfo.prompt}
+              isJson={false}
+              title="Inventory AI Request"
+            />
 
             <div className="my-2">
               <Button
@@ -437,28 +424,34 @@ function DebugView({
               />
             </div>
 
-            {showInventoryAIRaw
-              ? renderContent(
-                  "Inventory AI Response Raw",
-                  filterObservationsAndRationale(debugPacket.inventoryDebugInfo.rawResponse),
-                  false,
-                )
-              : renderContent(
-                  "Inventory AI Response Parsed",
-                  debugPacket.inventoryDebugInfo.parsedItemChanges,
-                )}
+            {showInventoryAIRaw ? (
+              <DebugSection
+                content={filterObservationsAndRationale(debugPacket.inventoryDebugInfo.rawResponse)}
+                isJson={false}
+                title="Inventory AI Response Raw"
+              />
+            ) : (
+              <DebugSection
+                content={debugPacket.inventoryDebugInfo.parsedItemChanges}
+                title="Inventory AI Response Parsed"
+              />
+            )}
 
-            {debugPacket.inventoryDebugInfo.observations ? renderContent(
-                "Inventory Observations",
-                debugPacket.inventoryDebugInfo.observations,
-                false,
-              ) : null}
+            {debugPacket.inventoryDebugInfo.observations ? (
+              <DebugSection
+                content={debugPacket.inventoryDebugInfo.observations}
+                isJson={false}
+                title="Inventory Observations"
+              />
+            ) : null}
 
-            {debugPacket.inventoryDebugInfo.rationale ? renderContent(
-                "Inventory Rationale",
-                debugPacket.inventoryDebugInfo.rationale,
-                false,
-              ) : null}
+            {debugPacket.inventoryDebugInfo.rationale ? (
+              <DebugSection
+                content={debugPacket.inventoryDebugInfo.rationale}
+                isJson={false}
+                title="Inventory Rationale"
+              />
+            ) : null}
           </>
         ) : (
           <p className="italic text-slate-400">
@@ -466,15 +459,45 @@ function DebugView({
           </p>
         );
       case "Inventory":
-        return renderContent("Current Inventory", currentState.inventory, true, "max-h-[70vh]");
+        return (
+          <DebugSection
+            content={currentState.inventory}
+            maxHeightClass="max-h-[70vh]"
+            title="Current Inventory"
+          />
+        );
       case "Characters":
-        return renderContent("Current Characters", currentState.allCharacters, true, "max-h-[70vh]");
+        return (
+          <DebugSection
+            content={currentState.allCharacters}
+            maxHeightClass="max-h-[70vh]"
+            title="Current Characters"
+          />
+        );
       case "MapDataFull":
-        return renderContent("Current Map Data (Full)", currentState.mapData, true, "max-h-[70vh]");
+        return (
+          <DebugSection
+            content={currentState.mapData}
+            maxHeightClass="max-h-[70vh]"
+            title="Current Map Data (Full)"
+          />
+        );
       case "ThemeHistory":
-        return renderContent("Current Theme History", currentState.themeHistory, true, "max-h-[70vh]");
+        return (
+          <DebugSection
+            content={currentState.themeHistory}
+            maxHeightClass="max-h-[70vh]"
+            title="Current Theme History"
+          />
+        );
       case "GameLog":
-        return renderContent("Current Game Log", currentState.gameLog, true, "max-h-[70vh]");
+        return (
+          <DebugSection
+            content={currentState.gameLog}
+            maxHeightClass="max-h-[70vh]"
+            title="Current Game Log"
+          />
+        );
       case "TravelPath": {
         if (!travelPath || travelPath.length === 0) {
           return (<p className="italic text-slate-400">
@@ -496,14 +519,23 @@ function DebugView({
         });
         return (
           <>
-            {renderContent('Travel Path (IDs)', travelPath)}
+            <DebugSection
+              content={travelPath}
+              title="Travel Path (IDs)"
+            />
 
-            {renderContent('Expanded Path Data', expanded, true, 'max-h-[70vh]')}
+            <DebugSection
+              content={expanded}
+              maxHeightClass="max-h-[70vh]"
+              title="Expanded Path Data"
+            />
           </>
         );
       }
       case "MiscState":
-        return renderContent("Miscellaneous State Values", {
+        return (
+          <DebugSection
+            content={{
             currentThemeName: currentState.currentThemeName,
             mainQuest: currentState.mainQuest,
             currentObjective: currentState.currentObjective,
@@ -524,7 +556,11 @@ function DebugView({
                 objAchieved: currentState.lastTurnChanges.objectiveAchieved,
                 mapChanged: currentState.lastTurnChanges.mapDataChanged,
             } : null,
-        }, true, "max-h-[70vh]");
+          }}
+            maxHeightClass="max-h-[70vh]"
+            title="Miscellaneous State Values"
+          />
+        );
       default:
         return (<p>
           Select a tab
