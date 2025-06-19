@@ -3,15 +3,40 @@
  * @file InfoDisplay.tsx
  * @description Modal summarizing version and build info.
  */
-import About from '../elements/About';
-import GameMechanics from '../elements/GameMechanics';
-import NotableFeatures from '../elements/NotableFeatures';
-import SaveGameFunctionality from '../elements/SaveGameFunctionality';
-import AiModels from '../elements/AiModels';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
-import Changelog from '../elements/Changelog';
 import TextBox from '../elements/TextBox';
+import ChangelogVersion from '../elements/ChangelogVersion';
+import infoContentRaw from '../../resources/infoDisplayContent.json';
+import {
+  CURRENT_SAVE_GAME_VERSION,
+  GEMINI_MODEL_NAME,
+} from '../../constants';
+
+interface InfoSection {
+  readonly header: string;
+  readonly text: ReadonlyArray<string>;
+}
+
+interface ChangelogEntry {
+  readonly title: string;
+  readonly items: ReadonlyArray<string>;
+}
+
+interface InfoContent {
+  readonly title: string;
+  readonly sections: ReadonlyArray<InfoSection>;
+  readonly changelog: ReadonlyArray<ChangelogEntry>;
+  readonly footer: string;
+}
+
+const infoContent = infoContentRaw as InfoContent;
+
+function replacePlaceholders(text: string): string {
+  return text
+    .replace(/\{\{CURRENT_SAVE_GAME_VERSION\}\}/g, CURRENT_SAVE_GAME_VERSION)
+    .replace(/\{\{GEMINI_MODEL_NAME\}\}/g, GEMINI_MODEL_NAME);
+}
 
 interface InfoDisplayProps {
   readonly isVisible: boolean;
@@ -47,29 +72,39 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
             borderColorClass="border-sky-700"
             borderWidthClass="border-b-2"
             containerClassName="mb-6"
-            header="About Whispers in the Dark"
+            header={infoContent.title}
             headerColorClass="text-sky-300"
             headerFontClass="text-3xl font-bold text-center"
             headerTag="h1"
           />
 
-          <About />
+          {infoContent.sections.map(section => (
+            <TextBox
+              key={section.header}
+              contentFontClass="leading-relaxed space-y-3"
+              header={section.header}
+              text={section.text.map(t => replacePlaceholders(t)).join('\n')}
+            />
+          ))}
 
-          <GameMechanics />
-
-          <NotableFeatures />
-
-          <SaveGameFunctionality />
-
-          <AiModels />
-
-          <Changelog />
+          <TextBox
+            contentFontClass="leading-relaxed space-y-4"
+            header="Changelog"
+          >
+            {infoContent.changelog.map(entry => (
+              <ChangelogVersion
+                items={entry.items}
+                key={entry.title}
+                title={entry.title}
+              />
+            ))}
+          </TextBox>
 
           <TextBox
             containerClassName="mt-8"
             contentColorClass="text-slate-500"
             contentFontClass="text-sm text-center"
-            text="Thank you for playing Whispers in the Dark!"
+            text={infoContent.footer}
           />
 
         </div>
