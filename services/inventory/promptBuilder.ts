@@ -23,7 +23,7 @@ export const buildInventoryPrompt = (
 ): string => {
   const newItemsJson =
     newItems.length > 0
-      ? `\`\`\`json\n${JSON.stringify(newItems, null, 2)}\n\`\`\``
+      ? JSON.stringify(newItems, null, 2)
       : '[]';
   return `
   - Player's Last Action: ${playerLastAction}
@@ -36,7 +36,7 @@ export const buildInventoryPrompt = (
   ${locationInventory ? `Current Location Inventory - ID: ${currentNodeId ?? 'unknown'}\n${locationInventory}\n` : ''}
   ${companionsInventory ? `Companions Inventory:\n${companionsInventory}\n` : ''}
   ${nearbyNpcsInventory ? `Nearby NPCs Inventory:\n${nearbyNpcsInventory}\n` : ''}
-  ${limitedMapContext ? `Nearby Map Context:\n${limitedMapContext}\n` : ''}
+  ${limitedMapContext ? `Nearby Map Context where you can put Items:\n${limitedMapContext}\n` : ''}
 
   Provide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
 };
