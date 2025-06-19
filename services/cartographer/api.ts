@@ -66,7 +66,7 @@ export const updateMapFromAIData_Service = async (
 
   const existingMapContext = `Current Map Nodes (for your reference):\n${
     currentThemeNodesFromMapData.length > 0
-      ? formatNodesAsTree(currentThemeNodesFromMapData).join('\n')
+      ? formatNodesAsTree(currentThemeNodesFromMapData)
       : 'None exist yet.'
   }\n\nCurrent Map Edges (for your reference):\n${
     currentThemeEdgesFromMapData.length > 0

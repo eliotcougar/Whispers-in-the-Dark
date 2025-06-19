@@ -38,11 +38,85 @@ export const formatEdgeLine = (edge: MapEdge): string =>
   `- ${edge.id} from ${edge.sourceNodeId} to ${edge.targetNodeId}`;
 
 /**
+ * Formats a list of map nodes for inclusion in prompts.
+ */
+export const mapNodesToString = (
+  nodes: MapNode | Array<MapNode>,
+  prefix = '',
+  addAliases = true,
+  addStatus = true,
+  addDescription = true,
+  singleLine = false,
+): string => {
+  const nodeList = Array.isArray(nodes) ? nodes : [nodes];
+  if (nodeList.length === 0) {
+    return '';
+  }
+  const delimiter = singleLine ? '; ' : ';\n';
+
+  const result = nodeList
+    .map(n => {
+      let str = `${prefix}${n.id} - "${n.placeName}"`;
+      if (addAliases && n.data.aliases && n.data.aliases.length > 0) {
+        str += ` (aka ${n.data.aliases.map(a => `"${a}"`).join(', ')})`;
+      }
+      if (addStatus) {
+        str += ` (Type: ${n.data.nodeType}, Visited: ${String(
+          Boolean(n.data.visited),
+        )}, ParentNodeId: ${n.data.parentNodeId ?? 'N/A'}, Status: ${n.data.status})`;
+      }
+      if (addDescription) {
+        str += `, "${n.data.description}"`;
+      }
+      return str;
+    })
+    .join(delimiter);
+
+  return result + '.';
+};
+
+/**
+ * Formats a list of map edges for inclusion in prompts.
+ */
+export const mapEdgesToString = (
+  edges: MapEdge | Array<MapEdge>,
+  prefix = '',
+  addDescription = true,
+  singleLine = false,
+): string => {
+  const edgeList = Array.isArray(edges) ? edges : [edges];
+  if (edgeList.length === 0) {
+    return '';
+  }
+  const delimiter = singleLine ? '; ' : ';\n';
+
+  const result = edgeList
+    .map(e => {
+      const status = e.data.status ?? 'open';
+      const type = e.data.type ?? 'path';
+      let str = `${prefix}${e.id} (${status} ${type}) from ${e.sourceNodeId} to ${e.targetNodeId}`;
+      const details: Array<string> = [];
+      if (e.data.travelTime) details.push(`travel time: ${e.data.travelTime}`);
+      if (e.data.description) details.push(e.data.description);
+      if (addDescription && details.length > 0) {
+        str += ` (${details.join(', ')})`;
+      }
+      return str;
+    })
+    .join(delimiter);
+
+  return result + '.';
+};
+
+/**
  * Formats map nodes as a tree structure for prompt context.
  */
 export const formatNodesAsTree = (
   nodes: Array<MapNode>,
-): Array<string> => {
+  addAliases = true,
+  addStatus = true,
+  addDescription = true,
+): string => {
   const childMap = new Map<string, Array<MapNode>>();
   nodes.forEach(node => {
     const parent =
@@ -62,16 +136,18 @@ export const formatNodesAsTree = (
   for (const list of childMap.values()) list.sort(sortByName);
 
   const lines: Array<string> = [];
-  const traverse = (node: MapNode, prefix: string, isLast: boolean) => {
+  const traverse = (node: MapNode, linePrefix: string, isLast: boolean) => {
     const connector = isLast ? '└─' : '├─';
-    lines.push(
-      `${prefix}${connector} ${node.id} - "${node.placeName}" (Type: ${node.data.nodeType}, Visited: ${String(
-        Boolean(node.data.visited),
-      )}, ParentNodeId: ${node.data.parentNodeId ?? 'N/A'}, Status: ${
-        node.data.status
-      })`,
+    const nodeLine = mapNodesToString(
+      node,
+      `${linePrefix}${connector} `,
+      addAliases,
+      addStatus,
+      addDescription,
+      true,
     );
-    const childPrefix = prefix + (isLast ? '   ' : '│  ');
+    lines.push(nodeLine);
+    const childPrefix = linePrefix + (isLast ? '   ' : '│  ');
     const children = childMap.get(node.id) ?? [];
     children.forEach((child, idx) => {
       traverse(child, childPrefix, idx === children.length - 1);
@@ -83,7 +159,7 @@ export const formatNodesAsTree = (
     traverse(rootNode, '', idx === roots.length - 1);
   });
 
-  return lines;
+  return lines.join('\n');
 };
 
 const formatConnectionToNode = (edge: MapEdge, otherNode: MapNode): string => {
