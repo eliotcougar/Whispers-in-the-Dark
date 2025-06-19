@@ -1,7 +1,7 @@
-import { Item, KnownUse } from '../types';
-import { Icon } from './elements/icons';
+import { Item, KnownUse } from '../../types';
+import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
-import Button from './elements/Button';
+import Button from '../elements/Button';
 
 interface InventoryItemProps {
   readonly item: Item;

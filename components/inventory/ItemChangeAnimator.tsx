@@ -2,9 +2,9 @@
  * @file ItemChangeAnimator.tsx
  * @description Animates item gain, loss, and changes.
  */
-import { Item, TurnChanges } from '../types';
+import { Item, TurnChanges } from '../../types';
 import ItemTypeDisplay from './ItemTypeDisplay';
-import { useItemChangeQueue } from '../hooks/useItemChangeQueue';
+import { useItemChangeQueue } from '../../hooks/useItemChangeQueue';
 
 interface ItemChangeAnimatorProps {
   readonly lastTurnChanges: TurnChanges | null;

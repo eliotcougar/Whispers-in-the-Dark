@@ -1,8 +1,8 @@
-import KnowledgeBase from '../KnowledgeBase';
-import MapDisplay from '../MapDisplay';
+import KnowledgeBase from '../modals/KnowledgeBase';
+import MapDisplay from '../map/MapDisplay';
 import ConfirmationDialog from '../ConfirmationDialog';
-import HistoryDisplay from '../HistoryDisplay';
-import ImageVisualizer from '../ImageVisualizer';
+import HistoryDisplay from '../modals/HistoryDisplay';
+import ImageVisualizer from '../modals/ImageVisualizer';
 import {
   AdventureTheme,
   MapData,

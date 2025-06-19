@@ -4,9 +4,9 @@
  * @description Displays discovered characters and theme info.
  */
 import * as React from 'react';
-import { Character, AdventureTheme } from '../types'; 
-import { Icon } from './elements/icons';
-import Button from './elements/Button';
+import { Character, AdventureTheme } from '../../types';
+import { Icon } from '../elements/icons';
+import Button from '../elements/Button';
 
 interface KnowledgeBaseProps {
   readonly allCharacters: Array<Character>;

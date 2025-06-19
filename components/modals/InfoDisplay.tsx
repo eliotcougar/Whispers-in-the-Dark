@@ -3,14 +3,14 @@
  * @file InfoDisplay.tsx
  * @description Modal summarizing version and build info.
  */
-import About from './elements/About';
-import GameMechanics from './elements/GameMechanics';
-import NotableFeatures from './elements/NotableFeatures';
-import SaveGameFunctionality from './elements/SaveGameFunctionality';
-import AiModels from './elements/AiModels';
-import Button from './elements/Button';
-import { Icon } from './elements/icons';
-import Changelog from './elements/Changelog';
+import About from '../elements/About';
+import GameMechanics from '../elements/GameMechanics';
+import NotableFeatures from '../elements/NotableFeatures';
+import SaveGameFunctionality from '../elements/SaveGameFunctionality';
+import AiModels from '../elements/AiModels';
+import Button from '../elements/Button';
+import { Icon } from '../elements/icons';
+import Changelog from '../elements/Changelog';
 
 interface InfoDisplayProps {
   readonly isVisible: boolean;

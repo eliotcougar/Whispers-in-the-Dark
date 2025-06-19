@@ -2,11 +2,11 @@
  * @file InventoryDisplay.tsx
  * @description Shows the Player's items and handles interactions.
  */
-import { Item, KnownUse } from '../types';
-import { Icon } from './elements/icons';
+import { Item, KnownUse } from '../../types';
+import { Icon } from '../elements/icons';
 import InventoryItem from './InventoryItem';
 import InventorySortControls from './InventorySortControls';
-import { useInventoryDisplay } from '../hooks/useInventoryDisplay';
+import { useInventoryDisplay } from '../../hooks/useInventoryDisplay';
 
 interface InventoryDisplayProps {
   readonly items: Array<Item>;

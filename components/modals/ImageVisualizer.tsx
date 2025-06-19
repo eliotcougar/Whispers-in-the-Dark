@@ -6,15 +6,15 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 
-import { geminiClient as ai, isApiConfigured } from '../services/apiClient';
+import { geminiClient as ai, isApiConfigured } from '../../services/apiClient';
 import type { Part } from '@google/genai';
-import { AdventureTheme, Character, MapNode } from '../types';
-import LoadingSpinner from './LoadingSpinner';
-import { extractStatusFromError } from '../utils/aiErrorUtils';
-import { dispatchAIRequest } from '../services/modelDispatcher';
-import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME } from '../constants';
-import Button from './elements/Button';
-import { Icon } from './elements/icons';
+import { AdventureTheme, Character, MapNode } from '../../types';
+import LoadingSpinner from '../LoadingSpinner';
+import { extractStatusFromError } from '../../utils/aiErrorUtils';
+import { dispatchAIRequest } from '../../services/modelDispatcher';
+import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME } from '../../constants';
+import Button from '../elements/Button';
+import { Icon } from '../elements/icons';
 
 const THEME_STYLE_PROMPTS: Record<string, string> = {
   dungeon: 'a dark, gritty medieval fantasy style, dungeons and dragons concept art',
