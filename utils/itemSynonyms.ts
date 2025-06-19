@@ -1,20 +1,13 @@
 import { ItemType } from '../types';
 import { VALID_ITEM_TYPES } from '../constants';
+import itemTypeSynonymsRaw from '../resources/itemTypeSynonyms.json';
 
-export const ITEM_TYPE_SYNONYMS: Record<string, ItemType | undefined> = {
-  'single use': 'single-use',
-  'single-use item': 'single-use',
-  'one use': 'single-use',
-  'multi use': 'multi-use',
-  'multi-use item': 'multi-use',
-  gear: 'equipment',
-  armour: 'equipment',
-  armor: 'equipment',
-  tool: 'equipment',
-  ammo: 'ammunition',
-  ammunition: 'ammunition',
-  projectiles: 'ammunition',
+const itemTypeSynonyms = itemTypeSynonymsRaw as {
+  type: Record<string, ItemType | undefined>;
 };
+
+export const ITEM_TYPE_SYNONYMS: Record<string, ItemType | undefined> =
+  itemTypeSynonyms.type;
 
 export const DESTROY_SYNONYMS = new Set([
   'destroyed',
