@@ -1,40 +1,40 @@
 /**
  * Provides a single Icon component that renders SVGs from the icons folder.
 */
-import realityShiftSvg from './icons/reality_shift.svg?raw';
-import coinSvg from './icons/coin.svg?raw';
-import visualizeSvg from './icons/visualize.svg?raw';
-import bookOpenSvg from './icons/book_open.svg?raw';
-import menuSvg from './icons/menu.svg?raw';
-import infoSvg from './icons/info.svg?raw';
-import scrollSvg from './icons/scroll.svg?raw';
-import mapSvg from './icons/map.svg?raw';
-import inventorySvg from './icons/inventory.svg?raw';
-import trashSvg from './icons/trash.svg?raw';
-import logSvg from './icons/log.svg?raw';
-import companionSvg from './icons/companion.svg?raw';
-import nearbyNpcSvg from './icons/nearby_npc.svg?raw';
-import mapItemBoxSvg from './icons/map_item_box.svg?raw';
-import mapWheelSvg from './icons/map_wheel.svg?raw';
-import xSvg from './icons/x.svg?raw';
+import RealityShiftIcon from './icons/reality_shift.svg?react';
+import CoinIcon from './icons/coin.svg?react';
+import VisualizeIcon from './icons/visualize.svg?react';
+import BookOpenIcon from './icons/book_open.svg?react';
+import MenuIcon from './icons/menu.svg?react';
+import InfoIcon from './icons/info.svg?react';
+import ScrollIcon from './icons/scroll.svg?react';
+import MapIcon from './icons/map.svg?react';
+import InventoryIcon from './icons/inventory.svg?react';
+import TrashIcon from './icons/trash.svg?react';
+import LogIcon from './icons/log.svg?react';
+import CompanionIcon from './icons/companion.svg?react';
+import NearbyNpcIcon from './icons/nearby_npc.svg?react';
+import MapItemBoxIcon from './icons/map_item_box.svg?react';
+import MapWheelIcon from './icons/map_wheel.svg?react';
+import XIcon from './icons/x.svg?react';
 
 const iconMap = {
-  realityShift: realityShiftSvg,
-  coin: coinSvg,
-  visualize: visualizeSvg,
-  bookOpen: bookOpenSvg,
-  menu: menuSvg,
-  info: infoSvg,
-  scroll: scrollSvg,
-  map: mapSvg,
-  inventory: inventorySvg,
-  trash: trashSvg,
-  log: logSvg,
-  companion: companionSvg,
-  nearbyNpc: nearbyNpcSvg,
-  mapItemBox: mapItemBoxSvg,
-  mapWheel: mapWheelSvg,
-  x: xSvg,
+  realityShift: RealityShiftIcon,
+  coin: CoinIcon,
+  visualize: VisualizeIcon,
+  bookOpen: BookOpenIcon,
+  menu: MenuIcon,
+  info: InfoIcon,
+  scroll: ScrollIcon,
+  map: MapIcon,
+  inventory: InventoryIcon,
+  trash: TrashIcon,
+  log: LogIcon,
+  companion: CompanionIcon,
+  nearbyNpc: NearbyNpcIcon,
+  mapItemBox: MapItemBoxIcon,
+  mapWheel: MapWheelIcon,
+  x: XIcon,
 } as const;
 
 export type IconName = keyof typeof iconMap;
@@ -67,7 +67,7 @@ export function Icon({
   marginRight,
   wrapper = 'span',
 }: IconProps) {
-  const svgMarkup = iconMap[name];
+  const SvgIcon = iconMap[name];
 
   const colorClasses: Record<IconColor, string> = {
     amber: 'text-amber-400',
@@ -82,10 +82,6 @@ export function Icon({
     .filter(Boolean)
     .join(' ');
 
-  const svgAttrs = (svgClasses ? ` class="${svgClasses}"` : '') +
-    (size ? ` width="${String(size)}" height="${String(size)}"` : '');
-  const rendered = svgMarkup.replace('<svg', `<svg${svgAttrs}`);
-
   const style = marginRight ? { marginRight } : undefined;
   const wrapperClasses = inline ? 'inline-block' : undefined;
 
@@ -93,17 +89,27 @@ export function Icon({
     return (
       <g
         className={wrapperClasses}
-        dangerouslySetInnerHTML={{ __html: rendered }}
         style={style}
-      />
+      >
+        <SvgIcon
+          className={svgClasses}
+          height={size}
+          width={size}
+        />
+      </g>
     );
   }
   return (
     <span
       className={wrapperClasses}
-      dangerouslySetInnerHTML={{ __html: rendered }}
       style={style}
-    />
+    >
+      <SvgIcon
+        className={svgClasses}
+        height={size}
+        width={size}
+      />
+    </span>
   );
 }
 
