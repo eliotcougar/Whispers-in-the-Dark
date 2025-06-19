@@ -11,6 +11,7 @@ import AiModels from '../elements/AiModels';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import Changelog from '../elements/Changelog';
+import TextBox from '../elements/TextBox';
 
 interface InfoDisplayProps {
   readonly isVisible: boolean;
@@ -42,12 +43,15 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
         />
 
         <div className="info-content-area">
-          <h1
-            className="text-3xl font-bold text-sky-300 mb-6 text-center"
-            id="info-title"
-          >
-            About Whispers in the Dark
-          </h1>
+          <TextBox
+            borderColorClass="border-sky-700"
+            borderWidthClass="border-b-2"
+            containerClassName="mb-6"
+            header="About Whispers in the Dark"
+            headerColorClass="text-sky-300"
+            headerFontClass="text-3xl font-bold text-center"
+            headerTag="h1"
+          />
 
           <About />
 
@@ -61,9 +65,12 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
 
           <Changelog />
 
-          <p className="text-center text-slate-500 mt-8 text-sm">
-            Thank you for playing Whispers in the Dark!
-          </p>
+          <TextBox
+            containerClassName="mt-8"
+            contentColorClass="text-slate-500"
+            contentFontClass="text-sm text-center"
+            text="Thank you for playing Whispers in the Dark!"
+          />
 
         </div>
       </div>

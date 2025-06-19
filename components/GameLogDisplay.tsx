@@ -6,6 +6,7 @@
 import { useRef } from 'react';
 
 import { Icon } from './elements/icons';
+import TextBox from './elements/TextBox';
 
 interface GameLogDisplayProps {
   readonly messages: Array<string>;
@@ -16,47 +17,57 @@ interface GameLogDisplayProps {
  */
 function GameLogDisplay({ messages }: GameLogDisplayProps) {
   const logEndRef = useRef<null | HTMLDivElement>(null);
+  const header = (
+    <>
+      <Icon
+        color="emerald"
+        inline
+        marginRight={8}
+        name="log"
+        size={20}
+      />
+      Game Log
+    </>
+  );
+
+  const logItems = (() => {
+    const counts = new Map<string, number>();
+    return messages.map(message => {
+      const count = counts.get(message) ?? 0;
+      counts.set(message, count + 1);
+        return (
+          <li
+            className="text-slate-400 leading-snug"
+            key={`${message}-${String(count)}`}
+          >
+            <span className="mr-1 text-emerald-500">
+              &raquo;
+            </span>
+
+            {message}
+          </li>
+        );
+    });
+  })();
+
   return (
-    <div className="mt-6 bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 max-h-80 overflow-y-auto">
-      <h3 className="text-xl font-bold text-emerald-400 mb-4 border-b-2 border-emerald-700 pb-2 flex items-center">
-        <Icon
-          color="emerald"
-          inline
-          marginRight={8}
-          name="log"
-          size={20}
-        />
-
-        {' '}
-        Game Log
-      </h3>
-
+    <TextBox
+      borderColorClass="border-emerald-700"
+      borderWidthClass="border-b-2"
+      containerClassName="mt-6 bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 max-h-80 overflow-y-auto"
+      contentColorClass=""
+      contentFontClass=""
+      header={header}
+      headerColorClass="text-emerald-400"
+      headerFontClass="text-xl font-bold flex items-center"
+      headerTag="h3"
+    >
       <ul className="space-y-2 text-sm">
-        {(() => {
-          const counts = new Map<string, number>();
-          return messages.map(message => {
-            const count = counts.get(message) ?? 0;
-            counts.set(message, count + 1);
-            return (
-              <li
-                className="text-slate-400 leading-snug"
-                key={`${message}-${String(count)}`}
-              >
-                <span className="text-emerald-500">
-                  &raquo;
-                </span>
-
-                {' '}
-
-                {message}
-              </li>
-            );
-          });
-        })()}
+        {logItems}
 
         <div ref={logEndRef} />
       </ul>
-    </div>
+    </TextBox>
   );
 }
 

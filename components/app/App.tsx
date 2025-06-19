@@ -14,7 +14,7 @@ import InventoryDisplay from '../inventory/InventoryDisplay';
 import LocationItemsDisplay from '../inventory/LocationItemsDisplay';
 import LoadingSpinner from '../LoadingSpinner';
 import ErrorDisplay from '../ErrorDisplay';
-import QuestInfoBox from '../QuestInfoBox';
+import TextBox from '../elements/TextBox';
 import MainToolbar from '../MainToolbar';
 import ModelUsageIndicators from '../ModelUsageIndicators';
 import TitleMenu from '../modals/TitleMenu';
@@ -28,6 +28,7 @@ import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
 import FreeActionInput from './FreeActionInput';
+import { buildHighlightableEntities } from '../../utils/highlightHelper';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
 import { useAppModals } from '../../hooks/useAppModals';
@@ -233,6 +234,21 @@ function App() {
 
 
   const canPerformFreeAction = score >= FREE_FORM_ACTION_COST && !isLoading && hasGameBeenInitialized && !dialogueState;
+
+  const questHighlightEntities = React.useMemo(
+    () =>
+      buildHighlightableEntities(
+        inventory,
+        mapData.nodes,
+        allCharacters,
+        currentTheme ? currentTheme.name : null
+      ),
+    [inventory, mapData.nodes, allCharacters, currentTheme]
+  );
+
+  const enableMobileTap =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(hover: none)').matches;
 
   const setGeneratedImageCache = useCallback((url: string, scene: string) => {
     setVisualizerImageUrl(url);
@@ -562,11 +578,47 @@ function App() {
           </div>
 
           <div className="lg:col-span-2 space-y-2 flex flex-col">
-            <QuestInfoBox
-              currentObjective={hasGameBeenInitialized ? currentObjective : null}
-              mainQuest={hasGameBeenInitialized ? mainQuest : null}
-              objectiveAnimationType={objectiveAnimationType}
-            />
+            {hasGameBeenInitialized && mainQuest ? (
+              <TextBox
+                backgroundColorClass=""
+                borderColorClass=""
+                borderWidthClass=""
+                containerClassName="p-3 bg-purple-900/50 border border-purple-700 rounded-md"
+                contentColorClass="text-purple-200"
+                contentFontClass="text-lg"
+                enableMobileTap={enableMobileTap}
+                header="Main Quest"
+                headerColorClass="text-purple-300"
+                headerFontClass="text-lg font-semibold"
+                headerTag="h3"
+                highlightEntities={questHighlightEntities}
+                text={mainQuest}
+              />
+            ) : null}
+
+            {hasGameBeenInitialized && currentObjective ? (
+              <TextBox
+                backgroundColorClass=""
+                borderColorClass=""
+                borderWidthClass=""
+                containerClassName={`p-3 bg-amber-900/50 border border-amber-700 rounded-md ${
+                  objectiveAnimationType === 'success'
+                    ? 'animate-objective-success'
+                    : objectiveAnimationType === 'neutral'
+                      ? 'animate-objective-neutral'
+                      : ''
+                }`}
+                contentColorClass="text-amber-200"
+                contentFontClass="text-lg"
+                enableMobileTap={enableMobileTap}
+                header="Current Objective"
+                headerColorClass="text-amber-300"
+                headerFontClass="text-lg font-semibold"
+                headerTag="h3"
+                highlightEntities={questHighlightEntities}
+                text={currentObjective}
+              />
+            ) : null}
 
             <LocationItemsDisplay
               currentNodeId={currentMapNodeId}
