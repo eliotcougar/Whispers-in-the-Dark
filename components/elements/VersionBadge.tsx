@@ -4,7 +4,7 @@ interface VersionBadgeProps {
 
 function VersionBadge({ version}: VersionBadgeProps) {
   return (
-    <span className='text-xs text-slate-500 absolute bottom-4 right-4'>
+    <span className='text-sm text-slate-300 absolute bottom-4 right-4'>
       {'Version: ' + version}
     </span>
   );

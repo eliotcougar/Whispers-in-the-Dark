@@ -38,9 +38,9 @@ export interface HighlightableEntity {
 const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
   switch (type) {
     case 'item':
-      return 'font-semibold text-yellow-300 hover:text-yellow-200 cursor-pointer'; 
+      return 'font-semibold text-amber-400 hover:text-amber-300 cursor-pointer'; 
     case 'place':
-      return 'font-semibold text-violet-300 hover:text-violet-200 cursor-pointer';
+      return 'font-semibold text-violet-400 hover:text-violet-300 cursor-pointer';
     case 'character':
       return 'font-semibold text-green-300 hover:text-green-200 cursor-pointer';
     default:

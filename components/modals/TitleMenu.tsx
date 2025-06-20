@@ -67,7 +67,7 @@ function TitleMenu({
             isCustomGameMode={false} // Custom game mode not applicable here 
           />
 
-          <div className="space-y-4 sm:space-y-5 w-full max-w-xs sm:max-w-sm">
+          <div className="space-y-3 sm:space-y-3 w-full max-w-xs sm:max-w-sm">
             <Button
               ariaLabel={isGameActive ? 'Start a New Game (Random Shifts, Progress will be lost)' : 'Start a New Game (Random Shifts)'}
               label="New Game"
