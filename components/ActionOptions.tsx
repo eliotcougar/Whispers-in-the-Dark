@@ -64,7 +64,7 @@ function ActionOptions({
             </>}
             onClick={handleOptionClick(option)}
             preset="sky"
-            size="md"
+            size="lg"
             variant="standard"
           />
         ))}

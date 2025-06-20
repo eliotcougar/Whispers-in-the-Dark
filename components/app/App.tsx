@@ -235,9 +235,6 @@ function App() {
 
   const canPerformFreeAction = score >= FREE_FORM_ACTION_COST && !isLoading && hasGameBeenInitialized && !dialogueState;
 
-  const isInitialSceneLoading =
-    isLoading && hasGameBeenInitialized && !currentScene && !dialogueState && !isDialogueExiting;
-
   const questHighlightEntities = React.useMemo(
     () =>
       buildHighlightableEntities(
@@ -520,7 +517,7 @@ function App() {
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-3 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
           <div className="lg:col-span-2 space-y-3 flex flex-col">
-            {hasGameBeenInitialized ? <MainToolbar
+            <MainToolbar
               currentSceneExists={!!currentScene}
               currentThemeName={currentTheme ? currentTheme.name : null}
               isLoading={isLoading || !!dialogueState}
@@ -532,66 +529,57 @@ function App() {
               onOpenVisualizer={openVisualizer}
               score={score}
               turnsSinceLastShift={turnsSinceLastShift}
-                                      /> : null}
-
-            {hasGameBeenInitialized ? <div className="flex items-center my-2">
-              <ModelUsageIndicators />
-
-              <div className="flex-grow border-t border-slate-600 ml-2" />
-            </div> : null}
+            />
+              
+            <ModelUsageIndicators />
 
             {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized ? <div className="my-4 flex justify-center">
               <LoadingSpinner loadingReason={loadingReason} />
             </div> : null}
 
-            {isInitialSceneLoading ? (
-              <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-lg flex-grow min-h-48" />
-            ) : null}
-
             {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
 
+            {!hasGameBeenInitialized ? (
+              <div className="hidden lg:block bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
+            ) : (
+              <>
+                <SceneDisplay
+                  allCharacters={allCharacters}
+                  currentThemeName={currentTheme ? currentTheme.name : null}
+                  description={currentScene}
+                  inventory={inventory}
+                  lastActionLog={lastActionLog}
+                  localEnvironment={localEnvironment}
+                  localPlace={localPlace}
+                  localTime={localTime}
+                  mapData={mapData.nodes}
+                />
 
-            {hasGameBeenInitialized ? (
-              <SceneDisplay
-                allCharacters={allCharacters}
-                currentThemeName={currentTheme ? currentTheme.name : null}
-                description={currentScene}
-                inventory={inventory}
-                lastActionLog={lastActionLog}
-                localEnvironment={localEnvironment}
-                localPlace={localPlace}
-                localTime={localTime}
-                mapData={mapData.nodes}
-              />
-            ) : null}
+                <ActionOptions
+                  allCharacters={allCharacters}
+                  currentThemeName={currentTheme ? currentTheme.name : null}
+                  disabled={isLoading || !!dialogueState}
+                  inventory={inventory}
+                  mapData={mapData.nodes}
+                  onActionSelect={handleActionSelect}
+                  options={actionOptions}
+                />
 
-            {actionOptions.length > 0 && (typeof error !== 'string' || !error.includes("API Key")) && hasGameBeenInitialized ? <>
-              <ActionOptions
-                allCharacters={allCharacters}
-                currentThemeName={currentTheme ? currentTheme.name : null}
-                disabled={isLoading || !!dialogueState}
-                inventory={inventory}
-                mapData={mapData.nodes}
-                onActionSelect={handleActionSelect}
-                options={actionOptions}
-              />
-
-              <FreeActionInput
-                canPerformFreeAction={canPerformFreeAction}
-                freeFormActionText={freeFormActionText}
-                onChange={handleFreeFormActionChange}
-                onSubmit={handleFreeFormActionSubmit}
-              />
-
-            </> : null}
+                <FreeActionInput
+                  canPerformFreeAction={canPerformFreeAction}
+                  freeFormActionText={freeFormActionText}
+                  onChange={handleFreeFormActionChange}
+                  onSubmit={handleFreeFormActionSubmit}
+                />
+              </>)}
           </div>
 
           <div className="lg:col-span-2 space-y-2 flex flex-col">
-            {isInitialSceneLoading ? (
-              <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-lg flex-grow min-h-48" />
+            {!hasGameBeenInitialized ? (
+              <div className="hidden lg:block bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
             ) : (
               <>
-                {hasGameBeenInitialized && mainQuest ? (
+                { mainQuest ? (
                   <TextBox
                     backgroundColorClass="bg-purple-800/50"
                     borderColorClass="border-purple-600"
@@ -608,7 +596,7 @@ function App() {
                   />
                 ) : null}
 
-                {hasGameBeenInitialized && currentObjective ? (
+                {currentObjective ? (
                   <TextBox
                     backgroundColorClass="bg-amber-800/50"
                     borderColorClass="border-amber-600"
@@ -639,14 +627,13 @@ function App() {
                   onTakeItem={handleTakeLocationItem}
                 />
 
-                {hasGameBeenInitialized ? (
-                  <InventoryDisplay
-                    disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
-                    items={inventory}
-                    onDropItem={gameLogic.handleDropItem}
-                    onItemInteract={handleItemInteraction}
-                  />
-                ) : null}
+                <InventoryDisplay
+                  disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
+                  items={inventory}
+                  onDropItem={gameLogic.handleDropItem}
+                  onItemInteract={handleItemInteraction}
+                />
+
               </>
             )}
           </div>
