@@ -7,7 +7,6 @@ import { useState, useCallback } from 'react';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import DebugSection from './DebugSection';
-import { useToggle, useToggleMap } from '../../hooks/useToggle';
 
 import { extractJsonFromFence } from '../../utils/jsonUtils';
 import { GameStateStack, DebugPacket } from '../../types';
@@ -48,10 +47,29 @@ function DebugView({
   travelPath,
 }: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
-  const { value: showMainAIRaw, toggle: toggleShowMainAIRaw } = useToggle(true);
-  const { value: showMapAIRaw, toggle: toggleShowMapAIRaw } = useToggle(true);
-  const { value: showInventoryAIRaw, toggle: toggleShowInventoryAIRaw } = useToggle(true);
-  const { map: showConnectorChainRaw, toggle: toggleShowConnectorChainRaw } = useToggleMap<number>({});
+  const [showMainAIRaw, setShowMainAIRaw] = useState(true);
+  const [showMapAIRaw, setShowMapAIRaw] = useState(true);
+  const [showInventoryAIRaw, setShowInventoryAIRaw] = useState(true);
+  const [showConnectorChainRaw, setShowConnectorChainRaw] = useState<Record<number, boolean>>({});
+
+  const handleShowMainAIRaw = useCallback(() => { setShowMainAIRaw(true); }, []);
+  const handleShowMainAIParsed = useCallback(() => { setShowMainAIRaw(false); }, []);
+  const handleShowMapAIRaw = useCallback(() => { setShowMapAIRaw(true); }, []);
+  const handleShowMapAIParsed = useCallback(() => { setShowMapAIRaw(false); }, []);
+  const handleShowInventoryAIRaw = useCallback(() => { setShowInventoryAIRaw(true); }, []);
+  const handleShowInventoryAIParsed = useCallback(() => { setShowInventoryAIRaw(false); }, []);
+  const handleShowConnectorChainRaw = useCallback(
+    (idx: number) => () => {
+      setShowConnectorChainRaw(prev => ({ ...prev, [idx]: true }));
+    },
+    []
+  );
+  const handleShowConnectorChainParsed = useCallback(
+    (idx: number) => () => {
+      setShowConnectorChainRaw(prev => ({ ...prev, [idx]: false }));
+    },
+    []
+  );
 
   const handleTabClick = useCallback(
     (name: DebugTab) => () => { setActiveTab(name); },
@@ -158,13 +176,23 @@ function DebugView({
               title="Last Storyteller AI Request"
             />
 
-            <div className="my-2">
+            <div className="my-2 flex flex-wrap gap-2">
               <Button
-                ariaLabel="Toggle raw parsed response"
-                label="Toggle Raw/Parsed Response"
-                onClick={toggleShowMainAIRaw}
-                preset="slate"
+                ariaLabel="Show raw response"
+                label="Raw"
+                onClick={handleShowMainAIRaw}
+                preset={showMainAIRaw ? 'sky' : 'slate'}
                 pressed={showMainAIRaw}
+                size="sm"
+                variant="toggle"
+              />
+
+              <Button
+                ariaLabel="Show parsed response"
+                label="Parsed"
+                onClick={handleShowMainAIParsed}
+                preset={showMainAIRaw ? 'slate' : 'sky'}
+                pressed={!showMainAIRaw}
                 size="sm"
                 variant="toggle"
               />
@@ -216,13 +244,23 @@ function DebugView({
                   title="Cartographer AI Request"
                 />
 
-                <div className="my-2">
+                <div className="my-2 flex flex-wrap gap-2">
                   <Button
-                    ariaLabel="Toggle raw parsed map response"
-                    label="Toggle Raw/Parsed Map Update Response"
-                    onClick={toggleShowMapAIRaw}
-                    preset="slate"
+                    ariaLabel="Show raw map response"
+                    label="Raw"
+                    onClick={handleShowMapAIRaw}
+                    preset={showMapAIRaw ? 'sky' : 'slate'}
                     pressed={showMapAIRaw}
+                    size="sm"
+                    variant="toggle"
+                  />
+
+                  <Button
+                    ariaLabel="Show parsed map response"
+                    label="Parsed"
+                    onClick={handleShowMapAIParsed}
+                    preset={showMapAIRaw ? 'slate' : 'sky'}
+                    pressed={!showMapAIRaw}
                     size="sm"
                     variant="toggle"
                   />
@@ -284,13 +322,23 @@ function DebugView({
                         title={`Connector Chains Prompt (Round ${String(info.round)})`}
                       />
 
-                      <div className="my-2">
+                      <div className="my-2 flex flex-wrap gap-2">
                         <Button
-                          ariaLabel="Toggle raw parsed connector chain response"
-                          label="Toggle Raw/Parsed Connector Chains Response"
-                          onClick={toggleShowConnectorChainRaw(idx)}
-                          preset="slate"
+                          ariaLabel="Show raw connector chain response"
+                          label="Raw"
+                          onClick={handleShowConnectorChainRaw(idx)}
+                          preset={showConnectorChainRaw[idx] ?? true ? 'sky' : 'slate'}
                           pressed={showConnectorChainRaw[idx] ?? true}
+                          size="sm"
+                          variant="toggle"
+                        />
+
+                        <Button
+                          ariaLabel="Show parsed connector chain response"
+                          label="Parsed"
+                          onClick={handleShowConnectorChainParsed(idx)}
+                          preset={showConnectorChainRaw[idx] ?? true ? 'slate' : 'sky'}
+                          pressed={!(showConnectorChainRaw[idx] ?? true)}
                           size="sm"
                           variant="toggle"
                         />
@@ -413,13 +461,23 @@ function DebugView({
               title="Inventory AI Request"
             />
 
-            <div className="my-2">
+            <div className="my-2 flex flex-wrap gap-2">
               <Button
-                ariaLabel="Toggle raw parsed inventory response"
-                label="Toggle Raw/Parsed Inventory Response"
-                onClick={toggleShowInventoryAIRaw}
-                preset="slate"
+                ariaLabel="Show raw inventory response"
+                label="Raw"
+                onClick={handleShowInventoryAIRaw}
+                preset={showInventoryAIRaw ? 'sky' : 'slate'}
                 pressed={showInventoryAIRaw}
+                size="sm"
+                variant="toggle"
+              />
+
+              <Button
+                ariaLabel="Show parsed inventory response"
+                label="Parsed"
+                onClick={handleShowInventoryAIParsed}
+                preset={showInventoryAIRaw ? 'slate' : 'sky'}
+                pressed={!showInventoryAIRaw}
                 size="sm"
                 variant="toggle"
               />
