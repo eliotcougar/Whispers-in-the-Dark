@@ -153,7 +153,6 @@ function Button({
       onClick={handleClick}
       title={title}
       type={type === 'submit' ? 'submit' : type === 'reset' ? 'reset' : 'button'}
-      // eslint-disable-next-line react/jsx-props-no-spreading
       {...rest}
     >
       {icon ? (

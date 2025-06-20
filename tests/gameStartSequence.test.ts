@@ -127,7 +127,6 @@ describe('game start sequence', () => {
 
     const result = saveGameStateToLocalStorage(state);
     expect(result).toBe(true);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { setItem } = globalThis.localStorage;
     expect(setItem).toHaveBeenCalledWith(
       LOCAL_STORAGE_SAVE_KEY,

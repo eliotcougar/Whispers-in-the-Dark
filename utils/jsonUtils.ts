@@ -22,7 +22,6 @@ export const extractJsonFromFence = (raw: string): string => {
  * Attempts to parse the provided JSON string. Returns the parsed object
  * or `null` if parsing fails.
  */
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function safeParseJson<T>(jsonStr: string): T | null {
   try {
     return JSON.parse(jsonStr) as T;
