@@ -30,7 +30,7 @@ function TextBox({
   text,
   highlightEntities,
   enableMobileTap = false,
-  containerClassName = 'mb-6',
+  containerClassName = 'p-3',
   headerTag = 'h2',
   borderColorClass = 'border-amber-700',
   backgroundColorClass = '',
@@ -59,9 +59,9 @@ function TextBox({
     : children;
 
   return (
-    <section className={`${containerClassName} ${backgroundColorClass}`}>
+    <section className={`${containerClassName} ${backgroundColorClass} ${borderWidthClass} ${borderColorClass}`}>
       {header ? (
-        <div className={`mb-3 pb-1 ${borderWidthClass} ${borderColorClass} ${headerWrapperClassName}`}>
+        <div className={` ${headerWrapperClassName} `}>
           <HeadingTag
             font={headerFont}
             icon={headerIcon}
@@ -85,7 +85,7 @@ TextBox.defaultProps = {
   borderColorClass: 'border-amber-700',
   borderWidthClass: 'border-b',
   children: undefined,
-  containerClassName: 'mb-6',
+  containerClassName: 'p-3',
   contentColorClass: 'text-slate-200',
   contentFontClass: '',
   enableMobileTap: false,

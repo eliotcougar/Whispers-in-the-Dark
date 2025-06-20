@@ -47,7 +47,9 @@ function SceneDisplay({
 
   const descriptionTextBox = (
     <TextBox
-      containerClassName="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700"
+      backgroundColorClass='bg-slate-800'
+      borderColorClass="border-slate-600"
+      borderWidthClass="rounded-lg border"
       contentFontClass="leading-relaxed text-lg"
       enableMobileTap={enableMobileTap}
       highlightEntities={entitiesForHighlighting}
@@ -57,7 +59,9 @@ function SceneDisplay({
 
   const lastActionBox = lastActionLog ? (
     <TextBox
-      containerClassName="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700"
+      backgroundColorClass='bg-slate-800'
+      borderColorClass="border-slate-600"
+      borderWidthClass="rounded-lg border"
       contentColorClass="text-yellow-200"
       contentFontClass="leading-relaxed text-lg"
       enableMobileTap={enableMobileTap}
@@ -69,9 +73,8 @@ function SceneDisplay({
   const contextBox =
     localTime || localEnvironment || localPlace ? (
       <TextBox
-        borderColorClass="border-slate-700"
-        borderWidthClass="border-b"
-        containerClassName="mt-4 pt-3 border-t border-slate-700"
+        borderColorClass="border-slate-600"
+        borderWidthClass="border-t"
         contentColorClass="text-slate-300"
         contentFontClass="text-lg"
         text={`Time: ${localTime ?? 'Unknown'}. Environment: ${localEnvironment ?? 'Unknown'} Location: ${localPlace ?? 'Unknown'}`}
@@ -79,7 +82,7 @@ function SceneDisplay({
     ) : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {lastActionBox}
 
       {descriptionTextBox}
