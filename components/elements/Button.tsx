@@ -162,7 +162,11 @@ function Button({
         </span>
       ) : null}
 
-      {displayLabel}
+      {displayLabel ? (
+        <span className="flex-1">
+          {displayLabel}
+        </span>
+      ) : null}
     </button>
   );
 }
