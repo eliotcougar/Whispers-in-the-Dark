@@ -73,9 +73,10 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
             borderWidthClass="border-b-2"
             containerClassName="mb-6"
             header={infoContent.title}
-            headerColorClass="text-sky-300"
-            headerFontClass="text-3xl font-bold text-center"
+            headerFont="3xl"
+            headerPreset="sky"
             headerTag="h1"
+            headerWrapperClassName="text-center"
           />
 
           {infoContent.sections.map(section => (

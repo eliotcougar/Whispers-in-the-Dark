@@ -53,9 +53,10 @@ function HistoryDisplay({
             borderWidthClass="border-b-2"
             containerClassName="mt-4 mb-4"
             header="History"
-            headerColorClass="text-purple-400"
-            headerFontClass="text-2xl font-semibold text-center"
+            headerFont="2xl"
+            headerPreset="purple"
             headerTag="h2"
+            headerWrapperClassName="text-center"
           />
 
           <GameLogDisplay messages={gameLog} />
@@ -65,9 +66,10 @@ function HistoryDisplay({
             borderWidthClass="border-b-2"
             containerClassName="mt-4 mb-4"
             header="Echoes of Past Realities"
-            headerColorClass="text-purple-400"
-            headerFontClass="text-2xl font-semibold text-center"
+            headerFont="2xl"
+            headerPreset="purple"
             headerTag="h2"
+            headerWrapperClassName="text-center"
           />
           
           {rememberedThemes.length === 0 && (

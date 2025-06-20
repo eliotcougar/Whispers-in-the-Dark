@@ -588,8 +588,8 @@ function App() {
                 contentFontClass="text-lg"
                 enableMobileTap={enableMobileTap}
                 header="Main Quest"
-                headerColorClass="text-purple-200"
-                headerFontClass="text-lg font-semibold"
+                headerFont="lg"
+                headerPreset="purple"
                 headerTag="h3"
                 highlightEntities={questHighlightEntities}
                 text={mainQuest}
@@ -612,8 +612,8 @@ function App() {
                 contentFontClass="text-lg"
                 enableMobileTap={enableMobileTap}
                 header="Current Objective"
-                headerColorClass="text-amber-200"
-                headerFontClass="text-lg font-semibold"
+                headerFont="lg"
+                headerPreset="amber"
                 headerTag="h3"
                 highlightEntities={questHighlightEntities}
                 text={currentObjective}

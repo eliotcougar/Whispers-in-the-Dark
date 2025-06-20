@@ -1,5 +1,6 @@
 
-import type { ReactNode, ElementType } from 'react';
+import type { ReactNode } from 'react';
+import HeadingTag, { type HeadingTagProps } from './HeadingTag';
 import type { HighlightableEntity } from '../../utils/highlightHelper';
 import { highlightEntitiesInText } from '../../utils/highlightHelper';
 
@@ -14,8 +15,9 @@ export interface TextBoxProps {
   readonly borderColorClass?: string;
   readonly backgroundColorClass?: string;
   readonly borderWidthClass?: string;
-  readonly headerFontClass?: string;
-  readonly headerColorClass?: string;
+  readonly headerFont?: HeadingTagProps['font'];
+  readonly headerPreset?: HeadingTagProps['preset'];
+  readonly headerWrapperClassName?: string;
   readonly contentFontClass?: string;
   readonly contentColorClass?: string;
   readonly headerIcon?: ReactNode;
@@ -33,10 +35,11 @@ function TextBox({
   borderColorClass = 'border-amber-700',
   backgroundColorClass = '',
   borderWidthClass = 'border-b',
-  headerFontClass = 'text-2xl font-semibold',
-  headerColorClass = 'text-amber-400',
+  headerFont = '2xl',
+  headerPreset = 'amber',
+  headerWrapperClassName = '',
   contentFontClass = '',
-  contentColorClass = 'text-slate-300',
+  contentColorClass = 'text-slate-200',
 }: TextBoxProps) {
   const content = text
     ? text.split('\n').map(para => (
@@ -55,22 +58,19 @@ function TextBox({
     ))
     : children;
 
-  const HeadingTag: ElementType = headerTag;
-
   return (
     <section className={`${containerClassName} ${backgroundColorClass}`}>
       {header ? (
-        <HeadingTag
-          className={`${headerFontClass} ${headerColorClass} mb-3 pb-1 ${borderWidthClass} ${borderColorClass}`}
-        >
-          {headerIcon ? (
-            <span className="mr-2 inline-flex">
-              {headerIcon}
-            </span>
-          ) : null}
-
-          {header}
-        </HeadingTag>
+        <div className={`mb-3 pb-1 ${borderWidthClass} ${borderColorClass} ${headerWrapperClassName}`}>
+          <HeadingTag
+            font={headerFont}
+            icon={headerIcon}
+            preset={headerPreset}
+            tag={headerTag}
+          >
+            {header}
+          </HeadingTag>
+        </div>
       ) : null}
 
       <div className={`${contentFontClass} ${contentColorClass}`}>
@@ -86,14 +86,15 @@ TextBox.defaultProps = {
   borderWidthClass: 'border-b',
   children: undefined,
   containerClassName: 'mb-6',
-  contentColorClass: 'text-slate-300',
+  contentColorClass: 'text-slate-200',
   contentFontClass: '',
   enableMobileTap: false,
   header: undefined,
-  headerColorClass: 'text-amber-400',
-  headerFontClass: 'text-2xl font-semibold',
+  headerFont: '2xl',
   headerIcon: undefined,
+  headerPreset: 'amber',
   headerTag: 'h2',
+  headerWrapperClassName: '',
   highlightEntities: undefined,
   text: undefined,
 };

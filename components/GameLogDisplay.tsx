@@ -56,10 +56,11 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
       contentColorClass=""
       contentFontClass=""
       header={header}
-      headerColorClass="text-emerald-400"
-      headerFontClass="text-xl font-bold flex items-center"
+      headerFont="xl"
       headerIcon={headerIcon}
+      headerPreset="emerald"
       headerTag="h3"
+      headerWrapperClassName="flex items-center"
     >
       <ul className="space-y-2 text-sm">
         {logItems}
