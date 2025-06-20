@@ -8,6 +8,7 @@ import { useCallback } from 'react';
 import { AdventureTheme, ThemePackName } from '../../types';
 import { THEME_PACKS } from '../../themes';
 import Button from '../elements/Button';
+import ThemeCard from '../elements/ThemeCard';
 import { Icon } from '../elements/icons';
 
 interface CustomGameSetupScreenProps {
@@ -103,29 +104,12 @@ function CustomGameSetupScreen({
                       {themesInPack.map(theme => {
                         const isDisabled = theme.name === disabledThemeName;
                         return (
-                          <button
-                            aria-label={`Start a new game in the theme: ${theme.name}${isDisabled ? ' (Current theme, cannot select)' : ''}`}
-                            className={`p-3 bg-slate-700 hover:bg-slate-600/80 border border-slate-600 hover:border-sky-500 rounded-lg shadow-md
-                                       text-left text-slate-100 transition-all duration-150 ease-in-out transform hover:scale-[1.03] focus:ring-2 focus:ring-sky-400 focus:outline-none
-                                       ${isDisabled ? 'opacity-50 cursor-not-allowed hover:bg-slate-700 hover:border-slate-600 hover:scale-100' : ''}`}
+                          <ThemeCard
                             disabled={isDisabled}
                             key={theme.name}
-                            onClick={handleThemeSelect(theme.name)}
-                            style={{ minHeight: '180px' }}
-                            type="button"
-                          >
-                            <h3 className="text-xl font-semibold text-amber-400 mb-2">
-                              {theme.name}
-                            </h3>
-
-                            <p className="text-sm text-slate-300 leading-snug line-clamp-8">
-                              {theme.initialSceneDescriptionSeed}
-                            </p>
-
-                            {isDisabled ? <p className="text-xs text-orange-300 mt-1 italic">
-                              (Currently active theme)
-                            </p> : null}
-                          </button>
+                            onSelect={handleThemeSelect(theme.name)}
+                            theme={theme}
+                          />
                         );
                       })}
                     </div>
