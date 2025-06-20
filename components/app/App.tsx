@@ -544,17 +544,19 @@ function App() {
             {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
 
 
-            <SceneDisplay
-              allCharacters={allCharacters}
-              currentThemeName={currentTheme ? currentTheme.name : null}
-              description={hasGameBeenInitialized ? currentScene : " "}
-              inventory={inventory}
-              lastActionLog={hasGameBeenInitialized ? lastActionLog : null}
-              localEnvironment={localEnvironment}
-              localPlace={localPlace}
-              localTime={localTime}
-              mapData={mapData.nodes}
-            />
+            {hasGameBeenInitialized ? (
+              <SceneDisplay
+                allCharacters={allCharacters}
+                currentThemeName={currentTheme ? currentTheme.name : null}
+                description={currentScene}
+                inventory={inventory}
+                lastActionLog={lastActionLog}
+                localEnvironment={localEnvironment}
+                localPlace={localPlace}
+                localTime={localTime}
+                mapData={mapData.nodes}
+              />
+            ) : null}
 
             {actionOptions.length > 0 && (typeof error !== 'string' || !error.includes("API Key")) && hasGameBeenInitialized ? <>
               <ActionOptions
@@ -626,12 +628,14 @@ function App() {
               onTakeItem={handleTakeLocationItem}
             />
 
-            <InventoryDisplay
-              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
-              items={inventory}
-              onDropItem={gameLogic.handleDropItem}
-              onItemInteract={handleItemInteraction}
-            />
+            {hasGameBeenInitialized ? (
+              <InventoryDisplay
+                disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
+                items={inventory}
+                onDropItem={gameLogic.handleDropItem}
+                onItemInteract={handleItemInteraction}
+              />
+            ) : null}
           </div>
         </main>
 
