@@ -101,13 +101,16 @@ export const buildDialogueTurnPrompt = (
 Context for Dialogue Turn:
 - Current Theme: "${currentTheme.name}"
 - System Instruction Modifier for Theme: "${currentTheme.systemInstructionModifier}"
-  - Current Main Quest: "${currentQuest ?? 'Not set'}"
-  - Current Objective: "${currentObjective ?? 'Not set'}"
-  - Scene Description (for environmental context): "${currentScene}"
-  - Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}"
+- Current Main Quest: "${currentQuest ?? 'Not set'}"
+- Current Objective: "${currentObjective ?? 'Not set'}"
+- Scene Description (for environmental context): "${currentScene}"
+- Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}"
 - Player's Character Gender: ${playerGender}
-- Player's Inventory: ${inventoryString}
-- Known Locations: ${knownPlacesString}
+
+- Player's Inventory:
+${inventoryString}
+- Known Locations:
+${knownPlacesString}
 - ${characterContextString}
 - Current Dialogue Participants: ${dialogueParticipants.join(', ')}
 ${pastDialogueSummariesContext.trim() ? pastDialogueSummariesContext : '\n- No specific past dialogue summaries available for current participants.'}
@@ -160,13 +163,16 @@ export const buildDialogueSummaryPrompt = (
 Context for Dialogue Summary:
 - Current Theme: "${summaryContext.currentThemeObject?.name ?? summaryContext.themeName}"
 - System Instruction Modifier for Theme: "${summaryContext.currentThemeObject?.systemInstructionModifier ?? 'None'}"
-  - Current Main Quest (before dialogue): "${summaryContext.mainQuest ?? 'Not set'}"
-  - Current Objective (before dialogue): "${summaryContext.currentObjective ?? 'Not set'}"
+- Current Main Quest (before dialogue): "${summaryContext.mainQuest ?? 'Not set'}"
+- Current Objective (before dialogue): "${summaryContext.currentObjective ?? 'Not set'}"
 - Scene Description (when dialogue started): "${summaryContext.currentScene}"
-  - Local Time: "${summaryContext.localTime ?? 'Unknown'}", Environment: "${summaryContext.localEnvironment ?? 'Undetermined'}", Place: "${summaryContext.localPlace ?? 'Undetermined'}"
+- Local Time: "${summaryContext.localTime ?? 'Unknown'}", Environment: "${summaryContext.localEnvironment ?? 'Undetermined'}", Place: "${summaryContext.localPlace ?? 'Undetermined'}"
 - Player's Character Gender: "${summaryContext.playerGender}"
-- Player's Inventory (before dialogue): ${inventoryString}
-- Known Locations (before dialogue): ${knownPlacesString}
+
+- Player's Inventory (before dialogue):
+${inventoryString}
+- Known Locations (before dialogue):
+${knownPlacesString}
 - ${knownCharactersString}
 - Dialogue Participants: ${summaryContext.dialogueParticipants.join(', ')}
 
