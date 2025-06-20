@@ -138,7 +138,6 @@ function TitleMenu({
 
         {/* Version Number Display */}
         <VersionBadge
-          className="absolute bottom-4 right-4"
           version={CURRENT_GAME_VERSION}
         />
       </div>
