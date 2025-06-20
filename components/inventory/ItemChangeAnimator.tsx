@@ -4,7 +4,10 @@
  */
 import { Item, TurnChanges } from '../../types';
 import ItemTypeDisplay from './ItemTypeDisplay';
+import Button from '../elements/Button';
 import { useItemChangeQueue } from '../../hooks/useItemChangeQueue';
+
+const noop = () => undefined;
 
 interface ItemChangeAnimatorProps {
   readonly lastTurnChanges: TurnChanges | null;
@@ -49,47 +52,51 @@ function ItemChangeAnimator({ lastTurnChanges, isGameBusy }: ItemChangeAnimatorP
 
       <div className="space-y-1 mt-auto">
         {item.knownUses?.map(ku => (
-          <button
+          <Button
             aria-hidden="true"
-            className="w-full text-xs bg-slate-500/70 text-slate-400 font-medium py-1 px-2 rounded shadow cursor-not-allowed"
+            ariaLabel={ku.actionName}
             disabled
             key={`${item.name}-anim-ku-${ku.actionName}`}
+            label={ku.actionName}
+            onClick={noop}
+            preset="slate"
+            size="sm"
             title={ku.description ?? ku.actionName}
-            type="button"
-          >
-            {ku.actionName}
-          </button>
+          />
         ))}
 
-        <button
+        <Button
           aria-hidden="true"
-          className="w-full text-sm bg-slate-500/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
+          ariaLabel="Inspect"
           disabled
-          type="button"
-        >
-          Inspect
-        </button>
+          label="Inspect"
+          onClick={noop}
+          preset="slate"
+          size="sm"
+        />
 
         {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
-          <button
+          <Button
             aria-hidden="true"
-            className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
+            ariaLabel="Attempt to Use (Generic)"
             disabled
-            type="button"
-          >
-            Attempt to Use (Generic)
-          </button>
+            label="Attempt to Use (Generic)"
+            onClick={noop}
+            preset="slate"
+            size="sm"
+          />
         )}
 
         {item.type === 'vehicle' && (
-          <button
+          <Button
             aria-hidden="true"
-            className="w-full text-sm bg-slate-600/70 text-slate-400 font-medium py-1.5 px-3 rounded shadow cursor-not-allowed"
+            ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
             disabled
-            type="button"
-          >
-            {item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
-          </button>
+            label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
+            onClick={noop}
+            preset="slate"
+            size="sm"
+          />
         )}
       </div>
     </>

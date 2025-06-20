@@ -3,6 +3,8 @@
  * @description Shows an error message with optional retry.
  */
 
+import Button from './elements/Button';
+
 interface ErrorDisplayProps {
   readonly message: string;
   readonly onRetry?: () => void;
@@ -38,13 +40,14 @@ function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
       </p>
 
       {onRetry ? (
-        <button
-          className="bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded shadow transition duration-150 ease-in-out"
+        <Button
+          ariaLabel="Try again after error"
+          label="Try Again"
           onClick={onRetry}
-          type="button"
-        >
-          Try Again
-        </button>
+          preset="red"
+          size="md"
+          variant="compact"
+        />
       ) : null}
     </div>
   );
