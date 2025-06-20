@@ -11,7 +11,7 @@ import {
   ValidNewCharacterPayload,
   DialogueSetupPayload,
 } from '../../types';
-import { VALID_ITEM_TYPES, VALID_PRESENCE_STATUS_VALUES } from '../../constants';
+import { PLAYER_HOLDER_ID, VALID_ITEM_TYPES, VALID_PRESENCE_STATUS_VALUES } from '../../constants';
 import { normalizeItemType } from '../../utils/itemSynonyms';
 
 export function isValidKnownUse(ku: unknown): ku is KnownUse {
@@ -28,6 +28,7 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
 export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
   if (!item || typeof item !== 'object') return false;
   const obj = item as Partial<Item>;
+  const contextLabel = context ?? 'default';
 
   if (typeof obj.type === 'string') {
     const normalized = normalizeItemType(obj.type);
@@ -43,16 +44,20 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
   // Fields required for 'gain' or if it's not an 'update' context
   if (context === 'gain' || !context) {
     if (typeof obj.type !== 'string' || !VALID_ITEM_TYPES.includes(obj.type)) {
-        console.warn(`isValidItem (context: ${context ?? 'default'}): 'type' is missing or invalid.`, item);
+        console.warn(`isValidItem (context: ${contextLabel}): 'type' is missing or invalid.`, item);
         return false;
     }
     if (typeof obj.description !== 'string' || obj.description.trim() === '') {
-        console.warn(`isValidItem (context: ${context ?? 'default'}): 'description' is missing or invalid.`, item);
+        console.warn(`isValidItem (context: ${contextLabel}): 'description' is missing or invalid.`, item);
         return false;
     }
     if (typeof obj.holderId !== 'string' || obj.holderId.trim() === '') {
-        console.warn(`isValidItem (context: ${context ?? 'default'}): 'holderId' is missing or invalid.`, item);
-        return false;
+        if (context === 'gain') {
+            obj.holderId = PLAYER_HOLDER_ID;
+        } else {
+            console.warn(`isValidItem (context: ${contextLabel}): 'holderId' is missing or invalid.`, item);
+            return false;
+        }
     }
   }
 
