@@ -1,4 +1,4 @@
-{
+const mapNodeSynonyms = {
   "status": {
     "unknown": "undiscovered",
     "unexplored": "undiscovered",
@@ -123,6 +123,8 @@
     "lost",
     "obliterated",
     "terminated",
-    "discarded"
+  "discarded"
   ]
-}
+};
+
+export default mapNodeSynonyms;

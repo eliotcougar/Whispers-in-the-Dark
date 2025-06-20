@@ -1,4 +1,4 @@
-{
+const itemTypeSynonyms = {
   "type": {
     "single use": "single-use",
     "single-use item": "single-use",
@@ -13,4 +13,6 @@
     "ammunition": "ammunition",
     "projectiles": "ammunition"
   }
-}
+};
+
+export default itemTypeSynonyms;

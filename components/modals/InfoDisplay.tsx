@@ -7,7 +7,7 @@ import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import TextBox from '../elements/TextBox';
 import ChangelogVersion from '../elements/ChangelogVersion';
-import infoContentRaw from '../../resources/infoDisplayContent.json';
+import infoContentRaw from '../../resources/infoDisplayContent';
 import {
   CURRENT_SAVE_GAME_VERSION,
   GEMINI_MODEL_NAME,

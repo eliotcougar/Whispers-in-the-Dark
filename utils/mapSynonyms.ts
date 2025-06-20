@@ -1,6 +1,6 @@
 import { MapNodeData, MapEdgeData } from '../types';
-import nodeSynonymsRaw from '../resources/mapNodeSynonyms.json';
-import edgeSynonymsRaw from '../resources/mapEdgeSynonyms.json';
+import nodeSynonymsRaw from '../resources/mapNodeSynonyms';
+import edgeSynonymsRaw from '../resources/mapEdgeSynonyms';
 
 const nodeSynonyms = nodeSynonymsRaw as {
   status: Record<string, MapNodeData['status']>;
