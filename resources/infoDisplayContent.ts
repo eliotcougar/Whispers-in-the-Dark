@@ -49,6 +49,15 @@ const infoDisplayContent = {
   ],
   "changelog": [
     {
+      "title": "Version 1.3.2 (bugfix)",
+      "items": [
+        "Major refactor and cleanup of the codebase.",
+        "Cleaned up the design a little bit.",
+        "You can now pinch-zoom visualized images on mobile devices.",
+        "You can now see the info about highlighted entities in the Scene description."
+      ]
+    },
+    {
       "title": "Version 1.3.1 (bugfix)",
       "items": [
         "Fixed some bugs here and there.",
