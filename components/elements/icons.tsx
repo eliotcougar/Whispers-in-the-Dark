@@ -17,6 +17,8 @@ import NearbyNpcIcon from './icons/nearby_npc.svg?react';
 import MapItemBoxIcon from './icons/map_item_box.svg?react';
 import MapWheelIcon from './icons/map_wheel.svg?react';
 import XIcon from './icons/x.svg?react';
+import ClockIcon from './icons/clock.svg?react';
+import ErrorIcon from './icons/error.svg?react';
 
 const iconMap = {
   realityShift: RealityShiftIcon,
@@ -34,18 +36,37 @@ const iconMap = {
   nearbyNpc: NearbyNpcIcon,
   mapItemBox: MapItemBoxIcon,
   mapWheel: MapWheelIcon,
+  clock: ClockIcon,
+  error: ErrorIcon,
   x: XIcon,
 } as const;
 
 export type IconName = keyof typeof iconMap;
 
 export type IconColor =
+  | 'slate'
+  | 'gray'
+  | 'zinc'
+  | 'neutral'
+  | 'stone'
+  | 'red'
+  | 'orange'
   | 'amber'
-  | 'emerald'
+  | 'yellow'
+  | 'lime'
   | 'green'
-  | 'white'
+  | 'emerald'
+  | 'teal'
+  | 'cyan'
   | 'sky'
-  | 'indigo';
+  | 'blue'
+  | 'indigo'
+  | 'violet'
+  | 'purple'
+  | 'fuchsia'
+  | 'pink'
+  | 'rose'
+  | 'white';
 
 export interface IconProps {
   readonly name: IconName;
@@ -70,12 +91,29 @@ export function Icon({
   const SvgIcon = iconMap[name];
 
   const colorClasses: Record<IconColor, string> = {
+    slate: 'text-slate-400',
+    gray: 'text-gray-400',
+    zinc: 'text-zinc-400',
+    neutral: 'text-neutral-400',
+    stone: 'text-stone-400',
+    red: 'text-red-400',
+    orange: 'text-orange-400',
     amber: 'text-amber-400',
-    emerald: 'text-emerald-400',
+    yellow: 'text-yellow-400',
+    lime: 'text-lime-400',
     green: 'text-green-400',
-    white: 'text-white',
+    emerald: 'text-emerald-400',
+    teal: 'text-teal-400',
+    cyan: 'text-cyan-400',
     sky: 'text-sky-400',
+    blue: 'text-blue-400',
     indigo: 'text-indigo-400',
+    violet: 'text-violet-400',
+    purple: 'text-purple-400',
+    fuchsia: 'text-fuchsia-400',
+    pink: 'text-pink-400',
+    rose: 'text-rose-400',
+    white: 'text-white',
   };
 
   const wrapperClasses = [
