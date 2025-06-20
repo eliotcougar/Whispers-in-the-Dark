@@ -4,7 +4,7 @@
  * @file ImageVisualizer.tsx
  * @description Requests and displays AI generated images.
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { geminiClient as ai, isApiConfigured } from '../../services/apiClient';
 import type { Part } from '@google/genai';
@@ -68,6 +68,85 @@ function ImageVisualizer({
   const [internalImageUrl, setInternalImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imgScale, setImgScale] = useState(1);
+  const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
+  const [isDraggingImg, setIsDraggingImg] = useState(false);
+  const [lastTouchPoint, setLastTouchPoint] = useState<{ x: number; y: number } | null>(null);
+  const [lastPinchDistance, setLastPinchDistance] = useState<number | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const clamp = (value: number, min: number, max: number): number => {
+    return Math.min(max, Math.max(min, value));
+  };
+
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.cancelable) e.preventDefault();
+    const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+    setImgScale(prev => clamp(prev * zoomFactor, 1, 4));
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDraggingImg(true);
+    setLastTouchPoint({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingImg || !lastTouchPoint) return;
+    const dx = e.clientX - lastTouchPoint.x;
+    const dy = e.clientY - lastTouchPoint.y;
+    setImgOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+    setLastTouchPoint({ x: e.clientX, y: e.clientY });
+  }, [isDraggingImg, lastTouchPoint]);
+
+  const endMouseDrag = useCallback(() => {
+    setIsDraggingImg(false);
+    setLastTouchPoint(null);
+  }, []);
+
+  const getTouchDistance = (t1: React.Touch, t2: React.Touch): number => {
+    return Math.sqrt((t1.clientX - t2.clientX) ** 2 + (t1.clientY - t2.clientY) ** 2);
+  };
+
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.cancelable) e.preventDefault();
+    if (e.touches.length === 1) {
+      setIsDraggingImg(true);
+      setLastTouchPoint({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+      setLastPinchDistance(null);
+    } else if (e.touches.length === 2) {
+      setIsDraggingImg(false);
+      setLastTouchPoint(null);
+      setLastPinchDistance(getTouchDistance(e.touches[0], e.touches[1]));
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.cancelable) e.preventDefault();
+    if (e.touches.length === 1 && isDraggingImg && lastTouchPoint) {
+      const touch = e.touches[0];
+      const dx = touch.clientX - lastTouchPoint.x;
+      const dy = touch.clientY - lastTouchPoint.y;
+      setImgOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+      setLastTouchPoint({ x: touch.clientX, y: touch.clientY });
+    } else if (e.touches.length === 2 && lastPinchDistance !== null) {
+      const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
+      if (currentDistance === 0) return;
+      setImgScale(prev => clamp(prev * (currentDistance / lastPinchDistance), 1, 4));
+      setLastPinchDistance(currentDistance);
+    }
+  }, [isDraggingImg, lastTouchPoint, lastPinchDistance]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length < 2) setLastPinchDistance(null);
+    if (e.touches.length < 1) {
+      setIsDraggingImg(false);
+      setLastTouchPoint(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    setImgScale(1);
+    setImgOffset({ x: 0, y: 0 });
+  }, [internalImageUrl]);
 
   /**
    * Maps the current theme to a concise style string for the prompt.
@@ -288,20 +367,35 @@ function ImageVisualizer({
           </button>
         </div> : null}
 
-        {!isLoading && !error && internalImageUrl ? <div className="visualizer-image-container">
-          <img
-            alt="Scene visualization"
-            className="visualizer-image"
-            src={internalImageUrl}
-          />
-
-          <h2
-            className="sr-only"
-            id="visualizer-title"
+        {!isLoading && !error && internalImageUrl ? (
+          <div
+            className="visualizer-image-container"
+            onMouseDown={handleMouseDown}
+            onMouseLeave={endMouseDrag}
+            onMouseMove={handleMouseMove}
+            onMouseUp={endMouseDrag}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
+            onTouchStart={handleTouchStart}
+            onWheel={handleWheel}
+            role="presentation"
           >
-            Scene Visualization
-          </h2>
-        </div> : null}
+            <img
+              alt="Scene visualization"
+              className="visualizer-image"
+              ref={imageRef}
+              src={internalImageUrl}
+              style={{ transform: `translate(${String(imgOffset.x)}px, ${String(imgOffset.y)}px) scale(${String(imgScale)})` }}
+            />
+
+            <h2
+              className="sr-only"
+              id="visualizer-title"
+            >
+              Scene Visualization
+            </h2>
+          </div>
+        ) : null}
 
         {!isLoading && !error && !internalImageUrl && isVisible ? <div className="visualizer-spinner-container">
           <p

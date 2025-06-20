@@ -109,6 +109,12 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.visualizer-image-container:active {
+  cursor: grabbing;
 }
 .visualizer-image {
   max-width: 100%;
@@ -116,6 +122,7 @@ body {
   object-fit: contain;
   border-radius: 0.25rem;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 .visualizer-spinner-container,
 .visualizer-error-container {
