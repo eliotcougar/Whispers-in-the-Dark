@@ -21,7 +21,7 @@ function ModelUsageIndicators() {
   return (
     <div
       aria-label="Model usage last minute"
-      className="flex space-x-1"
+      className="flex space-x-1 items-center my-2"
     >
       {Object.values(usage).map(info => {
         const pct = info.count / info.limit;
@@ -35,6 +35,8 @@ function ModelUsageIndicators() {
           />
         );
       })}
+
+      <div className="flex-grow border-t border-slate-600 ml-2" />
     </div>
   );
 }
