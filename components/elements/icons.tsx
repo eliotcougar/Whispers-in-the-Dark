@@ -78,12 +78,14 @@ export function Icon({
     indigo: 'text-indigo-400',
   };
 
-  const svgClasses = [color ? colorClasses[color] : '']
+  const wrapperClasses = [
+    inline ? 'inline-block' : '',
+    color ? colorClasses[color] : '',
+  ]
     .filter(Boolean)
     .join(' ');
 
   const style = marginRight ? { marginRight } : undefined;
-  const wrapperClasses = inline ? 'inline-block' : undefined;
 
   if (wrapper === 'g') {
     return (
@@ -92,7 +94,6 @@ export function Icon({
         style={style}
       >
         <SvgIcon
-          className={svgClasses}
           height={size}
           width={size}
         />
@@ -105,7 +106,6 @@ export function Icon({
       style={style}
     >
       <SvgIcon
-        className={svgClasses}
         height={size}
         width={size}
       />

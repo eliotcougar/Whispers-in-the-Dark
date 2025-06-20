@@ -56,8 +56,9 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
       contentColorClass=""
       contentFontClass=""
       header={header}
-      headerColorClass="text-emerald-400"
-      headerFontClass="text-xl font-bold flex items-center"
+      headerFont="xl"
+      headerPreset="emerald"
+      headerWrapperClassName="flex items-center"
       headerIcon={headerIcon}
       headerTag="h3"
     >
