@@ -4,6 +4,7 @@
  * @description Main title screen with game start options.
  */
 import { CURRENT_GAME_VERSION } from '../../constants';
+import AppHeader from '../app/AppHeader';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import VersionBadge from '../elements/VersionBadge';
@@ -60,18 +61,11 @@ function TitleMenu({
         ) : null}
 
         <div className="flex flex-col items-center justify-center h-full w-full p-4 text-center">
-          <header className="mb-10 md:mb-12">
-            <h1
-              className="text-4xl sm:text-5xl md:text-6xl font-bold text-sky-400 tracking-wider title-font"
-              id="title-menu-heading"
-            >
-              Whispers in the Dark
-            </h1>
-
-            <p className="text-slate-400 text-lg md:text-xl mt-2">
-              An Adventure in Shifting Realities
-            </p>
-          </header>
+          <AppHeader
+            currentTheme={null} // No theme in title menu
+            hasGameBeenInitialized={isGameActive}
+            isCustomGameMode={false} // Custom game mode not applicable here 
+          />
 
           <div className="space-y-4 sm:space-y-5 w-full max-w-xs sm:max-w-sm">
             <Button

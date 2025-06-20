@@ -17,9 +17,12 @@ function AppHeader({
         Whispers in the Dark
       </h1>
 
+      <p className="text-slate-400 text-lg">
+        An Adventure in Shifting Realities
+      </p>
+
       {hasGameBeenInitialized ? (
-        <p className="text-slate-400 text-lg">
-          An Adventure in Shifting Realities
+        <p>
           {isCustomGameMode ? (
             <span className="block text-xs text-orange-400">
               (Custom Game - Random Shifts Disabled)
@@ -28,8 +31,6 @@ function AppHeader({
 
           {currentTheme ? (
             <span className="block text-xs text-purple-400">
-              Current Theme:
-              {' '}
 
               {currentTheme.name}
             </span>
