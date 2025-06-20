@@ -21,9 +21,20 @@ const showMobileTooltip = (text: string, rect: DOMRect) => {
   div.style.left = `${String(Math.max(4, Math.min(left, window.innerWidth - div.offsetWidth - 4)))}px`;
   div.style.top = `${String(top)}px`;
 
-  const remove = () => { div.remove(); };
-  div.addEventListener('click', remove);
-  setTimeout(remove, 2500);
+  const remove = () => {
+    div.remove();
+    document.removeEventListener('click', handleDocumentClick);
+  };
+
+  const handleDocumentClick = (event: MouseEvent) => {
+    if (!div.contains(event.target as Node)) {
+      remove();
+    }
+  };
+
+  setTimeout(() => {
+    document.addEventListener('click', handleDocumentClick);
+  }, 0);
 };
 // Item and Character types are fine. Place-like entities will be mapped to HighlightableEntity.
 // No direct type change needed here as long as the calling components map MapNode data to HighlightableEntity structure.
