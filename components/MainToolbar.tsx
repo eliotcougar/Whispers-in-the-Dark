@@ -63,20 +63,13 @@ function MainToolbar({
           className="flex items-center p-2 border border-indigo-500 rounded-md shadow-md"
           title={`Turns since last reality shift: ${String(turnsSinceLastShift)}`}
                             >
-          <svg
-            className="h-5 w-5 mr-2 text-indigo-400"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <Icon
+            color="indigo"
+            inline
+            marginRight={8}
+            name="clock"
+            size={20}
+          />
 
           <span className="text-indigo-400 font-semibold text-lg">
             {turnsSinceLastShift}
