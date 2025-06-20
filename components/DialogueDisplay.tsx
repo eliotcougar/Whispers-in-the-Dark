@@ -113,7 +113,7 @@ function DialogueDisplay({
               onClick={handleOptionClick}
               preset="sky"
               size="md"
-              variant="left"
+              variant="standard"
             />
           ))}
         </div>

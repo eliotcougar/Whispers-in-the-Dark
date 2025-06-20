@@ -17,7 +17,7 @@ export interface ButtonProps {
   readonly type?: 'button' | 'submit' | 'reset';
   readonly variant?:
     | 'standard'
-    | 'left'
+    | 'center'
     | 'compact'
     | 'toolbar'
     | 'toggle'
@@ -80,18 +80,18 @@ function Button({
 
   const appliedSize =
     variant === 'standard' ||
-    variant === 'left' ||
+    variant === 'center' ||
     variant === 'compact' ||
     variant === 'primary'
       ? sizeClasses[size]
       : '';
 
   const variantClasses: Record<
-    'standard' | 'left' | 'compact' | 'toolbar' | 'toggle' | 'close' | 'tab' | 'primary',
+    'standard' | 'center' | 'compact' | 'toolbar' | 'toggle' | 'close' | 'tab' | 'primary',
     string
   > = {
     standard: 'w-full flex items-center justify-center',
-    left: 'w-full flex items-start justify-start text-left',
+    center: 'w-full flex items-center text-center',
     compact: 'inline-flex items-center justify-center',
     toolbar: 'flex items-center justify-center w-9 h-9 p-2',
     toggle: 'inline-flex items-center justify-center px-3 py-1 text-xs',
