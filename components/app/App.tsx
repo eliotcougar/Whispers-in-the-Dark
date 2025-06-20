@@ -517,7 +517,7 @@ function App() {
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-3 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
           <div className="lg:col-span-2 space-y-3">
-            {hasGameBeenInitialized ? <MainToolbar
+            <MainToolbar
               currentSceneExists={!!currentScene}
               currentThemeName={currentTheme ? currentTheme.name : null}
               isLoading={isLoading || !!dialogueState}
@@ -529,13 +529,9 @@ function App() {
               onOpenVisualizer={openVisualizer}
               score={score}
               turnsSinceLastShift={turnsSinceLastShift}
-                                      /> : null}
+            />
 
-            {hasGameBeenInitialized ? <div className="flex items-center my-2">
-              <ModelUsageIndicators />
-
-              <div className="flex-grow border-t border-slate-600 ml-2" />
-            </div> : null}
+            <ModelUsageIndicators />
 
             {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized ? <div className="my-4 flex justify-center">
               <LoadingSpinner loadingReason={loadingReason} />
