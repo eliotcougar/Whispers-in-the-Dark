@@ -235,6 +235,9 @@ function App() {
 
   const canPerformFreeAction = score >= FREE_FORM_ACTION_COST && !isLoading && hasGameBeenInitialized && !dialogueState;
 
+  const isInitialSceneLoading =
+    isLoading && hasGameBeenInitialized && !currentScene && !dialogueState && !isDialogueExiting;
+
   const questHighlightEntities = React.useMemo(
     () =>
       buildHighlightableEntities(
@@ -516,7 +519,7 @@ function App() {
         </div> : null}
 
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-3 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
-          <div className="lg:col-span-2 space-y-3">
+          <div className="lg:col-span-2 space-y-3 flex flex-col">
             {hasGameBeenInitialized ? <MainToolbar
               currentSceneExists={!!currentScene}
               currentThemeName={currentTheme ? currentTheme.name : null}
@@ -540,6 +543,10 @@ function App() {
             {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized ? <div className="my-4 flex justify-center">
               <LoadingSpinner loadingReason={loadingReason} />
             </div> : null}
+
+            {isInitialSceneLoading ? (
+              <div className="hidden lg:block bg-slate-800 border border-slate-700 rounded-lg flex-grow" />
+            ) : null}
 
             {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
 
@@ -580,62 +587,68 @@ function App() {
           </div>
 
           <div className="lg:col-span-2 space-y-2 flex flex-col">
-            {hasGameBeenInitialized && mainQuest ? (
-              <TextBox
-                backgroundColorClass="bg-purple-800/50"
-                borderColorClass="border-purple-600"
-                borderWidthClass="border rounded-lg"
-                containerClassName="p-3 "
-                contentColorClass="text-purple-200"
-                contentFontClass="text-lg"
-                enableMobileTap={enableMobileTap}
-                header="Main Quest"
-                headerFont="lg"
-                headerPreset="purple"
-                highlightEntities={questHighlightEntities}
-                text={mainQuest}
-              />
-            ) : null}
+            {isInitialSceneLoading ? (
+              <div className="hidden lg:block bg-slate-800 border border-slate-700 rounded-lg flex-grow" />
+            ) : (
+              <>
+                {hasGameBeenInitialized && mainQuest ? (
+                  <TextBox
+                    backgroundColorClass="bg-purple-800/50"
+                    borderColorClass="border-purple-600"
+                    borderWidthClass="border rounded-lg"
+                    containerClassName="p-3 "
+                    contentColorClass="text-purple-200"
+                    contentFontClass="text-lg"
+                    enableMobileTap={enableMobileTap}
+                    header="Main Quest"
+                    headerFont="lg"
+                    headerPreset="purple"
+                    highlightEntities={questHighlightEntities}
+                    text={mainQuest}
+                  />
+                ) : null}
 
-            {hasGameBeenInitialized && currentObjective ? (
-              <TextBox
-                backgroundColorClass="bg-amber-800/50"
-                borderColorClass="border-amber-600"
-                borderWidthClass="border rounded-lg"
-                containerClassName={`p-3 ${
-                  objectiveAnimationType === 'success'
-                    ? 'animate-objective-success'
-                    : objectiveAnimationType === 'neutral'
-                      ? 'animate-objective-neutral'
-                      : ''
-                }`}
-                contentColorClass="text-amber-200"
-                contentFontClass="text-lg"
-                enableMobileTap={enableMobileTap}
-                header="Current Objective"
-                headerFont="lg"
-                headerPreset="amber"
-                highlightEntities={questHighlightEntities}
-                text={currentObjective}
-              />
-            ) : null}
+                {hasGameBeenInitialized && currentObjective ? (
+                  <TextBox
+                    backgroundColorClass="bg-amber-800/50"
+                    borderColorClass="border-amber-600"
+                    borderWidthClass="border rounded-lg"
+                    containerClassName={`p-3 ${
+                      objectiveAnimationType === 'success'
+                        ? 'animate-objective-success'
+                        : objectiveAnimationType === 'neutral'
+                          ? 'animate-objective-neutral'
+                          : ''
+                    }`}
+                    contentColorClass="text-amber-200"
+                    contentFontClass="text-lg"
+                    enableMobileTap={enableMobileTap}
+                    header="Current Objective"
+                    headerFont="lg"
+                    headerPreset="amber"
+                    highlightEntities={questHighlightEntities}
+                    text={currentObjective}
+                  />
+                ) : null}
 
-            <LocationItemsDisplay
-              currentNodeId={currentMapNodeId}
-              disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
-              items={itemsHere}
-              mapNodes={mapData.nodes}
-              onTakeItem={handleTakeLocationItem}
-            />
+                <LocationItemsDisplay
+                  currentNodeId={currentMapNodeId}
+                  disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
+                  items={itemsHere}
+                  mapNodes={mapData.nodes}
+                  onTakeItem={handleTakeLocationItem}
+                />
 
-            {hasGameBeenInitialized ? (
-              <InventoryDisplay
-                disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
-                items={inventory}
-                onDropItem={gameLogic.handleDropItem}
-                onItemInteract={handleItemInteraction}
-              />
-            ) : null}
+                {hasGameBeenInitialized ? (
+                  <InventoryDisplay
+                    disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
+                    items={inventory}
+                    onDropItem={gameLogic.handleDropItem}
+                    onItemInteract={handleItemInteraction}
+                  />
+                ) : null}
+              </>
+            )}
           </div>
         </main>
 
