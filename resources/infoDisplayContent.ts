@@ -53,6 +53,7 @@ const infoDisplayContent = {
       "items": [
         "Major refactor and cleanup of the codebase.",
         "Cleaned up the design a little bit.",
+        "Added Gemini API use rate indicators. Wait if any of them are red.",
         "You can now pinch-zoom visualized images on mobile devices.",
         "You can now see the info about highlighted entities in the Scene description."
       ]
