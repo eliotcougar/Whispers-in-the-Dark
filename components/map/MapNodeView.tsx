@@ -16,6 +16,7 @@ import {
   DEFAULT_LABEL_LINE_HEIGHT_EM,
 } from '../../constants';
 import { Icon } from '../elements/icons';
+import Button from '../elements/Button';
 import { isDescendantOf } from '../../utils/mapGraphUtils';
 import { calculateLabelOffsets, getRadiusForNode, splitTextIntoLines, isSmallFontType, hasCenteredLabel } from '../../utils/mapLabelUtils';
 import { useMapTooltip } from '../../hooks/useMapTooltip';
@@ -375,16 +376,27 @@ function MapNodeView({
         className={`map-tooltip anchor-${tooltip.anchor}`}
         style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
                                           >
-        {isTooltipLocked && tooltip.nodeId ? <button
-          className="map-set-destination-button"
-          data-node-id={tooltip.nodeId}
-          onClick={handleDestinationClick}
-          type="button"
-                                             >
-          {tooltip.nodeId === destinationNodeId
-                ? 'Remove Destination'
-                : 'Set Destination'}
-        </button> : null}
+        {isTooltipLocked && tooltip.nodeId ? (
+          <div className="mb-1">
+            <Button
+              ariaLabel={
+                tooltip.nodeId === destinationNodeId
+                  ? 'Remove Destination'
+                  : 'Set Destination'
+              }
+              data-node-id={tooltip.nodeId}
+              label={
+                tooltip.nodeId === destinationNodeId
+                  ? 'Remove Destination'
+                  : 'Set Destination'
+              }
+              onClick={handleDestinationClick}
+              preset="amber"
+              size="sm"
+              variant="standard"
+            />
+          </div>
+        ) : null}
 
         {tooltip.content.split('\n').map((line, index) => (
           <React.Fragment key={`${String(tooltip.nodeId)}-${String(line)}`}>
