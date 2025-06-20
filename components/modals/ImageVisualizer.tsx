@@ -253,13 +253,13 @@ function ImageVisualizer({
       <div className="animated-frame-content visualizer-content-area"> 
         <Button
           ariaLabel="Close visualizer"
-          className="animated-frame-close-button"
           icon={<Icon
             name="x"
             size={20}
                 />}
           onClick={onClose}
           size="sm"
+          variant="close"
         />
         
         {isLoading ? <div className="visualizer-spinner-container">

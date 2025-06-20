@@ -49,13 +49,13 @@ function TitleMenu({
         {isGameActive ? (
           <Button
             ariaLabel="Close Title Menu"
-            className="animated-frame-close-button"
             icon={<Icon
               name="x"
               size={20}
                   />}
             onClick={onClose}
             size="sm"
+            variant="close"
           />
         ) : null}
 
@@ -76,60 +76,60 @@ function TitleMenu({
           <div className="space-y-4 sm:space-y-5 w-full max-w-xs sm:max-w-sm">
             <Button
               ariaLabel={isGameActive ? 'Start a New Game (Random Shifts, Progress will be lost)' : 'Start a New Game (Random Shifts)'}
-              className="w-full bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-red-400 focus:outline-none"
               label="New Game"
               onClick={onNewGame}
+              preset="red"
               size="lg"
             />
 
             <Button
               ariaLabel={isGameActive ? 'Start a Custom Game (Choose Theme, No Random Shifts, Progress will be lost)' : 'Start a Custom Game (Choose Theme, No Random Shifts)'}
-              className="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-orange-400 focus:outline-none"
               label="Custom Game"
               onClick={onCustomGame}
+              preset="orange"
               size="lg"
             />
 
             {isGameActive && onSaveGame ? (
               <Button
                 ariaLabel="Save Current Game to File"
-                className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-green-400 focus:outline-none"
                 label="Save Game"
                 onClick={onSaveGame}
+                preset="green"
                 size="lg"
               />
             ) : null}
 
             <Button
               ariaLabel={isGameActive ? 'Load Game from File (Current progress will be lost)' : 'Load Game from File'}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-blue-400 focus:outline-none"
               label="Load Game"
               onClick={onLoadGame}
+              preset="blue"
               size="lg"
             />
 
             <Button
               ariaLabel="Open Settings"
-              className="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-gray-400 focus:outline-none"
               label="Settings"
               onClick={onOpenSettings}
+              preset="gray"
               size="lg"
             />
 
             <Button
               ariaLabel="About & Game Guide"
-              className="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-cyan-400 focus:outline-none"
               label="About"
               onClick={onOpenInfo}
+              preset="cyan"
               size="lg"
             />
 
             {isGameActive ? (
               <Button
                 ariaLabel="Return to Game"
-                className="w-full mt-6 sm:mt-8 bg-sky-700 hover:bg-sky-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:ring-4 focus:ring-sky-500 focus:outline-none"
                 label="Return to Game"
                 onClick={onClose}
+                preset="sky"
                 size="lg"
               />
             ) : null}

@@ -121,11 +121,12 @@ function DebugView({
           <>
             <Button
               ariaLabel="Undo last turn"
-              className="mb-3 bg-orange-600 text-white hover:bg-orange-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed"
               disabled={!previousState || currentState.globalTurnNumber <= 1}
               label={`Undo Turn (Global Turn: ${String(currentState.globalTurnNumber)})`}
               onClick={onUndoTurn}
+              preset="orange"
               size="sm"
+              variant="compact"
             />
 
             <DebugSection
@@ -160,9 +161,9 @@ function DebugView({
             <div className="my-2">
               <Button
                 ariaLabel="Toggle raw parsed response"
-                className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                 label="Toggle Raw/Parsed Response"
                 onClick={toggleShowMainAIRaw}
+                preset="slate"
                 pressed={showMainAIRaw}
                 size="sm"
                 variant="toggle"
@@ -218,9 +219,9 @@ function DebugView({
                 <div className="my-2">
                   <Button
                     ariaLabel="Toggle raw parsed map response"
-                    className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                     label="Toggle Raw/Parsed Map Update Response"
                     onClick={toggleShowMapAIRaw}
+                    preset="slate"
                     pressed={showMapAIRaw}
                     size="sm"
                     variant="toggle"
@@ -286,9 +287,9 @@ function DebugView({
                       <div className="my-2">
                         <Button
                           ariaLabel="Toggle raw parsed connector chain response"
-                          className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                           label="Toggle Raw/Parsed Connector Chains Response"
                           onClick={toggleShowConnectorChainRaw(idx)}
+                          preset="slate"
                           pressed={showConnectorChainRaw[idx] ?? true}
                           size="sm"
                           variant="toggle"
@@ -415,9 +416,9 @@ function DebugView({
             <div className="my-2">
               <Button
                 ariaLabel="Toggle raw parsed inventory response"
-                className="px-3 py-1 text-xs bg-slate-600 hover:bg-slate-500 rounded"
                 label="Toggle Raw/Parsed Inventory Response"
                 onClick={toggleShowInventoryAIRaw}
+                preset="slate"
                 pressed={showInventoryAIRaw}
                 size="sm"
                 variant="toggle"
@@ -578,13 +579,13 @@ function DebugView({
       <div className="animated-frame-content flex flex-col">
         <Button
           ariaLabel="Close debug view"
-          className="animated-frame-close-button"
           icon={<Icon
             name="x"
             size={20}
                 />}
           onClick={onClose}
           size="sm"
+          variant="close"
         />
 
         <h1
@@ -598,11 +599,12 @@ function DebugView({
           {tabs.map(tab => (
             <Button
               ariaLabel={tab.label}
-              className={`px-3 py-2 text-sm font-medium transition-colors ${activeTab === tab.name ? 'border-b-2 border-sky-400 text-sky-300' : 'text-slate-400 hover:text-sky-400'}`}
               key={tab.name}
               label={tab.label}
               onClick={handleTabClick(tab.name)}
+              pressed={activeTab === tab.name}
               size="sm"
+              variant="tab"
             />
           ))}
         </div>

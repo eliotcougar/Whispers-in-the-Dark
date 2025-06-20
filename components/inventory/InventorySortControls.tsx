@@ -14,10 +14,10 @@ function InventorySortControls({ sortOrder, disabled, onSortByName, onSortByType
     <div className="mb-4 flex flex-wrap gap-2">
       <Button
         ariaLabel="Sort by Name"
-        className={`${sortOrder === 'name' ? 'bg-sky-600 text-white hover:bg-sky-500 ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800' : 'bg-slate-600 text-slate-300 hover:bg-slate-500'} disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
         disabled={disabled}
         label="Sort by Name"
         onClick={onSortByName}
+        preset={sortOrder === 'name' ? 'sky' : 'slate'}
         pressed={sortOrder === 'name'}
         size="sm"
         variant="toggle"
@@ -25,10 +25,10 @@ function InventorySortControls({ sortOrder, disabled, onSortByName, onSortByType
 
       <Button
         ariaLabel="Sort by Type"
-        className={`${sortOrder === 'type' ? 'bg-sky-600 text-white hover:bg-sky-500 ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800' : 'bg-slate-600 text-slate-300 hover:bg-slate-500'} disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed disabled:ring-0`}
         disabled={disabled}
         label="Sort by Type"
         onClick={onSortByType}
+        preset={sortOrder === 'type' ? 'sky' : 'slate'}
         pressed={sortOrder === 'type'}
         size="sm"
         variant="toggle"

@@ -165,7 +165,7 @@ function AppModals({
 
 
       <ConfirmationDialog
-        confirmButtonClass="bg-red-600 hover:bg-red-500"
+        confirmPreset="red"
         confirmText="Start New Game"
         isOpen={newGameFromMenuConfirmOpen}
         message="Are you sure you want to start a new game? Your current progress will be lost."
@@ -175,7 +175,7 @@ function AppModals({
       />
 
       <ConfirmationDialog
-        confirmButtonClass="bg-orange-600 hover:bg-orange-500"
+        confirmPreset="orange"
         confirmText="Start Custom Game"
         isOpen={newCustomGameConfirmOpen}
         message="Are you sure you want to start a new custom game? Your current progress will be lost."
@@ -185,7 +185,7 @@ function AppModals({
       />
 
       <ConfirmationDialog
-        confirmButtonClass="bg-blue-600 hover:bg-blue-500"
+        confirmPreset="blue"
         confirmText="Load Game"
         isOpen={loadGameFromMenuConfirmOpen}
         message="Are you sure you want to load a game? Your current progress will be overwritten if you load a new game."
@@ -195,7 +195,7 @@ function AppModals({
       />
 
       <ConfirmationDialog
-        confirmButtonClass="bg-purple-600 hover:bg-purple-500"
+        confirmPreset="purple"
         confirmText="Shift Reality"
         isCustomModeShift={isCustomGameModeShift}
         isOpen={shiftConfirmOpen}

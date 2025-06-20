@@ -38,13 +38,13 @@ function HistoryDisplay({
       <div className="animated-frame-content">
         <Button
           ariaLabel="Close history"
-          className="animated-frame-close-button"
           icon={<Icon
             name="x"
             size={20}
                 />}
           onClick={onClose}
           size="sm"
+          variant="close"
         />
 
         <div className="theme-memory-content-area">

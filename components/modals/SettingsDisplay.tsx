@@ -70,13 +70,13 @@ function SettingsDisplay({
       <div className="animated-frame-content">
         <Button
           ariaLabel="Close settings"
-          className="animated-frame-close-button"
           icon={<Icon
             name="x"
             size={20}
                 />}
           onClick={onClose}
           size="sm"
+          variant="close"
         />
 
         <div className="settings-content-area">

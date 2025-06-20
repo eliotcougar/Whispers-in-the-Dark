@@ -5,7 +5,7 @@
  * @description Modal dialog to confirm user actions.
  */
 import { useCallback } from 'react';
-import Button from './elements/Button';
+import Button, { type ButtonProps } from './elements/Button';
 
 import * as React from 'react';
 
@@ -17,7 +17,7 @@ interface ConfirmationDialogProps {
   readonly onCancel: () => void;
   readonly confirmText?: string;
   readonly cancelText?: string;
-  readonly confirmButtonClass?: string;
+  readonly confirmPreset?: ButtonProps['preset'];
   readonly isCustomModeShift?: boolean; // New prop
 }
 
@@ -30,9 +30,9 @@ function ConfirmationDialog({
   message,
   onConfirm,
   onCancel,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-  confirmButtonClass = "bg-sky-600 hover:bg-sky-500",
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  confirmPreset = 'sky',
   isCustomModeShift = false, // Destructure new prop with default
 }: ConfirmationDialogProps) {
   const stopPropagation = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -78,18 +78,20 @@ function ConfirmationDialog({
         <div className="flex justify-end space-x-4">
           <Button
             ariaLabel={cancelText}
-            className="bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-slate-400"
             label={cancelText}
             onClick={onCancel}
+            preset="slate"
             size="md"
+            variant="compact"
           />
 
           <Button
             ariaLabel={confirmText}
-            className={`text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 ${confirmButtonClass} focus:ring-opacity-75`}
             label={confirmText}
             onClick={onConfirm}
+            preset={confirmPreset}
             size="md"
+            variant="compact"
           />
         </div>
       </div>
@@ -114,7 +116,7 @@ function ConfirmationDialog({
 
 ConfirmationDialog.defaultProps = {
   cancelText: 'Cancel',
-  confirmButtonClass: 'bg-sky-600 hover:bg-sky-500',
+  confirmPreset: 'sky',
   confirmText: 'Confirm',
   isCustomModeShift: false,
 };

@@ -68,7 +68,6 @@ function InventoryItem({
         {applicableUses.map(knownUse => (
           <Button
             ariaLabel={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
-            className="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
             data-action-name={knownUse.actionName}
             data-item-name={item.name}
             data-prompt-effect={knownUse.promptEffect}
@@ -76,6 +75,7 @@ function InventoryItem({
             key={`${item.name}-knownuse-${knownUse.actionName}`}
             label={knownUse.actionName}
             onClick={onSpecificUse}
+            preset="teal"
             size="sm"
             title={knownUse.description}
           />
@@ -83,24 +83,24 @@ function InventoryItem({
 
         <Button
           ariaLabel={`Inspect ${item.name}`}
-          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
           data-item-name={item.name}
           disabled={disabled || isConfirmingDiscard}
           key={`${item.name}-inspect`}
           label="Inspect"
           onClick={onInspect}
+          preset="indigo"
           size="sm"
         />
 
         {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
           <Button
             ariaLabel={`Attempt to use ${item.name} (generic action)`}
-            className="w-full bg-sky-700 hover:bg-sky-600 text-white font-medium rounded shadow disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
             data-item-name={item.name}
             disabled={disabled || isConfirmingDiscard}
             key={`${item.name}-generic-use`}
             label="Attempt to Use (Generic)"
             onClick={onGenericUse}
+            preset="sky"
             size="sm"
           />
         )}
@@ -108,12 +108,12 @@ function InventoryItem({
         {item.type === 'vehicle' && (
           <Button
             ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
-            className="w-full bg-green-700 hover:bg-green-600 text-white font-medium rounded shadow disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
             data-item-name={item.name}
             disabled={disabled || isConfirmingDiscard}
             key={`${item.name}-vehicle-action`}
             label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
             onClick={onVehicleToggle}
+            preset="green"
             size="sm"
           />
         )}
@@ -121,7 +121,6 @@ function InventoryItem({
         {item.isJunk && !isConfirmingDiscard ? (
           <Button
             ariaLabel={`Discard ${item.name}`}
-            className="w-full text-white font-medium disabled:bg-slate-500 disabled:text-slate-400 flex items-center justify-center transition-colors duration-150 ease-in-out"
             data-item-name={item.name}
             disabled={disabled}
             icon={
@@ -136,36 +135,34 @@ function InventoryItem({
             key={`${item.name}-discard`}
             label="Discard"
             onClick={onStartConfirmDiscard}
+            preset="red"
             size="sm"
-            variant="danger"
           />
         ) : null}
 
         {!item.isJunk && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
           <Button
             ariaLabel={`Drop ${item.name}`}
-            className="w-full text-white font-medium disabled:bg-slate-500 disabled:text-slate-400 flex items-center justify-center transition-colors duration-150 ease-in-out"
             data-item-name={item.name}
             disabled={disabled}
             key={`${item.name}-drop`}
             label="Drop"
             onClick={onStartConfirmDiscard}
+            preset="sky"
             size="sm"
-            variant="primary"
           />
         )}
 
         {!item.isJunk && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
           <Button
             ariaLabel={`Park ${item.name} here`}
-            className="w-full text-white font-medium disabled:bg-slate-500 disabled:text-slate-400 flex items-center justify-center transition-colors duration-150 ease-in-out"
             data-item-name={item.name}
             disabled={disabled}
             key={`${item.name}-drop`}
             label="Park Here"
             onClick={onStartConfirmDiscard}
+            preset="sky"
             size="sm"
-            variant="primary"
           />
         )}
 
@@ -173,22 +170,22 @@ function InventoryItem({
           <div className="grid grid-cols-2 gap-2 mt-2">
             <Button
               ariaLabel={`Confirm drop of ${item.name}`}
-              className="w-full bg-red-600 hover:bg-red-500 text-white font-semibold rounded shadow disabled:bg-slate-500 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
               data-item-name={item.name}
               disabled={disabled}
               key={`${item.name}-confirm-drop`}
               label={item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
               onClick={onConfirmDrop}
+              preset="red"
               size="sm"
             />
 
             <Button
               ariaLabel="Cancel discard"
-              className="w-full bg-slate-600 hover:bg-slate-500 text-white font-medium rounded shadow disabled:bg-slate-500 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
               disabled={disabled}
               key={`${item.name}-cancel-discard`}
               label="Cancel"
               onClick={onCancelDiscard}
+              preset="slate"
               size="sm"
             />
           </div>
