@@ -22,8 +22,7 @@ export interface ButtonProps {
     | 'toolbar'
     | 'toggle'
     | 'close'
-    | 'tab'
-    | 'primary';
+    | 'tab';
   readonly preset?:
     | 'slate'
     | 'gray'
@@ -81,13 +80,12 @@ function Button({
   const appliedSize =
     variant === 'standard' ||
     variant === 'center' ||
-    variant === 'compact' ||
-    variant === 'primary'
+    variant === 'compact'
       ? sizeClasses[size]
       : '';
 
   const variantClasses: Record<
-    'standard' | 'center' | 'compact' | 'toolbar' | 'toggle' | 'close' | 'tab' | 'primary',
+    'standard' | 'center' | 'compact' | 'toolbar' | 'toggle' | 'close' | 'tab' ,
     string
   > = {
     standard: 'w-full flex items-center justify-center',
@@ -97,7 +95,6 @@ function Button({
     toggle: 'inline-flex items-center justify-center px-3 py-1 text-xs',
     close: 'animated-frame-close-button',
     tab: 'px-3 py-2 text-sm font-medium transition-colors',
-    primary: 'w-full flex items-center justify-center',
   };
 
   const presetClasses: Record<NonNullable<ButtonProps['preset']>, string> = {
