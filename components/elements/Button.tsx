@@ -81,7 +81,10 @@ function Button({
   };
 
   const appliedSize =
-    variant === 'standard' || variant === 'compact' || variant === 'primary'
+    variant === 'standard' ||
+    variant === 'left' ||
+    variant === 'compact' ||
+    variant === 'primary'
       ? sizeClasses[size]
       : '';
 
