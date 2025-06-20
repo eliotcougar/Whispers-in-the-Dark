@@ -201,7 +201,7 @@ function MapDisplay({
           {currentThemeName ? `Map: ${currentThemeName}` : 'Map'}
         </h1>
 
-        <p className="text-center text-xs text-slate-400 mb-1">
+        <p className="text-center text-xs text-slate-300 mb-1">
           Pan by dragging, zoom with the mouse wheel or pinch. Hover for details.
         </p>
 

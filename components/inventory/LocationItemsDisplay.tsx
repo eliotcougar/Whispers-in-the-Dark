@@ -69,7 +69,7 @@ function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapN
                 {description}
               </p>
 
-              {!atCurrent && holderName ? <p className="text-xs text-slate-400 mb-2">
+              {!atCurrent && holderName ? <p className="text-xs text-slate-300 mb-2">
                 Reachable at
                 {holderName}
               </p> : null}
@@ -77,7 +77,7 @@ function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapN
               <div className="mt-auto">
                 <button
                   aria-label={item.type === 'vehicle' ? `Enter ${item.name}` : `Take ${item.name}`}
-                  className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
+                  className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-600 disabled:text-slate-300 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
                   data-item-name={item.name}
                   disabled={disabled}
                   onClick={handleTakeItem}

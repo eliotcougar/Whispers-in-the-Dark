@@ -60,7 +60,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
       />
 
       {displayedItems.length === 0 ? (
-        <p className="text-slate-400 italic">
+        <p className="text-slate-300 italic">
           Your pockets are empty.
         </p>
       ) : (

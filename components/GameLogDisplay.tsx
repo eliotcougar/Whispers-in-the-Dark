@@ -35,7 +35,7 @@ function GameLogDisplay({ messages }: GameLogDisplayProps) {
       counts.set(message, count + 1);
         return (
           <li
-            className="text-slate-400 leading-snug"
+            className="text-slate-200 leading-snug"
             key={`${message}-${String(count)}`}
           >
             <span className="mr-1 text-emerald-500">

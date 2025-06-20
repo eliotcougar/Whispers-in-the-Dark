@@ -41,7 +41,7 @@ function HeadingTag({
   const Tag: ElementType = tag;
 
   const presetClasses: Record<NonNullable<HeadingTagProps['preset']>, string> = {
-    slate: 'text-slate-400',
+    slate: 'text-slate-300',
     gray: 'text-gray-400',
     zinc: 'text-zinc-400',
     neutral: 'text-neutral-400',

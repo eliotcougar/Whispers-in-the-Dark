@@ -39,7 +39,7 @@ function FreeActionInput({
       <div className="flex space-x-2">
         <input
           aria-label="Custom action input"
-          className="flex-grow p-2 bg-slate-700 text-slate-200 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-600 disabled:text-slate-400"
+          className="flex-grow p-2 bg-slate-700 text-slate-200 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-600 disabled:text-slate-300"
           disabled={!canPerformFreeAction}
           id="freeFormAction"
           maxLength={FREE_FORM_ACTION_MAX_LENGTH}
@@ -67,7 +67,7 @@ function FreeActionInput({
       )}
 
       {canPerformFreeAction ? (
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-slate-300 mt-1">
           Max
           {FREE_FORM_ACTION_MAX_LENGTH}
 

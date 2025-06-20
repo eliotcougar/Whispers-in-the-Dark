@@ -17,7 +17,7 @@ function AppHeader({
         Whispers in the Dark
       </h1>
 
-      <p className="text-slate-400 text-lg">
+      <p className="text-slate-300 text-lg">
         An Adventure in Shifting Realities
       </p>
 

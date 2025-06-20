@@ -75,7 +75,7 @@ function KnowledgeBase({
             Knowledge Base
           </h1>
           
-          {sortedThemeNames.length === 0 && isVisible ? <p className="text-slate-400 italic text-center">
+          {sortedThemeNames.length === 0 && isVisible ? <p className="text-slate-300 italic text-center">
             No knowledge has been recorded yet.
           </p> : null}
 
@@ -138,7 +138,7 @@ function KnowledgeBase({
                           );
                         } else if (character.lastKnownLocation && character.lastKnownLocation !== "Unknown") { 
                            locationDisplay = (
-                             <p className="text-sm text-slate-400 flex items-center">
+                             <p className="text-sm text-slate-300 flex items-center">
                                <span className="ml-1 italic">
                                  {character.lastKnownLocation}
 

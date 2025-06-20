@@ -80,12 +80,12 @@ function CustomGameSetupScreen({
             {effectiveTitle}
           </h1>
 
-          <p className="text-slate-400 mb-6 text-center text-sm max-w-2xl">
+          <p className="text-slate-300 mb-6 text-center text-sm max-w-2xl">
             {effectiveDescription}
           </p>
           
           {Object.keys(groupedThemesByPack).length === 0 ? (
-            <p className="text-slate-400 italic">
+            <p className="text-slate-300 italic">
               No themes available. Please check configuration.
             </p>
           ) : (

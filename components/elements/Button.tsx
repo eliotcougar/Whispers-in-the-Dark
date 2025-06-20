@@ -137,7 +137,7 @@ function Button({
     if (variant === 'tab') {
       return pressed
         ? 'border-b-2 border-sky-400 text-sky-300'
-        : 'text-slate-400 hover:text-sky-400 border-b-2 border-transparent';
+        : 'text-slate-300 hover:text-sky-400 border-b-2 border-transparent';
     }
     return '';
   })();

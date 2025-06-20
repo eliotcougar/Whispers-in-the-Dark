@@ -165,7 +165,7 @@ function DebugView({
       case "MainAI":
         return (
           <>
-            <p className="text-sm text-slate-400 mb-2">
+            <p className="text-sm text-slate-300 mb-2">
               Timestamp:
               {timestamp}
             </p>
@@ -231,7 +231,7 @@ function DebugView({
       case "MapLocationAI":
         return (
           <>
-            <p className="text-sm text-slate-400 mb-2">
+            <p className="text-sm text-slate-300 mb-2">
               Map Update related to interaction at:
               {timestamp}
             </p>
@@ -388,7 +388,7 @@ function DebugView({
                   )) : null}
               </>
             ) : (
-              <p className="italic text-slate-400">
+              <p className="italic text-slate-300">
                 No Map Update AI interaction debug packet captured for the last main AI turn.
               </p>
             )}
@@ -448,7 +448,7 @@ function DebugView({
             ) : null}
           </>
         ) : (
-          <p className="italic text-slate-400">
+          <p className="italic text-slate-300">
             No Dialogue debug info captured.
           </p>
         );
@@ -513,7 +513,7 @@ function DebugView({
             ) : null}
           </>
         ) : (
-          <p className="italic text-slate-400">
+          <p className="italic text-slate-300">
             No Inventory AI interaction debug packet captured.
           </p>
         );
@@ -559,7 +559,7 @@ function DebugView({
         );
       case "TravelPath": {
         if (!travelPath || travelPath.length === 0) {
-          return (<p className="italic text-slate-400">
+          return (<p className="italic text-slate-300">
             No destination set.
           </p>);
         }

@@ -73,7 +73,7 @@ function HistoryDisplay({
           />
           
           {rememberedThemes.length === 0 && (
-            <p className="text-slate-400 italic text-center">
+            <p className="text-slate-300 italic text-center">
               No alternate timelines have been chronicled yet.
             </p>
           )}
@@ -96,7 +96,7 @@ function HistoryDisplay({
                       &rdquo;
                     </p>
                   ) : (
-                    <p className="text-sm text-slate-400 mb-2 italic">
+                    <p className="text-sm text-slate-300 mb-2 italic">
                       The memories of this reality are too fragmented to recall clearly.
                     </p>
                   )}

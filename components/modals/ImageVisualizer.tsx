@@ -305,7 +305,7 @@ function ImageVisualizer({
 
         {!isLoading && !error && !internalImageUrl && isVisible ? <div className="visualizer-spinner-container">
           <p
-            className="mt-2 text-lg text-slate-400"
+            className="mt-2 text-lg text-slate-300"
             id="visualizer-title"
           >
             Preparing to visualize...

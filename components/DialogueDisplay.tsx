@@ -167,7 +167,7 @@ function DialogueDisplay({
                   :
                 </strong>
 
-                <span className="text-slate-200 ml-2">
+                <span className="text-slate-100 ml-2">
                   {highlightEntitiesInText(entry.line, entitiesForHighlighting)}
                 </span>
               </div>
