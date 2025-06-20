@@ -113,7 +113,7 @@ function InventoryItem({
             key={`${item.name}-vehicle-action`}
             label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
             onClick={onVehicleToggle}
-            preset="green"
+            preset="sky"
             size="sm"
           />
         )}
@@ -135,7 +135,7 @@ function InventoryItem({
             key={`${item.name}-discard`}
             label="Discard"
             onClick={onStartConfirmDiscard}
-            preset="red"
+            preset="orange"
             size="sm"
           />
         ) : null}
