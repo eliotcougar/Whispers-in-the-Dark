@@ -89,7 +89,6 @@ function MainToolbar({
       <div className="flex space-x-2">
         <Button
           ariaLabel="Visualize Scene"
-          className="bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName || !currentSceneExists}
           icon={<Icon
             inline
@@ -97,6 +96,7 @@ function MainToolbar({
             size={20}
                 />}
           onClick={onOpenVisualizer}
+          preset="blue"
           size="md"
           title="Visualize Scene"
           variant="toolbar"
@@ -104,7 +104,6 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open Knowledge Base"
-          className="bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
           icon={<Icon
             inline
@@ -112,6 +111,7 @@ function MainToolbar({
             size={20}
                 />}
           onClick={onOpenKnowledgeBase}
+          preset="blue"
           size="md"
           title="Open Knowledge Base"
           variant="toolbar"
@@ -119,7 +119,6 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open History"
-          className="bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
           icon={<Icon
             inline
@@ -127,6 +126,7 @@ function MainToolbar({
             size={20}
                 />}
           onClick={onOpenHistory}
+          preset="blue"
           size="md"
           title="Open History"
           variant="toolbar"
@@ -134,7 +134,6 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open Map"
-          className="bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
           icon={<Icon
             inline
@@ -142,6 +141,7 @@ function MainToolbar({
             size={20}
                 />}
           onClick={onOpenMap}
+          preset="blue"
           size="md"
           title="Open Map"
           variant="toolbar"
@@ -149,7 +149,6 @@ function MainToolbar({
 
         <Button
           ariaLabel="Force Reality Shift"
-          className="bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading || !currentThemeName}
           icon={<Icon
             inline
@@ -157,6 +156,7 @@ function MainToolbar({
             size={20}
                 />}
           onClick={onManualRealityShift}
+          preset="purple"
           size="md"
           title="Force Reality Shift"
           variant="toolbar"
@@ -164,7 +164,6 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open Title Menu"
-          className="bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={isLoading}
           icon={<Icon
             inline
@@ -172,6 +171,7 @@ function MainToolbar({
             size={20}
                 />}
           onClick={onOpenTitleMenu}
+          preset="gray"
           size="md"
           title="Open Title Menu"
           variant="toolbar"

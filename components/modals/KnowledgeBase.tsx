@@ -58,13 +58,13 @@ function KnowledgeBase({
       <div className="animated-frame-content">
         <Button
           ariaLabel="Close knowledge base"
-          className="animated-frame-close-button"
           icon={<Icon
             name="x"
             size={20}
                 />}
           onClick={onClose}
           size="sm"
+          variant="close"
         />
 
         <div className="knowledge-base-content-area"> 

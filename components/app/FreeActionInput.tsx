@@ -51,11 +51,12 @@ function FreeActionInput({
 
         <Button
           ariaLabel="Submit custom action"
-          className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white font-semibold rounded-md shadow disabled:bg-slate-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors duration-150"
           disabled={!canPerformFreeAction || freeFormActionText.trim() === ''}
           label="Submit"
           onClick={handleSubmitClick}
+          preset="green"
           type="button"
+          variant="compact"
         />
       </div>
 

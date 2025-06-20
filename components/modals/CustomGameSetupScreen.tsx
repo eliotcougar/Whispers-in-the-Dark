@@ -62,13 +62,13 @@ function CustomGameSetupScreen({
       <div className="animated-frame-content">
         <Button
           ariaLabel="Close theme selection"
-          className="animated-frame-close-button"
           icon={<Icon
             name="x"
             size={20}
                 />}
           onClick={onClose}
           size="sm"
+          variant="close"
         />
 
         <div className="flex flex-col items-center w-full h-full p-2">
