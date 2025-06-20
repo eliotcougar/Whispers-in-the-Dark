@@ -106,7 +106,7 @@ function Button({
   };
 
   const presetClasses: Record<NonNullable<ButtonProps['preset']>, string> = {
-    slate: 'bg-slate-700 hover:bg-slate-500 focus:ring-slate-400',
+    slate: 'bg-slate-600 hover:bg-slate-500 focus:ring-slate-400',
     gray: 'bg-gray-700 hover:bg-gray-500 focus:ring-gray-400',
     zinc: 'bg-zinc-700 hover:bg-zinc-500 focus:ring-zinc-400',
     neutral: 'bg-neutral-700 hover:bg-neutral-500 focus:ring-neutral-400',

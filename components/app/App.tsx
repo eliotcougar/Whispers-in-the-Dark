@@ -540,7 +540,7 @@ function App() {
             {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
 
             {!hasGameBeenInitialized ? (
-              <div className="hidden lg:block bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
+              <div className="bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
             ) : (
               <>
                 <SceneDisplay
