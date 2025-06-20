@@ -545,7 +545,7 @@ function App() {
             </div> : null}
 
             {isInitialSceneLoading ? (
-              <div className="hidden lg:block bg-slate-800 border border-slate-700 rounded-lg flex-grow" />
+              <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-lg flex-grow min-h-48" />
             ) : null}
 
             {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
@@ -588,7 +588,7 @@ function App() {
 
           <div className="lg:col-span-2 space-y-2 flex flex-col">
             {isInitialSceneLoading ? (
-              <div className="hidden lg:block bg-slate-800 border border-slate-700 rounded-lg flex-grow" />
+              <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-lg flex-grow min-h-48" />
             ) : (
               <>
                 {hasGameBeenInitialized && mainQuest ? (
