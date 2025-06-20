@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import Button from '../elements/Button';
 
 import ParameterControl from './ParameterControl';
 
@@ -89,32 +90,33 @@ function MapControls(props: MapControlsProps) {
           value={itemIconScale}
         />
 
-        <button
-          className="map-control-button mt-2 bg-orange-600 hover:bg-orange-500"
-          onClick={onReset}
-          style={{ flexBasis: '100%', marginTop: '0.5rem' }}
-          type="button"
-        >
-          Reset to Defaults
-        </button>
+        <div className="mt-2">
+          <Button
+            ariaLabel="Reset to Defaults"
+            label="Reset to Defaults"
+            onClick={onReset}
+            preset="orange"
+            variant="standard"
+          />
+        </div>
       </div> : null}
 
       <div className="map-action-buttons-row">
-        <button
-          className="map-control-button"
+        <Button
+          ariaLabel="Toggle Layout Controls"
+          label={`${expanded ? 'Hide' : 'Show'} Layout Controls`}
           onClick={handleToggleExpanded}
-          type="button"
-        >
-          {`${expanded ? 'Hide' : 'Show'} Layout Controls`}
-        </button>
+          preset="blue"
+          variant="standard"
+        />
 
-        <button
-          className="map-control-button"
+        <Button
+          ariaLabel="Refresh Layout"
+          label="Refresh Layout"
           onClick={onRefreshLayout}
-          type="button"
-        >
-          Refresh Layout
-        </button>
+          preset="blue"
+          variant="standard"
+        />
       </div>
     </div>
   );
