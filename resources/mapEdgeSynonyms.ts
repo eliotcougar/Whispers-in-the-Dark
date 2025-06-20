@@ -1,4 +1,4 @@
-{
+const mapEdgeSynonyms = {
   "type": {
     "trail": "path",
     "track": "path",
@@ -84,6 +84,8 @@
     "disconnected",
     "obliterated",
     "terminated",
-    "dismantled"
+  "dismantled"
   ]
-}
+};
+
+export default mapEdgeSynonyms;

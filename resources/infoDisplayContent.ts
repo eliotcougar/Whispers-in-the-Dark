@@ -1,4 +1,4 @@
-{
+const infoDisplayContent = {
   "title": "About Whispers in the Dark",
   "sections": [
     {
@@ -169,4 +169,6 @@
     }
   ],
   "footer": "Thank you for playing Whispers in the Dark!"
-}
+};
+
+export default infoDisplayContent;

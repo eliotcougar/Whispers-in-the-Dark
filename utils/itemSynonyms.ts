@@ -1,6 +1,6 @@
 import { ItemType } from '../types';
 import { VALID_ITEM_TYPES } from '../constants';
-import itemTypeSynonymsRaw from '../resources/itemTypeSynonyms.json';
+import itemTypeSynonymsRaw from '../resources/itemTypeSynonyms';
 
 const itemTypeSynonyms = itemTypeSynonymsRaw as {
   type: Record<string, ItemType | undefined>;
