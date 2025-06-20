@@ -515,8 +515,8 @@ function App() {
           />
         </div> : null}
 
-        <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
-          <div className="lg:col-span-2 space-y-2">
+        <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-3 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
+          <div className="lg:col-span-2 space-y-3">
             {hasGameBeenInitialized ? <MainToolbar
               currentSceneExists={!!currentScene}
               currentThemeName={currentTheme ? currentTheme.name : null}
@@ -580,17 +580,16 @@ function App() {
           <div className="lg:col-span-2 space-y-2 flex flex-col">
             {hasGameBeenInitialized && mainQuest ? (
               <TextBox
-                backgroundColorClass="bg-purple-700/50"
-                borderColorClass=""
-                borderWidthClass=""
-                containerClassName="p-3 border border-purple-600 rounded-md"
+                backgroundColorClass="bg-purple-800/50"
+                borderColorClass="border-purple-600"
+                borderWidthClass="border rounded-lg"
+                containerClassName="p-3 "
                 contentColorClass="text-purple-200"
                 contentFontClass="text-lg"
                 enableMobileTap={enableMobileTap}
                 header="Main Quest"
                 headerFont="lg"
                 headerPreset="purple"
-                headerTag="h3"
                 highlightEntities={questHighlightEntities}
                 text={mainQuest}
               />
@@ -598,10 +597,10 @@ function App() {
 
             {hasGameBeenInitialized && currentObjective ? (
               <TextBox
-                backgroundColorClass="bg-amber-700/50"
-                borderColorClass=""
-                borderWidthClass=""
-                containerClassName={`p-3 border border-amber-600 rounded-md ${
+                backgroundColorClass="bg-amber-800/50"
+                borderColorClass="border-amber-600"
+                borderWidthClass="border rounded-lg"
+                containerClassName={`p-3 ${
                   objectiveAnimationType === 'success'
                     ? 'animate-objective-success'
                     : objectiveAnimationType === 'neutral'
@@ -614,7 +613,6 @@ function App() {
                 header="Current Objective"
                 headerFont="lg"
                 headerPreset="amber"
-                headerTag="h3"
                 highlightEntities={questHighlightEntities}
                 text={currentObjective}
               />
