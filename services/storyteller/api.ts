@@ -5,7 +5,7 @@
  */
 import { GenerateContentResponse } from "@google/genai";
 import { AdventureTheme } from '../../types';
-import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES } from '../../constants';
+import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES, LOADING_REASON_UI_MAP } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
@@ -16,8 +16,8 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 export const executeAIMainTurn = async (
     fullPrompt: string,
     themeSystemInstructionModifier: string | undefined // Retain as string for direct use
-): Promise<{ response: GenerateContentResponse; thoughts: string[] }> => {
-    addProgressSymbol('██');
+): Promise<{ response: GenerateContentResponse; thoughts: Array<string> }> => {
+    addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
     if (!isApiConfigured()) {
       console.error("API Key not configured for Gemini Service.");
       return Promise.reject(new Error("API Key not configured."));
@@ -42,11 +42,11 @@ export const executeAIMainTurn = async (
             });
             const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
             const thoughts = parts
-              .filter(p => p.thought === true && typeof p.text === 'string')
-              .map(p => p.text as string);
+              .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+              .map(p => p.text);
             return { response, thoughts };
         } catch (error) {
-            console.error(`Error executing AI Main Turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
+            console.error(`Error executing AI Main Turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
             if (!isServerOrClientError(error)) {
                 throw error;
             }
@@ -68,7 +68,7 @@ export const executeAIMainTurn = async (
 export const summarizeThemeAdventure_Service = async (
   themeToSummarize: AdventureTheme, // Changed to AdventureTheme object
   lastSceneDescription: string,
-  actionLog: string[]
+  actionLog: Array<string>
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error("API Key not configured for Gemini Service. Cannot summarize.");
@@ -96,7 +96,7 @@ Do not include any preamble. Just provide the summary text itself.
 
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) { // Extra retry for summarization
     try {
-      console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1})`);
+      console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(attempt)}/${String(MAX_RETRIES +1)})`);
       const { response } = await dispatchAIRequest({
           modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt: summarizationPrompt,
@@ -107,10 +107,10 @@ Do not include any preamble. Just provide the summary text itself.
       if (text && text.length > 0) {
         return text;
       }
-      console.warn(`Attempt ${attempt} failed to yield non-empty summary for theme "${themeToSummarize.name}". Text was: '${response.text}'`);
+        console.warn(`Attempt ${String(attempt)} failed to yield non-empty summary for theme "${themeToSummarize.name}". Text was: '${String(response.text)}'`);
       if (attempt === MAX_RETRIES +1 && (!text || text.length === 0)) return null;
     } catch (error) {
-      console.error(`Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${attempt}/${MAX_RETRIES +1}):`, error);
+      console.error(`Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(attempt)}/${String(MAX_RETRIES +1)}):`, error);
       if (!isServerOrClientError(error)) {
         throw error;
       }

@@ -12,13 +12,10 @@ import {
 import {
   executeAIMainTurn,
   parseAIResponse,
-  buildNewGameFirstTurnPrompt,
-  buildNewThemePostShiftPrompt,
-  buildReturnToThemePostShiftPrompt
 } from '../services/storyteller';
 import { getThemesFromPacks } from '../themes';
-import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../constants';
-import { findThemeByName } from '../services/themeUtils';
+import { PLAYER_HOLDER_ID } from '../constants';
+import { findThemeByName } from '../utils/themeUtils';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
   getInitialGameStates,
@@ -26,8 +23,10 @@ import {
 } from '../utils/initialStates';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';
-import { DEFAULT_VIEWBOX } from '../utils/mapConstants';
-import { ProcessAiResponseFn } from './usePlayerActions';
+import { buildInitialGamePrompt } from './initPromptHelpers';
+import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
+import { DEFAULT_VIEWBOX } from '../constants';
+import { ProcessAiResponseFn } from './useProcessAiResponse';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
@@ -39,7 +38,7 @@ export interface LoadInitialGameOptions {
 
 export interface UseGameInitializationProps {
   playerGenderProp: string;
-  enabledThemePacksProp: ThemePackName[];
+  enabledThemePacksProp: Array<ThemePackName>;
   stabilityLevelProp: number;
   chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
@@ -80,23 +79,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
   /** Returns a snapshot of the current game state suitable for saving. */
   const gatherCurrentGameStateForSave = useCallback((): FullGameState => {
     const currentFullState = getCurrentGameState();
-    return {
-      ...currentFullState,
-      saveGameVersion: CURRENT_SAVE_GAME_VERSION,
+    return buildSaveStateSnapshot({
+      currentState: currentFullState,
       playerGender: playerGenderProp,
       enabledThemePacks: enabledThemePacksProp,
       stabilityLevel: stabilityLevelProp,
       chaosLevel: chaosLevelProp,
-      mapData: currentFullState.mapData || { nodes: [], edges: [] },
-      currentMapNodeId: currentFullState.currentMapNodeId || null,
-      destinationNodeId: currentFullState.destinationNodeId || null,
-      mapLayoutConfig: currentFullState.mapLayoutConfig || getDefaultMapLayoutConfig(),
-      mapViewBox: currentFullState.mapViewBox,
-      isCustomGameMode: currentFullState.isCustomGameMode ?? false,
-      isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection ?? false,
-      globalTurnNumber: currentFullState.globalTurnNumber,
-      currentThemeObject: currentFullState.currentThemeObject,
-    };
+    });
   }, [
     getCurrentGameState,
     playerGenderProp,
@@ -132,10 +121,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           setError(`Failed to apply loaded state: Theme "${savedStateToLoad.currentThemeName}" not found. Game state may be unstable.`);
         }
 
-        const mapDataToApply = savedStateToLoad.mapData || { nodes: [], edges: [] };
-        const currentMapNodeIdToApply = savedStateToLoad.currentMapNodeId || null;
-        const destinationToApply = savedStateToLoad.destinationNodeId || null;
-        const mapLayoutConfigToApply = savedStateToLoad.mapLayoutConfig || getDefaultMapLayoutConfig();
+        const mapDataToApply = savedStateToLoad.mapData;
+        const currentMapNodeIdToApply = savedStateToLoad.currentMapNodeId;
+        const destinationToApply = savedStateToLoad.destinationNodeId;
+        const mapLayoutConfigToApply = savedStateToLoad.mapLayoutConfig;
         if (typeof mapLayoutConfigToApply.NESTED_PADDING !== 'number') {
           mapLayoutConfigToApply.NESTED_PADDING = getDefaultMapLayoutConfig().NESTED_PADDING;
         }
@@ -150,10 +139,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           currentMapNodeId: currentMapNodeIdToApply,
           destinationNodeId: destinationToApply,
           mapLayoutConfig: mapLayoutConfigToApply,
-          mapViewBox: savedStateToLoad.mapViewBox || DEFAULT_VIEWBOX,
-          isCustomGameMode: savedStateToLoad.isCustomGameMode ?? false,
-          isAwaitingManualShiftThemeSelection: savedStateToLoad.isAwaitingManualShiftThemeSelection ?? false,
-          globalTurnNumber: savedStateToLoad.globalTurnNumber ?? 0,
+          mapViewBox: savedStateToLoad.mapViewBox,
+          isCustomGameMode: savedStateToLoad.isCustomGameMode,
+          isAwaitingManualShiftThemeSelection: savedStateToLoad.isAwaitingManualShiftThemeSelection,
+          globalTurnNumber: savedStateToLoad.globalTurnNumber,
         } as FullGameState;
 
         commitGameState(stateWithMapData);
@@ -215,11 +204,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         draftState.globalTurnNumber = previousState.globalTurnNumber;
 
         draftState.mapData.nodes = previousState.mapData.nodes.filter((n) => n.themeName !== themeObjToLoad.name);
-        draftState.mapData.edges = previousState.mapData.edges.filter((e) => {
-          const sourceNode = previousState.mapData.nodes.find((n) => n.id === e.sourceNodeId);
-          const targetNode = previousState.mapData.nodes.find((n) => n.id === e.targetNodeId);
-          return (sourceNode && sourceNode.themeName !== themeObjToLoad.name) || (targetNode && targetNode.themeName !== themeObjToLoad.name);
-        });
+          draftState.mapData.edges = previousState.mapData.edges.filter((e) => {
+            const sourceNode = previousState.mapData.nodes.find((n) => n.id === e.sourceNodeId);
+            const targetNode = previousState.mapData.nodes.find((n) => n.id === e.targetNodeId);
+            return (
+              (sourceNode?.themeName !== themeObjToLoad.name) ||
+              (targetNode?.themeName !== themeObjToLoad.name)
+            );
+          });
         draftState.allCharacters = previousState.allCharacters.filter((c) => c.themeName !== themeObjToLoad.name);
       } else {
         draftState.mapData = { nodes: [], edges: [] };
@@ -231,26 +223,19 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       }
 
       const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
-      let prompt = '';
-      if (isTransitioningFromShift && draftState.themeHistory[themeObjToLoad.name]) {
-        const currentThemeCharacters = draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name);
-        prompt = buildReturnToThemePostShiftPrompt(
-          themeObjToLoad,
-          draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-          playerGenderProp,
-          draftState.themeHistory[themeObjToLoad.name],
-          draftState.mapData,
-          currentThemeCharacters
-        );
-      } else if (isTransitioningFromShift) {
-        prompt = buildNewThemePostShiftPrompt(
-          themeObjToLoad,
-          draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-          playerGenderProp
-        );
-      } else {
-        prompt = buildNewGameFirstTurnPrompt(themeObjToLoad, playerGenderProp);
-      }
+      const hasExistingHistory = Object.prototype.hasOwnProperty.call(
+        draftState.themeHistory,
+        themeObjToLoad.name
+      );
+      const prompt = buildInitialGamePrompt({
+        theme: themeObjToLoad,
+        inventory: draftState.inventory,
+        playerGender: playerGenderProp,
+        isTransitioningFromShift,
+        themeMemory: hasExistingHistory ? draftState.themeHistory[themeObjToLoad.name] : undefined,
+        mapDataForTheme: draftState.mapData,
+        charactersForTheme: draftState.allCharacters.filter(c => c.themeName === themeObjToLoad.name),
+      });
       draftState.lastDebugPacket = {
         prompt,
         rawResponseText: null,
@@ -267,10 +252,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           prompt,
           themeObjToLoad.systemInstructionModifier,
         );
-        if (draftState.lastDebugPacket) {
-          draftState.lastDebugPacket.rawResponseText = response.text ?? null;
-          draftState.lastDebugPacket.storytellerThoughts = thoughts;
-        }
+        draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+        draftState.lastDebugPacket.storytellerThoughts = thoughts;
 
         const currentThemeMapDataForParse = {
           nodes: draftState.mapData.nodes.filter((n) => n.themeName === themeObjToLoad.name),
@@ -284,7 +267,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           response.text ?? '',
           playerGenderProp,
           themeObjToLoad,
-          () => setParseErrorCounter(1),
+          () => { setParseErrorCounter(1); },
           undefined,
           undefined,
           draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name),
@@ -306,14 +289,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         }
       } catch (e) {
         console.error('Error loading initial game:', e);
-        if (isServerOrClientError(e)) {
-          draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
-          const status = extractStatusFromError(e);
-          setError(`AI service error (${status ?? 'unknown'}). Please retry.`);
-        } else {
-          const errorMessage = e instanceof Error ? e.message : String(e);
-          setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage || 'Unknown AI error'}`);
-        }
+          if (isServerOrClientError(e)) {
+            draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
+            const status = extractStatusFromError(e);
+            setError(`AI service error (${String(status ?? 'unknown')}). Please retry.`);
+          } else {
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage}`);
+          }
         if (draftState.lastDebugPacket) {
           draftState.lastDebugPacket.error = e instanceof Error ? e.message : String(e);
         }
@@ -419,7 +402,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     if (!currentFullState.currentThemeName) {
       await loadInitialGame({
         isRestart: true,
-        customGameFlag: currentFullState.isCustomGameMode ?? false,
+        customGameFlag: currentFullState.isCustomGameMode,
       });
       return;
     }
@@ -471,10 +454,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         lastPrompt,
         currentThemeObj.systemInstructionModifier,
       );
-      if (draftState.lastDebugPacket) {
-        draftState.lastDebugPacket.rawResponseText = response.text ?? null;
-        draftState.lastDebugPacket.storytellerThoughts = thoughts;
-      }
+      draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+      draftState.lastDebugPacket.storytellerThoughts = thoughts;
 
       const currentThemeCharacters = draftState.allCharacters.filter(
         (c) => c.themeName === currentThemeObj.name,
@@ -501,8 +482,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         response.text ?? '',
         playerGenderProp,
         currentThemeObj,
-        () => setParseErrorCounter(1),
-        currentFullState.lastActionLog || undefined,
+        () => { setParseErrorCounter(1); },
+        currentFullState.lastActionLog ?? undefined,
         currentFullState.currentScene,
         currentThemeCharacters,
         currentThemeMapDataForParse,
@@ -533,8 +514,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         'Plan your next steps.'
       ];
       draftState.dialogueState = null;
-      if (draftState.lastDebugPacket)
-        draftState.lastDebugPacket.error = errMsg;
+      if (draftState.lastDebugPacket) draftState.lastDebugPacket.error = errMsg;
     } finally {
       commitGameState(draftState);
       setIsLoading(false);

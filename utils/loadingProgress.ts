@@ -1,22 +1,28 @@
 let progressString = '';
-let subscribers: Array<(s: string) => void> = [];
+const listeners: Array<(s: string) => void> = [];
 
-export const subscribeToProgress = (fn: (s: string) => void): (() => void) => {
-  subscribers.push(fn);
+const emit = () => {
+  listeners.forEach(fn => { fn(progressString); });
+};
+
+export const onProgress = (fn: (s: string) => void): void => {
+  listeners.push(fn);
   fn(progressString);
-  return () => {
-    subscribers = subscribers.filter((s) => s !== fn);
-  };
 };
 
-export const addProgressSymbol = (sym: string) => {
+export const offProgress = (fn: (s: string) => void): void => {
+  const idx = listeners.indexOf(fn);
+  if (idx !== -1) listeners.splice(idx, 1);
+};
+
+export const addProgressSymbol = (sym: string): void => {
   progressString = sym + progressString;
-  subscribers.forEach((fn) => fn(progressString));
+  emit();
 };
 
-export const clearProgress = () => {
+export const clearProgress = (): void => {
   progressString = '';
-  subscribers.forEach((fn) => fn(progressString));
+  emit();
 };
 
 export const getProgress = () => progressString;

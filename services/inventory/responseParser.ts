@@ -6,9 +6,10 @@
 import { ItemChange, GiveItemPayload } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isValidItem, isValidItemReference } from '../parsers/validation';
+import { normalizeItemType, DESTROY_SYNONYMS } from '../../utils/itemSynonyms';
 
 export interface InventoryAIPayload {
-  itemChanges: ItemChange[];
+  itemChanges: Array<ItemChange>;
   observations?: string;
   rationale?: string;
 }
@@ -25,8 +26,8 @@ export const parseInventoryResponse = (
 
   let payload: InventoryAIPayload | null = null;
 
-  const validateArray = (arr: unknown[]): ItemChange[] => {
-    const valid: ItemChange[] = [];
+  const validateArray = (arr: Array<unknown>): Array<ItemChange> => {
+    const valid: Array<ItemChange> = [];
     for (const raw of arr) {
       if (!raw || typeof raw !== 'object') continue;
       const change = raw as ItemChange;
@@ -39,6 +40,23 @@ export const parseInventoryResponse = (
           ok = isValidItem(change.item, 'gain');
           break;
         case 'update':
+          if (change.item && typeof change.item === 'object') {
+            const rawItem = change.item as Record<string, unknown>;
+            const t = typeof rawItem.type === 'string' ? rawItem.type : undefined;
+            const status = typeof rawItem.status === 'string' ? rawItem.status : undefined;
+            const mappedType = t ? normalizeItemType(t) : null;
+            const statusVal = status ? status.toLowerCase() : null;
+            const rawTypeVal = t ? t.toLowerCase() : null;
+            if ((mappedType && DESTROY_SYNONYMS.has(mappedType)) || (rawTypeVal && DESTROY_SYNONYMS.has(rawTypeVal)) || (statusVal && DESTROY_SYNONYMS.has(statusVal))) {
+              change.action = 'destroy';
+              change.item = {
+                id: typeof rawItem.id === 'string' ? rawItem.id : undefined,
+                name: typeof rawItem.name === 'string' ? rawItem.name : undefined,
+              };
+              ok = isValidItemReference(change.item);
+              break;
+            }
+          }
           ok = isValidItem(change.item, 'update');
           break;
         case 'destroy':

@@ -11,8 +11,8 @@
 export const extractJsonFromFence = (raw: string): string => {
   let jsonStr = raw.trim();
   const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-  const match = jsonStr.match(fenceRegex);
-  if (match && match[1]) {
+  const match = fenceRegex.exec(jsonStr);
+  if (match?.[1]) {
     jsonStr = match[1].trim();
   }
   return jsonStr;
@@ -22,12 +22,31 @@ export const extractJsonFromFence = (raw: string): string => {
  * Attempts to parse the provided JSON string. Returns the parsed object
  * or `null` if parsing fails.
  */
-export function safeParseJson<T>(jsonStr: string): T | null {
+export function safeParseJson<T>(
+  jsonStr: string,
+  validate?: (data: unknown) => data is T,
+): T | null {
   try {
-    return JSON.parse(jsonStr) as T;
+    const parsed = JSON.parse(jsonStr) as unknown;
+    if (validate && !validate(parsed)) {
+      return null;
+    }
+    return parsed as T;
   } catch {
     return null;
   }
+}
+
+/**
+ * Returns a shallow copy of the input object where any `null` values are
+ * converted to `undefined`. Useful for sanitizing optional fields in AI
+ * responses so they can be handled uniformly.
+ */
+export function coerceNullToUndefined<T extends Record<string, unknown>>(obj: T): T {
+  const sanitized = Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v === null ? undefined : v]),
+  );
+  return sanitized as T;
 }
 
 // Backwards compatibility for old imports

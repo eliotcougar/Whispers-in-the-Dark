@@ -5,7 +5,7 @@ export const generateUniqueId = (base: string): string => {
   const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
   // ensure we never have more than one underscore before the random suffix
   const trimmed = sanitized.replace(/_+$/, '');
-  const unique = `${Math.random().toString(36).substring(2,6)}`;
+  const unique = Math.random().toString(36).substring(2,6);
   return `${trimmed}_${unique}`;
 };
 
@@ -29,11 +29,11 @@ const getHopDistance = (
 
 export const findMapNodeByIdentifier = (
   identifier: string | undefined | null,
-  nodes: MapNode[],
+  nodes: Array<MapNode>,
   mapData?: MapData,
   currentNodeId?: string | null,
   getAll = false
-): MapNode | MapNode[] | undefined => {
+): MapNode | Array<MapNode> | undefined => {
   if (!identifier) return getAll ? [] : undefined;
 
   const idMatch = nodes.find(n => n.id === identifier);
@@ -50,12 +50,11 @@ export const findMapNodeByIdentifier = (
   const aliasMatches = nodes
     .filter(
       n =>
-        n.data.aliases &&
-        n.data.aliases.some(a => sanitize(a) === normalized)
+        n.data.aliases?.some(a => sanitize(a) === normalized)
     )
     .filter(n => !nameMatches.includes(n));
 
-  const sortByDistance = (arr: MapNode[]) => {
+  const sortByDistance = (arr: Array<MapNode>) => {
     if (!mapData || !currentNodeId) return arr;
     return [...arr].sort(
       (a, b) => getHopDistance(mapData, currentNodeId, a.id) - getHopDistance(mapData, currentNodeId, b.id)
@@ -66,7 +65,7 @@ export const findMapNodeByIdentifier = (
   const sortedAliases = sortByDistance(aliasMatches);
 
   if (getAll) {
-    const results: MapNode[] = [];
+    const results: Array<MapNode> = [];
     if (idMatch) results.push(idMatch);
     results.push(...sortedNames);
     results.push(...sortedAliases);
@@ -82,7 +81,7 @@ export const findMapNodeByIdentifier = (
   const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
   let base: string | null = null;
   if (!partialMatch) {
-    const m = identifier.match(idPattern);
+    const m = idPattern.exec(identifier);
     if (m) {
       const baseStr = m[1];
       base = baseStr;
@@ -96,7 +95,7 @@ export const findMapNodeByIdentifier = (
   const byName = nodes.find(n => sanitize(n.placeName) === normalizedBase);
   if (byName) return byName;
   const byAlias = nodes.find(
-    n => n.data.aliases && n.data.aliases.some(a => sanitize(a) === normalizedBase),
+    n => n.data.aliases?.some(a => sanitize(a) === normalizedBase),
   );
   if (byAlias) return byAlias;
 
@@ -105,9 +104,9 @@ export const findMapNodeByIdentifier = (
 
 export const findCharacterByIdentifier = (
   identifier: string | undefined | null,
-  characters: Character[],
+  characters: Array<Character>,
   getAll = false
-): Character | Character[] | undefined => {
+): Character | Array<Character> | undefined => {
   if (!identifier) return getAll ? [] : undefined;
 
   const idMatch = characters.find(c => c.id === identifier);
@@ -116,11 +115,11 @@ export const findCharacterByIdentifier = (
   const lower = identifier.toLowerCase();
   const nameMatches = characters.filter(c => c.name.toLowerCase() === lower);
   const aliasMatches = characters.filter(c =>
-    c.aliases && c.aliases.some(a => a.toLowerCase() === lower)
+    c.aliases?.some(a => a.toLowerCase() === lower)
   ).filter(c => !nameMatches.includes(c));
 
   if (getAll) {
-    const results: Character[] = [];
+    const results: Array<Character> = [];
     if (idMatch) results.push(idMatch);
     results.push(...nameMatches);
     results.push(...aliasMatches);
@@ -133,17 +132,17 @@ export const findCharacterByIdentifier = (
 };
 
 export const findItemByIdentifier = (
-  identifiers: (string | null | undefined)[],
-  items: Item[],
+  identifiers: Array<string | null | undefined>,
+  items: Array<Item>,
   getAll = false,
   ignoreCase = false,
-): Item | Item[] | null => {
+): Item | Array<Item> | null => {
   if (!Array.isArray(identifiers) || identifiers.length === 0) {
     return getAll ? [] : null;
   }
 
   const [id, name] = identifiers;
-  const results: Item[] = [];
+  const results: Array<Item> = [];
   const nameToCheck = typeof name === 'string' ? name : undefined;
   const cmp = (a: string, b: string) => {
     const aCore = stripBracketText(a);
@@ -209,14 +208,14 @@ export const getEntityById = (
   }
 
   return (
-    state.mapData.nodes.find(n => n.id === id) ||
-    state.allCharacters.find(c => c.id === id) ||
+    state.mapData.nodes.find(n => n.id === id) ??
+    state.allCharacters.find(c => c.id === id) ??
     state.inventory.find(i => i.id === id)
   );
 };
 
 export const extractRandomSuffix = (id: string): string | null => {
-  const match = id.match(/([a-z0-9]{4})$/i);
+  const match = /([a-z0-9]{4})$/i.exec(id);
   return match ? match[1] : null;
 };
 

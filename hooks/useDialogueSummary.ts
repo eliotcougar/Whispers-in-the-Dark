@@ -36,13 +36,13 @@ export interface UseDialogueSummaryProps {
     summaryPayload: GameStateFromAI | null,
     preparedGameState: FullGameState,
     debugInfo: {
-      turns: DialogueTurnDebugEntry[];
+      turns: Array<DialogueTurnDebugEntry>;
       summaryPrompt?: string;
       summaryRawResponse?: string;
-      summaryThoughts?: string[];
+      summaryThoughts?: Array<string>;
     }
   ) => void;
-  getDialogueDebugLogs: () => DialogueTurnDebugEntry[];
+  getDialogueDebugLogs: () => Array<DialogueTurnDebugEntry>;
   clearDialogueDebugLogs: () => void;
 }
 
@@ -71,8 +71,8 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
    */
   const initiateDialogueExit = useCallback(async (stateAtDialogueConclusionStart: FullGameState) => {
     const currentThemeObj = stateAtDialogueConclusionStart.currentThemeObject;
-    const finalHistory = stateAtDialogueConclusionStart.dialogueState?.history || [];
-    const finalParticipants = stateAtDialogueConclusionStart.dialogueState?.participants || [];
+    const finalHistory = stateAtDialogueConclusionStart.dialogueState?.history ?? [];
+    const finalParticipants = stateAtDialogueConclusionStart.dialogueState?.participants ?? [];
 
     if (!currentThemeObj || !stateAtDialogueConclusionStart.dialogueState) {
       console.error('Cannot exit dialogue: current theme is null or not in dialogue state.', stateAtDialogueConclusionStart);
@@ -111,15 +111,15 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     const characterMemoryText = await executeMemorySummary(memorySummaryContext);
 
     const newSummaryRecord: DialogueSummaryRecord = {
-      summaryText: characterMemoryText || 'A conversation took place, but the details are hazy.',
+      summaryText: characterMemoryText ?? 'A conversation took place, but the details are hazy.',
       participants: finalParticipants,
-      timestamp: workingGameState.localTime || 'Unknown Time',
-      location: workingGameState.localPlace || 'Unknown Location',
+      timestamp: workingGameState.localTime ?? 'Unknown Time',
+      location: workingGameState.localPlace ?? 'Unknown Location',
     };
 
     workingGameState.allCharacters = workingGameState.allCharacters.map((char) => {
       if (finalParticipants.includes(char.name) && char.themeName === currentThemeObj.name) {
-        const newSummaries = [...(char.dialogueSummaries || []), newSummaryRecord];
+        const newSummaries = [...(char.dialogueSummaries ?? []), newSummaryRecord];
         if (newSummaries.length > MAX_DIALOGUE_SUMMARIES_PER_CHARACTER) {
           newSummaries.shift();
         }

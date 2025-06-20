@@ -3,7 +3,7 @@
  * @file highlightHelper.tsx
  * @description Utility for highlighting entities within text snippets.
  */
-import React from 'react';
+import * as React from 'react';
 import { Item, Character, MapNode } from '../types';
 
 const showMobileTooltip = (text: string, rect: DOMRect) => {
@@ -18,12 +18,23 @@ const showMobileTooltip = (text: string, rect: DOMRect) => {
   const offset = 8;
   const left = rect.left + rect.width / 2 - div.offsetWidth / 2 + window.scrollX;
   const top = rect.bottom + offset + window.scrollY;
-  div.style.left = `${Math.max(4, Math.min(left, window.innerWidth - div.offsetWidth - 4))}px`;
-  div.style.top = `${top}px`;
+  div.style.left = `${String(Math.max(4, Math.min(left, window.innerWidth - div.offsetWidth - 4)))}px`;
+  div.style.top = `${String(top)}px`;
 
-  const remove = () => div.remove();
-  div.addEventListener('click', remove);
-  setTimeout(remove, 2500);
+  const remove = () => {
+    div.remove();
+    document.removeEventListener('click', handleDocumentClick);
+  };
+
+  const handleDocumentClick = (event: MouseEvent) => {
+    if (!div.contains(event.target as Node)) {
+      remove();
+    }
+  };
+
+  setTimeout(() => {
+    document.addEventListener('click', handleDocumentClick);
+  }, 0);
 };
 // Item and Character types are fine. Place-like entities will be mapped to HighlightableEntity.
 // No direct type change needed here as long as the calling components map MapNode data to HighlightableEntity structure.
@@ -32,17 +43,17 @@ export interface HighlightableEntity {
   name: string;
   type: 'item' | 'place' | 'character';
   description: string; 
-  aliases?: string[];   
+  aliases?: Array<string>;   
 }
 
 const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
   switch (type) {
     case 'item':
-      return 'font-semibold text-yellow-400 hover:text-yellow-300 cursor-pointer'; 
+      return 'font-semibold text-amber-400 hover:text-amber-300 cursor-pointer'; 
     case 'place':
-      return 'font-semibold text-sky-400 hover:text-sky-300 cursor-pointer';
+      return 'font-semibold text-violet-400 hover:text-violet-300 cursor-pointer';
     case 'character':
-      return 'font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer';
+      return 'font-semibold text-green-300 hover:text-green-200 cursor-pointer';
     default:
       return '';
   }
@@ -50,12 +61,12 @@ const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
 
 export const highlightEntitiesInText = (
   text: string | null | undefined,
-  entities: HighlightableEntity[],
-  enableMobileTap: boolean = false
-): React.ReactNode[] => {
-  if (!text) return [text || '']; 
+  entities: Array<HighlightableEntity>,
+  enableMobileTap = false
+): Array<React.ReactNode> => {
+  if (!text) return [text ?? ''];
 
-  const results: React.ReactNode[] = [];
+  const results: Array<React.ReactNode> = [];
   
   const uniqueMatchTerms = new Map<string, { term: string; entityData: HighlightableEntity }>();
 
@@ -70,7 +81,7 @@ export const highlightEntitiesInText = (
     };
 
     addTermToMap(entity.name, entity.name);
-    (entity.aliases || []).forEach((alias: string) => {
+    (entity.aliases ?? []).forEach((alias: string) => {
       addTermToMap(alias, alias);
     });
 
@@ -110,18 +121,19 @@ export const highlightEntitiesInText = (
     }
 
     if (matchedTermInfo) {
+      const handleMobileTap = (e: React.MouseEvent<HTMLSpanElement>) => {
+        if (window.matchMedia('(hover: none)').matches) {
+          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          const text = e.currentTarget.getAttribute('title') ?? '';
+          showMobileTooltip(text, rect);
+        }
+      };
       results.push(
         <span
-          key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${match.index}`}
           className={getEntityHighlightClass(matchedTermInfo.entityData.type)}
-          title={matchedTermInfo.entityData.description || matchedTermInfo.entityData.name}
-          onClick={enableMobileTap ? (e => {
-            if (window.matchMedia('(hover: none)').matches) {
-              const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-              const text = e.currentTarget.getAttribute('title') || '';
-              showMobileTooltip(text, rect);
-            }
-          }) : undefined}
+          key={`${matchedTermInfo.entityData.name}-${matchedTermInfo.term}-${String(match.index)}`}
+          onClick={enableMobileTap ? handleMobileTap : undefined}
+          title={matchedTermInfo.entityData.description}
         >
           {matchedString}
         </span>
@@ -144,30 +156,30 @@ export const highlightEntitiesInText = (
  * characters for the current theme.
  */
 export const buildHighlightableEntities = (
-  inventory: Item[],
-  mapData: MapNode[],
-  allCharacters: Character[],
+  inventory: Array<Item>,
+  mapData: Array<MapNode>,
+  allCharacters: Array<Character>,
   currentThemeName: string | null
-): HighlightableEntity[] => {
-  const items: HighlightableEntity[] = inventory.map(item => ({
+): Array<HighlightableEntity> => {
+  const items: Array<HighlightableEntity> = inventory.map(item => ({
     name: item.name,
     type: 'item',
     description:
       item.isActive && item.activeDescription ? item.activeDescription : item.description,
   }));
 
-  const places: HighlightableEntity[] = currentThemeName
+  const places: Array<HighlightableEntity> = currentThemeName
     ? mapData
         .filter(node => node.themeName === currentThemeName)
         .map(node => ({
           name: node.placeName,
           type: 'place',
-          description: node.data.description || 'A location of interest.',
-          aliases: node.data.aliases || [],
+          description: node.data.description,
+          aliases: node.data.aliases ?? [],
         }))
     : [];
 
-  const characters: HighlightableEntity[] = currentThemeName
+  const characters: Array<HighlightableEntity> = currentThemeName
     ? allCharacters
         .filter(c => c.themeName === currentThemeName)
         .map(c => ({

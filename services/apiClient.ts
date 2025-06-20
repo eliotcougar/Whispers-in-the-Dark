@@ -5,7 +5,7 @@
 import { GoogleGenAI } from '@google/genai';
 
 /** Cached API key read from environment variables. */
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? process.env.API_KEY;
 
 if (!GEMINI_API_KEY) {
   console.error('GEMINI_API_KEY environment variable is not set. Gemini services will be unavailable.');
@@ -20,4 +20,4 @@ export const geminiClient: GoogleGenAI | null = GEMINI_API_KEY
 export const isApiConfigured = (): boolean => !!GEMINI_API_KEY;
 
 /** Returns the configured API key, or null when absent. */
-export const getApiKey = (): string | null => GEMINI_API_KEY || null;
+export const getApiKey = (): string | null => GEMINI_API_KEY ?? null;

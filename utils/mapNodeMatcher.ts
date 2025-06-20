@@ -29,7 +29,7 @@ const normalizeStringForMatching = (text: string | null | undefined): string => 
     .trim();
 };
 
-const tokenizeString = (text: string | null | undefined): string[] => {
+const tokenizeString = (text: string | null | undefined): Array<string> => {
   if (!text) return [];
   const normalized = normalizeStringForMatching(text);
   return normalized
@@ -61,13 +61,13 @@ interface ExtractedChunk {
   originalPrepositionText?: string; 
 }
 
-const parseLocalPlaceIntoChunks = (localPlace: string | null | undefined): ExtractedChunk[] => {
+const parseLocalPlaceIntoChunks = (localPlace: string | null | undefined): Array<ExtractedChunk> => {
   if (!localPlace || localPlace.trim() === "") return [];
-  const chunks: ExtractedChunk[] = [];
+  const chunks: Array<ExtractedChunk> = [];
   const regexPattern = `\\b(?:${ALL_PREPOSITION_KEYWORDS_FOR_REGEX.map(kw => kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`;
   const splitterRegex = new RegExp(regexPattern, 'gi');
   
-  const prepMatches: { index: number; text: string; originalText: string, definition: PrepositionDefinition }[] = [];
+  const prepMatches: Array<{ index: number; text: string; originalText: string, definition: PrepositionDefinition }> = [];
   let match;
   while ((match = splitterRegex.exec(localPlace)) !== null) {
     const matchedKeywordLower = match[0].toLowerCase();
@@ -141,7 +141,7 @@ export const attemptMatchAndSetNode = (
     source: 'mapAI' | 'mainAI',
     oldMapNodeIdIfAvailable: string | null,
     currentThemeName: string,
-    currentThemeNodesFromDraft: MapNode[]
+    currentThemeNodesFromDraft: Array<MapNode>
   ): { matched: boolean; nodeId: string | null } => {
   
     if (!suggestedIdentifier || suggestedIdentifier.trim() === "") {
@@ -167,7 +167,7 @@ export const attemptMatchAndSetNode = (
     const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
     let extractedBase: string | null = null;
     if (!partialIdMatch) {
-      const m = suggestedIdentifier.match(idPattern);
+      const m = idPattern.exec(suggestedIdentifier);
       if (m) {
         const baseStr = m[1];
         extractedBase = baseStr;
@@ -184,7 +184,7 @@ export const attemptMatchAndSetNode = (
     const lowerSuggestedIdentifier = suggestedIdentifier.toLowerCase();
     const matchingNodesByNameOrAlias = currentThemeNodesFromDraft.filter(n =>
       n.placeName.toLowerCase() === lowerSuggestedIdentifier ||
-      (n.data.aliases && n.data.aliases.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
+      (n.data.aliases?.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
     );
 
     if (matchingNodesByNameOrAlias.length === 0) {
@@ -193,7 +193,7 @@ export const attemptMatchAndSetNode = (
       matchingNodesByNameOrAlias.push(
         ...currentThemeNodesFromDraft.filter(n =>
           n.placeName.toLowerCase() === normalizedBase ||
-          (n.data.aliases && n.data.aliases.some(a => a.toLowerCase() === normalizedBase)),
+          (n.data.aliases?.some(a => a.toLowerCase() === normalizedBase)),
         ),
       );
     }
@@ -251,10 +251,10 @@ export const selectBestMatchingMapNode = (
   localPlace: string | null,
   currentTheme: AdventureTheme | null,
   mapData: MapData, // Full map data
-  allNodesForTheme: MapNode[], // Pre-filtered nodes for the current theme
+  allNodesForTheme: Array<MapNode>, // Pre-filtered nodes for the current theme
   previousMapNodeId: string | null
 ): string | null => {
-  if (!localPlace || !currentTheme || !mapData || allNodesForTheme.length === 0) {
+  if (!localPlace || !currentTheme || allNodesForTheme.length === 0) {
     return null;
   }
 
@@ -265,10 +265,10 @@ export const selectBestMatchingMapNode = (
   const normalizedLocalPlaceForEarlyMatch = normalizeStringForMatching(localPlaceForEarlyMatch);
   const tokenizedLocalPlaceString = tokenizeString(localPlace).join(' ');
 
-  const exactMatches: ExactMatchCandidate[] = [];
+  const exactMatches: Array<ExactMatchCandidate> = [];
 
   for (const node of themeNodes) {
-    const nodeNamesAndAliases: string[] = [node.placeName, ...(node.data.aliases || [])];
+    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
 
     for (const nameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== "")) {
       const normName = normalizeStringForMatching(nameOrAlias);
@@ -309,7 +309,7 @@ export const selectBestMatchingMapNode = (
   let overallBestScore = -1;
 
   const directNeighborIds = new Set<string>();
-  if (previousMapNodeId && mapData.edges) {
+  if (previousMapNodeId) {
     mapData.edges.forEach(edge => {
       if (edge.sourceNodeId === previousMapNodeId) directNeighborIds.add(edge.targetNodeId);
       else if (edge.targetNodeId === previousMapNodeId) directNeighborIds.add(edge.sourceNodeId);
@@ -317,7 +317,7 @@ export const selectBestMatchingMapNode = (
   }
 
   for (const node of themeNodes) {
-    const nodeNamesAndAliases: string[] = [node.placeName, ...(node.data.aliases || [])];
+    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
     let maxScoreForThisNodeCandidate = -1;
 
     for (const nodeNameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== "")) {

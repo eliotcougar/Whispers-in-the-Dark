@@ -7,7 +7,7 @@
 
 import { MapData, MapNode, MapEdge, AdventureTheme } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
-import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/map';
+import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/hierarchyUpgrade';
 import { generateUniqueId } from './entityUtils';
 
 /**
@@ -25,7 +25,7 @@ import { generateUniqueId } from './entityUtils';
 export interface FeatureUpgradeResult {
   updatedMapData: MapData;
   newNode: MapNode | null;
-  newEdges: MapEdge[];
+  newEdges: Array<MapEdge>;
 }
 
 export const upgradeFeatureToRegion = (
@@ -57,7 +57,7 @@ export const upgradeFeatureToRegion = (
     position: { ...featureNode.position },
     data: {
       description: featureNode.data.description,
-      aliases: featureNode.data.aliases || [],
+      aliases: featureNode.data.aliases ?? [],
       status: featureNode.data.status,
       nodeType: 'feature',
       parentNodeId: featureNode.id,
@@ -76,7 +76,7 @@ export const upgradeFeatureToRegion = (
   const childNodes = working.nodes.filter(
     n => n.data.parentNodeId === featureNodeId && n.id !== connectorId
   );
-  const createdEdges: MapEdge[] = [];
+  const createdEdges: Array<MapEdge> = [];
 
   childNodes.forEach(child => {
     const edgeId = generateUniqueId(`edge_${connectorId}_to_${child.id}`);
@@ -105,10 +105,10 @@ export const upgradeFeatureToRegion = (
 export const upgradeFeaturesWithChildren = async (
   mapData: MapData,
   currentTheme: AdventureTheme
-): Promise<{ updatedMapData: MapData; addedNodes: MapNode[]; addedEdges: MapEdge[] }> => {
+): Promise<{ updatedMapData: MapData; addedNodes: Array<MapNode>; addedEdges: Array<MapEdge> }> => {
   let working: MapData = structuredCloneGameState(mapData);
-  const addedNodes: MapNode[] = [];
-  const addedEdges: MapEdge[] = [];
+  const addedNodes: Array<MapNode> = [];
+  const addedEdges: Array<MapEdge> = [];
 
   for (const node of working.nodes) {
     if (node.data.nodeType === 'feature') {

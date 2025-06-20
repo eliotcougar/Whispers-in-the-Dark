@@ -4,15 +4,192 @@
  * @description Utilities for formatting map related context for AI prompts.
  */
 
-import { AdventureTheme, MapData, MapNode, MapEdge, Item } from '../../types';
+import {
+  AdventureTheme,
+  MapData,
+  MapNode,
+  MapEdge,
+  Item,
+} from '../../types';
 import { NON_DISPLAYABLE_EDGE_STATUSES } from '../../constants';
+import { extractJsonFromFence } from '../jsonUtils';
+
+/**
+ * Formats a single map node line including optional items present at the node.
+ */
+export const formatNodeLine = (
+  node: MapNode,
+  inventory: Array<Item> = [],
+): string => {
+  const parent = node.data.parentNodeId ?? 'Universe';
+  const desc = node.data.description;
+  const itemsAtNode = inventory.filter(item => item.holderId === node.id);
+  const itemsStr =
+    itemsAtNode.length > 0
+      ? ` Items: ${itemsAtNode.map(i => `"${i.name}"`).join(', ')}`
+      : '';
+  return ` - ${node.id} - "${node.placeName}" (parent: ${parent}), "${desc}"${itemsStr}`;
+};
+
+/**
+ * Formats a single map edge line for prompt context.
+ */
+export const formatEdgeLine = (edge: MapEdge): string =>
+  `- ${edge.id} from ${edge.sourceNodeId} to ${edge.targetNodeId}`;
+
+/**
+ * Formats a list of map nodes for inclusion in prompts.
+ */
+export const mapNodesToString = (
+  nodes: MapNode | Array<MapNode>,
+  prefix = '',
+  addAliases = true,
+  addStatus = true,
+  addDescription = true,
+  singleLine = false,
+): string => {
+  const nodeList = Array.isArray(nodes) ? nodes : [nodes];
+  if (nodeList.length === 0) {
+    return '';
+  }
+  const delimiter = singleLine ? '; ' : ';\n';
+
+  const result = nodeList
+    .map(n => {
+      let str = `${prefix}${n.id} - "${n.placeName}"`;
+      if (addAliases && n.data.aliases && n.data.aliases.length > 0) {
+        str += ` (aka ${n.data.aliases.map(a => `"${a}"`).join(', ')})`;
+      }
+      if (addStatus) {
+        str += ` (Type: ${n.data.nodeType}, Visited: ${String(
+          Boolean(n.data.visited),
+        )}, ParentNodeId: ${n.data.parentNodeId ?? 'N/A'}, Status: ${n.data.status})`;
+      }
+      if (addDescription) {
+        str += `, "${n.data.description}"`;
+      }
+      return str;
+    })
+    .join(delimiter);
+
+  return result + '.';
+};
+
+/**
+ * Formats a list of map edges for inclusion in prompts.
+ */
+export const mapEdgesToString = (
+  edges: MapEdge | Array<MapEdge>,
+  prefix = '',
+  addDescription = true,
+  singleLine = false,
+): string => {
+  const edgeList = Array.isArray(edges) ? edges : [edges];
+  if (edgeList.length === 0) {
+    return '';
+  }
+  const delimiter = singleLine ? '; ' : ';\n';
+
+  const result = edgeList
+    .map(e => {
+      const status = e.data.status ?? 'open';
+      const type = e.data.type ?? 'path';
+      let str = `${prefix}${e.id} (${status} ${type}) from ${e.sourceNodeId} to ${e.targetNodeId}`;
+      const details: Array<string> = [];
+      if (e.data.travelTime) details.push(`travel time: ${e.data.travelTime}`);
+      if (e.data.description) details.push(e.data.description);
+      if (addDescription && details.length > 0) {
+        str += ` (${details.join(', ')})`;
+      }
+      return str;
+    })
+    .join(delimiter);
+
+  return result + '.';
+};
+
+/**
+ * Formats map nodes as a tree structure for prompt context.
+ */
+export const formatNodesAsTree = (
+  nodes: Array<MapNode>,
+  addAliases = true,
+  addStatus = true,
+  addDescription = true,
+): string => {
+  const childMap = new Map<string, Array<MapNode>>();
+  nodes.forEach(node => {
+    const parent =
+      node.data.parentNodeId && node.data.parentNodeId !== 'Universe'
+        ? node.data.parentNodeId
+        : 'Universe';
+    const list = childMap.get(parent);
+    if (list) {
+      list.push(node);
+    } else {
+      childMap.set(parent, [node]);
+    }
+  });
+
+  const sortByName = (a: MapNode, b: MapNode) =>
+    a.placeName.localeCompare(b.placeName);
+  for (const list of childMap.values()) list.sort(sortByName);
+
+  const lines: Array<string> = [];
+  const traverse = (node: MapNode, linePrefix: string, isLast: boolean) => {
+    const connector = isLast ? '└─' : '├─';
+    const nodeLine = mapNodesToString(
+      node,
+      `${linePrefix}${connector} `,
+      addAliases,
+      addStatus,
+      addDescription,
+      true,
+    );
+    lines.push(nodeLine);
+    const childPrefix = linePrefix + (isLast ? '   ' : '│  ');
+    const children = childMap.get(node.id) ?? [];
+    children.forEach((child, idx) => {
+      traverse(child, childPrefix, idx === children.length - 1);
+    });
+  };
+
+  const roots = childMap.get('Universe') ?? [];
+  roots.forEach((rootNode, idx) => {
+    traverse(rootNode, '', idx === roots.length - 1);
+  });
+
+  return lines.join('\n');
+};
+
+const formatConnectionToNode = (edge: MapEdge, otherNode: MapNode): string => {
+  const statusText = edge.data.status ?? 'open';
+  const typeText = edge.data.type ?? 'path';
+  const details: Array<string> = [];
+  if (edge.data.travelTime) {
+    details.push(`travel time: ${edge.data.travelTime}`);
+  }
+  if (edge.data.description) {
+    details.push(edge.data.description);
+  }
+  const detailText = details.length > 0 ? ` (${details.join(', ')})` : '';
+  return ` - ${statusText} ${typeText} to "${otherNode.placeName}"${detailText}.`;
+};
+
+/**
+ * Cleans up an observations string for display in prompts.
+ */
+export const formatObservationsForPrompt = (observations?: string): string => {
+  if (!observations) return '';
+  return extractJsonFromFence(observations).trim();
+};
 
 /**
  * Formats a list of main map nodes for AI prompts.
  */
 export const formatKnownPlacesForPrompt = (
-  mapNodes: MapNode[],
-  detailed: boolean = false
+  mapNodes: Array<MapNode>,
+  detailed = false
 ): string => {
   const mainNodes = mapNodes.filter(
     node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
@@ -28,7 +205,7 @@ export const formatKnownPlacesForPrompt = (
           if (node.data.aliases && node.data.aliases.length > 0) {
             detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
           }
-          detailStr += `${node.data.status == 'rumored' ? ', rumored' : ''}`;
+          detailStr += node.data.status == 'rumored' ? ', rumored' : '';
           detailStr += `, "${node.data.description || 'No description available.'}"`;
           return detailStr;
         })
@@ -49,7 +226,7 @@ export const formatKnownPlacesForPrompt = (
 };
 
 const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
-  const scores: { [key: string]: number } = {
+  const scores: Record<string, number> = {
     open: 10,
     accessible: 9,
     active: 8,
@@ -70,30 +247,33 @@ const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
  */
 const getFormattedConnectionsForNode = (
   perspectiveNode: MapNode,
-  allThemeNodes: MapNode[],
-  allThemeEdges: MapEdge[],
+  allThemeNodes: Array<MapNode>,
+  allThemeEdges: Array<MapEdge>,
   excludeTargetId: string | null,
   processedTargets: Set<string>
-): string[] => {
+): Array<string> => {
   const connectedEdges = allThemeEdges.filter(
     edge => edge.sourceNodeId === perspectiveNode.id || edge.targetNodeId === perspectiveNode.id
   );
 
-  const uniqueDestinations: { [targetNodeId: string]: MapEdge[] } = {};
+  const uniqueDestinations: Record<string, Array<MapEdge> | undefined> = {};
   connectedEdges.forEach(edge => {
     const otherNodeId = edge.sourceNodeId === perspectiveNode.id ? edge.targetNodeId : edge.sourceNodeId;
     if (otherNodeId === excludeTargetId || processedTargets.has(otherNodeId)) {
       return;
     }
-    if (!uniqueDestinations[otherNodeId]) {
-      uniqueDestinations[otherNodeId] = [];
+    let list = uniqueDestinations[otherNodeId];
+    if (!list) {
+      list = [];
+      uniqueDestinations[otherNodeId] = list;
     }
-    uniqueDestinations[otherNodeId].push(edge);
+    list.push(edge);
   });
 
-  const formattedPaths: string[] = [];
+  const formattedPaths: Array<string> = [];
   for (const targetNodeId in uniqueDestinations) {
     const candidateEdgesToTarget = uniqueDestinations[targetNodeId];
+    if (!candidateEdgesToTarget) continue;
     const validCandidateEdges = candidateEdgesToTarget.filter(edge => {
       if (edge.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) {
         return false;
@@ -113,17 +293,7 @@ const getFormattedConnectionsForNode = (
     const otherNode = allThemeNodes.find(node => node.id === targetNodeId);
     if (!otherNode) continue;
 
-    const statusText = bestEdge.data.status || 'open';
-    const typeText = bestEdge.data.type || 'path';
-    const details: string[] = [];
-    if (bestEdge.data.travelTime) {
-      details.push(`travel time: ${bestEdge.data.travelTime}`);
-    }
-    if (bestEdge.data.description) {
-      details.push(bestEdge.data.description);
-    }
-    const detailText = details.length > 0 ? ` (${details.join(', ')})` : '';
-    const pathString = ` - ${statusText} ${typeText} to "${otherNode.placeName}"${detailText}.`;
+    const pathString = formatConnectionToNode(bestEdge, otherNode);
     formattedPaths.push(pathString);
     processedTargets.add(targetNodeId);
   }
@@ -136,13 +306,13 @@ const getFormattedConnectionsForNode = (
 const getNearbyNodeIds = (
   startNodeId: string,
   maxHops: number,
-  allNodes: MapNode[],
-  allEdges: MapEdge[],
-  typesToInclude?: ('node' | 'feature')[],
-  typesToTraverse?: ('node' | 'feature')[]
+  allNodes: Array<MapNode>,
+  allEdges: Array<MapEdge>,
+  typesToInclude?: Array<'node' | 'feature'>,
+  typesToTraverse?: Array<'node' | 'feature'>
 ): Set<string> => {
   const allReachableNodeIds = new Set<string>();
-  const queue: { nodeId: string; hop: number }[] = [{ nodeId: startNodeId, hop: 0 }];
+  const queue: Array<{ nodeId: string; hop: number }> = [{ nodeId: startNodeId, hop: 0 }];
   const visitedForHops = new Set<string>();
   const allowedEdgeStatuses: Array<MapEdge['data']['status']> = ['open', 'accessible', 'active'];
 
@@ -202,27 +372,18 @@ const getNearbyNodeIds = (
 export const formatLimitedMapContextForPrompt = (
   mapData: MapData,
   currentMapNodeId: string | null,
-  inventory: Item[] = [],
+  inventory: Array<Item> = [],
 ): string => {
   if (!currentMapNodeId) return 'Current location unknown.';
   const allNodes = mapData.nodes;
   const allEdges = mapData.edges;
   const nearbyIds = getNearbyNodeIds(currentMapNodeId, 2, allNodes, allEdges);
   nearbyIds.add(currentMapNodeId);
-  const lines: string[] = [];
+  const lines: Array<string> = [];
   nearbyIds.forEach(id => {
     const node = allNodes.find(n => n.id === id);
     if (!node) return;
-    const parent = node.data.parentNodeId || 'Universe';
-    const desc = node.data.description || 'No description.';
-    const itemsAtNode = inventory.filter(item => item.holderId === id);
-    const itemsStr =
-      itemsAtNode.length > 0
-        ? ` Items: ${itemsAtNode.map(i => `"${i.name}"`).join(', ')}`
-        : '';
-    lines.push(
-      ` - ${node.id} - "${node.placeName}" (parent: ${parent}), "${desc}"${itemsStr}`,
-    );
+    lines.push(formatNodeLine(node, inventory));
   });
   return lines.join(';\n') + '.';
 };
@@ -234,8 +395,8 @@ export const formatMapContextForPrompt = (
   mapData: MapData,
   currentMapNodeId: string | null,
   currentTheme: AdventureTheme | null,
-  allNodesForTheme: MapNode[],
-  allEdgesForTheme: MapEdge[]
+  allNodesForTheme: Array<MapNode>,
+  allEdgesForTheme: Array<MapEdge>
 ): string => {
   if (!currentMapNodeId || !currentTheme) {
     return "Player's precise map location is currently unknown or they are between known locations.";
@@ -276,7 +437,7 @@ export const formatMapContextForPrompt = (
       const exitFeatureNodesInCurrentArea = allNodesForTheme.filter(
         node => node.data.nodeType === "feature" && node.data.parentNodeId === areaMainNode.id
       );
-      const exitStrings: string[] = [];
+      const exitStrings: Array<string> = [];
       if (exitFeatureNodesInCurrentArea.length > 0) {
         for (const exitFeature of exitFeatureNodesInCurrentArea) {
           if (exitFeature.id === currentNode.id) continue;
@@ -296,8 +457,8 @@ export const formatMapContextForPrompt = (
                 node => node.id === entryFeature.data.parentNodeId && !(node.data.nodeType === "feature")
               );
               if (otherAreaMainNode) {
-                const edgeStatus = edge.data.status || 'open';
-                const edgeType = edge.data.type || 'path';
+                const edgeStatus = edge.data.status ?? 'open';
+                const edgeType = edge.data.type ?? 'path';
                 exitStrings.push(
                   ` - '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
                 );
@@ -361,7 +522,7 @@ export const formatMapContextForPrompt = (
     const nearbyNodeNames = Array.from(nearbyNodeIds)
       .map(id => allNodesForTheme.find(n => n.id === id)?.placeName)
       .filter(name => !!name)
-      .map(name => `"${name}"`);
+      .map(name => `"${String(name)}"`);
     if (nearbyNodeNames.length > 0) {
       context += `\nLocations nearby (within two hops): ${nearbyNodeNames.join(', ')}.`;
     }

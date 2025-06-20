@@ -3,19 +3,23 @@
  * @description SVG view rendering map nodes and edges with tooltip interactions.
  */
 
-import React, { useMemo, useState, useRef } from 'react';
+import { useMemo } from 'react';
+
+import * as React from 'react';
 import { MapNode, MapEdge } from '../../types';
-import useMapInteractions from '../../hooks/useMapInteractions';
+import { useMapInteractions } from '../../hooks/useMapInteractions';
 import {
   NODE_RADIUS,
   EDGE_HOVER_WIDTH,
   MAX_LABEL_LINES,
   DEFAULT_LABEL_MARGIN_PX,
   DEFAULT_LABEL_LINE_HEIGHT_EM,
-} from '../../utils/mapConstants';
-import { MapItemBoxIcon, MapWheelIcon } from '../icons';
+} from '../../constants';
+import { Icon } from '../elements/icons';
+import Button from '../elements/Button';
 import { isDescendantOf } from '../../utils/mapGraphUtils';
-import { getSVGCoordinates, getScreenCoordinates } from '../../utils/svgUtils';
+import { calculateLabelOffsets, getRadiusForNode, splitTextIntoLines, isSmallFontType, hasCenteredLabel } from '../../utils/mapLabelUtils';
+import { useMapTooltip } from '../../hooks/useMapTooltip';
 
 const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   const x1 = a.position.x;
@@ -32,281 +36,74 @@ const buildShortcutPath = (a: MapNode, b: MapNode): string => {
   const perpY = dx / dist;
   const cx = midX + perpX * offset;
   const cy = midY + perpY * offset;
-  return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+  return `M ${String(x1)} ${String(y1)} Q ${String(cx)} ${String(cy)} ${String(x2)} ${String(y2)}`;
 };
 
 interface MapNodeViewProps {
-  nodes: MapNode[];
-  edges: MapEdge[];
-  currentMapNodeId: string | null;
-  destinationNodeId: string | null;
+  readonly nodes: Array<MapNode>;
+  readonly edges: Array<MapEdge>;
+  readonly currentMapNodeId: string | null;
+  readonly destinationNodeId: string | null;
   /** Mapping of nodeId to presence of useful items and vehicles */
-  itemPresenceByNode?: Record<string, { hasUseful: boolean; hasVehicle: boolean }>;
-  onSelectDestination: (nodeId: string | null) => void;
-  labelOverlapMarginPx: number;
+  readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
+  readonly onSelectDestination: (nodeId: string | null) => void;
+  readonly labelOverlapMarginPx: number;
   /** Fraction of node diameter for item icon size */
-  itemIconScale: number;
-  initialViewBox: string;
-  onViewBoxChange: (viewBox: string) => void;
+  readonly itemIconScale: number;
+  readonly initialViewBox: string;
+  readonly onViewBoxChange: (viewBox: string) => void;
 }
 
 /**
- * Returns the radius for a node's circle. Uses the computed visualRadius from
- * nested layouts when available, otherwise falls back to a default based on the
- * node type.
+ * Empty map used as the default value for {@link MapNodeViewProps.itemPresenceByNode}.
  */
-const getRadiusForNode = (node: MapNode): number => {
-  if (node.data.visualRadius) return node.data.visualRadius;
-  switch (node.data.nodeType) {
-    case 'region':
-      // Larger size so that child circles and labels can fit inside.
-      return NODE_RADIUS * 2.4;
-    case 'location':
-      return NODE_RADIUS * 2.0;
-    case 'settlement':
-      return NODE_RADIUS * 1.8;
-    case 'district':
-      return NODE_RADIUS * 1.6;
-    case 'exterior':
-      return NODE_RADIUS * 1.4;
-    case 'interior':
-      return NODE_RADIUS * 1.2;
-    case 'room':
-      return NODE_RADIUS * 0.8;
-    case 'feature':
-      return NODE_RADIUS * 0.6;
-    default:
-      return NODE_RADIUS * 0.6;
-  }
-};
+const EMPTY_ITEM_PRESENCE_BY_NODE: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
 
-/** Splits a label into multiple lines for display. */
-const splitTextIntoLines = (text: string, maxCharsPerLine: number, maxLines: number): string[] => {
-  if (!text) return [];
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    if (lines.length === maxLines) break;
-
-    if (currentLine.length === 0) {
-      currentLine = word;
-    } else if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
-      currentLine += ` ${word}`;
-    } else {
-      lines.push(currentLine);
-      if (lines.length === maxLines) {
-        if (word) {
-          const lastLineContent = lines[maxLines - 1];
-          if (lastLineContent.length > 3) {
-            lines[maxLines - 1] = lastLineContent.slice(0, -3) + '...';
-          } else {
-            lines[maxLines - 1] = '..';
-          }
-        }
-        currentLine = '';
-        break;
-      }
-      currentLine = word;
-    }
-  }
-
-  if (currentLine && lines.length < maxLines) {
-    lines.push(currentLine);
-  } else if (currentLine && lines.length === maxLines && lines[maxLines - 1] && !lines[maxLines - 1].endsWith('...')) {
-    if (lines[maxLines - 1].length > 3) {
-      lines[maxLines - 1] = lines[maxLines - 1].slice(0, -3) + '...';
-    } else {
-      lines[maxLines - 1] = '..';
-    }
-  }
-
-  if (lines.length === maxLines && text.split(' ').length > words.indexOf(currentLine.split(' ')[0]) + currentLine.split(' ').length) {
-    const lastLine = lines[maxLines - 1];
-    if (lastLine && lastLine.length > 3 && !lastLine.endsWith('...')) {
-      lines[maxLines - 1] = lastLine.slice(0, Math.max(0, lastLine.length - 3)) + '...';
-    } else if (lastLine && !lastLine.endsWith('...')) {
-      lines[maxLines - 1] = '..';
-    }
-  }
-  return lines;
-};
 
 /**
  * SVG view for rendering map nodes and edges with tooltips.
  */
-const MapNodeView: React.FC<MapNodeViewProps> = ({
+function MapNodeView({
   nodes,
   edges,
   currentMapNodeId,
   destinationNodeId,
-  itemPresenceByNode,
+  itemPresenceByNode = EMPTY_ITEM_PRESENCE_BY_NODE,
   onSelectDestination,
   labelOverlapMarginPx,
   itemIconScale,
   initialViewBox,
   onViewBoxChange,
-}) => {
+}: MapNodeViewProps) {
   const interactions = useMapInteractions(initialViewBox, onViewBoxChange);
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
-  const [tooltip, setTooltip] = useState<{
-    content: string;
-    svgX: number;
-    svgY: number;
-    anchor: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-    nodeId?: string;
-  } | null>(null);
-  const [isTooltipLocked, setIsTooltipLocked] = useState(false);
-  const tooltipTimeout = useRef<number | null>(null);
-  const TOOLTIP_DELAY_MS = 250;
+  const {
+    tooltip,
+    tooltipScreenPosition,
+    isTooltipLocked,
+    handleMouseLeaveGeneral,
+    handleSvgClick,
+    handleEdgeMouseEnterById,
+    handleNodeMouseEnterById,
+    handleNodeClickById,
+    handleDestinationClick,
+  } = useMapTooltip({
+    nodes,
+    edges,
+    svgRef,
+    viewBox,
+    destinationNodeId,
+    onSelectDestination,
+  });
 
-  // Recalculate tooltip position when viewBox changes so it stays anchored
-  // during panning or zooming.
-  const tooltipScreenPosition = useMemo(() => {
-    if (!tooltip || !svgRef.current) return null;
-    const { x, y } = getScreenCoordinates(
-      svgRef.current,
-      tooltip.svgX,
-      tooltip.svgY
-    );
-    const rect = svgRef.current.getBoundingClientRect();
-    return { x: x - rect.left, y: y - rect.top };
-  }, [tooltip, viewBox, svgRef]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const isSmallFontType = (type: string | undefined) =>
-    type === 'feature' || type === 'room' || type === 'interior';
-
-  const hasCenteredLabel = (type: string | undefined) => type === 'feature';
-
-  const computeAnchor = (
-    x: number,
-    y: number,
-    rect: DOMRect
-  ): 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' => {
-    const horizontal = x > rect.width / 2 ? 'right' : 'left';
-    const vertical = y > rect.height * 0.75 ? 'bottom' : 'top';
-    return `${vertical}-${horizontal}` as const;
-  };
+  // Utility helpers imported from mapLabelUtils
 
 
 
-  /**
-   * Calculate extra vertical offset for labels when they overlap. Feature labels
-   * stay fixed while sibling and descendant non-feature labels may shift down.
-   * Only immediate left/right siblings are considered for overlap checks.
-   */
-  const labelOffsetMap = useMemo(() => {
-    const idToNode = new Map(nodes.map(n => [n.id, n]));
-
-    const childrenMap = new Map<string, MapNode[]>();
-    nodes.forEach(n => {
-      if (n.data.parentNodeId) {
-        const arr = childrenMap.get(n.data.parentNodeId) || [];
-        arr.push(n);
-        childrenMap.set(n.data.parentNodeId, arr);
-      }
-    });
-
-    const depthCache = new Map<string, number>();
-    const getDepth = (node: MapNode | undefined): number => {
-      if (!node) return 0;
-      const cached = depthCache.get(node.id);
-      if (cached !== undefined) return cached;
-      const parent = node.data.parentNodeId ? idToNode.get(node.data.parentNodeId) : undefined;
-      const depth = parent ? getDepth(parent) + 1 : 0;
-      depthCache.set(node.id, depth);
-      return depth;
-    };
-    nodes.forEach(n => getDepth(n));
-
-    const isParent = (n: MapNode) => childrenMap.has(n.id);
-
-    const fontSizeFor = (n: MapNode) => (isSmallFontType(n.data.nodeType) ? 7 : 12);
-    const linesCache: Record<string, string[]> = {};
-    const getLines = (n: MapNode): string[] => {
-      if (linesCache[n.id]) return linesCache[n.id];
-      const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
-      linesCache[n.id] = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
-      return linesCache[n.id];
-    };
-
-    const labelHeight = (n: MapNode) =>
-      getLines(n).length * fontSizeFor(n) * DEFAULT_LABEL_LINE_HEIGHT_EM;
-
-    const labelWidth = (n: MapNode) =>
-      Math.max(
-        ...getLines(n).map(line => line.length * fontSizeFor(n) * 0.6)
-      );
-
-    const getLabelBox = (n: MapNode, offset: number) => {
-      const width = labelWidth(n);
-      const height = labelHeight(n);
-      if (hasCenteredLabel(n.data.nodeType)) {
-        return {
-          x: n.position.x - width / 2,
-          y: n.position.y - height / 2,
-          width,
-          height : height * 2,
-        };
-      }
-      const base = getRadiusForNode(n) + DEFAULT_LABEL_MARGIN_PX + offset;
-      return {
-        x: n.position.x - width / 2,
-        y: n.position.y + base,
-        width,
-        height,
-      };
-    };
-
-    const offsets: Record<string, number> = {};
-    nodes.forEach(n => {
-      offsets[n.id] = 0;
-    });
-
-    // Helper to test bounding box overlap
-    const boxesOverlap = (a: { x: number; y: number; width: number; height: number }, b: { x: number; y: number; width: number; height: number }) =>
-      a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
-
-    // Shift siblings that overlap. Only immediate neighbors are checked.
-    childrenMap.forEach(siblings => {
-      const ordered = [...siblings].sort((a, b) => a.position.x - b.position.x);
-      for (let i = 1; i < ordered.length; i++) {
-        const left = ordered[i - 1];
-        const right = ordered[i];
-
-        let boxLeft = getLabelBox(left, offsets[left.id]);
-        let boxRight = getLabelBox(right, offsets[right.id]);
-
-        if (boxesOverlap(boxLeft, boxRight)) {
-          const delta = boxLeft.y + boxLeft.height - boxRight.y + labelOverlapMarginPx;
-          if (right.data.nodeType !== 'feature') {
-            offsets[right.id] += delta;
-            boxRight = getLabelBox(right, offsets[right.id]);
-          } else if (left.data.nodeType !== 'feature') {
-            offsets[left.id] += delta;
-            boxLeft = getLabelBox(left, offsets[left.id]);
-          }
-        }
-      }
-    });
-
-    // Non-feature nodes must also avoid overlapping any feature descendants
-    nodes.forEach(node => {
-      if (node.data.nodeType === 'feature') return;
-      const featureDescendants = nodes.filter(n => n.data.nodeType === 'feature' && isDescendantOf(n, node, idToNode));
-      for (const feature of featureDescendants) {
-        const nodeBox = getLabelBox(node, offsets[node.id]);
-        const featureBox = getLabelBox(feature, offsets[feature.id]);
-        if (boxesOverlap(nodeBox, featureBox)) {
-          const delta = featureBox.y + featureBox.height - nodeBox.y + labelOverlapMarginPx;
-          offsets[node.id] += delta;
-        }
-      }
-    });
-
-    return offsets;
-  }, [nodes, labelOverlapMarginPx]);
+  const labelOffsetMap = useMemo(
+    () => calculateLabelOffsets(nodes, labelOverlapMarginPx),
+    [nodes, labelOverlapMarginPx]
+  );
 
   /** Map node depth for rendering order */
   const depthMap = useMemo(() => {
@@ -330,87 +127,33 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
     [nodes, depthMap]
   );
 
-  /** Shows node details in a tooltip. */
-  const handleNodeMouseEnter = (node: MapNode, event: React.MouseEvent) => {
-    if (isTooltipLocked) return;
-    const svgRect = svgRef.current?.getBoundingClientRect();
-    if (!svgRect) return;
-    const x = event.clientX - svgRect.left;
-    const y = event.clientY - svgRect.top;
-    const svgCoords = svgRef.current
-      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
-      : { x: 0, y: 0 };
-    let content = `${node.placeName}`;
-    if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
-    if (node.data.description) content += `\n${node.data.description}`;
-    if (node.data.status) content += `\nStatus: ${node.data.status}`;
-    const anchor = computeAnchor(x, y, svgRect);
-    if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
-    tooltipTimeout.current = window.setTimeout(() => {
-      setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId: node.id });
-    }, TOOLTIP_DELAY_MS);
-  };
-
-  const handleNodeClick = (node: MapNode, event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (tooltipTimeout.current) {
-      clearTimeout(tooltipTimeout.current);
-      tooltipTimeout.current = null;
+  const destinationMarker = useMemo(() => {
+    if (!destinationNodeId) return null;
+    const dest = nodes.find(n => n.id === destinationNodeId);
+    const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
+    if (!dest) return null;
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    if (current && (current.id === dest.id || isDescendantOf(current, dest, nodeMap))) {
+      return null;
     }
-    const svgRect = svgRef.current?.getBoundingClientRect();
-    if (!svgRect) return;
-    const x = event.clientX - svgRect.left;
-    const y = event.clientY - svgRect.top;
-    const svgCoords = svgRef.current
-      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
-      : { x: 0, y: 0 };
-    let content = `${node.placeName}`;
-    if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
-    if (node.data.description) content += `\n${node.data.description}`;
-    if (node.data.status) content += `\nStatus: ${node.data.status}`;
-    setIsTooltipLocked(true);
-    const anchor = computeAnchor(x, y, svgRect);
-    setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId: node.id });
-  };
+    return (
+      <polygon
+        className="map-destination-marker"
+        pointerEvents="none"
+        points="0,-14 10,0 0,14 -10,0"
+        transform={`translate(${String(dest.position.x)}, ${String(dest.position.y)})`}
+      />
+    );
+  }, [destinationNodeId, nodes, currentMapNodeId]);
 
-  /** Shows edge details in a tooltip. */
-  const handleEdgeMouseEnter = (edge: MapEdge, event: React.MouseEvent) => {
-    if (isTooltipLocked) return;
-    const svgRect = svgRef.current?.getBoundingClientRect();
-    if (!svgRect) return;
-    const x = event.clientX - svgRect.left;
-    const y = event.clientY - svgRect.top;
-    const svgCoords = svgRef.current
-      ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY)
-      : { x: 0, y: 0 };
-    const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
-    const targetNode = nodes.find(n => n.id === edge.targetNodeId);
-    let content = edge.data.description
-      ? edge.data.description
-      : `Path between ${sourceNode?.placeName || 'Unknown'} and ${targetNode?.placeName || 'Unknown'}`;
-    /*if (edge.data.type) content += `\n${edge.data.type}`;*/
-    if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
-    if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
-    const anchor = computeAnchor(x, y, svgRect);
-    if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
-    tooltipTimeout.current = window.setTimeout(() => {
-      setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor });
-    }, TOOLTIP_DELAY_MS);
-  };
 
-  /** Hides the tooltip. */
-  const handleMouseLeaveGeneral = () => {
-    if (tooltipTimeout.current) {
-      clearTimeout(tooltipTimeout.current);
-      tooltipTimeout.current = null;
-    }
-    if (!isTooltipLocked) setTooltip(null);
-  };
 
   if (nodes.length === 0) {
     return (
       <div className="map-content-area">
-        <p className="text-slate-500 italic">No map data available for this theme yet.</p>
+        <p className="text-slate-500 italic">
+          No map data available for this theme yet.
+        </p>
       </div>
     );
   }
@@ -418,25 +161,19 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
   return (
     <div className="map-content-area">
       <svg
-        ref={svgRef}
-        viewBox={viewBox}
         className="map-svg-container"
-        onClick={e => {
-          const target = e.target as Element;
-          if (!target.closest('.map-node') && !target.closest('.map-edge-group')) {
-            setIsTooltipLocked(false);
-            setTooltip(null);
-          }
-        }}
+        onClick={handleSvgClick}
         onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
+        onTouchStart={handleTouchStart}
+        onWheel={handleWheel}
         preserveAspectRatio="xMidYMid meet"
+        ref={svgRef}
+        viewBox={viewBox}
       >
         <g>
 
@@ -449,37 +186,43 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             if (edge.data.status) edgeClass += ` ${edge.data.status.replace(/\s+/g, '_').toLowerCase()}`;
             return (
               <g
-                key={edge.id}
                 className="map-edge-group"
-                onMouseEnter={e => handleEdgeMouseEnter(edge, e)}
+                data-edge-id={edge.id}
+                key={edge.id}
+                onMouseEnter={handleEdgeMouseEnterById}
                 onMouseLeave={handleMouseLeaveGeneral}
               >
                 {edge.data.type === 'shortcut' ? (
                   <>
                     <path
                       d={buildShortcutPath(sourceNode, targetNode)}
+                      fill="none"
                       stroke="transparent"
                       strokeWidth={EDGE_HOVER_WIDTH}
-                      fill="none"
                     />
-                    <path d={buildShortcutPath(sourceNode, targetNode)} className={edgeClass} />
+
+                    <path
+                      className={edgeClass}
+                      d={buildShortcutPath(sourceNode, targetNode)}
+                    />
                   </>
                 ) : (
                   <>
                     <line
-                      x1={sourceNode.position.x}
-                      y1={sourceNode.position.y}
-                      x2={targetNode.position.x}
-                      y2={targetNode.position.y}
                       stroke="transparent"
                       strokeWidth={EDGE_HOVER_WIDTH}
-                    />
-                    <line
                       x1={sourceNode.position.x}
-                      y1={sourceNode.position.y}
                       x2={targetNode.position.x}
+                      y1={sourceNode.position.y}
                       y2={targetNode.position.y}
+                    />
+
+                    <line
                       className={edgeClass}
+                      x1={sourceNode.position.x}
+                      x2={targetNode.position.x}
+                      y1={sourceNode.position.y}
+                      y2={targetNode.position.y}
                     />
                   </>
                 )}
@@ -489,100 +232,93 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
           {sortedNodes.map(node => {
             let nodeClass = 'map-node-circle';
-            if (node.data.nodeType) nodeClass += ` ${node.data.nodeType}`;
+            nodeClass += ` ${node.data.nodeType}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
-            if (node.data.status) {
-              const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
-              nodeClass += ` ${sanitizedStatus}`;
-            }
+            const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
+            nodeClass += ` ${sanitizedStatus}`;
             const radius = getRadiusForNode(node);
-            const handleEnter = (e: React.MouseEvent) => handleNodeMouseEnter(node, e);
             return (
               <g
-                key={node.id}
-                transform={`translate(${node.position.x}, ${node.position.y})`}
                 className="map-node"
+                data-node-id={node.id}
+                key={node.id}
+                onClick={handleNodeClickById}
                 onMouseLeave={handleMouseLeaveGeneral}
-                onClick={e => handleNodeClick(node, e)}
+                transform={`translate(${String(node.position.x)}, ${String(node.position.y)})`}
               >
                 <circle
                   className={nodeClass}
-                  r={radius}
-                  pointerEvents={
-                    node.data.nodeType === 'feature' ? 'visible' : 'none'
-                  }
+                  data-node-id={node.id}
                   onMouseEnter={
-                    node.data.nodeType === 'feature' ? handleEnter : undefined
+                    node.data.nodeType === 'feature' ? handleNodeMouseEnterById : undefined
                   }
                   onMouseLeave={
                     node.data.nodeType === 'feature'
                       ? handleMouseLeaveGeneral
                       : undefined
                   }
+                  pointerEvents={
+                    node.data.nodeType === 'feature' ? 'visible' : 'none'
+                  }
+                  r={radius}
                 />
+
                 <circle
                   className="map-node-hover-ring"
-                  r={radius}
+                  data-node-id={node.id}
                   fill="none"
+                  onMouseEnter={handleNodeMouseEnterById}
+                  onMouseLeave={handleMouseLeaveGeneral}
+                  pointerEvents="stroke"
+                  r={radius}
                   stroke="transparent"
                   strokeWidth={8}
-                  pointerEvents="stroke"
-                  onMouseEnter={handleEnter}
-                  onMouseLeave={handleMouseLeaveGeneral}
                 />
               </g>
             );
           })}
 
-          {destinationNodeId && (() => {
-            const dest = nodes.find(n => n.id === destinationNodeId);
-            const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
-            if (!dest) return null;
-            const nodeMap = new Map(nodes.map(n => [n.id, n]));
-            if (
-              current &&
-              (current.id === dest.id || isDescendantOf(current, dest, nodeMap))
-            ) {
-              return null;
-            }
-            return (
-              <polygon
-                className="map-destination-marker"
-                points="0,-14 10,0 0,14 -10,0"
-                transform={`translate(${dest.position.x}, ${dest.position.y})`}
-                pointerEvents="none"
-              />
-            );
-          })()}
+          {destinationMarker}
 
           {sortedNodes.map(node => {
-          const presence = itemPresenceByNode?.[node.id];
-          if (!presence) return null;
+          const presence = itemPresenceByNode[node.id] ?? { hasUseful: false, hasVehicle: false };
+          if (!presence.hasUseful && !presence.hasVehicle) return null;
           const radius = getRadiusForNode(node);
           const offset = radius + DEFAULT_LABEL_MARGIN_PX * 1.5;
           const iconSize = NODE_RADIUS * 2 * itemIconScale;
+          const usefulX = node.position.x + offset * Math.sin((20 * Math.PI) / 180) - iconSize / 2;
+          const usefulY = node.position.y - offset * Math.cos((20 * Math.PI) / 180) - iconSize / 2;
+          const vehicleX = node.position.x + offset * Math.sin((340 * Math.PI) / 180) - iconSize / 2;
+          const vehicleY = node.position.y - offset * Math.cos((340 * Math.PI) / 180) - iconSize / 2;
           return (
             <g key={`${node.id}-icons`}>
-              {presence.hasUseful && (() => {
-                const angle = (20 * Math.PI) / 180;
-                const x = node.position.x + offset * Math.sin(angle);
-                const y = node.position.y - offset * Math.cos(angle);
-                return (
-                    <g transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`} pointerEvents="none">
-                      <MapItemBoxIcon className="text-green-400" size={iconSize} />
-                    </g>
-                );
-              })()}
-              {presence.hasVehicle && (() => {
-                const angle = (340 * Math.PI) / 180;
-                const x = node.position.x + offset * Math.sin(angle);
-                const y = node.position.y - offset * Math.cos(angle);
-                return (
-                    <g transform={`translate(${x - iconSize/2}, ${y - iconSize/2})`} pointerEvents="none">
-                      <MapWheelIcon className="text-green-400" size={iconSize} />
-                    </g>
-                );
-              })()}
+              {presence.hasUseful ? (
+                <g
+                  pointerEvents="none"
+                  transform={`translate(${String(usefulX)}, ${String(usefulY)})`}
+                >
+                  <Icon
+                    color="green"
+                    name="mapItemBox"
+                    size={iconSize}
+                    wrapper="g"
+                  />
+                </g>
+                ) : null}
+
+              {presence.hasVehicle ? (
+                <g
+                  pointerEvents="none"
+                  transform={`translate(${String(vehicleX)}, ${String(vehicleY)})`}
+                >
+                  <Icon
+                    color="green"
+                    name="mapWheel"
+                    size={iconSize}
+                    wrapper="g"
+                  />
+                </g>
+                ) : null}
             </g>
           );
         })}
@@ -597,7 +333,7 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
             );
             const radius = getRadiusForNode(node);
             const fontSize = isSmallFontType(node.data.nodeType) ? 7 : 12;
-            const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] || 0);
+            const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] ?? 0);
             const initialDyOffset =
               hasCenteredLabel(node.data.nodeType)
                 ? -(labelLines.length - 1) * 0.5 * DEFAULT_LABEL_LINE_HEIGHT_EM + 0.3
@@ -605,7 +341,6 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
 
             return (
               <text
-                key={`label-${node.id}`}
                 className={`map-node-label${
                   isSmallFontType(node.data.nodeType)
                     ? node.data.nodeType === 'feature'
@@ -615,16 +350,18 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
                         : ' interior-label'
                     : ''
                 }`}
-                transform={`translate(${node.position.x}, ${node.position.y})`}
-                pointerEvents="visible"
-                onMouseEnter={e => handleNodeMouseEnter(node, e)}
+                data-node-id={node.id}
+                key={`label-${node.id}`}
+                onMouseEnter={handleNodeMouseEnterById}
                 onMouseLeave={handleMouseLeaveGeneral}
+                pointerEvents="visible"
+                transform={`translate(${String(node.position.x)}, ${String(node.position.y)})`}
               >
                 {labelLines.map((line, index) => (
                   <tspan
-                    key={`${node.id}-line-${index}`}
+                    dy={index === 0 ? `${String(initialDyOffset)}em` : `${String(DEFAULT_LABEL_LINE_HEIGHT_EM)}em`}
+                    key={`${node.id}-${line}`}
                     x="0"
-                    dy={index === 0 ? `${initialDyOffset}em` : `${DEFAULT_LABEL_LINE_HEIGHT_EM}em`}
                   >
                     {line}
                   </tspan>
@@ -634,39 +371,45 @@ const MapNodeView: React.FC<MapNodeViewProps> = ({
           })}
         </g>
       </svg>
-      {tooltip && tooltipScreenPosition && (
-        <div
-          className={`map-tooltip anchor-${tooltip.anchor}`}
-          style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
-        >
-          {isTooltipLocked && tooltip.nodeId && (
-            <button
-              onClick={() => {
-                if (tooltip.nodeId === destinationNodeId) {
-                  onSelectDestination(null);
-                } else {
-                  onSelectDestination(tooltip.nodeId!);
-                }
-                setIsTooltipLocked(false);
-                setTooltip(null);
-              }}
-              className="map-set-destination-button"
-            >
-              {tooltip.nodeId === destinationNodeId
-                ? 'Remove Destination'
-                : 'Set Destination'}
-            </button>
-          )}
-          {tooltip.content.split('\n').map((line, index) => (
-            <React.Fragment key={index}>
-              {index === 0 ? <strong>{line}</strong> : line}
-              {index < tooltip.content.split('\n').length - 1 && <br />}
-            </React.Fragment>
+
+      {tooltip && tooltipScreenPosition ? <div
+        className={`map-tooltip anchor-${tooltip.anchor}`}
+        style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
+                                          >
+        {isTooltipLocked && tooltip.nodeId ? (
+          <div className="mb-1">
+            <Button
+              ariaLabel={
+                tooltip.nodeId === destinationNodeId
+                  ? 'Remove Destination'
+                  : 'Set Destination'
+              }
+              data-node-id={tooltip.nodeId}
+              label={
+                tooltip.nodeId === destinationNodeId
+                  ? 'Remove Destination'
+                  : 'Set Destination'
+              }
+              onClick={handleDestinationClick}
+              preset="amber"
+              size="sm"
+              variant="standard"
+            />
+          </div>
+        ) : null}
+
+        {tooltip.content.split('\n').map((line, index) => (
+          <React.Fragment key={`${String(tooltip.nodeId)}-${String(line)}`}>
+            {index === 0 ? <strong>
+              {line}
+            </strong> : line}
+
+            {index < tooltip.content.split('\n').length - 1 && <br />}
+          </React.Fragment>
           ))}
-        </div>
-      )}
+      </div> : null}
     </div>
   );
-};
+}
 
 export default MapNodeView;

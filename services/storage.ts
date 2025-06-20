@@ -12,7 +12,8 @@ import {
   prepareGameStateForSaving,
   expandSavedDataToFullState,
   normalizeLoadedSaveData,
-} from './saveLoadService';
+} from './saveLoad';
+import { safeParseJson } from '../utils/jsonUtils';
 
 /** Saves the current game state to localStorage. */
 export const saveGameStateToLocalStorage = (gameState: FullGameState): boolean => {
@@ -40,8 +41,12 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
     const savedDataString = localStorage.getItem(LOCAL_STORAGE_SAVE_KEY);
     if (!savedDataString) return null;
 
-    const parsedData: unknown = JSON.parse(savedDataString);
-    if (typeof parsedData !== 'object' || parsedData === null) {
+    const parsedData: unknown = safeParseJson(savedDataString);
+    if (parsedData === null) {
+      console.warn('Saved data found in localStorage could not be parsed as JSON.');
+      return null;
+    }
+    if (typeof parsedData !== 'object') {
       console.warn('Saved data found in localStorage is not an object.');
       return null;
     }

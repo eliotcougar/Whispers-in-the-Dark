@@ -19,7 +19,10 @@ import { DIALOGUE_SYSTEM_INSTRUCTION } from './systemPrompt';
 import { SYSTEM_INSTRUCTION } from '../storyteller/systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
-import { callMinimalCorrectionAI, fetchCorrectedDialogueTurn_Service } from '../corrections';
+import { fetchCorrectedDialogueTurn_Service } from '../corrections';
+import { CORRECTION_TEMPERATURE } from '../../constants';
+import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
+import { addProgressSymbol } from '../../utils/loadingProgress';
 import { isApiConfigured } from '../apiClient';
 import { buildDialogueTurnPrompt, buildDialogueSummaryPrompt, buildDialogueMemorySummaryPrompts } from './promptBuilder';
 import {
@@ -41,7 +44,7 @@ interface GeminiRequestConfig {
 const callDialogueGeminiAPI = async (
   prompt: string,
   systemInstruction: string,
-  thinkingBudgetLimit: number = 0 // Default to 0 (disabled thinking)
+  thinkingBudgetLimit = 0 // Default to 0 (disabled thinking)
 ): Promise<GenerateContentResponse> => {
   const config: GeminiRequestConfig = {
     systemInstruction,
@@ -74,14 +77,14 @@ export const executeDialogueTurn = async (
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
-  knownMainMapNodesInTheme: MapNode[],
-  knownCharactersInTheme: Character[],
-  inventory: Item[],
+  knownMainMapNodesInTheme: Array<MapNode>,
+  knownCharactersInTheme: Array<Character>,
+  inventory: Array<Item>,
   playerGender: string,
-  dialogueHistory: DialogueHistoryEntry[],
+  dialogueHistory: Array<DialogueHistoryEntry>,
   playerLastUtterance: string,
-  dialogueParticipants: string[],
-): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string; thoughts: string[] }> => {
+  dialogueParticipants: Array<string>,
+): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -106,7 +109,7 @@ export const executeDialogueTurn = async (
 
   for (let attempt = 1; attempt <= MAX_RETRIES; ) {
     try {
-      console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES})`);
+      console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES)})`);
       const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, 512);
       const parts =
         (response.candidates?.[0]?.content?.parts ?? []) as Array<{
@@ -114,22 +117,20 @@ export const executeDialogueTurn = async (
           thought?: boolean;
         }>;
       const thoughtParts = parts
-        .filter(p => p.thought === true && typeof p.text === 'string')
-        .map(p => p.text as string);
+        .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+        .map(p => p.text);
       let parsed = parseDialogueTurnResponse(response.text ?? '', thoughtParts);
-      if (!parsed) {
-        parsed = await fetchCorrectedDialogueTurn_Service(
-          response.text ?? '',
-          dialogueParticipants,
-          currentTheme,
-          thoughtParts,
-        );
-      }
+      parsed ??= await fetchCorrectedDialogueTurn_Service(
+        response.text ?? '',
+        dialogueParticipants,
+        currentTheme,
+        thoughtParts,
+      );
       if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
-      console.warn(`Attempt ${attempt} failed to yield valid dialogue JSON even after correction.`);
+      console.warn(`Attempt ${String(attempt)} failed to yield valid dialogue JSON even after correction.`);
       attempt++;
     } catch (error) {
-      console.error(`Error fetching dialogue turn (Attempt ${attempt}/${MAX_RETRIES}):`, error);
+      console.error(`Error fetching dialogue turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
       if (!isServerOrClientError(error)) throw error;
       if (attempt === MAX_RETRIES) throw error;
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -144,7 +145,7 @@ export const executeDialogueTurn = async (
  */
 export const executeDialogueSummary = async (
   summaryContext: DialogueSummaryContext,
-): Promise<{ parsed: GameStateFromAI | null; prompt: string; rawResponse: string; thoughts: string[] }> => {
+): Promise<{ parsed: GameStateFromAI | null; prompt: string; rawResponse: string; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Summary Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -159,7 +160,7 @@ export const executeDialogueSummary = async (
 
   for (let attempt = 1; attempt <= MAX_RETRIES + 2; ) {
     try {
-      console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 2})`);
+      console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES + 2)})`);
       let systemInstructionForCall = SYSTEM_INSTRUCTION;
       if (summaryContext.currentThemeObject.systemInstructionModifier) {
         systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${summaryContext.currentThemeObject.systemInstructionModifier}`;
@@ -175,7 +176,9 @@ export const executeDialogueSummary = async (
         label: 'Storyteller',
       });
       const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
-      const thoughtParts = parts.filter(p => p.thought === true && typeof p.text === 'string').map(p => p.text as string);
+      const thoughtParts = parts
+        .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+        .map(p => p.text);
       const parsed = await parseAIResponse(
         response.text ?? '',
         summaryContext.playerGender,
@@ -188,10 +191,10 @@ export const executeDialogueSummary = async (
         summaryContext.inventory,
       );
       if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
-      console.warn(`Attempt ${attempt} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
+      console.warn(`Attempt ${String(attempt)} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
       attempt++;
     } catch (error) {
-      console.error(`Error summarizing dialogue (Attempt ${attempt}/${MAX_RETRIES + 2}):`, error);
+      console.error(`Error summarizing dialogue (Attempt ${String(attempt)}/${String(MAX_RETRIES + 2)}):`, error);
       if (!isServerOrClientError(error)) throw error;
       if (attempt === MAX_RETRIES + 2) throw error;
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -220,17 +223,25 @@ export const executeMemorySummary = async (
 
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) {
     try {
-      console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${attempt}/${MAX_RETRIES + 1})`);
-      const memoryText = await callMinimalCorrectionAI(userPromptPart, systemInstructionPart);
+      console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES + 1)})`);
+      addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_memory_creation.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME],
+        prompt: userPromptPart,
+        systemInstruction: systemInstructionPart,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const memoryText = response.text?.trim() ?? null;
       if (memoryText && memoryText.length > 0) {
         console.log(`summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`);
         return memoryText;
       }
-      console.warn(`Attempt ${attempt} for memory summary yielded empty text after trim: '${memoryText}'`);
+        console.warn(`Attempt ${String(attempt)} for memory summary yielded empty text after trim: '${String(memoryText)}'`);
       if (attempt === MAX_RETRIES + 1) return null;
       attempt++;
     } catch (error) {
-      console.error(`Error generating memory summary (Attempt ${attempt}/${MAX_RETRIES + 1}):`, error);
+      console.error(`Error generating memory summary (Attempt ${String(attempt)}/${String(MAX_RETRIES + 1)}):`, error);
       if (!isServerOrClientError(error)) return null;
       if (attempt === MAX_RETRIES + 1) return null;
       await new Promise(resolve => setTimeout(resolve, 500));

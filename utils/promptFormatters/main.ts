@@ -15,56 +15,50 @@ import { findTravelPath } from '../mapPathfinding';
 /**
  * Formats a list of known characters for AI prompts.
  */
-export const formatKnownCharactersForPrompt = (
-  characters: Character[],
-  detailed: boolean = false
+export const charactersToString = (
+  characters: Character | Array<Character>,
+  prefix = '',
+  addAliases = true,
+  addStatus = true,
+  addDescription = true,
+  singleLine = false,
 ): string => {
-  if (characters.length === 0) {
-    return 'None specifically known in this theme yet.';
+  const charList = Array.isArray(characters) ? characters : [characters];
+  if (charList.length === 0) {
+    return '';
   }
-  if (detailed) {
-    const formatSingleCharacterDetailed = (c: Character): string => {
-      let details = ` - ${c.id} - "${c.name}"`;
-      if (c.aliases && c.aliases.length > 0) {
-        details += ` (aka ${c.aliases.map(a => `"${a}"`).join(', ')})`;
-      }
-      details += ` (${c.presenceStatus}`;
-      if (c.presenceStatus === 'companion' || c.presenceStatus === 'nearby') {
-        details += `, ${c.preciseLocation || (c.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
-      } else {
-        details += `, Last Location: ${c.lastKnownLocation || 'Unknown'}`;
-      }
-      details += `), "${c.description}"`;
-      return details;
-    };
-    return characters.map(formatSingleCharacterDetailed).join(';\n') + '.';
-  }
-  const companions = characters.filter(c => c.presenceStatus === 'companion');
-  const nearbyCharacters = characters.filter(c => c.presenceStatus === 'nearby');
-  const otherKnownCharacters = characters.filter(
-    c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown'
-  );
+  const delimiter = singleLine ? '; ' : ';\n';
 
-  const promptParts: string[] = [];
-  if (companions.length > 0) {
-    const companionStrings = companions.map(c => `${c.id} - "${c.name}"`);
-    promptParts.push(`Companions traveling with the Player: ${companionStrings.join(', ')}.`);
-  }
-  if (nearbyCharacters.length > 0) {
-    const nearbyStrings = nearbyCharacters.map(c => `${c.id} - "${c.name}"`);
-    promptParts.push(`Characters Player can interact with (nearby): ${nearbyStrings.join(', ')}.`);
-  }
-  if (otherKnownCharacters.length > 0) {
-    const otherStrings = otherKnownCharacters.map(c => `${c.id} - "${c.name}"`);
-    promptParts.push(`Other known characters: ${otherStrings.join(', ')}.`);
-  }
-  return promptParts.length > 0 ? promptParts.join('\n') : 'None specifically known in this theme yet.';
+  const result = charList
+    .map(c => {
+      let str = `${prefix}${c.id} - "${c.name}"`;
+      if (addAliases && c.aliases && c.aliases.length > 0) {
+        str += ` (aka ${c.aliases.map(a => `"${a}"`).join(', ')})`;
+      }
+      if (addStatus) {
+        str += ` (${c.presenceStatus}`;
+        if (c.presenceStatus === 'companion' || c.presenceStatus === 'nearby') {
+          str += `, ${c.preciseLocation ?? (c.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
+        } else {
+          str += `, Last Location: ${c.lastKnownLocation ?? 'Unknown'}`;
+        }
+        str += ')';
+      }
+      if (addDescription) {
+        str += `, "${c.description}"`;
+      }
+      return str;
+    })
+    .join(delimiter);
+
+  return result + '.';
 };
+
 
 /**
  * Formats recent log events for inclusion in prompts.
  */
-export const formatRecentEventsForPrompt = (logMessages: string[]): string => {
+export const formatRecentEventsForPrompt = (logMessages: Array<string>): string => {
   if (logMessages.length === 0) {
     return '';
   }
@@ -75,24 +69,24 @@ export const formatRecentEventsForPrompt = (logMessages: string[]): string => {
  * Provides detailed context for places or characters mentioned in a string.
  */
 export const formatDetailedContextForMentionedEntities = (
-  allKnownMainMapNodes: MapNode[],
-  allKnownCharacters: Character[],
+  allKnownMainMapNodes: Array<MapNode>,
+  allKnownCharacters: Array<Character>,
   contextString: string,
   placesPrefixIfAny: string,
   charactersPrefixIfAny: string
 ): string => {
-  const mentionedPlaces: MapNode[] = [];
+  const mentionedPlaces: Array<MapNode> = [];
   allKnownMainMapNodes.forEach(node => {
-    const allNames = [node.placeName, ...(node.data.aliases || [])];
+    const allNames = [node.placeName, ...(node.data.aliases ?? [])];
     const nameRegex = new RegExp(allNames.map(name => `\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`).join('|'), 'i');
     if (nameRegex.test(contextString)) {
       mentionedPlaces.push(node);
     }
   });
 
-  const mentionedCharacters: Character[] = [];
+  const mentionedCharacters: Array<Character> = [];
   allKnownCharacters.forEach(c => {
-    const allNames = [c.name, ...(c.aliases || [])];
+    const allNames = [c.name, ...(c.aliases ?? [])];
     const nameRegex = new RegExp(allNames.map(name => `\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`).join('|'), 'i');
     if (nameRegex.test(contextString)) {
       mentionedCharacters.push(c);
@@ -104,12 +98,9 @@ export const formatDetailedContextForMentionedEntities = (
   if (formattedMentionedPlaces && formattedMentionedPlaces !== 'None specifically known in this theme yet.') {
     detailedContext += `${placesPrefixIfAny}\n${formattedMentionedPlaces}\n`;
   }
-  const formattedMentionedCharacters = formatKnownCharactersForPrompt(mentionedCharacters, true);
-  if (
-    formattedMentionedCharacters &&
-    formattedMentionedCharacters !== 'None specifically known in this theme yet.'
-  ) {
-    detailedContext += `${charactersPrefixIfAny}\n${formattedMentionedCharacters}`;
+  const mentionedCharactersString = charactersToString(mentionedCharacters, ' - ');
+  if (mentionedCharactersString) {
+    detailedContext += `${charactersPrefixIfAny}\n${mentionedCharactersString}`;
   }
   return detailedContext.trimStart();
 };
@@ -170,7 +161,7 @@ export const formatTravelPlanLine = (
   } else {
     const edge = mapData.edges.find(e => e.id === firstEdge.id);
     const edgeStatus = edge?.data.status ?? 'open';
-    const edgeName = edge?.data.description || edge?.data.type || 'path';
+    const edgeName = edge?.data.description ?? edge?.data.type ?? 'path';
     if (edgeStatus === 'rumored') {
       line += ` There is a rumor a path exists from here to ${nextRumored ? 'a rumored place - ' + nextName : nextName}.`;
     } else {

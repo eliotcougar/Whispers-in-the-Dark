@@ -21,7 +21,7 @@ export interface UseRealityShiftProps {
   getCurrentGameState: () => FullGameState;
   setGameStateStack: Dispatch<SetStateAction<GameStateStack>>;
   loadInitialGame: (options: { explicitThemeName?: string | null; isRestart?: boolean; isTransitioningFromShift?: boolean; customGameFlag?: boolean; savedStateToLoad?: FullGameState | null; }) => void;
-  enabledThemePacksProp: ThemePackName[];
+  enabledThemePacksProp: Array<ThemePackName>;
   playerGenderProp: string;
   stabilityLevelProp: number;
   chaosLevelProp: number;
@@ -66,9 +66,9 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     const themeCharacters = finalStateBeforeShift.allCharacters.filter(c => c.themeName === themeToSummarize.name);
 
     const themeMemory: ThemeMemory = {
-      summary: summary || 'The details of this reality are hazy...',
-      mainQuest: finalStateBeforeShift.mainQuest || 'Unknown',
-      currentObjective: finalStateBeforeShift.currentObjective || 'Unknown',
+      summary: summary ?? 'The details of this reality are hazy...',
+      mainQuest: finalStateBeforeShift.mainQuest ?? 'Unknown',
+      currentObjective: finalStateBeforeShift.currentObjective ?? 'Unknown',
       placeNames: themeMainMapNodes.map(node => node.placeName),
       characterNames: themeCharacters.map(c => c.name)
     };
@@ -79,11 +79,13 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       return [newFullState, prevStack[1]];
     });
 
-    delete isSummarizingThemeRef.current[themeToSummarize.name];
+    // Mark summarization as finished without removing the key entirely
+    // to comply with the no-dynamic-delete lint rule
+    isSummarizingThemeRef.current[themeToSummarize.name] = false;
   }, [setGameStateStack]);
 
   /** Initiates a reality shift, optionally as a chaos shift. */
-  const triggerRealityShift = useCallback((isChaosShift: boolean = false) => {
+  const triggerRealityShift = useCallback((isChaosShift = false) => {
     const currentFullState = getCurrentGameState();
     const currentThemeObj = currentFullState.currentThemeObject;
 
@@ -112,7 +114,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       return;
     }
 
-    const previousCustomMode = currentFullState.isCustomGameMode ?? false;
+    const previousCustomMode = currentFullState.isCustomGameMode;
 
     setGameStateStack((prevStack: GameStateStack) => {
       let newStateForShiftStart = { ...prevStack[0] };
@@ -151,7 +153,11 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     });
 
     if (!currentFullState.isAwaitingManualShiftThemeSelection && targetThemeName) {
-      void loadInitialGame({ explicitThemeName: targetThemeName, isTransitioningFromShift: true, customGameFlag: previousCustomMode });
+      loadInitialGame({
+        explicitThemeName: targetThemeName,
+        isTransitioningFromShift: true,
+        customGameFlag: previousCustomMode
+      });
     }
   }, [
     getCurrentGameState,
@@ -197,7 +203,11 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       lastActionLog: `You chose to shift reality to: ${themeName}. The world warps around you!`
     }, prev[1]]);
 
-    void loadInitialGame({ explicitThemeName: themeName, isTransitioningFromShift: true, customGameFlag: true });
+    loadInitialGame({
+      explicitThemeName: themeName,
+      isTransitioningFromShift: true,
+      customGameFlag: true
+    });
   }, [getCurrentGameState, setGameStateStack, loadInitialGame, setLoadingReason]);
 
   /** Cancels the manual shift selection process. */

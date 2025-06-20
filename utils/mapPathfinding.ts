@@ -42,7 +42,7 @@ export const findTravelPath = (
   mapData: MapData,
   startNodeId: string,
   endNodeId: string
-): TravelStep[] | null => {
+): Array<TravelStep> | null => {
   const adjacency = new Map<string, Array<{ edgeId: string; to: string; cost: number }>>();
 
   const nodeMap = new Map(mapData.nodes.map(n => [n.id, n]));
@@ -51,17 +51,19 @@ export const findTravelPath = (
     return !!node && node.data.status !== 'blocked';
   };
 
-  const childrenByParent = new Map<string, string[]>();
+  const childrenByParent = new Map<string, Array<string>>();
   for (const node of mapData.nodes) {
     const p = node.data.parentNodeId;
     if (!p) continue;
     if (!childrenByParent.has(p)) childrenByParent.set(p, []);
-    childrenByParent.get(p)!.push(node.id);
+    const arr = childrenByParent.get(p);
+    if (arr) arr.push(node.id);
   }
 
   const addAdj = (from: string, to: string, id: string, cost: number) => {
     if (!adjacency.has(from)) adjacency.set(from, []);
-    adjacency.get(from)!.push({ edgeId: id, to, cost });
+    const arr = adjacency.get(from);
+    if (arr) arr.push({ edgeId: id, to, cost });
   };
 
   for (const edge of mapData.edges) {
@@ -79,7 +81,7 @@ export const findTravelPath = (
     const parentId = node.data.parentNodeId;
     if (!parentId || parentId === 'Universe') continue;
     if (!isTraversable(node.id) || !isTraversable(parentId)) continue;
-    const siblings = childrenByParent.get(parentId) || [];
+    const siblings = childrenByParent.get(parentId) ?? [];
     const hasOtherChild = siblings.some(
       id => id !== node.id && id !== startNodeId && isTraversable(id)
     );
@@ -95,7 +97,8 @@ export const findTravelPath = (
     const p = node.data.parentNodeId;
     if (!p) continue;
     if (!siblingsMap.has(p)) siblingsMap.set(p, []);
-    siblingsMap.get(p)!.push(node);
+    const arr2 = siblingsMap.get(p);
+    if (arr2) arr2.push(node);
   }
 
   for (const siblings of siblingsMap.values()) {
@@ -116,14 +119,15 @@ export const findTravelPath = (
 
   const distances = new Map<string, number>();
   const prev = new Map<string, { from: string; edgeId: string }>();
-  const queue: QueueItem[] = [{ nodeId: startNodeId, cost: 0 }];
+  const queue: Array<QueueItem> = [{ nodeId: startNodeId, cost: 0 }];
   distances.set(startNodeId, 0);
 
   while (queue.length > 0) {
     queue.sort((a, b) => a.cost - b.cost);
-    const current = queue.shift()!;
+    const current = queue.shift();
+    if (!current) break;
     if (current.nodeId === endNodeId) break;
-    const neighbors = adjacency.get(current.nodeId) || [];
+    const neighbors = adjacency.get(current.nodeId) ?? [];
     for (const n of neighbors) {
       const newCost = current.cost + n.cost;
       if (newCost < (distances.get(n.to) ?? Infinity)) {
@@ -138,7 +142,7 @@ export const findTravelPath = (
 
   if (!distances.has(endNodeId)) return null;
 
-  const steps: TravelStep[] = [];
+  const steps: Array<TravelStep> = [];
   let current = endNodeId;
   steps.unshift({ step: 'node', id: current });
   while (current !== startNodeId) {

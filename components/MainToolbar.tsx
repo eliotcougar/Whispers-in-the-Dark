@@ -3,30 +3,27 @@
  * @file MainToolbar.tsx
  * @description Top-level toolbar with action buttons.
  */
-import React from 'react';
-import {
-  CoinIcon,
-  VisualizeIcon, BookOpenIcon, MenuIcon, RealityShiftIcon, ScrollIcon, MapIcon // Added MapIcon
-} from './icons.tsx';
+import { Icon } from './elements/icons';
+import Button from './elements/Button';
 
 interface MainToolbarProps {
-  score: number;
-  isLoading: boolean;
-  currentThemeName: string | null;
-  currentSceneExists: boolean;
-  onOpenVisualizer: () => void;
-  onOpenKnowledgeBase: () => void;
-  onOpenHistory: () => void;
-  onOpenMap: () => void; // Added for Map
-  onOpenTitleMenu: () => void;
-  onManualRealityShift: () => void;
-  turnsSinceLastShift: number;
+  readonly score: number;
+  readonly isLoading: boolean;
+  readonly currentThemeName: string | null;
+  readonly currentSceneExists: boolean;
+  readonly onOpenVisualizer: () => void;
+  readonly onOpenKnowledgeBase: () => void;
+  readonly onOpenHistory: () => void;
+  readonly onOpenMap: () => void; // Added for Map
+  readonly onOpenTitleMenu: () => void;
+  readonly onManualRealityShift: () => void;
+  readonly turnsSinceLastShift: number;
 }
 
 /**
  * Provides quick-access buttons for common game actions.
  */
-const MainToolbar: React.FC<MainToolbarProps> = ({
+function MainToolbar({
   score,
   isLoading,
   currentThemeName,
@@ -38,105 +35,143 @@ const MainToolbar: React.FC<MainToolbarProps> = ({
   onOpenTitleMenu,
   onManualRealityShift,
   turnsSinceLastShift,
-}) => {
+}: MainToolbarProps) {
   return (
     <div className="flex justify-between items-center w-full">
       {/* Score and Turns Display */}
       <div className="flex items-center space-x-3">
         <div
+          aria-label={`Current score: ${String(score)} points`}
           className="flex items-center p-2 border border-amber-500 rounded-md shadow-md"
-          title={`Score: ${score} points`}
-          aria-label={`Current score: ${score} points`}
+          title={`Score: ${String(score)} points`}
         >
-          <CoinIcon className="w-5 h-5 mr-2 text-amber-400" />
-          <span className="text-amber-400 font-semibold text-lg">{score}</span>
+          <Icon
+            color="amber"
+            inline
+            marginRight={8}
+            name="coin"
+            size={20}
+          />
+
+          <span className="text-amber-400 font-semibold text-lg">
+            {score}
+          </span>
         </div>
-        {currentThemeName && (
-          <div
-            className="flex items-center p-2 border border-indigo-500 rounded-md shadow-md"
-            title={`Turns since last reality shift: ${turnsSinceLastShift}`}
-            aria-label={`Turns since last reality shift: ${turnsSinceLastShift}`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-indigo-400 font-semibold text-lg">{turnsSinceLastShift}</span>
-          </div>
-        )}
+
+        {currentThemeName ? <div
+          aria-label={`Turns since last reality shift: ${String(turnsSinceLastShift)}`}
+          className="flex items-center p-2 border border-indigo-500 rounded-md shadow-md"
+          title={`Turns since last reality shift: ${String(turnsSinceLastShift)}`}
+                            >
+          <Icon
+            color="indigo"
+            inline
+            marginRight={8}
+            name="clock"
+            size={20}
+          />
+
+          <span className="text-indigo-400 font-semibold text-lg">
+            {turnsSinceLastShift}
+          </span>
+        </div> : null}
       </div>
 
 
       {/* Icon Buttons */}
       <div className="flex space-x-2">
-        <button
-          onClick={onOpenVisualizer}
+        <Button
+          ariaLabel="Visualize Scene"
           disabled={isLoading || !currentThemeName || !currentSceneExists}
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          icon={<Icon
+            inline
+            name="visualize"
+            size={20}
+                />}
+          onClick={onOpenVisualizer}
+          preset="blue"
+          size="md"
           title="Visualize Scene"
-          aria-label="Visualize Scene"
-        >
-          <VisualizeIcon />
-        </button>
-        <button
+          variant="toolbar"
+        />
+
+        <Button
+          ariaLabel="Open Knowledge Base"
+          disabled={isLoading || !currentThemeName}
+          icon={<Icon
+            inline
+            name="bookOpen"
+            size={20}
+                />}
           onClick={onOpenKnowledgeBase}
-          disabled={isLoading || !currentThemeName}
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          preset="blue"
+          size="md"
           title="Open Knowledge Base"
-          aria-label="Open Knowledge Base"
-        >
-          <BookOpenIcon />
-        </button>
-        <button
+          variant="toolbar"
+        />
+
+        <Button
+          ariaLabel="Open History"
+          disabled={isLoading || !currentThemeName}
+          icon={<Icon
+            inline
+            name="scroll"
+            size={20}
+                />}
           onClick={onOpenHistory}
-          disabled={isLoading || !currentThemeName}
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          preset="blue"
+          size="md"
           title="Open History"
-          aria-label="Open History"
-        >
-          <ScrollIcon />
-        </button>
-        <button
+          variant="toolbar"
+        />
+
+        <Button
+          ariaLabel="Open Map"
+          disabled={isLoading || !currentThemeName}
+          icon={<Icon
+            inline
+            name="map"
+            size={20}
+                />}
           onClick={onOpenMap}
-          disabled={isLoading || !currentThemeName}
-          className="p-2 bg-blue-700 hover:bg-blue-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          preset="blue"
+          size="md"
           title="Open Map"
-          aria-label="Open Map"
-        >
-          <MapIcon />
-        </button>
-        <button
-          onClick={onManualRealityShift}
+          variant="toolbar"
+        />
+
+        <Button
+          ariaLabel="Force Reality Shift"
           disabled={isLoading || !currentThemeName}
-          className="p-2 bg-purple-700 hover:bg-purple-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          icon={<Icon
+            inline
+            name="realityShift"
+            size={20}
+                />}
+          onClick={onManualRealityShift}
+          preset="purple"
+          size="md"
           title="Force Reality Shift"
-          aria-label="Force Reality Shift"
-        >
-          <RealityShiftIcon />
-        </button>
-        <button
-          onClick={onOpenTitleMenu}
+          variant="toolbar"
+        />
+
+        <Button
+          ariaLabel="Open Title Menu"
           disabled={isLoading}
-          className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md shadow-md
-                    disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed
-                    transition-colors duration-150"
+          icon={<Icon
+            inline
+            name="menu"
+            size={20}
+                />}
+          onClick={onOpenTitleMenu}
+          preset="gray"
+          size="md"
           title="Open Title Menu"
-          aria-label="Open Title Menu"
-        >
-          <MenuIcon />
-        </button>
+          variant="toolbar"
+        />
       </div>
     </div>
   );
-};
+}
 
 export default MainToolbar;

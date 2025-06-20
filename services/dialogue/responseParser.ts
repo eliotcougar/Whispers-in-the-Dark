@@ -3,22 +3,21 @@
  * @description Helpers for parsing dialogue-related AI responses.
  */
 import { DialogueAIResponse, DialogueSummaryResponse } from '../../types';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isValidNewItemSuggestion } from '../parsers/validation';
+import { extractJsonFromFence, safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
+import { trimDialogueHints } from '../../utils/dialogueParsing';
 
-export const parseDialogueAIResponse = (
+const parseDialogueResponse = (
   responseText: string,
-  thoughts?: string[],
+  thoughts?: Array<string>,
 ): DialogueAIResponse | null => {
   const jsonStr = extractJsonFromFence(responseText);
   const parsed = safeParseJson<Partial<DialogueAIResponse>>(jsonStr);
   try {
     if (!parsed) throw new Error('JSON parse failed');
     if (
-      !parsed ||
       !Array.isArray(parsed.npcResponses) ||
       !parsed.npcResponses.every(
-        r => r && typeof r.speaker === 'string' && typeof r.line === 'string',
+        r => typeof r.speaker === 'string' && typeof r.line === 'string',
       ) ||
       !Array.isArray(parsed.playerOptions) ||
       !parsed.playerOptions.every(o => typeof o === 'string') ||
@@ -47,45 +46,18 @@ export const parseDialogueAIResponse = (
   }
 };
 
+export const parseDialogueAIResponse = (
+  responseText: string,
+  thoughts?: Array<string>,
+): DialogueAIResponse | null => {
+  return parseDialogueResponse(responseText, thoughts);
+};
+
 export const parseDialogueTurnResponse = (
   responseText: string,
-  thoughts?: string[],
+  thoughts?: Array<string>,
 ): DialogueAIResponse | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<Partial<DialogueAIResponse>>(jsonStr);
-  try {
-    if (!parsed) throw new Error('JSON parse failed');
-    if (
-      !parsed ||
-      !Array.isArray(parsed.npcResponses) ||
-      !parsed.npcResponses.every(
-        r => r && typeof r.speaker === 'string' && typeof r.line === 'string',
-      ) ||
-      !Array.isArray(parsed.playerOptions) ||
-      !parsed.playerOptions.every(o => typeof o === 'string') ||
-      (parsed.dialogueEnds !== undefined && typeof parsed.dialogueEnds !== 'boolean') ||
-      (parsed.updatedParticipants !== undefined && (!Array.isArray(parsed.updatedParticipants) || !parsed.updatedParticipants.every(p => typeof p === 'string')))
-    ) {
-      console.warn('Parsed dialogue JSON does not match DialogueAIResponse structure:', parsed);
-      return null;
-    }
-    if (parsed.playerOptions.length === 0) {
-      parsed.playerOptions = ['End Conversation.'];
-    }
-    const validated = parsed as DialogueAIResponse;
-    if (thoughts && thoughts.length > 0) {
-      validated.npcResponses.forEach((r, idx) => {
-        if (thoughts[idx]) {
-          r.thought = thoughts[idx];
-        }
-      });
-    }
-    return validated;
-  } catch (e) {
-    console.warn('Failed to parse dialogue JSON response from AI:', e);
-    console.debug('Original dialogue response text:', responseText);
-    return null;
-  }
+  return parseDialogueResponse(responseText, thoughts);
 };
 
 export const parseDialogueSummaryResponse = (
@@ -96,31 +68,14 @@ export const parseDialogueSummaryResponse = (
   try {
     if (!parsed) throw new Error('JSON parse failed');
 
-    const sanitized = Object.fromEntries(
-      Object.entries(parsed).map(([k, v]) => [k, v === null ? undefined : v]),
-    ) as Partial<DialogueSummaryResponse>;
+    const sanitized: Partial<DialogueSummaryResponse> = coerceNullToUndefined(parsed);
 
     const validated: DialogueSummaryResponse = {
       ...sanitized,
       itemChange: [],
     } as DialogueSummaryResponse;
 
-    if (validated.mapHint !== undefined) {
-      validated.mapHint = validated.mapHint.trim();
-    }
-    if (validated.playerItemsHint !== undefined) {
-      validated.playerItemsHint = validated.playerItemsHint.trim();
-    }
-    if (validated.worldItemsHint !== undefined) {
-      validated.worldItemsHint = validated.worldItemsHint.trim();
-    }
-    if (validated.npcItemsHint !== undefined) {
-      validated.npcItemsHint = validated.npcItemsHint.trim();
-    }
-
-    if (Array.isArray(validated.newItems)) {
-      validated.newItems = validated.newItems.filter(isValidNewItemSuggestion);
-    }
+    trimDialogueHints(validated);
 
     return validated;
   } catch (e) {

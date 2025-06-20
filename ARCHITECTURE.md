@@ -84,9 +84,9 @@ This layer abstracts external interactions and complex data processing.
     *   `services/storyteller/responseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
     *   `services/dialogue/responseParser.ts`: Parses dialogue AI JSON for turns and summaries.
     *   `services/validationUtils.ts`: General data structure validation.
-    *   `utils/mapUpdateValidationUtils.ts`: Specific validation for `AIMapUpdatePayload`.
+    *   `services/cartographer/mapUpdateValidation.ts`: Specific validation for `AIMapUpdatePayload`.
 *   **Persistence Service:**
-   *   `services/saveLoadService.ts`: Handles saving and loading the entire `FullGameState`, including `mapData` and `currentMapNodeId`, and converts older save versions when necessary.
+   *   `services/saveLoad/`: Contains modules for validating, migrating and storing `FullGameState` data.
 *   **Utility Functions:**
    *   `utils/promptFormatters.ts` and the files under `utils/promptFormatters/`: format inventory, map context, and main turn.
    *   `utils/aiErrorUtils.ts`: Interprets errors from the Gemini API.
@@ -97,14 +97,14 @@ This layer abstracts external interactions and complex data processing.
    *   `utils/initialStates.ts`: Produces the default `FullGameState` objects.
    *   `utils/jsonUtils.ts`: Extracts JSON from AI responses and provides safe parsing.
    *   `utils/loadingProgress.ts`: Tracks progress text for asynchronous operations.
-   *   `utils/mapConstants.ts`: Constants used when rendering the map.
+   *   `constants.ts`: Map rendering constants like `NODE_RADIUS` and `DEFAULT_VIEWBOX`.
    *   `utils/mapGraphUtils.ts`: Helpers for navigating the map hierarchy.
    *   `utils/mapHierarchyUpgradeUtils.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.
    *   `utils/mapLayoutUtils.ts`: Performs a nested circle layout for map visualization.
    *   `utils/mapNodeMatcher.ts`: Contains `selectBestMatchingMapNode` for fuzzy location lookups.
    *   `utils/mapPathfinding.ts`: Calculates travel paths between nodes.
    *   `utils/mapUpdateHandlers.ts`: Applies AI map update payloads to `MapData`.
-   *   `utils/mapUpdateValidationUtils.ts`: Validates `AIMapUpdatePayload` structures.
+   *   `services/cartographer/mapUpdateValidation.ts`: Validates `AIMapUpdatePayload` structures.
    *   `utils/mapSynonyms.ts` and `utils/matcherData.ts`: Provide regex helpers and keyword lists used when parsing player text.
    *   `utils/svgUtils.ts`: Converts screen coordinates to the map's SVG space.
 

@@ -3,33 +3,72 @@
  * @file GameLogDisplay.tsx
  * @description Shows the running log of game events.
  */
-import React, { useRef } from 'react';
-import { LogIcon } from './icons.tsx'; // Updated import
+import { useRef } from 'react';
+
+import { Icon } from './elements/icons';
+import TextBox from './elements/TextBox';
 
 interface GameLogDisplayProps {
-  messages: string[];
+  readonly messages: Array<string>;
 }
 
 /**
  * Shows a scrollable log of important game events.
  */
-const GameLogDisplay: React.FC<GameLogDisplayProps> = ({ messages }) => {
+function GameLogDisplay({ messages }: GameLogDisplayProps) {
   const logEndRef = useRef<null | HTMLDivElement>(null);
-  return (
-    <div className="mt-6 bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 max-h-80 overflow-y-auto">
-      <h3 className="text-xl font-bold text-emerald-400 mb-4 border-b-2 border-emerald-700 pb-2 flex items-center">
-        <LogIcon /> Game Log
-      </h3>
-      <ul className="space-y-2 text-sm">
-        {messages.map((message, index) => (
-          <li key={index} className="text-slate-400 leading-snug">
-            <span className="text-emerald-500">&raquo;</span> {message}
+  const header = 'Game Log';
+  const headerIcon = (
+    <Icon
+      color="emerald"
+      inline
+      marginRight={8}
+      name="log"
+      size={20}
+    />
+  );
+
+  const logItems = (() => {
+    const counts = new Map<string, number>();
+    return messages.map(message => {
+      const count = counts.get(message) ?? 0;
+      counts.set(message, count + 1);
+        return (
+          <li
+            className="text-slate-200 leading-snug"
+            key={`${message}-${String(count)}`}
+          >
+            <span className="mr-1 text-emerald-500">
+              &raquo;
+            </span>
+
+            {message}
           </li>
-        ))}
+        );
+    });
+  })();
+
+  return (
+    <TextBox
+      borderColorClass="border-emerald-700"
+      borderWidthClass="border-b-2"
+      containerClassName="mt-6 bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 max-h-80 overflow-y-auto"
+      contentColorClass=""
+      contentFontClass=""
+      header={header}
+      headerFont="xl"
+      headerIcon={headerIcon}
+      headerPreset="emerald"
+      headerTag="h3"
+      headerWrapperClassName="flex items-center"
+    >
+      <ul className="space-y-2 text-sm">
+        {logItems}
+
         <div ref={logEndRef} />
       </ul>
-    </div>
+    </TextBox>
   );
-};
+}
 
 export default GameLogDisplay;

@@ -8,7 +8,7 @@
 
 import { MapNode } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
-import { NODE_RADIUS } from './mapConstants';
+import { NODE_RADIUS } from '../constants';
 
 export const DEFAULT_IDEAL_EDGE_LENGTH = 140;
 export const DEFAULT_NESTED_PADDING = 10;
@@ -30,18 +30,19 @@ export interface NestedCircleLayoutConfig {
 }
 
 export const applyNestedCircleLayout = (
-  nodes: MapNode[],
+  nodes: Array<MapNode>,
   config?: Partial<NestedCircleLayoutConfig>
-): MapNode[] => {
+): Array<MapNode> => {
   if (nodes.length === 0) return [];
 
   const nodeMap = new Map(nodes.map(n => [n.id, structuredCloneGameState(n)]));
-  const childrenByParent: Map<string, string[]> = new Map();
+  const childrenByParent = new Map<string, Array<string>>();
   nodeMap.forEach(node => {
     const pid = node.data.parentNodeId && node.data.parentNodeId !== 'Universe' ? node.data.parentNodeId : undefined;
     if (pid) {
       if (!childrenByParent.has(pid)) childrenByParent.set(pid, []);
-      childrenByParent.get(pid)!.push(node.id);
+      const arr = childrenByParent.get(pid);
+      if (arr) arr.push(node.id);
     }
   });
 
@@ -55,8 +56,9 @@ export const applyNestedCircleLayout = (
    * Positions are stored relative to the node itself.
    */
   const layoutNode = (nodeId: string): number => {
-    const node = nodeMap.get(nodeId)!;
-    const childIds = childrenByParent.get(nodeId) || [];
+    const node = nodeMap.get(nodeId);
+    if (!node) throw new Error(`Node ${nodeId} missing in layout`);
+    const childIds = childrenByParent.get(nodeId) ?? [];
 
     if (node.data.nodeType === 'feature' || childIds.length === 0) {
       node.data.visualRadius = BASE_FEATURE_RADIUS;
@@ -68,28 +70,33 @@ export const applyNestedCircleLayout = (
     childIds.forEach(cid => layoutNode(cid));
 
     if (childIds.length === 1) {
-      const onlyChild = nodeMap.get(childIds[0])!;
+      const onlyChild = nodeMap.get(childIds[0]);
+      if (!onlyChild) throw new Error('Child node missing');
       onlyChild.position = { x: 0, y: 0 };
-      node.data.visualRadius = (onlyChild.data.visualRadius || BASE_FEATURE_RADIUS) + PADDING;
+      node.data.visualRadius = (onlyChild.data.visualRadius ?? BASE_FEATURE_RADIUS) + PADDING;
       node.position = { x: 0, y: 0 };
       return node.data.visualRadius;
     }
 
     const children = childIds
-      .map(cid => nodeMap.get(cid)!)
+      .map(cid => {
+        const child = nodeMap.get(cid);
+        if (!child) throw new Error('Child node missing');
+        return child;
+      })
       .sort(
         (a, b) =>
-          (b.data.visualRadius || BASE_FEATURE_RADIUS) -
-          (a.data.visualRadius || BASE_FEATURE_RADIUS)
+          (b.data.visualRadius ?? BASE_FEATURE_RADIUS) -
+          (a.data.visualRadius ?? BASE_FEATURE_RADIUS)
       );
 
-    let R = Math.max(...children.map(c => c.data.visualRadius || BASE_FEATURE_RADIUS)) + PADDING;
+    let R = Math.max(...children.map(c => c.data.visualRadius ?? BASE_FEATURE_RADIUS)) + PADDING;
 
-    while (true) {
+    for (;;) {
       let totalAngle = 0;
       for (let i = 0; i < children.length; i++) {
-        const r1 = children[i].data.visualRadius || BASE_FEATURE_RADIUS;
-        const r2 = children[(i + 1) % children.length].data.visualRadius || BASE_FEATURE_RADIUS;
+        const r1 = children[i].data.visualRadius ?? BASE_FEATURE_RADIUS;
+        const r2 = children[(i + 1) % children.length].data.visualRadius ?? BASE_FEATURE_RADIUS;
         const needed = (r1 + r2 + PADDING) / (2 * R);
         if (needed > 1) {
           totalAngle = 2 * Math.PI + 1;
@@ -104,16 +111,16 @@ export const applyNestedCircleLayout = (
     let currentAngle = 0;
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      const rCurr = child.data.visualRadius || BASE_FEATURE_RADIUS;
+      const rCurr = child.data.visualRadius ?? BASE_FEATURE_RADIUS;
       child.position = {
         x: R * Math.cos(currentAngle),
         y: R * Math.sin(currentAngle),
       };
-      const rNext = children[(i + 1) % children.length].data.visualRadius || BASE_FEATURE_RADIUS;
+      const rNext = children[(i + 1) % children.length].data.visualRadius ?? BASE_FEATURE_RADIUS;
       currentAngle += 2 * Math.asin((rCurr + rNext + PADDING) / (2 * R)) + SMALL_ANGLE_PADDING;
     }
 
-    const maxChildRadius = Math.max(...children.map(c => c.data.visualRadius || BASE_FEATURE_RADIUS));
+    const maxChildRadius = Math.max(...children.map(c => c.data.visualRadius ?? BASE_FEATURE_RADIUS));
     node.data.visualRadius = R + maxChildRadius + PADDING;
     node.position = { x: 0, y: 0 };
     return node.data.visualRadius;
@@ -138,12 +145,13 @@ export const applyNestedCircleLayout = (
 
   /** Apply parent offsets recursively to convert relative positions to absolute. */
   const applyOffset = (nodeId: string, offsetX: number, offsetY: number) => {
-    const node = nodeMap.get(nodeId)!;
+    const node = nodeMap.get(nodeId);
+    if (!node) throw new Error(`Node ${nodeId} missing in offset application`);
     if (nodeId !== pseudoRootId) {
       node.position = { x: node.position.x + offsetX, y: node.position.y + offsetY };
     }
-    const childIds = childrenByParent.get(nodeId) || [];
-    childIds.forEach(cid => applyOffset(cid, node.position.x, node.position.y));
+    const childIds = childrenByParent.get(nodeId) ?? [];
+    childIds.forEach(cid => { applyOffset(cid, node.position.x, node.position.y); });
   };
 
   applyOffset(pseudoRootId, 0, 0);

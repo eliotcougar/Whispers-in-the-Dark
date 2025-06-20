@@ -38,7 +38,7 @@ export const handleMapUpdates = async (
   if ('mapUpdated' in aiData && aiData.mapUpdated || (draftState.localPlace !== baseStateSnapshot.localPlace)) {
     const originalLoadingReason = loadingReason;
     setLoadingReason('map');
-    const knownMainMapNodesForTheme: MapNode[] = draftState.mapData.nodes.filter(
+    const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
       node => node.themeName === themeContextForResponse.name && node.data.nodeType !== 'feature'
     );
     mapUpdateResult = await updateMapFromAIData_Service(
@@ -57,21 +57,20 @@ export const handleMapUpdates = async (
     }
     if (!mapUpdateResult.updatedMapData) {
       const reason =
-        mapUpdateResult.debugInfo?.validationError ||
-        mapUpdateResult.debugInfo?.rawResponse ||
+        mapUpdateResult.debugInfo?.validationError ??
+        mapUpdateResult.debugInfo?.rawResponse ??
         'Unknown error';
       throw new Error(`Map update failed: ${reason}`);
     }
 
-    if (mapUpdateResult) {
-      if (mapUpdateResult.updatedMapData && JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
-        turnChanges.mapDataChanged = true;
-        draftState.mapData = mapUpdateResult.updatedMapData;
-      }
-      if (mapUpdateResult.debugInfo && draftState.lastDebugPacket) {
-        draftState.lastDebugPacket.mapUpdateDebugInfo = mapUpdateResult.debugInfo;
-      }
-      mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
+    if (JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
+      turnChanges.mapDataChanged = true;
+      draftState.mapData = mapUpdateResult.updatedMapData;
+    }
+    if (mapUpdateResult.debugInfo && draftState.lastDebugPacket) {
+      draftState.lastDebugPacket.mapUpdateDebugInfo = mapUpdateResult.debugInfo;
+    }
+    mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
 
       if (mapUpdateResult.newlyAddedNodes.length > 0) {
         for (const added of mapUpdateResult.newlyAddedNodes) {
@@ -99,8 +98,8 @@ export const handleMapUpdates = async (
                 const nodeIndexToUpdate = draftState.mapData.nodes.findIndex(n => n.id === newlyAddedNodeInDraft.id);
                 if (nodeIndexToUpdate !== -1) {
                   draftState.mapData.nodes[nodeIndexToUpdate].data.description = placeDetails.description;
-                  draftState.mapData.nodes[nodeIndexToUpdate].data.aliases = placeDetails.aliases || [];
-                  if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+                  draftState.mapData.nodes[nodeIndexToUpdate].data.aliases = placeDetails.aliases ?? [];
+                  turnChanges.mapDataChanged = true;
                 }
               }
             }
@@ -108,7 +107,6 @@ export const handleMapUpdates = async (
         }
       }
     }
-  }
 
 
   // Upgrade any feature nodes that now have children into regions or adjust hierarchy
@@ -126,8 +124,8 @@ export const handleMapUpdates = async (
   );
 
   const themeName = themeContextForResponse.name;
-  const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as ValidNewCharacterPayload[];
-  const charactersUpdatedFromAI = ('charactersUpdated' in aiData && aiData.charactersUpdated ? aiData.charactersUpdated : []) as ValidCharacterUpdatePayload[];
+  const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as Array<ValidNewCharacterPayload>;
+  const charactersUpdatedFromAI = ('charactersUpdated' in aiData && aiData.charactersUpdated ? aiData.charactersUpdated : []) as Array<ValidCharacterUpdatePayload>;
   if (charactersAddedFromAI.length > 0 || charactersUpdatedFromAI.length > 0) {
     turnChanges.characterChanges = buildCharacterChangeRecords(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
     draftState.allCharacters = applyAllCharacterChanges(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
@@ -153,7 +151,7 @@ export const handleMapUpdates = async (
         draftState.mapData,
         currentThemeNodesFromDraftState,
         oldMapNodeId
-      ) || oldMapNodeId;
+      ) ?? oldMapNodeId;
   }
 
   draftState.currentMapNodeId = finalChosenNodeId;
@@ -176,7 +174,13 @@ export const handleMapUpdates = async (
     if (currentNodeIndex !== -1) {
       if (!draftState.mapData.nodes[currentNodeIndex].data.visited) {
         draftState.mapData.nodes[currentNodeIndex].data.visited = true;
-        if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+        if (
+          draftState.mapData.nodes[currentNodeIndex].data.status === 'rumored' ||
+          draftState.mapData.nodes[currentNodeIndex].data.status === 'undiscovered'
+        ) {
+          draftState.mapData.nodes[currentNodeIndex].data.status = 'discovered';
+        }
+        turnChanges.mapDataChanged = true;
       }
       const nodeMap = new Map(draftState.mapData.nodes.map(n => [n.id, n]));
       const currentNode = draftState.mapData.nodes[currentNodeIndex];
@@ -185,7 +189,13 @@ export const handleMapUpdates = async (
         const idx = draftState.mapData.nodes.findIndex(n => n.id === ancestor.id);
         if (idx !== -1 && !draftState.mapData.nodes[idx].data.visited) {
           draftState.mapData.nodes[idx].data.visited = true;
-          if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+          if (
+            draftState.mapData.nodes[idx].data.status === 'rumored' ||
+            draftState.mapData.nodes[idx].data.status === 'undiscovered'
+          ) {
+            draftState.mapData.nodes[idx].data.status = 'discovered';
+          }
+          turnChanges.mapDataChanged = true;
         }
       }
     }
@@ -193,7 +203,7 @@ export const handleMapUpdates = async (
 
   if (turnChanges.mapDataChanged) {
     const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
-    const edgesToRemoveIndices: number[] = [];
+    const edgesToRemoveIndices: Array<number> = [];
     draftState.mapData.edges.forEach((edge, index) => {
       if (newlyAddedEdgeIds.has(edge.id)) return;
       if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {
@@ -209,7 +219,7 @@ export const handleMapUpdates = async (
           }
           else {
             edge.data.status = 'open';
-            if (!turnChanges.mapDataChanged) turnChanges.mapDataChanged = true;
+            turnChanges.mapDataChanged = true;
           }
         }
       }

@@ -2,7 +2,6 @@
  * @file ModelUsageIndicators.tsx
  * @description Shows recent AI model usage levels.
  */
-import React from 'react';
 import { useModelUsage } from '../hooks/useModelUsage';
 
 const squareClass = 'w-4 h-4 rounded';
@@ -16,25 +15,30 @@ const getColorClass = (pct: number) => {
   return 'bg-red-500';
 };
 
-const ModelUsageIndicators: React.FC = () => {
+function ModelUsageIndicators() {
   const usage = useModelUsage();
 
   return (
-    <div className="flex space-x-1" aria-label="Model usage last minute">
+    <div
+      aria-label="Model usage last minute"
+      className="flex space-x-1 items-center my-2"
+    >
       {Object.values(usage).map(info => {
         const pct = info.count / info.limit;
-        const title = `${info.model}: ${info.count}/${info.limit} calls last minute`;
+        const title = `${info.model}: ${String(info.count)}/${String(info.limit)} calls last minute`;
         return (
           <div
-            key={info.model}
-            className={`${squareClass} ${getColorClass(pct)}`}
-            title={title}
             aria-label={title}
+            className={`${squareClass} ${getColorClass(pct)}`}
+            key={info.model}
+            title={title}
           />
         );
       })}
+
+      <div className="flex-grow border-t border-slate-600 ml-2" />
     </div>
   );
-};
+}
 
 export default ModelUsageIndicators;

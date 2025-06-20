@@ -3,8 +3,16 @@
  * @description Correction helper for resolving malformed entity names.
  */
 import { AdventureTheme } from '../../types';
-import { MAX_RETRIES } from '../../constants';
-import { callMinimalCorrectionAI } from './base';
+import {
+  MAX_RETRIES,
+  MINIMAL_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+} from '../../constants';
+import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { addProgressSymbol } from '../../utils/loadingProgress';
+import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
 
 /**
@@ -15,7 +23,7 @@ export const fetchCorrectedName_Service = async (
   malformedOrPartialName: string,
   contextualLogMessage: string | undefined,
   contextualSceneDescription: string | undefined,
-  validNamesList: string[],
+  validNamesList: Array<string>,
   currentTheme: AdventureTheme
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
@@ -35,8 +43,8 @@ Entity Type: ${entityTypeToCorrect}
 Malformed/Partial Name Provided by another AI: "${malformedOrPartialName}"
 
 Narrative Context (use this to understand which entity was likely intended):
-- Log Message: "${contextualLogMessage || 'Not specified, infer from scene.'}"
-- Scene Description: "${contextualSceneDescription || 'Not specified, infer from log.'}"
+- Log Message: "${contextualLogMessage ?? 'Not specified, infer from scene.'}"
+- Scene Description: "${contextualSceneDescription ?? 'Not specified, infer from log.'}"
 
 List of Valid Names:
 ${validNamesContext}
@@ -45,38 +53,47 @@ Task: Based on the context and the list of valid names, determine the correct fu
 Respond ONLY with the single, corrected ${entityTypeToCorrect} name as a string.
 If no suitable match can be confidently made, respond with an empty string.`;
 
-  const systemInstructionForFix = `Your task is to match a malformed ${entityTypeToCorrect} name against a provided list of valid names, using narrative context. Respond ONLY with the best-matched string from the valid list, or an empty string if no confident match is found. Adhere to the theme context: ${currentTheme.systemInstructionModifier || 'General interpretation.'}`;
+  const systemInstruction = `Your task is to match a malformed ${entityTypeToCorrect} name against a provided list of valid names, using narrative context. Respond ONLY with the best-matched string from the valid list, or an empty string if no confident match is found. Adhere to the theme context: ${currentTheme.systemInstructionModifier}`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<string>(async attempt => {
     try {
-      const correctedNameResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
-
-      if (correctedNameResponse !== null) {
-        let correctedName = correctedNameResponse.trim();
-        // Some models may return quoted strings such as "\"name\"" or """" for no match.
-        // Strip surrounding single or double quotes before validation.
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = response.text?.trim() ?? null;
+      if (aiResponse !== null) {
+        let correctedName = aiResponse.trim();
         correctedName = correctedName.replace(/^['"]+|['"]+$/g, '').trim();
         if (correctedName === '') {
-          console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`);
-          return null;
+          console.warn(
+            `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`,
+          );
+          return { result: null, retry: false };
         }
         if (validNamesList.includes(correctedName)) {
           console.warn(`fetchCorrectedName_Service: Returned corrected Name `, correctedName, `.`);
-          return correctedName;
-        } else {
-          console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`);
+          return { result: correctedName };
         }
+        console.warn(
+          `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`,
+        );
       } else {
-        console.warn(`fetchCorrectedName_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for ${entityTypeToCorrect}. Received: null`);
+        console.warn(
+          `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for ${entityTypeToCorrect}. Received: null`,
+        );
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
-      console.error(`fetchCorrectedName_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(
+        `fetchCorrectedName_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        error,
+      );
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };

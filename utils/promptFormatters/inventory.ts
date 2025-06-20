@@ -9,16 +9,29 @@ import { Item } from '../../types';
 /**
  * Formats a list of items for use in AI prompts.
  */
-export const formatInventoryForPrompt = (inventory: Item[]): string => {
-  if (inventory.length === 0) return "Empty.";
-  return inventory
+export const itemsToString = (
+  items: Item | Array<Item>,
+  prefix = '',
+  addDescription = true,
+  addKnownUses = true,
+  singleLine = false,
+): string => {
+  const itemList = Array.isArray(items) ? items : [items];
+  if (itemList.length === 0) return 'Empty.';
+  const delimiter = singleLine ? '; ' : ';\n';
+
+  return itemList
     .map(item => {
-      let itemStr = ` - ${item.id} - "${item.name}" (Type: "${item.type}", Description: "${
-        item.isActive && item.activeDescription
-          ? item.activeDescription
-          : item.description
-      }"${item.isActive ? ', It is active' : ''})`;
-      if (item.knownUses && item.knownUses.length > 0) {
+      let itemStr = `${prefix}${item.id} - "${item.name}"`;
+      if (addDescription) {
+        itemStr += ` (Type: "${item.type}", Description: "${
+          item.isActive && item.activeDescription
+            ? item.activeDescription
+            : item.description
+        }"${item.isActive ? ', It is active' : ''})`;
+      }
+
+      if (addKnownUses && item.knownUses && item.knownUses.length > 0) {
         const applicableUses = item.knownUses.filter(ku => {
           const isActive = !!item.isActive;
           if (
@@ -42,8 +55,9 @@ export const formatInventoryForPrompt = (inventory: Item[]): string => {
             .join(', ')}`;
         }
       }
+
       return itemStr;
     })
-    .join(";\n");
+    .join(delimiter);
 };
 

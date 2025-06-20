@@ -6,7 +6,7 @@
 
 import { AdventureTheme } from "./types";
 
-export const FANTASY_AND_MYTH_THEMES: AdventureTheme[] = [
+export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
   {
     name: "Classic Dungeon Delve",
     systemInstructionModifier: "The setting is a dark, treacherous dungeon filled with traps, monsters, and ancient secrets. Focus on exploration, combat, and puzzle-solving. Items found are typically medieval high-magic fantasy (swords, potions, scrolls).",
@@ -73,7 +73,7 @@ export const FANTASY_AND_MYTH_THEMES: AdventureTheme[] = [
   }
 ];
 
-export const SCIENCE_FICTION_AND_FUTURE_THEMES: AdventureTheme[] = [
+export const SCIENCE_FICTION_AND_FUTURE_THEMES: Array<AdventureTheme> = [
   {
     name: "Cyberpunk Heist",
     systemInstructionModifier: "The setting is a neon-drenched, futuristic metropolis controlled by mega-corporations. Focus on stealth, hacking, high-tech gadgets, and moral ambiguity. Expect cybernetics, virtual spaces, data chips, and corporate espionage.",
@@ -132,7 +132,7 @@ export const SCIENCE_FICTION_AND_FUTURE_THEMES: AdventureTheme[] = [
   }
 ];
 
-export const HORROR_AND_DARK_MYSTERY_THEMES: AdventureTheme[] = [
+export const HORROR_AND_DARK_MYSTERY_THEMES: Array<AdventureTheme> = [
   {
     name: "Eldritch Mystery Investigation",
     systemInstructionModifier: "The setting is a Lovecraftian fog-shrouded, 1920s coastal town plagued by unsettling occurrences and whispers of cosmic horrors. Focus on investigation, sanity checks, and deciphering cryptic clues. Items might include strange artifacts, forbidden tomes, and period-appropriate tools.",
@@ -167,7 +167,7 @@ export const HORROR_AND_DARK_MYSTERY_THEMES: AdventureTheme[] = [
   }
 ];
 
-export const ACTION_AND_WASTELAND_THEMES: AdventureTheme[] = [
+export const ACTION_AND_WASTELAND_THEMES: Array<AdventureTheme> = [
   {
     name: "Post-Apocalyptic Survival",
     systemInstructionModifier: "The world is a desolate wasteland after a interdimentional cataclysm. Resources are scarce, dangers are everywhere (mutants, raiders, anomalies, environmental hazards). Focus on scavenging, research, crafting, and making tough choices for survival.",
@@ -210,7 +210,7 @@ export const ACTION_AND_WASTELAND_THEMES: AdventureTheme[] = [
   }
 ];
 
-export const TESTING_THEMES: AdventureTheme[] = [
+export const TESTING_THEMES: Array<AdventureTheme> = [
   {
     name: "Test-Theme for many locations",
     systemInstructionModifier: "The world of modern fantasy in the United Kingdom. It is intended for testing locations. Create many Map Nodes of all types and statuses, and connected with edges.",
@@ -239,7 +239,7 @@ export const THEME_PACKS = {
 
 export type ThemePackName = keyof typeof THEME_PACKS;
 
-export const ALL_THEME_PACK_NAMES = Object.keys(THEME_PACKS) as ThemePackName[];
+export const ALL_THEME_PACK_NAMES = Object.keys(THEME_PACKS) as Array<ThemePackName>;
 
 /**
  * Returns a flat array of all themes from the specified pack names.
@@ -247,15 +247,13 @@ export const ALL_THEME_PACK_NAMES = Object.keys(THEME_PACKS) as ThemePackName[];
  * @param packNames Array of ThemePackName to include.
  * @returns AdventureTheme[]
  */
-export const getThemesFromPacks = (packNames: ThemePackName[]): AdventureTheme[] => {
-  if (!packNames || packNames.length === 0) {
+export const getThemesFromPacks = (packNames: Array<ThemePackName>): Array<AdventureTheme> => {
+  if (packNames.length === 0) {
     return [];
   }
-  let selectedThemes: AdventureTheme[] = [];
+  let selectedThemes: Array<AdventureTheme> = [];
   packNames.forEach(packName => {
-    if (THEME_PACKS[packName]) {
-      selectedThemes = selectedThemes.concat(THEME_PACKS[packName]);
-    }
+    selectedThemes = selectedThemes.concat(THEME_PACKS[packName]);
   });
   return selectedThemes;
 };

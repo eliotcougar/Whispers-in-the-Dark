@@ -3,10 +3,20 @@
  * @description Correction helpers for item related data.
  */
 import { Item, AdventureTheme, ItemChange } from '../../types';
-import { MAX_RETRIES, VALID_ITEM_TYPES_STRING } from '../../constants';
+import {
+  MAX_RETRIES,
+  VALID_ITEM_TYPES_STRING,
+  MINIMAL_MODEL_NAME,
+  AUXILIARY_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+} from '../../constants';
 import { isValidItem } from '../parsers/validation';
-import { callCorrectionAI, callMinimalCorrectionAI } from './base';
+import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
+import { dispatchAIRequest } from '../modelDispatcher';
+import { addProgressSymbol } from '../../utils/loadingProgress';
+import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isApiConfigured } from '../apiClient';
+import { retryAiCall } from '../../utils/retry';
 
 /**
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
@@ -25,7 +35,7 @@ export const fetchCorrectedItemPayload_Service = async (
 
   let originalItemNameFromMalformed = 'Not specified or unparseable from malformed payload';
   try {
-    const malformedObj: Record<string, unknown> = JSON.parse(malformedPayloadString) as Record<string, unknown>;
+    const malformedObj = safeParseJson<Record<string, unknown>>(malformedPayloadString);
     if (malformedObj && typeof malformedObj.name === 'string') {
       originalItemNameFromMalformed = `"${malformedObj.name}"`;
     }
@@ -99,9 +109,9 @@ ${malformedPayloadString}
 \`\`\`
 
 Narrative Context:
-- Log Message: "${logMessage || 'Not specified, infer from scene.'}"
-- Scene Description: "${sceneDescription || 'Not specified, infer from log.'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
+- Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
+- Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
+ - Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Required JSON Structure for the corrected 'item' field:
 ${baseItemStructureForPrompt}
@@ -111,26 +121,34 @@ ${specificActionInstructions}
 
 Respond ONLY with the single, complete, corrected JSON object for the 'item' field.`;
 
-  const systemInstructionForFix = `Correct JSON item payloads based on the provided structure, context, and specific instructions for the action type. Adhere strictly to the JSON format. Preserve the original intent of the item change if discernible. CRITICAL: Ensure the 'type' field is never 'junk'; use 'isJunk: true' and a valid type instead.`;
+  const systemInstruction = `Correct JSON item payloads based on the provided structure, context, and specific instructions for the action type. Adhere strictly to the JSON format. Preserve the original intent of the item change if discernible. CRITICAL: Ensure the 'type' field is never 'junk'; use 'isJunk: true' and a valid type instead.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<Item>(async attempt => {
     try {
-      const correctedItemPayload = await callCorrectionAI<Item>(prompt, systemInstructionForFix);
-      if (correctedItemPayload && isValidItem(correctedItemPayload, actionType === 'gain' ? 'gain' : 'update')) {
-        return correctedItemPayload;
-      } else {
-        console.warn(`fetchCorrectedItemPayload_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): Corrected '${actionType}' payload invalid after validation. Response:`, correctedItemPayload);
-        if (attempt === MAX_RETRIES) return null;
-        attempt++;
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        responseMimeType: 'application/json',
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const jsonStr = response.text ?? '';
+      const aiResponse = safeParseJson<Item>(extractJsonFromFence(jsonStr));
+      if (aiResponse && isValidItem(aiResponse, actionType === 'gain' ? 'gain' : 'update')) {
+        return { result: aiResponse };
       }
+      console.warn(
+        `fetchCorrectedItemPayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
+        aiResponse,
+      );
     } catch (error) {
-      console.error(`fetchCorrectedItemPayload_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(`fetchCorrectedItemPayload_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };
 
 /**
@@ -149,9 +167,9 @@ export const fetchCorrectedItemAction_Service = async (
 
   // Basic check before engaging the AI
   try {
-    const parsed = JSON.parse(malformedItemChangeString) as Record<string, unknown>;
+    const parsed = safeParseJson<Record<string, unknown>>(malformedItemChangeString);
     if (parsed && typeof parsed === 'object') {
-      const rawAction = parsed['action'];
+      const rawAction = parsed.action;
       if (typeof rawAction === 'string' && ['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(rawAction)) {
         return rawAction as ItemChange['action'];
       }
@@ -170,9 +188,9 @@ ${malformedItemChangeString}
 \`\`\`
 
 Narrative Context:
-- Log Message: "${logMessage || 'Not specified, infer from scene.'}"
-- Scene Description: "${sceneDescription || 'Not specified, infer from log.'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
+- Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
+- Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
+ - Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "destroy", "update", "put", "give", or "take") that was intended.
 - "gain": Player acquired a new item.
@@ -185,33 +203,37 @@ Task: Based on the Log Message, Scene Description, and the 'item' details in the
 Respond ONLY with the single corrected action string.
 If no action can be confidently determined, respond with an empty string.`;
 
-  const systemInstructionForFix = `Determine the correct item 'action' ("gain", "destroy", "update", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
+  const systemInstruction = `Determine the correct item 'action' ("gain", "destroy", "update", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; ) {
+  return retryAiCall<ItemChange['action']>(async attempt => {
     try {
-      const correctedActionResponse = await callMinimalCorrectionAI(prompt, systemInstructionForFix);
-      if (correctedActionResponse !== null) {
-        const action = correctedActionResponse.trim().toLowerCase();
-        if (['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(action)) {
-          console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, action, ".");
-          return action as ItemChange['action'];
-        } else if (action === '') {
-          console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
-          return null;
-        } else {
-          console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI returned invalid action "${action}".`);
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = response.text?.trim() ?? null;
+      if (aiResponse !== null) {
+        const candidateAction = aiResponse.trim().toLowerCase();
+        if (['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(candidateAction)) {
+          console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, candidateAction, ".");
+          return { result: candidateAction as ItemChange['action'] };
         }
+        if (candidateAction === '') {
+          console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
+          return { result: null, retry: false };
+        }
+          console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned invalid action "${candidateAction}".`);
       } else {
-        console.warn(`fetchCorrectedItemAction_Service (Attempt ${attempt + 1}/${MAX_RETRIES + 1}): AI call failed for item action. Received: null`);
+        console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for item action. Received: null`);
       }
-      if (attempt === MAX_RETRIES) return null;
-      attempt++;
     } catch (error) {
-      console.error(`fetchCorrectedItemAction_Service error (Attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      if (attempt === MAX_RETRIES) return null;
-      continue;
+      console.error(`fetchCorrectedItemAction_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
 };

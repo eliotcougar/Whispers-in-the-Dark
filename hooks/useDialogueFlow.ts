@@ -3,7 +3,7 @@
  * @description Orchestrates dialogue turns and summarization hooks.
  */
 
-import React from 'react';
+import { useRef } from 'react';
 import {
   GameStateFromAI,
   FullGameState,
@@ -13,7 +13,7 @@ import {
 import { useDialogueTurn } from './useDialogueTurn';
 import { useDialogueSummary } from './useDialogueSummary';
 
-interface UseDialogueFlowProps {
+export interface UseDialogueFlowProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (newGameState: FullGameState) => void;
   playerGenderProp: string;
@@ -24,10 +24,10 @@ interface UseDialogueFlowProps {
     summaryPayload: GameStateFromAI | null,
     preparedGameState: FullGameState,
     debugInfo: {
-      turns: DialogueTurnDebugEntry[];
+      turns: Array<DialogueTurnDebugEntry>;
       summaryPrompt?: string;
       summaryRawResponse?: string;
-      summaryThoughts?: string[];
+      summaryThoughts?: Array<string>;
     }
   ) => void;
 }
@@ -46,7 +46,7 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     onDialogueConcluded,
   } = props;
 
-  const dialogueLogsRef = React.useRef<DialogueTurnDebugEntry[]>([]);
+  const dialogueLogsRef = useRef<Array<DialogueTurnDebugEntry>>([]);
 
   const addDebugEntry = (entry: DialogueTurnDebugEntry) => {
     dialogueLogsRef.current.push(entry);

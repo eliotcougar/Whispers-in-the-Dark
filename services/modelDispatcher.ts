@@ -29,7 +29,7 @@ import {
 const supportsSystemInstruction = (model: string): boolean => !model.startsWith('gemma-');
 
 export interface ModelDispatchOptions {
-  modelNames: string[];
+  modelNames: Array<string>;
   prompt: string;
   systemInstruction?: string;
   temperature?: number;
@@ -38,7 +38,7 @@ export interface ModelDispatchOptions {
   includeThoughts?: boolean;
   responseSchema?: object;
   label?: string;
-  debugLog?: MinimalModelCallRecord[];
+  debugLog?: Array<MinimalModelCallRecord>;
 }
 
 /**
@@ -105,14 +105,14 @@ export const dispatchAIRequest = async (
 
         if (options.label) {
           console.log(
-            `[${options.label}] ${model} tokens: total ${response.usageMetadata?.totalTokenCount ?? 'N/A'}, prompt ${response.usageMetadata?.promptTokenCount ?? 'N/A'}, thoughts ${response.usageMetadata?.thoughtsTokenCount ?? 'N/A'}`
+            `[${options.label}] ${model} tokens: total ${String(response.usageMetadata?.totalTokenCount ?? 'N/A')}, prompt ${String(response.usageMetadata?.promptTokenCount ?? 'N/A')}, thoughts ${String(response.usageMetadata?.thoughtsTokenCount ?? 'N/A')}`
           );
         }
 
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
-            systemInstruction: options.systemInstruction || '',
+            systemInstruction: options.systemInstruction ?? '',
             modelUsed: model,
             responseText: response.text ?? '',
           });
@@ -123,7 +123,7 @@ export const dispatchAIRequest = async (
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
-            systemInstruction: options.systemInstruction || '',
+            systemInstruction: options.systemInstruction ?? '',
             modelUsed: model,
             responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
           });
@@ -135,7 +135,7 @@ export const dispatchAIRequest = async (
         }
 
         console.warn(
-          `dispatchAIRequest: Model ${model} failed with status ${extractStatusFromError(err)}. Retry ${attempt}/${MAX_RETRIES}`
+          `dispatchAIRequest: Model ${model} failed with status ${String(extractStatusFromError(err))}. Retry ${String(attempt)}/${String(MAX_RETRIES)}`
         );
         attempt += 1;
       }

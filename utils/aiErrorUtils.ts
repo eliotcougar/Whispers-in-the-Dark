@@ -25,7 +25,7 @@ export const extractStatusFromError = (err: unknown): number | null => {
     typeof errObj.message === 'boolean'
       ? String(errObj.message)
       : '';
-  const match = msg.match(/status:\s*(\d{3})/);
+  const match = /status:\s*(\d{3})/.exec(msg);
   if (match) return parseInt(match[1], 10);
   return null;
 };
