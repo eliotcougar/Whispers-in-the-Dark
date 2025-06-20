@@ -107,7 +107,8 @@ function MapControls(props: MapControlsProps) {
           label={`${expanded ? 'Hide' : 'Show'} Layout Controls`}
           onClick={handleToggleExpanded}
           preset="blue"
-          variant="standard"
+          size='sm'
+          variant="compact"
         />
 
         <Button
@@ -115,7 +116,8 @@ function MapControls(props: MapControlsProps) {
           label="Refresh Layout"
           onClick={onRefreshLayout}
           preset="blue"
-          variant="standard"
+          size='sm'
+          variant="compact"
         />
       </div>
     </div>

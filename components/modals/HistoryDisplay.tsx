@@ -55,8 +55,8 @@ function HistoryDisplay({
             header="History"
             headerFont="2xl"
             headerPreset="purple"
-            headerWrapperClassName="text-center"
             headerTag="h2"
+            headerWrapperClassName="text-center"
           />
 
           <GameLogDisplay messages={gameLog} />
@@ -68,8 +68,8 @@ function HistoryDisplay({
             header="Echoes of Past Realities"
             headerFont="2xl"
             headerPreset="purple"
-            headerWrapperClassName="text-center"
             headerTag="h2"
+            headerWrapperClassName="text-center"
           />
           
           {rememberedThemes.length === 0 && (

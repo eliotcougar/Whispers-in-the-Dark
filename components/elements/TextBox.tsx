@@ -39,7 +39,7 @@ function TextBox({
   headerPreset = 'amber',
   headerWrapperClassName = '',
   contentFontClass = '',
-  contentColorClass = 'text-slate-300',
+  contentColorClass = 'text-slate-200',
 }: TextBoxProps) {
   const content = text
     ? text.split('\n').map(para => (
@@ -86,15 +86,15 @@ TextBox.defaultProps = {
   borderWidthClass: 'border-b',
   children: undefined,
   containerClassName: 'mb-6',
-  contentColorClass: 'text-slate-300',
+  contentColorClass: 'text-slate-200',
   contentFontClass: '',
   enableMobileTap: false,
   header: undefined,
   headerFont: '2xl',
   headerIcon: undefined,
   headerPreset: 'amber',
-  headerWrapperClassName: '',
   headerTag: 'h2',
+  headerWrapperClassName: '',
   highlightEntities: undefined,
   text: undefined,
 };
