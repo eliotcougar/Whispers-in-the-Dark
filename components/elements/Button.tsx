@@ -168,7 +168,7 @@ function Button({
       ) : null}
 
       {displayLabel ? (
-        <span className="flex-1">
+        <span className="flex-1 text-shadow-sm">
           {displayLabel}
         </span>
       ) : null}
