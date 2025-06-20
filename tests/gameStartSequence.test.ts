@@ -78,12 +78,19 @@ describe('game start sequence', () => {
 
   it('completes the start sequence and saves the state', async () => {
     const saved: Record<string, string> = {};
+    const setItem = vi.fn((key: string, value: string) => {
+      saved[key] = value;
+    });
+    const getItem = vi.fn((key: string) => saved[key] ?? null);
+    const removeItem = vi.fn();
+    const clear = vi.fn();
+    const keyFn = vi.fn();
     globalThis.localStorage = {
-      setItem: vi.fn((key: string, value: string) => { saved[key] = value; }),
-      getItem: vi.fn((key: string) => saved[key] ?? null),
-      removeItem: vi.fn(),
-      clear: vi.fn(),
-      key: vi.fn(),
+      setItem,
+      getItem,
+      removeItem,
+      clear,
+      key: keyFn,
       length: 0,
     } as unknown as Storage;
 
@@ -127,7 +134,6 @@ describe('game start sequence', () => {
 
     const result = saveGameStateToLocalStorage(state);
     expect(result).toBe(true);
-    const { setItem } = globalThis.localStorage;
     expect(setItem).toHaveBeenCalledWith(
       LOCAL_STORAGE_SAVE_KEY,
       expect.any(String),

@@ -1,10 +1,9 @@
 import { useCallback } from 'react';
-import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import type { HighlightableEntity } from '../../utils/highlightHelper';
 import { highlightEntitiesInText } from '../../utils/highlightHelper';
 
-export interface ButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick' | 'className' | 'disabled' | 'type'> {
+export interface ButtonProps {
   readonly ariaLabel: string;
   readonly onClick: (event: MouseEvent<HTMLButtonElement>) => void;
   readonly disabled?: boolean;
@@ -64,7 +63,6 @@ function Button({
   type = 'button',
   variant = 'standard',
   preset,
-  ...rest
 }: ButtonProps) {
   const handleClick = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -153,7 +151,6 @@ function Button({
       onClick={handleClick}
       title={title}
       type={type === 'submit' ? 'submit' : type === 'reset' ? 'reset' : 'button'}
-      {...rest}
     >
       {icon ? (
         <span className={label ? 'mr-2 inline-flex' : 'inline-flex'}>

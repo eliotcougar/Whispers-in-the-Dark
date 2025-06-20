@@ -22,9 +22,16 @@ export const extractJsonFromFence = (raw: string): string => {
  * Attempts to parse the provided JSON string. Returns the parsed object
  * or `null` if parsing fails.
  */
-export function safeParseJson<T>(jsonStr: string): T | null {
+export function safeParseJson<T>(
+  jsonStr: string,
+  validate?: (data: unknown) => data is T,
+): T | null {
   try {
-    return JSON.parse(jsonStr) as T;
+    const parsed = JSON.parse(jsonStr) as unknown;
+    if (validate && !validate(parsed)) {
+      return null;
+    }
+    return parsed as T;
   } catch {
     return null;
   }
