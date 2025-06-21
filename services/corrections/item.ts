@@ -143,7 +143,7 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
         `fetchCorrectedItemPayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
         aiResponse,
       );
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`fetchCorrectedItemPayload_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
@@ -230,7 +230,7 @@ If no action can be confidently determined, respond with an empty string.`;
       } else {
         console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for item action. Received: null`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`fetchCorrectedItemAction_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }

@@ -56,8 +56,8 @@ function DebugSection({
         }
 
         return JSON.stringify(contentForDisplay, null, 2);
-      } catch (e) {
-         
+      } catch (e: unknown) {
+
         console.error('Error stringifying debug content:', e, content);
          
         return 'Error stringifying JSON content.';

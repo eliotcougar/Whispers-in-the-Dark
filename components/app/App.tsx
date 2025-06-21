@@ -221,6 +221,7 @@ function App() {
     hasGameBeenInitialized,
     appReady,
     dialogueState,
+    setError: (msg) => { getGameLogic().setError(msg); },
     dependencies: [
       currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
       inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId,
@@ -298,7 +299,7 @@ function App() {
           ? prevPacks.filter(p => p !== packName)
           : [...prevPacks, packName];
         if (newPacks.length === 0) {
-          alert('At least one theme pack must be enabled.');
+          getGameLogic().setError('At least one theme pack must be enabled.');
           return prevPacks;
         }
         return newPacks;

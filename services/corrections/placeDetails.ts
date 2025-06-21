@@ -85,7 +85,7 @@ Respond ONLY with the inferred "localPlace" as a single string.`;
       console.warn(
         `fetchCorrectedLocalPlace_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): AI call failed for localPlace. Received: null`,
       );
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchCorrectedLocalPlace_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
@@ -182,7 +182,7 @@ Respond ONLY with the single, complete, corrected JSON object.`;
           `fetchCorrectedPlaceDetails_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): Corrected map location payload invalid. Response:`,
           aiResponse,
         );
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(
           `fetchCorrectedPlaceDetails_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
           error,
@@ -259,7 +259,7 @@ Respond ONLY with the single, complete JSON object.`;
           `fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`,
           aiResponse,
         );
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(
           `fetchFullPlaceDetailsForNewMapNode_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
           error,
@@ -329,7 +329,7 @@ Respond ONLY with the single node type.`;
           return { result: mapped as MapNodeData['nodeType'] };
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchCorrectedNodeType_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
@@ -417,7 +417,7 @@ Respond ONLY with the name or id of the best parent node, or "Universe" if none.
       if (aiResponse) {
         return { result: aiResponse.trim() };
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchLikelyParentNode_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
@@ -467,7 +467,7 @@ Known map nodes in the current theme:\n${nodeList}\nChoose the most likely inten
         const byName = context.themeNodes.find(n => n.placeName === cleaned);
         if (byName) return { result: byName.id };
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchCorrectedNodeIdentifier_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,

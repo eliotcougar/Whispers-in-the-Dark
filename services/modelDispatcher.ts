@@ -119,7 +119,7 @@ export const dispatchAIRequest = async (
         }
 
         return { response, modelUsed: model };
-      } catch (err) {
+      } catch (err: unknown) {
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,

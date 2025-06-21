@@ -39,7 +39,7 @@ const parseDialogueResponse = (
       });
     }
     return validated;
-  } catch (e) {
+  } catch (e: unknown) {
     console.warn('Failed to parse dialogue JSON response from AI:', e);
     console.debug('Original dialogue response text:', responseText);
     return null;
@@ -78,7 +78,7 @@ export const parseDialogueSummaryResponse = (
     trimDialogueHints(validated);
 
     return validated;
-  } catch (e) {
+  } catch (e: unknown) {
     console.warn('Failed to parse dialogue summary JSON response from AI:', e);
     console.debug('Original dialogue summary response text:', responseText);
     return null;

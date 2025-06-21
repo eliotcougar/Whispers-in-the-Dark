@@ -215,7 +215,7 @@ function ImageVisualizer({
       });
       safePrompt = prefix + (safeResp.text?.trim() ?? rawPrompt);
       console.log("Sanitized prompt: ", safePrompt);
-    } catch (safeErr) {
+    } catch (safeErr: unknown) {
       console.warn('Prompt sanitization failed, using raw prompt.', safeErr);
     }
 
@@ -234,7 +234,7 @@ function ImageVisualizer({
       } else {
         throw new Error("No image data received from API.");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error generating image:", err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error during image generation.";
 
@@ -288,7 +288,7 @@ function ImageVisualizer({
             setError('Fallback image generation failed to return image data.');
           }
 
-        } catch (fallbackErr) {
+        } catch (fallbackErr: unknown) {
           console.error('Fallback image generation failed:', fallbackErr);
           setError('Fallback image generation failed.');
         }
