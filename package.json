@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint --ext .ts,.tsx .",
     "lint:fix": "eslint --ext .ts,.tsx . --fix",
-    "test": "npm run lint",
+    "lint-strict": "eslint --config eslint.config.strict.js --ext .ts,.tsx .",
+    "lint-strict:fix": "eslint --config eslint.config.strict.js --ext .ts,.tsx . --fix",
     "test:unit": "vitest --run",
     "typecheck": "tsc --noEmit"
   },
