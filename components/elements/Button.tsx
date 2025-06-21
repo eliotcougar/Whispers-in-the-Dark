@@ -19,6 +19,7 @@ export interface ButtonProps {
   readonly 'data-item-name'?: string;
   readonly 'data-option'?: string;
   readonly 'data-prompt-effect'?: string;
+  readonly 'data-node-id'?: string;
   readonly variant?:
     | 'standard'
     | 'center'
@@ -70,6 +71,7 @@ function Button({
   'data-item-name': dataItemName,
   'data-option': dataOption,
   'data-prompt-effect': dataPromptEffect,
+  'data-node-id': dataNodeId,
 }: ButtonProps) {
   const handleClick = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -154,6 +156,7 @@ function Button({
       className={`rounded-md shadow transition-colors duration-150 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${appliedSize} ${variantClasses[variant]} ${preset ? presetClasses[preset] : ''} ${pressedClasses}`}
       data-action-name={dataActionName}
       data-item-name={dataItemName}
+      data-node-id={dataNodeId}
       data-option={dataOption}
       data-prompt-effect={dataPromptEffect}
       disabled={disabled}
@@ -179,6 +182,7 @@ function Button({
 Button.defaultProps = {
   'data-action-name': undefined,
   'data-item-name': undefined,
+  'data-node-id': undefined,
   'data-option': undefined,
   'data-prompt-effect': undefined,
   disabled: false,
