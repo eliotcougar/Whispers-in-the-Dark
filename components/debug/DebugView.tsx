@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
-import { GameStateStack, DebugPacket } from '../../types';
+import { GameStateStack, DebugPacket, FullGameState } from '../../types';
 import { TravelStep } from '../../utils/mapPathfinding';
 import {
   CharactersTab,
@@ -29,6 +29,7 @@ interface DebugViewProps {
   readonly debugPacket: DebugPacket | null;
   readonly gameStateStack: GameStateStack;
   readonly onUndoTurn: () => void; // New prop for undoing turn
+  readonly onApplyGameState: (state: FullGameState) => void;
   readonly travelPath: Array<TravelStep> | null;
 }
 
@@ -55,6 +56,7 @@ function DebugView({
   debugPacket,
   gameStateStack,
   onUndoTurn,
+  onApplyGameState,
   travelPath,
 }: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
@@ -94,6 +96,7 @@ function DebugView({
           <GameStateTab
             currentState={currentState}
             onUndoTurn={onUndoTurn}
+            onApplyGameState={onApplyGameState}
             previousState={previousState}
           />
         );

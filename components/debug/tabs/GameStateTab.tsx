@@ -1,14 +1,42 @@
+import { useCallback, useEffect, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { FullGameState } from '../../../types';
+import { safeParseJson } from '../../../utils/jsonUtils';
 
 interface GameStateTabProps {
   readonly currentState: FullGameState;
   readonly onUndoTurn: () => void;
+  readonly onApplyGameState: (state: FullGameState) => void;
   readonly previousState?: FullGameState;
 }
 
-function GameStateTab({ currentState, onUndoTurn, previousState = undefined }: GameStateTabProps) {
+function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousState = undefined }: GameStateTabProps) {
+  const [editableText, setEditableText] = useState<string>('');
+  const [parseError, setParseError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setEditableText(JSON.stringify(currentState, null, 2));
+  }, [currentState]);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setEditableText(e.target.value);
+      setParseError(null);
+    },
+    [],
+  );
+
+  const handleApply = useCallback(() => {
+    const parsed = safeParseJson<FullGameState>(editableText);
+    if (parsed) {
+      onApplyGameState(parsed);
+      setParseError(null);
+    } else {
+      setParseError('Invalid JSON');
+    }
+  }, [editableText, onApplyGameState]);
+
   return (<>
     <Button
       ariaLabel="Undo last turn"
@@ -19,6 +47,37 @@ function GameStateTab({ currentState, onUndoTurn, previousState = undefined }: G
       size="sm"
       variant="compact"
     />
+
+    <div className="my-2">
+      <label
+        className="block text-sm text-amber-300 mb-1"
+        htmlFor="gameStateEdit"
+      >
+        Edit Game State
+      </label>
+
+      <textarea
+        id="gameStateEdit"
+        className="w-full p-2 bg-slate-900 text-white border border-slate-600 rounded-md text-sm min-h-[50em] font-mono"
+        onChange={handleChange}
+        value={editableText}
+      />
+
+      <Button
+        ariaLabel="Verify and apply edited game state"
+        label="Verify & Apply"
+        onClick={handleApply}
+        preset="green"
+        size="sm"
+        variant="compact"
+      />
+
+      {parseError ? (
+        <p className="text-red-400 text-xs mt-1">
+          {parseError}
+        </p>
+      ) : null}
+    </div>
 
     <DebugSection
       content={currentState}
@@ -33,7 +92,8 @@ function GameStateTab({ currentState, onUndoTurn, previousState = undefined }: G
         title="Previous Game State (Stack[1] - Bottom)"
       />
     ) : null}
-  </>)
+  </>
+ );
 }
 
 GameStateTab.defaultProps = { previousState: undefined };
