@@ -64,21 +64,46 @@ export interface GiveItemPayload {
   toName?: string;
 }
 
+export type ItemUpdatePayload =
+  Partial<Omit<Item, 'activeDescription'>> & { activeDescription?: string | null };
+
 export interface NewItemSuggestion {
   name: string;
   type: ItemType;
   description: string;
 }
 
-export interface ItemChange {
-  // For "gain" or "update", 'item' is an Item object.
-  // For "destroy", 'item' provides at least an id and name (if available).
-  // For "put", 'item' is an Item object with holderId specifying destination.
-  // For "give" or "take", 'item' contains transfer details.
-  item: Item | ItemReference | GiveItemPayload | null;
-  action: "gain" | "destroy" | "update" | "put" | "give" | "take";
-  invalidPayload?: unknown; // If the 'item' field was unparseable/invalid from AI
-}
+export type ItemChange =
+  | {
+      action: 'gain';
+      item: Item;
+      invalidPayload?: unknown;
+    }
+  | {
+      action: 'put';
+      item: Item;
+      invalidPayload?: unknown;
+    }
+  | {
+      action: 'destroy';
+      item: ItemReference;
+      invalidPayload?: unknown;
+    }
+  | {
+      action: 'update';
+      item: ItemUpdatePayload;
+      invalidPayload?: unknown;
+    }
+  | {
+      action: 'give';
+      item: GiveItemPayload;
+      invalidPayload?: unknown;
+    }
+  | {
+      action: 'take';
+      item: GiveItemPayload;
+      invalidPayload?: unknown;
+    };
 
 export interface DialogueSummaryRecord {
   summaryText: string;
