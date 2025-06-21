@@ -81,6 +81,7 @@ Examples illustrating the hint style:
     "name": "Torn Note",
     "type": "page",
     "description": "A hastily scribbled message.", /* REQUIRED. Moderatly detailed description of the note and its contents. */
+    "tags": ["tag1", "tag2"], /* One of: "handwritten", "typed", "digital". */
     "contentLength": 30, /* REQUIRED, Length of the content in words. */
     "holderId": "player"
   }]

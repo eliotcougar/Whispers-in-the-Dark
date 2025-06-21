@@ -50,7 +50,7 @@ function DebugSection({
         {title}
       </h3>
 
-      <pre className={`bg-slate-900 p-2 rounded-md text-xs text-slate-200 overflow-auto ${maxHeightClass} whitespace-pre-wrap break-all`}>
+      <pre className={`bg-slate-900 p-2 rounded-md text-sm  font-mono text-white overflow-auto ${maxHeightClass} whitespace-pre-wrap break-words`}>
         <code>
           {displayContent}
         </code>

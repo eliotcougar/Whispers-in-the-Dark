@@ -58,7 +58,7 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
 
       <textarea
         id="gameStateEdit"
-        className="w-full p-2 bg-slate-900 text-slate-200 border border-slate-600 rounded-md text-xs h-40"
+        className="w-full p-2 bg-slate-900 text-white border border-slate-600 rounded-md text-sm min-h-[50em] font-mono"
         onChange={handleChange}
         value={editableText}
       />

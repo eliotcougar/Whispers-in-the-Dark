@@ -62,7 +62,7 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
           <LoadingSpinner loadingReason="page" />
         ) : text ? (
           <div
-            className={`whitespace-pre-wrap text-slate-200 overflow-y-auto mt-4 ${
+            className={`whitespace-pre-wrap text-slate-200 text-lg overflow-y-auto mt-4 ${
               item?.tags?.includes('handwritten')
                 ? 'font-handwritten'
                 : item?.tags?.includes('typed')
