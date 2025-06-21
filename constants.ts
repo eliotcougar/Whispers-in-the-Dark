@@ -57,13 +57,12 @@ export const VALID_ITEM_TYPES = [
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
 
-export const NOTE_STYLE_TAGS = ['handwritten', 'typed', 'digital'] as const;
-export type NoteStyleTag = typeof NOTE_STYLE_TAGS[number];
-
 export const COMMON_TAGS = ['junk', 'bloodstained', 'water-damaged'] as const;
 
 export const WRITING_TAGS = [
-  ...NOTE_STYLE_TAGS,
+  'handwritten',
+  'typed',
+  'digital',
   'faded',
   'smudged',
   'torn',
