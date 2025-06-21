@@ -4,6 +4,7 @@
  */
 
 import { MapData, MapEdgeStatus } from '../types';
+import { createMinHeap } from './priorityQueue';
 
 /** Travel costs for edges by status. */
 export const EDGE_STATUS_TRAVEL_COSTS: Record<MapEdgeStatus, number> = {
@@ -119,13 +120,16 @@ export const findTravelPath = (
 
   const distances = new Map<string, number>();
   const prev = new Map<string, { from: string; edgeId: string }>();
-  const queue: Array<QueueItem> = [{ nodeId: startNodeId, cost: 0 }];
+  const queue = createMinHeap<QueueItem>();
+  queue.push({ nodeId: startNodeId, cost: 0 }, 0);
   distances.set(startNodeId, 0);
 
-  while (queue.length > 0) {
-    queue.sort((a, b) => a.cost - b.cost);
-    const current = queue.shift();
+  while (queue.size() > 0) {
+    const current = queue.pop();
     if (!current) break;
+    if (current.cost !== (distances.get(current.nodeId) ?? Infinity)) {
+      continue;
+    }
     if (current.nodeId === endNodeId) break;
     const neighbors = adjacency.get(current.nodeId) ?? [];
     for (const n of neighbors) {
@@ -133,9 +137,7 @@ export const findTravelPath = (
       if (newCost < (distances.get(n.to) ?? Infinity)) {
         distances.set(n.to, newCost);
         prev.set(n.to, { from: current.nodeId, edgeId: n.edgeId });
-        const existing = queue.find(q => q.nodeId === n.to);
-        if (existing) existing.cost = newCost;
-        else queue.push({ nodeId: n.to, cost: newCost });
+        queue.push({ nodeId: n.to, cost: newCost }, newCost);
       }
     }
   }

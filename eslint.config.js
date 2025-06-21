@@ -62,7 +62,7 @@ const tsCompat = compat.config({
     'react/jsx-indent': ['warn', 2],
     'react/jsx-sort-props': 'warn',
     'react/sort-default-props': 'warn',
-    'react/function-component-definition': 'warn',
+    'react/function-component-definition': 'off',
     'react/require-default-props': 'warn',
     'react/jsx-closing-tag-location': ['warn', 'line-aligned'],
     'react/button-has-type': 'warn',
