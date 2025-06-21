@@ -69,6 +69,7 @@ export const WRITING_TAGS = [
   'glitching',
   'encrypted',
   'foreign',
+  'gothic',
   'runic',
 ] as const;
 

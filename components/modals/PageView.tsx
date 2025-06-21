@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Item } from '../../types';
-import { rot13 } from '../../utils/textTransforms';
+import { rot13, toGothic, toRunic } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
@@ -46,6 +46,10 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
               visible = fake ?? actual;
             } else if (item.tags?.includes('encrypted')) {
               visible = rot13(actual);
+            } else if (item.tags?.includes('gothic')) {
+              visible = toGothic(actual);
+            } else if (item.tags?.includes('runic')) {
+              visible = toRunic(actual);
             }
             updateItemContent(item.id, actual, visible);
             setText(visible);
@@ -103,6 +107,7 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
               if (tags.includes('glitching')) classes.push('tag-glitching');
               if (tags.includes('encrypted')) classes.push('tag-encrypted');
               if (tags.includes('foreign')) classes.push('tag-foreign');
+              if (tags.includes('gothic')) classes.push('tag-gothic');
               if (tags.includes('runic')) classes.push('tag-runic');
               if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
               if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
