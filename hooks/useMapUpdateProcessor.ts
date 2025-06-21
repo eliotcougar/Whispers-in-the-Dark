@@ -44,7 +44,7 @@ export const useMapUpdateProcessor = ({
           setLoadingReason,
           turnChanges,
         );
-      } catch (err) {
+      } catch (err: unknown) {
         setError(err instanceof Error ? err.message : String(err));
         throw err;
       }

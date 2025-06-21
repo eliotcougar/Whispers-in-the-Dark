@@ -73,7 +73,7 @@ Respond ONLY with the single edge type.`;
           return { result: mapped as MapEdgeData['type'] };
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`fetchCorrectedEdgeType_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }

@@ -45,7 +45,7 @@ export const executeAIMainTurn = async (
               .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
               .map(p => p.text);
             return { response, thoughts };
-        } catch (error) {
+        } catch (error: unknown) {
             console.error(`Error executing AI Main Turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
             if (!isServerOrClientError(error)) {
                 throw error;
@@ -109,7 +109,7 @@ Do not include any preamble. Just provide the summary text itself.
       }
         console.warn(`Attempt ${String(attempt)} failed to yield non-empty summary for theme "${themeToSummarize.name}". Text was: '${String(response.text)}'`);
       if (attempt === MAX_RETRIES +1 && (!text || text.length === 0)) return null;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(attempt)}/${String(MAX_RETRIES +1)}):`, error);
       if (!isServerOrClientError(error)) {
         throw error;
