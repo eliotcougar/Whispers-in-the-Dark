@@ -83,27 +83,31 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
         ) : text ? (
           <div
             className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${(() => {
-              const font = item?.tags?.includes('handwritten')
-                ? 'font-handwritten'
-                : item?.tags?.includes('typed')
-                  ? 'font-typed'
-                  : item?.tags?.includes('digital')
-                    ? 'font-digital'
-                    : '';
-              const extras = [
-                item?.tags?.includes('faded') ? 'tag-faded' : '',
-                item?.tags?.includes('smudged') ? 'tag-smudged' : '',
-                item?.tags?.includes('torn') ? 'tag-torn' : '',
-                item?.tags?.includes('glitching') ? 'tag-glitching' : '',
-                item?.tags?.includes('encrypted') ? 'tag-encrypted' : '',
-                item?.tags?.includes('foreign') ? 'tag-foreign' : '',
-                item?.tags?.includes('runic') ? 'tag-runic' : '',
-                item?.tags?.includes('bloodstained') ? 'tag-bloodstained' : '',
-                item?.tags?.includes('water-damaged') ? 'tag-water-damaged' : '',
-              ]
-                .filter(Boolean)
-                .join(' ');
-              return `${font} ${extras}`.trim();
+              const tags = item?.tags ?? [];
+              const classes: Array<string> = [];
+              const hasForeign = tags.includes('foreign');
+
+              if (tags.includes('handwritten')) {
+                classes.push(
+                  hasForeign ? 'tag-handwritten-foreign' : 'tag-handwritten',
+                );
+              } else if (tags.includes('typed')) {
+                classes.push(hasForeign ? 'tag-typed-foreign' : 'tag-typed');
+              } else if (tags.includes('digital')) {
+                classes.push(hasForeign ? 'tag-digital-foreign' : 'tag-digital');
+              }
+
+              if (tags.includes('faded')) classes.push('tag-faded');
+              if (tags.includes('smudged')) classes.push('tag-smudged');
+              if (tags.includes('torn')) classes.push('tag-torn');
+              if (tags.includes('glitching')) classes.push('tag-glitching');
+              if (tags.includes('encrypted')) classes.push('tag-encrypted');
+              if (tags.includes('foreign')) classes.push('tag-foreign');
+              if (tags.includes('runic')) classes.push('tag-runic');
+              if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
+              if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
+
+              return classes.join(' ');
             })()}`}
           >
             {text}

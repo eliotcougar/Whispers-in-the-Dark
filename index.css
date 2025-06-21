@@ -1,6 +1,6 @@
 /* Main stylesheet for Whispers in the Dark */
 @import url('https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Special+Elite&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Special+Elite&family=VT323&family=Gloria+Hallelujah&family=IBM+Plex+Serif&family=Press+Start+2P&family=Noto+Sans+Runic&display=swap');
 
 body {
   font-family: "Georgia", serif; /* Thematic font */
@@ -16,19 +16,34 @@ body {
     "wdth" 100;
 }
 
-.font-handwritten {
+.tag-handwritten {
+  background-color: #f5deb3;
+  color: #1a1a1a;
   font-family: "Shadows Into Light", cursive;
-  background-color: #f5deb3;
 }
 
-.font-typed {
+.tag-typed {
+  background-color: #f5deb3;
+  color: #1a1a1a;
   font-family: "Special Elite";
-  background-color: #f5deb3;
 }
 
-.font-digital {
-  font-family: "VT323", monospace;
+.tag-digital {
   background-color: #0c140a;
+  color: #00ff90;
+  font-family: "VT323", monospace;
+}
+
+.tag-handwritten-foreign {
+  font-family: "Gloria Hallelujah", cursive;
+}
+
+.tag-typed-foreign {
+  font-family: "IBM Plex Serif", serif;
+}
+
+.tag-digital-foreign {
+  font-family: "Press Start 2P", monospace;
 }
 
 .tag-faded {
@@ -57,12 +72,11 @@ body {
 
 .tag-foreign {
   color: #4b3621;
-  font-family: "Georgia", serif;
 }
 
 .tag-runic {
   color: #4b3621;
-  font-family: "Shadows Into Light", cursive;
+  font-family: "Noto Sans Runic", sans-serif;
 }
 
 .tag-bloodstained {
