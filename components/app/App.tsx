@@ -716,7 +716,7 @@ function App() {
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allCharacters={allCharacters}
-        contextForPage={`${currentScene} ${lastActionLog ?? ''}`}
+        contextForPage={`Current Theme: ${currentTheme.name};\nScene Description: ${currentScene};\nLast Actions:\n${lastActionLog ?? ''}`}
         currentMapNodeId={currentMapNodeId}
         currentScene={currentScene}
         currentTheme={currentTheme}

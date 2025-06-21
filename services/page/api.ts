@@ -15,7 +15,14 @@ export const generatePageText = async (
     return null;
   }
 
-  const prompt = `You are providing the exact handwritten contents of a short note in a text adventure game.\nItem: "${itemName}"\nDescription: "${itemDescription}"\nApproximate length: ${String(length)} words.\nContext: ${context}\nWrite the note contents in first person or as a direct message if appropriate. Avoid mentioning the instructions.`;
+  const prompt = `You are providing the exact contents of a written item.
+  Item: "${itemName}"
+  Description: "${itemDescription}"
+  Approximate length: ${String(length)} words. Generate as close to this length as possible.
+  Context:
+  ${context}
+
+  Write the text in the item in a proper contextually relevant style. Avoid mentioning the instructions.`;
   const systemInstruction = 'Return only the contents of the note.';
 
   return retryAiCall<string>(async attempt => {
@@ -25,7 +32,7 @@ export const generatePageText = async (
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
-        temperature: 0.8,
+        temperature: 1.2,
         label: 'PageText',
       });
       const text = response.text?.trim() ?? '';
