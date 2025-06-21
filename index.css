@@ -85,6 +85,12 @@ body {
   font-family: "Noto Sans Runic", sans-serif;
 }
 
+.tag-runic {
+  color: #2b2016;
+  background-color: #aa8a4e;
+  font-family: "Noto Sans Runic", sans-serif;
+}
+
 .tag-bloodstained {
   background-color: #7f1d1d;
   color: #fef2f2;
