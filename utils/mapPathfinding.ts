@@ -30,22 +30,15 @@ export interface TravelStep {
   id: string;
 }
 
-interface QueueItem {
-  nodeId: string;
-  cost: number;
+export interface TravelAdjacency {
+  adjacency: Map<string, Array<{ edgeId: string; to: string; cost: number }>>;
+  nodeMap: Map<string, MapData['nodes'][number]>;
+  childrenByParent: Map<string, Array<string>>;
 }
 
-/**
- * Calculates the cheapest travel path between two nodes.
- * Returns an array of node/edge IDs representing the journey or null if unreachable.
- */
-export const findTravelPath = (
-  mapData: MapData,
-  startNodeId: string,
-  endNodeId: string
-): Array<TravelStep> | null => {
+/** Builds adjacency data for travel pathfinding. */
+export const buildTravelAdjacency = (mapData: MapData): TravelAdjacency => {
   const adjacency = new Map<string, Array<{ edgeId: string; to: string; cost: number }>>();
-
   const nodeMap = new Map(mapData.nodes.map(n => [n.id, n]));
   const isTraversable = (id: string | undefined): boolean => {
     const node = id ? nodeMap.get(id) : undefined;
@@ -83,9 +76,7 @@ export const findTravelPath = (
     if (!parentId || parentId === 'Universe') continue;
     if (!isTraversable(node.id) || !isTraversable(parentId)) continue;
     const siblings = childrenByParent.get(parentId) ?? [];
-    const hasOtherChild = siblings.some(
-      id => id !== node.id && id !== startNodeId && isTraversable(id)
-    );
+    const hasOtherChild = siblings.some(id => id !== node.id && isTraversable(id));
     if (!hasOtherChild) continue;
     const idUp = `hierarchy:${node.id}->${parentId}`;
     const idDown = `hierarchy:${parentId}->${node.id}`;
@@ -118,6 +109,42 @@ export const findTravelPath = (
     }
   }
 
+  return { adjacency, nodeMap, childrenByParent };
+};
+
+interface QueueItem {
+  nodeId: string;
+  cost: number;
+}
+
+/**
+ * Calculates the cheapest travel path between two nodes.
+ * Returns an array of node/edge IDs representing the journey or null if unreachable.
+ */
+export const findTravelPath = (
+  mapData: MapData,
+  startNodeId: string,
+  endNodeId: string,
+  prebuilt?: TravelAdjacency
+): Array<TravelStep> | null => {
+  const { adjacency, nodeMap, childrenByParent } = prebuilt ?? buildTravelAdjacency(mapData);
+  const isTraversable = (id: string | undefined): boolean => {
+    const node = id ? nodeMap.get(id) : undefined;
+    return !!node && node.data.status !== 'blocked';
+  };
+
+  const allowHierarchyEdge = (from: string, to: string): boolean => {
+    const parentList = childrenByParent.get(from);
+    if (parentList?.includes(to)) {
+      return parentList.some(id => id !== to && id !== startNodeId && isTraversable(id));
+    }
+    const childList = childrenByParent.get(to);
+    if (childList?.includes(from)) {
+      return childList.some(id => id !== from && id !== startNodeId && isTraversable(id));
+    }
+    return true;
+  };
+
   const distances = new Map<string, number>();
   const prev = new Map<string, { from: string; edgeId: string }>();
   const queue = createMinHeap<QueueItem>();
@@ -133,6 +160,12 @@ export const findTravelPath = (
     if (current.nodeId === endNodeId) break;
     const neighbors = adjacency.get(current.nodeId) ?? [];
     for (const n of neighbors) {
+      if (
+        n.edgeId.startsWith('hierarchy:') &&
+        !allowHierarchyEdge(current.nodeId, n.to)
+      ) {
+        continue;
+      }
       const newCost = current.cost + n.cost;
       if (newCost < (distances.get(n.to) ?? Infinity)) {
         distances.set(n.to, newCost);
