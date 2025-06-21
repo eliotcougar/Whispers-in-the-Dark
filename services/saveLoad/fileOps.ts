@@ -19,14 +19,19 @@ const triggerDownload = (data: string, filename: string, type: string): void => 
   URL.revokeObjectURL(url);
 };
 
-export const saveGameStateToFile = (gameState: FullGameState): void => {
+export const saveGameStateToFile = (
+  gameState: FullGameState,
+  onError?: (message: string) => void,
+): boolean => {
   try {
     const dataToSave = prepareGameStateForSaving(gameState);
     const jsonString = JSON.stringify(dataToSave, null, 2);
     triggerDownload(jsonString, `WhispersInTheDark_Save_V${CURRENT_SAVE_GAME_VERSION}_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+    return true;
   } catch (error: unknown) {
     console.error('Error saving game state to file:', error);
-    alert('An error occurred while preparing your game data for download.');
+    if (onError) onError('An error occurred while preparing your game data for download.');
+    return false;
   }
 };
 

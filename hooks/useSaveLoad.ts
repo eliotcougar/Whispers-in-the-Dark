@@ -78,12 +78,22 @@ export const useSaveLoad = ({
     autosaveTimeoutRef.current = window.setTimeout(() => {
       if (gatherCurrentGameState) {
         const gameStateToSave = gatherCurrentGameState();
-        saveGameStateToLocalStorage(gameStateToSave);
+        saveGameStateToLocalStorage(
+          gameStateToSave,
+          setError ? (msg) => { setError(msg); } : undefined,
+        );
       }
     }, AUTOSAVE_DEBOUNCE_TIME);
 
     return () => { if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current); };
-  }, [gatherCurrentGameState, isLoading, hasGameBeenInitialized, appReady, dialogueState]);
+  }, [
+    gatherCurrentGameState,
+    isLoading,
+    hasGameBeenInitialized,
+    appReady,
+    dialogueState,
+    setError,
+  ]);
 
   const handleSaveToFile = useCallback(() => {
     if (isLoading || !!dialogueState) {
@@ -92,7 +102,10 @@ export const useSaveLoad = ({
     }
     if (gatherCurrentGameState) {
       const gameState = gatherCurrentGameState();
-      saveGameStateToFile(gameState);
+      saveGameStateToFile(
+        gameState,
+        setError ? (msg) => { setError(msg); } : undefined,
+      );
     }
   }, [gatherCurrentGameState, isLoading, dialogueState, setError]);
 
@@ -119,7 +132,10 @@ export const useSaveLoad = ({
         if (applyLoadedGameState) {
           await applyLoadedGameState({ savedStateToLoad: loadedFullState });
         }
-        saveGameStateToLocalStorage(loadedFullState);
+        saveGameStateToLocalStorage(
+          loadedFullState,
+          setError ? (msg) => { setError(msg); } : undefined,
+        );
       } else {
         setError?.('Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file.');
       }
