@@ -27,6 +27,7 @@ interface GameSidebarProps {
     interactionType: 'generic' | 'specific' | 'inspect',
     knownUse?: KnownUse,
   ) => void;
+  readonly onReadPage: (item: Item) => void;
   readonly onTakeItem: (itemName: string) => void;
   readonly disabled: boolean;
 }
@@ -44,6 +45,7 @@ function GameSidebar({
   objectiveAnimationType,
   onDropItem,
   onItemInteract,
+  onReadPage,
   onTakeItem,
   disabled,
 }: GameSidebarProps) {
@@ -113,6 +115,7 @@ function GameSidebar({
         items={inventory}
         onDropItem={onDropItem}
         onItemInteract={onItemInteract}
+        onReadPage={onReadPage}
       />
     </>
   );

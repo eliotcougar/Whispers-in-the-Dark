@@ -99,6 +99,18 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     console.warn("isValidItem: 'holderId' is present but invalid.", item);
     return false;
   }
+  if (obj.contentLength !== undefined && typeof obj.contentLength !== 'number') {
+    console.warn("isValidItem: 'contentLength' is present but invalid.", item);
+    return false;
+  }
+  if (obj.actualContent !== undefined && typeof obj.actualContent !== 'string') {
+    console.warn("isValidItem: 'actualContent' is present but invalid.", item);
+    return false;
+  }
+  if (obj.visibleContent !== undefined && typeof obj.visibleContent !== 'string') {
+    console.warn("isValidItem: 'visibleContent' is present but invalid.", item);
+    return false;
+  }
   if (obj.knownUses !== undefined && !(Array.isArray(obj.knownUses) && obj.knownUses.every(isValidKnownUse))) {
     console.warn("isValidItem: 'knownUses' is present but invalid.", item);
     return false;

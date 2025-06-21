@@ -3,6 +3,7 @@ import MapDisplay from '../map/MapDisplay';
 import ConfirmationDialog from '../ConfirmationDialog';
 import HistoryDisplay from '../modals/HistoryDisplay';
 import ImageVisualizer from '../modals/ImageVisualizer';
+import PageView from '../modals/PageView';
 import {
   AdventureTheme,
   MapData,
@@ -10,6 +11,7 @@ import {
   Character,
   ThemeHistoryState,
   MapNode,
+  Item,
 } from '../../types';
 
 interface AppModalsProps {
@@ -62,6 +64,11 @@ interface AppModalsProps {
   readonly handleConfirmShift: () => void;
   readonly handleCancelShift: () => void;
   readonly isCustomGameModeShift: boolean;
+  readonly pageItem: Item | null;
+  readonly isPageVisible: boolean;
+  readonly onClosePage: () => void;
+  readonly contextForPage: string;
+  readonly updateItemContent: (id: string, actual: string, visible: string) => void;
 }
 
 function AppModals({
@@ -113,6 +120,11 @@ function AppModals({
   handleConfirmShift,
   handleCancelShift,
   isCustomGameModeShift,
+  pageItem,
+  isPageVisible,
+  onClosePage,
+  contextForPage,
+  updateItemContent,
 }: AppModalsProps) {
 
 
@@ -145,6 +157,14 @@ function AppModals({
         isVisible={isHistoryVisible}
         onClose={onCloseHistory}
         themeHistory={themeHistory}
+      />
+
+      <PageView
+        context={contextForPage}
+        isVisible={isPageVisible}
+        item={pageItem}
+        onClose={onClosePage}
+        updateItemContent={updateItemContent}
       />
 
       <MapDisplay

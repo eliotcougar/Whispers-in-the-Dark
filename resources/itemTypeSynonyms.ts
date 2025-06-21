@@ -11,7 +11,11 @@ const itemTypeSynonyms = {
     "tool": "equipment",
     "ammo": "ammunition",
     "ammunition": "ammunition",
-    "projectiles": "ammunition"
+    "projectiles": "ammunition",
+    "note": "page",
+    "scrap of paper": "page",
+    "sheet": "page",
+    "page": "page"
   }
 };
 

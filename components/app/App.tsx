@@ -38,7 +38,7 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 import {
   FREE_FORM_ACTION_COST,
 } from '../../constants';
-import { ThemePackName } from '../../types';
+import { ThemePackName, Item } from '../../types';
 
 
 function App() {
@@ -121,6 +121,7 @@ function App() {
     mapViewBox,
     handleMapViewBoxChange,
     handleMapNodesPositionChange,
+    updateItemContent,
   } = gameLogic;
 
   useEffect(() => {
@@ -181,11 +182,31 @@ function App() {
     closeLoadGameFromMenuConfirm,
     openNewCustomGameConfirm,
     closeNewCustomGameConfirm,
+    pageItem,
+    isPageVisible,
+    openPageView,
+    closePageView,
   } = useAppModals();
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
 
-  const isAnyModalOrDialogueActive = isVisualizerVisible || isKnowledgeBaseVisible || isSettingsVisible || isInfoVisible || isMapVisible || isHistoryVisible || isDebugViewVisible || !!dialogueState || effectiveIsTitleMenuOpen || shiftConfirmOpen || newGameFromMenuConfirmOpen || loadGameFromMenuConfirmOpen || isCustomGameSetupVisible || newCustomGameConfirmOpen || isManualShiftThemeSelectionVisible;
+  const isAnyModalOrDialogueActive =
+    isVisualizerVisible ||
+    isKnowledgeBaseVisible ||
+    isSettingsVisible ||
+    isInfoVisible ||
+    isMapVisible ||
+    isHistoryVisible ||
+    isDebugViewVisible ||
+    isPageVisible ||
+    !!dialogueState ||
+    effectiveIsTitleMenuOpen ||
+    shiftConfirmOpen ||
+    newGameFromMenuConfirmOpen ||
+    loadGameFromMenuConfirmOpen ||
+    isCustomGameSetupVisible ||
+    newCustomGameConfirmOpen ||
+    isManualShiftThemeSelectionVisible;
 
 
   useEffect(() => {
@@ -251,6 +272,10 @@ function App() {
   const handleRetryClick = useCallback(() => {
     void handleRetry();
   }, [handleRetry]);
+
+  const handleReadPage = useCallback((item: Item) => {
+    openPageView(item);
+  }, [openPageView]);
 
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -590,6 +615,7 @@ function App() {
                 objectiveAnimationType={objectiveAnimationType}
                 onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}
+                onReadPage={handleReadPage}
                 onTakeItem={handleTakeLocationItem}
               />
             )}
@@ -690,6 +716,7 @@ function App() {
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allCharacters={allCharacters}
+        contextForPage={`${currentScene} ${lastActionLog ?? ''}`}
         currentMapNodeId={currentMapNodeId}
         currentScene={currentScene}
         currentTheme={currentTheme}
@@ -710,6 +737,7 @@ function App() {
         isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
         isMapVisible={isMapVisible}
+        isPageVisible={isPageVisible}
         isVisualizerVisible={isVisualizerVisible}
         itemPresenceByNode={itemPresenceByNode}
         loadGameFromMenuConfirmOpen={loadGameFromMenuConfirmOpen}
@@ -722,14 +750,17 @@ function App() {
         onCloseHistory={closeHistory}
         onCloseKnowledgeBase={closeKnowledgeBase}
         onCloseMap={closeMap}
+        onClosePage={closePageView}
         onCloseVisualizer={closeVisualizer}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
+        pageItem={pageItem}
         setGeneratedImage={setGeneratedImageCache}
         shiftConfirmOpen={shiftConfirmOpen}
         themeHistory={themeHistory}
+        updateItemContent={updateItemContent}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
       /> : null}
