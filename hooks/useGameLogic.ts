@@ -345,5 +345,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleMapNodesPositionChange,
     handleSelectDestinationNode,
     handleUndoTurn,
+    commitGameState,
   };
 };

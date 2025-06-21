@@ -1,5 +1,4 @@
 import { structuredCloneGameState } from '../../utils/cloneUtils';
-import type { MapNode } from '../../types';
 
 interface DebugSectionProps {
   readonly title: string;
@@ -8,8 +7,6 @@ interface DebugSectionProps {
   readonly maxHeightClass?: string;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
 
 /** Displays a section of debug information. */
 function DebugSection({
@@ -24,25 +21,6 @@ function DebugSection({
     if (isJson) {
       try {
         const contentForDisplay = structuredCloneGameState(content);
-
-        if (title.startsWith('Current Game State') || title.startsWith('Previous Game State')) {
-          if (isRecord(contentForDisplay)) {
-            if ('lastDebugPacket' in contentForDisplay) delete contentForDisplay.lastDebugPacket;
-            if ('lastTurnChanges' in contentForDisplay) delete contentForDisplay.lastTurnChanges;
-
-            if ('mapData' in contentForDisplay) {
-              const mapData = contentForDisplay.mapData as { nodes: Array<MapNode>; edges: Array<unknown> } | undefined;
-              if (mapData && Array.isArray(mapData.nodes) && Array.isArray(mapData.edges)) {
-                contentForDisplay.mapDataSummary = {
-                  nodeCount: mapData.nodes.length,
-                  edgeCount: mapData.edges.length,
-                  firstNNodeNames: mapData.nodes.slice(0, 5).map((n: MapNode) => n.placeName),
-                };
-                delete contentForDisplay.mapData;
-              }
-            }
-          }
-        }
 
         if (title.toLowerCase().includes('parsed')) {
           const strip = (obj: unknown) => {

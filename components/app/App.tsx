@@ -38,7 +38,7 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 import {
   FREE_FORM_ACTION_COST,
 } from '../../constants';
-import { ThemePackName, Item } from '../../types';
+import { ThemePackName, Item, FullGameState } from '../../types';
 
 
 function App() {
@@ -121,8 +121,14 @@ function App() {
     mapViewBox,
     handleMapViewBoxChange,
     handleMapNodesPositionChange,
+    commitGameState,
     updateItemContent,
   } = gameLogic;
+
+  const handleApplyGameState = useCallback(
+    (state: FullGameState) => { commitGameState(state); },
+    [commitGameState]
+  );
 
   useEffect(() => {
     if (!isLoading) {
@@ -665,6 +671,7 @@ function App() {
         isVisible={isDebugViewVisible}
         onClose={closeDebugView}
         onUndoTurn={handleUndoTurn}
+        onApplyGameState={handleApplyGameState}
         travelPath={travelPath}
       />
 
