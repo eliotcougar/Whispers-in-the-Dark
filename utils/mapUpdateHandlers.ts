@@ -18,7 +18,12 @@ import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/correcti
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
 import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
-import { existsNonRumoredPath, getAncestors, isDescendantOf } from './mapGraphUtils';
+import {
+  existsNonRumoredPath,
+  getAncestors,
+  isDescendantOf,
+  buildNonRumoredAdjacencyMap,
+} from './mapGraphUtils';
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
@@ -204,12 +209,13 @@ export const handleMapUpdates = async (
   if (turnChanges.mapDataChanged) {
     const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
     const edgesToRemoveIndices: Array<number> = [];
+    const adjacency = buildNonRumoredAdjacencyMap(draftState.mapData);
     draftState.mapData.edges.forEach((edge, index) => {
       if (newlyAddedEdgeIds.has(edge.id)) return;
       if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {
         if (edge.data.status === 'rumored' || edge.data.status === 'removed') {
           const altExists = existsNonRumoredPath(
-            draftState.mapData,
+            adjacency,
             edge.sourceNodeId,
             edge.targetNodeId,
             edge.id
