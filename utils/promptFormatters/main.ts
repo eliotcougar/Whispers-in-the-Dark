@@ -10,7 +10,7 @@ import {
   MapNode,
 } from '../../types';
 import { formatKnownPlacesForPrompt } from './map';
-import { findTravelPath } from '../mapPathfinding';
+import { findTravelPath, buildTravelAdjacency } from '../mapPathfinding';
 
 /**
  * Formats a list of known characters for AI prompts.
@@ -122,7 +122,8 @@ export const formatTravelPlanLine = (
   destinationNodeId: string | null
 ): string | null => {
   if (!currentNodeId || !destinationNodeId || currentNodeId === destinationNodeId) return null;
-  const path = findTravelPath(mapData, currentNodeId, destinationNodeId);
+  const adj = buildTravelAdjacency(mapData);
+  const path = findTravelPath(mapData, currentNodeId, destinationNodeId, adj);
   if (!path || path.length < 3) return null;
   const destination = mapData.nodes.find(n => n.id === destinationNodeId);
   const destName = destination?.placeName ?? destinationNodeId;

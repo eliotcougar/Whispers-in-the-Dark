@@ -30,7 +30,7 @@ import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
 import { useAppModals } from '../../hooks/useAppModals';
 import { useAutosave } from '../../hooks/useAutosave';
-import { findTravelPath, TravelStep } from '../../utils/mapPathfinding';
+import { findTravelPath, buildTravelAdjacency, TravelStep, TravelAdjacency } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
 import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 
@@ -415,6 +415,10 @@ function App() {
   );
 
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
+  const travelAdjacency: TravelAdjacency = React.useMemo(
+    () => buildTravelAdjacency(mapData),
+    [mapData]
+  );
   const travelPath: Array<TravelStep> | null = React.useMemo(() => {
     // Using globalTurnNumber to force recalculation each turn
     void globalTurnNumber;
@@ -425,8 +429,8 @@ function App() {
     ) {
       return null;
     }
-    return findTravelPath(mapData, currentMapNodeId, destinationNodeId);
-  }, [destinationNodeId, currentMapNodeId, mapData, globalTurnNumber]);
+    return findTravelPath(mapData, currentMapNodeId, destinationNodeId, travelAdjacency);
+  }, [destinationNodeId, currentMapNodeId, mapData, travelAdjacency, globalTurnNumber]);
   const prevMapVisibleRef = useRef(false);
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {

@@ -1,5 +1,5 @@
 import { MapNode, MapData, Character, Item, FullGameState } from '../types';
-import { findTravelPath } from './mapPathfinding';
+import { findTravelPath, buildTravelAdjacency, TravelAdjacency } from './mapPathfinding';
 
 export const generateUniqueId = (base: string): string => {
   const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
@@ -19,10 +19,11 @@ export const stripBracketText = (name: string): string =>
 const getHopDistance = (
   mapData: MapData | undefined,
   fromId: string | null | undefined,
-  toId: string
+  toId: string,
+  adj?: TravelAdjacency
 ): number => {
   if (!mapData || !fromId) return Infinity;
-  const path = findTravelPath(mapData, fromId, toId);
+  const path = findTravelPath(mapData, fromId, toId, adj);
   if (!path) return Infinity;
   return path.filter(p => p.step === 'edge').length;
 };
@@ -54,10 +55,13 @@ export const findMapNodeByIdentifier = (
     )
     .filter(n => !nameMatches.includes(n));
 
+  const adjacency: TravelAdjacency | undefined = mapData ? buildTravelAdjacency(mapData) : undefined;
   const sortByDistance = (arr: Array<MapNode>) => {
     if (!mapData || !currentNodeId) return arr;
     return [...arr].sort(
-      (a, b) => getHopDistance(mapData, currentNodeId, a.id) - getHopDistance(mapData, currentNodeId, b.id)
+      (a, b) =>
+        getHopDistance(mapData, currentNodeId, a.id, adjacency) -
+        getHopDistance(mapData, currentNodeId, b.id, adjacency)
     );
   };
 
