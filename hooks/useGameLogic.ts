@@ -100,6 +100,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleItemInteraction,
     handleDropItem,
     handleTakeLocationItem,
+    updateItemContent,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   } = useGameTurn({
@@ -326,6 +327,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleItemInteraction,
     handleDropItem,
     handleTakeLocationItem,
+    updateItemContent,
     handleRetry,
     executeRestartGame,
     executeManualRealityShift,

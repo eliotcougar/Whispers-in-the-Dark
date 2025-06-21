@@ -1,0 +1,1 @@
+export { generatePageText } from './api';

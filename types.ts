@@ -44,6 +44,9 @@ export interface Item {
   knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
   isJunk?: boolean; // Flag for unimportant items
   holderId: string; // ID of the entity holding this item or 'player'
+  contentLength?: number; // Approximate text length for page items
+  actualContent?: string; // Stored content once generated
+  visibleContent?: string; // Player-facing version of the content
   // --- Fields for "update" action payloads ---
   newName?: string;
   addKnownUse?: KnownUse;
