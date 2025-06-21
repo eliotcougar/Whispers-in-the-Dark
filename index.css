@@ -18,46 +18,50 @@ body {
 
 .font-handwritten {
   font-family: "Shadows Into Light", cursive;
+  background-color: #f5deb3;
 }
 
 .font-typed {
-  font-family: "Special Elite", cursive;
+  font-family: "Special Elite";
+  background-color: #f5deb3;
 }
 
 .font-digital {
   font-family: "VT323", monospace;
+  background-color: #0c140a;
 }
 
 .tag-faded {
-  color: #4b3621;
-  background-color: #f5deb3;
+  color: #c0a87b;
 }
 
 .tag-smudged {
   color: #4b3621;
-  background-color: #fdf3e7;
-  filter: blur(1px);
+  filter: blur(1.2px);
 }
 
 .tag-torn {
+  color: #4b3621;
   border: 1px dashed #a0aec0;
 }
 
 .tag-glitching {
   color: #00ff90;
-  background-color: #000000;
   text-shadow: 0 0 2px #0ff;
 }
 
 .tag-encrypted {
-  font-style: italic;
+  color: #4b3621;
+  font-style: monospace;
 }
 
 .tag-foreign {
+  color: #4b3621;
   font-family: "Georgia", serif;
 }
 
 .tag-runic {
+  color: #4b3621;
   font-family: "Shadows Into Light", cursive;
 }
 

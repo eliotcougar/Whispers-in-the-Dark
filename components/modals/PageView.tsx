@@ -31,7 +31,7 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
             item.description,
             length,
             context,
-            'Write it in English.'
+            'Write it exclusively in English without any foreign, encrypted, or gibberish text.'
           );
           if (actual) {
             let visible = actual;
@@ -41,7 +41,7 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
                 item.description,
                 length,
                 context,
-                'Generate text in an artificial nonexistent language.'
+                'Generate text exclusively in an artificial nonexistent language without any English words.'
               );
               visible = fake ?? actual;
             } else if (item.tags?.includes('encrypted')) {
@@ -82,7 +82,7 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
           <LoadingSpinner loadingReason="page" />
         ) : text ? (
           <div
-            className={`whitespace-pre-wrap text-slate-200 text-lg overflow-y-auto mt-4 ${(() => {
+            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${(() => {
               const font = item?.tags?.includes('handwritten')
                 ? 'font-handwritten'
                 : item?.tags?.includes('typed')
