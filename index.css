@@ -1,7 +1,7 @@
 /* Main stylesheet for Whispers in the Dark */
 @import url('https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Special+Elite&family=VT323&family=Gloria+Hallelujah&family=IBM+Plex+Serif&family=Press+Start+2P&family=Noto+Sans+Runic&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Oooh+Baby&family=Tektur:wght@400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oooh+Baby:wght@400..900&display=swap');
 
 body {
   font-family: "Georgia", serif; /* Thematic font */
@@ -34,7 +34,7 @@ body {
   background-color: #0c140a;
   color: #00ff90;
   font-family: "VT323", monospace;
-  font-size: 1.5rem !important; /* Slightly smaller for digital feel */
+  font-size: 1.5rem !important;
 }
 
 .tag-handwritten-foreign {
@@ -86,7 +86,7 @@ body {
 .tag-gothic {
   color: #2b2016;
   background-color: #aa8a4e;
-  font-family: "Noto Sans Runic", sans-serif;
+  font-size-adjust: 0.75;
 }
 
 .tag-runic {
