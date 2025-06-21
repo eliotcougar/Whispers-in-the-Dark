@@ -119,6 +119,11 @@ const parseLocalPlaceIntoChunks = (localPlace: string | null | undefined): Array
 const PROXIMITY_BONUS = 30;
 const EXACT_MATCH_FEATURE_BONUS = 10;
 
+interface NodeSemanticTokens {
+  node: MapNode;
+  nameTokenPairs: Array<{ name: string; tokens: Array<string> }>;
+}
+
 export const tokenizeForMatching = tokenizeText;
 
 interface Candidate {
@@ -160,14 +165,13 @@ const scoreExactMatchCandidates = (
 };
 
 export const computeSemanticMatchScore = (
-  node: MapNode,
+  nodeTokens: NodeSemanticTokens,
   chunks: Array<ExtractedChunk>,
   directNeighborIds: Set<string>,
 ): number => {
-  const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
+  const { node, nameTokenPairs } = nodeTokens;
   let maxScoreForCandidate = -1;
-  for (const nodeNameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== '')) {
-    const nodeNameTokens = tokenizeForMatching(nodeNameOrAlias);
+  for (const { name, tokens: nodeNameTokens } of nameTokenPairs) {
     if (nodeNameTokens.length === 0) continue;
     let scoreForNameAlias = 0;
     for (const chunk of chunks) {
@@ -192,7 +196,7 @@ export const computeSemanticMatchScore = (
         const nodeCoverage = commonTokenCount / nodeNameTokens.length;
         const chunkRelevance = commonTokenCount / chunkTokens.length;
         let baseScore = (nodeCoverage * 60) + (chunkRelevance * 40);
-        const normalizedNodeName = normalizeStringForMatching(nodeNameOrAlias);
+        const normalizedNodeName = normalizeStringForMatching(name);
         const normalizedChunkPhrase = normalizeStringForMatching(chunk.phrase);
         let exactOrSubstringBonus = 0;
         if (normalizedNodeName === normalizedChunkPhrase) exactOrSubstringBonus = 100;
@@ -413,7 +417,7 @@ export const selectBestMatchingMapNode = (
   }
 
   const extractedChunks = parseLocalPlaceIntoChunks(localPlace);
-  if (extractedChunks.length === 0) return null; 
+  if (extractedChunks.length === 0) return null;
 
   let bestCandidate: Candidate | null = null;
 
@@ -425,10 +429,17 @@ export const selectBestMatchingMapNode = (
     });
   }
 
-  for (const node of themeNodes) {
-    const score = computeSemanticMatchScore(node, extractedChunks, directNeighborIds);
+  const nodesWithTokens: Array<NodeSemanticTokens> = themeNodes.map(n => ({
+    node: n,
+    nameTokenPairs: [n.placeName, ...(n.data.aliases ?? [])]
+      .filter(name => name && name.trim() !== '')
+      .map(name => ({ name, tokens: tokenizeForMatching(name) })),
+  }));
+
+  for (const nodeInfo of nodesWithTokens) {
+    const score = computeSemanticMatchScore(nodeInfo, extractedChunks, directNeighborIds);
     if (score > -1) {
-      const candidate: Candidate = { nodeId: node.id, score };
+      const candidate: Candidate = { nodeId: nodeInfo.node.id, score };
       bestCandidate = applySemanticTieBreaker(bestCandidate, candidate, themeNodes);
     }
   }
