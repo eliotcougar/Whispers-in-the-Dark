@@ -27,6 +27,49 @@ body {
 .font-digital {
   font-family: "VT323", monospace;
 }
+
+.tag-faded {
+  color: #4b3621;
+  background-color: #f5deb3;
+}
+
+.tag-smudged {
+  color: #4b3621;
+  background-color: #fdf3e7;
+  filter: blur(1px);
+}
+
+.tag-torn {
+  border: 1px dashed #a0aec0;
+}
+
+.tag-glitching {
+  color: #00ff90;
+  background-color: #000000;
+  text-shadow: 0 0 2px #0ff;
+}
+
+.tag-encrypted {
+  font-style: italic;
+}
+
+.tag-foreign {
+  font-family: "Georgia", serif;
+}
+
+.tag-runic {
+  font-family: "Shadows Into Light", cursive;
+}
+
+.tag-bloodstained {
+  background-color: #7f1d1d;
+  color: #fef2f2;
+}
+
+.tag-water-damaged {
+  background-color: #e0f2fe;
+  color: #1e3a8a;
+}
 /* Custom scrollbar for a more thematic feel */
 ::-webkit-scrollbar {
   width: 8px;

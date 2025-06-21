@@ -4,7 +4,11 @@
  * @description Utility prompt snippets used across multiple AI requests.
  */
 
-import { VALID_ITEM_TYPES_STRING } from '../constants'; // Import needed constant
+import {
+  VALID_ITEM_TYPES_STRING,
+  VALID_TAGS_STRING,
+  WRITING_TAGS_STRING,
+} from '../constants';
 
 export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
 - "single-use": Consumed after one use (e.g., potion, one-shot scroll, stimpak, medicine pill, spare part). Assumed to be stored in player's pockets/bag/backpack. Excludes any written material. Cannot be worn on a person directly.
@@ -33,7 +37,7 @@ Each object in "newItems" should include:
     "description": "Short description",
     "activeDescription"?: "When active",
     "isActive"?: false,
-    "tags"?: ["junk"],
+    "tags"?: ["junk"], /* Valid tags: ${VALID_TAGS_STRING}. */
     "knownUses"?: [
       {
         "actionName": "Action text",
@@ -81,7 +85,7 @@ Examples illustrating the hint style:
     "name": "Torn Note",
     "type": "page",
     "description": "A hastily scribbled message.", /* REQUIRED. Moderatly detailed description of the note and its contents. */
-    "tags": ["tag1", "tag2"], /* One of: "handwritten", "typed", "digital". */
+    "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
     "contentLength": 30, /* REQUIRED, Length of the content in words. */
     "holderId": "player"
   }]

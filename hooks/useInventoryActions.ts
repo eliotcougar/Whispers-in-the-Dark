@@ -3,6 +3,8 @@ import {
   FullGameState,
   ItemChangeRecord,
   TurnChanges,
+  Item,
+  ItemTag,
 } from '../types';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -138,15 +140,16 @@ export const useInventoryActions = ({
   );
 
   const addTag = useCallback(
-    (id: string, tag: string) => {
+    (id: string, tag: ItemTag) => {
       const currentFullState = getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
-      draftState.inventory = draftState.inventory.map(item => {
+      const updatedInventory: Array<Item> = draftState.inventory.map(item => {
         if (item.id !== id) return item;
-        const currentTags = item.tags ?? [];
+        const currentTags: Array<ItemTag> = item.tags ?? [];
         if (currentTags.includes(tag)) return item;
         return { ...item, tags: [...currentTags, tag] };
       });
+      draftState.inventory = updatedInventory;
       commitGameState(draftState);
     },
     [commitGameState]

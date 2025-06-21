@@ -60,6 +60,25 @@ export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`)
 export const NOTE_STYLE_TAGS = ['handwritten', 'typed', 'digital'] as const;
 export type NoteStyleTag = typeof NOTE_STYLE_TAGS[number];
 
+export const COMMON_TAGS = ['junk', 'bloodstained', 'water-damaged'] as const;
+
+export const WRITING_TAGS = [
+  ...NOTE_STYLE_TAGS,
+  'faded',
+  'smudged',
+  'torn',
+  'glitching',
+  'encrypted',
+  'foreign',
+  'runic',
+] as const;
+
+export const VALID_TAGS = [...COMMON_TAGS, ...WRITING_TAGS] as const;
+
+export const COMMON_TAGS_STRING = COMMON_TAGS.map(t => `"${t}"`).join(' | ');
+export const WRITING_TAGS_STRING = WRITING_TAGS.map(t => `"${t}"`).join(' | ');
+export const VALID_TAGS_STRING = VALID_TAGS.map(t => `"${t}"`).join(' | ');
+
 export const VALID_PRESENCE_STATUS_VALUES = [
   'distant',
   'nearby',

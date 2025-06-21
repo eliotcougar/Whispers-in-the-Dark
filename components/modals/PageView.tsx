@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Item } from '../../types';
+import { rot13 } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
@@ -25,10 +26,29 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
         setIsLoading(true);
         void (async () => {
           const length = item.contentLength ?? 30;
-          const generated = await generatePageText(item.name, item.description, length, context);
-          if (generated) {
-            updateItemContent(item.id, generated, generated);
-            setText(generated);
+          const actual = await generatePageText(
+            item.name,
+            item.description,
+            length,
+            context,
+            'Write it in English.'
+          );
+          if (actual) {
+            let visible = actual;
+            if (item.tags?.includes('foreign')) {
+              const fake = await generatePageText(
+                item.name,
+                item.description,
+                length,
+                context,
+                'Generate text in an artificial nonexistent language.'
+              );
+              visible = fake ?? actual;
+            } else if (item.tags?.includes('encrypted')) {
+              visible = rot13(actual);
+            }
+            updateItemContent(item.id, actual, visible);
+            setText(visible);
           }
           setIsLoading(false);
         })();
@@ -62,15 +82,29 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
           <LoadingSpinner loadingReason="page" />
         ) : text ? (
           <div
-            className={`whitespace-pre-wrap text-slate-200 text-lg overflow-y-auto mt-4 ${
-              item?.tags?.includes('handwritten')
+            className={`whitespace-pre-wrap text-slate-200 text-lg overflow-y-auto mt-4 ${(() => {
+              const font = item?.tags?.includes('handwritten')
                 ? 'font-handwritten'
                 : item?.tags?.includes('typed')
                   ? 'font-typed'
                   : item?.tags?.includes('digital')
                     ? 'font-digital'
-                    : ''
-            }`}
+                    : '';
+              const extras = [
+                item?.tags?.includes('faded') ? 'tag-faded' : '',
+                item?.tags?.includes('smudged') ? 'tag-smudged' : '',
+                item?.tags?.includes('torn') ? 'tag-torn' : '',
+                item?.tags?.includes('glitching') ? 'tag-glitching' : '',
+                item?.tags?.includes('encrypted') ? 'tag-encrypted' : '',
+                item?.tags?.includes('foreign') ? 'tag-foreign' : '',
+                item?.tags?.includes('runic') ? 'tag-runic' : '',
+                item?.tags?.includes('bloodstained') ? 'tag-bloodstained' : '',
+                item?.tags?.includes('water-damaged') ? 'tag-water-damaged' : '',
+              ]
+                .filter(Boolean)
+                .join(' ');
+              return `${font} ${extras}`.trim();
+            })()}`}
           >
             {text}
           </div>
