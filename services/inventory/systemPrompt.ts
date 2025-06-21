@@ -34,7 +34,7 @@ Structure for individual ItemChange objects within the array:
       "activeDescription"?: "The lantern is lit and casts a warm glow.", /* Optional: Description when the item is active. REQUIRED for toggle-able items.*/
       "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
       "tags"?: ["junk"], /* Optional: array of short tags describing the item. Include "junk" if the item is unimportant or has served its ONLY purpose. IMPORTANT: "status effects" can never have the "junk" tag. */
-      /* For items of type 'page', also add one of the following tags based on the item's name and description:
+      /* IMPORTANT: For items of type 'page', also add one of the following tags based on the item's name and description:
          'handwritten', 'typed', or 'digital'. */
       "contentLength"?: 30, /* REQUIRED only for type 'page' items. Approximate word count. */
       "knownUses"?: /* Optional: Array of KnownUse objects describing how the item can be used. If not provided, the item has no known uses yet.
@@ -125,7 +125,7 @@ Structure for individual ItemChange objects within the array:
   - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
   - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
   - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
-  - For written page items, determine whether the text appears handwritten, typed or digital and add the matching tag.
+  - IMPORTANT: For written page items, determine whether the text appears handwritten, typed or digital and add the matching tag.
   IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
