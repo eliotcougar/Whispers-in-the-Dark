@@ -22,7 +22,8 @@ export const generatePageText = async (
   Context:
   ${context}
 
-  Write the text in the item in a proper contextually relevant style. Avoid mentioning the instructions.`;
+  Write the text in the item in a proper contextually relevant style.
+  IMPORTANT: Avoid mentioning the instructions. Avoid repeating the Description`;
   const systemInstruction = 'Return only the contents of the note.';
 
   return retryAiCall<string>(async attempt => {
