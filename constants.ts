@@ -57,6 +57,9 @@ export const VALID_ITEM_TYPES = [
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
 
+export const NOTE_STYLE_TAGS = ['handwritten', 'typed', 'digital'] as const;
+export type NoteStyleTag = typeof NOTE_STYLE_TAGS[number];
+
 export const VALID_PRESENCE_STATUS_VALUES = [
   'distant',
   'nearby',

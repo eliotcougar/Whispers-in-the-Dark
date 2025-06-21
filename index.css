@@ -1,5 +1,6 @@
 /* Main stylesheet for Whispers in the Dark */
 @import url('https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Special+Elite&family=VT323&display=swap');
 
 body {
   font-family: "Georgia", serif; /* Thematic font */
@@ -13,6 +14,18 @@ body {
   font-style: normal;
   font-variation-settings:
     "wdth" 100;
+}
+
+.font-handwritten {
+  font-family: "Shadows Into Light", cursive;
+}
+
+.font-typed {
+  font-family: "Special Elite", cursive;
+}
+
+.font-digital {
+  font-family: "VT323", monospace;
 }
 /* Custom scrollbar for a more thematic feel */
 ::-webkit-scrollbar {

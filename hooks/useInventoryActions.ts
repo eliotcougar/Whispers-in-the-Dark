@@ -137,7 +137,22 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
-  return { handleDropItem, handleTakeLocationItem, updateItemContent };
+  const addTag = useCallback(
+    (id: string, tag: string) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item => {
+        if (item.id !== id) return item;
+        const currentTags = item.tags ?? [];
+        if (currentTags.includes(tag)) return item;
+        return { ...item, tags: [...currentTags, tag] };
+      });
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  return { handleDropItem, handleTakeLocationItem, updateItemContent, addTag };
 };
 
 export type InventoryActions = ReturnType<typeof useInventoryActions>;

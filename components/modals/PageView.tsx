@@ -61,7 +61,17 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
         {isLoading ? (
           <LoadingSpinner loadingReason="page" />
         ) : text ? (
-          <div className="whitespace-pre-wrap text-slate-200 overflow-y-auto mt-4">
+          <div
+            className={`whitespace-pre-wrap text-slate-200 overflow-y-auto mt-4 ${
+              item?.tags?.includes('handwritten')
+                ? 'font-handwritten'
+                : item?.tags?.includes('typed')
+                  ? 'font-typed'
+                  : item?.tags?.includes('digital')
+                    ? 'font-digital'
+                    : ''
+            }`}
+          >
             {text}
           </div>
         ) : null}
