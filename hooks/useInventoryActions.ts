@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   FullGameState,
   ItemChangeRecord,
@@ -20,6 +20,10 @@ export const useInventoryActions = ({
   commitGameState,
   isLoading,
 }: UseInventoryActionsProps) => {
+  const getStateRef = useRef(getCurrentGameState);
+  useEffect(() => {
+    getStateRef.current = getCurrentGameState;
+  }, [getCurrentGameState]);
   const handleDropItem = useCallback(
     (itemName: string, logMessageOverride?: string) => {
       const currentFullState = getCurrentGameState();
@@ -123,14 +127,14 @@ export const useInventoryActions = ({
 
   const updateItemContent = useCallback(
     (id: string, actual: string, visible: string) => {
-      const currentFullState = getCurrentGameState();
+      const currentFullState = getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item =>
         item.id === id ? { ...item, actualContent: actual, visibleContent: visible } : item
       );
       commitGameState(draftState);
     },
-    [getCurrentGameState, commitGameState]
+    [commitGameState]
   );
 
   return { handleDropItem, handleTakeLocationItem, updateItemContent };
