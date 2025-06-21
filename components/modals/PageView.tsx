@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Item } from '../../types';
-import { rot13 } from '../../utils/textTransforms';
+import { rot13, toGothic } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
@@ -46,6 +46,8 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
               visible = fake ?? actual;
             } else if (item.tags?.includes('encrypted')) {
               visible = rot13(actual);
+            } else if (item.tags?.includes('runic')) {
+              visible = toGothic(actual);
             }
             updateItemContent(item.id, actual, visible);
             setText(visible);
