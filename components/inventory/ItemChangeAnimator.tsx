@@ -46,7 +46,7 @@ function ItemChangeAnimator({ lastTurnChanges, isGameBusy }: ItemChangeAnimatorP
         {item.isActive && item.activeDescription ? item.activeDescription : item.description}
       </p>
 
-      {item.isJunk ? <p className="text-xs text-orange-400 mb-1 italic">
+      {item.tags?.includes('junk') ? <p className="text-xs text-orange-400 mb-1 italic">
         (Marked as junk)
       </p> : null}
 

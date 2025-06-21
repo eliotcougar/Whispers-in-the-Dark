@@ -19,7 +19,7 @@ Each object in "newItems" should include:
     "description": "Short description",
     "activeDescription"?: "When active",
     "isActive"?: false,
-    "isJunk"?: false,
+    "tags"?: ["junk"],
     "knownUses"?: [
       {
         "actionName": "Action text",
@@ -40,7 +40,7 @@ Examples illustrating the hint style:
     "description": "A dusty old lantern that still flickers faintly.",
     "activeDescription": "The lantern is lit and casts a warm glow.",
     "isActive": false,
-    "isJunk": false,
+    "tags": [],
     "knownUses": [
       {
         "actionName": "Light the Lantern",
@@ -79,7 +79,7 @@ Examples illustrating the hint style:
     "name": "Makeshift Shiv",
     "type": "weapon",
     "description": "A sharp piece of metal.",
-    "isJunk": false,
+    "tags": [],
     "knownUses": [
       {
         "actionName": "Cut",

@@ -42,7 +42,7 @@ export interface Item {
   activeDescription?: string; // Optional: Description when item.isActive is true
   isActive?: boolean; // Defaults to false if undefined
   knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
-  isJunk?: boolean; // Flag for unimportant items
+  tags?: Array<string>; // Tags for classification, e.g., ["junk"]
   holderId: string; // ID of the entity holding this item or 'player'
   contentLength?: number; // Approximate text length for page items
   actualContent?: string; // Stored content once generated

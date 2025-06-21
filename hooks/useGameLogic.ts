@@ -246,7 +246,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     currentFullState.inventory.forEach(item => {
       if (nodeIds.has(item.holderId)) {
         const entry = map[item.holderId] ?? { hasUseful: false, hasVehicle: false };
-        if (!item.isJunk) entry.hasUseful = true;
+        if (!item.tags?.includes('junk')) entry.hasUseful = true;
         if (item.type === 'vehicle') entry.hasVehicle = true;
         map[item.holderId] = entry;
       }

@@ -30,7 +30,7 @@ describe('inventoryUtils', () => {
           description: 'Bright',
           activeDescription: undefined,
           isActive: false,
-          isJunk: false,
+          tags: [],
           knownUses: [],
           holderId: PLAYER_HOLDER_ID,
         },

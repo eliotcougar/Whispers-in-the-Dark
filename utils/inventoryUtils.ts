@@ -40,7 +40,7 @@ const applyItemActionCore = (
         description: itemData.description,
         activeDescription: itemData.activeDescription,
         isActive: itemData.isActive ?? existing.isActive ?? false,
-        isJunk: itemData.isJunk ?? existing.isJunk ?? false,
+        tags: itemData.tags ?? existing.tags ?? [],
         knownUses: itemData.knownUses ?? existing.knownUses ?? [],
         holderId: PLAYER_HOLDER_ID,
       };
@@ -58,7 +58,7 @@ const applyItemActionCore = (
       description: itemData.description,
       activeDescription: itemData.activeDescription,
       isActive: itemData.isActive ?? false,
-      isJunk: itemData.isJunk ?? false,
+      tags: itemData.tags ?? [],
       knownUses: itemData.knownUses ?? [],
       holderId: PLAYER_HOLDER_ID,
     };
@@ -89,7 +89,7 @@ const applyItemActionCore = (
       description: itemData.description,
       activeDescription: itemData.activeDescription,
       isActive: itemData.isActive ?? false,
-      isJunk: itemData.isJunk ?? false,
+      tags: itemData.tags ?? [],
       knownUses: itemData.knownUses ?? [],
       holderId: toId,
     };
@@ -142,7 +142,7 @@ const applyItemActionCore = (
       updated.activeDescription = updatePayload.activeDescription ?? undefined;
     }
     if (updatePayload.isActive !== undefined) updated.isActive = updatePayload.isActive;
-    if (updatePayload.isJunk !== undefined) updated.isJunk = updatePayload.isJunk;
+    if (updatePayload.tags !== undefined) updated.tags = updatePayload.tags;
     if (updatePayload.knownUses !== undefined) updated.knownUses = updatePayload.knownUses;
     if (updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '') {
       updated.holderId = updatePayload.holderId;
@@ -287,7 +287,7 @@ export const buildItemChangeRecords = (
           description: gainedItemData.description,
           activeDescription: gainedItemData.activeDescription,
           isActive: gainedItemData.isActive ?? false,
-          isJunk: gainedItemData.isJunk ?? false,
+          tags: gainedItemData.tags ?? [],
           knownUses: gainedItemData.knownUses ?? [],
           holderId: gainedItemData.holderId,
         };
@@ -351,7 +351,7 @@ export const buildItemChangeRecords = (
               ? undefined
               : updatePayload.activeDescription ?? oldItemCopy.activeDescription,
           isActive: updatePayload.isActive ?? (oldItemCopy.isActive ?? false),
-          isJunk: updatePayload.isJunk ?? (oldItemCopy.isJunk ?? false),
+          tags: updatePayload.tags ?? (oldItemCopy.tags ?? []),
           knownUses: Array.isArray(updatePayload.knownUses)
             ? updatePayload.knownUses
             : oldItemCopy.knownUses ?? [],
