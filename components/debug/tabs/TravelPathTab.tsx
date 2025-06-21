@@ -7,7 +7,7 @@ interface TravelPathTabProps {
   readonly travelPath?: Array<TravelStep> | null;
 }
 
-const TravelPathTab = ({ mapData, travelPath }: TravelPathTabProps) => {
+function TravelPathTab({ mapData, travelPath }: TravelPathTabProps) {
   if (!travelPath || travelPath.length === 0) {
     return (
       <p className="italic text-slate-300">
@@ -42,7 +42,7 @@ const TravelPathTab = ({ mapData, travelPath }: TravelPathTabProps) => {
       />
     </>
   );
-};
+}
 
 TravelPathTab.defaultProps = { travelPath: null };
 

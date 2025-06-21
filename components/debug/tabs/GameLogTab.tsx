@@ -4,12 +4,12 @@ interface GameLogTabProps {
   readonly gameLog: Array<string>;
 }
 
-const GameLogTab = ({ gameLog }: GameLogTabProps) => (
-  <DebugSection
+function GameLogTab({ gameLog }: GameLogTabProps) {
+  return (<DebugSection
     content={gameLog}
     maxHeightClass="max-h-[70vh]"
     title="Current Game Log"
-  />
-);
+  />)
+}
 
 export default GameLogTab;

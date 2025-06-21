@@ -8,7 +8,7 @@ interface MapLocationAITabProps {
   readonly debugPacket: DebugPacket | null;
 }
 
-const MapLocationAITab = ({ debugPacket }: MapLocationAITabProps) => {
+function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
   const [showRaw, setShowRaw] = useState(true);
   const [showChainRaw, setShowChainRaw] = useState<Record<number, boolean>>({});
 
@@ -192,6 +192,6 @@ const MapLocationAITab = ({ debugPacket }: MapLocationAITabProps) => {
       )}
     </>
   );
-};
+}
 
 export default MapLocationAITab;

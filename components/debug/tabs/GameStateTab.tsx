@@ -8,8 +8,8 @@ interface GameStateTabProps {
   readonly previousState?: FullGameState;
 }
 
-const GameStateTab = ({ currentState, onUndoTurn, previousState = undefined }: GameStateTabProps) => (
-  <>
+function GameStateTab({ currentState, onUndoTurn, previousState = undefined }: GameStateTabProps) {
+  return (<>
     <Button
       ariaLabel="Undo last turn"
       disabled={!previousState || currentState.globalTurnNumber <= 1}
@@ -33,8 +33,8 @@ const GameStateTab = ({ currentState, onUndoTurn, previousState = undefined }: G
         title="Previous Game State (Stack[1] - Bottom)"
       />
     ) : null}
-  </>
-);
+  </>)
+}
 
 GameStateTab.defaultProps = { previousState: undefined };
 

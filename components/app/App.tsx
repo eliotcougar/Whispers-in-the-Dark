@@ -775,7 +775,7 @@ function App() {
         themeHistory={themeHistory}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
-                                                /> : null}
+      /> : null}
     </>
   );
 }

@@ -5,8 +5,8 @@ interface MiscStateTabProps {
   readonly currentState: FullGameState;
 }
 
-const MiscStateTab = ({ currentState }: MiscStateTabProps) => (
-  <DebugSection
+function MiscStateTab({ currentState }: MiscStateTabProps) {
+  return (<DebugSection
     content={{
       currentMapNodeId: currentState.currentMapNodeId,
       currentObjective: currentState.currentObjective,
@@ -31,7 +31,7 @@ const MiscStateTab = ({ currentState }: MiscStateTabProps) => (
     }}
     maxHeightClass="max-h-[70vh]"
     title="Miscellaneous State Values"
-  />
-);
+  />)
+}
 
 export default MiscStateTab;

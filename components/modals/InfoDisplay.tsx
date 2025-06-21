@@ -61,7 +61,7 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
           icon={<Icon
             name="x"
             size={20}
-                />}
+          />}
           onClick={onClose}
           size="sm"
           variant="close"

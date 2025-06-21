@@ -375,7 +375,7 @@ function MapNodeView({
       {tooltip && tooltipScreenPosition ? <div
         className={`map-tooltip anchor-${tooltip.anchor}`}
         style={{ top: tooltipScreenPosition.y, left: tooltipScreenPosition.x, pointerEvents: isTooltipLocked ? 'auto' : 'none' }}
-                                          >
+      >
         {isTooltipLocked && tooltip.nodeId ? (
           <div className="mb-1">
             <Button

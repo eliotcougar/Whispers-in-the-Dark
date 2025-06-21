@@ -6,7 +6,7 @@ function SvgMap({ height = '1em', width = '1em' }: SVGProps<SVGSVGElement>) {
     viewBox="0 0 24 24"
     width={width}
     xmlns="http://www.w3.org/2000/svg"
-          >
+  >
     <path
       d="M3 20V5l6-2v15zM9 18V3l6 2v15zM15 20V5l6 2v15z"
       stroke="currentColor"

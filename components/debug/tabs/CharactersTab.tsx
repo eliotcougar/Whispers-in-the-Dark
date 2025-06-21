@@ -5,12 +5,12 @@ interface CharactersTabProps {
   readonly characters: Array<Character>;
 }
 
-const CharactersTab = ({ characters }: CharactersTabProps) => (
-  <DebugSection
+function CharactersTab({ characters }: CharactersTabProps) {
+  return (<DebugSection
     content={characters}
     maxHeightClass="max-h-[70vh]"
     title="Current Characters"
-  />
-);
+  />)
+}
 
 export default CharactersTab;

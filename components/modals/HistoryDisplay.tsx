@@ -41,7 +41,7 @@ function HistoryDisplay({
           icon={<Icon
             name="x"
             size={20}
-                />}
+          />}
           onClick={onClose}
           size="sm"
           variant="close"

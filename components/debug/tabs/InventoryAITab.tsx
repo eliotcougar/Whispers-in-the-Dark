@@ -8,7 +8,7 @@ interface InventoryAITabProps {
   readonly debugPacket: DebugPacket | null;
 }
 
-const InventoryAITab = ({ debugPacket }: InventoryAITabProps) => {
+function InventoryAITab({ debugPacket }: InventoryAITabProps) {
   const [showRaw, setShowRaw] = useState(true);
 
   const handleShowRaw = useCallback(() => { setShowRaw(true); }, []);
@@ -78,6 +78,6 @@ const InventoryAITab = ({ debugPacket }: InventoryAITabProps) => {
       No Inventory AI interaction debug packet captured.
     </p>
   );
-};
+}
 
 export default InventoryAITab;
