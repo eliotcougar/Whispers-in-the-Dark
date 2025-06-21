@@ -129,7 +129,7 @@ export const executeDialogueTurn = async (
       if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
       console.warn(`Attempt ${String(attempt)} failed to yield valid dialogue JSON even after correction.`);
       attempt++;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Error fetching dialogue turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
       if (!isServerOrClientError(error)) throw error;
       if (attempt === MAX_RETRIES) throw error;
@@ -193,7 +193,7 @@ export const executeDialogueSummary = async (
       if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
       console.warn(`Attempt ${String(attempt)} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
       attempt++;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Error summarizing dialogue (Attempt ${String(attempt)}/${String(MAX_RETRIES + 2)}):`, error);
       if (!isServerOrClientError(error)) throw error;
       if (attempt === MAX_RETRIES + 2) throw error;
@@ -240,7 +240,7 @@ export const executeMemorySummary = async (
         console.warn(`Attempt ${String(attempt)} for memory summary yielded empty text after trim: '${String(memoryText)}'`);
       if (attempt === MAX_RETRIES + 1) return null;
       attempt++;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Error generating memory summary (Attempt ${String(attempt)}/${String(MAX_RETRIES + 1)}):`, error);
       if (!isServerOrClientError(error)) return null;
       if (attempt === MAX_RETRIES + 1) return null;

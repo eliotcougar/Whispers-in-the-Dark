@@ -11,8 +11,12 @@ const triggerDownload = (data: string, filename: string, type: string): void => 
   const blob = new Blob([data], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = filename; document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
 
 export const saveGameStateToFile = (
@@ -50,7 +54,7 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
         }
         console.warn('File save data is invalid or version mismatch for V3. Not loading.');
         resolve(null);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error loading game state from file:', error);
         resolve(null);
       }

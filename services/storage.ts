@@ -62,7 +62,7 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
     console.warn('Local save data is invalid or version mismatch for V3. Starting new game.');
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);
     return null;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error loading game state from localStorage:', error);
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);
     return null;

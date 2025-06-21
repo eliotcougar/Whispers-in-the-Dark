@@ -131,7 +131,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           }
           commitGameState({ ...latestStateAfterFetch, dialogueState: errorDialogueState, lastTurnChanges: null });
         }
-      } catch (e) {
+      } catch (e: unknown) {
         console.error('Error during dialogue turn:', e);
         setError('An error occurred in the conversation. You might need to end it.');
         const stateToRevertToOnError = getCurrentGameState();

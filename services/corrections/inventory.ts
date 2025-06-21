@@ -85,7 +85,7 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
         `fetchCorrectedItemChangeArray_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected payload invalid.`,
         aiResponse,
       );
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchCorrectedItemChangeArray_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,

@@ -52,7 +52,7 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
         if (cleaned.includes('upgrade')) return { result: 'upgrade_parent' };
         if (cleaned.includes('convert') || cleaned.includes('sibling')) return { result: 'convert_child' };
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`decideFeatureHierarchyUpgrade_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
@@ -106,7 +106,7 @@ Return JSON {"originalChildren": ["ids"], "newChildren": ["ids"]}`;
       ) {
         return { result: payload };
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('resolveSplitFamilyOrphans_Service error:', e);
       throw e;
     }

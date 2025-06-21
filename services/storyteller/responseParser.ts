@@ -477,7 +477,7 @@ export async function parseAIResponse(
 
         return validated as GameStateFromAI;
 
-    } catch (e) {
+    } catch (e: unknown) {
         console.warn('parseAIResponse: Failed to parse JSON response from AI. This attempt will be considered a failure.', e);
         console.debug('parseAIResponse: Original response text (before any processing):', responseText);
         console.debug('parseAIResponse: JSON string after fence stripping (if any, input to JSON.parse):', jsonStr);
