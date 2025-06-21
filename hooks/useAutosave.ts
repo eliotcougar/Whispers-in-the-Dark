@@ -15,6 +15,7 @@ export interface UseAutosaveOptions {
   readonly appReady: boolean;
   readonly dialogueState: unknown;
   readonly dependencies: Array<unknown>;
+  readonly setError?: (msg: string | null) => void;
 }
 
 export function useAutosave({
@@ -24,6 +25,7 @@ export function useAutosave({
   appReady,
   dialogueState,
   dependencies,
+  setError,
 }: UseAutosaveOptions) {
   const autosaveTimeoutRef = useRef<number | null>(null);
 
@@ -38,7 +40,10 @@ export function useAutosave({
     }
     autosaveTimeoutRef.current = window.setTimeout(() => {
       const gameStateToSave = gatherCurrentGameState();
-      saveGameStateToLocalStorage(gameStateToSave);
+      saveGameStateToLocalStorage(
+        gameStateToSave,
+        setError ? (msg) => { setError(msg); } : undefined,
+      );
     }, AUTOSAVE_DEBOUNCE_TIME);
 
     return () => {
@@ -53,5 +58,6 @@ export function useAutosave({
     appReady,
     dialogueState,
     dependenciesKey,
+    setError,
   ]);
 }

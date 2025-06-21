@@ -16,18 +16,22 @@ import {
 import { safeParseJson } from '../utils/jsonUtils';
 
 /** Saves the current game state to localStorage. */
-export const saveGameStateToLocalStorage = (gameState: FullGameState): boolean => {
+export const saveGameStateToLocalStorage = (
+  gameState: FullGameState,
+  onError?: (message: string) => void,
+): boolean => {
   try {
     const dataToSave = prepareGameStateForSaving(gameState);
     localStorage.setItem(LOCAL_STORAGE_SAVE_KEY, JSON.stringify(dataToSave));
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error saving game state to localStorage:', error);
-    if (error instanceof DOMException && (error.name === 'QuotaExceededError' || (error as { code?: unknown }).code === 22)) {
-      alert('Could not save game: Browser storage is full. Please clear some space or try saving to a file.');
-    } else {
-      alert('An unexpected error occurred while trying to automatically save your game.');
-    }
+    const message =
+      error instanceof DOMException &&
+      (error.name === 'QuotaExceededError' || (error as { code?: unknown }).code === 22)
+        ? 'Could not save game: Browser storage is full. Please clear some space or try saving to a file.'
+        : 'An unexpected error occurred while trying to automatically save your game.';
+    if (onError) onError(message);
     return false;
   }
 };
@@ -58,7 +62,7 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
     console.warn('Local save data is invalid or version mismatch for V3. Starting new game.');
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);
     return null;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error loading game state from localStorage:', error);
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);
     return null;

@@ -42,9 +42,83 @@ const showMobileTooltip = (text: string, rect: DOMRect) => {
 export interface HighlightableEntity {
   name: string;
   type: 'item' | 'place' | 'character';
-  description: string; 
-  aliases?: Array<string>;   
+  description: string;
+  aliases?: Array<string>;
 }
+
+interface HighlightRegex {
+  regex: RegExp;
+  lookup: Map<string, { term: string; entityData: HighlightableEntity }>;
+}
+
+let cachedRegex: { key: string; value: HighlightRegex } | null = null;
+
+export const buildHighlightRegex = (
+  entities: Array<HighlightableEntity>,
+): HighlightRegex | null => {
+  const key = JSON.stringify(
+    entities
+      .map(e => ({ name: e.name, aliases: e.aliases ?? [], type: e.type }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  );
+
+  if (cachedRegex && cachedRegex.key === key) {
+    return cachedRegex.value;
+  }
+
+  const uniqueMatchTerms = new Map<
+    string,
+    { term: string; entityData: HighlightableEntity }
+  >();
+
+  entities.forEach(entity => {
+    const addTermToMap = (term: string, originalCasingTerm: string) => {
+      if (term && term.trim() !== '') {
+        const termLower = term.toLowerCase();
+        if (!uniqueMatchTerms.has(termLower)) {
+          uniqueMatchTerms.set(termLower, {
+            term: originalCasingTerm,
+            entityData: entity,
+          });
+        }
+      }
+    };
+
+    addTermToMap(entity.name, entity.name);
+    (entity.aliases ?? []).forEach(alias => {
+      addTermToMap(alias, alias);
+    });
+
+    const nameLower = entity.name.toLowerCase();
+    if (nameLower.startsWith('the ') && entity.name.length > 4) {
+      const strippedName = entity.name.substring(4);
+      addTermToMap(strippedName, strippedName);
+    } else if (nameLower.startsWith('a ') && entity.name.length > 2) {
+      const strippedName = entity.name.substring(2);
+      addTermToMap(strippedName, strippedName);
+    }
+  });
+
+  const matchTermsArray = Array.from(uniqueMatchTerms.values());
+  matchTermsArray.sort((a, b) => b.term.length - a.term.length);
+
+  if (matchTermsArray.length === 0) return null;
+
+  const regexPattern = matchTermsArray
+    .map(mt => mt.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .filter(term => term.length > 0)
+    .join('|');
+
+  if (!regexPattern) return null;
+
+  const value = {
+    regex: new RegExp(`\\b(${regexPattern})\\b`, 'gi'),
+    lookup: new Map(matchTermsArray.map(mt => [mt.term.toLowerCase(), mt])),
+  };
+
+  cachedRegex = { key, value };
+  return value;
+};
 
 const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
   switch (type) {
@@ -62,59 +136,22 @@ const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
 export const highlightEntitiesInText = (
   text: string | null | undefined,
   entities: Array<HighlightableEntity>,
-  enableMobileTap = false
+  enableMobileTap = false,
 ): Array<React.ReactNode> => {
   if (!text) return [text ?? ''];
 
+  const matcher = buildHighlightRegex(entities);
+  if (!matcher) return [text];
+
+  const { regex, lookup } = matcher;
+
   const results: Array<React.ReactNode> = [];
-  
-  const uniqueMatchTerms = new Map<string, { term: string; entityData: HighlightableEntity }>();
-
-  entities.forEach(entity => {
-    const addTermToMap = (term: string, originalCasingTerm: string) => {
-      if (term && term.trim() !== '') {
-        const termLower = term.toLowerCase();
-        if (!uniqueMatchTerms.has(termLower)) {
-          uniqueMatchTerms.set(termLower, { term: originalCasingTerm, entityData: entity });
-        }
-      }
-    };
-
-    addTermToMap(entity.name, entity.name);
-    (entity.aliases ?? []).forEach((alias: string) => {
-      addTermToMap(alias, alias);
-    });
-
-    const nameLower = entity.name.toLowerCase();
-    if (nameLower.startsWith("the ") && entity.name.length > 4) {
-      const strippedName = entity.name.substring(4);
-      addTermToMap(strippedName, strippedName);
-    } else if (nameLower.startsWith("a ") && entity.name.length > 2) {
-      const strippedName = entity.name.substring(2);
-      addTermToMap(strippedName, strippedName);
-    }
-  });
-  
-  const matchTermsArray = Array.from(uniqueMatchTerms.values());
-  matchTermsArray.sort((a, b) => b.term.length - a.term.length);
-
-  if (matchTermsArray.length === 0) return [text];
-
-  const regexPattern = matchTermsArray
-    .map(mt => mt.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) 
-    .filter(term => term.length > 0) 
-    .join('|');
-  
-  if (!regexPattern) return [text]; 
-
-  const regex = new RegExp(`\\b(${regexPattern})\\b`, 'gi');
-  
   let lastIndex = 0;
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    const matchedString = match[0]; 
-    const matchedTermInfo = matchTermsArray.find(mt => mt.term.toLowerCase() === matchedString.toLowerCase());
+    const matchedString = match[0];
+    const matchedTermInfo = lookup.get(matchedString.toLowerCase());
 
     if (match.index > lastIndex) {
       results.push(text.substring(lastIndex, match.index));
@@ -124,8 +161,8 @@ export const highlightEntitiesInText = (
       const handleMobileTap = (e: React.MouseEvent<HTMLSpanElement>) => {
         if (window.matchMedia('(hover: none)').matches) {
           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-          const text = e.currentTarget.getAttribute('title') ?? '';
-          showMobileTooltip(text, rect);
+          const tooltipText = e.currentTarget.getAttribute('title') ?? '';
+          showMobileTooltip(tooltipText, rect);
         }
       };
       results.push(
@@ -139,7 +176,7 @@ export const highlightEntitiesInText = (
         </span>
       );
     } else {
-      results.push(matchedString); 
+      results.push(matchedString);
     }
     lastIndex = regex.lastIndex;
   }
@@ -147,7 +184,7 @@ export const highlightEntitiesInText = (
   if (lastIndex < text.length) {
     results.push(text.substring(lastIndex));
   }
-  
+
   return results.length > 0 ? results : [text];
 };
 

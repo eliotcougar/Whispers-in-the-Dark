@@ -5,7 +5,6 @@ import {
   GameStateFromAI,
   GameStateStack,
   Item,
-  ItemReference,
   ItemChange,
   LoadingReason,
   TurnChanges,
@@ -45,9 +44,9 @@ const correctItemChanges = async ({
 
   const result: Array<ItemChange> = [];
   for (const change of aiItemChanges) {
-    const currentChange = { ...change };
-    if (currentChange.action === 'destroy' && currentChange.item) {
-      const itemRef = currentChange.item as ItemReference;
+    let currentChange: ItemChange = { ...change };
+    if (currentChange.action === 'destroy') {
+      const itemRef = currentChange.item;
       const itemNameFromAI = itemRef.name;
       const exactMatchInInventory = baseState.inventory
         .filter((i) => i.holderId === PLAYER_HOLDER_ID)
@@ -71,6 +70,7 @@ const correctItemChanges = async ({
           theme,
         );
         if (correctedName) {
+          // Fix wrong item name from AI using correction service
           currentChange.item = { id: correctedName, name: correctedName };
         }
         setLoadingReason(original);
@@ -90,6 +90,7 @@ const correctItemChanges = async ({
         'placed',
       ];
       if (dropIndicators.some((word) => dropText.includes(word))) {
+        // Convert mistaken destroy action into a put action at current location
         const invItem = baseState.inventory.find(
           (i) =>
             i.holderId === PLAYER_HOLDER_ID &&
@@ -97,11 +98,13 @@ const correctItemChanges = async ({
               (itemRef.name != null && i.name.toLowerCase() === itemRef.name.toLowerCase()))
         );
         if (invItem) {
-          currentChange.action = 'put';
-          currentChange.item = {
-            ...invItem,
-            holderId: baseState.currentMapNodeId ?? 'unknown',
-          } as Item;
+          currentChange = {
+            action: 'put',
+            item: {
+              ...invItem,
+              holderId: baseState.currentMapNodeId ?? 'unknown',
+            },
+          };
         }
       }
     }

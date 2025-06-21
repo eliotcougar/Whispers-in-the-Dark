@@ -117,7 +117,7 @@ export const fetchMapUpdatePayload = async (
         console.error('Map Update Service: Failed to get valid map update payload after all retries.');
       }
       attempt++;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Error in map update request (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}):`, error);
       debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
       debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;

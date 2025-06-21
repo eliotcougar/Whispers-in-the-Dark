@@ -107,18 +107,42 @@ export const getAdjacentNodeIds = (
   return Array.from(ids);
 };
 
+/** Structure describing adjacency for each node. */
+export type NonRumoredAdjacencyMap = Map<string, Array<{ nodeId: string; edgeId: string }>>;
+
+/**
+ * Builds a map of node connections ignoring edges marked as 'rumored' or 'removed'.
+ */
+export const buildNonRumoredAdjacencyMap = (mapData: MapData): NonRumoredAdjacencyMap => {
+  const adjacency: NonRumoredAdjacencyMap = new Map();
+  const isTraversable = (status?: MapEdgeStatus) => status !== 'rumored' && status !== 'removed';
+  for (const edge of mapData.edges) {
+    if (!isTraversable(edge.data.status)) continue;
+    if (!adjacency.has(edge.sourceNodeId)) adjacency.set(edge.sourceNodeId, []);
+    const fromList = adjacency.get(edge.sourceNodeId) ?? [];
+    fromList.push({ nodeId: edge.targetNodeId, edgeId: edge.id });
+    adjacency.set(edge.sourceNodeId, fromList);
+
+    if (!adjacency.has(edge.targetNodeId)) adjacency.set(edge.targetNodeId, []);
+    const toList = adjacency.get(edge.targetNodeId) ?? [];
+    toList.push({ nodeId: edge.sourceNodeId, edgeId: edge.id });
+    adjacency.set(edge.targetNodeId, toList);
+  }
+  return adjacency;
+};
+
 /**
  * Determines if a non-rumored path exists between two nodes.
  * Traverses the map graph ignoring edges with status 'rumored' or 'removed'.
  *
- * @param mapData - Full map data containing all edges.
+ * @param adjacency - Pre-built adjacency structure of traversable edges.
  * @param startNodeId - Node ID of the starting point.
  * @param endNodeId - Node ID of the destination.
  * @param excludeEdgeId - Optional edge ID to ignore during traversal.
  * @returns True if a path exists, otherwise false.
  */
 export const existsNonRumoredPath = (
-  mapData: MapData,
+  adjacency: NonRumoredAdjacencyMap,
   startNodeId: string,
   endNodeId: string,
   excludeEdgeId?: string
@@ -128,22 +152,16 @@ export const existsNonRumoredPath = (
   visited.add(startNodeId);
   queue.push(startNodeId);
 
-  const isTraversable = (status?: MapEdgeStatus) =>
-    status !== 'rumored' && status !== 'removed';
-
   while (queue.length > 0) {
     const current = queue.shift();
     if (!current) continue;
     if (current === endNodeId) return true;
-    for (const edge of mapData.edges) {
-      if (edge.id === excludeEdgeId) continue;
-      if (!isTraversable(edge.data.status)) continue;
-      let next: string | null = null;
-      if (edge.sourceNodeId === current) next = edge.targetNodeId;
-      else if (edge.targetNodeId === current) next = edge.sourceNodeId;
-      if (next && !visited.has(next)) {
-        visited.add(next);
-        queue.push(next);
+    const neighbors = adjacency.get(current) ?? [];
+    for (const { nodeId, edgeId } of neighbors) {
+      if (edgeId === excludeEdgeId) continue;
+      if (!visited.has(nodeId)) {
+        visited.add(nodeId);
+        queue.push(nodeId);
       }
     }
   }

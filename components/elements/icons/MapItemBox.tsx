@@ -8,7 +8,7 @@ function SvgMapItemBox({ height = '1em', width = '1em' }: SVGProps<SVGSVGElement
     viewBox="0 0 24 24"
     width={width}
     xmlns="http://www.w3.org/2000/svg"
-          >
+  >
     <path
       d="m12 3 9 4.5-9 4.5-9-4.5z"
       fill="#f8e7c0"

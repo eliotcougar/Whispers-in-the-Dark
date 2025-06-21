@@ -87,7 +87,7 @@ If no suitable match can be confidently made, respond with an empty string.`;
           `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for ${entityTypeToCorrect}. Received: null`,
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchCorrectedName_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,

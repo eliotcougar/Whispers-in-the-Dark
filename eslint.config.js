@@ -65,6 +65,7 @@ const tsCompat = compat.config({
     'react/function-component-definition': 'warn',
     'react/require-default-props': 'warn',
     'react/jsx-closing-tag-location': ['warn', 'line-aligned'],
+    'react/jsx-closing-bracket-location': ['warn', 'line-aligned'],
     'react/button-has-type': 'warn',
     'react/jsx-handler-names': 'warn',
     'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],

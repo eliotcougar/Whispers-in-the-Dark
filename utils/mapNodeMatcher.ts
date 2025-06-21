@@ -29,7 +29,7 @@ const normalizeStringForMatching = (text: string | null | undefined): string => 
     .trim();
 };
 
-const tokenizeString = (text: string | null | undefined): Array<string> => {
+const tokenizeText = (text: string | null | undefined): Array<string> => {
   if (!text) return [];
   const normalized = normalizeStringForMatching(text);
   return normalized
@@ -116,8 +116,144 @@ const parseLocalPlaceIntoChunks = (localPlace: string | null | undefined): Array
   return chunks.filter(c => c.phrase.length > 0);
 };
 
-const PROXIMITY_BONUS = 30; 
+const PROXIMITY_BONUS = 30;
 const EXACT_MATCH_FEATURE_BONUS = 10;
+
+interface NodeSemanticTokens {
+  node: MapNode;
+  nameTokenPairs: Array<{ name: string; tokens: Array<string> }>;
+}
+
+export const tokenizeForMatching = tokenizeText;
+
+interface Candidate {
+  nodeId: string;
+  score: number;
+}
+
+const scoreExactMatchCandidates = (
+  normalizedLocalPlace: string,
+  tokenizedLocalPlace: string,
+  nodes: Array<MapNode>,
+): Array<ExactMatchCandidate> => {
+  const matches: Array<ExactMatchCandidate> = [];
+  for (const node of nodes) {
+    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
+    for (const nameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== '')) {
+      const normName = normalizeStringForMatching(nameOrAlias);
+      const tokenizedName = tokenizeForMatching(nameOrAlias).join(' ');
+      let currentMatchScore = 0;
+      if (normName === normalizedLocalPlace) currentMatchScore = 1000;
+      else if (normalizedLocalPlace.endsWith(normName) && normalizedLocalPlace.length > normName.length) currentMatchScore = 950;
+      else if (normalizedLocalPlace.startsWith(normName) && normalizedLocalPlace.length > normName.length) currentMatchScore = 920;
+      else if (tokenizedName && tokenizedLocalPlace && tokenizedName === tokenizedLocalPlace) currentMatchScore = 900;
+      else if (normalizedLocalPlace.includes(normName) && normName.length > 0) {
+        currentMatchScore = 800 + (normName.length * 0.5);
+      }
+      if (currentMatchScore > 0) {
+        const isFeatureNode = node.data.nodeType === 'feature';
+        matches.push({
+          nodeId: node.id,
+          score: currentMatchScore + (isFeatureNode ? EXACT_MATCH_FEATURE_BONUS : 0),
+          isFeature: isFeatureNode,
+          nameLength: nameOrAlias.length,
+        });
+      }
+    }
+  }
+  return matches;
+};
+
+export const computeSemanticMatchScore = (
+  nodeTokens: NodeSemanticTokens,
+  chunks: Array<ExtractedChunk>,
+  directNeighborIds: Set<string>,
+): number => {
+  const { node, nameTokenPairs } = nodeTokens;
+  let maxScoreForCandidate = -1;
+  for (const { name, tokens: nodeNameTokens } of nameTokenPairs) {
+    if (nodeNameTokens.length === 0) continue;
+    let scoreForNameAlias = 0;
+    for (const chunk of chunks) {
+      const chunkTokens = tokenizeForMatching(chunk.phrase);
+      if (chunkTokens.length === 0) continue;
+      let commonTokenCount = 0;
+      const tempChunkTokens = [...chunkTokens];
+      nodeNameTokens.forEach(nnToken => {
+        const exactIndex = tempChunkTokens.indexOf(nnToken);
+        if (exactIndex !== -1) {
+          commonTokenCount++;
+          tempChunkTokens.splice(exactIndex, 1);
+        } else {
+          const pluralIndex = tempChunkTokens.findIndex(ct => areTokensSingularPluralMatch(nnToken, ct));
+          if (pluralIndex !== -1) {
+            commonTokenCount++;
+            tempChunkTokens.splice(pluralIndex, 1);
+          }
+        }
+      });
+      if (commonTokenCount > 0) {
+        const nodeCoverage = commonTokenCount / nodeNameTokens.length;
+        const chunkRelevance = commonTokenCount / chunkTokens.length;
+        let baseScore = (nodeCoverage * 60) + (chunkRelevance * 40);
+        const normalizedNodeName = normalizeStringForMatching(name);
+        const normalizedChunkPhrase = normalizeStringForMatching(chunk.phrase);
+        let exactOrSubstringBonus = 0;
+        if (normalizedNodeName === normalizedChunkPhrase) exactOrSubstringBonus = 100;
+        else if (normalizedChunkPhrase.endsWith(normalizedNodeName) && normalizedChunkPhrase.length > normalizedNodeName.length) exactOrSubstringBonus = 75;
+        else if (normalizedChunkPhrase.startsWith(normalizedNodeName) && normalizedChunkPhrase.length > normalizedNodeName.length) exactOrSubstringBonus = 70;
+        else if (normalizedChunkPhrase.includes(normalizedNodeName)) exactOrSubstringBonus = 50 + (normalizedNodeName.length * 0.2);
+        else if (normalizedNodeName.includes(normalizedChunkPhrase)) exactOrSubstringBonus = 25 + (normalizedChunkPhrase.length * 0.2);
+        baseScore += exactOrSubstringBonus;
+        const effectiveWeight = (chunk.prepositionType === 'negating' && baseScore > 75) ? chunk.prepositionWeight * 0.5 : chunk.prepositionWeight;
+        scoreForNameAlias += baseScore * (effectiveWeight / 100.0);
+      }
+    }
+    if (scoreForNameAlias > maxScoreForCandidate) maxScoreForCandidate = scoreForNameAlias;
+  }
+  if (maxScoreForCandidate > -1 && directNeighborIds.has(node.id)) maxScoreForCandidate += PROXIMITY_BONUS;
+  return maxScoreForCandidate;
+};
+
+const applySemanticTieBreaker = (
+  currentBest: Candidate | null,
+  newCandidate: Candidate,
+  nodes: Array<MapNode>,
+): Candidate => {
+  if (!currentBest) return newCandidate;
+  if (newCandidate.score > currentBest.score) return newCandidate;
+  if (newCandidate.score < currentBest.score) return currentBest;
+  const newNode = nodes.find(n => n.id === newCandidate.nodeId);
+  const bestNode = nodes.find(n => n.id === currentBest.nodeId);
+  if (!newNode || !bestNode) return currentBest;
+  const newIsFeature = newNode.data.nodeType === 'feature';
+  const bestIsFeature = bestNode.data.nodeType === 'feature';
+  if (newIsFeature && !bestIsFeature) return newCandidate;
+  if (!newIsFeature && bestIsFeature) return currentBest;
+  const newLen = normalizeStringForMatching(newNode.placeName).length;
+  const bestLen = normalizeStringForMatching(bestNode.placeName).length;
+  return newLen > bestLen ? newCandidate : currentBest;
+};
+
+const selectFeatureChildIfMentioned = (
+  bestNodeId: string | null,
+  chunks: Array<ExtractedChunk>,
+  nodes: Array<MapNode>,
+): string | null => {
+  if (!bestNodeId) return null;
+  const bestNode = nodes.find(n => n.id === bestNodeId);
+  if (!bestNode) return bestNodeId;
+  if (bestNode.data.nodeType === 'feature') return bestNodeId;
+  if (bestNode.data.parentNodeId && bestNode.data.parentNodeId !== 'Universe') return bestNodeId;
+  const featureChildren = nodes.filter(child => child.data.nodeType === 'feature' && child.data.parentNodeId === bestNode.id);
+  for (const featureChild of featureChildren) {
+    const featureName = featureChild.placeName;
+    const normalizedFeatureName = normalizeStringForMatching(featureName);
+    const directlyMentionedChunk = chunks.find(chunk => chunk.prepositionType === 'direct' && normalizeStringForMatching(chunk.phrase).includes(normalizedFeatureName));
+    if (directlyMentionedChunk) return featureChild.id;
+  }
+  return bestNodeId;
+};
 
 interface ExactMatchCandidate {
   nodeId: string;
@@ -263,35 +399,13 @@ export const selectBestMatchingMapNode = (
   const firstCommaIndex = localPlace.indexOf(',');
   const localPlaceForEarlyMatch = (firstCommaIndex !== -1 ? localPlace.substring(0, firstCommaIndex) : localPlace).trim();
   const normalizedLocalPlaceForEarlyMatch = normalizeStringForMatching(localPlaceForEarlyMatch);
-  const tokenizedLocalPlaceString = tokenizeString(localPlace).join(' ');
+  const tokenizedLocalPlaceString = tokenizeForMatching(localPlace).join(' ');
 
-  const exactMatches: Array<ExactMatchCandidate> = [];
-
-  for (const node of themeNodes) {
-    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
-
-    for (const nameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== "")) {
-      const normName = normalizeStringForMatching(nameOrAlias);
-      const tokenizedNodeNameString = tokenizeString(nameOrAlias).join(' ');
-      let currentMatchScore = 0;
-
-      if (normName === normalizedLocalPlaceForEarlyMatch) currentMatchScore = 1000;
-      else if (normalizedLocalPlaceForEarlyMatch.endsWith(normName) && normalizedLocalPlaceForEarlyMatch.length > normName.length) currentMatchScore = 950;
-      else if (normalizedLocalPlaceForEarlyMatch.startsWith(normName) && normalizedLocalPlaceForEarlyMatch.length > normName.length) currentMatchScore = 920;
-      else if (tokenizedNodeNameString && tokenizedLocalPlaceString && tokenizedNodeNameString === tokenizedLocalPlaceString) currentMatchScore = 900;
-      else if (normalizedLocalPlaceForEarlyMatch.includes(normName) && normName.length > 0) currentMatchScore = 800 + (normName.length * 0.5);
-
-      if (currentMatchScore > 0) {
-        const isFeatureNode = node.data.nodeType === 'feature';
-        exactMatches.push({
-          nodeId: node.id,
-          score: currentMatchScore + (isFeatureNode ? EXACT_MATCH_FEATURE_BONUS : 0),
-          isFeature: isFeatureNode,
-          nameLength: nameOrAlias.length
-        });
-      }
-    }
-  }
+  const exactMatches = scoreExactMatchCandidates(
+    normalizedLocalPlaceForEarlyMatch,
+    tokenizedLocalPlaceString,
+    themeNodes,
+  );
 
   if (exactMatches.length > 0) {
     exactMatches.sort((a, b) => {
@@ -303,10 +417,9 @@ export const selectBestMatchingMapNode = (
   }
 
   const extractedChunks = parseLocalPlaceIntoChunks(localPlace);
-  if (extractedChunks.length === 0) return null; 
+  if (extractedChunks.length === 0) return null;
 
-  let bestMatchNodeId: string | null = null;
-  let overallBestScore = -1;
+  let bestCandidate: Candidate | null = null;
 
   const directNeighborIds = new Set<string>();
   if (previousMapNodeId) {
@@ -316,82 +429,24 @@ export const selectBestMatchingMapNode = (
     });
   }
 
-  for (const node of themeNodes) {
-    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
-    let maxScoreForThisNodeCandidate = -1;
+  const nodesWithTokens: Array<NodeSemanticTokens> = themeNodes.map(n => ({
+    node: n,
+    nameTokenPairs: [n.placeName, ...(n.data.aliases ?? [])]
+      .filter(name => name && name.trim() !== '')
+      .map(name => ({ name, tokens: tokenizeForMatching(name) })),
+  }));
 
-    for (const nodeNameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== "")) {
-      const nodeNameTokens = tokenizeString(nodeNameOrAlias);
-      if (nodeNameTokens.length === 0) continue;
-
-      let currentScoreForNameAliasPair = 0;
-      for (const chunk of extractedChunks) {
-        const chunkPhraseTokens = tokenizeString(chunk.phrase);
-        if (chunkPhraseTokens.length === 0) continue;
-
-        let commonTokenCount = 0;
-        const tempChunkTokensForMatching = [...chunkPhraseTokens]; 
-        nodeNameTokens.forEach(nnToken => {
-          const exactMatchIndex = tempChunkTokensForMatching.indexOf(nnToken);
-          if (exactMatchIndex !== -1) {
-            commonTokenCount++; tempChunkTokensForMatching.splice(exactMatchIndex, 1); 
-          } else {
-            const pluralMatchIndex = tempChunkTokensForMatching.findIndex(chunkToken => areTokensSingularPluralMatch(nnToken, chunkToken));
-            if (pluralMatchIndex !== -1) { commonTokenCount++; tempChunkTokensForMatching.splice(pluralMatchIndex, 1); }
-          }
-        });
-
-        if (commonTokenCount > 0) {
-          const nodeCoverage = commonTokenCount / nodeNameTokens.length;
-          const chunkRelevance = commonTokenCount / chunkPhraseTokens.length;
-          let baseScore = (nodeCoverage * 60) + (chunkRelevance * 40); 
-
-          const normalizedNodeName = normalizeStringForMatching(nodeNameOrAlias);
-          const normalizedChunkPhrase = normalizeStringForMatching(chunk.phrase); 
-
-          let exactOrSubstringBonus = 0;
-          if (normalizedNodeName === normalizedChunkPhrase) exactOrSubstringBonus = 100; 
-          else if (normalizedChunkPhrase.endsWith(normalizedNodeName) && normalizedChunkPhrase.length > normalizedNodeName.length) exactOrSubstringBonus = 75; 
-          else if (normalizedChunkPhrase.startsWith(normalizedNodeName) && normalizedChunkPhrase.length > normalizedNodeName.length) exactOrSubstringBonus = 70;
-          else if (normalizedChunkPhrase.includes(normalizedNodeName)) exactOrSubstringBonus = 50 + (normalizedNodeName.length * 0.2);
-          else if (normalizedNodeName.includes(normalizedChunkPhrase)) exactOrSubstringBonus = 25 + (normalizedChunkPhrase.length * 0.2);
-          
-          baseScore += exactOrSubstringBonus;
-          const effectiveWeight = (chunk.prepositionType === 'negating' && baseScore > 75) ? chunk.prepositionWeight * 0.5 : chunk.prepositionWeight;
-          currentScoreForNameAliasPair += baseScore * (effectiveWeight / 100.0);
-        }
-      }
-      if (currentScoreForNameAliasPair > maxScoreForThisNodeCandidate) maxScoreForThisNodeCandidate = currentScoreForNameAliasPair;
-    }
-
-    if (maxScoreForThisNodeCandidate > -1 && directNeighborIds.has(node.id)) maxScoreForThisNodeCandidate += PROXIMITY_BONUS;
-    
-    if (maxScoreForThisNodeCandidate > overallBestScore) {
-      overallBestScore = maxScoreForThisNodeCandidate;
-      bestMatchNodeId = node.id;
-    } else if (maxScoreForThisNodeCandidate === overallBestScore && bestMatchNodeId) {
-      const prevBestNode = themeNodes.find(n => n.id === bestMatchNodeId);
-      if (prevBestNode) {
-        const nodeIsFeature = node.data.nodeType === 'feature';
-        const prevIsFeature = prevBestNode.data.nodeType === 'feature';
-        if (nodeIsFeature && !prevIsFeature) bestMatchNodeId = node.id;
-        else if (!nodeIsFeature && prevIsFeature) { /* Keep prev */ }
-        else if (normalizeStringForMatching(node.placeName).length > normalizeStringForMatching(prevBestNode.placeName).length) bestMatchNodeId = node.id;
-      }
+  for (const nodeInfo of nodesWithTokens) {
+    const score = computeSemanticMatchScore(nodeInfo, extractedChunks, directNeighborIds);
+    if (score > -1) {
+      const candidate: Candidate = { nodeId: nodeInfo.node.id, score };
+      bestCandidate = applySemanticTieBreaker(bestCandidate, candidate, themeNodes);
     }
   }
-  
-  if (bestMatchNodeId && overallBestScore > 0) {
-    const bestNode = themeNodes.find(n => n.id === bestMatchNodeId);
-    if (bestNode && bestNode.data.nodeType !== 'feature' && (!bestNode.data.parentNodeId || bestNode.data.parentNodeId === 'Universe')) {
-      const featureChildren = themeNodes.filter(child => child.data.nodeType === 'feature' && child.data.parentNodeId === bestNode.id);
-      for (const featureChild of featureChildren) {
-        const featureName = featureChild.placeName;
-        const normalizedFeatureName = normalizeStringForMatching(featureName);
-        const directlyMentionedChunk = extractedChunks.find(chunk => chunk.prepositionType === 'direct' && normalizeStringForMatching(chunk.phrase).includes(normalizedFeatureName));
-        if (directlyMentionedChunk) { bestMatchNodeId = featureChild.id; break; }
-      }
-    }
+
+  let bestMatchNodeId = bestCandidate ? bestCandidate.nodeId : null;
+  if (bestCandidate && bestCandidate.score > 0) {
+    bestMatchNodeId = selectFeatureChildIfMentioned(bestMatchNodeId, extractedChunks, themeNodes);
   }
   return bestMatchNodeId;
 };

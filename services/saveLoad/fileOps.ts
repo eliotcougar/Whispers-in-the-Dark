@@ -11,18 +11,27 @@ const triggerDownload = (data: string, filename: string, type: string): void => 
   const blob = new Blob([data], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = filename; document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
 
-export const saveGameStateToFile = (gameState: FullGameState): void => {
+export const saveGameStateToFile = (
+  gameState: FullGameState,
+  onError?: (message: string) => void,
+): boolean => {
   try {
     const dataToSave = prepareGameStateForSaving(gameState);
     const jsonString = JSON.stringify(dataToSave, null, 2);
     triggerDownload(jsonString, `WhispersInTheDark_Save_V${CURRENT_SAVE_GAME_VERSION}_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
-  } catch (error) {
+    return true;
+  } catch (error: unknown) {
     console.error('Error saving game state to file:', error);
-    alert('An error occurred while preparing your game data for download.');
+    if (onError) onError('An error occurred while preparing your game data for download.');
+    return false;
   }
 };
 
@@ -45,7 +54,7 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
         }
         console.warn('File save data is invalid or version mismatch for V3. Not loading.');
         resolve(null);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error loading game state from file:', error);
         resolve(null);
       }

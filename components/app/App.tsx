@@ -10,11 +10,9 @@ import * as React from 'react';
 import { useGameLogic } from '../../hooks/useGameLogic';
 import SceneDisplay from '../SceneDisplay';
 import ActionOptions from '../ActionOptions';
-import InventoryDisplay from '../inventory/InventoryDisplay';
-import LocationItemsDisplay from '../inventory/LocationItemsDisplay';
+import GameSidebar from './GameSidebar';
 import LoadingSpinner from '../LoadingSpinner';
 import ErrorDisplay from '../ErrorDisplay';
-import TextBox from '../elements/TextBox';
 import MainToolbar from '../MainToolbar';
 import ModelUsageIndicators from '../ModelUsageIndicators';
 import TitleMenu from '../modals/TitleMenu';
@@ -28,12 +26,11 @@ import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
 import FreeActionInput from './FreeActionInput';
-import { buildHighlightableEntities } from '../../utils/highlightHelper';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
 import { useAppModals } from '../../hooks/useAppModals';
 import { useAutosave } from '../../hooks/useAutosave';
-import { findTravelPath, TravelStep } from '../../utils/mapPathfinding';
+import { findTravelPath, buildTravelAdjacency, TravelStep, TravelAdjacency } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
 import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 
@@ -221,6 +218,7 @@ function App() {
     hasGameBeenInitialized,
     appReady,
     dialogueState,
+    setError: (msg) => { getGameLogic().setError(msg); },
     dependencies: [
       currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
       inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId,
@@ -235,16 +233,6 @@ function App() {
 
   const canPerformFreeAction = score >= FREE_FORM_ACTION_COST && !isLoading && hasGameBeenInitialized && !dialogueState;
 
-  const questHighlightEntities = React.useMemo(
-    () =>
-      buildHighlightableEntities(
-        inventory,
-        mapData.nodes,
-        allCharacters,
-        currentTheme ? currentTheme.name : null
-      ),
-    [inventory, mapData.nodes, allCharacters, currentTheme]
-  );
 
   const enableMobileTap =
     typeof window !== 'undefined' &&
@@ -298,7 +286,7 @@ function App() {
           ? prevPacks.filter(p => p !== packName)
           : [...prevPacks, packName];
         if (newPacks.length === 0) {
-          alert('At least one theme pack must be enabled.');
+          getGameLogic().setError('At least one theme pack must be enabled.');
           return prevPacks;
         }
         return newPacks;
@@ -427,6 +415,10 @@ function App() {
   );
 
   const [mapInitialViewBox, setMapInitialViewBox] = useState(mapViewBox);
+  const travelAdjacency: TravelAdjacency = React.useMemo(
+    () => buildTravelAdjacency(mapData),
+    [mapData]
+  );
   const travelPath: Array<TravelStep> | null = React.useMemo(() => {
     // Using globalTurnNumber to force recalculation each turn
     void globalTurnNumber;
@@ -437,8 +429,8 @@ function App() {
     ) {
       return null;
     }
-    return findTravelPath(mapData, currentMapNodeId, destinationNodeId);
-  }, [destinationNodeId, currentMapNodeId, mapData, globalTurnNumber]);
+    return findTravelPath(mapData, currentMapNodeId, destinationNodeId, travelAdjacency);
+  }, [destinationNodeId, currentMapNodeId, mapData, travelAdjacency, globalTurnNumber]);
   const prevMapVisibleRef = useRef(false);
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {
@@ -578,63 +570,28 @@ function App() {
             {!hasGameBeenInitialized ? (
               <div className="hidden lg:block bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
             ) : (
-              <>
-                { mainQuest ? (
-                  <TextBox
-                    backgroundColorClass="bg-purple-800/50"
-                    borderColorClass="border-purple-600"
-                    borderWidthClass="border rounded-lg"
-                    containerClassName="p-3 "
-                    contentColorClass="text-purple-200"
-                    contentFontClass="text-lg"
-                    enableMobileTap={enableMobileTap}
-                    header="Main Quest"
-                    headerFont="lg"
-                    headerPreset="purple"
-                    highlightEntities={questHighlightEntities}
-                    text={mainQuest}
-                  />
-                ) : null}
-
-                {currentObjective ? (
-                  <TextBox
-                    backgroundColorClass="bg-amber-800/50"
-                    borderColorClass="border-amber-600"
-                    borderWidthClass="border rounded-lg"
-                    containerClassName={`p-3 ${
-                      objectiveAnimationType === 'success'
-                        ? 'animate-objective-success'
-                        : objectiveAnimationType === 'neutral'
-                          ? 'animate-objective-neutral'
-                          : ''
-                    }`}
-                    contentColorClass="text-amber-200"
-                    contentFontClass="text-lg"
-                    enableMobileTap={enableMobileTap}
-                    header="Current Objective"
-                    headerFont="lg"
-                    headerPreset="amber"
-                    highlightEntities={questHighlightEntities}
-                    text={currentObjective}
-                  />
-                ) : null}
-
-                <LocationItemsDisplay
-                  currentNodeId={currentMapNodeId}
-                  disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
-                  items={itemsHere}
-                  mapNodes={mapData.nodes}
-                  onTakeItem={handleTakeLocationItem}
-                />
-
-                <InventoryDisplay
-                  disabled={isLoading || !!dialogueState || effectiveIsTitleMenuOpen || isCustomGameSetupVisible || isManualShiftThemeSelectionVisible}
-                  items={inventory}
-                  onDropItem={gameLogic.handleDropItem}
-                  onItemInteract={handleItemInteraction}
-                />
-
-              </>
+              <GameSidebar
+                allCharacters={allCharacters}
+                currentMapNodeId={currentMapNodeId}
+                currentObjective={currentObjective}
+                currentThemeName={currentTheme ? currentTheme.name : null}
+                disabled={
+                  isLoading ||
+                  !!dialogueState ||
+                  effectiveIsTitleMenuOpen ||
+                  isCustomGameSetupVisible ||
+                  isManualShiftThemeSelectionVisible
+                }
+                enableMobileTap={enableMobileTap}
+                inventory={inventory}
+                itemsHere={itemsHere}
+                mainQuest={mainQuest}
+                mapNodes={mapData.nodes}
+                objectiveAnimationType={objectiveAnimationType}
+                onDropItem={gameLogic.handleDropItem}
+                onItemInteract={handleItemInteraction}
+                onTakeItem={handleTakeLocationItem}
+              />
             )}
           </div>
         </main>
@@ -775,7 +732,7 @@ function App() {
         themeHistory={themeHistory}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
-                                                /> : null}
+      /> : null}
     </>
   );
 }

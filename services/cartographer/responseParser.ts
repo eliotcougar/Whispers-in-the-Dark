@@ -128,7 +128,7 @@ export const parseAIMapUpdateResponse = (
     }
     console.warn('Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:', parsed);
     return null;
-  } catch (e) {
+  } catch (e: unknown) {
     console.error('Failed to parse map update JSON response from AI:', e);
     console.debug('Original map update response text:', responseText);
     return null;

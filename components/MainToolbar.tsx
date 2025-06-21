@@ -62,7 +62,7 @@ function MainToolbar({
           aria-label={`Turns since last reality shift: ${String(turnsSinceLastShift)}`}
           className="flex items-center p-2 border border-indigo-500 rounded-md shadow-md"
           title={`Turns since last reality shift: ${String(turnsSinceLastShift)}`}
-                            >
+        >
           <Icon
             color="indigo"
             inline
@@ -87,7 +87,7 @@ function MainToolbar({
             inline
             name="visualize"
             size={20}
-                />}
+          />}
           onClick={onOpenVisualizer}
           preset="blue"
           size="md"
@@ -102,7 +102,7 @@ function MainToolbar({
             inline
             name="bookOpen"
             size={20}
-                />}
+          />}
           onClick={onOpenKnowledgeBase}
           preset="blue"
           size="md"
@@ -117,7 +117,7 @@ function MainToolbar({
             inline
             name="scroll"
             size={20}
-                />}
+          />}
           onClick={onOpenHistory}
           preset="blue"
           size="md"
@@ -132,7 +132,7 @@ function MainToolbar({
             inline
             name="map"
             size={20}
-                />}
+          />}
           onClick={onOpenMap}
           preset="blue"
           size="md"
@@ -147,7 +147,7 @@ function MainToolbar({
             inline
             name="realityShift"
             size={20}
-                />}
+          />}
           onClick={onManualRealityShift}
           preset="purple"
           size="md"
@@ -162,7 +162,7 @@ function MainToolbar({
             inline
             name="menu"
             size={20}
-                />}
+          />}
           onClick={onOpenTitleMenu}
           preset="gray"
           size="md"

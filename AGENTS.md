@@ -1,6 +1,5 @@
 
 ## First of all
-  - IMPORTANT: pull the commits to avoid working on outdated code.
   - CRITICALLY IMPORTANT: ALWAYS exclude /dist/* and /node_modules/* from grep and other lookup and search commands.
 
 ## Testing
@@ -51,7 +50,7 @@ ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,
  - The user is learning programming. Take an opportunity to shortly teach the user about the logic behind the changes you make in the general chat (not in the code).
 
 ## Code Style Guide (ESLint)
-- Prefer arrow function components and avoid binding in JSX. (`react/function-component-definition`, `react/jsx-no-bind`)
+- Avoid binding in JSX. (`react/function-component-definition`, `react/jsx-no-bind`)
 - Do not use array indices as keys. (`react/no-array-index-key`)
 - Keep JSX indentation at 2 spaces and limit nesting depth to 4. (`react/jsx-indent`, `react/jsx-indent-props`, `react/jsx-max-depth`)
 - Alphabetically sort JSX props and default props. (`react/jsx-sort-props`, `react/sort-default-props`)
@@ -64,6 +63,7 @@ ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,
 - Limit template and arithmetic expressions to compatible types. (`@typescript-eslint/restrict-template-expressions`, `@typescript-eslint/restrict-plus-operands`)
 - Use dot notation whenever possible. (`@typescript-eslint/dot-notation`)
 - Hooks must follow the rules of hooks. (`react-hooks/rules-of-hooks`)
+- Using console.log() for debug logging is okay at this stage of development.
 
 ## Reference
  - Read `ARCHITECTURE.md` for a general overview of the codebase structure.
