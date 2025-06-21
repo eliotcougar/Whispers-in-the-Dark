@@ -76,7 +76,7 @@ If neither appliesWhen... field is given, use always shown. If both, applies if 
   - Provide "name", "type", "description" for the gained item. These MUST be non-empty.
   - Choose "type" from: ${VALID_ITEM_TYPES_STRING}. The 'type' CANNOT be 'junk'. If the item is junk, add "junk" to its "tags" array and pick a suitable type.
   - "isActive" defaults to false. The "tags" array defaults to []. "status effect" items can never have the "junk" tag.
-  - For items with type "page", provide a numeric "contentLength" (20-100 words expected).
+  - For items with type "page", provide a numeric "contentLength" (up to 250 words).
   - "knownUses" is optional.
   - The "newName" and "addKnownUse" fields should NOT be used for "gain".
   ${knownUseStructureGuide}`;

@@ -4,6 +4,7 @@
  */
 
 import { VALID_ITEM_TYPES_STRING } from '../../constants';
+import { ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
 
 export const SYSTEM_INSTRUCTION = `** SYSTEM INSTRUCTIONS: **
 You are an AI assistant that converts item hints into explicit inventory actions for a text adventure game.
@@ -33,7 +34,7 @@ Structure for individual ItemChange objects within the array:
       "activeDescription"?: "The lantern is lit and casts a warm glow.", /* Optional: Description when the item is active. REQUIRED for toggle-able items.*/
       "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
       "tags"?: ["junk"], /* Optional: array of short tags describing the item. Include "junk" if the item is unimportant or has served its ONLY purpose. IMPORTANT: "status effects" can never have the "junk" tag. */
-      "contentLength"?: 30, /* Optional: Approximate word count for page items. */
+      "contentLength"?: 30, /* REQUIRED only for type 'page' items. Approximate word count. */
       "knownUses"?: /* Optional: Array of KnownUse objects describing how the item can be used. If not provided, the item has no known uses yet.
         [
           { 
@@ -130,18 +131,7 @@ IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park" known 
 If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, use "itemChange" "update" (e.g., with "addKnownUse").
 If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, consider "itemChange" "update" for "addKnownUse" in addition to main outcome.
 
-
-Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
-- "single-use": Consumed after one use (e.g., potion, one-shot scroll, stimpak, medicine pill, spare part). Assumed to be stored in player's pockets/bag/backpack. Cannot be worn on a person directly.
-- "multi-use": Can be used multiple times (e.g., lockpick set, toolkit, medkit). Can have limited number of uses, indicated in brackets after the name, or in the description. Assumed to be stored in player's pockets/bag/backpack. Cannot be worn on a person directly.
-- "equipment": Can be worn on a person, or wielded (e.g., armor, shield, helmet, lantern, flashlight, crowbar). Can have active/inactive states.
-- "container": Can hold things. Describe if empty/full, intended contents (solid, liquid, gas), e.g., "Empty Canteen", "Flask of Oil". Use 'update' to change its description/state (e.g., from empty to full). Full conainer can provide a number of uses until it is empty again (can drink from full bottle several times).
-- "key": Unlocks specific doors, chests, portals, or similar. Description should hint at its purpose, e.g., "Ornate Silver Key (for a large chest)". Can be 'lost' or 'updated' (e.g., to "Bent Key") after use.
-- "weapon": Melee and ranged weapons, distinct from "equipment" Items that can be explicitly used in a fight when wielded. Ranged weapon consume ammunition or charges.
-- "ammunition": For reloading specific ranged weapons, e.g., Arrows for Longbow, Rounds for firearms, Charges for energy weapons. Using weapon consumes ammo (handled by log/update).
-- "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, its 'isActive' state MUST be set to true using an 'itemChange' action 'update'. If player exits a vehicle, its 'isActive' state MUST be set to false using an 'itemChange' action 'update'.
-- "knowledge": Immaterial. Represents learned info, skills, spells, passwords. 'knownUses' define how to apply it. Can be 'lost' if used up or no longer relevant. E.g., "Spell: Fireball", "Recipe: Health Potion", "Clue: Thief Name".
-- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
+${ITEM_TYPES_GUIDE}
 
 IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "update", providing "newName" and optionally the new "type" and "description" if they change. Your "logMessage" must creatively explain this transformation. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand". The log message could be: "The strange metal device from another world shimmers and reshapes into a humming metal wand in your grasp!"
 
