@@ -9,6 +9,7 @@ export const generatePageText = async (
   itemDescription: string,
   length: number,
   context: string,
+  extraInstruction = '',
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error('generatePageText: API key not configured.');
@@ -22,7 +23,7 @@ export const generatePageText = async (
   Context:
   ${context}
 
-  Write the text in the item in a proper contextually relevant style.
+  Write the text in the item in a proper contextually relevant style.${extraInstruction ? ` ${extraInstruction}` : ''}
   IMPORTANT: Avoid mentioning the instructions. Avoid repeating the Description`;
   const systemInstruction = 'Return only the contents of the note.';
 

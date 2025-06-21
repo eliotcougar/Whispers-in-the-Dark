@@ -18,14 +18,61 @@ body {
 
 .font-handwritten {
   font-family: "Shadows Into Light", cursive;
+  background-color: #f5deb3;
 }
 
 .font-typed {
-  font-family: "Special Elite", cursive;
+  font-family: "Special Elite";
+  background-color: #f5deb3;
 }
 
 .font-digital {
   font-family: "VT323", monospace;
+  background-color: #0c140a;
+}
+
+.tag-faded {
+  color: #c0a87b;
+}
+
+.tag-smudged {
+  color: #4b3621;
+  filter: blur(1.2px);
+}
+
+.tag-torn {
+  color: #4b3621;
+  border: 1px dashed #a0aec0;
+}
+
+.tag-glitching {
+  color: #00ff90;
+  text-shadow: 0 0 2px #0ff;
+}
+
+.tag-encrypted {
+  color: #4b3621;
+  font-style: monospace;
+}
+
+.tag-foreign {
+  color: #4b3621;
+  font-family: "Georgia", serif;
+}
+
+.tag-runic {
+  color: #4b3621;
+  font-family: "Shadows Into Light", cursive;
+}
+
+.tag-bloodstained {
+  background-color: #7f1d1d;
+  color: #fef2f2;
+}
+
+.tag-water-damaged {
+  background-color: #e0f2fe;
+  color: #1e3a8a;
 }
 /* Custom scrollbar for a more thematic feel */
 ::-webkit-scrollbar {

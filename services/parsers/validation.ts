@@ -11,8 +11,13 @@ import {
   ValidNewCharacterPayload,
   DialogueSetupPayload,
 } from '../../types';
-import { VALID_ITEM_TYPES, VALID_PRESENCE_STATUS_VALUES } from '../../constants';
+import {
+  VALID_ITEM_TYPES,
+  VALID_PRESENCE_STATUS_VALUES,
+  VALID_TAGS,
+} from '../../constants';
 import { normalizeItemType } from '../../utils/itemSynonyms';
+import { normalizeTags } from '../../utils/tagSynonyms';
 
 export function isValidKnownUse(ku: unknown): ku is KnownUse {
   if (!ku || typeof ku !== 'object') return false;
@@ -91,12 +96,14 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     console.warn("isValidItem: 'isActive' is present but invalid.", item);
     return false;
   }
-  if (
-    obj.tags !== undefined &&
-    (!Array.isArray(obj.tags) || !obj.tags.every(t => typeof t === 'string'))
-  ) {
-    console.warn("isValidItem: 'tags' is present but invalid.", item);
-    return false;
+  if (obj.tags !== undefined) {
+    if (!Array.isArray(obj.tags) || !obj.tags.every(t => typeof t === 'string')) {
+      console.warn("isValidItem: 'tags' is present but invalid.", item);
+      return false;
+    }
+    const normalized = normalizeTags(obj.tags);
+    if (normalized) obj.tags = normalized;
+    else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
   }
   if (obj.holderId !== undefined && (typeof obj.holderId !== 'string' || obj.holderId.trim() === '')) {
     console.warn("isValidItem: 'holderId' is present but invalid.", item);
