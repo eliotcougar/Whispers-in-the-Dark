@@ -1,6 +1,5 @@
 
 ## First of all
-  - IMPORTANT: pull the commits to avoid working on outdated code.
   - CRITICALLY IMPORTANT: ALWAYS exclude /dist/* and /node_modules/* from grep and other lookup and search commands.
 
 ## Testing
@@ -64,6 +63,7 @@ ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,
 - Limit template and arithmetic expressions to compatible types. (`@typescript-eslint/restrict-template-expressions`, `@typescript-eslint/restrict-plus-operands`)
 - Use dot notation whenever possible. (`@typescript-eslint/dot-notation`)
 - Hooks must follow the rules of hooks. (`react-hooks/rules-of-hooks`)
+- Using console.log() for debug logging is okay at this stage of development.
 
 ## Reference
  - Read `ARCHITECTURE.md` for a general overview of the codebase structure.
