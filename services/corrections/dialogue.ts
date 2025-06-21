@@ -95,7 +95,7 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
         `fetchCorrectedDialogueSetup_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected dialogueSetup payload invalid. Response:`,
         aiResponse,
       );
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`fetchCorrectedDialogueSetup_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
@@ -174,7 +174,7 @@ Respond ONLY with the corrected JSON object.`;
           `fetchCorrectedDialogueTurn_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned empty response.`,
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchCorrectedDialogueTurn_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,

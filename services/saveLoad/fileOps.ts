@@ -20,7 +20,7 @@ export const saveGameStateToFile = (gameState: FullGameState): void => {
     const dataToSave = prepareGameStateForSaving(gameState);
     const jsonString = JSON.stringify(dataToSave, null, 2);
     triggerDownload(jsonString, `WhispersInTheDark_Save_V${CURRENT_SAVE_GAME_VERSION}_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error saving game state to file:', error);
     alert('An error occurred while preparing your game data for download.');
   }
@@ -45,7 +45,7 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
         }
         console.warn('File save data is invalid or version mismatch for V3. Not loading.');
         resolve(null);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error loading game state from file:', error);
         resolve(null);
       }

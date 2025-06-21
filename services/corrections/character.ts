@@ -113,7 +113,7 @@ Constraints:
         `fetchCorrectedCharacterDetails_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected details for "${characterName}" invalid or incomplete. Response:`,
         aiResponse,
       );
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchCorrectedCharacterDetails_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
@@ -195,7 +195,7 @@ Example Response: If unclear from context, respond with a generic but plausible 
           `fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for preciseLocation of "${characterName}". Received: null`,
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         `fetchCorrectedCompanionOrNPCLocation_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,

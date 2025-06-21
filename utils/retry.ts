@@ -23,7 +23,7 @@ export const retryAiCall = async <T>(
       const { result, retry = true } = await callback(attempt);
       if (result !== null) return result;
       if (!retry) return null;
-    } catch (error) {
+    } catch (error: unknown) {
       if (!isServerOrClientError(error)) throw error;
     }
     if (attempt === MAX_RETRIES) break;
