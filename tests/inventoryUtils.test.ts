@@ -14,6 +14,22 @@ describe('inventoryUtils', () => {
     expect(result[0].name).toBe('Torch');
   });
 
+  it('gain page item preserves contentLength', () => {
+    const change: ItemChange = {
+      action: 'gain',
+      item: {
+        id: 'pg1',
+        name: 'Torn Note',
+        type: 'page',
+        description: 'A scrap of paper',
+        holderId: PLAYER_HOLDER_ID,
+        contentLength: 25,
+      },
+    };
+    const result = applyItemChangeAction([], change);
+    expect(result[0].contentLength).toBe(25);
+  });
+
   it('buildItemChangeRecords returns gain record', () => {
     const change: ItemChange = {
       action: 'gain',

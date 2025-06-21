@@ -61,6 +61,7 @@ If neither appliesWhen... field is given, use always shown. If both, applies if 
   "activeDescription?": "string",
   "isActive?": boolean,
   "tags?": ["junk"],
+  "contentLength?": number,
   "knownUses?": [ ],
   "newName?": "string",
   "addKnownUse?": { }
@@ -75,6 +76,7 @@ If neither appliesWhen... field is given, use always shown. If both, applies if 
   - Provide "name", "type", "description" for the gained item. These MUST be non-empty.
   - Choose "type" from: ${VALID_ITEM_TYPES_STRING}. The 'type' CANNOT be 'junk'. If the item is junk, add "junk" to its "tags" array and pick a suitable type.
   - "isActive" defaults to false. The "tags" array defaults to []. "status effect" items can never have the "junk" tag.
+  - For items with type "page", provide a numeric "contentLength" (20-100 words expected).
   - "knownUses" is optional.
   - The "newName" and "addKnownUse" fields should NOT be used for "gain".
   ${knownUseStructureGuide}`;
@@ -84,13 +86,14 @@ If neither appliesWhen... field is given, use always shown. If both, applies if 
 The "name" field in the corrected JSON **MUST** be the *original name* of item being updated. If this original name is unclear from malformed payload, infer it from Log/Scene, ideally referencing "${originalItemNameFromMalformed}".
 Instructions for "update":
 1.  **Simple Update (No Transformation):** If the malformed payload does NOT contain a "newName" AND the Log/Scene context does NOT clearly indicate the item is transforming into something else:
-    -   Only include fields ("type", "description", "isActive", "tags", "knownUses", "addKnownUse") if they are being explicitly changed or were present in the original payload.
+    -   Only include fields ("type", "description", "isActive", "tags", "contentLength", "knownUses", "addKnownUse") if they are being explicitly changed or were present in the original payload.
     -   If "type" or "description" are not provided, the item's existing values will be retained.
     -   If "type" is provided, it must be from ${VALID_ITEM_TYPES_STRING} and CANNOT be 'junk'. If the item becomes junk, ensure "tags" includes "junk".
 2.  **Transformation (Using "newName"):** If the malformed payload contains a "newName" OR the context clearly indicates a transformation:
     -   The corrected payload MUST include the "newName" field.
     -   Optionally include "type" and "description" if they change; otherwise they will be inherited.
     -   If "type" is provided, it must be from ${VALID_ITEM_TYPES_STRING} and CANNOT be 'junk'. If the new item is junk, ensure "tags" includes "junk".
+    -   If the resulting type is "page", include or update "contentLength" if available.
 3.  **Known Uses:**
     -   "knownUses" replaces all existing known uses if provided.
     -   "addKnownUse" adds or updates a single known use.

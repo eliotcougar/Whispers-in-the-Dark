@@ -33,6 +33,7 @@ Structure for individual ItemChange objects within the array:
       "activeDescription"?: "The lantern is lit and casts a warm glow.", /* Optional: Description when the item is active. REQUIRED for toggle-able items.*/
       "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
       "tags"?: ["junk"], /* Optional: array of short tags describing the item. Include "junk" if the item is unimportant or has served its ONLY purpose. IMPORTANT: "status effects" can never have the "junk" tag. */
+      "contentLength"?: 30, /* Optional: Approximate word count for page items. */
       "knownUses"?: /* Optional: Array of KnownUse objects describing how the item can be used. If not provided, the item has no known uses yet.
         [
           { 

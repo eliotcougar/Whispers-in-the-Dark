@@ -61,6 +61,16 @@ Examples illustrating the hint style:
     "holderId": "char_guard_4f3a"
   }]
 
+- Example for a short page item:
+  playerItemsHint: "Found Torn Note."
+  newItems: [{
+    "name": "Torn Note",
+    "type": "page",
+    "description": "A hastily scribbled message.",
+    "contentLength": 20,
+    "holderId": "player"
+  }]
+
 - Example for losing, destroying, completely removing the item:
   playerItemsHint: "Lost Old Lantern (flickering)."
 
