@@ -32,18 +32,23 @@ body {
   background-color: #0c140a;
   color: #00ff90;
   font-family: "VT323", monospace;
+  font-size: 1.5rem !important; /* Slightly smaller for digital feel */
 }
 
 .tag-handwritten-foreign {
   font-family: "Gloria Hallelujah", cursive;
+  background-color: #f5deb3;
 }
 
 .tag-typed-foreign {
   font-family: "IBM Plex Serif", serif;
+  background-color: #f5deb3;
 }
 
 .tag-digital-foreign {
   font-family: "Press Start 2P", monospace;
+  color: #5058ac !important;
+  background-color: #0c140a;
 }
 
 .tag-faded {
@@ -71,11 +76,12 @@ body {
 }
 
 .tag-foreign {
-  color: #4b3621;
+  color: #212553;
 }
 
 .tag-runic {
-  color: #4b3621;
+  color: #2b2016;
+  background-color: #aa8a4e;
   font-family: "Noto Sans Runic", sans-serif;
 }
 
