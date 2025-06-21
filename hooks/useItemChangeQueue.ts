@@ -68,7 +68,7 @@ const areItemsEffectivelyIdentical = (
     item1.description !== item2.description ||
     (item1.activeDescription ?? '') !== (item2.activeDescription ?? '') ||
     (item1.isActive ?? false) !== (item2.isActive ?? false) ||
-    (item1.isJunk ?? false) !== (item2.isJunk ?? false)
+    JSON.stringify(item1.tags ?? []) !== JSON.stringify(item2.tags ?? [])
   ) {
     return false;
   }

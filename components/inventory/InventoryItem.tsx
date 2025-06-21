@@ -60,7 +60,7 @@ function InventoryItem({
         {displayDescription}
       </p>
 
-      {item.isJunk ? (
+      {item.tags?.includes('junk') ? (
         <p className="text-xs text-orange-400 mb-1 italic">
           (Marked as junk)
         </p>
@@ -133,7 +133,7 @@ function InventoryItem({
           />
         )}
 
-        {item.isJunk && !isConfirmingDiscard ? (
+        {item.tags?.includes('junk') && !isConfirmingDiscard ? (
           <Button
             ariaLabel={`Discard ${item.name}`}
             data-item-name={item.name}
@@ -155,7 +155,7 @@ function InventoryItem({
           />
         ) : null}
 
-        {!item.isJunk && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
+        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
           <Button
             ariaLabel={`Drop ${item.name}`}
             data-item-name={item.name}
@@ -168,7 +168,7 @@ function InventoryItem({
           />
         )}
 
-        {!item.isJunk && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
+        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
           <Button
             ariaLabel={`Park ${item.name} here`}
             data-item-name={item.name}
@@ -188,7 +188,7 @@ function InventoryItem({
               data-item-name={item.name}
               disabled={disabled}
               key={`${item.name}-confirm-drop`}
-              label={item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
+              label={item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.tags?.includes('junk') ? 'Confirm Discard' : 'Confirm Drop'}
               onClick={onConfirmDrop}
               preset="red"
               size="sm"

@@ -19,7 +19,7 @@ Each object in "newItems" should include:
     "description": "Short description",
     "activeDescription"?: "When active",
     "isActive"?: false,
-    "isJunk"?: false,
+    "tags"?: ["junk"],
     "knownUses"?: [
       {
         "actionName": "Action text",
@@ -40,7 +40,7 @@ Examples illustrating the hint style:
     "description": "A dusty old lantern that still flickers faintly.",
     "activeDescription": "The lantern is lit and casts a warm glow.",
     "isActive": false,
-    "isJunk": false,
+    "tags": [],
     "knownUses": [
       {
         "actionName": "Light the Lantern",
@@ -61,6 +61,16 @@ Examples illustrating the hint style:
     "holderId": "char_guard_4f3a"
   }]
 
+- Example for a short page item:
+  playerItemsHint: "Found Torn Note."
+  newItems: [{
+    "name": "Torn Note",
+    "type": "page",
+    "description": "A hastily scribbled message.",
+    "contentLength": 20,
+    "holderId": "player"
+  }]
+
 - Example for losing, destroying, completely removing the item:
   playerItemsHint: "Lost Old Lantern (flickering)."
 
@@ -79,7 +89,7 @@ Examples illustrating the hint style:
     "name": "Makeshift Shiv",
     "type": "weapon",
     "description": "A sharp piece of metal.",
-    "isJunk": false,
+    "tags": [],
     "knownUses": [
       {
         "actionName": "Cut",

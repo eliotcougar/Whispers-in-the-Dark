@@ -32,7 +32,8 @@ Structure for individual ItemChange objects within the array:
       "holderId": "player", /* REQUIRED: ID of the character or map node that will hold the item. Use "player" for Player's inventory, or a specific NPC ID for their inventory. */
       "activeDescription"?: "The lantern is lit and casts a warm glow.", /* Optional: Description when the item is active. REQUIRED for toggle-able items.*/
       "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
-      "isJunk"?: false, /* Optional: true if the item is largely unimportant or has served its ONLY purpose (e.g., a used quest item, common debris). Defaults to false if not provided. IMPORTANT: "status effects" can never be marked as junk. */
+      "tags"?: ["junk"], /* Optional: array of short tags describing the item. Include "junk" if the item is unimportant or has served its ONLY purpose. IMPORTANT: "status effects" can never have the "junk" tag. */
+      "contentLength"?: 30, /* Optional: Approximate word count for page items. */
       "knownUses"?: /* Optional: Array of KnownUse objects describing how the item can be used. If not provided, the item has no known uses yet.
         [
           { 
@@ -91,7 +92,7 @@ Structure for individual ItemChange objects within the array:
       "newName": "Makeshift Shiv", /* REQUIRED: New name for the transformed item, e.g., "Makeshift Shiv" */
       "type": "weapon", /* Optional: New type for the transformed item if it changes. MUST be one of ${VALID_ITEM_TYPES_STRING} */
       "description": "A sharp piece of metal.", /* Optional: New description for the transformed item if it changes. */
-      "isJunk"?: false /* Optional: Set to true if the item becomes junk, false if it becomes important again. Defaults to false if not provided. IMPORTANT: "status effects" can never be marked as junk. */
+      "tags"?: ["junk"] /* Optional: Update the tags array. Include "junk" to mark the item as junk, remove it if the item becomes important again. IMPORTANT: "status effects" can never have the "junk" tag. */
       "knownUses"?: [
         { 
           "actionName": "Cut", /* REQUIRED: User-facing text for the action button. */

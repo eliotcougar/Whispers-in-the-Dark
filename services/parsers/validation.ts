@@ -91,8 +91,11 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     console.warn("isValidItem: 'isActive' is present but invalid.", item);
     return false;
   }
-  if (obj.isJunk !== undefined && typeof obj.isJunk !== 'boolean') {
-    console.warn("isValidItem: 'isJunk' is present but invalid.", item);
+  if (
+    obj.tags !== undefined &&
+    (!Array.isArray(obj.tags) || !obj.tags.every(t => typeof t === 'string'))
+  ) {
+    console.warn("isValidItem: 'tags' is present but invalid.", item);
     return false;
   }
   if (obj.holderId !== undefined && (typeof obj.holderId !== 'string' || obj.holderId.trim() === '')) {
