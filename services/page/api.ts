@@ -8,7 +8,13 @@ export const generatePageText = async (
   itemName: string,
   itemDescription: string,
   length: number,
-  context: string,
+  themeName: string,
+  themeDescription: string,
+  sceneDescription: string,
+  storytellerThoughts: string,
+  knownPlaces: string,
+  knownCharacters: string,
+  currentQuest: string | null,
   extraInstruction = '',
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
@@ -16,12 +22,24 @@ export const generatePageText = async (
     return null;
   }
 
+  const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
+  const thoughtsLine = storytellerThoughts
+    ? `Last Narrator Thoughts: "${storytellerThoughts}"`
+    : '';
   const prompt = `You are providing the exact contents of a written item.
   Item: "${itemName}"
   Description: "${itemDescription}"
   Approximate length: ${String(length)} words. Generate as close to this length as possible.
-  Context:
-  ${context}
+
+  Theme Name: "${themeName}"
+  Theme Description: "${themeDescription}"
+  Scene Description: "${sceneDescription}"
+  ${questLine}
+  ${thoughtsLine}
+  Known Locations:
+  ${knownPlaces}
+  Known Characters:
+  ${knownCharacters}
 
   Write the text in the item in a proper contextually relevant style.
   ${extraInstruction ? ` ${extraInstruction}` : ''}
