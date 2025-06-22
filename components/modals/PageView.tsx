@@ -211,10 +211,10 @@ function PageView({
         ) : null}
 
         {item?.tags?.includes('recovered') && item.actualContent ? (
-          <div className="flex justify-center mb-2">
+          <div className="flex justify-center">
             <Button
               ariaLabel={showDecoded ? 'Show encoded text' : 'Show decoded text'}
-              label={showDecoded ? 'Hide Translation' : 'Show Translation'}
+              label={showDecoded ? 'Hide' : 'Reveal'}
               onClick={handleToggleDecoded}
               preset={showDecoded ? 'sky' : 'slate'}
               pressed={showDecoded}

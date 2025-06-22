@@ -25,10 +25,28 @@ body {
   font-size: 1.5rem !important;
 }
 
+.tag-handwritten strong {
+  color: #7f1d1d;
+  font-size: 1.75rem !important;
+}
+
+.tag-handwritten em {
+  color: #0e124b;
+  text-decoration: underline;
+}
+
 .tag-typed {
   background-color: #f5deb3;
-  color: #1a1a1a;
+  color: #333333;
   font-family: "Special Elite";
+}
+
+.tag-typed strong {
+  color: #000000;
+}
+
+.tag-typed em {
+  text-decoration: wavy underline;
 }
 
 .tag-digital {
@@ -71,7 +89,7 @@ body {
 
 .tag-glitching {
   color: #00ff90;
-  text-shadow: 0 0 2px #0ff;
+  text-shadow: 1px 2px 0 rgb(255, 0, 255), -8px -9px 0 rgb(0, 225, 255) , 3px -5px 0 rgb(0, 255, 0);
 }
 
 .tag-encrypted {
