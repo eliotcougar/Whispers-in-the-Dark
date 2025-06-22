@@ -16,6 +16,7 @@ export const generatePageText = async (
   knownCharacters: string,
   currentQuest: string | null,
   extraInstruction = '',
+  previousChapterText?: string,
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error('generatePageText: API key not configured.');
@@ -24,7 +25,10 @@ export const generatePageText = async (
 
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
   const thoughtsLine = storytellerThoughts
-    ? `Last Narrator Thoughts: "${storytellerThoughts}"`
+    ? storytellerThoughts
+    : '';
+  const previousChapterLine = previousChapterText
+    ? previousChapterText
     : '';
   const prompt = `You are a writer providing the exact contents of a written item in a video game.
   **Context:**
@@ -38,6 +42,9 @@ export const generatePageText = async (
   ${knownPlaces}
   Known Characters:
   ${knownCharacters}
+
+  Previous Chapter:
+  ${previousChapterLine}
 
 ------
 
