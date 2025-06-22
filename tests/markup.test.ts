@@ -11,6 +11,15 @@ describe('applyBasicMarkup', () => {
       .join('');
     expect(html).toBe('<p>Hello <strong>World</strong></p><p>Second <em>line</em></p>');
   });
+
+  it('formats bullet lists', () => {
+    const text = '* First\n* Second **bold**';
+    const nodes = applyBasicMarkup(text);
+    const html = nodes
+      .map(n => renderToStaticMarkup(n as React.ReactElement))
+      .join('');
+    expect(html).toBe('<ul class="list-disc list-inside ml-4 space-y-1"><li>First</li><li>Second <strong>bold</strong></li></ul>');
+  });
 });
 
 export default {};
