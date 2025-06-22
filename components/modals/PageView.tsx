@@ -40,7 +40,7 @@ function PageView({
 
   const chapters = useMemo(() => {
     if (!item) return [];
-    if (item.type === 'book' && item.chapters) return item.chapters;
+    if (item.chapters && item.chapters.length > 0) return item.chapters;
     return [
       {
         heading: item.name,
@@ -154,7 +154,7 @@ function PageView({
       return;
     }
 
-    const idx = item.type === 'book' ? chapterIndex - 1 : 0;
+    const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
     const chapter = chapters[idx];
 
     if (chapter.visibleContent) {
@@ -224,16 +224,10 @@ function PageView({
 
   const displayedText = useMemo(() => {
     if (!item) return text;
-    if (item.type === 'book') {
-      const idx = chapterIndex - 1;
-      const chapter = chapters[idx];
-      if (showDecoded && chapter.actualContent) {
-        return chapter.actualContent;
-      }
-      return text;
-    }
-    if (showDecoded && item.actualContent) {
-      return item.actualContent;
+    const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    const chapter = chapters[idx];
+    if (showDecoded && chapter.actualContent) {
+      return chapter.actualContent;
     }
     return text;
   }, [showDecoded, item, text, chapterIndex, chapters]);

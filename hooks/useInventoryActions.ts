@@ -133,13 +133,14 @@ export const useInventoryActions = ({
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item => {
         if (item.id !== id) return item;
-        if (typeof chapterIndex === 'number' && item.chapters) {
-          const updatedChapters = item.chapters.map((ch, idx) =>
-            idx === chapterIndex ? { ...ch, actualContent: actual, visibleContent: visible } : ch
+        if (item.chapters) {
+          const idx = typeof chapterIndex === 'number' ? chapterIndex : 0;
+          const updatedChapters = item.chapters.map((ch, cIdx) =>
+            cIdx === idx ? { ...ch, actualContent: actual, visibleContent: visible } : ch
           );
           return { ...item, chapters: updatedChapters };
         }
-        return { ...item, actualContent: actual, visibleContent: visible };
+        return item;
       });
       commitGameState(draftState);
     },

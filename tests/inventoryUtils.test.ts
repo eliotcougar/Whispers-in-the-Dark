@@ -27,7 +27,7 @@ describe('inventoryUtils', () => {
       },
     };
     const result = applyItemChangeAction([], change);
-    expect(result[0].contentLength).toBe(25);
+    expect(result[0].chapters?.[0].contentLength).toBe(25);
   });
 
   it('buildItemChangeRecords returns gain record', () => {

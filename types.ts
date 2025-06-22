@@ -36,6 +36,14 @@ export interface KnownUse {
   appliesWhenInactive?: boolean; // If true, this use is shown when item.isActive is false (or undefined)
 }
 
+export interface ItemChapter {
+  heading: string;
+  description: string;
+  contentLength: number;
+  actualContent?: string;
+  visibleContent?: string;
+}
+
 export interface Item {
   id: string;
   name: string;
@@ -46,16 +54,18 @@ export interface Item {
   knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
   tags?: Array<ItemTag>; // Tags for classification, e.g., ["junk"]
   holderId: string; // ID of the entity holding this item or 'player'
-  contentLength?: number; // Approximate text length for page items
-  actualContent?: string; // Stored content once generated
-  visibleContent?: string; // Player-facing version of the content
-  chapters?: Array<{
-    heading: string;
-    description: string;
-    contentLength: number;
-    actualContent?: string;
-    visibleContent?: string;
-  }>;
+  /**
+   * Text content for written items.
+   *
+   * For both 'page' and 'book' items, use the `chapters` array.
+   * Page items should contain a single chapter object in this array.
+   */
+  chapters?: Array<ItemChapter>;
+  // The following fields are kept for compatibility with older saves and will
+  // be migrated into `chapters` when loading.
+  contentLength?: number;
+  actualContent?: string;
+  visibleContent?: string;
   // --- Fields for "update" action payloads ---
   newName?: string;
   addKnownUse?: KnownUse;
