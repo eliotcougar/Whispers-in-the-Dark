@@ -320,7 +320,7 @@ function App() {
           visibleContent: entry.text,
         } as ItemChapter;
         gameLogic.addJournalEntry(item.id, chapter);
-        openPageView(item.id, (item.chapters?.length ?? 0) + 1);
+        openPageView(item.id, item.chapters?.length ?? 0);
       }
     })();
   }, [allCharacters, currentTheme, currentScene, gameLogic, mapData.nodes, mainQuest, openPageView, lastDebugPacket]);

@@ -42,7 +42,9 @@ function PageView({
 
   const chapters = useMemo(() => {
     if (!item) return [];
-    if (item.chapters && item.chapters.length > 0) return item.chapters;
+    if (item.chapters && (item.chapters.length > 0 || item.type === 'journal')) {
+      return item.chapters;
+    }
     return [
       {
         heading: item.name,
@@ -173,6 +175,10 @@ function PageView({
     }
 
     const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    if (idx < 0 || idx >= chapters.length) {
+      setText(null);
+      return;
+    }
     const chapter = chapters[idx];
 
     if (chapter.visibleContent) {
