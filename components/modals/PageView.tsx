@@ -313,7 +313,7 @@ function PageView({
         ) : item?.type === 'book' && chapterIndex === 0 ? (
           <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
-              <li key={ch.heading}>{`${String(idx + 1)}. ${ch.heading} - ${ch.description}`}</li>
+              <p key={ch.heading}>{`${String(idx + 1)}. ${ch.heading}`}</p>
             ))}
           </ul>
         ) : displayedText ? (
