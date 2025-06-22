@@ -95,7 +95,10 @@ function PageView({
   const textClassNames = useMemo(() => {
     const tags = item?.tags ?? [];
     const classes: Array<string> = [];
-    const showActual = showDecoded && item?.actualContent;
+
+    const idx = item?.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    const chapter = chapters.at(idx);
+    const showActual = showDecoded && Boolean(chapter?.actualContent);
     const hasForeign = !showActual && tags.includes('foreign');
 
     if (tags.includes('handwritten')) {
@@ -123,7 +126,7 @@ function PageView({
     if (tags.includes('recovered')) classes.push('tag-recovered');
 
     return classes.join(' ');
-  }, [item, showDecoded]);
+  }, [item, showDecoded, chapterIndex, chapters]);
 
 
   const knownPlaces = useMemo(() => {
