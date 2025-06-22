@@ -6,6 +6,7 @@ import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
 import { generatePageText } from '../../services/page';
+import { applyBasicMarkup } from '../../utils/markup';
 
 interface PageViewProps {
   readonly item: Item | null;
@@ -210,10 +211,10 @@ function PageView({
         ) : null}
 
         {item?.tags?.includes('recovered') && item.actualContent ? (
-          <div className="flex justify-center mb-2">
+          <div className="flex justify-center">
             <Button
               ariaLabel={showDecoded ? 'Show encoded text' : 'Show decoded text'}
-              label={showDecoded ? 'Hide Translation' : 'Show Translation'}
+              label={showDecoded ? 'Hide' : 'Reveal'}
               onClick={handleToggleDecoded}
               preset={showDecoded ? 'sky' : 'slate'}
               pressed={showDecoded}
@@ -226,10 +227,8 @@ function PageView({
         {isLoading ? (
           <LoadingSpinner loadingReason="page" />
         ) : displayedText ? (
-          <div
-            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames}`}
-          >
-            {displayedText}
+          <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames}`}>
+            {applyBasicMarkup(displayedText)}
           </div>
         ) : null}
       </div>
