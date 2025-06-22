@@ -50,6 +50,8 @@ export const MAIN_TURN_OPTIONS_COUNT = 6; // Number of action choices shown each
 export const FREE_FORM_ACTION_MAX_LENGTH = 70;
 export const FREE_FORM_ACTION_COST = 5;
 
+export const JOURNAL_WRITE_COOLDOWN = 5; // Turns before a journal can be written again
+
 export const VALID_ITEM_TYPES = [
   'single-use', 'multi-use', 'equipment',
   'container', 'key', 'weapon', 'ammunition', 'vehicle', 'knowledge', 'status effect', 'page', 'journal', 'book'

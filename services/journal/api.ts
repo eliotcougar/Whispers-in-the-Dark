@@ -53,7 +53,7 @@ export const generateJournalEntry = async (
   
   ------
 
-  Return a JSON object {"heading": "", "text": ""} describing a new short entry of about 50 words.`;
+  Return a JSON object {"heading": "", "text": ""} describing a new short journal entry of about 100 words.`;
   const systemInstruction = 'Provide only the JSON for the new journal entry.';
 
   return retryAiCall<GeneratedJournalEntry>(async attempt => {
@@ -63,7 +63,7 @@ export const generateJournalEntry = async (
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
-        temperature: 1.2,
+        temperature: 1.0,
         responseMimeType: 'application/json',
         label: 'Journal',
       });
