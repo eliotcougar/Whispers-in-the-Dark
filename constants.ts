@@ -59,10 +59,15 @@ export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`)
 
 export const COMMON_TAGS = ['junk', 'bloodstained', 'water-damaged', 'recovered'] as const;
 
-export const WRITING_TAGS = [
+export const TEXT_STYLE_TAGS = [
+  'printed',
   'handwritten',
   'typed',
   'digital',
+] as const;
+
+export const WRITING_TAGS = [
+  ...TEXT_STYLE_TAGS,
   'faded',
   'smudged',
   'torn',

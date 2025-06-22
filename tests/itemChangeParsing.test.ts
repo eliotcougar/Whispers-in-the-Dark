@@ -64,4 +64,28 @@ describe('parseInventoryResponse', () => {
       { action: 'put', item: { name: 'Lantern', type: 'equipment', description: 'Bright', holderId: 'node1' } },
     ]);
   });
+
+  it('adds printed tag when page item lacks style tags', () => {
+    const payload = {
+      itemChanges: [
+        {
+          action: 'gain',
+          item: {
+            name: 'Mysterious Note',
+            type: 'page',
+            description: 'An old piece of parchment',
+            holderId: PLAYER,
+          },
+        },
+      ],
+    };
+
+    const text = '```json\n' + JSON.stringify(payload) + '\n```';
+    const maybeRes = parseInventoryResponse(text);
+    if (!maybeRes) throw new Error('Failed to parse inventory response');
+    const res = maybeRes;
+
+    const item = res.itemChanges[0].item as { tags?: Array<string> };
+    expect(item.tags).toEqual(['printed']);
+  });
 });

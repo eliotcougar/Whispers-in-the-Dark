@@ -35,6 +35,20 @@ body {
   text-decoration: underline;
 }
 
+.tag-printed {
+  background-color: #f5deb3;
+  color: #1a1a1a;
+  font-family: "IBM Plex Serif", serif;
+}
+
+.tag-printed strong {
+  color: #000000;
+}
+
+.tag-printed em {
+  text-decoration: underline;
+}
+
 .tag-typed {
   background-color: #f5deb3;
   color: #333333;
@@ -62,6 +76,11 @@ body {
 }
 
 .tag-typed-foreign {
+  font-family: "IBM Plex Serif", serif;
+  background-color: #f5deb3;
+}
+
+.tag-printed-foreign {
   font-family: "IBM Plex Serif", serif;
   background-color: #f5deb3;
 }

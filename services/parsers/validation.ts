@@ -15,9 +15,20 @@ import {
   VALID_ITEM_TYPES,
   VALID_PRESENCE_STATUS_VALUES,
   VALID_TAGS,
+  TEXT_STYLE_TAGS,
 } from '../../constants';
 import { normalizeItemType } from '../../utils/itemSynonyms';
 import { normalizeTags } from '../../utils/tagSynonyms';
+
+const TEXT_STYLE_TAG_SET = new Set<string>(TEXT_STYLE_TAGS);
+
+function guessTextStyle(name: string, description: string): typeof TEXT_STYLE_TAGS[number] {
+  const text = `${name} ${description}`.toLowerCase();
+  if (/(handwritten|scribbled|ink|pen|quill)/.test(text)) return 'handwritten';
+  if (/(typewriter|typed)/.test(text)) return 'typed';
+  if (/(digital|screen|display|tablet|monitor|terminal)/.test(text)) return 'digital';
+  return 'printed';
+}
 
 export function isValidKnownUse(ku: unknown): ku is KnownUse {
   if (!ku || typeof ku !== 'object') return false;
@@ -104,6 +115,20 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     const normalized = normalizeTags(obj.tags);
     if (normalized) obj.tags = normalized;
     else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
+  }
+  if (obj.type === 'page') {
+    obj.tags = obj.tags ?? [];
+    const styleTags = obj.tags.filter(t => TEXT_STYLE_TAG_SET.has(t));
+    if (styleTags.length === 0) {
+      const guessed = guessTextStyle(obj.name, obj.description ?? '');
+      obj.tags.push(guessed);
+    } else if (styleTags.length > 1) {
+      const keep = styleTags[0];
+      obj.tags = [
+        ...obj.tags.filter(t => !TEXT_STYLE_TAG_SET.has(t)),
+        keep,
+      ];
+    }
   }
   if (obj.holderId !== undefined && (typeof obj.holderId !== 'string' || obj.holderId.trim() === '')) {
     console.warn("isValidItem: 'holderId' is present but invalid.", item);

@@ -2,7 +2,9 @@ const itemTagSynonyms = {
   tag: {
     "scribbled": "handwritten",
     "written by hand": "handwritten",
-    "printed": "typed",
+    "printed": "printed",
+    "printout": "printed",
+    "photocopied": "printed",
     "typed out": "typed",
     "digital display": "digital",
     "pixelated": "glitching",
