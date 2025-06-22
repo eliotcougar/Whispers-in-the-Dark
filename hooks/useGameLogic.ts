@@ -270,11 +270,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         currentFullState.mapData,
         currentFullState.currentMapNodeId
       );
-      const contextText = `${currentFullState.currentScene} ${currentFullState.lastActionLog ?? ''}`.toLowerCase();
-      const nearbyItems = currentFullState.inventory.filter(
-        i =>
-          adjIds.includes(i.holderId) &&
-          contextText.includes(i.name.toLowerCase())
+      const nearbyItems = currentFullState.inventory.filter(i =>
+        adjIds.includes(i.holderId)
       );
       const combined = [...atCurrent];
       nearbyItems.forEach(it => {
@@ -285,8 +282,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       currentFullState.currentMapNodeId,
       currentFullState.inventory,
       currentFullState.mapData,
-      currentFullState.currentScene,
-      currentFullState.lastActionLog,
     ]),
     itemPresenceByNode,
     gameLog: currentFullState.gameLog,
