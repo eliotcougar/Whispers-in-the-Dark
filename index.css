@@ -2,6 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Special+Elite&family=VT323&family=Gloria+Hallelujah&family=IBM+Plex+Serif&family=Press+Start+2P&family=Noto+Sans+Runic&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Oooh+Baby&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chokokutai&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Eagle+Lake&display=swap');
 
 body {
   font-family: "Georgia", serif; /* Thematic font */
@@ -81,14 +83,23 @@ body {
 }
 
 .tag-printed-foreign {
-  font-family: "IBM Plex Serif", serif;
+  font-family: "Eagle Lake", serif;
   background-color: #f5deb3;
 }
 
+.tag-printed-foreign strong {
+  color: #880000;
+}
+
+.tag-printed-foreign em {
+  color: #004400;
+  text-decoration: wavy underline;
+}
+
 .tag-digital-foreign {
-  font-family: "Press Start 2P", monospace;
-  color: #5058ac !important;
-  background-color: #0c140a;
+  font-family: "Chokokutai", system-ui;
+  color: #7880d6 !important;
+  background-color: #121f0f;
 }
 
 .tag-faded {
