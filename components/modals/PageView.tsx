@@ -78,7 +78,7 @@ function PageView({
   useEffect(() => {
     setShowDecoded(false);
     setChapterIndex(0);
-  }, [item, isVisible]);
+  }, [item?.id, isVisible]);
 
   /**
    * Close the view when clicking outside of the modal content.
