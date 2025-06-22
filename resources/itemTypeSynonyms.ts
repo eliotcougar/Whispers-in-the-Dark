@@ -15,7 +15,11 @@ const itemTypeSynonyms = {
     "note": "page",
     "scrap of paper": "page",
     "sheet": "page",
-    "page": "page"
+    "page": "page",
+    "tome": "book",
+    "volume": "book",
+    "journal": "book",
+    "book": "book"
   }
 };
 

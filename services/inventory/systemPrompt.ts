@@ -38,8 +38,8 @@ Structure for individual ItemChange objects within the array:
       "activeDescription"?: "The lantern is lit and casts a warm glow.", /* Optional: Description when the item is active. REQUIRED for toggle-able items.*/
       "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
       "tags"?: ["junk"], /* Optional: array of short tags describing the item. Valid tags: ${VALID_TAGS_STRING}. Include "junk" if the item is unimportant or has served its ONLY purpose. IMPORTANT: "status effects" can never have the "junk" tag. */
-      /* IMPORTANT: For items of type 'page', ALWAYS add one of the style tags from: 'printed', 'handwritten', 'typed', or 'digital'. Add condition tags like 'faded', 'torn', etc., when appropriate. Writing tags: ${WRITING_TAGS_STRING}. */
-      "contentLength"?: 30, /* REQUIRED only for type 'page' items. Approximate word count. */
+      /* IMPORTANT: For written items, ALWAYS add one of the style tags from: 'printed', 'handwritten', 'typed', or 'digital'. Add condition tags like 'faded', 'torn', etc., when appropriate. Writing tags: ${WRITING_TAGS_STRING}. */
+      "contentLength"?: 30, /* REQUIRED for type 'page' items. For 'book' items, each chapter has its own contentLength. */
       "knownUses"?: /* Optional: Array of KnownUse objects describing how the item can be used. If not provided, the item has no known uses yet.
         [
           { 

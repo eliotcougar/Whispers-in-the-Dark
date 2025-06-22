@@ -94,7 +94,7 @@ function InventoryItem({
           size="sm"
         />
 
-        {item.type === 'page' ? (
+        {item.type === 'page' || item.type === 'book' ? (
           <Button
             ariaLabel={`Read ${item.name}`}
             data-item-name={item.name}

@@ -52,7 +52,7 @@ export const FREE_FORM_ACTION_COST = 5;
 
 export const VALID_ITEM_TYPES = [
   'single-use', 'multi-use', 'equipment',
-  'container', 'key', 'weapon', 'ammunition', 'vehicle', 'knowledge', 'status effect', 'page'
+  'container', 'key', 'weapon', 'ammunition', 'vehicle', 'knowledge', 'status effect', 'page', 'book'
 ] as const; // 'as const' makes it a tuple of string literals
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
@@ -105,7 +105,8 @@ export const LOADING_REASONS = [
   'initial_load',
   'reality_shift_load',
   'visualize',
-  'page'
+  'page',
+  'book'
 ] as const;
 
 export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { text: string; icon: string }> = {
@@ -120,7 +121,8 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   initial_load: { text: 'Loading...', icon: '▒▒' },
   reality_shift_load: { text: 'Reality is shifting...', icon: '▒▒' },
   visualize: { text: 'Visualizing the scene...', icon: '▒▒' },
-  page: { text: 'Reading...', icon: '░░' }
+  page: { text: 'Reading...', icon: '░░' },
+  book: { text: 'Reading...', icon: '░░' }
 };
 
 // Centralized map node/edge valid values
