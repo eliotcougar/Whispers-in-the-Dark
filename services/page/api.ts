@@ -24,12 +24,8 @@ export const generatePageText = async (
   }
 
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
-  const thoughtsLine = storytellerThoughts
-    ? storytellerThoughts
-    : '';
-  const previousChapterLine = previousChapterText
-    ? previousChapterText
-    : '';
+  const thoughtsLine = storytellerThoughts;
+  const previousChapterLine = previousChapterText ?? '';
   const prompt = `You are a writer providing the exact contents of a written item in a video game.
   **Context:**
   Theme Name: "${themeName}";
