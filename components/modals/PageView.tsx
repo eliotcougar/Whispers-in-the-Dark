@@ -60,9 +60,9 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
       if (tags.includes('glitching')) classes.push('tag-glitching');
       if (tags.includes('encrypted')) classes.push('tag-encrypted');
       if (tags.includes('foreign')) classes.push('tag-foreign');
-      if (tags.includes('gothic')) classes.push('tag-gothic');
-      if (tags.includes('runic')) classes.push('tag-runic');
     }
+    if (tags.includes('gothic')) classes.push('tag-gothic');
+    if (tags.includes('runic')) classes.push('tag-runic');
     if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
     if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
     if (tags.includes('recovered')) classes.push('tag-recovered');
