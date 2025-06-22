@@ -224,11 +224,21 @@ function PageView({
 
   const displayedText = useMemo(() => {
     if (!item) return text;
-    const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
-    const chapter = chapters[idx];
+
+    if (item.type === 'book') {
+      if (chapterIndex === 0) return text;
+      const chapter = chapters[chapterIndex - 1];
+      if (showDecoded && chapter.actualContent) {
+        return chapter.actualContent;
+      }
+      return text;
+    }
+
+    const chapter = chapters[chapterIndex];
     if (showDecoded && chapter.actualContent) {
       return chapter.actualContent;
     }
+
     return text;
   }, [showDecoded, item, text, chapterIndex, chapters]);
 
