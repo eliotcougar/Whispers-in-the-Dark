@@ -80,7 +80,10 @@ const tsCompat = compat.config({
     'react/jsx-sort-props': 'off',
     'react/sort-default-props': 'off',
     'react/forbid-component-props': 'off',
-    'react/function-component-definition': 'warn'
+    'react/function-component-definition': 'warn',
+    'react/jsx-max-props-per-line': 'off',
+    'react/jsx-one-expression-per-line': 'off',
+    'react/jsx-newline': 'off'
   }
 }).map(c => ({ ...c, files: ['**/*.{ts,tsx}'] }));
 
