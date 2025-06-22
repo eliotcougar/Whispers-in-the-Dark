@@ -27,7 +27,26 @@ export const generateJournalEntry = async (
   }
 
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
-  const prompt = `You are writing a new entry in the player's personal journal.\nContext:\nTheme Name: "${themeName}";\nTheme Description: "${themeDescription}";\nScene Description: "${sceneDescription}";\n${questLine};\nStoryteller's thoughts: "${storytellerThoughts}";\nKnown Locations:\n${knownPlaces}\nKnown Characters:\n${knownCharacters}\nPrevious Entry:\n${previousEntry}\nReturn a JSON object {"heading": "", "text": ""} describing a new short entry of about 50 words.`;
+  const prompt = `You are writing a new entry in the player's personal journal.
+  **Context:**
+  Theme Name: "${themeName}";
+  Theme Description: "${themeDescription}";
+  Scene Description: "${sceneDescription}";
+  ${questLine};
+
+  Known Locations:
+  ${knownPlaces}
+  Known Characters:
+  ${knownCharacters}
+  Previous Journal Entry:
+  ${previousEntry}
+  
+  Last events:
+  TODO: add a snippet of the last 10 Game Log entries here
+  
+  ------
+
+  Return a JSON object {"heading": "", "text": ""} describing a new short entry of about 50 words.`;
   const systemInstruction = 'Provide only the JSON for the new journal entry.';
 
   return retryAiCall<GeneratedJournalEntry>(async attempt => {
@@ -37,7 +56,7 @@ export const generateJournalEntry = async (
         modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
-        temperature: 1.1,
+        temperature: 1.2,
         responseMimeType: 'application/json',
         label: 'Journal',
       });

@@ -159,7 +159,7 @@ Examples illustrating the hint style:
 IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
-IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park" known uses - there are dedicated buttons for those in the game.
+IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park", "Read", "Write" known uses - there are dedicated buttons for those in the game.
 
 If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, mention it in "playerItemsHint".
 If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, mention it in "playerItemsHint".
