@@ -122,7 +122,7 @@ function PageView({
     if (tags.includes('runic')) classes.push('tag-runic');
     if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
     if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
-    if (tags.includes('recovered')) classes.push('tag-recovered');
+    if (!showActual && tags.includes('recovered')) classes.push('tag-recovered');
 
     return classes.join(' ');
   }, [item, showDecoded]);
