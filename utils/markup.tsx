@@ -68,8 +68,8 @@ export const applyBasicMarkup = (text: string): Array<ReactNode> => {
     const key = `ul-${String(level)}-${String(result.length)}`;
     const ul = (
       <ul
-        key={key}
         className="list-disc list-inside ml-4 space-y-1"
+        key={key}
       >
         {items}
       </ul>

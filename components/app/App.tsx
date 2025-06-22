@@ -723,9 +723,8 @@ function App() {
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allCharacters={allCharacters}
-        storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
-        currentQuest={mainQuest}
         currentMapNodeId={currentMapNodeId}
+        currentQuest={mainQuest}
         currentScene={currentScene}
         currentTheme={currentTheme}
         currentThemeName={currentTheme.name}
@@ -767,6 +766,7 @@ function App() {
         pageItem={pageItem}
         setGeneratedImage={setGeneratedImageCache}
         shiftConfirmOpen={shiftConfirmOpen}
+        storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
         themeHistory={themeHistory}
         updateItemContent={updateItemContent}
         visualizerImageScene={visualizerImageScene}
