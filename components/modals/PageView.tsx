@@ -39,6 +39,8 @@ function PageView({
   const [isLoading, setIsLoading] = useState(false);
   const [showDecoded, setShowDecoded] = useState(false);
   const [chapterIndex, setChapterIndex] = useState(startIndex);
+  const isBook = item?.type === 'book';
+  const isJournal = item?.type === 'journal';
 
   const chapters = useMemo(() => {
     if (!item) return [];
@@ -77,8 +79,13 @@ function PageView({
   }, []);
 
   const handleNextChapter = useCallback(() => {
-    setChapterIndex(i => Math.min(unlockedChapterCount, i + 1));
-  }, [unlockedChapterCount]);
+    setChapterIndex(i => {
+      if (isJournal) {
+        return Math.min(chapters.length - 1, i + 1);
+      }
+      return Math.min(unlockedChapterCount, i + 1);
+    });
+  }, [isJournal, chapters.length, unlockedChapterCount]);
 
   const handleSelectChapter = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -266,8 +273,8 @@ function PageView({
   }, [showDecoded, item, text, chapterIndex, chapters]);
 
   const pendingWrite = useMemo(
-    () => item?.type === 'journal' && chapterIndex === chapters.length,
-    [item?.type, chapterIndex, chapters.length]
+    () => isJournal && chapterIndex === chapters.length,
+    [isJournal, chapterIndex, chapters.length]
   );
 
   return (
@@ -342,8 +349,10 @@ function PageView({
               ariaLabel="Next chapter"
               disabled={
                 isLoading ||
-                chapterIndex >= unlockedChapterCount ||
-                chapterIndex === chapters.length
+                (isBook
+                  ? chapterIndex >= unlockedChapterCount ||
+                    chapterIndex === chapters.length
+                  : chapterIndex >= chapters.length - 1)
               }
               label="►"
               onClick={handleNextChapter}

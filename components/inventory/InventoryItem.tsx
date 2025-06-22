@@ -102,7 +102,11 @@ function InventoryItem({
           <Button
             ariaLabel={`Read ${item.name}`}
             data-item-name={item.name}
-            disabled={disabled || isConfirmingDiscard}
+            disabled={
+              disabled ||
+              isConfirmingDiscard ||
+              (item.type === 'journal' && (item.chapters?.length ?? 0) === 0)
+            }
             key={`${item.name}-read`}
             label="Read"
             onClick={onRead}
