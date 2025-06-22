@@ -122,7 +122,7 @@ function PageView({
     if (tags.includes('runic')) classes.push('tag-runic');
     if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
     if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
-    if (!showActual && tags.includes('recovered')) classes.push('tag-recovered');
+    if (showActual && tags.includes('recovered')) classes.push('tag-recovered');
 
     return classes.join(' ');
   }, [item, showDecoded]);
@@ -324,11 +324,11 @@ function PageView({
         {isLoading ? (
           <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
         ) : item?.type === 'book' && chapterIndex === 0 ? (
-          <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
+          <div className={`p-5 mt-4 overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
               <p key={ch.heading}>{`${String(idx + 1)}. ${ch.heading}`}</p>
             ))}
-          </ul>
+          </div>
         ) : displayedText ? (
           <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames}`}>
             {applyBasicMarkup(displayedText)}
