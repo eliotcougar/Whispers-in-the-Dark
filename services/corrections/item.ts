@@ -61,7 +61,13 @@ If neither appliesWhen... field is given, use always shown. If both, applies if 
   "activeDescription?": "string",
   "isActive?": boolean,
   "tags?": ["junk"],
-  "contentLength?": number,
+  "chapters"?: [
+    { 
+      "heading": "string",
+      "description": "string",
+      "contentLength": number
+    }
+  ]
   "knownUses?": [ ],
   "newName?": "string",
   "addKnownUse?": { }

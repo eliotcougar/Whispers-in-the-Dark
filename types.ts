@@ -49,6 +49,13 @@ export interface Item {
   contentLength?: number; // Approximate text length for page items
   actualContent?: string; // Stored content once generated
   visibleContent?: string; // Player-facing version of the content
+  chapters?: Array<{
+    heading: string;
+    description: string;
+    contentLength: number;
+    actualContent?: string;
+    visibleContent?: string;
+  }>;
   // --- Fields for "update" action payloads ---
   newName?: string;
   addKnownUse?: KnownUse;

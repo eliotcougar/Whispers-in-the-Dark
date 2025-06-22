@@ -18,7 +18,7 @@ interface PageViewProps {
   readonly currentQuest: string | null;
   readonly isVisible: boolean;
   readonly onClose: () => void;
-  readonly updateItemContent: (itemId: string, actual: string, visible: string) => void;
+  readonly updateItemContent: (itemId: string, actual: string, visible: string, chapterIndex?: number) => void;
 }
 
 function PageView({
@@ -36,6 +36,38 @@ function PageView({
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDecoded, setShowDecoded] = useState(false);
+  const [chapterIndex, setChapterIndex] = useState(0);
+
+  const chapters = useMemo(() => {
+    if (!item) return [];
+    if (item.type === 'book' && item.chapters) return item.chapters;
+    return [
+      {
+        heading: item.name,
+        description: item.description,
+        contentLength: item.contentLength ?? 30,
+        actualContent: item.actualContent,
+        visibleContent: item.visibleContent,
+      },
+    ];
+  }, [item]);
+
+
+
+  const handlePrevChapter = useCallback(() => {
+    setChapterIndex(i => Math.max(0, i - 1));
+  }, []);
+
+  const handleNextChapter = useCallback(() => {
+    setChapterIndex(i => Math.min(chapters.length, i + 1));
+  }, [chapters.length]);
+
+  const handleSelectChapter = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setChapterIndex(Number(e.target.value));
+    },
+    []
+  );
 
   const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
 
@@ -45,6 +77,7 @@ function PageView({
 
   useEffect(() => {
     setShowDecoded(false);
+    setChapterIndex(0);
   }, [item, isVisible]);
 
   /**
@@ -92,6 +125,7 @@ function PageView({
     return classes.join(' ');
   }, [item, showDecoded]);
 
+
   const knownPlaces = useMemo(() => {
     const nodes = mapData.nodes.filter(
       n =>
@@ -110,16 +144,46 @@ function PageView({
   }, [allCharacters, themeName]);
 
   useEffect(() => {
-    if (isVisible && item) {
-      if (item.visibleContent) {
-        setText(item.visibleContent);
-      } else {
-        setIsLoading(true);
-        void (async () => {
-          const length = item.contentLength ?? 30;
-          const actual = await generatePageText(
-            item.name,
-            item.description,
+    if (!isVisible || !item) {
+      setText(null);
+      return;
+    }
+
+    if (item.type === 'book' && chapterIndex === 0) {
+      setText(null);
+      return;
+    }
+
+    const idx = item.type === 'book' ? chapterIndex - 1 : 0;
+    const chapter = chapters[idx];
+
+    if (chapter.visibleContent) {
+      setText(chapter.visibleContent);
+      return;
+    }
+
+    setIsLoading(true);
+    void (async () => {
+      const length = chapter.contentLength;
+      const actual = await generatePageText(
+        chapter.heading,
+        chapter.description,
+        length,
+        themeName,
+        themeDescription,
+        currentScene,
+        storytellerThoughts,
+        knownPlaces,
+        knownCharacters,
+        currentQuest,
+        'Write it exclusively in English without any foreign, encrypted, or gibberish text.'
+      );
+      if (actual) {
+        let visible = actual;
+        if (item.tags?.includes('foreign')) {
+          const fake = await generatePageText(
+            chapter.heading,
+            chapter.description,
             length,
             themeName,
             themeDescription,
@@ -128,44 +192,26 @@ function PageView({
             knownPlaces,
             knownCharacters,
             currentQuest,
-            'Write it exclusively in English without any foreign, encrypted, or gibberish text.'
+            `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
           );
-          if (actual) {
-            let visible = actual;
-            if (item.tags?.includes('foreign')) {
-              const fake = await generatePageText(
-                item.name,
-                item.description,
-                length,
-                themeName,
-                themeDescription,
-                currentScene,
-                storytellerThoughts,
-                knownPlaces,
-                knownCharacters,
-                currentQuest,
-                `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
-              );
-              visible = fake ?? actual;
-            } else if (item.tags?.includes('encrypted')) {
-              visible = rot13(actual);
-            } else if (item.tags?.includes('gothic')) {
-              visible = toGothic(actual);
-            } else if (item.tags?.includes('runic')) {
-              visible = toRunic(actual);
-            }
-            updateItemContent(item.id, actual, visible);
-            setText(visible);
-          }
-          setIsLoading(false);
-        })();
+          visible = fake ?? actual;
+        } else if (item.tags?.includes('encrypted')) {
+          visible = rot13(actual);
+        } else if (item.tags?.includes('gothic')) {
+          visible = toGothic(actual);
+        } else if (item.tags?.includes('runic')) {
+          visible = toRunic(actual);
+        }
+        updateItemContent(item.id, actual, visible, idx);
+        setText(visible);
       }
-    } else {
-      setText(null);
-    }
+      setIsLoading(false);
+    })();
   }, [
     isVisible,
     item,
+    chapterIndex,
+    chapters,
     themeName,
     themeDescription,
     currentScene,
@@ -177,11 +223,20 @@ function PageView({
   ]);
 
   const displayedText = useMemo(() => {
-    if (showDecoded && item?.actualContent) {
+    if (!item) return text;
+    if (item.type === 'book') {
+      const idx = chapterIndex - 1;
+      const chapter = chapters[idx];
+      if (showDecoded && chapter.actualContent) {
+        return chapter.actualContent;
+      }
+      return text;
+    }
+    if (showDecoded && item.actualContent) {
       return item.actualContent;
     }
     return text;
-  }, [showDecoded, item, text]);
+  }, [showDecoded, item, text, chapterIndex, chapters]);
 
   return (
     <div
@@ -212,6 +267,39 @@ function PageView({
           </h2>
         ) : null}
 
+        {item?.type === 'book' ? (
+          <div className="flex justify-center items-center gap-2 mb-2">
+            <span className="font-mono">█ █ █</span>
+            <Button
+              ariaLabel="Previous chapter"
+              disabled={chapterIndex === 0}
+              label="◄"
+              onClick={handlePrevChapter}
+              preset="slate"
+              size="sm"
+            />
+            <select
+              aria-label="Select chapter"
+              className="bg-slate-800 text-white text-sm"
+              onChange={handleSelectChapter}
+              value={chapterIndex}
+            >
+              <option value={0}>ToC</option>
+              {chapters.map((ch, idx) => (
+                <option key={ch.heading} value={idx + 1}>{ch.heading}</option>
+              ))}
+            </select>
+            <Button
+              ariaLabel="Next chapter"
+              disabled={chapterIndex === chapters.length}
+              label="►"
+              onClick={handleNextChapter}
+              preset="slate"
+              size="sm"
+            />
+          </div>
+        ) : null}
+
         {item?.tags?.includes('recovered') && item.actualContent ? (
           <div className="flex justify-center">
             <Button
@@ -227,7 +315,13 @@ function PageView({
         ) : null}
 
         {isLoading ? (
-          <LoadingSpinner loadingReason="page" />
+          <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
+        ) : item?.type === 'book' && chapterIndex === 0 ? (
+          <ul className="p-5 mt-4 list-disc list-inside overflow-y-auto text-left">
+            {chapters.map((ch, idx) => (
+              <li key={ch.heading}>{`${String(idx + 1)}. ${ch.heading} - ${ch.description}`}</li>
+            ))}
+          </ul>
         ) : displayedText ? (
           <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames}`}>
             {applyBasicMarkup(displayedText)}

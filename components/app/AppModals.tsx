@@ -69,7 +69,7 @@ interface AppModalsProps {
   readonly onClosePage: () => void;
   readonly storytellerThoughts: string;
   readonly currentQuest: string | null;
-  readonly updateItemContent: (id: string, actual: string, visible: string) => void;
+  readonly updateItemContent: (id: string, actual: string, visible: string, chapterIndex?: number) => void;
 }
 
 function AppModals({

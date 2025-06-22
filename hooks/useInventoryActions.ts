@@ -128,12 +128,19 @@ export const useInventoryActions = ({
   );
 
   const updateItemContent = useCallback(
-    (id: string, actual: string, visible: string) => {
+    (id: string, actual: string, visible: string, chapterIndex?: number) => {
       const currentFullState = getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
-      draftState.inventory = draftState.inventory.map(item =>
-        item.id === id ? { ...item, actualContent: actual, visibleContent: visible } : item
-      );
+      draftState.inventory = draftState.inventory.map(item => {
+        if (item.id !== id) return item;
+        if (typeof chapterIndex === 'number' && item.chapters) {
+          const updatedChapters = item.chapters.map((ch, idx) =>
+            idx === chapterIndex ? { ...ch, actualContent: actual, visibleContent: visible } : ch
+          );
+          return { ...item, chapters: updatedChapters };
+        }
+        return { ...item, actualContent: actual, visibleContent: visible };
+      });
       commitGameState(draftState);
     },
     [commitGameState]
