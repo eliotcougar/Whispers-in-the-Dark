@@ -52,6 +52,15 @@ function PageView({
     ];
   }, [item]);
 
+  const unlockedChapterCount = useMemo(() => {
+    if (!item || item.type !== 'book') return chapters.length;
+    let idx = 0;
+    for (; idx < chapters.length; idx += 1) {
+      if (!chapters[idx].actualContent) break;
+    }
+    return Math.min(chapters.length, idx + 1);
+  }, [chapters, item]);
+
 
 
   const handlePrevChapter = useCallback(() => {
@@ -59,14 +68,17 @@ function PageView({
   }, []);
 
   const handleNextChapter = useCallback(() => {
-    setChapterIndex(i => Math.min(chapters.length, i + 1));
-  }, [chapters.length]);
+    setChapterIndex(i => Math.min(unlockedChapterCount, i + 1));
+  }, [unlockedChapterCount]);
 
   const handleSelectChapter = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setChapterIndex(Number(e.target.value));
+      const value = Number(e.target.value);
+      if (value <= unlockedChapterCount) {
+        setChapterIndex(value);
+      }
     },
-    []
+    [unlockedChapterCount]
   );
 
   const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
@@ -286,13 +298,13 @@ function PageView({
               value={chapterIndex}
             >
               <option value={0}>ToC</option>
-              {chapters.map((ch, idx) => (
+              {chapters.slice(0, unlockedChapterCount).map((ch, idx) => (
                 <option key={ch.heading} value={idx + 1}>{ch.heading}</option>
               ))}
             </select>
             <Button
               ariaLabel="Next chapter"
-              disabled={chapterIndex === chapters.length}
+              disabled={isLoading || chapterIndex >= unlockedChapterCount || chapterIndex === chapters.length}
               label="►"
               onClick={handleNextChapter}
               preset="slate"
