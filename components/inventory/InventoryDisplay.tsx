@@ -17,10 +17,11 @@ interface InventoryDisplayProps {
   ) => void;
   readonly onDropItem: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
+  readonly onWriteJournal: (item: Item) => void;
   readonly disabled: boolean;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWriteJournal, disabled }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemNames,
@@ -36,8 +37,9 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, disab
     handleGenericUse,
     handleVehicleToggle,
     handleRead,
+    handleWrite,
     getApplicableKnownUses,
-  } = useInventoryDisplay({ items, onItemInteract, onDropItem, onReadPage });
+  } = useInventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWriteJournal });
 
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
@@ -84,6 +86,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, disab
                 onGenericUse={handleGenericUse}
                 onInspect={handleInspect}
                 onRead={handleRead}
+                onWrite={handleWrite}
                 onSpecificUse={handleSpecificUse}
                 onStartConfirmDiscard={handleStartConfirmDiscard}
                 onVehicleToggle={handleVehicleToggle}

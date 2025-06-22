@@ -17,6 +17,7 @@ interface PageViewProps {
   readonly allCharacters: Array<Character>;
   readonly currentQuest: string | null;
   readonly isVisible: boolean;
+  readonly startIndex?: number;
   readonly onClose: () => void;
   readonly updateItemContent: (itemId: string, actual: string, visible: string, chapterIndex?: number) => void;
 }
@@ -30,13 +31,14 @@ function PageView({
   allCharacters,
   currentQuest,
   isVisible,
+  startIndex = 0,
   onClose,
   updateItemContent,
 }: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDecoded, setShowDecoded] = useState(false);
-  const [chapterIndex, setChapterIndex] = useState(0);
+  const [chapterIndex, setChapterIndex] = useState(startIndex);
 
   const chapters = useMemo(() => {
     if (!item) return [];
@@ -89,8 +91,8 @@ function PageView({
 
   useEffect(() => {
     setShowDecoded(false);
-    setChapterIndex(0);
-  }, [item?.id, isVisible]);
+    setChapterIndex(startIndex);
+  }, [item?.id, isVisible, startIndex]);
 
   /**
    * Close the view when clicking outside of the modal content.
@@ -359,3 +361,7 @@ function PageView({
 }
 
 export default PageView;
+
+PageView.defaultProps = {
+  startIndex: 0,
+};

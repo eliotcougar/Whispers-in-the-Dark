@@ -1,0 +1,1 @@
+export { generateJournalEntry } from './api';

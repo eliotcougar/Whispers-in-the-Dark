@@ -101,6 +101,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleDropItem,
     handleTakeLocationItem,
     updateItemContent,
+    addJournalEntry,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   } = useGameTurn({
@@ -340,6 +341,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleMapNodesPositionChange,
     handleSelectDestinationNode,
     handleUndoTurn,
+    addJournalEntry,
     commitGameState,
   };
 };

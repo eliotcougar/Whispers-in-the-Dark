@@ -28,6 +28,7 @@ interface GameSidebarProps {
     knownUse?: KnownUse,
   ) => void;
   readonly onReadPage: (item: Item) => void;
+  readonly onWriteJournal: (item: Item) => void;
   readonly onTakeItem: (itemName: string) => void;
   readonly disabled: boolean;
 }
@@ -46,6 +47,7 @@ function GameSidebar({
   onDropItem,
   onItemInteract,
   onReadPage,
+  onWriteJournal,
   onTakeItem,
   disabled,
 }: GameSidebarProps) {
@@ -116,6 +118,7 @@ function GameSidebar({
         onDropItem={onDropItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}
+        onWriteJournal={onWriteJournal}
       />
     </>
   );

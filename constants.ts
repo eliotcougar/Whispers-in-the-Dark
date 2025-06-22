@@ -52,7 +52,7 @@ export const FREE_FORM_ACTION_COST = 5;
 
 export const VALID_ITEM_TYPES = [
   'single-use', 'multi-use', 'equipment',
-  'container', 'key', 'weapon', 'ammunition', 'vehicle', 'knowledge', 'status effect', 'page', 'book'
+  'container', 'key', 'weapon', 'ammunition', 'vehicle', 'knowledge', 'status effect', 'page', 'journal', 'book'
 ] as const; // 'as const' makes it a tuple of string literals
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
@@ -106,6 +106,7 @@ export const LOADING_REASONS = [
   'reality_shift_load',
   'visualize',
   'page',
+  'journal',
   'book'
 ] as const;
 
@@ -122,6 +123,7 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   reality_shift_load: { text: 'Reality is shifting...', icon: '▒▒' },
   visualize: { text: 'Visualizing the scene...', icon: '▒▒' },
   page: { text: 'Reading...', icon: '░░' },
+  journal: { text: 'Writing...', icon: '░░' },
   book: { text: 'Reading...', icon: '░░' }
 };
 

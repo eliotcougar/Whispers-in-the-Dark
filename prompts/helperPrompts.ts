@@ -21,6 +21,7 @@ export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPE
 - "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
 - "knowledge": Immaterial. Represents learned info, skills, spells, passwords. 'knownUses' define how to apply it. Can be 'lost' if used up or no longer relevant. E.g., "Spell: Fireball", "Recipe: Health Potion", "Clue: Thief Name".
 - "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
+- "journal": Blank notebook for the player to fill in. Starts with no chapters. Use the chapter structure when the player writes.
 - "book": Multi-page text with "chapters". Each chapter MUST have {"heading", "description", "contentLength"}.
 - "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
 `;

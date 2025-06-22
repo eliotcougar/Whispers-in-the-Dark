@@ -17,6 +17,7 @@ interface InventoryItemProps {
   readonly onConfirmDrop: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onCancelDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onWrite: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 function InventoryItem({
@@ -33,6 +34,7 @@ function InventoryItem({
   onConfirmDrop,
   onCancelDiscard,
   onRead,
+  onWrite,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   return (
@@ -94,7 +96,7 @@ function InventoryItem({
           size="sm"
         />
 
-        {item.type === 'page' || item.type === 'book' ? (
+        {item.type === 'page' || item.type === 'book' || item.type === 'journal' ? (
           <Button
             ariaLabel={`Read ${item.name}`}
             data-item-name={item.name}
@@ -105,7 +107,20 @@ function InventoryItem({
             preset="teal"
             size="sm"
           />
-      ) : null}
+        ) : null}
+
+        {item.type === 'journal' ? (
+          <Button
+            ariaLabel={`Write in ${item.name}`}
+            data-item-name={item.name}
+            disabled={disabled || isConfirmingDiscard}
+            key={`${item.name}-write`}
+            label="Write"
+            onClick={onWrite}
+            preset="teal"
+            size="sm"
+          />
+        ) : null}
 
         {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
           <Button
