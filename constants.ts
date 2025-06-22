@@ -57,7 +57,7 @@ export const VALID_ITEM_TYPES = [
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
 
-export const COMMON_TAGS = ['junk', 'bloodstained', 'water-damaged'] as const;
+export const COMMON_TAGS = ['junk', 'bloodstained', 'water-damaged', 'recovered'] as const;
 
 export const WRITING_TAGS = [
   'handwritten',

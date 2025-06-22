@@ -104,6 +104,11 @@ body {
   background-color: #e0f2fe;
   color: #1e3a8a;
 }
+
+.tag-recovered {
+  background-color: #064e3b;
+  color: #d1fae5;
+}
 /* Custom scrollbar for a more thematic feel */
 ::-webkit-scrollbar {
   width: 8px;

@@ -17,6 +17,15 @@ interface PageViewProps {
 function PageView({ item, context, isVisible, onClose, updateItemContent }: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDecoded, setShowDecoded] = useState(false);
+
+  const handleToggleDecoded = useCallback(() => {
+    setShowDecoded(prev => !prev);
+  }, []);
+
+  useEffect(() => {
+    setShowDecoded(false);
+  }, [item, isVisible]);
 
   /**
    * Close the view when clicking outside of the modal content.
@@ -33,7 +42,8 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
   const textClassNames = useMemo(() => {
     const tags = item?.tags ?? [];
     const classes: Array<string> = [];
-    const hasForeign = tags.includes('foreign');
+    const showActual = showDecoded && item?.actualContent;
+    const hasForeign = !showActual && tags.includes('foreign');
 
     if (tags.includes('handwritten')) {
       classes.push(hasForeign ? 'tag-handwritten-foreign' : 'tag-handwritten');
@@ -46,16 +56,19 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
     if (tags.includes('faded')) classes.push('tag-faded');
     if (tags.includes('smudged')) classes.push('tag-smudged');
     if (tags.includes('torn')) classes.push('tag-torn');
-    if (tags.includes('glitching')) classes.push('tag-glitching');
-    if (tags.includes('encrypted')) classes.push('tag-encrypted');
-    if (tags.includes('foreign')) classes.push('tag-foreign');
-    if (tags.includes('gothic')) classes.push('tag-gothic');
-    if (tags.includes('runic')) classes.push('tag-runic');
+    if (!showActual) {
+      if (tags.includes('glitching')) classes.push('tag-glitching');
+      if (tags.includes('encrypted')) classes.push('tag-encrypted');
+      if (tags.includes('foreign')) classes.push('tag-foreign');
+      if (tags.includes('gothic')) classes.push('tag-gothic');
+      if (tags.includes('runic')) classes.push('tag-runic');
+    }
     if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
     if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
+    if (tags.includes('recovered')) classes.push('tag-recovered');
 
     return classes.join(' ');
-  }, [item]);
+  }, [item, showDecoded]);
 
   useEffect(() => {
     if (isVisible && item) {
@@ -80,7 +93,7 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
                 item.description,
                 length,
                 context,
-                'Generate text exclusively in an artificial nonexistent language without any English words.'
+                `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
               );
               visible = fake ?? actual;
             } else if (item.tags?.includes('encrypted')) {
@@ -100,6 +113,13 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
       setText(null);
     }
   }, [isVisible, item, context, updateItemContent]);
+
+  const displayedText = useMemo(() => {
+    if (showDecoded && item?.actualContent) {
+      return item.actualContent;
+    }
+    return text;
+  }, [showDecoded, item, text]);
 
   return (
     <div
@@ -130,13 +150,27 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
           </h2>
         ) : null}
 
+        {item?.tags?.includes('recovered') && item.actualContent ? (
+          <div className="flex justify-center mb-2">
+            <Button
+              ariaLabel={showDecoded ? 'Show encoded text' : 'Show decoded text'}
+              label={showDecoded ? 'Hide Translation' : 'Show Translation'}
+              onClick={handleToggleDecoded}
+              preset={showDecoded ? 'sky' : 'slate'}
+              pressed={showDecoded}
+              size="sm"
+              variant="toggle"
+            />
+          </div>
+        ) : null}
+
         {isLoading ? (
           <LoadingSpinner loadingReason="page" />
-        ) : text ? (
+        ) : displayedText ? (
           <div
             className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames}`}
           >
-            {text}
+            {displayedText}
           </div>
         ) : null}
       </div>
