@@ -40,7 +40,7 @@ function PageView({
 
   const chapters = useMemo(() => {
     if (!item) return [];
-    if (item.type === 'book' && item.chapters) return item.chapters;
+    if (item.chapters && item.chapters.length > 0) return item.chapters;
     return [
       {
         heading: item.name,
@@ -78,7 +78,7 @@ function PageView({
   useEffect(() => {
     setShowDecoded(false);
     setChapterIndex(0);
-  }, [item, isVisible]);
+  }, [item?.id, isVisible]);
 
   /**
    * Close the view when clicking outside of the modal content.
@@ -154,7 +154,7 @@ function PageView({
       return;
     }
 
-    const idx = item.type === 'book' ? chapterIndex - 1 : 0;
+    const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
     const chapter = chapters[idx];
 
     if (chapter.visibleContent) {
@@ -224,16 +224,10 @@ function PageView({
 
   const displayedText = useMemo(() => {
     if (!item) return text;
-    if (item.type === 'book') {
-      const idx = chapterIndex - 1;
-      const chapter = chapters[idx];
-      if (showDecoded && chapter.actualContent) {
-        return chapter.actualContent;
-      }
-      return text;
-    }
-    if (showDecoded && item.actualContent) {
-      return item.actualContent;
+    const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    const chapter = chapters[idx];
+    if (showDecoded && chapter.actualContent) {
+      return chapter.actualContent;
     }
     return text;
   }, [showDecoded, item, text, chapterIndex, chapters]);
@@ -269,18 +263,18 @@ function PageView({
 
         {item?.type === 'book' ? (
           <div className="flex justify-center items-center gap-2 mb-2">
-            <span className="font-mono">█ █ █</span>
             <Button
               ariaLabel="Previous chapter"
               disabled={chapterIndex === 0}
               label="◄"
               onClick={handlePrevChapter}
               preset="slate"
-              size="sm"
+              variant="toolbar"
+              size="lg"
             />
             <select
               aria-label="Select chapter"
-              className="bg-slate-800 text-white text-sm"
+              className="bg-slate-800 text-white text-md h-9 p-2"
               onChange={handleSelectChapter}
               value={chapterIndex}
             >
@@ -295,12 +289,13 @@ function PageView({
               label="►"
               onClick={handleNextChapter}
               preset="slate"
-              size="sm"
+              variant="toolbar"
+              size="lg"
             />
           </div>
         ) : null}
 
-        {item?.tags?.includes('recovered') && item.actualContent ? (
+        {item?.tags?.includes('recovered') ? (
           <div className="flex justify-center">
             <Button
               ariaLabel={showDecoded ? 'Show encoded text' : 'Show decoded text'}
@@ -317,9 +312,9 @@ function PageView({
         {isLoading ? (
           <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
         ) : item?.type === 'book' && chapterIndex === 0 ? (
-          <ul className="p-5 mt-4 list-disc list-inside overflow-y-auto text-left">
+          <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
-              <li key={ch.heading}>{`${String(idx + 1)}. ${ch.heading} - ${ch.description}`}</li>
+              <p key={ch.heading}>{`${String(idx + 1)}. ${ch.heading}`}</p>
             ))}
           </ul>
         ) : displayedText ? (

@@ -87,7 +87,11 @@ Examples illustrating the hint style:
     "type": "page",
     "description": "A hastily scribbled message.", /* REQUIRED. Moderatly detailed description of the note and its contents. */
     "tags": ["typed", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
-    "contentLength": 30, /* REQUIRED, Length of the content in words. */
+    "chapters": [ /* REQUIRED. Always a single chapter. */
+      { "heading": "string", /* REQUIRED. Can be anything*/
+        "description": "A hastily scribbled message about the dangers of the sunken tunnel.", /* REQUIRED. Moderately detailed abstract of the contents. */
+        "contentLength": 50 /* REQUIRED. Length of the content in words. */
+      }
     "holderId": "player"
   }]
 
@@ -98,10 +102,10 @@ Examples illustrating the hint style:
     "type": "book",
     "description": "Weathered log of travels.",
     "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
-    "chapters": [
+    "chapters": [ /* Anywhere from 3 to 10 chapters. */
       { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
         "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
-        "contentLength": 50 /* REQUIRED. Length of the content in words. */
+        "contentLength": 50 /* REQUIRED. Length of the content in words. Range: 50-500 */
       },
       { "heading": "Journey One",
         "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",

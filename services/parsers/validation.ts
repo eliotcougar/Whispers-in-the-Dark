@@ -5,6 +5,7 @@
 import {
   Item,
   ItemReference,
+  ItemChapter,
   KnownUse,
   NewItemSuggestion,
   ValidCharacterUpdatePayload,
@@ -134,6 +135,49 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     console.warn("isValidItem: 'holderId' is present but invalid.", item);
     return false;
   }
+
+  const chaptersValid = (chs: unknown): chs is Array<ItemChapter> =>
+    Array.isArray(chs) &&
+    chs.every(
+      (ch) =>
+        ch &&
+        typeof ch === 'object' &&
+        typeof (ch as ItemChapter).heading === 'string' &&
+        typeof (ch as ItemChapter).description === 'string' &&
+        typeof (ch as ItemChapter).contentLength === 'number'
+    );
+
+  if (obj.type === 'page' || obj.type === 'book') {
+    if (obj.chapters !== undefined) {
+      if (!chaptersValid(obj.chapters)) {
+        console.warn("isValidItem: 'chapters' is present but invalid.", item);
+        return false;
+      }
+    } else {
+      const len =
+        typeof obj.contentLength === 'number' ? obj.contentLength : 30;
+      obj.chapters = [
+        {
+          heading: obj.name,
+          description: obj.description ?? '',
+          contentLength: len,
+          actualContent:
+            typeof obj.actualContent === 'string' ? obj.actualContent : undefined,
+          visibleContent:
+            typeof obj.visibleContent === 'string'
+              ? obj.visibleContent
+              : undefined,
+        },
+      ];
+    }
+    delete obj.contentLength;
+    delete obj.actualContent;
+    delete obj.visibleContent;
+  } else if (obj.chapters !== undefined && !chaptersValid(obj.chapters)) {
+    console.warn("isValidItem: 'chapters' is present but invalid for non-book/page item.", item);
+    return false;
+  }
+
   if (obj.contentLength !== undefined && typeof obj.contentLength !== 'number') {
     console.warn("isValidItem: 'contentLength' is present but invalid.", item);
     return false;

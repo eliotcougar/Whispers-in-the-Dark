@@ -42,7 +42,7 @@ Structure for individual ItemChange objects within the array:
       "chapters"?: [ /* Optional for most items, and REQUIRED for 'page' and 'book' items: Array of chapter objects for books. Each chapter MUST have "heading", "description", and "contentLength". For pages, use a single chapter with "heading", "description", and "contentLength". */
         { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
           "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
-          "contentLength": 50 /* REQUIRED. Length of the content in words. */
+          "contentLength": 50 /* REQUIRED. Length of the content in words. Range: 50-500 */
         }
       ],
       "knownUses"?: /* Optional: Array of KnownUse objects describing how the item can be used. If not provided, the item has no known uses yet.

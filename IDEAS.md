@@ -6,8 +6,8 @@ Using items is a mess, they have their own states.
 
 v1.4. Ink and Quill update
  - Notebook item type with real text notes inside.
- - Book item type with real chapters inside.
- - Page item type as a single page book subtype.
+ + Book item type with real chapters inside.
+ + Page item type as a single page book subtype.
  - Fact list, storing random static facts.
  - Librarian AI: Selects relevant facts from the fact list before each turn.
 

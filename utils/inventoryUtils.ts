@@ -41,12 +41,21 @@ const applyItemActionCore = (
         activeDescription: itemData.activeDescription,
         isActive: itemData.isActive ?? existing.isActive ?? false,
         tags: itemData.tags ?? existing.tags ?? [],
-        contentLength:
-          itemData.type === 'page'
-            ? itemData.contentLength ?? existing.contentLength ?? 30
-            : itemData.contentLength ?? existing.contentLength,
-        actualContent: itemData.actualContent ?? existing.actualContent,
-        visibleContent: itemData.visibleContent ?? existing.visibleContent,
+        chapters:
+          itemData.chapters ??
+          (itemData.type === 'page'
+            ? [
+                {
+                  heading: itemData.name,
+                  description: itemData.description,
+                  contentLength:
+                    itemData.contentLength ?? existing.contentLength ?? 30,
+                  actualContent: itemData.actualContent ?? existing.actualContent,
+                  visibleContent:
+                    itemData.visibleContent ?? existing.visibleContent,
+                },
+              ]
+            : existing.chapters),
         knownUses: itemData.knownUses ?? existing.knownUses ?? [],
         holderId: PLAYER_HOLDER_ID,
       };
@@ -65,12 +74,19 @@ const applyItemActionCore = (
       activeDescription: itemData.activeDescription,
       isActive: itemData.isActive ?? false,
       tags: itemData.tags ?? [],
-      contentLength:
-        itemData.type === 'page'
-          ? itemData.contentLength ?? 30
-          : itemData.contentLength,
-      actualContent: itemData.actualContent,
-      visibleContent: itemData.visibleContent,
+      chapters:
+        itemData.chapters ??
+        (itemData.type === 'page'
+          ? [
+              {
+                heading: itemData.name,
+                description: itemData.description,
+                contentLength: itemData.contentLength ?? 30,
+                actualContent: itemData.actualContent,
+                visibleContent: itemData.visibleContent,
+              },
+            ]
+          : undefined),
       knownUses: itemData.knownUses ?? [],
       holderId: PLAYER_HOLDER_ID,
     };
@@ -102,12 +118,19 @@ const applyItemActionCore = (
       activeDescription: itemData.activeDescription,
       isActive: itemData.isActive ?? false,
       tags: itemData.tags ?? [],
-      contentLength:
-        itemData.type === 'page'
-          ? itemData.contentLength ?? 30
-          : itemData.contentLength,
-      actualContent: itemData.actualContent,
-      visibleContent: itemData.visibleContent,
+      chapters:
+        itemData.chapters ??
+        (itemData.type === 'page'
+          ? [
+              {
+                heading: itemData.name,
+                description: itemData.description,
+                contentLength: itemData.contentLength ?? 30,
+                actualContent: itemData.actualContent,
+                visibleContent: itemData.visibleContent,
+              },
+            ]
+          : undefined),
       knownUses: itemData.knownUses ?? [],
       holderId: toId,
     };
@@ -161,12 +184,19 @@ const applyItemActionCore = (
     }
     if (updatePayload.isActive !== undefined) updated.isActive = updatePayload.isActive;
     if (updatePayload.tags !== undefined) updated.tags = updatePayload.tags;
-    if (updatePayload.contentLength !== undefined)
-      updated.contentLength = updatePayload.contentLength;
-    if (updatePayload.actualContent !== undefined)
-      updated.actualContent = updatePayload.actualContent;
-    if (updatePayload.visibleContent !== undefined)
-      updated.visibleContent = updatePayload.visibleContent;
+    if (updatePayload.chapters !== undefined) updated.chapters = updatePayload.chapters;
+    if (updatePayload.contentLength !== undefined && updated.chapters) {
+      const ch = updated.chapters[0];
+      updated.chapters[0] = { ...ch, contentLength: updatePayload.contentLength };
+    }
+    if (updatePayload.actualContent !== undefined && updated.chapters) {
+      const ch = updated.chapters[0];
+      updated.chapters[0] = { ...ch, actualContent: updatePayload.actualContent };
+    }
+    if (updatePayload.visibleContent !== undefined && updated.chapters) {
+      const ch = updated.chapters[0];
+      updated.chapters[0] = { ...ch, visibleContent: updatePayload.visibleContent };
+    }
     if (updatePayload.knownUses !== undefined) updated.knownUses = updatePayload.knownUses;
     if (updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '') {
       updated.holderId = updatePayload.holderId;
@@ -312,12 +342,19 @@ export const buildItemChangeRecords = (
           activeDescription: gainedItemData.activeDescription,
           isActive: gainedItemData.isActive ?? false,
           tags: gainedItemData.tags ?? [],
-          contentLength:
-            gainedItemData.type === 'page'
-              ? gainedItemData.contentLength ?? 30
-              : gainedItemData.contentLength,
-          actualContent: gainedItemData.actualContent,
-          visibleContent: gainedItemData.visibleContent,
+          chapters:
+            gainedItemData.chapters ??
+            (gainedItemData.type === 'page'
+              ? [
+                  {
+                    heading: gainedItemData.name,
+                    description: gainedItemData.description,
+                    contentLength: gainedItemData.contentLength ?? 30,
+                    actualContent: gainedItemData.actualContent,
+                    visibleContent: gainedItemData.visibleContent,
+                  },
+                ]
+              : undefined),
           knownUses: gainedItemData.knownUses ?? [],
           holderId: gainedItemData.holderId,
         };
@@ -382,12 +419,23 @@ export const buildItemChangeRecords = (
               : updatePayload.activeDescription ?? oldItemCopy.activeDescription,
           isActive: updatePayload.isActive ?? (oldItemCopy.isActive ?? false),
           tags: updatePayload.tags ?? (oldItemCopy.tags ?? []),
-          contentLength:
-            (updatePayload.type ?? oldItemCopy.type) === 'page'
-              ? updatePayload.contentLength ?? oldItemCopy.contentLength ?? 30
-              : updatePayload.contentLength ?? oldItemCopy.contentLength,
-          actualContent: updatePayload.actualContent ?? oldItemCopy.actualContent,
-          visibleContent: updatePayload.visibleContent ?? oldItemCopy.visibleContent,
+          chapters:
+            updatePayload.chapters ??
+            oldItemCopy.chapters ??
+            ((updatePayload.type ?? oldItemCopy.type) === 'page'
+              ? [
+                  {
+                    heading: finalName,
+                    description: updatePayload.description ?? oldItemCopy.description,
+                    contentLength:
+                      updatePayload.contentLength ?? oldItemCopy.contentLength ?? 30,
+                    actualContent:
+                      updatePayload.actualContent ?? oldItemCopy.actualContent,
+                    visibleContent:
+                      updatePayload.visibleContent ?? oldItemCopy.visibleContent,
+                  },
+                ]
+              : undefined),
           knownUses: Array.isArray(updatePayload.knownUses)
             ? updatePayload.knownUses
             : oldItemCopy.knownUses ?? [],
