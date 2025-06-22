@@ -188,7 +188,7 @@ function App() {
     closeLoadGameFromMenuConfirm,
     openNewCustomGameConfirm,
     closeNewCustomGameConfirm,
-    pageItem,
+    pageItemId,
     isPageVisible,
     openPageView,
     closePageView,
@@ -280,7 +280,7 @@ function App() {
   }, [handleRetry]);
 
   const handleReadPage = useCallback((item: Item) => {
-    openPageView(item);
+    openPageView(item.id);
   }, [openPageView]);
 
   const handleFreeFormActionChange = useCallback(
@@ -763,7 +763,8 @@ function App() {
         onNodesPositioned={handleMapNodesPositionChange}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
-        pageItem={pageItem}
+        inventory={inventory}
+        pageItemId={pageItemId}
         setGeneratedImage={setGeneratedImageCache}
         shiftConfirmOpen={shiftConfirmOpen}
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}

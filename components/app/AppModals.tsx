@@ -64,7 +64,8 @@ interface AppModalsProps {
   readonly handleConfirmShift: () => void;
   readonly handleCancelShift: () => void;
   readonly isCustomGameModeShift: boolean;
-  readonly pageItem: Item | null;
+  readonly inventory: Array<Item>;
+  readonly pageItemId: string | null;
   readonly isPageVisible: boolean;
   readonly onClosePage: () => void;
   readonly storytellerThoughts: string;
@@ -121,7 +122,8 @@ function AppModals({
   handleConfirmShift,
   handleCancelShift,
   isCustomGameModeShift,
-  pageItem,
+  inventory,
+  pageItemId,
   isPageVisible,
   onClosePage,
   storytellerThoughts,
@@ -167,7 +169,7 @@ function AppModals({
         currentScene={currentScene}
         currentTheme={currentTheme}
         isVisible={isPageVisible}
-        item={pageItem}
+        item={inventory.find(it => it.id === pageItemId) ?? null}
         mapData={mapData}
         onClose={onClosePage}
         storytellerThoughts={storytellerThoughts}

@@ -311,7 +311,7 @@ function PageView({
         {isLoading ? (
           <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
         ) : item?.type === 'book' && chapterIndex === 0 ? (
-          <ul className="p-5 mt-4 list-disc list-inside overflow-y-auto text-left">
+          <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
               <li key={ch.heading}>{`${String(idx + 1)}. ${ch.heading} - ${ch.description}`}</li>
             ))}
