@@ -282,11 +282,20 @@ function App() {
     void handleRetry();
   }, [handleRetry]);
 
-  const handleReadPage = useCallback((item: Item) => {
-    openPageView(item.id);
-  }, [openPageView]);
+  const handleReadPage = useCallback(
+    (item: Item) => {
+      const index =
+        item.type === 'journal'
+          ? Math.max(0, (item.chapters?.length ?? 0) - 1)
+          : 0;
+      openPageView(item.id, index);
+    },
+    [openPageView]
+  );
 
   const handleWriteJournal = useCallback((item: Item) => {
+    if (item.lastWriteTurn === globalTurnNumber) return;
+    openPageView(item.id, item.chapters?.length ?? 0);
     void (async () => {
       if (!currentTheme) return;
       const { name: themeName, systemInstructionModifier } = currentTheme;
@@ -323,7 +332,17 @@ function App() {
         openPageView(item.id, item.chapters?.length ?? 0);
       }
     })();
-  }, [allCharacters, currentTheme, currentScene, gameLogic, mapData.nodes, mainQuest, openPageView, lastDebugPacket]);
+  }, [
+    allCharacters,
+    currentTheme,
+    currentScene,
+    gameLogic,
+    mapData.nodes,
+    mainQuest,
+    openPageView,
+    lastDebugPacket,
+    globalTurnNumber,
+  ]);
 
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -666,6 +685,7 @@ function App() {
                 onReadPage={handleReadPage}
                 onWriteJournal={handleWriteJournal}
                 onTakeItem={handleTakeLocationItem}
+                globalTurnNumber={globalTurnNumber}
               />
             )}
           </div>

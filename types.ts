@@ -61,6 +61,7 @@ export interface Item {
    * Page items should contain a single chapter object in this array.
    */
   chapters?: Array<ItemChapter>;
+  lastWriteTurn?: number;
   // --- Fields for "update" action payloads ---
   newName?: string;
   addKnownUse?: KnownUse;

@@ -9,6 +9,7 @@ interface InventoryItemProps {
   readonly isConfirmingDiscard: boolean;
   readonly applicableUses: Array<KnownUse>;
   readonly disabled: boolean;
+  readonly currentTurn: number;
   readonly onSpecificUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onInspect: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onGenericUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -26,6 +27,7 @@ function InventoryItem({
   isConfirmingDiscard,
   applicableUses,
   disabled,
+  currentTurn,
   onSpecificUse,
   onInspect,
   onGenericUse,
@@ -113,7 +115,11 @@ function InventoryItem({
           <Button
             ariaLabel={`Write in ${item.name}`}
             data-item-name={item.name}
-            disabled={disabled || isConfirmingDiscard}
+            disabled={
+              disabled ||
+              isConfirmingDiscard ||
+              (item.lastWriteTurn !== undefined && item.lastWriteTurn === currentTurn)
+            }
             key={`${item.name}-write`}
             label="Write"
             onClick={onWrite}

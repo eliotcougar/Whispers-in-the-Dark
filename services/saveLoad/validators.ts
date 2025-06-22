@@ -55,6 +55,7 @@ export function isValidItemForSave(item: unknown): item is Item {
     (maybe.activeDescription === undefined || typeof maybe.activeDescription === 'string') &&
     (maybe.isActive === undefined || typeof maybe.isActive === 'boolean') &&
     (maybe.tags === undefined || (Array.isArray(maybe.tags) && maybe.tags.every(t => typeof t === 'string'))) &&
+    (maybe.lastWriteTurn === undefined || typeof maybe.lastWriteTurn === 'number') &&
     ((maybe as { contentLength?: unknown }).contentLength === undefined ||
       typeof (maybe as { contentLength?: unknown }).contentLength === 'number') &&
     ((maybe as { actualContent?: unknown }).actualContent === undefined ||

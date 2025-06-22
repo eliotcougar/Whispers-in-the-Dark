@@ -18,10 +18,11 @@ interface InventoryDisplayProps {
   readonly onDropItem: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
+  readonly currentTurn: number;
   readonly disabled: boolean;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWriteJournal, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemNames,
@@ -80,6 +81,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWri
                 isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 item={item}
+                currentTurn={currentTurn}
                 key={item.name}
                 onCancelDiscard={handleCancelDiscard}
                 onConfirmDrop={handleConfirmDrop}

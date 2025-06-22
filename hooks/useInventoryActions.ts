@@ -152,9 +152,14 @@ export const useInventoryActions = ({
     (id: string, chapter: ItemChapter) => {
       const currentFullState = getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
-      draftState.inventory = draftState.inventory.map(item =>
-        item.id === id ? { ...item, chapters: [...(item.chapters ?? []), chapter] } : item
-      );
+      draftState.inventory = draftState.inventory.map(item => {
+        if (item.id !== id) return item;
+        return {
+          ...item,
+          chapters: [...(item.chapters ?? []), chapter],
+          lastWriteTurn: currentFullState.globalTurnNumber,
+        };
+      });
       commitGameState(draftState);
     },
     [commitGameState]

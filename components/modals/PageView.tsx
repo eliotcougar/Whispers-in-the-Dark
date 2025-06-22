@@ -61,7 +61,8 @@ function PageView({
   }, [item]);
 
   const unlockedChapterCount = useMemo(() => {
-    if (!item || item.type !== 'book') return chapters.length;
+    if (!item) return chapters.length;
+    if (item.type !== 'book') return chapters.length;
     let idx = 0;
     for (; idx < chapters.length; idx += 1) {
       if (!chapters[idx].actualContent) break;
@@ -82,11 +83,13 @@ function PageView({
   const handleSelectChapter = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = Number(e.target.value);
-      if (value <= unlockedChapterCount) {
+      if (item?.type === 'book') {
+        if (value <= unlockedChapterCount) setChapterIndex(value);
+      } else if (value < unlockedChapterCount) {
         setChapterIndex(value);
       }
     },
-    [unlockedChapterCount]
+    [unlockedChapterCount, item]
   );
 
   const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
@@ -262,6 +265,11 @@ function PageView({
     return text;
   }, [showDecoded, item, text, chapterIndex, chapters]);
 
+  const pendingWrite = useMemo(
+    () => item?.type === 'journal' && chapterIndex === chapters.length,
+    [item?.type, chapterIndex, chapters.length]
+  );
+
   return (
     <div
       aria-labelledby="page-view-title"
@@ -291,7 +299,7 @@ function PageView({
           </h2>
         ) : null}
 
-        {item?.type === 'book' ? (
+        {item?.type === 'book' || item?.type === 'journal' ? (
           <div className="flex justify-center items-center gap-2 mb-2">
             <Button
               ariaLabel="Previous chapter"
@@ -309,23 +317,34 @@ function PageView({
               onChange={handleSelectChapter}
               value={chapterIndex}
             >
-              <option value={0}>
-                ToC
-              </option>
+              {item.type === 'book' ? (
+                <>
+                  <option value={0}>
+                    ToC
+                  </option>
 
-              {chapters.slice(0, unlockedChapterCount).map((ch, idx) => (
-                <option
-                  key={ch.heading}
-                  value={idx + 1}
-                >
-                  {ch.heading}
-                </option>
-              ))}
+                  {chapters.slice(0, unlockedChapterCount).map((ch, idx) => (
+                    <option key={ch.heading} value={idx + 1}>
+                      {ch.heading}
+                    </option>
+                  ))}
+                </>
+              ) : (
+                chapters.map((ch, idx) => (
+                  <option key={ch.heading} value={idx}>
+                    {ch.heading}
+                  </option>
+                ))
+              )}
             </select>
 
             <Button
               ariaLabel="Next chapter"
-              disabled={isLoading || chapterIndex >= unlockedChapterCount || chapterIndex === chapters.length}
+              disabled={
+                isLoading ||
+                chapterIndex >= unlockedChapterCount ||
+                chapterIndex === chapters.length
+              }
               label="►"
               onClick={handleNextChapter}
               preset="slate"
@@ -349,7 +368,9 @@ function PageView({
           </div>
         ) : null}
 
-        {isLoading ? (
+        {pendingWrite ? (
+          <LoadingSpinner loadingReason="journal" />
+        ) : isLoading ? (
           <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
         ) : item?.type === 'book' && chapterIndex === 0 ? (
           <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
