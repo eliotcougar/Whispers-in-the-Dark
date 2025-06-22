@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Item, MapData, Character, AdventureTheme } from '../../types';
+import { Item, ItemChapter, MapData, Character, AdventureTheme } from '../../types';
 import { formatKnownPlacesForPrompt, charactersToString } from '../../utils/promptFormatters';
 import { rot13, toGothic, toRunic } from '../../utils/textTransforms';
 import Button from '../elements/Button';
@@ -95,7 +95,11 @@ function PageView({
   const textClassNames = useMemo(() => {
     const tags = item?.tags ?? [];
     const classes: Array<string> = [];
-    const showActual = showDecoded && item?.actualContent;
+
+    const idx = item?.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    const chapterValid = idx >= 0 && idx < chapters.length;
+    const chapter: ItemChapter | undefined = chapterValid ? chapters[idx] : undefined;
+    const showActual = showDecoded && Boolean(chapter?.actualContent);
     const hasForeign = !showActual && tags.includes('foreign');
 
     if (tags.includes('handwritten')) {
@@ -120,10 +124,10 @@ function PageView({
     if (tags.includes('runic')) classes.push('tag-runic');
     if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
     if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
-    if (tags.includes('recovered')) classes.push('tag-recovered');
+    if (tags.includes('recovered') && showDecoded) classes.push('tag-recovered');
 
     return classes.join(' ');
-  }, [item, showDecoded]);
+  }, [item, showDecoded, chapterIndex, chapters]);
 
 
   const knownPlaces = useMemo(() => {
@@ -225,6 +229,8 @@ function PageView({
   const displayedText = useMemo(() => {
     if (!item) return text;
     const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    const chapterValid = idx >= 0 && idx < chapters.length;
+    if (!chapterValid) return text;
     const chapter = chapters[idx];
     if (showDecoded && chapter.actualContent) {
       return chapter.actualContent;
