@@ -29,7 +29,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 Structure for individual ItemChange objects within the array:
 - Example for gaining a *new* item from the provided New Items JSON:
-  { "action": "gain",
+  { "action": "gain", /* "put" action follows the same structure, but is used for placing new items in the world. */
     item: {
       "name": "Old Lantern", /* REQUIRED: Full name of the item. */
       "type": "equipment", /* REQUIRED. MUST be one of ${VALID_ITEM_TYPES_STRING} */
@@ -39,7 +39,12 @@ Structure for individual ItemChange objects within the array:
       "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
       "tags"?: ["junk"], /* Optional: array of short tags describing the item. Valid tags: ${VALID_TAGS_STRING}. Include "junk" if the item is unimportant or has served its ONLY purpose. IMPORTANT: "status effects" can never have the "junk" tag. */
       /* IMPORTANT: For written items, ALWAYS add one of the style tags from: 'printed', 'handwritten', 'typed', or 'digital'. Add condition tags like 'faded', 'torn', etc., when appropriate. Writing tags: ${WRITING_TAGS_STRING}. */
-      "contentLength"?: 30, /* REQUIRED for type 'page' items. For 'book' items, each chapter has its own contentLength. */
+      "chapters"?: [ /* Optional for most items, and REQUIRED for 'page' and 'book' items: Array of chapter objects for books. Each chapter MUST have "heading", "description", and "contentLength". For pages, use a single chapter with "heading", "description", and "contentLength". */
+        { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
+          "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
+          "contentLength": 50 /* REQUIRED. Length of the content in words. */
+        }
+      ],
       "knownUses"?: /* Optional: Array of KnownUse objects describing how the item can be used. If not provided, the item has no known uses yet.
         [
           { 
@@ -128,11 +133,11 @@ Structure for individual ItemChange objects within the array:
   - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
   - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
   - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
-  - IMPORTANT: For written page items, determine whether the text appears 'printed', 'handwritten', 'typed' or 'digital' and ALWAYS add the matching tag. If the text condition implies it, add other tags like 'faded', 'smudged', 'torn', or 'encrypted'. Available writing tags: ${WRITING_TAGS_STRING}.
+  - IMPORTANT: For written 'page' and 'book' items, determine whether the text appears 'printed', 'handwritten', 'typed' or 'digital' and ALWAYS add the matching tag. If the text condition implies it, add other tags like 'faded', 'smudged', 'torn', or 'encrypted'. Available writing tags: ${WRITING_TAGS_STRING}.
   IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
-IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park" known uses - there are dedicated buttons for those in the game.
+IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park", "Read" known uses - there are dedicated buttons for those in the game.
 
 If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, use "itemChange" "update" (e.g., with "addKnownUse").
 If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, consider "itemChange" "update" for "addKnownUse" in addition to main outcome.

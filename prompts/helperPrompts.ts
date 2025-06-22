@@ -19,10 +19,10 @@ export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPE
 - "weapon": Melee and ranged weapons, distinct from "equipment" Items that can be explicitly used in a fight when wielded. Ranged weapon consume ammunition or charges.
 - "ammunition": For reloading specific ranged weapons, e.g., Arrows for Longbow, Rounds for firearms, Charges for energy weapons. Using weapon consumes ammo (handled by log/update).
 - "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
-  - "knowledge": Immaterial. Represents learned info, skills, spells, passwords. 'knownUses' define how to apply it. Can be 'lost' if used up or no longer relevant. E.g., "Spell: Fireball", "Recipe: Health Potion", "Clue: Thief Name".
-  - "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
-  - "book": Multi-page text with "chapters". Each chapter has {"heading", "description", "contentLength", "actualContent?", "visibleContent?"}. Chapter 0 is reserved for the table of contents.
-  - "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
+- "knowledge": Immaterial. Represents learned info, skills, spells, passwords. 'knownUses' define how to apply it. Can be 'lost' if used up or no longer relevant. E.g., "Spell: Fireball", "Recipe: Health Potion", "Clue: Thief Name".
+- "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
+- "book": Multi-page text with "chapters". Each chapter MUST have {"heading", "description", "contentLength"}.
+- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
 `;
 
 export const ITEMS_GUIDE = `Generate inventory hints using these fields:
@@ -86,20 +86,31 @@ Examples illustrating the hint style:
     "name": "Torn Note",
     "type": "page",
     "description": "A hastily scribbled message.", /* REQUIRED. Moderatly detailed description of the note and its contents. */
-    "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
+    "tags": ["typed", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
     "contentLength": 30, /* REQUIRED, Length of the content in words. */
     "holderId": "player"
   }]
 
 - Example for a simple book:
-  playerItemsHint: "Discovered Explorer Journal."
+  playerItemsHint: "Obtained the Explorer's Adventures."
   newItems: [{
-    "name": "Explorer Journal",
+    "name": "Explorer's Adventures",
     "type": "book",
     "description": "Weathered log of travels.",
+    "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
     "chapters": [
-      { "heading": "Preface", "description": "Introduction", "contentLength": 25 },
-      { "heading": "Journey One", "description": "First trip", "contentLength": 40 }
+      { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
+        "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
+        "contentLength": 50 /* REQUIRED. Length of the content in words. */
+      },
+      { "heading": "Journey One",
+        "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",
+        "contentLength": 250 
+      },
+      { "heading": "Journey Two",
+        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
+        "contentLength": 300 
+      }
     ],
     "holderId": "player"
   }]
