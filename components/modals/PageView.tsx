@@ -42,16 +42,20 @@ function PageView({
 
   const chapters = useMemo(() => {
     if (!item) return [];
-    if (item.chapters && (item.chapters.length > 0 || item.type === 'journal')) {
-      return item.chapters;
-    }
+    if (item.type === 'journal') return item.chapters ?? [];
+    if (item.chapters && item.chapters.length > 0) return item.chapters;
+    const legacy = item as Item & {
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
+    };
     return [
       {
         heading: item.name,
         description: item.description,
-        contentLength: item.contentLength ?? 30,
-        actualContent: item.actualContent,
-        visibleContent: item.visibleContent,
+        contentLength: legacy.contentLength ?? 30,
+        actualContent: legacy.actualContent,
+        visibleContent: legacy.visibleContent,
       },
     ];
   }, [item]);
@@ -180,7 +184,6 @@ function PageView({
       return;
     }
     const chapter = chapters[idx];
-
     if (chapter.visibleContent) {
       setText(chapter.visibleContent);
       return;

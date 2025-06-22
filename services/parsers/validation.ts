@@ -44,7 +44,11 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
 
 export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
   if (!item || typeof item !== 'object') return false;
-  const obj = item as Partial<Item>;
+  const obj = item as Partial<Item> & {
+    contentLength?: number;
+    actualContent?: string;
+    visibleContent?: string;
+  };
 
   if (typeof obj.type === 'string') {
     const normalized = normalizeItemType(obj.type);

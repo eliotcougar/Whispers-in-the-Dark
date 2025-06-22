@@ -23,7 +23,13 @@ describe('inventoryUtils', () => {
         type: 'page',
         description: 'A scrap of paper',
         holderId: PLAYER_HOLDER_ID,
-        contentLength: 25,
+        chapters: [
+          {
+            heading: 'Torn Note',
+            description: 'A scrap of paper',
+            contentLength: 25,
+          },
+        ],
       },
     };
     const result = applyItemChangeAction([], change);
