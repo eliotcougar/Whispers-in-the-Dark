@@ -669,9 +669,9 @@ function App() {
         debugPacket={lastDebugPacket}
         gameStateStack={gameStateStack}
         isVisible={isDebugViewVisible}
+        onApplyGameState={handleApplyGameState}
         onClose={closeDebugView}
         onUndoTurn={handleUndoTurn}
-        onApplyGameState={handleApplyGameState}
         travelPath={travelPath}
       />
 

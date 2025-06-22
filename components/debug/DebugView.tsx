@@ -95,8 +95,8 @@ function DebugView({
         return (
           <GameStateTab
             currentState={currentState}
-            onUndoTurn={onUndoTurn}
             onApplyGameState={onApplyGameState}
+            onUndoTurn={onUndoTurn}
             previousState={previousState}
           />
         );

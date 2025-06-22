@@ -80,31 +80,31 @@ function InventoryItem({
             preset="teal"
             size="sm"
             title={knownUse.description}
-        />
+          />
       ))}
 
-      <Button
-        ariaLabel={`Inspect ${item.name}`}
-        data-item-name={item.name}
-        disabled={disabled || isConfirmingDiscard}
-        key={`${item.name}-inspect`}
-        label="Inspect"
-        onClick={onInspect}
-        preset="indigo"
-        size="sm"
-      />
-
-      {item.type === 'page' ? (
         <Button
-          ariaLabel={`Read ${item.name}`}
+          ariaLabel={`Inspect ${item.name}`}
           data-item-name={item.name}
           disabled={disabled || isConfirmingDiscard}
-          key={`${item.name}-read`}
-          label="Read"
-          onClick={onRead}
-          preset="teal"
+          key={`${item.name}-inspect`}
+          label="Inspect"
+          onClick={onInspect}
+          preset="indigo"
           size="sm"
         />
+
+        {item.type === 'page' ? (
+          <Button
+            ariaLabel={`Read ${item.name}`}
+            data-item-name={item.name}
+            disabled={disabled || isConfirmingDiscard}
+            key={`${item.name}-read`}
+            label="Read"
+            onClick={onRead}
+            preset="teal"
+            size="sm"
+          />
       ) : null}
 
         {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (

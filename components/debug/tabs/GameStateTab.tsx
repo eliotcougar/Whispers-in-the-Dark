@@ -57,8 +57,8 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
       </label>
 
       <textarea
-        id="gameStateEdit"
         className="w-full p-2 bg-slate-900 text-white border border-slate-600 rounded-md text-sm min-h-[40em] font-mono"
+        id="gameStateEdit"
         onChange={handleChange}
         value={editableText}
       />
@@ -93,7 +93,7 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
       />
     ) : null}
   </>
- );
+  );
 }
 
 GameStateTab.defaultProps = { previousState: undefined };
