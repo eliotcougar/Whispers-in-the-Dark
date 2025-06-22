@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { createElement } from 'react';
+import { describe, it, expect, vi } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
+import LocationItemsDisplay from '../components/inventory/LocationItemsDisplay';
 import type { MapData, Item, MapEdgeStatus, MapNodeStatus } from '../types';
 
 const makeNode = (
@@ -53,6 +56,25 @@ describe('getAdjacentNodeIds for item reachability', () => {
     expect(reachableItems.map(i => i.name)).toContain('Log');
     expect(reachableItems.map(i => i.name)).not.toContain('Tablet');
     expect(reachableItems.map(i => i.name)).not.toContain('Stone');
+  });
+
+  it('displays reachable items with Take button', () => {
+    const adj = getAdjacentNodeIds(mapData, 'current');
+    const displayItems = inventory.filter(i => i.holderId === 'current' || adj.includes(i.holderId));
+    const html = renderToStaticMarkup(
+      createElement(LocationItemsDisplay, {
+        currentNodeId: 'current',
+        disabled: false,
+        items: displayItems,
+        mapNodes: mapData.nodes.map(n => ({ id: n.id, placeName: n.placeName })),
+        onTakeItem: vi.fn(),
+      })
+    );
+    expect(html).toContain('Take');
+    expect(html).toContain('Reachable at');
+    expect(html).toContain('Log');
+    expect(html).not.toContain('Tablet');
+    expect(html).not.toContain('Stone');
   });
 });
 

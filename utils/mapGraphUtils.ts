@@ -96,7 +96,16 @@ export const getAdjacentNodeIds = (
   nodeId: string,
 ): Array<string> => {
   const { adjacency } = buildTravelAdjacency(mapData);
-  return (adjacency.get(nodeId) ?? []).map(a => a.to);
+  const edgeMap = new Map(mapData.edges.map(e => [e.id, e]));
+  const allowed: Array<MapEdgeStatus> = ['open', 'accessible', 'active'];
+  return (adjacency.get(nodeId) ?? [])
+    .filter(a => {
+      const edge = edgeMap.get(a.edgeId);
+      if (!edge) return true;
+      const status = edge.data.status ?? 'open';
+      return allowed.includes(status);
+    })
+    .map(a => a.to);
 };
 
 /** Structure describing adjacency for each node. */
