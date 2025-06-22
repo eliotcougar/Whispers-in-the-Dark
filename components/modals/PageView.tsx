@@ -180,7 +180,8 @@ function PageView({
         knownPlaces,
         knownCharacters,
         currentQuest,
-        'Write it exclusively in English without any foreign, encrypted, or gibberish text.'
+        'Write it exclusively in English without any foreign, encrypted, or gibberish text.',
+        item.type === 'book' && idx > 0 ? chapters[idx - 1].actualContent ?? '' : undefined
       );
       if (actual) {
         let visible = actual;
