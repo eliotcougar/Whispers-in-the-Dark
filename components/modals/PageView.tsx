@@ -331,14 +331,20 @@ function PageView({
                   </option>
 
                   {chapters.slice(0, unlockedChapterCount).map((ch, idx) => (
-                    <option key={ch.heading} value={idx + 1}>
+                    <option
+                      key={ch.heading}
+                      value={idx + 1}
+                    >
                       {ch.heading}
                     </option>
                   ))}
                 </>
               ) : (
                 chapters.map((ch, idx) => (
-                  <option key={ch.heading} value={idx}>
+                  <option
+                    key={ch.heading}
+                    value={idx}
+                  >
                     {ch.heading}
                   </option>
                 ))

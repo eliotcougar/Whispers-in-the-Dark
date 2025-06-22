@@ -39,6 +39,7 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 
 import {
   FREE_FORM_ACTION_COST,
+  RECENT_LOG_COUNT_FOR_PROMPT,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
 
@@ -318,6 +319,7 @@ function App() {
         lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
         knownPlaces,
         knownCharacters,
+        gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
         mainQuest
       );
       if (entry) {
@@ -341,6 +343,7 @@ function App() {
     mainQuest,
     openPageView,
     lastDebugPacket,
+    gameLog,
     globalTurnNumber,
   ]);
 
@@ -675,6 +678,7 @@ function App() {
                   isManualShiftThemeSelectionVisible
                 }
                 enableMobileTap={enableMobileTap}
+                globalTurnNumber={globalTurnNumber}
                 inventory={inventory}
                 itemsHere={itemsHere}
                 mainQuest={mainQuest}
@@ -683,9 +687,8 @@ function App() {
                 onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
-                onWriteJournal={handleWriteJournal}
                 onTakeItem={handleTakeLocationItem}
-                globalTurnNumber={globalTurnNumber}
+                onWriteJournal={handleWriteJournal}
               />
             )}
           </div>

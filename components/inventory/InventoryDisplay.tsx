@@ -77,21 +77,21 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWri
             return (
               <InventoryItem
                 applicableUses={applicableUses}
+                currentTurn={currentTurn}
                 disabled={disabled}
                 isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 item={item}
-                currentTurn={currentTurn}
                 key={item.name}
                 onCancelDiscard={handleCancelDiscard}
                 onConfirmDrop={handleConfirmDrop}
                 onGenericUse={handleGenericUse}
                 onInspect={handleInspect}
                 onRead={handleRead}
-                onWrite={handleWrite}
                 onSpecificUse={handleSpecificUse}
                 onStartConfirmDiscard={handleStartConfirmDiscard}
                 onVehicleToggle={handleVehicleToggle}
+                onWrite={handleWrite}
               />
             );
           })}
