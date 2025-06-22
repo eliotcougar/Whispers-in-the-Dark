@@ -55,7 +55,7 @@ Narrative Context:
 - Player Items Hint: "${playerItemsHint}"
 - World Items Hint: "${worldItemsHint}"
 - NPC Items Hint: "${npcItemsHint}"
- - Current Place ID: "${currentNodeId ?? 'unknown'}"
+- Current Place ID: "${currentNodeId ?? 'unknown'}"
 - Companions: ${companionsContext}
 - Nearby NPCs: ${nearbyNpcsContext}
 - Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"

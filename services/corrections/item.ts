@@ -65,7 +65,7 @@ If neither appliesWhen... field is given, use always shown. If both, applies if 
     { 
       "heading": "string",
       "description": "string",
-      "contentLength": number
+      "contentLength": number /* Range: 50-500 */
     }
   ]
   "knownUses?": [ ],

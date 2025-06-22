@@ -263,18 +263,18 @@ function PageView({
 
         {item?.type === 'book' ? (
           <div className="flex justify-center items-center gap-2 mb-2">
-            <span className="font-mono">█ █ █</span>
             <Button
               ariaLabel="Previous chapter"
               disabled={chapterIndex === 0}
               label="◄"
               onClick={handlePrevChapter}
               preset="slate"
-              size="sm"
+              variant="toolbar"
+              size="lg"
             />
             <select
               aria-label="Select chapter"
-              className="bg-slate-800 text-white text-sm"
+              className="bg-slate-800 text-white text-md h-9 p-2"
               onChange={handleSelectChapter}
               value={chapterIndex}
             >
@@ -289,12 +289,13 @@ function PageView({
               label="►"
               onClick={handleNextChapter}
               preset="slate"
-              size="sm"
+              variant="toolbar"
+              size="lg"
             />
           </div>
         ) : null}
 
-        {item?.tags?.includes('recovered') && item.actualContent ? (
+        {item?.tags?.includes('recovered') ? (
           <div className="flex justify-center">
             <Button
               ariaLabel={showDecoded ? 'Show encoded text' : 'Show decoded text'}
