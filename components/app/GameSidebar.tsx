@@ -115,9 +115,9 @@ function GameSidebar({
       />
 
       <InventoryDisplay
+        currentTurn={globalTurnNumber}
         disabled={disabled}
         items={inventory}
-        currentTurn={globalTurnNumber}
         onDropItem={onDropItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}

@@ -1,8 +1,13 @@
-import { AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
+import {
+  AUXILIARY_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+  LOADING_REASON_UI_MAP,
+} from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { isApiConfigured } from '../apiClient';
+import { formatRecentEventsForPrompt } from '../../utils/promptFormatters';
 
 export interface GeneratedJournalEntry {
   heading: string;
@@ -19,6 +24,7 @@ export const generateJournalEntry = async (
   storytellerThoughts: string,
   knownPlaces: string,
   knownCharacters: string,
+  recentLogEntries: Array<string>,
   currentQuest: string | null,
 ): Promise<GeneratedJournalEntry | null> => {
   if (!isApiConfigured()) {
@@ -27,6 +33,7 @@ export const generateJournalEntry = async (
   }
 
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
+  const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
   const prompt = `You are writing a new entry in the player's personal journal.
   **Context:**
   Theme Name: "${themeName}";
@@ -40,9 +47,9 @@ export const generateJournalEntry = async (
   ${knownCharacters}
   Previous Journal Entry:
   ${previousEntry}
-  
+
   Last events:
-  TODO: add a snippet of the last 10 Game Log entries here
+  ${recentEventsContext}
   
   ------
 

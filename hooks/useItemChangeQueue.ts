@@ -112,9 +112,21 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
 
   useEffect(() => {
     if (isGameBusy) {
+      if (currentProcessingChanges) {
+        setAnimatedTurnChangesRef(currentProcessingChanges);
+        setCurrentProcessingChanges(null);
+      } else if (lastTurnChanges && lastTurnChanges !== animatedTurnChangesRef) {
+        setAnimatedTurnChangesRef(lastTurnChanges);
+      }
       resetAnimationState();
     }
-  }, [isGameBusy, resetAnimationState]);
+  }, [
+    isGameBusy,
+    resetAnimationState,
+    currentProcessingChanges,
+    animatedTurnChangesRef,
+    lastTurnChanges,
+  ]);
 
   useEffect(() => {
     if (isGameBusy || !lastTurnChanges) {
