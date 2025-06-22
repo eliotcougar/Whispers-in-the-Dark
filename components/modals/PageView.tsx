@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Item } from '../../types';
 import { rot13, toGothic, toRunic } from '../../utils/textTransforms';
 import Button from '../elements/Button';
@@ -17,6 +17,45 @@ interface PageViewProps {
 function PageView({ item, context, isVisible, onClose, updateItemContent }: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  /**
+   * Close the view when clicking outside of the modal content.
+   */
+  const handleOverlayClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target === event.currentTarget) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  const textClassNames = useMemo(() => {
+    const tags = item?.tags ?? [];
+    const classes: Array<string> = [];
+    const hasForeign = tags.includes('foreign');
+
+    if (tags.includes('handwritten')) {
+      classes.push(hasForeign ? 'tag-handwritten-foreign' : 'tag-handwritten');
+    } else if (tags.includes('typed')) {
+      classes.push(hasForeign ? 'tag-typed-foreign' : 'tag-typed');
+    } else if (tags.includes('digital')) {
+      classes.push(hasForeign ? 'tag-digital-foreign' : 'tag-digital');
+    }
+
+    if (tags.includes('faded')) classes.push('tag-faded');
+    if (tags.includes('smudged')) classes.push('tag-smudged');
+    if (tags.includes('torn')) classes.push('tag-torn');
+    if (tags.includes('glitching')) classes.push('tag-glitching');
+    if (tags.includes('encrypted')) classes.push('tag-encrypted');
+    if (tags.includes('foreign')) classes.push('tag-foreign');
+    if (tags.includes('gothic')) classes.push('tag-gothic');
+    if (tags.includes('runic')) classes.push('tag-runic');
+    if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
+    if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
+
+    return classes.join(' ');
+  }, [item]);
 
   useEffect(() => {
     if (isVisible && item) {
@@ -64,56 +103,38 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
 
   return (
     <div
+      aria-labelledby="page-view-title"
       aria-modal="true"
       className={`animated-frame ${isVisible ? 'open' : ''}`}
+      onClick={handleOverlayClick}
       role="dialog"
     >
       <div className="animated-frame-content page-view-content-area">
         <Button
           ariaLabel="Close page"
-          icon={(
-            <Icon
-              name="x"
-              size={20}
-            />
-          )}
+          icon={<Icon
+            name="x"
+            size={20}
+          />}
           onClick={onClose}
           size="sm"
           variant="close"
         />
 
+        {item?.name ? (
+          <h2
+            className="text-2xl font-bold text-amber-400 mb-4 text-center"
+            id="page-view-title"
+          >
+            {item.name}
+          </h2>
+        ) : null}
+
         {isLoading ? (
           <LoadingSpinner loadingReason="page" />
         ) : text ? (
           <div
-            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${(() => {
-              const tags = item?.tags ?? [];
-              const classes: Array<string> = [];
-              const hasForeign = tags.includes('foreign');
-
-              if (tags.includes('handwritten')) {
-                classes.push(
-                  hasForeign ? 'tag-handwritten-foreign' : 'tag-handwritten',
-                );
-              } else if (tags.includes('typed')) {
-                classes.push(hasForeign ? 'tag-typed-foreign' : 'tag-typed');
-              } else if (tags.includes('digital')) {
-                classes.push(hasForeign ? 'tag-digital-foreign' : 'tag-digital');
-              }
-
-              if (tags.includes('faded')) classes.push('tag-faded');
-              if (tags.includes('smudged')) classes.push('tag-smudged');
-              if (tags.includes('torn')) classes.push('tag-torn');
-              if (tags.includes('glitching')) classes.push('tag-glitching');
-              if (tags.includes('encrypted')) classes.push('tag-encrypted');
-              if (tags.includes('foreign')) classes.push('tag-foreign');
-              if (tags.includes('gothic')) classes.push('tag-gothic');
-              if (tags.includes('runic')) classes.push('tag-runic');
-              if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
-              if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
-
-              return classes.join(' ');
-            })()}`}
+            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames}`}
           >
             {text}
           </div>
