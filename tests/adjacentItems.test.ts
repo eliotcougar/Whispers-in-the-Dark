@@ -1,20 +1,29 @@
 import { describe, it, expect } from 'vitest';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
-import type { MapData, Item } from '../types';
+import type { MapData, Item, MapEdgeStatus, MapNodeStatus } from '../types';
 
-const makeNode = (id: string, status: string = 'discovered', parent?: string) => ({
+const makeNode = (
+  id: string,
+  status: MapNodeStatus = 'discovered',
+  parent = 'universe',
+): MapData['nodes'][number] => ({
   id,
   themeName: 'theme',
   placeName: id,
   position: { x: 0, y: 0 },
-  data: { description: '', status, nodeType: 'location', parentNodeId: parent ?? 'universe' }
+  data: { description: '', status, nodeType: 'location', parentNodeId: parent },
 });
 
-const makeEdge = (id: string, source: string, target: string, status: string = 'open') => ({
+const makeEdge = (
+  id: string,
+  source: string,
+  target: string,
+  status: MapEdgeStatus = 'open',
+): MapData['edges'][number] => ({
   id,
   sourceNodeId: source,
   targetNodeId: target,
-  data: { status }
+  data: { status },
 });
 
 describe('getAdjacentNodeIds for item reachability', () => {
