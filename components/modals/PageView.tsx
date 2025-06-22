@@ -288,28 +288,38 @@ function PageView({
               label="◄"
               onClick={handlePrevChapter}
               preset="slate"
-              variant="toolbar"
               size="lg"
+              variant="toolbar"
             />
+
             <select
               aria-label="Select chapter"
               className="bg-slate-800 text-white text-md h-9 p-2"
               onChange={handleSelectChapter}
               value={chapterIndex}
             >
-              <option value={0}>ToC</option>
+              <option value={0}>
+                ToC
+              </option>
+
               {chapters.slice(0, unlockedChapterCount).map((ch, idx) => (
-                <option key={ch.heading} value={idx + 1}>{ch.heading}</option>
+                <option
+                  key={ch.heading}
+                  value={idx + 1}
+                >
+                  {ch.heading}
+                </option>
               ))}
             </select>
+
             <Button
               ariaLabel="Next chapter"
               disabled={isLoading || chapterIndex >= unlockedChapterCount || chapterIndex === chapters.length}
               label="►"
               onClick={handleNextChapter}
               preset="slate"
-              variant="toolbar"
               size="lg"
+              variant="toolbar"
             />
           </div>
         ) : null}
@@ -333,7 +343,9 @@ function PageView({
         ) : item?.type === 'book' && chapterIndex === 0 ? (
           <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
-              <p key={ch.heading}>{`${String(idx + 1)}. ${ch.heading}`}</p>
+              <p key={ch.heading}>
+                {`${String(idx + 1)}. ${ch.heading}`}
+              </p>
             ))}
           </ul>
         ) : displayedText ? (

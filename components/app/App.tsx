@@ -740,6 +740,7 @@ function App() {
         handleConfirmShift={confirmShift}
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
+        inventory={inventory}
         isCustomGameModeShift={isCustomGameMode}
         isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
@@ -763,7 +764,6 @@ function App() {
         onNodesPositioned={handleMapNodesPositionChange}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
-        inventory={inventory}
         pageItemId={pageItemId}
         setGeneratedImage={setGeneratedImageCache}
         shiftConfirmOpen={shiftConfirmOpen}
