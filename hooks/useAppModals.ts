@@ -4,6 +4,7 @@
  */
 import { useCallback, useState } from 'react';
 import { Item } from '../types';
+import { clearProgress } from '../utils/loadingProgress';
 
 export const useAppModals = () => {
   const [isVisualizerVisible, setIsVisualizerVisible] = useState(false);
@@ -54,7 +55,10 @@ export const useAppModals = () => {
   const openNewCustomGameConfirm = useCallback(() => { setNewCustomGameConfirmOpen(true); }, []);
   const closeNewCustomGameConfirm = useCallback(() => { setNewCustomGameConfirmOpen(false); }, []);
   const openPageView = useCallback((item: Item) => { setPageItem(item); setIsPageVisible(true); }, []);
-  const closePageView = useCallback(() => { setIsPageVisible(false); }, []);
+  const closePageView = useCallback(() => {
+    setIsPageVisible(false);
+    clearProgress();
+  }, []);
 
   return {
     // state
