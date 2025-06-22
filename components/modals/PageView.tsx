@@ -67,6 +67,8 @@ function PageView({
 
     if (tags.includes('handwritten')) {
       classes.push(hasForeign ? 'tag-handwritten-foreign' : 'tag-handwritten');
+    } else if (tags.includes('printed')) {
+      classes.push(hasForeign ? 'tag-printed-foreign' : 'tag-printed');
     } else if (tags.includes('typed')) {
       classes.push(hasForeign ? 'tag-typed-foreign' : 'tag-typed');
     } else if (tags.includes('digital')) {
