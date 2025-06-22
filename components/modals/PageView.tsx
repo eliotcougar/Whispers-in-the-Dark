@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Item } from '../../types';
+import { Item, MapData, Character, AdventureTheme } from '../../types';
+import { formatKnownPlacesForPrompt, charactersToString } from '../../utils/promptFormatters';
 import { rot13, toGothic, toRunic } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
@@ -8,16 +9,34 @@ import { generatePageText } from '../../services/page';
 
 interface PageViewProps {
   readonly item: Item | null;
-  readonly context: string;
+  readonly currentTheme: AdventureTheme;
+  readonly currentScene: string;
+  readonly storytellerThoughts: string;
+  readonly mapData: MapData;
+  readonly allCharacters: Array<Character>;
+  readonly currentQuest: string | null;
   readonly isVisible: boolean;
   readonly onClose: () => void;
   readonly updateItemContent: (itemId: string, actual: string, visible: string) => void;
 }
 
-function PageView({ item, context, isVisible, onClose, updateItemContent }: PageViewProps) {
+function PageView({
+  item,
+  currentTheme,
+  currentScene,
+  storytellerThoughts,
+  mapData,
+  allCharacters,
+  currentQuest,
+  isVisible,
+  onClose,
+  updateItemContent,
+}: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDecoded, setShowDecoded] = useState(false);
+
+  const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
 
   const handleToggleDecoded = useCallback(() => {
     setShowDecoded(prev => !prev);
@@ -70,6 +89,23 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
     return classes.join(' ');
   }, [item, showDecoded]);
 
+  const knownPlaces = useMemo(() => {
+    const nodes = mapData.nodes.filter(
+      n =>
+        n.themeName === themeName &&
+        n.data.nodeType !== 'feature' &&
+        n.data.nodeType !== 'room',
+    );
+    return formatKnownPlacesForPrompt(nodes, true);
+  }, [mapData, themeName]);
+
+  const knownCharacters = useMemo(() => {
+    const chars = allCharacters.filter(c => c.themeName === themeName);
+    return chars.length > 0
+      ? charactersToString(chars, ' - ', false, false, false, true)
+      : 'None specifically known in this theme yet.';
+  }, [allCharacters, themeName]);
+
   useEffect(() => {
     if (isVisible && item) {
       if (item.visibleContent) {
@@ -82,7 +118,13 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
             item.name,
             item.description,
             length,
-            context,
+            themeName,
+            themeDescription,
+            currentScene,
+            storytellerThoughts,
+            knownPlaces,
+            knownCharacters,
+            currentQuest,
             'Write it exclusively in English without any foreign, encrypted, or gibberish text.'
           );
           if (actual) {
@@ -92,7 +134,13 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
                 item.name,
                 item.description,
                 length,
-                context,
+                themeName,
+                themeDescription,
+                currentScene,
+                storytellerThoughts,
+                knownPlaces,
+                knownCharacters,
+                currentQuest,
                 `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
               );
               visible = fake ?? actual;
@@ -112,7 +160,18 @@ function PageView({ item, context, isVisible, onClose, updateItemContent }: Page
     } else {
       setText(null);
     }
-  }, [isVisible, item, context, updateItemContent]);
+  }, [
+    isVisible,
+    item,
+    themeName,
+    themeDescription,
+    currentScene,
+    storytellerThoughts,
+    knownPlaces,
+    knownCharacters,
+    currentQuest,
+    updateItemContent,
+  ]);
 
   const displayedText = useMemo(() => {
     if (showDecoded && item?.actualContent) {

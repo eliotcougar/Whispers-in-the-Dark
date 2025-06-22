@@ -1,7 +1,7 @@
 /* Main stylesheet for Whispers in the Dark */
 @import url('https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Special+Elite&family=VT323&family=Gloria+Hallelujah&family=IBM+Plex+Serif&family=Press+Start+2P&family=Noto+Sans+Runic&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Oooh+Baby:wght@400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oooh+Baby&display=swap');
 
 body {
   font-family: "Georgia", serif; /* Thematic font */
@@ -22,6 +22,7 @@ body {
   color: #1a1a1a;
   font-family: "Oooh Baby", cursive;
   font-weight: 600;
+  font-size: 1.5rem !important;
 }
 
 .tag-typed {
@@ -65,8 +66,7 @@ body {
 }
 
 .tag-torn {
-  color: #4b3621;
-  border: 1px dashed #a0aec0;
+  border: 3px dashed #a0aec0;
 }
 
 .tag-glitching {

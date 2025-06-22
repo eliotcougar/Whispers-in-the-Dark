@@ -67,7 +67,8 @@ interface AppModalsProps {
   readonly pageItem: Item | null;
   readonly isPageVisible: boolean;
   readonly onClosePage: () => void;
-  readonly contextForPage: string;
+  readonly storytellerThoughts: string;
+  readonly currentQuest: string | null;
   readonly updateItemContent: (id: string, actual: string, visible: string) => void;
 }
 
@@ -123,7 +124,8 @@ function AppModals({
   pageItem,
   isPageVisible,
   onClosePage,
-  contextForPage,
+  storytellerThoughts,
+  currentQuest,
   updateItemContent,
 }: AppModalsProps) {
 
@@ -160,10 +162,15 @@ function AppModals({
       />
 
       <PageView
-        context={contextForPage}
+        allCharacters={allCharacters}
+        currentQuest={currentQuest}
+        currentScene={currentScene}
+        currentTheme={currentTheme}
         isVisible={isPageVisible}
         item={pageItem}
+        mapData={mapData}
         onClose={onClosePage}
+        storytellerThoughts={storytellerThoughts}
         updateItemContent={updateItemContent}
       />
 

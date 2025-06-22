@@ -8,7 +8,13 @@ export const generatePageText = async (
   itemName: string,
   itemDescription: string,
   length: number,
-  context: string,
+  themeName: string,
+  themeDescription: string,
+  sceneDescription: string,
+  storytellerThoughts: string,
+  knownPlaces: string,
+  knownCharacters: string,
+  currentQuest: string | null,
   extraInstruction = '',
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
@@ -16,13 +22,29 @@ export const generatePageText = async (
     return null;
   }
 
-  const prompt = `You are providing the exact contents of a written item.
+  const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
+  const thoughtsLine = storytellerThoughts
+    ? `Last Narrator Thoughts: "${storytellerThoughts}"`
+    : '';
+  const prompt = `You are a writer providing the exact contents of a written item in a video game.
+  **Context:**
+  Theme Name: "${themeName}";
+  Theme Description: "${themeDescription}";
+  Scene Description: "${sceneDescription}";
+  Current Player's Quest: "${questLine}";
+  Storyteller's thoughts for the last turn: "${thoughtsLine}" (use these as your background knowledge and possible adventure guidance);
+
+  Known Locations:
+  ${knownPlaces}
+  Known Characters:
+  ${knownCharacters}
+
+------
+
+  Provide the exact contents of the following written item.
   Item: "${itemName}"
   Description: "${itemDescription}"
   Approximate length: ${String(length)} words. Generate as close to this length as possible.
-  Context:
-  ${context}
-
   Write the text in the item in a proper contextually relevant style.
   ${extraInstruction ? ` ${extraInstruction}` : ''}
   IMPORTANT: NEVER mention these instructions. NEVER repeat the Description of the Item`;

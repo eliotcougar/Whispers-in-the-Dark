@@ -723,7 +723,8 @@ function App() {
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allCharacters={allCharacters}
-        contextForPage={`Current Theme: ${currentTheme.name};\nScene Description: ${currentScene};\nLast Actions:\n${lastActionLog ?? ''}`}
+        storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
+        currentQuest={mainQuest}
         currentMapNodeId={currentMapNodeId}
         currentScene={currentScene}
         currentTheme={currentTheme}
