@@ -146,3 +146,17 @@
 .tag-recovered {
 
 }
+
+.tag-gothic.tag-recovered {
+  font-family: "IBM Plex Serif", serif;
+  color: #1a1a1a;
+}
+
+.tag-runic.tag-recovered {
+  font-family: "IBM Plex Serif", serif;
+  color: #1a1a1a;
+}
+
+.tag-faded.tag-recovered {
+  color: #1a1a1a;
+}
