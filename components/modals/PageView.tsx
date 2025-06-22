@@ -95,7 +95,9 @@ function PageView({
   const textClassNames = useMemo(() => {
     const tags = item?.tags ?? [];
     const classes: Array<string> = [];
-    const showActual = showDecoded && item?.actualContent;
+    const showActual = item?.type === 'book'
+      ? showDecoded
+      : showDecoded && item?.actualContent;
     const hasForeign = !showActual && tags.includes('foreign');
 
     if (tags.includes('handwritten')) {
