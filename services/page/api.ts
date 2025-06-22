@@ -25,10 +25,10 @@ export const generatePageText = async (
 
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
   const thoughtsLine = storytellerThoughts
-    ? `Last Narrator Thoughts: "${storytellerThoughts}"`
+    ? storytellerThoughts
     : '';
   const previousChapterLine = previousChapterText
-    ? `Previous Chapter Text:\n"""${previousChapterText}"""`
+    ? previousChapterText
     : '';
   const prompt = `You are a writer providing the exact contents of a written item in a video game.
   **Context:**
@@ -42,6 +42,8 @@ export const generatePageText = async (
   ${knownPlaces}
   Known Characters:
   ${knownCharacters}
+
+  Previous Chapter:
   ${previousChapterLine}
 
 ------
