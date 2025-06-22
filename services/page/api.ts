@@ -26,21 +26,25 @@ export const generatePageText = async (
   const thoughtsLine = storytellerThoughts
     ? `Last Narrator Thoughts: "${storytellerThoughts}"`
     : '';
-  const prompt = `You are providing the exact contents of a written item.
-  Item: "${itemName}"
-  Description: "${itemDescription}"
-  Approximate length: ${String(length)} words. Generate as close to this length as possible.
+  const prompt = `You are a writer providing the exact contents of a written item in a video game.
+  **Context:**
+  Theme Name: "${themeName}";
+  Theme Description: "${themeDescription}";
+  Scene Description: "${sceneDescription}";
+  Current Player's Quest: "${questLine}";
+  Storyteller's thoughts for the last turn: "${thoughtsLine}" (use these as your background knowledge and possible adventure guidance);
 
-  Theme Name: "${themeName}"
-  Theme Description: "${themeDescription}"
-  Scene Description: "${sceneDescription}"
-  ${questLine}
-  ${thoughtsLine}
   Known Locations:
   ${knownPlaces}
   Known Characters:
   ${knownCharacters}
 
+------
+
+  Provide the exact contents of the following written item.
+  Item: "${itemName}"
+  Description: "${itemDescription}"
+  Approximate length: ${String(length)} words. Generate as close to this length as possible.
   Write the text in the item in a proper contextually relevant style.
   ${extraInstruction ? ` ${extraInstruction}` : ''}
   IMPORTANT: NEVER mention these instructions. NEVER repeat the Description of the Item`;
