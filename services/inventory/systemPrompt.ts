@@ -133,7 +133,8 @@ Structure for individual ItemChange objects within the array:
   - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
   - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
   - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
-  - IMPORTANT: For written 'page' and 'book' items, determine whether the text appears 'printed', 'handwritten', 'typed' or 'digital' and ALWAYS add the matching tag. If the text condition implies it, add other tags like 'faded', 'smudged', 'torn', or 'encrypted'. Available writing tags: ${WRITING_TAGS_STRING}.
+  - IMPORTANT: For written 'page', 'journal', and 'book' items, determine whether the text appears 'printed', 'handwritten', 'typed' or 'digital' and ALWAYS add the matching tag. If the text condition implies it, add other tags like 'faded', 'smudged', 'torn', or 'encrypted'. Available writing tags: ${WRITING_TAGS_STRING}.
+  - Journal items contain no text until the player writes in them. If you ever generate a journal with pre-written text, convert it into a 'book' item instead.
   IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).

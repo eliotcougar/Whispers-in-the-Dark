@@ -5,6 +5,7 @@ import {
   TurnChanges,
   Item,
   ItemTag,
+  ItemChapter,
 } from '../types';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -147,6 +148,23 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
+  const addJournalEntry = useCallback(
+    (id: string, chapter: ItemChapter) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item => {
+        if (item.id !== id) return item;
+        return {
+          ...item,
+          chapters: [...(item.chapters ?? []), chapter],
+          lastWriteTurn: currentFullState.globalTurnNumber,
+        };
+      });
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
   const addTag = useCallback(
     (id: string, tag: ItemTag) => {
       const currentFullState = getStateRef.current();
@@ -163,7 +181,7 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
-  return { handleDropItem, handleTakeLocationItem, updateItemContent, addTag };
+  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag };
 };
 
 export type InventoryActions = ReturnType<typeof useInventoryActions>;

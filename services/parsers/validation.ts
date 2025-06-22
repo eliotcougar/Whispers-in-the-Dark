@@ -44,7 +44,11 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
 
 export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
   if (!item || typeof item !== 'object') return false;
-  const obj = item as Partial<Item>;
+  const obj = item as Partial<Item> & {
+    contentLength?: number;
+    actualContent?: string;
+    visibleContent?: string;
+  };
 
   if (typeof obj.type === 'string') {
     const normalized = normalizeItemType(obj.type);
@@ -117,18 +121,18 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     if (normalized) obj.tags = normalized;
     else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
   }
-  if (obj.type === 'page') {
+  if (obj.type === 'page' || obj.type === 'journal') {
     obj.tags = obj.tags ?? [];
     const styleTags = obj.tags.filter(t => TEXT_STYLE_TAG_SET.has(t));
     if (styleTags.length === 0) {
       const guessed = guessTextStyle(obj.name, obj.description ?? '');
-      obj.tags.push(guessed);
+      obj.tags.push(obj.type === 'journal' ? 'handwritten' : guessed);
     } else if (styleTags.length > 1) {
       const keep = styleTags[0];
-      obj.tags = [
-        ...obj.tags.filter(t => !TEXT_STYLE_TAG_SET.has(t)),
-        keep,
-      ];
+      obj.tags = [keep];
+    }
+    if (obj.type === 'journal') {
+      obj.tags = obj.tags.filter(t => TEXT_STYLE_TAG_SET.has(t));
     }
   }
   if (obj.holderId !== undefined && (typeof obj.holderId !== 'string' || obj.holderId.trim() === '')) {
@@ -147,7 +151,7 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
         typeof (ch as ItemChapter).contentLength === 'number'
     );
 
-  if (obj.type === 'page' || obj.type === 'book') {
+  if (obj.type === 'page' || obj.type === 'book' || obj.type === 'journal') {
     if (obj.chapters !== undefined) {
       if (!chaptersValid(obj.chapters)) {
         console.warn("isValidItem: 'chapters' is present but invalid.", item);
@@ -156,7 +160,7 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     } else {
       const len =
         typeof obj.contentLength === 'number' ? obj.contentLength : 30;
-      obj.chapters = [
+      obj.chapters = obj.type === 'journal' ? [] : [
         {
           heading: obj.name,
           description: obj.description ?? '',
@@ -176,6 +180,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
   } else if (obj.chapters !== undefined && !chaptersValid(obj.chapters)) {
     console.warn("isValidItem: 'chapters' is present but invalid for non-book/page item.", item);
     return false;
+  }
+
+  if (obj.type === 'journal' && obj.chapters && obj.chapters.length > 0) {
+    obj.type = 'book';
   }
 
   if (obj.contentLength !== undefined && typeof obj.contentLength !== 'number') {

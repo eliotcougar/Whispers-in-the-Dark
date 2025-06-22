@@ -17,6 +17,7 @@ interface PageViewProps {
   readonly allCharacters: Array<Character>;
   readonly currentQuest: string | null;
   readonly isVisible: boolean;
+  readonly startIndex?: number;
   readonly onClose: () => void;
   readonly updateItemContent: (itemId: string, actual: string, visible: string, chapterIndex?: number) => void;
 }
@@ -30,30 +31,40 @@ function PageView({
   allCharacters,
   currentQuest,
   isVisible,
+  startIndex = 0,
   onClose,
   updateItemContent,
 }: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDecoded, setShowDecoded] = useState(false);
-  const [chapterIndex, setChapterIndex] = useState(0);
+  const [chapterIndex, setChapterIndex] = useState(startIndex);
+  const isBook = item?.type === 'book';
+  const isJournal = item?.type === 'journal';
 
   const chapters = useMemo(() => {
     if (!item) return [];
+    if (item.type === 'journal') return item.chapters ?? [];
     if (item.chapters && item.chapters.length > 0) return item.chapters;
+    const legacy = item as Item & {
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
+    };
     return [
       {
         heading: item.name,
         description: item.description,
-        contentLength: item.contentLength ?? 30,
-        actualContent: item.actualContent,
-        visibleContent: item.visibleContent,
+        contentLength: legacy.contentLength ?? 30,
+        actualContent: legacy.actualContent,
+        visibleContent: legacy.visibleContent,
       },
     ];
   }, [item]);
 
   const unlockedChapterCount = useMemo(() => {
-    if (!item || item.type !== 'book') return chapters.length;
+    if (!item) return chapters.length;
+    if (item.type !== 'book') return chapters.length;
     let idx = 0;
     for (; idx < chapters.length; idx += 1) {
       if (!chapters[idx].actualContent) break;
@@ -68,17 +79,24 @@ function PageView({
   }, []);
 
   const handleNextChapter = useCallback(() => {
-    setChapterIndex(i => Math.min(unlockedChapterCount, i + 1));
-  }, [unlockedChapterCount]);
+    setChapterIndex(i => {
+      if (isJournal) {
+        return Math.min(chapters.length - 1, i + 1);
+      }
+      return Math.min(unlockedChapterCount, i + 1);
+    });
+  }, [isJournal, chapters.length, unlockedChapterCount]);
 
   const handleSelectChapter = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = Number(e.target.value);
-      if (value <= unlockedChapterCount) {
+      if (item?.type === 'book') {
+        if (value <= unlockedChapterCount) setChapterIndex(value);
+      } else if (value < unlockedChapterCount) {
         setChapterIndex(value);
       }
     },
-    [unlockedChapterCount]
+    [unlockedChapterCount, item]
   );
 
   const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
@@ -89,8 +107,8 @@ function PageView({
 
   useEffect(() => {
     setShowDecoded(false);
-    setChapterIndex(0);
-  }, [item?.id, isVisible]);
+    setChapterIndex(startIndex);
+  }, [item?.id, isVisible, startIndex]);
 
   /**
    * Close the view when clicking outside of the modal content.
@@ -171,8 +189,11 @@ function PageView({
     }
 
     const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    if (idx < 0 || idx >= chapters.length) {
+      setText(null);
+      return;
+    }
     const chapter = chapters[idx];
-
     if (chapter.visibleContent) {
       setText(chapter.visibleContent);
       return;
@@ -251,6 +272,11 @@ function PageView({
     return text;
   }, [showDecoded, item, text, chapterIndex, chapters]);
 
+  const pendingWrite = useMemo(
+    () => isJournal && chapterIndex === chapters.length,
+    [isJournal, chapterIndex, chapters.length]
+  );
+
   return (
     <div
       aria-labelledby="page-view-title"
@@ -280,7 +306,7 @@ function PageView({
           </h2>
         ) : null}
 
-        {item?.type === 'book' ? (
+        {item?.type === 'book' || item?.type === 'journal' ? (
           <div className="flex justify-center items-center gap-2 mb-2">
             <Button
               ariaLabel="Previous chapter"
@@ -298,23 +324,36 @@ function PageView({
               onChange={handleSelectChapter}
               value={chapterIndex}
             >
-              <option value={0}>
-                ToC
-              </option>
+              {item.type === 'book' ? (
+                <>
+                  <option value={0}>
+                    ToC
+                  </option>
 
-              {chapters.slice(0, unlockedChapterCount).map((ch, idx) => (
-                <option
-                  key={ch.heading}
-                  value={idx + 1}
-                >
-                  {ch.heading}
-                </option>
-              ))}
+                  {chapters.slice(0, unlockedChapterCount).map((ch, idx) => (
+                    <option key={ch.heading} value={idx + 1}>
+                      {ch.heading}
+                    </option>
+                  ))}
+                </>
+              ) : (
+                chapters.map((ch, idx) => (
+                  <option key={ch.heading} value={idx}>
+                    {ch.heading}
+                  </option>
+                ))
+              )}
             </select>
 
             <Button
               ariaLabel="Next chapter"
-              disabled={isLoading || chapterIndex >= unlockedChapterCount || chapterIndex === chapters.length}
+              disabled={
+                isLoading ||
+                (isBook
+                  ? chapterIndex >= unlockedChapterCount ||
+                    chapterIndex === chapters.length
+                  : chapterIndex >= chapters.length - 1)
+              }
               label="►"
               onClick={handleNextChapter}
               preset="slate"
@@ -338,7 +377,9 @@ function PageView({
           </div>
         ) : null}
 
-        {isLoading ? (
+        {pendingWrite ? (
+          <LoadingSpinner loadingReason="journal" />
+        ) : isLoading ? (
           <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
         ) : item?.type === 'book' && chapterIndex === 0 ? (
           <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
@@ -359,3 +400,7 @@ function PageView({
 }
 
 export default PageView;
+
+PageView.defaultProps = {
+  startIndex: 0,
+};

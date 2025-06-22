@@ -16,6 +16,7 @@ interface UseInventoryDisplayProps {
   ) => void;
   readonly onDropItem: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
+  readonly onWriteJournal: (item: Item) => void;
 }
 
 export const useInventoryDisplay = ({
@@ -23,6 +24,7 @@ export const useInventoryDisplay = ({
   onItemInteract,
   onDropItem,
   onReadPage,
+  onWriteJournal,
 }: UseInventoryDisplayProps) => {
   const [newlyAddedItemNames, setNewlyAddedItemNames] = useState<Set<string>>(new Set());
   const prevItemsRef = useRef<Array<Item>>(items);
@@ -130,6 +132,15 @@ export const useInventoryDisplay = ({
     event.currentTarget.blur();
   }, [items, onReadPage]);
 
+  const handleWrite = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    const name = event.currentTarget.dataset.itemName;
+    if (!name) return;
+    const item = items.find(i => i.name === name);
+    if (!item) return;
+    onWriteJournal(item);
+    event.currentTarget.blur();
+  }, [items, onWriteJournal]);
+
   useEffect(() => {
     const currentItemNames = new Set(items.map(item => item.name));
     const prevItemNames = new Set(prevItemsRef.current.map(item => item.name));
@@ -217,6 +228,7 @@ export const useInventoryDisplay = ({
     handleGenericUse,
     handleVehicleToggle,
     handleRead,
+    handleWrite,
     getApplicableKnownUses,
   } as const;
 };

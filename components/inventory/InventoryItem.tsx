@@ -9,6 +9,7 @@ interface InventoryItemProps {
   readonly isConfirmingDiscard: boolean;
   readonly applicableUses: Array<KnownUse>;
   readonly disabled: boolean;
+  readonly currentTurn: number;
   readonly onSpecificUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onInspect: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onGenericUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -17,6 +18,7 @@ interface InventoryItemProps {
   readonly onConfirmDrop: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onCancelDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onWrite: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 function InventoryItem({
@@ -25,6 +27,7 @@ function InventoryItem({
   isConfirmingDiscard,
   applicableUses,
   disabled,
+  currentTurn,
   onSpecificUse,
   onInspect,
   onGenericUse,
@@ -33,6 +36,7 @@ function InventoryItem({
   onConfirmDrop,
   onCancelDiscard,
   onRead,
+  onWrite,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   return (
@@ -94,18 +98,39 @@ function InventoryItem({
           size="sm"
         />
 
-        {item.type === 'page' || item.type === 'book' ? (
+        {item.type === 'page' || item.type === 'book' || item.type === 'journal' ? (
           <Button
             ariaLabel={`Read ${item.name}`}
             data-item-name={item.name}
-            disabled={disabled || isConfirmingDiscard}
+            disabled={
+              disabled ||
+              isConfirmingDiscard ||
+              (item.type === 'journal' && (item.chapters?.length ?? 0) === 0)
+            }
             key={`${item.name}-read`}
             label="Read"
             onClick={onRead}
             preset="teal"
             size="sm"
           />
-      ) : null}
+        ) : null}
+
+        {item.type === 'journal' ? (
+          <Button
+            ariaLabel={`Write in ${item.name}`}
+            data-item-name={item.name}
+            disabled={
+              disabled ||
+              isConfirmingDiscard ||
+              (item.lastWriteTurn !== undefined && item.lastWriteTurn === currentTurn)
+            }
+            key={`${item.name}-write`}
+            label="Write"
+            onClick={onWrite}
+            preset="teal"
+            size="sm"
+          />
+        ) : null}
 
         {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
           <Button

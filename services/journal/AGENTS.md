@@ -1,0 +1,1 @@
+The **journal** service generates new journal entries based on game context. It follows the same structure as the page service: an `api.ts` module exporting `generateJournalEntry` and an `index.ts` re-export. Use AUXILIARY_MODEL_NAME first and fall back to GEMINI_MODEL_NAME. Add progress symbols before requests and keep the prompt short.

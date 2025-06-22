@@ -78,7 +78,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setGameStateStack,
   });
 
-  const { handleDropItem, handleTakeLocationItem, updateItemContent } = useInventoryActions({
+  const { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry } = useInventoryActions({
     getCurrentGameState,
     commitGameState,
     isLoading,
@@ -336,6 +336,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleDropItem,
     handleTakeLocationItem,
     updateItemContent,
+    addJournalEntry,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   };

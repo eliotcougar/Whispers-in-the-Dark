@@ -5,6 +5,7 @@
 
 import {
   Item,
+  ItemChapter,
   ItemChange,
   ItemReference,
   GiveItemPayload,
@@ -23,7 +24,11 @@ const applyItemActionCore = (
   let newInventory = [...currentInventory];
 
   if (fromId === null && toId === PLAYER_HOLDER_ID) {
-    const itemData = payload as Item;
+    const itemData = payload as Item & {
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
+    };
     const existing = findItemByIdentifier(
       [itemData.id, itemData.name],
       newInventory,
@@ -49,10 +54,15 @@ const applyItemActionCore = (
                   heading: itemData.name,
                   description: itemData.description,
                   contentLength:
-                    itemData.contentLength ?? existing.contentLength ?? 30,
-                  actualContent: itemData.actualContent ?? existing.actualContent,
+                    (itemData as { contentLength?: number }).contentLength ??
+                    existing.chapters?.[0]?.contentLength ??
+                    30,
+                  actualContent:
+                    (itemData as { actualContent?: string }).actualContent ??
+                    existing.chapters?.[0]?.actualContent,
                   visibleContent:
-                    itemData.visibleContent ?? existing.visibleContent,
+                    (itemData as { visibleContent?: string }).visibleContent ??
+                    existing.chapters?.[0]?.visibleContent,
                 },
               ]
             : existing.chapters),
@@ -81,9 +91,12 @@ const applyItemActionCore = (
               {
                 heading: itemData.name,
                 description: itemData.description,
-                contentLength: itemData.contentLength ?? 30,
-                actualContent: itemData.actualContent,
-                visibleContent: itemData.visibleContent,
+                contentLength:
+                  (itemData as { contentLength?: number }).contentLength ?? 30,
+                actualContent:
+                  (itemData as { actualContent?: string }).actualContent,
+                visibleContent:
+                  (itemData as { visibleContent?: string }).visibleContent,
               },
             ]
           : undefined),
@@ -100,7 +113,11 @@ const applyItemActionCore = (
   }
 
   if (fromId === null && toId) {
-    const itemData = payload as Item;
+    const itemData = payload as Item & {
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
+    };
     const existing = findItemByIdentifier(
       [itemData.id, itemData.name],
       newInventory,
@@ -125,9 +142,12 @@ const applyItemActionCore = (
               {
                 heading: itemData.name,
                 description: itemData.description,
-                contentLength: itemData.contentLength ?? 30,
-                actualContent: itemData.actualContent,
-                visibleContent: itemData.visibleContent,
+                contentLength:
+                  (itemData as { contentLength?: number }).contentLength ?? 30,
+                actualContent:
+                  (itemData as { actualContent?: string }).actualContent,
+                visibleContent:
+                  (itemData as { visibleContent?: string }).visibleContent,
               },
             ]
           : undefined),
@@ -159,6 +179,9 @@ const applyItemActionCore = (
   if (fromId !== null && toId !== null && fromId === toId) {
     const updatePayload = payload as Partial<Omit<Item, 'activeDescription'>> & {
       activeDescription?: string | null;
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
     };
     const existingItem = findItemByIdentifier(
       [updatePayload.id, updatePayload.name],
@@ -349,9 +372,12 @@ export const buildItemChangeRecords = (
                   {
                     heading: gainedItemData.name,
                     description: gainedItemData.description,
-                    contentLength: gainedItemData.contentLength ?? 30,
-                    actualContent: gainedItemData.actualContent,
-                    visibleContent: gainedItemData.visibleContent,
+                    contentLength:
+                      (gainedItemData as { contentLength?: number }).contentLength ?? 30,
+                    actualContent:
+                      (gainedItemData as { actualContent?: string }).actualContent,
+                    visibleContent:
+                      (gainedItemData as { visibleContent?: string }).visibleContent,
                   },
                 ]
               : undefined),
@@ -383,7 +409,11 @@ export const buildItemChangeRecords = (
       ) as Item | null;
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };
     } else if (change.action === 'update') {
-      const updatePayload: ItemUpdatePayload = change.item;
+      const updatePayload: ItemUpdatePayload & {
+        contentLength?: number;
+        actualContent?: string;
+        visibleContent?: string;
+      } = change.item;
       const oldItem = findItemByIdentifier(
         [updatePayload.id, updatePayload.name],
         currentInventory,
@@ -428,11 +458,15 @@ export const buildItemChangeRecords = (
                     heading: finalName,
                     description: updatePayload.description ?? oldItemCopy.description,
                     contentLength:
-                      updatePayload.contentLength ?? oldItemCopy.contentLength ?? 30,
+                      updatePayload.contentLength ??
+                      (oldItemCopy.chapters?.[0] as ItemChapter | undefined)?.contentLength ??
+                      30,
                     actualContent:
-                      updatePayload.actualContent ?? oldItemCopy.actualContent,
+                      updatePayload.actualContent ??
+                      (oldItemCopy.chapters?.[0] as ItemChapter | undefined)?.actualContent,
                     visibleContent:
-                      updatePayload.visibleContent ?? oldItemCopy.visibleContent,
+                      updatePayload.visibleContent ??
+                      (oldItemCopy.chapters?.[0] as ItemChapter | undefined)?.visibleContent,
                   },
                 ]
               : undefined),

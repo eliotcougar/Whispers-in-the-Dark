@@ -24,6 +24,7 @@ export const useAppModals = () => {
   const [loadGameFromMenuConfirmOpen, setLoadGameFromMenuConfirmOpen] = useState(false);
   const [newCustomGameConfirmOpen, setNewCustomGameConfirmOpen] = useState(false);
   const [pageItemId, setPageItemId] = useState<string | null>(null);
+  const [pageStartChapterIndex, setPageStartChapterIndex] = useState<number>(0);
   const [isPageVisible, setIsPageVisible] = useState(false);
 
   const openVisualizer = useCallback(() => { setIsVisualizerVisible(true); }, []);
@@ -53,13 +54,15 @@ export const useAppModals = () => {
   const closeLoadGameFromMenuConfirm = useCallback(() => { setLoadGameFromMenuConfirmOpen(false); }, []);
   const openNewCustomGameConfirm = useCallback(() => { setNewCustomGameConfirmOpen(true); }, []);
   const closeNewCustomGameConfirm = useCallback(() => { setNewCustomGameConfirmOpen(false); }, []);
-  const openPageView = useCallback((id: string) => {
+  const openPageView = useCallback((id: string, startIndex = 0) => {
     setPageItemId(id);
+    setPageStartChapterIndex(startIndex);
     setIsPageVisible(true);
   }, []);
   const closePageView = useCallback(() => {
     setIsPageVisible(false);
     setPageItemId(null);
+    setPageStartChapterIndex(0);
     clearProgress();
   }, []);
 
@@ -83,6 +86,7 @@ export const useAppModals = () => {
     loadGameFromMenuConfirmOpen,
    newCustomGameConfirmOpen,
    pageItemId,
+   pageStartChapterIndex,
    isPageVisible,
    // setters used outside
     setVisualizerImageUrl,

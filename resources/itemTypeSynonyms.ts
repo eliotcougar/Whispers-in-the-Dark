@@ -18,7 +18,7 @@ const itemTypeSynonyms = {
     "page": "page",
     "tome": "book",
     "volume": "book",
-    "journal": "book",
+    "journal": "journal",
     "book": "book"
   }
 };

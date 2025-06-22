@@ -26,6 +26,8 @@ import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
 import FreeActionInput from './FreeActionInput';
+import { formatKnownPlacesForPrompt, charactersToString } from '../../utils/promptFormatters';
+import { generateJournalEntry } from '../../services/journal';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
 import { useAppModals } from '../../hooks/useAppModals';
@@ -38,7 +40,7 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 import {
   FREE_FORM_ACTION_COST,
 } from '../../constants';
-import { ThemePackName, Item, FullGameState } from '../../types';
+import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
 
 
 function App() {
@@ -189,6 +191,7 @@ function App() {
     openNewCustomGameConfirm,
     closeNewCustomGameConfirm,
     pageItemId,
+    pageStartChapterIndex,
     isPageVisible,
     openPageView,
     closePageView,
@@ -279,9 +282,67 @@ function App() {
     void handleRetry();
   }, [handleRetry]);
 
-  const handleReadPage = useCallback((item: Item) => {
-    openPageView(item.id);
-  }, [openPageView]);
+  const handleReadPage = useCallback(
+    (item: Item) => {
+      const index =
+        item.type === 'journal'
+          ? Math.max(0, (item.chapters?.length ?? 0) - 1)
+          : 0;
+      openPageView(item.id, index);
+    },
+    [openPageView]
+  );
+
+  const handleWriteJournal = useCallback((item: Item) => {
+    if (item.lastWriteTurn === globalTurnNumber) return;
+    openPageView(item.id, item.chapters?.length ?? 0);
+    void (async () => {
+      if (!currentTheme) return;
+      const { name: themeName, systemInstructionModifier } = currentTheme;
+      const nodes = mapData.nodes.filter(
+        n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+      );
+      const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
+      const chars = allCharacters.filter(c => c.themeName === themeName);
+      const knownCharacters = chars.length > 0
+        ? charactersToString(chars, ' - ', false, false, false, true)
+        : 'None specifically known in this theme yet.';
+      const prev = item.chapters?.[item.chapters.length - 1]?.actualContent ?? '';
+      const entry = await generateJournalEntry(
+        item.name,
+        item.description,
+        prev,
+        themeName,
+        systemInstructionModifier,
+        currentScene,
+        lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
+        knownPlaces,
+        knownCharacters,
+        mainQuest
+      );
+      if (entry) {
+        const chapter = {
+          heading: entry.heading,
+          description: entry.heading,
+          contentLength: 50,
+          actualContent: entry.text,
+          visibleContent: entry.text,
+        } as ItemChapter;
+        gameLogic.addJournalEntry(item.id, chapter);
+        openPageView(item.id, item.chapters?.length ?? 0);
+      }
+    })();
+  }, [
+    allCharacters,
+    currentTheme,
+    currentScene,
+    gameLogic,
+    mapData.nodes,
+    mainQuest,
+    openPageView,
+    lastDebugPacket,
+    globalTurnNumber,
+  ]);
 
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -622,7 +683,9 @@ function App() {
                 onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
+                onWriteJournal={handleWriteJournal}
                 onTakeItem={handleTakeLocationItem}
+                globalTurnNumber={globalTurnNumber}
               />
             )}
           </div>
@@ -765,6 +828,7 @@ function App() {
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
         pageItemId={pageItemId}
+        pageStartChapterIndex={pageStartChapterIndex}
         setGeneratedImage={setGeneratedImageCache}
         shiftConfirmOpen={shiftConfirmOpen}
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}

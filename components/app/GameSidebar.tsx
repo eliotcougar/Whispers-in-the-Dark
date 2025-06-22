@@ -28,7 +28,9 @@ interface GameSidebarProps {
     knownUse?: KnownUse,
   ) => void;
   readonly onReadPage: (item: Item) => void;
+  readonly onWriteJournal: (item: Item) => void;
   readonly onTakeItem: (itemName: string) => void;
+  readonly globalTurnNumber: number;
   readonly disabled: boolean;
 }
 
@@ -46,7 +48,9 @@ function GameSidebar({
   onDropItem,
   onItemInteract,
   onReadPage,
+  onWriteJournal,
   onTakeItem,
+  globalTurnNumber,
   disabled,
 }: GameSidebarProps) {
   const questHighlightEntities = useMemo(
@@ -113,9 +117,11 @@ function GameSidebar({
       <InventoryDisplay
         disabled={disabled}
         items={inventory}
+        currentTurn={globalTurnNumber}
         onDropItem={onDropItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}
+        onWriteJournal={onWriteJournal}
       />
     </>
   );

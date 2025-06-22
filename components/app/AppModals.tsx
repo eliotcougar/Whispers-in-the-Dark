@@ -66,6 +66,7 @@ interface AppModalsProps {
   readonly isCustomGameModeShift: boolean;
   readonly inventory: Array<Item>;
   readonly pageItemId: string | null;
+  readonly pageStartChapterIndex: number;
   readonly isPageVisible: boolean;
   readonly onClosePage: () => void;
   readonly storytellerThoughts: string;
@@ -124,6 +125,7 @@ function AppModals({
   isCustomGameModeShift,
   inventory,
   pageItemId,
+  pageStartChapterIndex,
   isPageVisible,
   onClosePage,
   storytellerThoughts,
@@ -172,6 +174,7 @@ function AppModals({
         item={inventory.find(it => it.id === pageItemId) ?? null}
         mapData={mapData}
         onClose={onClosePage}
+        startIndex={pageStartChapterIndex}
         storytellerThoughts={storytellerThoughts}
         updateItemContent={updateItemContent}
       />

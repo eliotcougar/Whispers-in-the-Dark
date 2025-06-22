@@ -61,11 +61,7 @@ export interface Item {
    * Page items should contain a single chapter object in this array.
    */
   chapters?: Array<ItemChapter>;
-  // The following fields are kept for compatibility with older saves and will
-  // be migrated into `chapters` when loading.
-  contentLength?: number;
-  actualContent?: string;
-  visibleContent?: string;
+  lastWriteTurn?: number;
   // --- Fields for "update" action payloads ---
   newName?: string;
   addKnownUse?: KnownUse;
