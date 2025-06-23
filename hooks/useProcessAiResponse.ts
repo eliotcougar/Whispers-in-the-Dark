@@ -15,11 +15,13 @@ import {
   addLogMessageToList,
   buildItemChangeRecords,
   applyAllItemChanges,
+  applyThemeFactChanges,
 } from '../utils/gameLogicUtils';
 import { itemsToString } from '../utils/promptFormatters/inventory';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { applyInventoryHints_Service } from '../services/inventory';
+import { refineLore_Service } from '../services/loremaster';
 
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
@@ -337,7 +339,7 @@ export const useProcessAiResponse = ({
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
-        loremasterDebugInfo: null,
+        loremasterDebugInfo: { collect: null, refine: null, distill: null },
       };
 
       if (aiData.localTime !== undefined) {
@@ -447,6 +449,38 @@ export const useProcessAiResponse = ({
         draftState.lastActionLog = aiData.logMessage;
       } else if (!isFromDialogueSummary) {
         draftState.lastActionLog = 'The Dungeon Master remains silent on the outcome of your last action.';
+      }
+
+      if (!isFromDialogueSummary && themeContextForResponse) {
+        const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
+        const contextParts = [
+          playerActionText ? `Action: ${playerActionText}` : '',
+          aiData.sceneDescription,
+          aiData.logMessage ?? '',
+          thoughts ? `Thoughts:\n${thoughts}` : '',
+        ].filter(Boolean).join('\n');
+        const refineResult = await refineLore_Service({
+          themeName: themeContextForResponse.name,
+          turnContext: contextParts,
+          existingFacts: draftState.themeFacts,
+        });
+        if (draftState.lastDebugPacket.loremasterDebugInfo) {
+          draftState.lastDebugPacket.loremasterDebugInfo.refine = refineResult?.debugInfo ?? null;
+        }
+        if (refineResult?.refinementResult) {
+          applyThemeFactChanges(
+            draftState,
+            refineResult.refinementResult.factsChange,
+            draftState.globalTurnNumber,
+          );
+          if (refineResult.refinementResult.loreRefinementOutcome) {
+            draftState.gameLog = addLogMessageToList(
+              draftState.gameLog,
+              refineResult.refinementResult.loreRefinementOutcome,
+              MAX_LOG_MESSAGES,
+            );
+          }
+        }
       }
 
       updateDialogueState(draftState, aiData, isFromDialogueSummary);

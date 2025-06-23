@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
-import type { DebugPacket } from '../../../types';
+import type { DebugPacket, LoremasterModeDebugInfo } from '../../../types';
 import { filterObservationsAndRationale } from './tabUtils';
 
 interface LoremasterAITabProps {
@@ -9,74 +9,80 @@ interface LoremasterAITabProps {
 }
 
 function LoremasterAITab({ debugPacket }: LoremasterAITabProps) {
-  const [showRaw, setShowRaw] = useState(true);
+  const [showRaw, setShowRaw] = useState<Record<string, boolean>>({});
 
-  const handleShowRaw = useCallback(() => { setShowRaw(true); }, []);
-  const handleShowParsed = useCallback(() => { setShowRaw(false); }, []);
+  const handleShowRaw = useCallback(
+    (mode: string) => () => { setShowRaw(prev => ({ ...prev, [mode]: true })); },
+    [],
+  );
+  const handleShowParsed = useCallback(
+    (mode: string) => () => { setShowRaw(prev => ({ ...prev, [mode]: false })); },
+    [],
+  );
 
-  return debugPacket?.loremasterDebugInfo ? (
-    <>
-      <DebugSection
-        content={debugPacket.loremasterDebugInfo.prompt}
-        isJson={false}
-        title="Loremaster AI Request"
-      />
+  const renderMode = (
+    modeLabel: string,
+    info: LoremasterModeDebugInfo | null | undefined,
+  ) => {
+    if (!info) return null;
+    const raw = showRaw[modeLabel] ?? true;
+    return (
+      <div className="mb-4" key={modeLabel}>
+        <DebugSection content={info.prompt} isJson={false} title={`${modeLabel} Request`} />
 
-      <div className="my-2 flex flex-wrap gap-2">
-        <Button
-          ariaLabel="Show raw loremaster response"
-          label="Raw"
-          onClick={handleShowRaw}
-          preset={showRaw ? 'sky' : 'slate'}
-          pressed={showRaw}
-          size="sm"
-          variant="toggle"
-        />
+        <div className="my-2 flex flex-wrap gap-2">
+          <Button
+            ariaLabel={`Show raw ${modeLabel} response`}
+            label="Raw"
+            onClick={handleShowRaw(modeLabel)}
+            preset={raw ? 'sky' : 'slate'}
+            pressed={raw}
+            size="sm"
+            variant="toggle"
+          />
 
-        <Button
-          ariaLabel="Show parsed loremaster response"
-          label="Parsed"
-          onClick={handleShowParsed}
-          preset={showRaw ? 'slate' : 'sky'}
-          pressed={!showRaw}
-          size="sm"
-          variant="toggle"
-        />
+          <Button
+            ariaLabel={`Show parsed ${modeLabel} response`}
+            label="Parsed"
+            onClick={handleShowParsed(modeLabel)}
+            preset={raw ? 'slate' : 'sky'}
+            pressed={!raw}
+            size="sm"
+            variant="toggle"
+          />
+        </div>
+
+        {raw ? (
+          <DebugSection
+            content={filterObservationsAndRationale(info.rawResponse)}
+            isJson={false}
+            title={`${modeLabel} Response Raw`}
+          />
+        ) : (
+          <DebugSection content={info.parsedPayload} title={`${modeLabel} Response Parsed`} />
+        )}
+
+        {info.observations ? (
+          <DebugSection content={info.observations} isJson={false} title={`${modeLabel} Observations`} />
+        ) : null}
+
+        {info.rationale ? (
+          <DebugSection content={info.rationale} isJson={false} title={`${modeLabel} Rationale`} />
+        ) : null}
       </div>
+    );
+  };
 
-      {showRaw ? (
-        <DebugSection
-          content={filterObservationsAndRationale(debugPacket.loremasterDebugInfo.rawResponse)}
-          isJson={false}
-          title="Loremaster AI Response Raw"
-        />
-      ) : (
-        <DebugSection
-          content={debugPacket.loremasterDebugInfo.parsedPayload}
-          title="Loremaster AI Response Parsed"
-        />
-      )}
+  if (!debugPacket?.loremasterDebugInfo) {
+    return <p className="italic text-slate-300">No Loremaster AI interaction debug packet captured.</p>;
+  }
 
-      {debugPacket.loremasterDebugInfo.observations ? (
-        <DebugSection
-          content={debugPacket.loremasterDebugInfo.observations}
-          isJson={false}
-          title="Loremaster Observations"
-        />
-      ) : null}
-
-      {debugPacket.loremasterDebugInfo.rationale ? (
-        <DebugSection
-          content={debugPacket.loremasterDebugInfo.rationale}
-          isJson={false}
-          title="Loremaster Rationale"
-        />
-      ) : null}
+  return (
+    <>
+      {renderMode('Collect', debugPacket.loremasterDebugInfo.collect)}
+      {renderMode('Refine', debugPacket.loremasterDebugInfo.refine)}
+      {renderMode('Distill', debugPacket.loremasterDebugInfo.distill)}
     </>
-  ) : (
-    <p className="italic text-slate-300">
-      No Loremaster AI interaction debug packet captured.
-    </p>
   );
 }
 

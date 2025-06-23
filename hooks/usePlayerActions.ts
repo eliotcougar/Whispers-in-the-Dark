@@ -188,7 +188,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         storytellerThoughts: null,
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
-        loremasterDebugInfo: collectResult?.debugInfo ?? null,
+        loremasterDebugInfo: {
+          collect: collectResult?.debugInfo ?? null,
+          refine: null,
+          distill: null,
+        },
         dialogueDebugInfo: null,
       };
       draftState.lastDebugPacket = debugPacket;

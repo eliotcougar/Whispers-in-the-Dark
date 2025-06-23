@@ -244,7 +244,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         storytellerThoughts: null,
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
-        loremasterDebugInfo: null,
+        loremasterDebugInfo: { collect: null, refine: null, distill: null },
         dialogueDebugInfo: null,
       };
 
@@ -446,7 +446,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       storytellerThoughts: null,
       mapUpdateDebugInfo: null,
       inventoryDebugInfo: null,
-      loremasterDebugInfo: null,
+      loremasterDebugInfo: { collect: null, refine: null, distill: null },
       dialogueDebugInfo: null,
     };
     draftState.lastDebugPacket = debugPacket;

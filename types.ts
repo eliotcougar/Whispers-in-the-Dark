@@ -312,6 +312,14 @@ export interface LoreRefinementResult {
   rationale?: string;
 }
 
+export interface LoremasterModeDebugInfo {
+  prompt: string;
+  rawResponse?: string;
+  parsedPayload?: Array<string> | LoreRefinementResult;
+  observations?: string;
+  rationale?: string;
+}
+
 // --- TurnChanges Data Structures ---
 export interface ItemChangeRecord {
   type: 'gain' | 'loss' | 'update';
@@ -489,11 +497,9 @@ export interface DebugPacket {
     rationale?: string;
   } | null;
   loremasterDebugInfo?: {
-    prompt: string;
-    rawResponse?: string;
-    parsedPayload?: Array<string> | LoreRefinementResult;
-    observations?: string;
-    rationale?: string;
+    refine?: LoremasterModeDebugInfo | null;
+    collect?: LoremasterModeDebugInfo | null;
+    distill?: LoremasterModeDebugInfo | null;
   } | null;
   dialogueDebugInfo?: {
     turns: Array<DialogueTurnDebugEntry>;
