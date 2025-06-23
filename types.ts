@@ -62,6 +62,7 @@ export interface Item {
    */
   chapters?: Array<ItemChapter>;
   lastWriteTurn?: number;
+  lastInspectTurn?: number;
   // --- Fields for "update" action payloads ---
   newName?: string;
   addKnownUse?: KnownUse;
