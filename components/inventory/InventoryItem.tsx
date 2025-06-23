@@ -2,7 +2,7 @@ import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from '../elements/Button';
-import { JOURNAL_WRITE_COOLDOWN } from '../../constants';
+import { JOURNAL_WRITE_COOLDOWN, INSPECT_COOLDOWN } from '../../constants';
 
 interface InventoryItemProps {
   readonly item: Item;
@@ -91,7 +91,14 @@ function InventoryItem({
         <Button
           ariaLabel={`Inspect ${item.name}`}
           data-item-name={item.name}
-          disabled={disabled || isConfirmingDiscard}
+          disabled={
+            disabled ||
+            isConfirmingDiscard ||
+            (item.type === 'journal'
+              ? (item.chapters?.length ?? 0) === 0
+              : (item.chapters?.some(ch => !ch.actualContent) ?? true)) ||
+            (item.lastInspectTurn !== undefined && currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN)
+          }
           key={`${item.name}-inspect`}
           label="Inspect"
           onClick={onInspect}

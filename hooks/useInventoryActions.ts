@@ -181,7 +181,21 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
-  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag };
+  const recordInspect = useCallback(
+    (id: string) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item =>
+        item.id === id
+          ? { ...item, lastInspectTurn: currentFullState.globalTurnNumber }
+          : item
+      );
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag, recordInspect };
 };
 
 export type InventoryActions = ReturnType<typeof useInventoryActions>;
