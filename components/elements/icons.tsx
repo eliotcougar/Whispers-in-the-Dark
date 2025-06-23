@@ -43,6 +43,8 @@ const iconMap = {
 
 export type IconName = keyof typeof iconMap;
 
+export const ICON_NAMES = Object.keys(iconMap) as Array<IconName>;
+
 export type IconColor =
   | 'slate'
   | 'gray'
