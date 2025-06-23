@@ -147,6 +147,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
         .map(f => ({ text: f.text, tier: f.tier }));
 
+      setLoadingReason('loremaster');
       const collectResult = await collectRelevantFacts_Service({
         themeName: currentThemeObj.name,
         facts: sortedFacts,
@@ -155,6 +156,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         recentLogEntries: recentLogs,
         detailedContext: detailedContextForFacts,
       });
+      setLoadingReason('storyteller');
       const relevantFacts = collectResult?.facts ?? [];
 
       const prompt = buildMainGameTurnPrompt(

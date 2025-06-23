@@ -129,7 +129,7 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   visualize: { text: 'Visualizing the scene...', icon: '▒▒' },
   page: { text: 'Reading...', icon: '░░' },
   journal: { text: 'Writing...', icon: '░░' },
-  loremaster: { text: 'Contemplating lore...', icon: '░░' },
+  loremaster: { text: 'Analyzing world facts...', icon: '░░' },
   book: { text: 'Reading...', icon: '░░' }
 };
 

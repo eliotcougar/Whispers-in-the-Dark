@@ -459,11 +459,14 @@ export const useProcessAiResponse = ({
           aiData.logMessage ?? '',
           thoughts ? `Thoughts:\n${thoughts}` : '',
         ].filter(Boolean).join('\n');
+        const original = loadingReason;
+        setLoadingReason('loremaster');
         const refineResult = await refineLore_Service({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
           existingFacts: draftState.themeFacts,
         });
+        setLoadingReason(original);
         if (draftState.lastDebugPacket.loremasterDebugInfo) {
           draftState.lastDebugPacket.loremasterDebugInfo.extract = refineResult?.debugInfo?.extract ?? null;
           draftState.lastDebugPacket.loremasterDebugInfo.integrate = refineResult?.debugInfo?.integrate ?? null;
