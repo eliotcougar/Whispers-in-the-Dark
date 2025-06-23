@@ -182,7 +182,7 @@ export const useInventoryActions = ({
   );
 
   const recordInspect = useCallback(
-    (id: string) => {
+    (id: string): FullGameState => {
       const currentFullState = getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item =>
@@ -191,6 +191,7 @@ export const useInventoryActions = ({
           : item
       );
       commitGameState(draftState);
+      return draftState;
     },
     [commitGameState]
   );
