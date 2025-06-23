@@ -100,11 +100,11 @@
   background-color: #121f0f;
 }
 
-.tag-faded {
+.tag-faded:not(.tag-recovered) {
   color: #c0a87b;
 }
 
-.tag-smudged {
+.tag-smudged:not(.tag-recovered) {
   color: #4b3621;
   filter: blur(1.1px);
   text-shadow: 0 0 3px rgba(75, 54, 33, 0.5);
@@ -174,9 +174,5 @@
 
 .tag-runic.tag-recovered {
   font-family: "IBM Plex Serif", serif;
-  color: #1a1a1a;
-}
-
-.tag-faded.tag-recovered {
   color: #1a1a1a;
 }
