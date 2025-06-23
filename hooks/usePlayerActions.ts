@@ -90,8 +90,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * counters or score are affected.
    */
   const executePlayerAction = useCallback(
-    async (action: string, isFreeForm = false) => {
-      const currentFullState = getCurrentGameState();
+    async (
+      action: string,
+      isFreeForm = false,
+      overrideState?: FullGameState,
+    ) => {
+      const currentFullState = overrideState ?? getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 
       setIsLoading(true);
@@ -285,16 +289,25 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * Triggers an action based on the player's interaction with an item.
    */
   const handleItemInteraction = useCallback(
-    (item: Item, interactionType: 'generic' | 'specific' | 'inspect', knownUse?: KnownUse) => {
+    (
+      item: Item,
+      interactionType: 'generic' | 'specific' | 'inspect',
+      knownUse?: KnownUse,
+    ) => {
       if (interactionType === 'inspect') {
+        const updatedState = recordInspect(item.id);
         const showActual = item.tags?.includes('recovered');
         const contents = (item.chapters ?? [])
-          .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}\n\n`)
+          .map(
+            ch =>
+              `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}\n\n`,
+          )
           .join('');
         void executePlayerAction(
-          `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`
+          `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`,
+          false,
+          updatedState,
         );
-        recordInspect(item.id);
       } else if (interactionType === 'specific' && knownUse) {
         void executePlayerAction(knownUse.promptEffect);
       } else if (interactionType === 'generic') {
