@@ -1,63 +1,24 @@
-import type { IconName } from '../../elements/icons';
-import { Icon } from '../../elements/icons';
 import { useCallback } from 'react';
-import Button, { type ButtonProps } from '../../elements/Button';
+import {
+  ICON_NAMES,
+  Icon,
+  type IconName,
+} from '../../elements/icons';
+import Button, {
+  BUTTON_PRESETS,
+  BUTTON_VARIANTS,
+  type ButtonProps,
+} from '../../elements/Button';
+import {
+  TEXT_STYLE_TAGS,
+  WRITING_TAGS,
+} from '../../../constants';
 
-const presets: Array<NonNullable<ButtonProps['preset']>> = [
-  'slate',
-  'gray',
-  'zinc',
-  'neutral',
-  'stone',
-  'red',
-  'orange',
-  'amber',
-  'yellow',
-  'lime',
-  'green',
-  'emerald',
-  'teal',
-  'cyan',
-  'sky',
-  'blue',
-  'indigo',
-  'violet',
-  'purple',
-  'fuchsia',
-  'pink',
-  'rose',
-];
+const presets: Array<NonNullable<ButtonProps['preset']>> = [...BUTTON_PRESETS];
 
-const variants: Array<ButtonProps['variant']> = [
-  'standard',
-  'center',
-  'compact',
-  'toolbar',
-  'toggle',
-  'close',
-  'tab',
-];
+const variants: Array<ButtonProps['variant']> = [...BUTTON_VARIANTS];
 
-const iconNames: Array<IconName> = [
-  'realityShift',
-  'coin',
-  'visualize',
-  'bookOpen',
-  'menu',
-  'info',
-  'scroll',
-  'map',
-  'inventory',
-  'trash',
-  'log',
-  'companion',
-  'nearbyNpc',
-  'mapItemBox',
-  'mapWheel',
-  'clock',
-  'error',
-  'x',
-];
+const iconNames: Array<IconName> = [...ICON_NAMES];
 
 function PlaygroundTab() {
   const noop = useCallback(() => {
@@ -120,7 +81,7 @@ function PlaygroundTab() {
         </h3>
 
         <div className="space-y-3">
-          {['handwritten', 'typed', 'printed', 'digital', 'gothic', 'runic'].map(style => (
+          {[...TEXT_STYLE_TAGS, 'gothic', 'runic'].map(style => (
             <div
               className={`p-3 tag-${String(style)} rounded-md`}
               key={style}
@@ -129,7 +90,10 @@ function PlaygroundTab() {
             </div>
           ))}
 
-          {['faded', 'smudged', 'torn', 'glitching', 'encrypted', 'foreign', 'bloodstained', 'water-damaged', 'recovered'].map(tag => (
+          {WRITING_TAGS.filter(
+            tag =>
+              ![...TEXT_STYLE_TAGS, 'gothic', 'runic'].includes(tag as string),
+          ).map(tag => (
             <div
               className={`p-3 tag-handwritten tag-${String(tag)} rounded-md`}
               key={tag}
