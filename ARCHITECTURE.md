@@ -115,7 +115,7 @@ This layer abstracts external interactions and complex data processing.
    *   `utils/mapSynonyms.ts` and `utils/matcherData.ts`: Provide regex helpers and keyword lists used when parsing player text.
    *   `utils/svgUtils.ts`: Converts screen coordinates to the map's SVG space.
    *   `utils/markup.tsx`: Converts a small markup syntax (lists, *italic*, **bold**) into React nodes.
-   *   `utils/textTransforms.ts`: Provides `rot13`, `toGothic`, and `toRunic` helpers for encoded text effects.
+  *   `utils/textTransforms.ts`: Provides `rot13` and `toRunic` helpers for encoded text effects.
 
 ### 1.4. Data Layer
 
@@ -184,4 +184,4 @@ The `MapDisplay` component visualizes nodes and edges stored in `MapData`. A nes
 
 *   **Page & Book Generation:** The `PageView` modal displays pages, books and journals. When a chapter lacks text it calls the Page service to generate the content using current scene context and map/character knowledge. The result is stored in `item.chapters[idx].actualContent` with optional encoded or foreign variants in `visibleContent`.
 *   **Journal Entries:** Selecting "Write" on a journal item invokes the Journal service. The service summarizes recent log entries along with known places and characters to produce a short entry appended as a new chapter. Journals obey `JOURNAL_WRITE_COOLDOWN` tracked via `lastWriteTurn`.
-*   **Markup & Transforms:** Generated text may include simple Markdown-style formatting which is converted to React elements via `applyBasicMarkup`. Tags like `foreign`, `encrypted`, `gothic`, or `runic` use helpers in `textTransforms.ts` to display encoded text until the player reveals it.
+*   **Markup & Transforms:** Generated text may include simple Markdown-style formatting which is converted to React elements via `applyBasicMarkup`. Tags like `foreign`, `encrypted`, or `runic` use helpers in `textTransforms.ts` to display encoded text until the player reveals it. Gothic text is styled purely with CSS.
