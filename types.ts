@@ -320,6 +320,11 @@ export interface LoremasterModeDebugInfo {
   rationale?: string;
 }
 
+export interface LoremasterRefineDebugInfo {
+  extract?: LoremasterModeDebugInfo | null;
+  integrate?: LoremasterModeDebugInfo | null;
+}
+
 // --- TurnChanges Data Structures ---
 export interface ItemChangeRecord {
   type: 'gain' | 'loss' | 'update';
@@ -497,8 +502,9 @@ export interface DebugPacket {
     rationale?: string;
   } | null;
   loremasterDebugInfo?: {
-    refine?: LoremasterModeDebugInfo | null;
     collect?: LoremasterModeDebugInfo | null;
+    extract?: LoremasterModeDebugInfo | null;
+    integrate?: LoremasterModeDebugInfo | null;
     distill?: LoremasterModeDebugInfo | null;
   } | null;
   dialogueDebugInfo?: {

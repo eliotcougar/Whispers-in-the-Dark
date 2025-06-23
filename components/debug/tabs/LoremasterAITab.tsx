@@ -80,7 +80,8 @@ function LoremasterAITab({ debugPacket }: LoremasterAITabProps) {
   return (
     <>
       {renderMode('Collect', debugPacket.loremasterDebugInfo.collect)}
-      {renderMode('Refine', debugPacket.loremasterDebugInfo.refine)}
+      {renderMode('Extract', debugPacket.loremasterDebugInfo.extract)}
+      {renderMode('Integrate', debugPacket.loremasterDebugInfo.integrate)}
       {renderMode('Distill', debugPacket.loremasterDebugInfo.distill)}
     </>
   );

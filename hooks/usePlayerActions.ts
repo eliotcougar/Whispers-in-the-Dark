@@ -190,7 +190,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         inventoryDebugInfo: null,
         loremasterDebugInfo: {
           collect: collectResult?.debugInfo ?? null,
-          refine: null,
+          extract: null,
+          integrate: null,
           distill: null,
         },
         dialogueDebugInfo: null,

@@ -339,7 +339,7 @@ export const useProcessAiResponse = ({
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
-        loremasterDebugInfo: { collect: null, refine: null, distill: null },
+        loremasterDebugInfo: draftState.lastDebugPacket?.loremasterDebugInfo ?? { collect: null, extract: null, integrate: null, distill: null },
       };
 
       if (aiData.localTime !== undefined) {
@@ -465,7 +465,8 @@ export const useProcessAiResponse = ({
           existingFacts: draftState.themeFacts,
         });
         if (draftState.lastDebugPacket.loremasterDebugInfo) {
-          draftState.lastDebugPacket.loremasterDebugInfo.refine = refineResult?.debugInfo ?? null;
+          draftState.lastDebugPacket.loremasterDebugInfo.extract = refineResult?.debugInfo?.extract ?? null;
+          draftState.lastDebugPacket.loremasterDebugInfo.integrate = refineResult?.debugInfo?.integrate ?? null;
         }
         if (refineResult?.refinementResult) {
           applyThemeFactChanges(

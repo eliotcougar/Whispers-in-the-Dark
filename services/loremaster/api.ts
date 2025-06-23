@@ -19,7 +19,7 @@ import {
   parseIntegrationResponse,
   parseCollectFactsResponse,
 } from './responseParser';
-import { ThemeFact, LoreRefinementResult } from '../../types';
+import { ThemeFact, LoreRefinementResult, LoremasterRefineDebugInfo } from '../../types';
 import {
   EXTRACT_SYSTEM_INSTRUCTION,
   INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
@@ -35,13 +35,7 @@ export interface RefineLoreParams {
 
 export interface RefineLoreServiceResult {
   refinementResult: LoreRefinementResult | null;
-  debugInfo: {
-    prompt: string;
-    rawResponse?: string;
-    parsedPayload?: LoreRefinementResult;
-    observations?: string;
-    rationale?: string;
-  } | null;
+  debugInfo: LoremasterRefineDebugInfo | null;
 }
 
 export const refineLore_Service = async (
@@ -84,11 +78,18 @@ export const refineLore_Service = async (
   return {
     refinementResult: integration?.parsed ?? null,
     debugInfo: {
-      prompt: integratePrompt,
-      rawResponse: integration?.raw,
-      parsedPayload: integration?.parsed ?? undefined,
-      observations: integration?.parsed?.observations,
-      rationale: integration?.parsed?.rationale,
+      extract: {
+        prompt: extractPrompt,
+        rawResponse: newFacts.raw,
+        parsedPayload: newFacts.parsed ?? undefined,
+      },
+      integrate: {
+        prompt: integratePrompt,
+        rawResponse: integration?.raw,
+        parsedPayload: integration?.parsed ?? undefined,
+        observations: integration?.parsed?.observations,
+        rationale: integration?.parsed?.rationale,
+      },
     },
   };
 };
