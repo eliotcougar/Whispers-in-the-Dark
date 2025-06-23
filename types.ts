@@ -196,6 +196,7 @@ export interface DialogueTurnContext {
   dialogueHistory: Array<DialogueHistoryEntry>;
   playerLastUtterance: string;
   dialogueParticipants: Array<string>;
+  relevantFacts: Array<string>;
 }
 
 export interface DialogueSummaryContext {

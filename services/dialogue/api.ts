@@ -84,6 +84,7 @@ export const executeDialogueTurn = async (
   dialogueHistory: Array<DialogueHistoryEntry>,
   playerLastUtterance: string,
   dialogueParticipants: Array<string>,
+  relevantFacts: Array<string>,
 ): Promise<{ parsed: DialogueAIResponse | null; prompt: string; rawResponse: string; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Dialogue Service.');
@@ -105,6 +106,7 @@ export const executeDialogueTurn = async (
     dialogueHistory,
     playerLastUtterance,
     dialogueParticipants,
+    relevantFacts,
   });
 
   for (let attempt = 1; attempt <= MAX_RETRIES; ) {

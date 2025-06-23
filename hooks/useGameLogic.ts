@@ -163,6 +163,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
         playerActionText: undefined,
+        dialogueTranscript:
+          preparedGameState.gameLog[preparedGameState.gameLog.length - 1] ?? '',
       }).then(() => {
         draftState.lastDebugPacket ??= {
           prompt: '',

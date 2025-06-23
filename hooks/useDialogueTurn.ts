@@ -11,7 +11,9 @@ import {
   LoadingReason,
 } from '../types';
 import { executeDialogueTurn } from '../services/dialogue';
-import { PLAYER_HOLDER_ID } from '../constants';
+import { collectRelevantFacts_Service } from '../services/loremaster';
+import { PLAYER_HOLDER_ID, RECENT_LOG_COUNT_FOR_PROMPT } from '../constants';
+import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { DialogueTurnDebugEntry } from '../types';
 
 export interface UseDialogueTurnProps {
@@ -76,6 +78,29 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
           node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
         );
+        const currentThemeCharacters = stateAfterPlayerChoice.allCharacters.filter(c => c.themeName === currentThemeObj.name);
+        const recentLogs = stateAfterPlayerChoice.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
+        const detailedContextForFacts = formatDetailedContextForMentionedEntities(
+          currentThemeMapNodes,
+          currentThemeCharacters,
+          `${stateAfterPlayerChoice.currentScene} ${option}`,
+          'Locations mentioned:',
+          'Characters mentioned:'
+        );
+        const sortedFacts = [...stateAfterPlayerChoice.themeFacts]
+          .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
+          .map(f => ({ text: f.text, tier: f.tier }));
+        setLoadingReason('loremaster');
+        const collectResult = await collectRelevantFacts_Service({
+          themeName: currentThemeObj.name,
+          facts: sortedFacts,
+          lastScene: stateAfterPlayerChoice.currentScene,
+          playerAction: option,
+          recentLogEntries: recentLogs,
+          detailedContext: detailedContextForFacts,
+        });
+        setLoadingReason('dialogue_turn');
+        const relevantFacts = collectResult?.facts ?? [];
         const { parsed: turnData, prompt: turnPrompt, rawResponse, thoughts } = await executeDialogueTurn(
           currentThemeObj,
           stateAfterPlayerChoice.mainQuest,
@@ -95,7 +120,8 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
               throw new Error('Dialogue state is not defined');
             }
             return stateAfterPlayerChoice.dialogueState.participants;
-          })()
+          })(),
+          relevantFacts,
         );
         addDebugEntry({ prompt: turnPrompt, rawResponse, thoughts });
 

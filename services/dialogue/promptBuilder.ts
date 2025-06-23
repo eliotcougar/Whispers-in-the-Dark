@@ -31,6 +31,7 @@ export const buildDialogueTurnPrompt = (
     dialogueHistory,
     playerLastUtterance,
     dialogueParticipants,
+    relevantFacts,
   } = context;
   let historyToUseInPrompt = [...dialogueHistory];
   if (
@@ -97,6 +98,11 @@ export const buildDialogueTurnPrompt = (
     }
   });
 
+  const relevantFactsSection =
+    relevantFacts.length > 0
+      ? relevantFacts.map(f => `- ${f}`).join('\n')
+      : 'None';
+
   return `
 Context for Dialogue Turn:
 - Current Theme: "${currentTheme.name}"
@@ -112,6 +118,8 @@ ${inventoryString}
 - Known Locations:
 ${knownPlacesString}
 - ${characterContextString}
+- Relevant Facts about the Current Theme:
+${relevantFactsSection}
 - Current Dialogue Participants: ${dialogueParticipants.join(', ')}
 ${pastDialogueSummariesContext.trim() ? pastDialogueSummariesContext : '\n- No specific past dialogue summaries available for current participants.'}
  - Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):

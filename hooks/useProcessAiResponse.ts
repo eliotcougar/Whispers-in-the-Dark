@@ -251,6 +251,7 @@ export interface ProcessAiResponseOptions {
   isFromDialogueSummary?: boolean;
   scoreChangeFromAction?: number;
   playerActionText?: string;
+  dialogueTranscript?: string;
 }
 
 export type ProcessAiResponseFn = (
@@ -451,14 +452,20 @@ export const useProcessAiResponse = ({
         draftState.lastActionLog = 'The Dungeon Master remains silent on the outcome of your last action.';
       }
 
-      if (!isFromDialogueSummary && themeContextForResponse) {
+      if (themeContextForResponse) {
         const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
-        const contextParts = [
-          playerActionText ? `Action: ${playerActionText}` : '',
-          aiData.sceneDescription,
-          aiData.logMessage ?? '',
-          thoughts ? `Thoughts:\n${thoughts}` : '',
-        ].filter(Boolean).join('\n');
+        const contextParts = isFromDialogueSummary
+          ? [options.dialogueTranscript ?? '', thoughts ? `Thoughts:\n${thoughts}` : '']
+              .filter(Boolean)
+              .join('\n')
+          : [
+              playerActionText ? `Action: ${playerActionText}` : '',
+              aiData.sceneDescription,
+              aiData.logMessage ?? '',
+              thoughts ? `Thoughts:\n${thoughts}` : '',
+            ]
+              .filter(Boolean)
+              .join('\n');
         const original = loadingReason;
         setLoadingReason('loremaster');
         const refineResult = await refineLore_Service({
@@ -478,13 +485,6 @@ export const useProcessAiResponse = ({
             draftState.globalTurnNumber,
             themeContextForResponse.name,
           );
-          if (refineResult.refinementResult.loreRefinementOutcome) {
-            draftState.gameLog = addLogMessageToList(
-              draftState.gameLog,
-              refineResult.refinementResult.loreRefinementOutcome,
-              MAX_LOG_MESSAGES,
-            );
-          }
         }
       }
 
