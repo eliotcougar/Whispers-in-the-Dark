@@ -52,6 +52,8 @@ export const FREE_FORM_ACTION_COST = 5;
 
 export const JOURNAL_WRITE_COOLDOWN = 5; // Turns before a journal can be written again
 
+export const INSPECT_COOLDOWN = 10; // Turns before the same item can be inspected again
+
 export const VALID_ITEM_TYPES = [
   'single-use', 'multi-use', 'equipment',
   'container', 'key', 'weapon', 'ammunition', 'vehicle', 'knowledge', 'status effect', 'page', 'journal', 'book'

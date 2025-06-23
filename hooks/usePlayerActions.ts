@@ -78,7 +78,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setGameStateStack,
   });
 
-  const { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry } = useInventoryActions({
+  const { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, recordInspect } = useInventoryActions({
     getCurrentGameState,
     commitGameState,
     isLoading,
@@ -287,14 +287,21 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   const handleItemInteraction = useCallback(
     (item: Item, interactionType: 'generic' | 'specific' | 'inspect', knownUse?: KnownUse) => {
       if (interactionType === 'inspect') {
-        void executePlayerAction(`Inspect: ${item.name}`);
+        const showActual = item.tags?.includes('recovered');
+        const contents = (item.chapters ?? [])
+          .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}\n\n`)
+          .join('');
+        void executePlayerAction(
+          `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`
+        );
+        recordInspect(item.id);
       } else if (interactionType === 'specific' && knownUse) {
         void executePlayerAction(knownUse.promptEffect);
       } else if (interactionType === 'generic') {
         void executePlayerAction(`Attempt to use: ${item.name}`);
       }
     },
-    [executePlayerAction]
+    [executePlayerAction, recordInspect]
   );
 
 
