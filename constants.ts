@@ -7,7 +7,7 @@
 
 // Using gemini-2.5-flash model specified by API guidelines for general text tasks.
 export const GEMINI_MODEL_NAME = "gemini-2.5-flash";
-export const AUXILIARY_MODEL_NAME = "gemini-2.0-flash"; // Updated for better capability
+export const AUXILIARY_MODEL_NAME = "gemini-2.5-flash-lite-preview-06-17"; // Updated for better capability
 export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string outputs
 
 // Temperature used for correction helpers
