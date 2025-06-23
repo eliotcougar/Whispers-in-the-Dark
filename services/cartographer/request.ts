@@ -84,7 +84,7 @@ export const fetchMapUpdatePayload = async (
     try {
       console.log(`Map Update Service: Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}`);
       if (attempt > 0 && debugInfo.validationError) {
-        prompt = `${basePrompt}\nCRITICALLY IMPORTANT: ${debugInfo.validationError}`;
+        prompt = `${basePrompt}\nCRITICALLY IMPORTANT: Your previous attempt has triggered an error: ${debugInfo.validationError}`;
       } else {
         prompt = basePrompt;
       }

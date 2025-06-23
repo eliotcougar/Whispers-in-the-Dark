@@ -141,7 +141,7 @@ export const parseAIMapUpdateResponse = (
       if (valid) {
         return { payload };
       }
-      validationError = warnings[warnings.length - 1];
+      validationError = warnings.length > 0 ? warnings.join('; ') : undefined;
     }
     console.warn('Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:', parsed);
     return { payload: null, validationError };
