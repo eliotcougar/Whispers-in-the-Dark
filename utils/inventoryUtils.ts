@@ -176,7 +176,7 @@ const applyItemActionCore = (
     return newInventory;
   }
 
-  if (fromId !== null && toId !== null && fromId === toId) {
+  if (fromId === toId) {
     const updatePayload = payload as Partial<Omit<Item, 'activeDescription'>> & {
       activeDescription?: string | null;
       contentLength?: number;
