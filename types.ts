@@ -89,6 +89,12 @@ export interface NewItemSuggestion {
   name: string;
   type: ItemType;
   description: string;
+  activeDescription?: string;
+  isActive?: boolean;
+  tags?: Array<ItemTag>;
+  holderId?: string;
+  chapters?: Array<ItemChapter>;
+  knownUses?: Array<KnownUse>;
 }
 
 export type ItemChange =
