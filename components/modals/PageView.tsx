@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Item, ItemChapter, MapData, Character, AdventureTheme } from '../../types';
 import { formatKnownPlacesForPrompt, charactersToString } from '../../utils/promptFormatters';
-import { rot13, toGothic, toRunic } from '../../utils/textTransforms';
+import { rot13, toRunic } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
@@ -235,8 +235,6 @@ function PageView({
           visible = fake ?? actual;
         } else if (item.tags?.includes('encrypted')) {
           visible = rot13(actual);
-        } else if (item.tags?.includes('gothic')) {
-          visible = toGothic(actual);
         } else if (item.tags?.includes('runic')) {
           visible = toRunic(actual);
         }
