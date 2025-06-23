@@ -55,6 +55,7 @@ function PlaygroundTab() {
         {variants.map(variant => {
           const isToggle = variant === 'toggle';
           const isClose = variant === 'close';
+          const buttons = (isClose ? presets.slice(0, 1) : presets);
           return (
             <div
               className="mb-4"
@@ -64,8 +65,8 @@ function PlaygroundTab() {
                 {variant}
               </h4>
 
-              <div className="flex flex-wrap gap-1">
-                {presets.map(preset => {
+              <div className={`flex flex-wrap gap-1${isClose ? ' relative h-12' : ''}`}>
+                {buttons.map(preset => {
                   const id = `${String(variant)}-${String(preset)}`;
                   return (
                     <Button
