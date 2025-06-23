@@ -296,6 +296,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     ) => {
       if (interactionType === 'inspect') {
         const updatedState = recordInspect(item.id);
+
         const showActual = item.tags?.includes('recovered');
         const contents = (item.chapters ?? [])
           .map(
