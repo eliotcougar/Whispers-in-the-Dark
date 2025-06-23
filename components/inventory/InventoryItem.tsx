@@ -40,6 +40,7 @@ function InventoryItem({
   onWrite,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
+  const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} flex flex-col`}
@@ -94,9 +95,11 @@ function InventoryItem({
           disabled={
             disabled ||
             isConfirmingDiscard ||
-            (item.type === 'journal'
-              ? (item.chapters?.length ?? 0) === 0
-              : (item.chapters?.some(ch => !ch.actualContent) ?? true)) ||
+            (isWrittenItem
+              ? item.type === 'journal'
+                ? (item.chapters?.length ?? 0) === 0
+                : (item.chapters?.some(ch => !ch.actualContent) ?? true)
+              : false) ||
             (item.lastInspectTurn !== undefined && currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN)
           }
           key={`${item.name}-inspect`}
