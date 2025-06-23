@@ -45,16 +45,20 @@ export const applyThemeFactChanges = (
   state: FullGameState,
   changes: Array<ThemeFactChange>,
   currentTurn: number,
+  defaultThemeName?: string,
 ): void => {
-  let nextId = state.themeFacts.length > 0 ? Math.max(...state.themeFacts.map(f => f.id)) + 1 : 1;
+  let nextId =
+    state.themeFacts.length > 0 ? Math.max(...state.themeFacts.map(f => f.id)) + 1 : 1;
   for (const change of changes) {
     switch (change.action) {
       case 'add':
-        if (change.fact && change.fact.text && change.fact.themeName) {
+        if (change.fact && change.fact.text) {
+          const themeName = change.fact.themeName ?? defaultThemeName;
+          if (!themeName) break;
           const newFact: ThemeFact = {
             id: nextId++,
             text: change.fact.text,
-            themeName: change.fact.themeName,
+            themeName,
             createdTurn: change.fact.createdTurn ?? currentTurn,
             tier: change.fact.tier ?? 1,
           };
@@ -64,10 +68,13 @@ export const applyThemeFactChanges = (
       case 'change': {
         const idx = state.themeFacts.findIndex(f => f.id === change.id);
         if (idx >= 0 && change.fact) {
-          state.themeFacts[idx] = {
+          const themeName = change.fact.themeName ?? defaultThemeName;
+          const updated: ThemeFact = {
             ...state.themeFacts[idx],
             ...change.fact,
+            themeName: themeName ?? state.themeFacts[idx].themeName,
           };
+          state.themeFacts[idx] = updated;
         }
         break;
       }

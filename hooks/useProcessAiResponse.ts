@@ -472,6 +472,7 @@ export const useProcessAiResponse = ({
             draftState,
             refineResult.refinementResult.factsChange,
             draftState.globalTurnNumber,
+            themeContextForResponse.name,
           );
           if (refineResult.refinementResult.loreRefinementOutcome) {
             draftState.gameLog = addLogMessageToList(
