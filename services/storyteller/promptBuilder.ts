@@ -156,6 +156,7 @@ export const buildMainGameTurnPrompt = (
   recentLogEntries: Array<string>,
   currentThemeMainMapNodes: Array<MapNode>,
   currentThemeCharacters: Array<Character>,
+  relevantFacts: Array<string>,
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
@@ -182,7 +183,10 @@ export const buildMainGameTurnPrompt = (
   const knownChars = currentThemeCharacters.filter(c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown');
   const charactersStrings =
     knownChars.length > 0 ? charactersToString(knownChars, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
-  
+
+  const relevantFactsSection =
+    relevantFacts.length > 0 ? relevantFacts.map(f => `- ${f}`).join('\n') : 'None';
+
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
 
   const allNodesForCurrentTheme = fullMapData.nodes.filter(node => node.themeName === currentTheme.name);
@@ -249,6 +253,9 @@ ${placesContext}
 
 ### Known Characters:
 ${charactersStrings}
+
+### Relevant Facts about the Current Theme:
+${relevantFactsSection}
 
 ### Companions traveling with the Player:
 ${companionStrings}

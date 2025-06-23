@@ -172,6 +172,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
           storytellerThoughts: null,
           mapUpdateDebugInfo: null,
           inventoryDebugInfo: null,
+          loremasterDebugInfo: null,
           dialogueDebugInfo: null,
         };
         draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;

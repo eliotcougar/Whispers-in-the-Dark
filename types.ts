@@ -291,6 +291,27 @@ export interface ThemeMemory {
 
 export type ThemeHistoryState = Record<string, ThemeMemory>;
 
+export interface ThemeFact {
+  id: number;
+  text: string;
+  themeName: string;
+  createdTurn: number;
+  tier: number;
+}
+
+export interface ThemeFactChange {
+  action: 'add' | 'change' | 'delete';
+  fact?: Partial<Omit<ThemeFact, 'id' | 'createdTurn'>> & { createdTurn?: number };
+  id?: number;
+}
+
+export interface LoreRefinementResult {
+  factsChange: Array<ThemeFactChange>;
+  loreRefinementOutcome: string;
+  observations?: string;
+  rationale?: string;
+}
+
 // --- TurnChanges Data Structures ---
 export interface ItemChangeRecord {
   type: 'gain' | 'loss' | 'update';
@@ -467,6 +488,13 @@ export interface DebugPacket {
     observations?: string;
     rationale?: string;
   } | null;
+  loremasterDebugInfo?: {
+    prompt: string;
+    rawResponse?: string;
+    parsedPayload?: Array<string> | LoreRefinementResult;
+    observations?: string;
+    rationale?: string;
+  } | null;
   dialogueDebugInfo?: {
     turns: Array<DialogueTurnDebugEntry>;
     summaryPrompt?: string;
@@ -488,7 +516,8 @@ export interface FullGameState {
   gameLog: Array<string>; 
   lastActionLog: string | null;
   themeHistory: ThemeHistoryState;
-  pendingNewThemeNameAfterShift: string | null; 
+  themeFacts: Array<ThemeFact>;
+  pendingNewThemeNameAfterShift: string | null;
   allCharacters: Array<Character>;
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
@@ -531,6 +560,7 @@ export type SavedGameDataShape = Pick<
   | 'gameLog'
   | 'lastActionLog'
   | 'themeHistory'
+  | 'themeFacts'
   | 'pendingNewThemeNameAfterShift'
   | 'allCharacters'
   | 'mapData'

@@ -17,6 +17,7 @@ import {
   MapLayoutConfig,
   MapNodeData,
   DialogueSummaryRecord,
+  ThemeFact,
 } from '../../types';
 import {
   CURRENT_SAVE_GAME_VERSION,
@@ -95,6 +96,18 @@ export function isValidThemeHistory(history: unknown): history is ThemeHistorySt
     }
   }
   return true;
+}
+
+export function isValidThemeFact(fact: unknown): fact is ThemeFact {
+  if (!fact || typeof fact !== 'object') return false;
+  const maybe = fact as Partial<ThemeFact>;
+  return (
+    typeof maybe.id === 'number' &&
+    typeof maybe.text === 'string' &&
+    typeof maybe.themeName === 'string' &&
+    typeof maybe.createdTurn === 'number' &&
+    typeof maybe.tier === 'number'
+  );
 }
 
 export function isValidCharacterForSave(character: unknown): character is Character {
@@ -230,7 +243,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
 
   const fields: Array<keyof SavedGameDataShape> = [
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
-    'inventory', 'gameLog', 'lastActionLog', 'themeHistory',
+    'inventory', 'gameLog', 'lastActionLog', 'themeHistory', 'themeFacts',
     'pendingNewThemeNameAfterShift',
     'allCharacters', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
@@ -250,11 +263,13 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
         'localPlace',
         'currentMapNodeId',
         'destinationNodeId',
+        'themeFacts',
       ];
       if (
         !(nullableFields.includes(field) && obj[field] === null) &&
         field !== 'isCustomGameMode' &&
-        field !== 'globalTurnNumber'
+        field !== 'globalTurnNumber' &&
+        field !== 'themeFacts'
       ) {
         console.warn(`Invalid save data (V3): Missing field '${field}'.`); return false;
       }
@@ -271,6 +286,14 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (!Array.isArray(obj.gameLog) || !obj.gameLog.every((msg: unknown) => typeof msg === 'string')) { console.warn('Invalid save data (V3): gameLog.'); return false; }
   if (obj.lastActionLog !== null && typeof obj.lastActionLog !== 'string') { console.warn('Invalid save data (V3): lastActionLog type.'); return false; }
   if (!isValidThemeHistory(obj.themeHistory)) { console.warn('Invalid save data (V3): themeHistory.'); return false; }
+  if (obj.themeFacts !== undefined && !Array.isArray(obj.themeFacts)) {
+    console.warn('Invalid save data (V5): themeFacts type.');
+    return false;
+  }
+  if (Array.isArray(obj.themeFacts) && !obj.themeFacts.every(isValidThemeFact)) {
+    console.warn('Invalid save data (V5): themeFacts structure.');
+    return false;
+  }
   if (obj.pendingNewThemeNameAfterShift !== null && typeof obj.pendingNewThemeNameAfterShift !== 'string') { console.warn('Invalid save data (V3): pendingNewThemeNameAfterShift type.'); return false; }
   if (!Array.isArray(obj.allCharacters) || !obj.allCharacters.every(isValidCharacterForSave)) { console.warn('Invalid save data (V3): allCharacters.'); return false; }
   if (!isValidMapData(obj.mapData)) { console.warn('Invalid save data (V3): mapData.'); return false; }
@@ -369,5 +392,8 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     } as Character;
   });
   data.mapViewBox = typeof data.mapViewBox === 'string' ? data.mapViewBox : DEFAULT_VIEWBOX;
+  if (!Array.isArray(data.themeFacts)) {
+    data.themeFacts = [];
+  }
   return data;
 }

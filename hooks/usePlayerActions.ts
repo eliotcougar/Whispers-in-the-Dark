@@ -16,6 +16,8 @@ import {
   parseAIResponse,
   buildMainGameTurnPrompt
 } from '../services/storyteller';
+import { collectRelevantFacts_Service } from '../services/loremaster';
+import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
   FREE_FORM_ACTION_COST,
@@ -132,6 +134,29 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           i.holderId !== PLAYER_HOLDER_ID &&
           i.holderId === currentFullState.currentMapNodeId
       );
+
+      const detailedContextForFacts = formatDetailedContextForMentionedEntities(
+        currentThemeMainMapNodes,
+        currentThemeCharacters,
+        `${currentFullState.currentScene} ${action}`,
+        'Locations mentioned:',
+        'Characters mentioned:'
+      );
+
+      const sortedFacts = [...currentFullState.themeFacts]
+        .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
+        .map(f => ({ text: f.text, tier: f.tier }));
+
+      const collectResult = await collectRelevantFacts_Service({
+        themeName: currentThemeObj.name,
+        facts: sortedFacts,
+        lastScene: currentFullState.currentScene,
+        playerAction: action,
+        recentLogEntries: recentLogs,
+        detailedContext: detailedContextForFacts,
+      });
+      const relevantFacts = collectResult?.facts ?? [];
+
       const prompt = buildMainGameTurnPrompt(
         currentFullState.currentScene,
         action,
@@ -143,6 +168,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         recentLogs,
         currentThemeMainMapNodes,
         currentThemeCharacters,
+        relevantFacts,
         currentFullState.localTime,
         currentFullState.localEnvironment,
         currentFullState.localPlace,
@@ -162,6 +188,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         storytellerThoughts: null,
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        loremasterDebugInfo: collectResult?.debugInfo ?? null,
         dialogueDebugInfo: null,
       };
       draftState.lastDebugPacket = debugPacket;

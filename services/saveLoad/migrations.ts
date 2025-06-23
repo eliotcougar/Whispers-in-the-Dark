@@ -128,6 +128,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     turnsSinceLastShift: gameState.turnsSinceLastShift,
     globalTurnNumber: gameState.globalTurnNumber,
     isCustomGameMode: gameState.isCustomGameMode,
+    themeFacts: gameState.themeFacts,
   };
   return savedData;
 };
@@ -167,6 +168,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     mapViewBox: savedData.mapViewBox,
     isCustomGameMode: savedData.isCustomGameMode,
     globalTurnNumber: savedData.globalTurnNumber,
+    themeFacts: savedData.themeFacts,
     isAwaitingManualShiftThemeSelection: false,
     dialogueState: null,
     objectiveAnimationType: null,

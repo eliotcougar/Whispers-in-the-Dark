@@ -38,3 +38,46 @@ export const selectNextThemeName = (
   const randomIndex = Math.floor(Math.random() * themesToChooseFrom.length);
   return themesToChooseFrom[randomIndex].name;
 };
+
+import { FullGameState, ThemeFactChange, ThemeFact } from '../types';
+
+export const applyThemeFactChanges = (
+  state: FullGameState,
+  changes: Array<ThemeFactChange>,
+  currentTurn: number,
+): void => {
+  let nextId = state.themeFacts.length > 0 ? Math.max(...state.themeFacts.map(f => f.id)) + 1 : 1;
+  for (const change of changes) {
+    switch (change.action) {
+      case 'add':
+        if (change.fact && change.fact.text && change.fact.themeName) {
+          const newFact: ThemeFact = {
+            id: nextId++,
+            text: change.fact.text,
+            themeName: change.fact.themeName,
+            createdTurn: change.fact.createdTurn ?? currentTurn,
+            tier: change.fact.tier ?? 1,
+          };
+          state.themeFacts.push(newFact);
+        }
+        break;
+      case 'change': {
+        const idx = state.themeFacts.findIndex(f => f.id === change.id);
+        if (idx >= 0 && change.fact) {
+          state.themeFacts[idx] = {
+            ...state.themeFacts[idx],
+            ...change.fact,
+          };
+        }
+        break;
+      }
+      case 'delete': {
+        const i = state.themeFacts.findIndex(f => f.id === change.id);
+        if (i >= 0) state.themeFacts.splice(i, 1);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+};

@@ -34,7 +34,7 @@ export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the
 
 export const DEVELOPER = "Eliot the Cougar"
 export const CURRENT_GAME_VERSION = "1.4.0 (Ink and Quill)";
-export const CURRENT_SAVE_GAME_VERSION = "4";
+export const CURRENT_SAVE_GAME_VERSION = "6";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 
 export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
@@ -111,6 +111,7 @@ export const LOADING_REASONS = [
   'visualize',
   'page',
   'journal',
+  'loremaster',
   'book'
 ] as const;
 
@@ -128,6 +129,7 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   visualize: { text: 'Visualizing the scene...', icon: '▒▒' },
   page: { text: 'Reading...', icon: '░░' },
   journal: { text: 'Writing...', icon: '░░' },
+  loremaster: { text: 'Contemplating lore...', icon: '░░' },
   book: { text: 'Reading...', icon: '░░' }
 };
 
