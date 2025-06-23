@@ -15,7 +15,7 @@ You are an AI assistant that converts item hints into explicit inventory actions
 Analyze the hints and optional new items JSON provided in the prompt.
 The prompt provides limited map context listing nodes within two hops of the Player.
 Items described in the "World Items Hint" should be placed at their appropriate map node holderId from this context using the 'put' action, leaving them for the Player to pick up later unless explicitly taken.
-You MUST process all items in the New Items JSON, and define any operations on existing items in the Player's Inventory, Location Inventory, or NPCs' inventories, according to provided hints.
+You MUST 'gain' or 'put' all items in the New Items JSON, and define any operations on existing items in the Player's Inventory, Location Inventory, or NPCs' inventories, according to provided hints.
 Respond ONLY with a JSON object containing these fields:
 {"observations": "string", /* REQUIRED. Contextually relevant observations about the items. Minimum 500 chars. */
  "rationale": "string", /* REQUIRED. Explain the reasoning behind the inventory changes. */
@@ -58,6 +58,31 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
+- Example of gaining a new book item with chapters:
+  { "action": "gain", /* "put" action follows the same structure, but is used for placing new items in the world. */
+    item: { 
+      "name": "Adventurer's Path", /* REQUIRED: Full name of the item. */
+      "type": "book",
+      "description": "A personal recollection filled with the adventures of a seasoned explorer.", /* REQUIRED: Short description of the item. */
+      "tags": ["printed"], /* Optional: array of short tags describing the item. Valid tags: ${VALID_TAGS_STRING}.*/
+      "chapters": [ /* REQUIRED: Array of chapter objects for books. Each chapter MUST have "heading", "description", and "contentLength". */
+        { "heading": "Chapter 1: The Beginning", /* REQUIRED. Short Title of the chapter*/
+          "description": "The first steps of an adventurer's journey.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
+          "contentLength": 100 /* REQUIRED. Length of the content in words. Range: 50-500 */
+        },
+        { "heading": "Chapter 2: The Trials",
+          "description": "Facing challenges and overcoming obstacles.",
+          "contentLength": 150
+        },
+        { "heading": "Chapter 3: The Triumph",
+          "description": "The final victory and lessons learned.",
+          "contentLength": 200
+        }
+      ],
+      "holderId": "player", /* REQUIRED: ID of the character or map node that will hold the item. Use "player" for Player's inventory, or a specific NPC ID for their inventory. */
+    }
+  }
+
 - Example for losing, destroying, completely removing an *existing* item from the world:
   { "action": "destroy",
     item:{
@@ -81,7 +106,7 @@ Structure for individual ItemChange objects within the array:
     item: {
       "id": "item_coin_pouch_8f2c",
       "name": "Coin Pouch",
-      "fromId": "npc_bandit_8f2c",
+      "fromId": "char_bandit_8f2c",
       "toId": "player"
     }
   }
@@ -130,11 +155,12 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
+  - CRITICALLY IMPORTANT: toId and fromId can only be 'node_*', 'char_*' or 'player'.
   - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
   - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
   - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
   - IMPORTANT: For written 'page', 'journal', and 'book' items, determine whether the text appears 'printed', 'handwritten', 'typed' or 'digital' and ALWAYS add the matching tag. If the text condition implies it, add other tags like 'faded', 'smudged', 'torn', or 'encrypted'. Available writing tags: ${WRITING_TAGS_STRING}.
-  - Journal items contain no text until the player writes in them. If you ever generate a journal with pre-written text, convert it into a 'book' item instead.
+  - 'Journal' items contain no text until the player writes in them. Depending on item description, convert a 'journal' item with chapters into a 'book' item OR remove 'chapters' and keep the 'journal' item type.
   IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
