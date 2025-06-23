@@ -226,6 +226,14 @@ export const TESTING_THEMES: Array<AdventureTheme> = [
     initialCurrentObjective: "Find a junkyard to start collecting items.",
     initialSceneDescriptionSeed: "You find yourself in a sprawling futuristic city, where towering skyscrapers touch the clouds and neon lights flicker in the night. The streets are filled with people, robots, and flying vehicles. Your task is to explore the city, gather junk items, and discover their potential uses.",
     initialItems: "Pickup truck, a malfunctioning robot, a pile of circuit boards, and a toolset."
+  },
+  {
+    name: "Secluded Library of Forgotten Pages",
+    systemInstructionModifier: "The setting is a vast, labyrinthine library hidden from the world, filled with endless shelves, scattered single-page notes, cryptic manuscripts, annotated scrolls, and mysterious tomes. The air is thick with the scent of old paper and ink. Focus on discovery, deciphering clues, and piecing together fragmented knowledge from countless written materials. Expect to find loose pages tucked into books, marginalia, coded messages, and forgotten field journals. Strange phenomena may occur when certain texts are read aloud.",
+    initialMainQuest: "Uncover the secret purpose of the Secluded Library and the identity of its original curator.",
+    initialCurrentObjective: "Examine the scattered notes and books in the reading alcove for your first clue.",
+    initialSceneDescriptionSeed: "You stand in a candlelit alcove surrounded by towering shelves. Books and single-page notes are strewn across tables and the floor. A faint rustling suggests the presence of something—or someone—moving among the stacks. The only exit is blocked by a pile of ancient tomes.",
+    initialItems: "a cryptic handwritten note ('The answer is in the margins.'), a battered field journal with pressed flowers, a slim reading tablet flickering with half-erased texts, and a heavy leather-bound book titled 'The Index of Lost Beginnings.'"
   }
 ]
 

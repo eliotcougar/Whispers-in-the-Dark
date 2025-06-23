@@ -100,6 +100,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleItemInteraction,
     handleDropItem,
     handleTakeLocationItem,
+    updateItemContent,
+    addJournalEntry,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   } = useGameTurn({
@@ -245,7 +247,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     currentFullState.inventory.forEach(item => {
       if (nodeIds.has(item.holderId)) {
         const entry = map[item.holderId] ?? { hasUseful: false, hasVehicle: false };
-        if (!item.isJunk) entry.hasUseful = true;
+        if (!item.tags?.includes('junk')) entry.hasUseful = true;
         if (item.type === 'vehicle') entry.hasVehicle = true;
         map[item.holderId] = entry;
       }
@@ -269,11 +271,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         currentFullState.mapData,
         currentFullState.currentMapNodeId
       );
-      const contextText = `${currentFullState.currentScene} ${currentFullState.lastActionLog ?? ''}`.toLowerCase();
-      const nearbyItems = currentFullState.inventory.filter(
-        i =>
-          adjIds.includes(i.holderId) &&
-          contextText.includes(i.name.toLowerCase())
+      const nearbyItems = currentFullState.inventory.filter(i =>
+        adjIds.includes(i.holderId)
       );
       const combined = [...atCurrent];
       nearbyItems.forEach(it => {
@@ -284,8 +283,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       currentFullState.currentMapNodeId,
       currentFullState.inventory,
       currentFullState.mapData,
-      currentFullState.currentScene,
-      currentFullState.lastActionLog,
     ]),
     itemPresenceByNode,
     gameLog: currentFullState.gameLog,
@@ -326,6 +323,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleItemInteraction,
     handleDropItem,
     handleTakeLocationItem,
+    updateItemContent,
     handleRetry,
     executeRestartGame,
     executeManualRealityShift,
@@ -343,5 +341,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleMapNodesPositionChange,
     handleSelectDestinationNode,
     handleUndoTurn,
+    addJournalEntry,
+    commitGameState,
   };
 };

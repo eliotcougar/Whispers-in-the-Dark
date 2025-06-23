@@ -5,14 +5,31 @@
 import {
   Item,
   ItemReference,
+  ItemChapter,
   KnownUse,
   NewItemSuggestion,
   ValidCharacterUpdatePayload,
   ValidNewCharacterPayload,
   DialogueSetupPayload,
 } from '../../types';
-import { VALID_ITEM_TYPES, VALID_PRESENCE_STATUS_VALUES } from '../../constants';
+import {
+  VALID_ITEM_TYPES,
+  VALID_PRESENCE_STATUS_VALUES,
+  VALID_TAGS,
+  TEXT_STYLE_TAGS,
+} from '../../constants';
 import { normalizeItemType } from '../../utils/itemSynonyms';
+import { normalizeTags } from '../../utils/tagSynonyms';
+
+const TEXT_STYLE_TAG_SET = new Set<string>(TEXT_STYLE_TAGS);
+
+function guessTextStyle(name: string, description: string): typeof TEXT_STYLE_TAGS[number] {
+  const text = `${name} ${description}`.toLowerCase();
+  if (/(handwritten|scribbled|ink|pen|quill)/.test(text)) return 'handwritten';
+  if (/(typewriter|typed)/.test(text)) return 'typed';
+  if (/(digital|screen|display|tablet|monitor|terminal)/.test(text)) return 'digital';
+  return 'printed';
+}
 
 export function isValidKnownUse(ku: unknown): ku is KnownUse {
   if (!ku || typeof ku !== 'object') return false;
@@ -27,7 +44,11 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
 
 export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
   if (!item || typeof item !== 'object') return false;
-  const obj = item as Partial<Item>;
+  const obj = item as Partial<Item> & {
+    contentLength?: number;
+    actualContent?: string;
+    visibleContent?: string;
+  };
 
   if (typeof obj.type === 'string') {
     const normalized = normalizeItemType(obj.type);
@@ -91,12 +112,90 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     console.warn("isValidItem: 'isActive' is present but invalid.", item);
     return false;
   }
-  if (obj.isJunk !== undefined && typeof obj.isJunk !== 'boolean') {
-    console.warn("isValidItem: 'isJunk' is present but invalid.", item);
-    return false;
+  if (obj.tags !== undefined) {
+    if (!Array.isArray(obj.tags) || !obj.tags.every(t => typeof t === 'string')) {
+      console.warn("isValidItem: 'tags' is present but invalid.", item);
+      return false;
+    }
+    const normalized = normalizeTags(obj.tags);
+    if (normalized) obj.tags = normalized;
+    else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
+  }
+  if (obj.type === 'page' || obj.type === 'journal') {
+    obj.tags = obj.tags ?? [];
+    const styleTags = obj.tags.filter(t => TEXT_STYLE_TAG_SET.has(t));
+    if (styleTags.length === 0) {
+      const guessed = guessTextStyle(obj.name, obj.description ?? '');
+      obj.tags.push(obj.type === 'journal' ? 'handwritten' : guessed);
+    } else if (styleTags.length > 1) {
+      const keep = styleTags[0];
+      obj.tags = [keep];
+    }
+    if (obj.type === 'journal') {
+      obj.tags = obj.tags.filter(t => TEXT_STYLE_TAG_SET.has(t));
+    }
   }
   if (obj.holderId !== undefined && (typeof obj.holderId !== 'string' || obj.holderId.trim() === '')) {
     console.warn("isValidItem: 'holderId' is present but invalid.", item);
+    return false;
+  }
+
+  const chaptersValid = (chs: unknown): chs is Array<ItemChapter> =>
+    Array.isArray(chs) &&
+    chs.every(
+      (ch) =>
+        ch &&
+        typeof ch === 'object' &&
+        typeof (ch as ItemChapter).heading === 'string' &&
+        typeof (ch as ItemChapter).description === 'string' &&
+        typeof (ch as ItemChapter).contentLength === 'number'
+    );
+
+  if (obj.type === 'page' || obj.type === 'book' || obj.type === 'journal') {
+    if (obj.chapters !== undefined) {
+      if (!chaptersValid(obj.chapters)) {
+        console.warn("isValidItem: 'chapters' is present but invalid.", item);
+        return false;
+      }
+    } else {
+      const len =
+        typeof obj.contentLength === 'number' ? obj.contentLength : 30;
+      obj.chapters = obj.type === 'journal' ? [] : [
+        {
+          heading: obj.name,
+          description: obj.description ?? '',
+          contentLength: len,
+          actualContent:
+            typeof obj.actualContent === 'string' ? obj.actualContent : undefined,
+          visibleContent:
+            typeof obj.visibleContent === 'string'
+              ? obj.visibleContent
+              : undefined,
+        },
+      ];
+    }
+    delete obj.contentLength;
+    delete obj.actualContent;
+    delete obj.visibleContent;
+  } else if (obj.chapters !== undefined && !chaptersValid(obj.chapters)) {
+    console.warn("isValidItem: 'chapters' is present but invalid for non-book/page item.", item);
+    return false;
+  }
+
+  if (obj.type === 'journal' && obj.chapters && obj.chapters.length > 0) {
+    obj.type = 'book';
+  }
+
+  if (obj.contentLength !== undefined && typeof obj.contentLength !== 'number') {
+    console.warn("isValidItem: 'contentLength' is present but invalid.", item);
+    return false;
+  }
+  if (obj.actualContent !== undefined && typeof obj.actualContent !== 'string') {
+    console.warn("isValidItem: 'actualContent' is present but invalid.", item);
+    return false;
+  }
+  if (obj.visibleContent !== undefined && typeof obj.visibleContent !== 'string') {
+    console.warn("isValidItem: 'visibleContent' is present but invalid.", item);
     return false;
   }
   if (obj.knownUses !== undefined && !(Array.isArray(obj.knownUses) && obj.knownUses.every(isValidKnownUse))) {

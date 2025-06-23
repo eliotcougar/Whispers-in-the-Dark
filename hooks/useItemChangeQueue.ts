@@ -68,7 +68,7 @@ const areItemsEffectivelyIdentical = (
     item1.description !== item2.description ||
     (item1.activeDescription ?? '') !== (item2.activeDescription ?? '') ||
     (item1.isActive ?? false) !== (item2.isActive ?? false) ||
-    (item1.isJunk ?? false) !== (item2.isJunk ?? false)
+    JSON.stringify(item1.tags ?? []) !== JSON.stringify(item2.tags ?? [])
   ) {
     return false;
   }
@@ -112,9 +112,21 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
 
   useEffect(() => {
     if (isGameBusy) {
+      if (currentProcessingChanges) {
+        setAnimatedTurnChangesRef(currentProcessingChanges);
+        setCurrentProcessingChanges(null);
+      } else if (lastTurnChanges && lastTurnChanges !== animatedTurnChangesRef) {
+        setAnimatedTurnChangesRef(lastTurnChanges);
+      }
       resetAnimationState();
     }
-  }, [isGameBusy, resetAnimationState]);
+  }, [
+    isGameBusy,
+    resetAnimationState,
+    currentProcessingChanges,
+    animatedTurnChangesRef,
+    lastTurnChanges,
+  ]);
 
   useEffect(() => {
     if (isGameBusy || !lastTurnChanges) {

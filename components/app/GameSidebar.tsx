@@ -27,7 +27,10 @@ interface GameSidebarProps {
     interactionType: 'generic' | 'specific' | 'inspect',
     knownUse?: KnownUse,
   ) => void;
+  readonly onReadPage: (item: Item) => void;
+  readonly onWriteJournal: (item: Item) => void;
   readonly onTakeItem: (itemName: string) => void;
+  readonly globalTurnNumber: number;
   readonly disabled: boolean;
 }
 
@@ -44,7 +47,10 @@ function GameSidebar({
   objectiveAnimationType,
   onDropItem,
   onItemInteract,
+  onReadPage,
+  onWriteJournal,
   onTakeItem,
+  globalTurnNumber,
   disabled,
 }: GameSidebarProps) {
   const questHighlightEntities = useMemo(
@@ -109,10 +115,13 @@ function GameSidebar({
       />
 
       <InventoryDisplay
+        currentTurn={globalTurnNumber}
         disabled={disabled}
         items={inventory}
         onDropItem={onDropItem}
         onItemInteract={onItemInteract}
+        onReadPage={onReadPage}
+        onWriteJournal={onWriteJournal}
       />
     </>
   );

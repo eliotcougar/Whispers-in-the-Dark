@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
-import { GameStateStack, DebugPacket } from '../../types';
+import { GameStateStack, DebugPacket, FullGameState } from '../../types';
 import { TravelStep } from '../../utils/mapPathfinding';
 import {
   CharactersTab,
@@ -18,6 +18,7 @@ import {
   MainAITab,
   MapDataFullTab,
   MapLocationAITab,
+  PlaygroundTab,
   MiscStateTab,
   ThemeHistoryTab,
   TravelPathTab,
@@ -29,6 +30,7 @@ interface DebugViewProps {
   readonly debugPacket: DebugPacket | null;
   readonly gameStateStack: GameStateStack;
   readonly onUndoTurn: () => void; // New prop for undoing turn
+  readonly onApplyGameState: (state: FullGameState) => void;
   readonly travelPath: Array<TravelStep> | null;
 }
 
@@ -44,7 +46,8 @@ type DebugTab =
   | "ThemeHistory"
   | "GameLog"
   | "TravelPath"
-  | "MiscState";
+  | "MiscState"
+  | "Playground";
 
 /**
  * Developer-only panel for inspecting and manipulating game state.
@@ -55,6 +58,7 @@ function DebugView({
   debugPacket,
   gameStateStack,
   onUndoTurn,
+  onApplyGameState,
   travelPath,
 }: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
@@ -82,6 +86,7 @@ function DebugView({
     { name: "GameLog", label: "Game Log" },
     { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
+    { name: "Playground", label: "Playground" },
   ];
 
   /**
@@ -93,6 +98,7 @@ function DebugView({
         return (
           <GameStateTab
             currentState={currentState}
+            onApplyGameState={onApplyGameState}
             onUndoTurn={onUndoTurn}
             previousState={previousState}
           />
@@ -124,6 +130,8 @@ function DebugView({
         );
       case 'MiscState':
         return <MiscStateTab currentState={currentState} />;
+      case 'Playground':
+        return <PlaygroundTab />;
       default:
         return (
           <p>

@@ -2,6 +2,7 @@ import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from '../elements/Button';
+import { JOURNAL_WRITE_COOLDOWN, INSPECT_COOLDOWN } from '../../constants';
 
 interface InventoryItemProps {
   readonly item: Item;
@@ -9,6 +10,7 @@ interface InventoryItemProps {
   readonly isConfirmingDiscard: boolean;
   readonly applicableUses: Array<KnownUse>;
   readonly disabled: boolean;
+  readonly currentTurn: number;
   readonly onSpecificUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onInspect: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onGenericUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -16,6 +18,8 @@ interface InventoryItemProps {
   readonly onStartConfirmDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onConfirmDrop: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onCancelDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onWrite: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 function InventoryItem({
@@ -24,6 +28,7 @@ function InventoryItem({
   isConfirmingDiscard,
   applicableUses,
   disabled,
+  currentTurn,
   onSpecificUse,
   onInspect,
   onGenericUse,
@@ -31,8 +36,11 @@ function InventoryItem({
   onStartConfirmDiscard,
   onConfirmDrop,
   onCancelDiscard,
+  onRead,
+  onWrite,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
+  const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} flex flex-col`}
@@ -58,7 +66,7 @@ function InventoryItem({
         {displayDescription}
       </p>
 
-      {item.isJunk ? (
+      {item.tags?.includes('junk') ? (
         <p className="text-xs text-orange-400 mb-1 italic">
           (Marked as junk)
         </p>
@@ -79,18 +87,61 @@ function InventoryItem({
             size="sm"
             title={knownUse.description}
           />
-        ))}
+      ))}
 
         <Button
           ariaLabel={`Inspect ${item.name}`}
           data-item-name={item.name}
-          disabled={disabled || isConfirmingDiscard}
+          disabled={
+            disabled ||
+            isConfirmingDiscard ||
+            (isWrittenItem
+              ? item.type === 'journal'
+                ? (item.chapters?.length ?? 0) === 0
+                : (item.chapters?.some(ch => !ch.actualContent) ?? true)
+              : false) ||
+            (item.lastInspectTurn !== undefined && currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN)
+          }
           key={`${item.name}-inspect`}
           label="Inspect"
           onClick={onInspect}
           preset="indigo"
           size="sm"
         />
+
+        {item.type === 'page' || item.type === 'book' || item.type === 'journal' ? (
+          <Button
+            ariaLabel={`Read ${item.name}`}
+            data-item-name={item.name}
+            disabled={
+              disabled ||
+              isConfirmingDiscard ||
+              (item.type === 'journal' && (item.chapters?.length ?? 0) === 0)
+            }
+            key={`${item.name}-read`}
+            label="Read"
+            onClick={onRead}
+            preset="teal"
+            size="sm"
+          />
+        ) : null}
+
+        {item.type === 'journal' ? (
+          <Button
+            ariaLabel={`Write in ${item.name}`}
+            data-item-name={item.name}
+            disabled={
+              disabled ||
+              isConfirmingDiscard ||
+              (item.lastWriteTurn !== undefined && currentTurn - item.lastWriteTurn < JOURNAL_WRITE_COOLDOWN)
+            }
+            key={`${item.name}-write`}
+            label="Write"
+            onClick={onWrite}
+            preset="teal"
+            size="sm"
+          />
+        ) : null}
 
         {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
           <Button
@@ -118,7 +169,7 @@ function InventoryItem({
           />
         )}
 
-        {item.isJunk && !isConfirmingDiscard ? (
+        {item.tags?.includes('junk') && !isConfirmingDiscard ? (
           <Button
             ariaLabel={`Discard ${item.name}`}
             data-item-name={item.name}
@@ -140,7 +191,7 @@ function InventoryItem({
           />
         ) : null}
 
-        {!item.isJunk && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
+        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
           <Button
             ariaLabel={`Drop ${item.name}`}
             data-item-name={item.name}
@@ -153,7 +204,7 @@ function InventoryItem({
           />
         )}
 
-        {!item.isJunk && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
+        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
           <Button
             ariaLabel={`Park ${item.name} here`}
             data-item-name={item.name}
@@ -173,7 +224,7 @@ function InventoryItem({
               data-item-name={item.name}
               disabled={disabled}
               key={`${item.name}-confirm-drop`}
-              label={item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.isJunk ? 'Confirm Discard' : 'Confirm Drop'}
+              label={item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.tags?.includes('junk') ? 'Confirm Discard' : 'Confirm Drop'}
               onClick={onConfirmDrop}
               preset="red"
               size="sm"

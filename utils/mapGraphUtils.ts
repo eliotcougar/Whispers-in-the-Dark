@@ -5,6 +5,7 @@
 
 import { MapNode, MapData, MapEdgeStatus } from '../types';
 import { NODE_TYPE_LEVELS } from '../constants';
+import { buildTravelAdjacency } from './mapPathfinding';
 
 /**
  * Returns the parent MapNode for the given node if one exists.
@@ -94,17 +95,17 @@ export const getAdjacentNodeIds = (
   mapData: MapData,
   nodeId: string,
 ): Array<string> => {
+  const { adjacency } = buildTravelAdjacency(mapData);
+  const edgeMap = new Map(mapData.edges.map(e => [e.id, e]));
   const allowed: Array<MapEdgeStatus> = ['open', 'accessible', 'active'];
-  const ids = new Set<string>();
-  for (const edge of mapData.edges) {
-    if (!allowed.includes(edge.data.status ?? 'open')) continue;
-    if (edge.sourceNodeId === nodeId) {
-      ids.add(edge.targetNodeId);
-    } else if (edge.targetNodeId === nodeId && edge.data.status !== 'one_way') {
-      ids.add(edge.sourceNodeId);
-    }
-  }
-  return Array.from(ids);
+  return (adjacency.get(nodeId) ?? [])
+    .filter(a => {
+      const edge = edgeMap.get(a.edgeId);
+      if (!edge) return true;
+      const status = edge.data.status ?? 'open';
+      return allowed.includes(status);
+    })
+    .map(a => a.to);
 };
 
 /** Structure describing adjacency for each node. */

@@ -5,6 +5,7 @@
 
 import {
   Item,
+  ItemChapter,
   ItemChange,
   ItemReference,
   GiveItemPayload,
@@ -23,7 +24,11 @@ const applyItemActionCore = (
   let newInventory = [...currentInventory];
 
   if (fromId === null && toId === PLAYER_HOLDER_ID) {
-    const itemData = payload as Item;
+    const itemData = payload as Item & {
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
+    };
     const existing = findItemByIdentifier(
       [itemData.id, itemData.name],
       newInventory,
@@ -40,7 +45,27 @@ const applyItemActionCore = (
         description: itemData.description,
         activeDescription: itemData.activeDescription,
         isActive: itemData.isActive ?? existing.isActive ?? false,
-        isJunk: itemData.isJunk ?? existing.isJunk ?? false,
+        tags: itemData.tags ?? existing.tags ?? [],
+        chapters:
+          itemData.chapters ??
+          (itemData.type === 'page'
+            ? [
+                {
+                  heading: itemData.name,
+                  description: itemData.description,
+                  contentLength:
+                    (itemData as { contentLength?: number }).contentLength ??
+                    existing.chapters?.[0]?.contentLength ??
+                    30,
+                  actualContent:
+                    (itemData as { actualContent?: string }).actualContent ??
+                    existing.chapters?.[0]?.actualContent,
+                  visibleContent:
+                    (itemData as { visibleContent?: string }).visibleContent ??
+                    existing.chapters?.[0]?.visibleContent,
+                },
+              ]
+            : existing.chapters),
         knownUses: itemData.knownUses ?? existing.knownUses ?? [],
         holderId: PLAYER_HOLDER_ID,
       };
@@ -58,7 +83,23 @@ const applyItemActionCore = (
       description: itemData.description,
       activeDescription: itemData.activeDescription,
       isActive: itemData.isActive ?? false,
-      isJunk: itemData.isJunk ?? false,
+      tags: itemData.tags ?? [],
+      chapters:
+        itemData.chapters ??
+        (itemData.type === 'page'
+          ? [
+              {
+                heading: itemData.name,
+                description: itemData.description,
+                contentLength:
+                  (itemData as { contentLength?: number }).contentLength ?? 30,
+                actualContent:
+                  (itemData as { actualContent?: string }).actualContent,
+                visibleContent:
+                  (itemData as { visibleContent?: string }).visibleContent,
+              },
+            ]
+          : undefined),
       knownUses: itemData.knownUses ?? [],
       holderId: PLAYER_HOLDER_ID,
     };
@@ -72,7 +113,11 @@ const applyItemActionCore = (
   }
 
   if (fromId === null && toId) {
-    const itemData = payload as Item;
+    const itemData = payload as Item & {
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
+    };
     const existing = findItemByIdentifier(
       [itemData.id, itemData.name],
       newInventory,
@@ -89,7 +134,23 @@ const applyItemActionCore = (
       description: itemData.description,
       activeDescription: itemData.activeDescription,
       isActive: itemData.isActive ?? false,
-      isJunk: itemData.isJunk ?? false,
+      tags: itemData.tags ?? [],
+      chapters:
+        itemData.chapters ??
+        (itemData.type === 'page'
+          ? [
+              {
+                heading: itemData.name,
+                description: itemData.description,
+                contentLength:
+                  (itemData as { contentLength?: number }).contentLength ?? 30,
+                actualContent:
+                  (itemData as { actualContent?: string }).actualContent,
+                visibleContent:
+                  (itemData as { visibleContent?: string }).visibleContent,
+              },
+            ]
+          : undefined),
       knownUses: itemData.knownUses ?? [],
       holderId: toId,
     };
@@ -115,9 +176,12 @@ const applyItemActionCore = (
     return newInventory;
   }
 
-  if (fromId !== null && toId !== null && fromId === toId) {
+  if (fromId === toId) {
     const updatePayload = payload as Partial<Omit<Item, 'activeDescription'>> & {
       activeDescription?: string | null;
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
     };
     const existingItem = findItemByIdentifier(
       [updatePayload.id, updatePayload.name],
@@ -142,7 +206,20 @@ const applyItemActionCore = (
       updated.activeDescription = updatePayload.activeDescription ?? undefined;
     }
     if (updatePayload.isActive !== undefined) updated.isActive = updatePayload.isActive;
-    if (updatePayload.isJunk !== undefined) updated.isJunk = updatePayload.isJunk;
+    if (updatePayload.tags !== undefined) updated.tags = updatePayload.tags;
+    if (updatePayload.chapters !== undefined) updated.chapters = updatePayload.chapters;
+    if (updatePayload.contentLength !== undefined && updated.chapters) {
+      const ch = updated.chapters[0];
+      updated.chapters[0] = { ...ch, contentLength: updatePayload.contentLength };
+    }
+    if (updatePayload.actualContent !== undefined && updated.chapters) {
+      const ch = updated.chapters[0];
+      updated.chapters[0] = { ...ch, actualContent: updatePayload.actualContent };
+    }
+    if (updatePayload.visibleContent !== undefined && updated.chapters) {
+      const ch = updated.chapters[0];
+      updated.chapters[0] = { ...ch, visibleContent: updatePayload.visibleContent };
+    }
     if (updatePayload.knownUses !== undefined) updated.knownUses = updatePayload.knownUses;
     if (updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '') {
       updated.holderId = updatePayload.holderId;
@@ -287,7 +364,23 @@ export const buildItemChangeRecords = (
           description: gainedItemData.description,
           activeDescription: gainedItemData.activeDescription,
           isActive: gainedItemData.isActive ?? false,
-          isJunk: gainedItemData.isJunk ?? false,
+          tags: gainedItemData.tags ?? [],
+          chapters:
+            gainedItemData.chapters ??
+            (gainedItemData.type === 'page'
+              ? [
+                  {
+                    heading: gainedItemData.name,
+                    description: gainedItemData.description,
+                    contentLength:
+                      (gainedItemData as { contentLength?: number }).contentLength ?? 30,
+                    actualContent:
+                      (gainedItemData as { actualContent?: string }).actualContent,
+                    visibleContent:
+                      (gainedItemData as { visibleContent?: string }).visibleContent,
+                  },
+                ]
+              : undefined),
           knownUses: gainedItemData.knownUses ?? [],
           holderId: gainedItemData.holderId,
         };
@@ -316,7 +409,11 @@ export const buildItemChangeRecords = (
       ) as Item | null;
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };
     } else if (change.action === 'update') {
-      const updatePayload: ItemUpdatePayload = change.item;
+      const updatePayload: ItemUpdatePayload & {
+        contentLength?: number;
+        actualContent?: string;
+        visibleContent?: string;
+      } = change.item;
       const oldItem = findItemByIdentifier(
         [updatePayload.id, updatePayload.name],
         currentInventory,
@@ -351,7 +448,28 @@ export const buildItemChangeRecords = (
               ? undefined
               : updatePayload.activeDescription ?? oldItemCopy.activeDescription,
           isActive: updatePayload.isActive ?? (oldItemCopy.isActive ?? false),
-          isJunk: updatePayload.isJunk ?? (oldItemCopy.isJunk ?? false),
+          tags: updatePayload.tags ?? (oldItemCopy.tags ?? []),
+          chapters:
+            updatePayload.chapters ??
+            oldItemCopy.chapters ??
+            ((updatePayload.type ?? oldItemCopy.type) === 'page'
+              ? [
+                  {
+                    heading: finalName,
+                    description: updatePayload.description ?? oldItemCopy.description,
+                    contentLength:
+                      updatePayload.contentLength ??
+                      (oldItemCopy.chapters?.[0] as ItemChapter | undefined)?.contentLength ??
+                      30,
+                    actualContent:
+                      updatePayload.actualContent ??
+                      (oldItemCopy.chapters?.[0] as ItemChapter | undefined)?.actualContent,
+                    visibleContent:
+                      updatePayload.visibleContent ??
+                      (oldItemCopy.chapters?.[0] as ItemChapter | undefined)?.visibleContent,
+                  },
+                ]
+              : undefined),
           knownUses: Array.isArray(updatePayload.knownUses)
             ? updatePayload.knownUses
             : oldItemCopy.knownUses ?? [],

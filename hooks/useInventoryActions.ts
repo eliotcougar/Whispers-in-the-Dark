@@ -1,8 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   FullGameState,
   ItemChangeRecord,
   TurnChanges,
+  Item,
+  ItemTag,
+  ItemChapter,
 } from '../types';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -20,6 +23,10 @@ export const useInventoryActions = ({
   commitGameState,
   isLoading,
 }: UseInventoryActionsProps) => {
+  const getStateRef = useRef(getCurrentGameState);
+  useEffect(() => {
+    getStateRef.current = getCurrentGameState;
+  }, [getCurrentGameState]);
   const handleDropItem = useCallback(
     (itemName: string, logMessageOverride?: string) => {
       const currentFullState = getCurrentGameState();
@@ -121,7 +128,75 @@ export const useInventoryActions = ({
     [getCurrentGameState, commitGameState, isLoading],
   );
 
-  return { handleDropItem, handleTakeLocationItem };
+  const updateItemContent = useCallback(
+    (id: string, actual: string, visible: string, chapterIndex?: number) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item => {
+        if (item.id !== id) return item;
+        if (item.chapters) {
+          const idx = typeof chapterIndex === 'number' ? chapterIndex : 0;
+          const updatedChapters = item.chapters.map((ch, cIdx) =>
+            cIdx === idx ? { ...ch, actualContent: actual, visibleContent: visible } : ch
+          );
+          return { ...item, chapters: updatedChapters };
+        }
+        return item;
+      });
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  const addJournalEntry = useCallback(
+    (id: string, chapter: ItemChapter) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item => {
+        if (item.id !== id) return item;
+        return {
+          ...item,
+          chapters: [...(item.chapters ?? []), chapter],
+          lastWriteTurn: currentFullState.globalTurnNumber,
+        };
+      });
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  const addTag = useCallback(
+    (id: string, tag: ItemTag) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      const updatedInventory: Array<Item> = draftState.inventory.map(item => {
+        if (item.id !== id) return item;
+        const currentTags: Array<ItemTag> = item.tags ?? [];
+        if (currentTags.includes(tag)) return item;
+        return { ...item, tags: [...currentTags, tag] };
+      });
+      draftState.inventory = updatedInventory;
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  const recordInspect = useCallback(
+    (id: string): FullGameState => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item =>
+        item.id === id
+          ? { ...item, lastInspectTurn: currentFullState.globalTurnNumber }
+          : item
+      );
+      commitGameState(draftState);
+      return draftState;
+    },
+    [commitGameState]
+  );
+
+  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag, recordInspect };
 };
 
 export type InventoryActions = ReturnType<typeof useInventoryActions>;

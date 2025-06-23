@@ -1,0 +1,178 @@
+/* Styles specific to PageView and page tags */
+
+.page-view-content-area {
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tag-handwritten {
+  background-color: #f5deb3;
+  color: #1a1a1a;
+  font-family: "Oooh Baby", cursive;
+  font-weight: 600;
+  font-size: 1.5rem !important;
+}
+
+.tag-handwritten strong {
+  color: #7f1d1d;
+  font-size: 1.75rem !important;
+}
+
+.tag-handwritten em {
+  color: #0e124b;
+  text-decoration: underline;
+}
+
+.tag-printed {
+  background-color: #f5deb3;
+  color: #1a1a1a;
+  font-family: "IBM Plex Serif", serif;
+}
+
+.tag-printed strong {
+  color: #000000;
+}
+
+.tag-printed em {
+  text-decoration: underline;
+}
+
+.tag-typed {
+  background-color: #f5deb3;
+  color: #333333;
+  font-family: "Special Elite";
+}
+
+.tag-typed strong {
+  color: #000000;
+}
+
+.tag-typed em {
+  text-decoration: wavy underline;
+}
+
+.tag-digital {
+  background-color: #0c140a;
+  color: #00ff90;
+  font-family: "VT323", monospace;
+  font-size: 1.5rem !important;
+}
+
+.tag-digital strong {
+  color: #ff0000;
+}
+
+.tag-digital em {
+  color: #ff0000;
+  text-decoration: underline;
+}
+
+.tag-handwritten-foreign {
+  font-family: "Gloria Hallelujah", cursive;
+  background-color: #f5deb3;
+}
+
+.tag-typed-foreign {
+  font-family: "IBM Plex Serif", serif;
+  background-color: #f5deb3;
+}
+
+.tag-printed-foreign {
+  font-family: "Eagle Lake", serif;
+  background-color: #f5deb3;
+}
+
+.tag-printed-foreign strong {
+  color: #880000;
+}
+
+.tag-printed-foreign em {
+  color: #004400;
+  text-decoration: wavy underline;
+}
+
+.tag-digital-foreign {
+  font-family: "Chokokutai", system-ui;
+  color: #7880d6 !important;
+  background-color: #121f0f;
+}
+
+.tag-faded:not(.tag-recovered) {
+  color: #c0a87b;
+}
+
+.tag-smudged:not(.tag-recovered) {
+  color: #4b3621;
+  filter: blur(1.1px);
+  text-shadow: 0 0 3px rgba(75, 54, 33, 0.5);
+  font-size-adjust: 0.55;
+}
+
+.tag-torn {
+  border: 3px dashed #a0aec0;
+}
+
+.tag-glitching {
+  color: #00ff90;
+  text-shadow: 1px 2px 0 rgb(255, 0, 255), -8px -9px 0 rgb(0, 225, 255), 3px -5px 0 rgb(0, 255, 0);
+}
+
+.tag-encrypted {
+  color: #4b3621;
+  font-style: monospace;
+}
+
+.tag-foreign {
+  color: #212553;
+}
+
+.tag-gothic {
+  font-family: "UnifrakturMaguntia", cursive;
+  color: #2b2016;
+  background-color: #aa8a4e;
+  font-size: 1.5rem !important;
+}
+
+.tag-gothic strong {
+  color: #880000;
+  font-weight: 600;
+}
+
+.tag-gothic em {
+  color: #004400;
+  text-decoration: wavy underline;
+  font-weight: 600;
+}
+
+.tag-runic {
+  color: #2b2016;
+  background-color: #aa8a4e;
+  font-size: 1.5rem !important;
+}
+
+.tag-bloodstained {
+  background-color: #7f1d1d;
+  color: #fef2f2;
+}
+
+.tag-water-damaged {
+  background-color: #e0f2fe;
+  color: #1e3a8a;
+}
+
+.tag-recovered {
+
+}
+
+.tag-gothic.tag-recovered {
+  font-family: "IBM Plex Serif", serif;
+  color: #1a1a1a;
+}
+
+.tag-runic.tag-recovered {
+  font-family: "IBM Plex Serif", serif;
+  color: #1a1a1a;
+}

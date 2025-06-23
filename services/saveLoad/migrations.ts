@@ -103,7 +103,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     ...restOfGameState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
     currentThemeObject: gameState.currentThemeObject,
-    inventory: gameState.inventory.map(item => ({ ...item, isJunk: item.isJunk ?? false, holderId: item.holderId || PLAYER_HOLDER_ID })),
+    inventory: gameState.inventory.map(item => ({ ...item, tags: item.tags ?? [], holderId: item.holderId || PLAYER_HOLDER_ID })),
       allCharacters: gameState.allCharacters.map(c => ({
         ...c,
         aliases: c.aliases ?? [],

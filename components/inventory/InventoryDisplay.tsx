@@ -16,10 +16,13 @@ interface InventoryDisplayProps {
     knownUse?: KnownUse
   ) => void;
   readonly onDropItem: (itemName: string) => void;
+  readonly onReadPage: (item: Item) => void;
+  readonly onWriteJournal: (item: Item) => void;
+  readonly currentTurn: number;
   readonly disabled: boolean;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemNames,
@@ -34,8 +37,10 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
     handleInspect,
     handleGenericUse,
     handleVehicleToggle,
+    handleRead,
+    handleWrite,
     getApplicableKnownUses,
-  } = useInventoryDisplay({ items, onItemInteract, onDropItem });
+  } = useInventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWriteJournal });
 
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
@@ -72,6 +77,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
             return (
               <InventoryItem
                 applicableUses={applicableUses}
+                currentTurn={currentTurn}
                 disabled={disabled}
                 isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
@@ -81,9 +87,11 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, disabled }: Inven
                 onConfirmDrop={handleConfirmDrop}
                 onGenericUse={handleGenericUse}
                 onInspect={handleInspect}
+                onRead={handleRead}
                 onSpecificUse={handleSpecificUse}
                 onStartConfirmDiscard={handleStartConfirmDiscard}
                 onVehicleToggle={handleVehicleToggle}
+                onWrite={handleWrite}
               />
             );
           })}

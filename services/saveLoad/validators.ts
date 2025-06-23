@@ -54,7 +54,15 @@ export function isValidItemForSave(item: unknown): item is Item {
     typeof maybe.holderId === 'string' &&
     (maybe.activeDescription === undefined || typeof maybe.activeDescription === 'string') &&
     (maybe.isActive === undefined || typeof maybe.isActive === 'boolean') &&
-    (maybe.isJunk === undefined || typeof maybe.isJunk === 'boolean') &&
+    (maybe.tags === undefined || (Array.isArray(maybe.tags) && maybe.tags.every(t => typeof t === 'string'))) &&
+    (maybe.lastWriteTurn === undefined || typeof maybe.lastWriteTurn === 'number') &&
+    (maybe.lastInspectTurn === undefined || typeof maybe.lastInspectTurn === 'number') &&
+    ((maybe as { contentLength?: unknown }).contentLength === undefined ||
+      typeof (maybe as { contentLength?: unknown }).contentLength === 'number') &&
+    ((maybe as { actualContent?: unknown }).actualContent === undefined ||
+      typeof (maybe as { actualContent?: unknown }).actualContent === 'string') &&
+    ((maybe as { visibleContent?: unknown }).visibleContent === undefined ||
+      typeof (maybe as { visibleContent?: unknown }).visibleContent === 'string') &&
     (maybe.knownUses === undefined ||
       (Array.isArray(maybe.knownUses) &&
         maybe.knownUses.every((ku: KnownUse) =>
@@ -344,7 +352,7 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
   data.inventory = data.inventory.map((item: Item) => ({
     ...item,
     id: item.id || buildItemId(item.name),
-    isJunk: item.isJunk ?? false,
+    tags: item.tags ?? [],
     holderId: item.holderId || PLAYER_HOLDER_ID,
   }));
   // Numeric fields and nullable strings are guaranteed by validation

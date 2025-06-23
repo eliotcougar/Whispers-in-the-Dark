@@ -10,6 +10,7 @@ import {
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
+  VALID_TAGS,
   LOADING_REASONS,
   ThemePackNameConst,
 } from './constants';
@@ -17,6 +18,7 @@ import {
 export type ItemType = typeof VALID_ITEM_TYPES[number];
 export type PresenceStatus = typeof VALID_PRESENCE_STATUS_VALUES[number];
 export type ThemePackName = ThemePackNameConst;
+export type ItemTag = typeof VALID_TAGS[number];
 
 export type LoadingReason = typeof LOADING_REASONS[number] | null;
 
@@ -34,6 +36,14 @@ export interface KnownUse {
   appliesWhenInactive?: boolean; // If true, this use is shown when item.isActive is false (or undefined)
 }
 
+export interface ItemChapter {
+  heading: string;
+  description: string;
+  contentLength: number;
+  actualContent?: string;
+  visibleContent?: string;
+}
+
 export interface Item {
   id: string;
   name: string;
@@ -42,8 +52,17 @@ export interface Item {
   activeDescription?: string; // Optional: Description when item.isActive is true
   isActive?: boolean; // Defaults to false if undefined
   knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
-  isJunk?: boolean; // Flag for unimportant items
+  tags?: Array<ItemTag>; // Tags for classification, e.g., ["junk"]
   holderId: string; // ID of the entity holding this item or 'player'
+  /**
+   * Text content for written items.
+   *
+   * For both 'page' and 'book' items, use the `chapters` array.
+   * Page items should contain a single chapter object in this array.
+   */
+  chapters?: Array<ItemChapter>;
+  lastWriteTurn?: number;
+  lastInspectTurn?: number;
   // --- Fields for "update" action payloads ---
   newName?: string;
   addKnownUse?: KnownUse;
@@ -71,6 +90,12 @@ export interface NewItemSuggestion {
   name: string;
   type: ItemType;
   description: string;
+  activeDescription?: string;
+  isActive?: boolean;
+  tags?: Array<ItemTag>;
+  holderId?: string;
+  chapters?: Array<ItemChapter>;
+  knownUses?: Array<KnownUse>;
 }
 
 export type ItemChange =

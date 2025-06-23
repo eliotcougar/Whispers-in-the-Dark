@@ -3,6 +3,7 @@ import MapDisplay from '../map/MapDisplay';
 import ConfirmationDialog from '../ConfirmationDialog';
 import HistoryDisplay from '../modals/HistoryDisplay';
 import ImageVisualizer from '../modals/ImageVisualizer';
+import PageView from '../modals/PageView';
 import {
   AdventureTheme,
   MapData,
@@ -10,6 +11,7 @@ import {
   Character,
   ThemeHistoryState,
   MapNode,
+  Item,
 } from '../../types';
 
 interface AppModalsProps {
@@ -62,6 +64,14 @@ interface AppModalsProps {
   readonly handleConfirmShift: () => void;
   readonly handleCancelShift: () => void;
   readonly isCustomGameModeShift: boolean;
+  readonly inventory: Array<Item>;
+  readonly pageItemId: string | null;
+  readonly pageStartChapterIndex: number;
+  readonly isPageVisible: boolean;
+  readonly onClosePage: () => void;
+  readonly storytellerThoughts: string;
+  readonly currentQuest: string | null;
+  readonly updateItemContent: (id: string, actual: string, visible: string, chapterIndex?: number) => void;
 }
 
 function AppModals({
@@ -113,6 +123,14 @@ function AppModals({
   handleConfirmShift,
   handleCancelShift,
   isCustomGameModeShift,
+  inventory,
+  pageItemId,
+  pageStartChapterIndex,
+  isPageVisible,
+  onClosePage,
+  storytellerThoughts,
+  currentQuest,
+  updateItemContent,
 }: AppModalsProps) {
 
 
@@ -145,6 +163,20 @@ function AppModals({
         isVisible={isHistoryVisible}
         onClose={onCloseHistory}
         themeHistory={themeHistory}
+      />
+
+      <PageView
+        allCharacters={allCharacters}
+        currentQuest={currentQuest}
+        currentScene={currentScene}
+        currentTheme={currentTheme}
+        isVisible={isPageVisible}
+        item={inventory.find(it => it.id === pageItemId) ?? null}
+        mapData={mapData}
+        onClose={onClosePage}
+        startIndex={pageStartChapterIndex}
+        storytellerThoughts={storytellerThoughts}
+        updateItemContent={updateItemContent}
       />
 
       <MapDisplay

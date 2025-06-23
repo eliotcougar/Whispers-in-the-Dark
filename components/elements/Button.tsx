@@ -3,6 +3,45 @@ import type { MouseEvent, ReactNode } from 'react';
 import type { HighlightableEntity } from '../../utils/highlightHelper';
 import { highlightEntitiesInText } from '../../utils/highlightHelper';
 
+export const BUTTON_VARIANTS = [
+  'standard',
+  'center',
+  'compact',
+  'toolbar',
+  'toggle',
+  'close',
+  'tab',
+] as const;
+
+export type ButtonVariant = typeof BUTTON_VARIANTS[number];
+
+export const BUTTON_PRESETS = [
+  'slate',
+  'gray',
+  'zinc',
+  'neutral',
+  'stone',
+  'red',
+  'orange',
+  'amber',
+  'yellow',
+  'lime',
+  'green',
+  'emerald',
+  'teal',
+  'cyan',
+  'sky',
+  'blue',
+  'indigo',
+  'violet',
+  'purple',
+  'fuchsia',
+  'pink',
+  'rose',
+] as const;
+
+export type ButtonPreset = typeof BUTTON_PRESETS[number];
+
 export interface ButtonProps {
   readonly ariaLabel: string;
   readonly onClick: (event: MouseEvent<HTMLButtonElement>) => void;
@@ -20,37 +59,8 @@ export interface ButtonProps {
   readonly 'data-option'?: string;
   readonly 'data-prompt-effect'?: string;
   readonly 'data-node-id'?: string;
-  readonly variant?:
-    | 'standard'
-    | 'center'
-    | 'compact'
-    | 'toolbar'
-    | 'toggle'
-    | 'close'
-    | 'tab';
-  readonly preset?:
-    | 'slate'
-    | 'gray'
-    | 'zinc'
-    | 'neutral'
-    | 'stone'
-    | 'red'
-    | 'orange'
-    | 'amber'
-    | 'yellow'
-    | 'lime'
-    | 'green'
-    | 'emerald'
-    | 'teal'
-    | 'cyan'
-    | 'sky'
-    | 'blue'
-    | 'indigo'
-    | 'violet'
-    | 'purple'
-    | 'fuchsia'
-    | 'pink'
-    | 'rose';
+  readonly variant?: ButtonVariant;
+  readonly preset?: ButtonPreset;
 }
 
 function Button({
@@ -94,10 +104,7 @@ function Button({
       ? sizeClasses[size]
       : '';
 
-  const variantClasses: Record<
-    'standard' | 'center' | 'compact' | 'toolbar' | 'toggle' | 'close' | 'tab' ,
-    string
-  > = {
+  const variantClasses: Record<ButtonVariant, string> = {
     standard: 'w-full flex items-center justify-center',
     center: 'w-full flex items-center text-center',
     compact: 'inline-flex items-center justify-center',
@@ -107,7 +114,7 @@ function Button({
     tab: 'px-3 py-2 text-sm font-medium transition-colors',
   };
 
-  const presetClasses: Record<NonNullable<ButtonProps['preset']>, string> = {
+  const presetClasses: Record<ButtonPreset, string> = {
     slate: 'bg-slate-600 hover:bg-slate-500 focus:ring-slate-400',
     gray: 'bg-gray-700 hover:bg-gray-500 focus:ring-gray-400',
     zinc: 'bg-zinc-700 hover:bg-zinc-500 focus:ring-zinc-400',

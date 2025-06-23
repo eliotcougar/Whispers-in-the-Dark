@@ -70,7 +70,8 @@ function LocationItemsDisplay({ items, onTakeItem, disabled, currentNodeId, mapN
               </p>
 
               {!atCurrent && holderName ? <p className="text-xs text-slate-300 mb-2">
-                Reachable at
+                {'Reachable at '}
+
                 {holderName}
               </p> : null}
 

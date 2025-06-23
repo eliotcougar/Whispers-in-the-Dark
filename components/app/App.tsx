@@ -26,6 +26,8 @@ import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
 import FreeActionInput from './FreeActionInput';
+import { formatKnownPlacesForPrompt, charactersToString } from '../../utils/promptFormatters';
+import { generateJournalEntry } from '../../services/journal';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
 import { useAppModals } from '../../hooks/useAppModals';
@@ -37,8 +39,9 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 
 import {
   FREE_FORM_ACTION_COST,
+  RECENT_LOG_COUNT_FOR_PROMPT,
 } from '../../constants';
-import { ThemePackName } from '../../types';
+import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
 
 
 function App() {
@@ -121,7 +124,14 @@ function App() {
     mapViewBox,
     handleMapViewBoxChange,
     handleMapNodesPositionChange,
+    commitGameState,
+    updateItemContent,
   } = gameLogic;
+
+  const handleApplyGameState = useCallback(
+    (state: FullGameState) => { commitGameState(state); },
+    [commitGameState]
+  );
 
   useEffect(() => {
     if (!isLoading) {
@@ -181,11 +191,32 @@ function App() {
     closeLoadGameFromMenuConfirm,
     openNewCustomGameConfirm,
     closeNewCustomGameConfirm,
+    pageItemId,
+    pageStartChapterIndex,
+    isPageVisible,
+    openPageView,
+    closePageView,
   } = useAppModals();
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
 
-  const isAnyModalOrDialogueActive = isVisualizerVisible || isKnowledgeBaseVisible || isSettingsVisible || isInfoVisible || isMapVisible || isHistoryVisible || isDebugViewVisible || !!dialogueState || effectiveIsTitleMenuOpen || shiftConfirmOpen || newGameFromMenuConfirmOpen || loadGameFromMenuConfirmOpen || isCustomGameSetupVisible || newCustomGameConfirmOpen || isManualShiftThemeSelectionVisible;
+  const isAnyModalOrDialogueActive =
+    isVisualizerVisible ||
+    isKnowledgeBaseVisible ||
+    isSettingsVisible ||
+    isInfoVisible ||
+    isMapVisible ||
+    isHistoryVisible ||
+    isDebugViewVisible ||
+    isPageVisible ||
+    !!dialogueState ||
+    effectiveIsTitleMenuOpen ||
+    shiftConfirmOpen ||
+    newGameFromMenuConfirmOpen ||
+    loadGameFromMenuConfirmOpen ||
+    isCustomGameSetupVisible ||
+    newCustomGameConfirmOpen ||
+    isManualShiftThemeSelectionVisible;
 
 
   useEffect(() => {
@@ -251,6 +282,70 @@ function App() {
   const handleRetryClick = useCallback(() => {
     void handleRetry();
   }, [handleRetry]);
+
+  const handleReadPage = useCallback(
+    (item: Item) => {
+      const index =
+        item.type === 'journal'
+          ? Math.max(0, (item.chapters?.length ?? 0) - 1)
+          : 0;
+      openPageView(item.id, index);
+    },
+    [openPageView]
+  );
+
+  const handleWriteJournal = useCallback((item: Item) => {
+    if (item.lastWriteTurn === globalTurnNumber) return;
+    openPageView(item.id, item.chapters?.length ?? 0);
+    void (async () => {
+      if (!currentTheme) return;
+      const { name: themeName, systemInstructionModifier } = currentTheme;
+      const nodes = mapData.nodes.filter(
+        n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+      );
+      const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
+      const chars = allCharacters.filter(c => c.themeName === themeName);
+      const knownCharacters = chars.length > 0
+        ? charactersToString(chars, ' - ', false, false, false, true)
+        : 'None specifically known in this theme yet.';
+      const prev = item.chapters?.[item.chapters.length - 1]?.actualContent ?? '';
+      const entry = await generateJournalEntry(
+        item.name,
+        item.description,
+        prev,
+        themeName,
+        systemInstructionModifier,
+        currentScene,
+        lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
+        knownPlaces,
+        knownCharacters,
+        gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
+        mainQuest
+      );
+      if (entry) {
+        const chapter = {
+          heading: entry.heading,
+          description: entry.heading,
+          contentLength: 50,
+          actualContent: entry.text,
+          visibleContent: entry.text,
+        } as ItemChapter;
+        gameLogic.addJournalEntry(item.id, chapter);
+        openPageView(item.id, item.chapters?.length ?? 0);
+      }
+    })();
+  }, [
+    allCharacters,
+    currentTheme,
+    currentScene,
+    gameLogic,
+    mapData.nodes,
+    mainQuest,
+    openPageView,
+    lastDebugPacket,
+    gameLog,
+    globalTurnNumber,
+  ]);
 
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -583,6 +678,7 @@ function App() {
                   isManualShiftThemeSelectionVisible
                 }
                 enableMobileTap={enableMobileTap}
+                globalTurnNumber={globalTurnNumber}
                 inventory={inventory}
                 itemsHere={itemsHere}
                 mainQuest={mainQuest}
@@ -590,7 +686,9 @@ function App() {
                 objectiveAnimationType={objectiveAnimationType}
                 onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}
+                onReadPage={handleReadPage}
                 onTakeItem={handleTakeLocationItem}
+                onWriteJournal={handleWriteJournal}
               />
             )}
           </div>
@@ -637,6 +735,7 @@ function App() {
         debugPacket={lastDebugPacket}
         gameStateStack={gameStateStack}
         isVisible={isDebugViewVisible}
+        onApplyGameState={handleApplyGameState}
         onClose={closeDebugView}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
@@ -691,6 +790,7 @@ function App() {
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allCharacters={allCharacters}
         currentMapNodeId={currentMapNodeId}
+        currentQuest={mainQuest}
         currentScene={currentScene}
         currentTheme={currentTheme}
         currentThemeName={currentTheme.name}
@@ -706,10 +806,12 @@ function App() {
         handleConfirmShift={confirmShift}
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
+        inventory={inventory}
         isCustomGameModeShift={isCustomGameMode}
         isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
         isMapVisible={isMapVisible}
+        isPageVisible={isPageVisible}
         isVisualizerVisible={isVisualizerVisible}
         itemPresenceByNode={itemPresenceByNode}
         loadGameFromMenuConfirmOpen={loadGameFromMenuConfirmOpen}
@@ -722,14 +824,19 @@ function App() {
         onCloseHistory={closeHistory}
         onCloseKnowledgeBase={closeKnowledgeBase}
         onCloseMap={closeMap}
+        onClosePage={closePageView}
         onCloseVisualizer={closeVisualizer}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
+        pageItemId={pageItemId}
+        pageStartChapterIndex={pageStartChapterIndex}
         setGeneratedImage={setGeneratedImageCache}
         shiftConfirmOpen={shiftConfirmOpen}
+        storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
         themeHistory={themeHistory}
+        updateItemContent={updateItemContent}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
       /> : null}

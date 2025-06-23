@@ -24,7 +24,8 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   `DialogueDisplay.tsx`: Handles the UI for conversations with NPCs, using `MapNode` data for highlighting.
     *   `MapDisplay.tsx`: Visualizes the `MapData` for the current theme. Includes pan/zoom interactions and exposes layout tuning via `MapControls`.
     *   `MapNodeView.tsx`: Renders individual nodes within the map SVG.
-    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `HistoryDisplay.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on characters, with location details coming from the map.
+    *   `ItemChangeAnimator.tsx`: Animates inventory changes using `useItemChangeQueue`.
+    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `HistoryDisplay.tsx`, `PageView.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on characters, with location details coming from the map.
     *   `LoadingSpinner.tsx`, `ErrorDisplay.tsx`: Provide feedback during loading or error states.
     *   `MainToolbar.tsx`: Contains buttons for primary game actions and information display, including opening the map.
 
@@ -69,6 +70,12 @@ This layer abstracts external interactions and complex data processing.
         *   `responseParser.ts` parses dialogue responses.
         *   `systemPrompt.ts` contains dialogue instructions.
         *   `index.ts` re-exports these utilities.
+    *   `services/page/` (Page service):
+        *   `api.ts` generates the contents of single-page items and book chapters.
+        *   `index.ts` re-exports the helper.
+    *   `services/journal/` (Journal service):
+        *   `api.ts` summarizes recent events into a new journal entry.
+        *   `index.ts` re-exports the helper.
     *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
     *   `services/cartographer/` (Cartographer service):
         *   `api.ts` orchestrates map update requests.
@@ -107,13 +114,16 @@ This layer abstracts external interactions and complex data processing.
    *   `services/cartographer/mapUpdateValidation.ts`: Validates `AIMapUpdatePayload` structures.
    *   `utils/mapSynonyms.ts` and `utils/matcherData.ts`: Provide regex helpers and keyword lists used when parsing player text.
    *   `utils/svgUtils.ts`: Converts screen coordinates to the map's SVG space.
+   *   `utils/markup.tsx`: Converts a small markup syntax (lists, *italic*, **bold**) into React nodes.
+  *   `utils/textTransforms.ts`: Provides `rot13` and `toRunic` helpers for encoded text effects.
 
 ### 1.4. Data Layer
 
 *   **Type Definitions:**
-    *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. Items include a `holderId` for their owner and `Character` objects have a unique `id` similar to `MapNode.id`.
+    *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`, `globalTurnNumber: number`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. Items include a `holderId` for their owner and `Character` objects have a unique `id` similar to `MapNode.id`.
+    *   `ItemChapter` and the `chapters` array store text for `page`, `journal`, and `book` items, which also record `lastWriteTurn` to throttle writing.
 *   **Constants & Configuration:**
-    *   `constants.ts`: Global constants and model names. `PLAYER_HOLDER_ID` marks items belonging to the player.
+    *   `constants.ts`: Global constants and model names. `PLAYER_HOLDER_ID` marks items belonging to the player. Includes `JOURNAL_WRITE_COOLDOWN`, lists of valid item types (`page`, `journal`, `book`, etc.) and text style tags used for written items.
     *   `services/cartographer/systemPrompt.ts`: Defines `MAP_UPDATE_SYSTEM_INSTRUCTION` (exported as `SYSTEM_INSTRUCTION`).
 *   **Theme Definitions:**
     *   `themes.ts`: Defines adventure themes.
@@ -169,3 +179,9 @@ The `MapDisplay` component visualizes nodes and edges stored in `MapData`. A nes
 * Each parent node encloses its children, positioned around the circumference of a circle sized to avoid overlaps.
 * Layout parameters (`IDEAL_EDGE_LENGTH`, `NESTED_PADDING`, `NESTED_ANGLE_PADDING`, and label spacing values) are stored in `mapLayoutConfig` and can be tuned through `MapControls`.
 * `useMapInteractions` enables panning and zooming the SVG view.
+
+### 2.5. Written Item Flow
+
+*   **Page & Book Generation:** The `PageView` modal displays pages, books and journals. When a chapter lacks text it calls the Page service to generate the content using current scene context and map/character knowledge. The result is stored in `item.chapters[idx].actualContent` with optional encoded or foreign variants in `visibleContent`.
+*   **Journal Entries:** Selecting "Write" on a journal item invokes the Journal service. The service summarizes recent log entries along with known places and characters to produce a short entry appended as a new chapter. Journals obey `JOURNAL_WRITE_COOLDOWN` tracked via `lastWriteTurn`.
+*   **Markup & Transforms:** Generated text may include simple Markdown-style formatting which is converted to React elements via `applyBasicMarkup`. Tags like `foreign`, `encrypted`, or `runic` use helpers in `textTransforms.ts` to display encoded text until the player reveals it. Gothic text is styled purely with CSS.

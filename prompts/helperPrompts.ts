@@ -4,7 +4,27 @@
  * @description Utility prompt snippets used across multiple AI requests.
  */
 
-import { VALID_ITEM_TYPES_STRING } from '../constants'; // Import needed constant
+import {
+  VALID_ITEM_TYPES_STRING,
+  VALID_TAGS_STRING,
+  WRITING_TAGS_STRING,
+} from '../constants';
+
+export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
+- "single-use": Consumed after one use (e.g., potion, one-shot scroll, stimpak, medicine pill, spare part). Assumed to be stored in player's pockets/bag/backpack. Excludes any written material. Cannot be worn on a person directly.
+- "multi-use": Can be used multiple times (e.g., lockpick set, toolkit, medkit). Can have limited number of uses, indicated in brackets after the name, or in the description. Assumed to be stored in player's pockets/bag/backpack. Cannot be worn on a person directly.
+- "equipment": Can be worn on a person, or wielded (e.g., armor, shield, helmet, lantern, flashlight, crowbar). Can have active/inactive states.
+- "container": Can hold things. Describe if empty/full, intended contents (solid, liquid, gas), e.g., "Empty Canteen", "Flask of Oil". Use 'update' to change its description/state (e.g., from empty to full). Full conainer can provide a number of uses until it is empty again (can drink from full bottle several times).
+- "key": Unlocks specific doors, chests, portals, or similar. Description should hint at its purpose, e.g., "Ornate Silver Key (for a large chest)". Can be 'lost' or 'updated' (e.g., to "Bent Key") after use.
+- "weapon": Melee and ranged weapons, distinct from "equipment" Items that can be explicitly used in a fight when wielded. Ranged weapon consume ammunition or charges.
+- "ammunition": For reloading specific ranged weapons, e.g., Arrows for Longbow, Rounds for firearms, Charges for energy weapons. Using weapon consumes ammo (handled by log/update).
+- "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
+- "knowledge": Immaterial. Represents learned info, skills, spells, passwords. 'knownUses' define how to apply it. Can be 'lost' if used up or no longer relevant. E.g., "Spell: Fireball", "Recipe: Health Potion", "Clue: Thief Name".
+- "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
+- "journal": Blank notebook for the player to fill in. Starts with no chapters. Use the chapter structure when the player writes.
+- "book": Multi-page text with "chapters". Each chapter MUST have {"heading", "description", "contentLength"}.
+- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
+`;
 
 export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "playerItemsHint": short summary of gains, losses or state changes for the Player.
@@ -19,7 +39,7 @@ Each object in "newItems" should include:
     "description": "Short description",
     "activeDescription"?: "When active",
     "isActive"?: false,
-    "isJunk"?: false,
+    "tags"?: ["junk"], /* Valid tags: ${VALID_TAGS_STRING}. */
     "knownUses"?: [
       {
         "actionName": "Action text",
@@ -40,7 +60,7 @@ Examples illustrating the hint style:
     "description": "A dusty old lantern that still flickers faintly.",
     "activeDescription": "The lantern is lit and casts a warm glow.",
     "isActive": false,
-    "isJunk": false,
+    "tags": [],
     "knownUses": [
       {
         "actionName": "Light the Lantern",
@@ -61,6 +81,45 @@ Examples illustrating the hint style:
     "holderId": "char_guard_4f3a"
   }]
 
+- Example for a short page item:
+  playerItemsHint: "Found Torn Note."
+  newItems: [{
+    "name": "Torn Note",
+    "type": "page",
+    "description": "A hastily scribbled message.", /* REQUIRED. Moderatly detailed description of the note and its contents. */
+    "tags": ["typed", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
+    "chapters": [ /* REQUIRED. Always a single chapter. */
+      { "heading": "string", /* REQUIRED. Can be anything*/
+        "description": "A hastily scribbled message about the dangers of the sunken tunnel.", /* REQUIRED. Moderately detailed abstract of the contents. */
+        "contentLength": 50 /* REQUIRED. Length of the content in words. */
+      }
+    "holderId": "player"
+  }]
+
+- Example for a simple book:
+  playerItemsHint: "Obtained the Explorer's Adventures."
+  newItems: [{
+    "name": "Explorer's Adventures",
+    "type": "book",
+    "description": "Weathered log of travels.",
+    "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
+    "chapters": [ /* Anywhere from 3 to 10 chapters. */
+      { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
+        "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
+        "contentLength": 50 /* REQUIRED. Length of the content in words. Range: 50-500 */
+      },
+      { "heading": "Journey One",
+        "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",
+        "contentLength": 250 
+      },
+      { "heading": "Journey Two",
+        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
+        "contentLength": 300 
+      }
+    ],
+    "holderId": "player"
+  }]
+
 - Example for losing, destroying, completely removing the item:
   playerItemsHint: "Lost Old Lantern (flickering)."
 
@@ -79,7 +138,7 @@ Examples illustrating the hint style:
     "name": "Makeshift Shiv",
     "type": "weapon",
     "description": "A sharp piece of metal.",
-    "isJunk": false,
+    "tags": [],
     "knownUses": [
       {
         "actionName": "Cut",
@@ -100,23 +159,12 @@ Examples illustrating the hint style:
 IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
-IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park" known uses - there are dedicated buttons for those in the game.
+IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park", "Read", "Write" known uses - there are dedicated buttons for those in the game.
 
 If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, mention it in "playerItemsHint".
 If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, mention it in "playerItemsHint".
 
-
-Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
-- "single-use": Consumed after one use (e.g., potion, one-shot scroll, stimpak, medicine pill, spare part). Assumed to be stored in player's pockets/bag/backpack. Cannot be worn on a person directly.
-- "multi-use": Can be used multiple times (e.g., lockpick set, toolkit, medkit). Can have limited number of uses, indicated in brackets after the name, or in the description. Assumed to be stored in player's pockets/bag/backpack. Cannot be worn on a person directly.
-- "equipment": Can be worn on a person, or wielded (e.g., armor, shield, helmet, lantern, flashlight, crowbar). Can have active/inactive states.
-- "container": Can hold things. Describe if empty/full, intended contents (solid, liquid, gas), e.g., "Empty Canteen", "Flask of Oil". Use 'update' to change its description/state (e.g., from empty to full). Full conainer can provide a number of uses until it is empty again (can drink from full bottle several times).
-- "key": Unlocks specific doors, chests, portals, or similar. Description should hint at its purpose, e.g., "Ornate Silver Key (for a large chest)". Can be 'lost' or 'updated' (e.g., to "Bent Key") after use.
-- "weapon": Melee and ranged weapons, distinct from "equipment" Items that can be explicitly used in a fight when wielded. Ranged weapon consume ammunition or charges.
-- "ammunition": For reloading specific ranged weapons, e.g., Arrows for Longbow, Rounds for firearms, Charges for energy weapons. Using weapon consumes ammo (handled by log/update).
-  - "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
-- "knowledge": Immaterial. Represents learned info, skills, spells, passwords. 'knownUses' define how to apply it. Can be 'lost' if used up or no longer relevant. E.g., "Spell: Fireball", "Recipe: Health Potion", "Clue: Thief Name".
-- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
+${ITEM_TYPES_GUIDE}
 
 IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Mention the transformation in "playerItemsHint" and include the resulting item in "newItems" with its new "name", "type" and "description". Your "logMessage" must creatively explain this transformation. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand". The log message could be: "The strange metal device from another world shimmers and reshapes into a humming metal wand in your grasp!"
 `;

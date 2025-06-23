@@ -3,6 +3,7 @@
  * @description Manages visibility state and helper handlers for app modals.
  */
 import { useCallback, useState } from 'react';
+import { clearProgress } from '../utils/loadingProgress';
 
 export const useAppModals = () => {
   const [isVisualizerVisible, setIsVisualizerVisible] = useState(false);
@@ -22,6 +23,9 @@ export const useAppModals = () => {
   const [newGameFromMenuConfirmOpen, setNewGameFromMenuConfirmOpen] = useState(false);
   const [loadGameFromMenuConfirmOpen, setLoadGameFromMenuConfirmOpen] = useState(false);
   const [newCustomGameConfirmOpen, setNewCustomGameConfirmOpen] = useState(false);
+  const [pageItemId, setPageItemId] = useState<string | null>(null);
+  const [pageStartChapterIndex, setPageStartChapterIndex] = useState<number>(0);
+  const [isPageVisible, setIsPageVisible] = useState(false);
 
   const openVisualizer = useCallback(() => { setIsVisualizerVisible(true); }, []);
   const closeVisualizer = useCallback(() => { setIsVisualizerVisible(false); }, []);
@@ -50,6 +54,17 @@ export const useAppModals = () => {
   const closeLoadGameFromMenuConfirm = useCallback(() => { setLoadGameFromMenuConfirmOpen(false); }, []);
   const openNewCustomGameConfirm = useCallback(() => { setNewCustomGameConfirmOpen(true); }, []);
   const closeNewCustomGameConfirm = useCallback(() => { setNewCustomGameConfirmOpen(false); }, []);
+  const openPageView = useCallback((id: string, startIndex = 0) => {
+    setPageItemId(id);
+    setPageStartChapterIndex(startIndex);
+    setIsPageVisible(true);
+  }, []);
+  const closePageView = useCallback(() => {
+    setIsPageVisible(false);
+    setPageItemId(null);
+    setPageStartChapterIndex(0);
+    clearProgress();
+  }, []);
 
   return {
     // state
@@ -69,8 +84,11 @@ export const useAppModals = () => {
     shiftConfirmOpen,
     newGameFromMenuConfirmOpen,
     loadGameFromMenuConfirmOpen,
-    newCustomGameConfirmOpen,
-    // setters used outside
+   newCustomGameConfirmOpen,
+   pageItemId,
+   pageStartChapterIndex,
+   isPageVisible,
+   // setters used outside
     setVisualizerImageUrl,
     setVisualizerImageScene,
     setShouldReturnToTitleMenu,
@@ -101,8 +119,10 @@ export const useAppModals = () => {
     closeNewGameFromMenuConfirm,
     openLoadGameFromMenuConfirm,
     closeLoadGameFromMenuConfirm,
-    openNewCustomGameConfirm,
-    closeNewCustomGameConfirm,
+   openNewCustomGameConfirm,
+   closeNewCustomGameConfirm,
+   openPageView,
+   closePageView,
   } as const;
 };
 

@@ -10,4 +10,5 @@ export { default as MapLocationAITab } from './MapLocationAITab';
 export { default as MiscStateTab } from './MiscStateTab';
 export { default as ThemeHistoryTab } from './ThemeHistoryTab';
 export { default as TravelPathTab } from './TravelPathTab';
+export { default as PlaygroundTab } from './PlaygroundTab';
 export * from './tabUtils';

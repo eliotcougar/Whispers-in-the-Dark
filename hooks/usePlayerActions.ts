@@ -78,7 +78,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setGameStateStack,
   });
 
-  const { handleDropItem, handleTakeLocationItem } = useInventoryActions({
+  const { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, recordInspect } = useInventoryActions({
     getCurrentGameState,
     commitGameState,
     isLoading,
@@ -90,8 +90,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * counters or score are affected.
    */
   const executePlayerAction = useCallback(
-    async (action: string, isFreeForm = false) => {
-      const currentFullState = getCurrentGameState();
+    async (
+      action: string,
+      isFreeForm = false,
+      overrideState?: FullGameState,
+    ) => {
+      const currentFullState = overrideState ?? getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 
       setIsLoading(true);
@@ -285,16 +289,33 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * Triggers an action based on the player's interaction with an item.
    */
   const handleItemInteraction = useCallback(
-    (item: Item, interactionType: 'generic' | 'specific' | 'inspect', knownUse?: KnownUse) => {
+    (
+      item: Item,
+      interactionType: 'generic' | 'specific' | 'inspect',
+      knownUse?: KnownUse,
+    ) => {
       if (interactionType === 'inspect') {
-        void executePlayerAction(`Inspect: ${item.name}`);
+        const updatedState = recordInspect(item.id);
+
+        const showActual = item.tags?.includes('recovered');
+        const contents = (item.chapters ?? [])
+          .map(
+            ch =>
+              `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}\n\n`,
+          )
+          .join('');
+        void executePlayerAction(
+          `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`,
+          false,
+          updatedState,
+        );
       } else if (interactionType === 'specific' && knownUse) {
         void executePlayerAction(knownUse.promptEffect);
       } else if (interactionType === 'generic') {
         void executePlayerAction(`Attempt to use: ${item.name}`);
       }
     },
-    [executePlayerAction]
+    [executePlayerAction, recordInspect]
   );
 
 
@@ -335,6 +356,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleItemInteraction,
     handleDropItem,
     handleTakeLocationItem,
+    updateItemContent,
+    addJournalEntry,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   };
