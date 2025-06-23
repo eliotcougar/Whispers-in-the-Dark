@@ -47,6 +47,25 @@ export interface InventoryUpdateResult {
   } | null;
 }
 
+const mergeBookChaptersFromSuggestions = (
+  itemChanges: Array<ItemChange>,
+  suggestions: Array<NewItemSuggestion>,
+): void => {
+  for (const suggestion of suggestions) {
+    const suggChapters = suggestion.chapters;
+    if (!suggChapters || suggChapters.length === 0) continue;
+    const match = itemChanges.find(
+      ch => (ch.action === 'gain' || ch.action === 'put') && ch.item.name === suggestion.name,
+    );
+    if (match && (match.action === 'gain' || match.action === 'put')) {
+      const item = match.item;
+      if (!item.chapters || item.chapters.length !== suggChapters.length) {
+        item.chapters = suggChapters;
+      }
+    }
+  }
+};
+
 export const applyInventoryHints_Service = async (
   playerItemsHint: string | undefined,
   worldItemsHint: string | undefined,
@@ -101,6 +120,9 @@ export const applyInventoryHints_Service = async (
     );
     if (corrected)
       parsed = { itemChanges: corrected } as InventoryAIPayload;
+  }
+  if (parsed) {
+    mergeBookChaptersFromSuggestions(parsed.itemChanges, newItems);
   }
   return {
     itemChanges: parsed ? parsed.itemChanges : [],
