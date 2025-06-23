@@ -18,6 +18,7 @@ import {
   MainAITab,
   MapDataFullTab,
   MapLocationAITab,
+  PlaygroundTab,
   MiscStateTab,
   ThemeHistoryTab,
   TravelPathTab,
@@ -45,7 +46,8 @@ type DebugTab =
   | "ThemeHistory"
   | "GameLog"
   | "TravelPath"
-  | "MiscState";
+  | "MiscState"
+  | "Playground";
 
 /**
  * Developer-only panel for inspecting and manipulating game state.
@@ -84,6 +86,7 @@ function DebugView({
     { name: "GameLog", label: "Game Log" },
     { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
+    { name: "Playground", label: "Playground" },
   ];
 
   /**
@@ -127,6 +130,8 @@ function DebugView({
         );
       case 'MiscState':
         return <MiscStateTab currentState={currentState} />;
+      case 'Playground':
+        return <PlaygroundTab />;
       default:
         return (
           <p>
