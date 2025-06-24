@@ -80,27 +80,29 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
       newRects.set(name, el.getBoundingClientRect());
     });
 
-    prevRectsRef.current.forEach((prevRect, name) => {
-      const newRect = newRects.get(name);
-      const el = itemElementMap.current.get(name);
-      if (!newRect || !el) return;
-      const dx = prevRect.left - newRect.left;
-      const dy = prevRect.top - newRect.top;
-      if (dx !== 0 || dy !== 0) {
-        el.style.transition = 'none';
-        el.style.transform = `translate(${String(dx)}px, ${String(dy)}px)`;
-        requestAnimationFrame(() => {
-          el.style.transition = 'transform 0.2s';
-          el.style.transform = '';
-        });
-        setTimeout(() => {
-          el.style.transition = '';
-        }, 200);
-      }
-    });
+    if (!disabled) {
+      prevRectsRef.current.forEach((prevRect, name) => {
+        const newRect = newRects.get(name);
+        const el = itemElementMap.current.get(name);
+        if (!newRect || !el) return;
+        const dx = prevRect.left - newRect.left;
+        const dy = prevRect.top - newRect.top;
+        if (dx !== 0 || dy !== 0) {
+          el.style.transition = 'none';
+          el.style.transform = `translate(${String(dx)}px, ${String(dy)}px)`;
+          requestAnimationFrame(() => {
+            el.style.transition = 'transform 0.2s';
+            el.style.transform = '';
+          });
+          setTimeout(() => {
+            el.style.transition = '';
+          }, 200);
+        }
+      });
+    }
 
     prevRectsRef.current = newRects;
-  }, [displayedItems]);
+  }, [displayedItems, disabled]);
 
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
