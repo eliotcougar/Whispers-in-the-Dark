@@ -742,8 +742,8 @@ function App() {
         isVisible={isDebugViewVisible}
         onApplyGameState={handleApplyGameState}
         onClose={closeDebugView}
-        onUndoTurn={handleUndoTurn}
         onDistillFacts={handleDistillClick}
+        onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
       />
 

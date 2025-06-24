@@ -28,8 +28,15 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
     if (!info) return null;
     const raw = showRaw[modeLabel] ?? true;
     return (
-      <div className="mb-4" key={modeLabel}>
-        <DebugSection content={info.prompt} isJson={false} title={`${modeLabel} Request`} />
+      <div
+        className="mb-4"
+        key={modeLabel}
+      >
+        <DebugSection
+          content={info.prompt}
+          isJson={false}
+          title={`${modeLabel} Request`}
+        />
 
         <div className="my-2 flex flex-wrap gap-2">
           <Button
@@ -60,22 +67,37 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
             title={`${modeLabel} Response Raw`}
           />
         ) : (
-          <DebugSection content={info.parsedPayload} title={`${modeLabel} Response Parsed`} />
+          <DebugSection
+            content={info.parsedPayload}
+            title={`${modeLabel} Response Parsed`}
+          />
         )}
 
         {info.observations ? (
-          <DebugSection content={info.observations} isJson={false} title={`${modeLabel} Observations`} />
+          <DebugSection
+            content={info.observations}
+            isJson={false}
+            title={`${modeLabel} Observations`}
+          />
         ) : null}
 
         {info.rationale ? (
-          <DebugSection content={info.rationale} isJson={false} title={`${modeLabel} Rationale`} />
+          <DebugSection
+            content={info.rationale}
+            isJson={false}
+            title={`${modeLabel} Rationale`}
+          />
         ) : null}
       </div>
     );
   };
 
   if (!debugPacket?.loremasterDebugInfo) {
-    return <p className="italic text-slate-300">No Loremaster AI interaction debug packet captured.</p>;
+    return (
+      <p className="italic text-slate-300">
+        No Loremaster AI interaction debug packet captured.
+      </p>
+    );
   }
 
   return (
@@ -90,8 +112,11 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
       />
 
       {renderMode('Collect', debugPacket.loremasterDebugInfo.collect)}
+
       {renderMode('Extract', debugPacket.loremasterDebugInfo.extract)}
+
       {renderMode('Integrate', debugPacket.loremasterDebugInfo.integrate)}
+
       {renderMode('Distill', debugPacket.loremasterDebugInfo.distill)}
     </>
   );
