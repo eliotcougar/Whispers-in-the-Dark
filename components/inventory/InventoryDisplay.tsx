@@ -82,9 +82,10 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
       const dx = prevRect.left - newRect.left;
       const dy = prevRect.top - newRect.top;
       if (dx !== 0 || dy !== 0) {
-        el.style.transition = 'transform 0.2s';
+        el.style.transition = 'none';
         el.style.transform = `translate(${String(dx)}px, ${String(dy)}px)`;
         requestAnimationFrame(() => {
+          el.style.transition = 'transform 0.2s';
           el.style.transform = '';
         });
         setTimeout(() => {
