@@ -16,16 +16,18 @@ interface UseInventoryDisplayProps {
   ) => void;
   readonly onDropItem: (itemName: string) => void;
   readonly onArchiveToggle: (itemName: string) => void;
+  readonly onStashToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
 }
 
-export type FilterMode = 'all' | 'knowledge' | 'archived';
+export type FilterMode = 'all' | 'knowledge' | 'archived' | 'stashed';
 export const useInventoryDisplay = ({
   items,
   onItemInteract,
   onDropItem,
   onArchiveToggle,
+  onStashToggle,
   onReadPage,
   onWriteJournal,
 }: UseInventoryDisplayProps) => {
@@ -35,6 +37,7 @@ export const useInventoryDisplay = ({
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [archivingItemNames, setArchivingItemNames] = useState<Set<string>>(new Set());
+  const [stashingItemNames, setStashingItemNames] = useState<Set<string>>(new Set());
 
   const handleSortByName = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setSortOrder(prev => (prev === 'name' ? 'default' : 'name'));
@@ -58,6 +61,11 @@ export const useInventoryDisplay = ({
 
   const handleFilterArchived = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setFilterMode(prev => (prev === 'archived' ? 'all' : 'archived'));
+    event.currentTarget.blur();
+  }, []);
+
+  const handleFilterStashed = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setFilterMode(prev => (prev === 'stashed' ? 'all' : 'stashed'));
     event.currentTarget.blur();
   }, []);
 
@@ -121,6 +129,48 @@ export const useInventoryDisplay = ({
       }
     },
     [filterMode, items, onArchiveToggle],
+  );
+
+  const handleStashToggleInternal = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const name = event.currentTarget.dataset.itemName;
+      if (name) {
+        const item = items.find(i => i.name === name);
+        onStashToggle(name);
+        if (item?.stashed) {
+          if (filterMode === 'stashed') {
+            setStashingItemNames(current => new Set(current).add(name));
+            setTimeout(() => {
+              setStashingItemNames(current => {
+                const updated = new Set(current);
+                updated.delete(name);
+                return updated;
+              });
+            }, 1000);
+          } else {
+            setNewlyAddedItemNames(current => new Set(current).add(name));
+            setTimeout(() => {
+              setNewlyAddedItemNames(current => {
+                const updated = new Set(current);
+                updated.delete(name);
+                return updated;
+              });
+            }, 1500);
+          }
+        } else {
+          setStashingItemNames(current => new Set(current).add(name));
+          setTimeout(() => {
+            setStashingItemNames(current => {
+              const updated = new Set(current);
+              updated.delete(name);
+              return updated;
+            });
+          }, 1000);
+        }
+        event.currentTarget.blur();
+      }
+    },
+    [filterMode, items, onStashToggle],
   );
 
   const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -239,9 +289,15 @@ export const useInventoryDisplay = ({
   const displayedItems = useMemo(() => {
     const itemsToDisplay = items.filter(item => {
       if (archivingItemNames.has(item.name)) return true;
+      if (stashingItemNames.has(item.name)) return true;
       if (filterMode === 'archived') return item.archived && item.type === 'knowledge';
+      const isWritten = ['page', 'book', 'journal'].includes(item.type);
+      if (filterMode === 'stashed') return item.stashed && isWritten;
       if (filterMode === 'knowledge') return item.type === 'knowledge' && !item.archived;
-      return !(item.archived && item.type === 'knowledge');
+      const isArchivedKnowledge = item.archived && item.type === 'knowledge';
+      const isStashedWritten = item.stashed && isWritten;
+      const shouldHide = isArchivedKnowledge ? true : isStashedWritten;
+      return !shouldHide;
     });
 
     const sortedItems = [...itemsToDisplay];
@@ -260,7 +316,7 @@ export const useInventoryDisplay = ({
       sortedItems.reverse();
     }
     return sortedItems;
-  }, [items, sortOrder, filterMode, archivingItemNames]);
+  }, [items, sortOrder, filterMode, archivingItemNames, stashingItemNames]);
 
   const getApplicableKnownUses = useCallback((item: Item): Array<KnownUse> => {
     if (!item.knownUses) return [];
@@ -288,6 +344,7 @@ export const useInventoryDisplay = ({
     displayedItems,
     newlyAddedItemNames,
     archivingItemNames,
+    stashingItemNames,
     confirmingDiscardItemName,
     sortOrder,
     filterMode,
@@ -296,6 +353,7 @@ export const useInventoryDisplay = ({
     handleFilterAll,
     handleFilterKnowledge,
     handleFilterArchived,
+    handleFilterStashed,
     handleStartConfirmDiscard,
     handleConfirmDrop,
     handleCancelDiscard,
@@ -304,6 +362,7 @@ export const useInventoryDisplay = ({
     handleGenericUse,
     handleVehicleToggle,
     handleArchiveToggleInternal,
+    handleStashToggleInternal,
     handleRead,
     handleWrite,
     getApplicableKnownUses,

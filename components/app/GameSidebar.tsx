@@ -23,6 +23,7 @@ interface GameSidebarProps {
   readonly objectiveAnimationType: 'success' | 'neutral' | null;
   readonly onDropItem: (itemName: string) => void;
   readonly onArchiveToggle: (itemName: string) => void;
+  readonly onStashToggle: (itemName: string) => void;
   readonly onItemInteract: (
     item: Item,
     interactionType: 'generic' | 'specific' | 'inspect',
@@ -48,6 +49,7 @@ function GameSidebar({
   objectiveAnimationType,
   onDropItem,
   onArchiveToggle,
+  onStashToggle,
   onItemInteract,
   onReadPage,
   onWriteJournal,
@@ -121,6 +123,7 @@ function GameSidebar({
         disabled={disabled}
         items={inventory}
         onArchiveToggle={onArchiveToggle}
+        onStashToggle={onStashToggle}
         onDropItem={onDropItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}

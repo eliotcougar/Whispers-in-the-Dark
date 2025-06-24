@@ -68,6 +68,7 @@ export const COMMON_TAGS = [
   'water-damaged',
   'recovered',
   'archived',
+  'stashed',
 ] as const;
 
 export const TEXT_STYLE_TAGS = [

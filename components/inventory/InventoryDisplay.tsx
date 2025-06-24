@@ -19,17 +19,19 @@ interface InventoryDisplayProps {
   ) => void;
   readonly onDropItem: (itemName: string) => void;
   readonly onArchiveToggle: (itemName: string) => void;
+  readonly onStashToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
   readonly currentTurn: number;
   readonly disabled: boolean;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, onStashToggle, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemNames,
     archivingItemNames,
+    stashingItemNames,
     confirmingDiscardItemName,
     sortOrder,
     handleSortByName,
@@ -38,6 +40,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
     handleFilterAll,
     handleFilterKnowledge,
     handleFilterArchived,
+    handleFilterStashed,
     handleStartConfirmDiscard,
     handleConfirmDrop,
     handleCancelDiscard,
@@ -46,6 +49,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
     handleGenericUse,
     handleVehicleToggle,
     handleArchiveToggleInternal,
+    handleStashToggleInternal,
     handleRead,
     handleWrite,
     getApplicableKnownUses,
@@ -54,6 +58,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
     onItemInteract,
     onDropItem,
     onArchiveToggle,
+    onStashToggle,
     onReadPage,
     onWriteJournal,
   });
@@ -131,6 +136,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
         filterMode={filterMode}
         onFilterAll={handleFilterAll}
         onFilterArchived={handleFilterArchived}
+        onFilterStashed={handleFilterStashed}
         onFilterKnowledge={handleFilterKnowledge}
       />
 
@@ -144,6 +150,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
             const applicableUses = getApplicableKnownUses(item);
             const isNew = newlyAddedItemNames.has(item.name);
             const isArchiving = archivingItemNames.has(item.name);
+            const isStashing = stashingItemNames.has(item.name);
             const isConfirmingDiscard = confirmingDiscardItemName === item.name;
             return (
               <InventoryItem
@@ -151,11 +158,13 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
                 currentTurn={currentTurn}
                 disabled={disabled}
                 isArchiving={isArchiving}
+                isStashing={isStashing}
                 isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 item={item}
                 key={item.name}
                 onArchiveToggle={handleArchiveToggleInternal}
+                onStashToggle={handleStashToggleInternal}
                 onCancelDiscard={handleCancelDiscard}
                 onConfirmDrop={handleConfirmDrop}
                 onGenericUse={handleGenericUse}

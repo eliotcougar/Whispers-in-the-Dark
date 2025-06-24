@@ -198,6 +198,23 @@ export const useInventoryActions = ({
     [getCurrentGameState, commitGameState, isLoading],
   );
 
+  const handleStashToggle = useCallback(
+    (name: string) => {
+      const currentFullState = getCurrentGameState();
+      if (isLoading || currentFullState.dialogueState) return;
+
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item =>
+        item.name === name && item.holderId === PLAYER_HOLDER_ID
+          ? { ...item, stashed: !item.stashed }
+          : item,
+      );
+      draftState.lastTurnChanges = currentFullState.lastTurnChanges;
+      commitGameState(draftState);
+    },
+    [getCurrentGameState, commitGameState, isLoading],
+  );
+
   const recordInspect = useCallback(
     (id: string): FullGameState => {
       const currentFullState = getStateRef.current();
@@ -213,7 +230,7 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
-  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag, recordInspect, handleArchiveToggle };
+  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag, recordInspect, handleArchiveToggle, handleStashToggle };
 };
 
 export type InventoryActions = ReturnType<typeof useInventoryActions>;

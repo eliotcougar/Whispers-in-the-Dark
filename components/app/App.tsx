@@ -693,6 +693,7 @@ function App() {
                 mainQuest={mainQuest}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
+                onStashToggle={gameLogic.handleStashToggle}
                 onArchiveToggle={gameLogic.handleArchiveToggle}
                 onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}

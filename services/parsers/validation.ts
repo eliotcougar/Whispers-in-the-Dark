@@ -116,6 +116,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     console.warn("isValidItem: 'archived' is present but invalid.", item);
     return false;
   }
+  if (obj.stashed !== undefined && typeof obj.stashed !== 'boolean') {
+    console.warn("isValidItem: 'stashed' is present but invalid.", item);
+    return false;
+  }
   if (obj.tags !== undefined) {
     if (!Array.isArray(obj.tags) || !obj.tags.every(t => typeof t === 'string')) {
       console.warn("isValidItem: 'tags' is present but invalid.", item);

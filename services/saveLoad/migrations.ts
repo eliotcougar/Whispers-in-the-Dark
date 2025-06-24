@@ -107,6 +107,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
       ...item,
       tags: item.tags ?? [],
       archived: item.archived ?? false,
+      stashed: item.stashed ?? false,
       holderId: item.holderId || PLAYER_HOLDER_ID,
     })),
       allCharacters: gameState.allCharacters.map(c => ({

@@ -8,9 +8,10 @@ interface InventoryFilterControlsProps {
   readonly onFilterAll: (e: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onFilterKnowledge: (e: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onFilterArchived: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onFilterStashed: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-function InventoryFilterControls({ filterMode, disabled, onFilterAll, onFilterKnowledge, onFilterArchived }: InventoryFilterControlsProps) {
+function InventoryFilterControls({ filterMode, disabled, onFilterAll, onFilterKnowledge, onFilterArchived, onFilterStashed }: InventoryFilterControlsProps) {
   return (
     <div className="mb-4 flex flex-wrap gap-2">
       <Button
@@ -42,6 +43,17 @@ function InventoryFilterControls({ filterMode, disabled, onFilterAll, onFilterKn
         onClick={onFilterArchived}
         preset={filterMode === 'archived' ? 'sky' : 'slate'}
         pressed={filterMode === 'archived'}
+        size="sm"
+        variant="toggle"
+      />
+
+      <Button
+        ariaLabel="Show Stashed"
+        disabled={disabled}
+        label="Stashed"
+        onClick={onFilterStashed}
+        preset={filterMode === 'stashed' ? 'sky' : 'slate'}
+        pressed={filterMode === 'stashed'}
         size="sm"
         variant="toggle"
       />
