@@ -72,6 +72,11 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
   useLayoutEffect(() => {
     const newRects = new Map<string, DOMRect>();
     itemElementMap.current.forEach((el, name) => {
+      if (!el.isConnected) {
+        itemElementMap.current.delete(name);
+        prevRectsRef.current.delete(name);
+        return;
+      }
       newRects.set(name, el.getBoundingClientRect());
     });
 
