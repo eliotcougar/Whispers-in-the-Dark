@@ -28,6 +28,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
   const {
     displayedItems,
     newlyAddedItemNames,
+    archivingItemNames,
     confirmingDiscardItemName,
     sortOrder,
     handleSortByName,
@@ -95,12 +96,14 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
           {displayedItems.map(item => {
             const applicableUses = getApplicableKnownUses(item);
             const isNew = newlyAddedItemNames.has(item.name);
+            const isArchiving = archivingItemNames.has(item.name);
             const isConfirmingDiscard = confirmingDiscardItemName === item.name;
             return (
               <InventoryItem
                 applicableUses={applicableUses}
                 currentTurn={currentTurn}
                 disabled={disabled}
+                isArchiving={isArchiving}
                 isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 item={item}

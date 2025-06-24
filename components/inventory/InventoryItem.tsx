@@ -7,6 +7,7 @@ import { JOURNAL_WRITE_COOLDOWN, INSPECT_COOLDOWN } from '../../constants';
 interface InventoryItemProps {
   readonly item: Item;
   readonly isNew: boolean;
+  readonly isArchiving: boolean;
   readonly isConfirmingDiscard: boolean;
   readonly applicableUses: Array<KnownUse>;
   readonly disabled: boolean;
@@ -26,6 +27,7 @@ interface InventoryItemProps {
 function InventoryItem({
   item,
   isNew,
+  isArchiving,
   isConfirmingDiscard,
   applicableUses,
   disabled,
@@ -45,7 +47,7 @@ function InventoryItem({
   const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
   return (
     <li
-      className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} flex flex-col`}
+      className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isArchiving ? 'animate-archive-fade-out' : ''} flex flex-col`}
       key={item.name}
     >
       <div className="flex justify-between items-center mb-1 text-xs">

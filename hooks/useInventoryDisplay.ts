@@ -34,6 +34,7 @@ export const useInventoryDisplay = ({
   const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [archivingItemNames, setArchivingItemNames] = useState<Set<string>>(new Set());
 
   const handleSortByName = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setSortOrder(prev => (prev === 'name' ? 'default' : 'name'));
@@ -84,11 +85,31 @@ export const useInventoryDisplay = ({
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const name = event.currentTarget.dataset.itemName;
       if (name) {
+        const item = items.find(i => i.name === name);
         onArchiveToggle(name);
+        if (item?.archived) {
+          setNewlyAddedItemNames(current => new Set(current).add(name));
+          setTimeout(() => {
+            setNewlyAddedItemNames(current => {
+              const updated = new Set(current);
+              updated.delete(name);
+              return updated;
+            });
+          }, 1500);
+        } else {
+          setArchivingItemNames(current => new Set(current).add(name));
+          setTimeout(() => {
+            setArchivingItemNames(current => {
+              const updated = new Set(current);
+              updated.delete(name);
+              return updated;
+            });
+          }, 1000);
+        }
         event.currentTarget.blur();
       }
     },
-    [onArchiveToggle],
+    [items, onArchiveToggle],
   );
 
   const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -206,6 +227,7 @@ export const useInventoryDisplay = ({
 
   const displayedItems = useMemo(() => {
     const itemsToDisplay = items.filter(item => {
+      if (archivingItemNames.has(item.name)) return true;
       if (filterMode === 'archived') return item.archived && item.type === 'knowledge';
       if (filterMode === 'knowledge') return item.type === 'knowledge' && !item.archived;
       return !(item.archived && item.type === 'knowledge');
@@ -227,7 +249,7 @@ export const useInventoryDisplay = ({
       sortedItems.reverse();
     }
     return sortedItems;
-  }, [items, sortOrder, filterMode]);
+  }, [items, sortOrder, filterMode, archivingItemNames]);
 
   const getApplicableKnownUses = useCallback((item: Item): Array<KnownUse> => {
     if (!item.knownUses) return [];
@@ -254,6 +276,7 @@ export const useInventoryDisplay = ({
   return {
     displayedItems,
     newlyAddedItemNames,
+    archivingItemNames,
     confirmingDiscardItemName,
     sortOrder,
     filterMode,
