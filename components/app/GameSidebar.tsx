@@ -22,6 +22,7 @@ interface GameSidebarProps {
   readonly mapNodes: Array<MapNode>;
   readonly objectiveAnimationType: 'success' | 'neutral' | null;
   readonly onDropItem: (itemName: string) => void;
+  readonly onForgetItem: (itemName: string) => void;
   readonly onArchiveToggle: (itemName: string) => void;
   readonly onStashToggle: (itemName: string) => void;
   readonly onItemInteract: (
@@ -48,6 +49,7 @@ function GameSidebar({
   mapNodes,
   objectiveAnimationType,
   onDropItem,
+  onForgetItem,
   onArchiveToggle,
   onStashToggle,
   onItemInteract,
@@ -125,6 +127,7 @@ function GameSidebar({
         onArchiveToggle={onArchiveToggle}
         onStashToggle={onStashToggle}
         onDropItem={onDropItem}
+        onForgetItem={onForgetItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}
         onWriteJournal={onWriteJournal}

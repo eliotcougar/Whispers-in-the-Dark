@@ -51,6 +51,13 @@ function InventoryItem({
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
+  const canShowDrop =
+    !item.tags?.includes('junk') &&
+    !isConfirmingDiscard &&
+    item.type !== 'vehicle' &&
+    item.type !== 'status effect' &&
+    item.type !== 'knowledge' &&
+    (!isWrittenItem || item.stashed === true);
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isArchiving || isStashing ? 'animate-archive-fade-out' : ''} flex flex-col`}
@@ -234,6 +241,15 @@ function InventoryItem({
             ariaLabel={`Forget ${item.name}`}
             data-item-name={item.name}
             disabled={disabled}
+            icon={
+              <Icon
+                color="white"
+                inline
+                marginRight={4}
+                name="trash"
+                size={16}
+              />
+            }
             key={`${item.name}-forget`}
             label="Forget"
             onClick={onStartConfirmDiscard}
@@ -242,7 +258,7 @@ function InventoryItem({
           />
         ) : null}
 
-        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && item.type !== 'knowledge' && (
+        {canShowDrop && (
           <Button
             ariaLabel={`Drop ${item.name}`}
             data-item-name={item.name}

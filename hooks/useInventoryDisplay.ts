@@ -15,6 +15,7 @@ interface UseInventoryDisplayProps {
     knownUse?: KnownUse
   ) => void;
   readonly onDropItem: (itemName: string) => void;
+  readonly onForgetItem: (itemName: string) => void;
   readonly onArchiveToggle: (itemName: string) => void;
   readonly onStashToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
@@ -26,6 +27,7 @@ export const useInventoryDisplay = ({
   items,
   onItemInteract,
   onDropItem,
+  onForgetItem,
   onArchiveToggle,
   onStashToggle,
   onReadPage,
@@ -80,13 +82,20 @@ export const useInventoryDisplay = ({
   const handleConfirmDrop = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const name = event.currentTarget.dataset.itemName;
-      if (name) {
+      if (!name) return;
+      const item = items.find(i => i.name === name);
+      if (!item) return;
+
+      if (item.type === 'knowledge' && item.archived) {
+        onForgetItem(name);
+      } else {
         onDropItem(name);
-        setConfirmingDiscardItemName(null);
-        event.currentTarget.blur();
       }
+
+      setConfirmingDiscardItemName(null);
+      event.currentTarget.blur();
     },
-    [onDropItem]
+    [items, onDropItem, onForgetItem]
   );
 
   const handleArchiveToggleInternal = useCallback(

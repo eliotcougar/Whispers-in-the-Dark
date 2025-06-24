@@ -696,6 +696,7 @@ function App() {
                 onStashToggle={gameLogic.handleStashToggle}
                 onArchiveToggle={gameLogic.handleArchiveToggle}
                 onDropItem={gameLogic.handleDropItem}
+                onForgetItem={gameLogic.handleForgetItem}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
                 onTakeItem={handleTakeLocationItem}

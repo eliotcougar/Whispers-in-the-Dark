@@ -18,6 +18,7 @@ interface InventoryDisplayProps {
     knownUse?: KnownUse
   ) => void;
   readonly onDropItem: (itemName: string) => void;
+  readonly onForgetItem: (itemName: string) => void;
   readonly onArchiveToggle: (itemName: string) => void;
   readonly onStashToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
@@ -26,7 +27,7 @@ interface InventoryDisplayProps {
   readonly disabled: boolean;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, onStashToggle, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onDropItem, onForgetItem, onArchiveToggle, onStashToggle, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemNames,
@@ -57,6 +58,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
     items,
     onItemInteract,
     onDropItem,
+    onForgetItem,
     onArchiveToggle,
     onStashToggle,
     onReadPage,

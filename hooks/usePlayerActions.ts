@@ -88,6 +88,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     recordInspect,
     handleArchiveToggle,
     handleStashToggle,
+    handleForgetItem,
   } = useInventoryActions({
     getCurrentGameState,
     commitGameState,
@@ -402,6 +403,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     addJournalEntry,
     handleArchiveToggle,
     handleStashToggle,
+    handleForgetItem,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   };
