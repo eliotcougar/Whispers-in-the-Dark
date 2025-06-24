@@ -625,27 +625,31 @@ function App() {
               
             <ModelUsageIndicators />
 
-            {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized ? <div className="my-4 flex justify-center">
-              <LoadingSpinner loadingReason={loadingReason} />
-            </div> : null}
-
             {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
 
             {!hasGameBeenInitialized ? (
               <div className="bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
-            ) : (
-              <>
-                <SceneDisplay
-                  allCharacters={allCharacters}
-                  currentThemeName={currentTheme ? currentTheme.name : null}
-                  description={currentScene}
-                  inventory={inventory}
-                  lastActionLog={lastActionLog}
-                  localEnvironment={localEnvironment}
-                  localPlace={localPlace}
-                  localTime={localTime}
-                  mapData={mapData.nodes}
-                />
+              ) : (
+                <>
+                  <div className="relative">
+                    <SceneDisplay
+                      allCharacters={allCharacters}
+                      currentThemeName={currentTheme ? currentTheme.name : null}
+                      description={currentScene}
+                      inventory={inventory}
+                      lastActionLog={lastActionLog}
+                      localEnvironment={localEnvironment}
+                      localPlace={localPlace}
+                      localTime={localTime}
+                      mapData={mapData.nodes}
+                    />
+
+                    {isLoading && !dialogueState && !isDialogueExiting && Boolean(hasGameBeenInitialized) ? (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-900/75 rounded-lg">
+                        <LoadingSpinner loadingReason={loadingReason} />
+                      </div>
+                    ) : null}
+                  </div>
 
                 <ActionOptions
                   allCharacters={allCharacters}
@@ -689,7 +693,10 @@ function App() {
                 mainQuest={mainQuest}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
+                onStashToggle={gameLogic.handleStashToggle}
+                onArchiveToggle={gameLogic.handleArchiveToggle}
                 onDropItem={gameLogic.handleDropItem}
+                onForgetItem={gameLogic.handleForgetItem}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
                 onTakeItem={handleTakeLocationItem}

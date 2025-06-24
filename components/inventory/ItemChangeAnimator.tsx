@@ -61,7 +61,7 @@ function ItemChangeAnimator({ lastTurnChanges, isGameBusy }: ItemChangeAnimatorP
             onClick={noop}
             preset="slate"
             size="sm"
-            title={ku.description ?? ku.actionName}
+            title={ku.description}
           />
         ))}
 

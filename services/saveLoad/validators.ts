@@ -55,6 +55,8 @@ export function isValidItemForSave(item: unknown): item is Item {
     typeof maybe.holderId === 'string' &&
     (maybe.activeDescription === undefined || typeof maybe.activeDescription === 'string') &&
     (maybe.isActive === undefined || typeof maybe.isActive === 'boolean') &&
+    (maybe.archived === undefined || typeof maybe.archived === 'boolean') &&
+    (maybe.stashed === undefined || typeof maybe.stashed === 'boolean') &&
     (maybe.tags === undefined || (Array.isArray(maybe.tags) && maybe.tags.every(t => typeof t === 'string'))) &&
     (maybe.lastWriteTurn === undefined || typeof maybe.lastWriteTurn === 'number') &&
     (maybe.lastInspectTurn === undefined || typeof maybe.lastInspectTurn === 'number') &&
@@ -69,7 +71,8 @@ export function isValidItemForSave(item: unknown): item is Item {
         maybe.knownUses.every((ku: KnownUse) =>
           typeof ku.actionName === 'string' &&
           typeof ku.promptEffect === 'string' &&
-          (ku.description === undefined || typeof ku.description === 'string') &&
+          ((ku as { description?: unknown }).description === undefined ||
+            typeof (ku as { description?: unknown }).description === 'string') &&
           (ku.appliesWhenActive === undefined || typeof ku.appliesWhenActive === 'boolean') &&
           (ku.appliesWhenInactive === undefined || typeof ku.appliesWhenInactive === 'boolean')
         )))
@@ -376,6 +379,8 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     ...item,
     id: item.id || buildItemId(item.name),
     tags: item.tags ?? [],
+    archived: item.archived ?? false,
+    stashed: item.stashed ?? false,
     holderId: item.holderId || PLAYER_HOLDER_ID,
   }));
   // Numeric fields and nullable strings are guaranteed by validation

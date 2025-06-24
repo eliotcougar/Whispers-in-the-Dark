@@ -7,6 +7,8 @@ import { JOURNAL_WRITE_COOLDOWN, INSPECT_COOLDOWN } from '../../constants';
 interface InventoryItemProps {
   readonly item: Item;
   readonly isNew: boolean;
+  readonly isArchiving: boolean;
+  readonly isStashing: boolean;
   readonly isConfirmingDiscard: boolean;
   readonly applicableUses: Array<KnownUse>;
   readonly disabled: boolean;
@@ -20,11 +22,16 @@ interface InventoryItemProps {
   readonly onCancelDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onWrite: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onArchiveToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onStashToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly registerRef?: (el: HTMLLIElement | null) => void;
 }
 
 function InventoryItem({
   item,
   isNew,
+  isArchiving,
+  isStashing,
   isConfirmingDiscard,
   applicableUses,
   disabled,
@@ -38,13 +45,27 @@ function InventoryItem({
   onCancelDiscard,
   onRead,
   onWrite,
+  onArchiveToggle,
+  onStashToggle,
+  registerRef,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
+  const canShowGenericUse =
+    item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle';
+  const canShowDrop =
+    !item.tags?.includes('junk') &&
+    !isConfirmingDiscard &&
+    item.type !== 'vehicle' &&
+    item.type !== 'status effect' &&
+    item.type !== 'knowledge' &&
+    (!isWrittenItem || item.stashed === true);
   return (
     <li
-      className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} flex flex-col`}
+      className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isArchiving || isStashing ? 'animate-archive-fade-out' : ''} flex flex-col`}
+      data-item-name={item.name}
       key={item.name}
+      ref={registerRef}
     >
       <div className="flex justify-between items-center mb-1 text-xs">
         <ItemTypeDisplay type={item.type} />
@@ -143,7 +164,7 @@ function InventoryItem({
           />
         ) : null}
 
-        {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
+        {canShowGenericUse ? (
           <Button
             ariaLabel={`Attempt to use ${item.name} (generic action)`}
             data-item-name={item.name}
@@ -154,9 +175,9 @@ function InventoryItem({
             preset="sky"
             size="sm"
           />
-        )}
+        ) : null}
 
-        {item.type === 'vehicle' && (
+        {item.type === 'vehicle' ? (
           <Button
             ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
             data-item-name={item.name}
@@ -167,7 +188,7 @@ function InventoryItem({
             preset="sky"
             size="sm"
           />
-        )}
+        ) : null}
 
         {item.tags?.includes('junk') && !isConfirmingDiscard ? (
           <Button
@@ -191,7 +212,55 @@ function InventoryItem({
           />
         ) : null}
 
-        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
+        {item.type === 'knowledge' && !isConfirmingDiscard ? (
+          <Button
+            ariaLabel={item.archived ? `Restore ${item.name}` : `Archive ${item.name}`}
+            data-item-name={item.name}
+            disabled={disabled}
+            key={`${item.name}-archive`}
+            label={item.archived ? 'Restore' : 'Archive'}
+            onClick={onArchiveToggle}
+            preset="sky"
+            size="sm"
+          />
+        ) : null}
+
+        {(item.type === 'page' || item.type === 'book' || item.type === 'journal') && !isConfirmingDiscard ? (
+          <Button
+            ariaLabel={item.stashed ? `Retrieve ${item.name}` : `Stash ${item.name}`}
+            data-item-name={item.name}
+            disabled={disabled}
+            key={`${item.name}-stash`}
+            label={item.stashed ? 'Retrieve' : 'Stash'}
+            onClick={onStashToggle}
+            preset="sky"
+            size="sm"
+          />
+        ) : null}
+
+        {item.type === 'knowledge' && item.archived && !isConfirmingDiscard ? (
+          <Button
+            ariaLabel={`Forget ${item.name}`}
+            data-item-name={item.name}
+            disabled={disabled}
+            icon={
+              <Icon
+                color="white"
+                inline
+                marginRight={4}
+                name="trash"
+                size={16}
+              />
+            }
+            key={`${item.name}-forget`}
+            label="Forget"
+            onClick={onStartConfirmDiscard}
+            preset="red"
+            size="sm"
+          />
+        ) : null}
+
+        {canShowDrop ? (
           <Button
             ariaLabel={`Drop ${item.name}`}
             data-item-name={item.name}
@@ -202,9 +271,9 @@ function InventoryItem({
             preset="sky"
             size="sm"
           />
-        )}
+        ) : null}
 
-        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
+        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive ? (
           <Button
             ariaLabel={`Park ${item.name} here`}
             data-item-name={item.name}
@@ -215,7 +284,7 @@ function InventoryItem({
             preset="sky"
             size="sm"
           />
-        )}
+        ) : null}
 
         {isConfirmingDiscard ? (
           <div className="grid grid-cols-2 gap-2 mt-2">
@@ -224,7 +293,15 @@ function InventoryItem({
               data-item-name={item.name}
               disabled={disabled}
               key={`${item.name}-confirm-drop`}
-              label={item.type === 'vehicle' && !item.isActive ? 'Confirm Park' : item.tags?.includes('junk') ? 'Confirm Discard' : 'Confirm Drop'}
+              label={
+                item.type === 'vehicle' && !item.isActive
+                  ? 'Confirm Park'
+                  : item.tags?.includes('junk')
+                    ? 'Confirm Discard'
+                    : item.type === 'knowledge'
+                      ? 'Confirm Forget'
+                      : 'Confirm Drop'
+              }
               onClick={onConfirmDrop}
               preset="red"
               size="sm"
@@ -245,5 +322,9 @@ function InventoryItem({
     </li>
   );
 }
+
+InventoryItem.defaultProps = {
+  registerRef: undefined,
+};
 
 export default InventoryItem;
