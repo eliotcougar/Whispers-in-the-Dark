@@ -50,7 +50,6 @@ For "knownUses" (array of objects) or "addKnownUse" (single object): Each "Known
 - "description": string
 - "appliesWhenActive?": boolean
 - "appliesWhenInactive?": boolean
-If neither appliesWhen... field is given, use always shown. If both, applies if (isActive AND appliesWhenActive) OR (!isActive AND appliesWhenInactive).
 `;
 
   const baseItemStructureForPrompt = `
@@ -59,6 +58,7 @@ If neither appliesWhen... field is given, use always shown. If both, applies if 
   "type": "(${VALID_ITEM_TYPES_STRING})",
   "description": "string",
   "activeDescription?": "string",
+  "holderId?": "string",
   "isActive?": boolean,
   "tags?": ["junk"],
   "chapters"?: [
@@ -120,7 +120,7 @@ ${malformedPayloadString}
 Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
- - Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Required JSON Structure for the corrected 'item' field:
 ${baseItemStructureForPrompt}
@@ -199,7 +199,7 @@ ${malformedItemChangeString}
 Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
- - Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "destroy", "update", "put", "give", or "take") that was intended.
 - "gain": Player acquired a new item.

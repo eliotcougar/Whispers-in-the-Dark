@@ -50,8 +50,8 @@ Task: Determine the most logical "localPlace" based on the provided context. Thi
 Context for Inference:
 - Current Scene Description (primary source for inference): "${currentSceneDescription}"
 - Current Theme: "${currentTheme.name}" (Theme Guidance: ${currentTheme.systemInstructionModifier})
- - Current Local Time: "${localTime ?? 'Unknown'}"
- - Current Local Environment: "${localEnvironment ?? 'Undetermined'}"
+- Current Local Time: "${localTime ?? 'Unknown'}"
+- Current Local Environment: "${localEnvironment ?? 'Undetermined'}"
 - ${knownPlacesContextForPrompt}
 
 Guidance for "localPlace":
@@ -137,7 +137,7 @@ ${malformedMapNodePayloadString}
 Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
- - Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Required JSON Structure for corrected map location details:
 {
@@ -214,7 +214,7 @@ Map Location Name to Detail: "${mapNodePlaceName}"
 Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
- - Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
 Required JSON Structure:
 {
