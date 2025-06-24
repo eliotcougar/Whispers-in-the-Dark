@@ -55,7 +55,7 @@ const mapData: MapData = {
 };
 
 const baseState: FullGameState = {
-  saveGameVersion: '1',
+  saveGameVersion: '6',
   currentThemeName: theme.name,
   currentThemeObject: theme,
   currentScene: '',
@@ -66,6 +66,7 @@ const baseState: FullGameState = {
   gameLog: [],
   lastActionLog: null,
   themeHistory: {} as ThemeHistoryState,
+  themeFacts: [],
   pendingNewThemeNameAfterShift: null,
   allCharacters: [],
   mapData: structuredCloneGameState(mapData),

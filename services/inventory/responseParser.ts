@@ -6,6 +6,7 @@
 import { ItemChange, GiveItemPayload, ItemReference } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isValidItem, isValidItemReference } from '../parsers/validation';
+import { PLAYER_HOLDER_ID } from '../../constants';
 import { normalizeItemType, DESTROY_SYNONYMS } from '../../utils/itemSynonyms';
 
 export interface InventoryAIPayload {
@@ -22,8 +23,15 @@ const parseItemChange = (raw: Record<string, unknown>): ItemChange | null => {
   if (!action) return null;
   switch (action) {
     case 'gain':
-    case 'put':
+    case 'put': {
+      if (raw.item && typeof raw.item === 'object') {
+        const item = raw.item as Record<string, unknown>;
+        if (typeof item.holderId !== 'string' || item.holderId.trim() === '') {
+          item.holderId = PLAYER_HOLDER_ID;
+        }
+      }
       return isValidItem(raw.item, 'gain') ? { action, item: raw.item } : null;
+    }
     case 'update': {
       if (raw.item && typeof raw.item === 'object') {
         const rawItem = raw.item as Record<string, unknown>;

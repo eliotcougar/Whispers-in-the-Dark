@@ -22,9 +22,14 @@ export const parseCartographerResponse = (
 /**
  * Parses the AI's map update response into an AIMapUpdatePayload structure.
  */
+export interface ParsedMapUpdateResult {
+  payload: AIMapUpdatePayload | null;
+  validationError?: string;
+}
+
 export const parseAIMapUpdateResponse = (
   responseText: string,
-): AIMapUpdatePayload | null => {
+): ParsedMapUpdateResult => {
   const jsonStr = extractJsonFromFence(responseText);
   const parsed: unknown = safeParseJson(jsonStr);
   try {
@@ -123,14 +128,26 @@ export const parseAIMapUpdateResponse = (
       // Normalize any synonym values before validation so parsing succeeds
       normalizeStatusAndTypeSynonyms(payload);
     }
-    if (isValidAIMapUpdatePayload(payload)) {
-      return payload;
+    let validationError: string | undefined;
+    if (payload) {
+      const warnings: Array<string> = [];
+      const originalWarn = console.warn;
+      console.warn = (...args: Array<unknown>) => {
+        warnings.push(args.map(a => String(a)).join(' '));
+        originalWarn(...args);
+      };
+      const valid = isValidAIMapUpdatePayload(payload);
+      console.warn = originalWarn;
+      if (valid) {
+        return { payload };
+      }
+      validationError = warnings.length > 0 ? warnings.join('; ') : undefined;
     }
     console.warn('Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:', parsed);
-    return null;
+    return { payload: null, validationError };
   } catch (e: unknown) {
     console.error('Failed to parse map update JSON response from AI:', e);
     console.debug('Original map update response text:', responseText);
-    return null;
+    return { payload: null, validationError: e instanceof Error ? e.message : String(e) };
   }
 };

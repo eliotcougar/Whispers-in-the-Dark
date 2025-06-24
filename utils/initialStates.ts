@@ -57,6 +57,7 @@ export const getInitialGameStates = (): FullGameState => {
     gameLog: ["Welcome to Whispers in the Dark!"],
     lastActionLog: null,
     themeHistory: {},
+    themeFacts: [],
     pendingNewThemeNameAfterShift: null,
     allCharacters: [],
     mapData: { nodes: [], edges: [] },

@@ -84,34 +84,34 @@ export const fetchMapUpdatePayload = async (
     try {
       console.log(`Map Update Service: Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}`);
       if (attempt > 0 && debugInfo.validationError) {
-        prompt = `${basePrompt}\nCRITICALLY IMPORTANT: ${debugInfo.validationError}`;
+        prompt = `${basePrompt}\nCRITICALLY IMPORTANT: Your previous attempt has triggered an error: ${debugInfo.validationError}`;
       } else {
         prompt = basePrompt;
       }
       debugInfo.prompt = prompt;
       const response = await executeMapUpdateRequest(prompt, systemInstruction);
       debugInfo.rawResponse = response.text ?? '';
-      const parsedAttempt = parseAIMapUpdateResponse(response.text ?? '');
-      if (parsedAttempt) {
-        debugInfo.observations = parsedAttempt.observations ?? debugInfo.observations;
-        debugInfo.rationale = parsedAttempt.rationale ?? debugInfo.rationale;
-        normalizeRemovalUpdates(parsedAttempt);
-        fixDeleteIdMixups(parsedAttempt);
-        const synonymErrors = normalizeStatusAndTypeSynonyms(parsedAttempt);
-        dedupeEdgeOps(parsedAttempt);
+      const { payload: parsedPayload, validationError: parseError } = parseAIMapUpdateResponse(response.text ?? '');
+      if (parsedPayload) {
+        debugInfo.observations = parsedPayload.observations ?? debugInfo.observations;
+        debugInfo.rationale = parsedPayload.rationale ?? debugInfo.rationale;
+        normalizeRemovalUpdates(parsedPayload);
+        fixDeleteIdMixups(parsedPayload);
+        const synonymErrors = normalizeStatusAndTypeSynonyms(parsedPayload);
+        dedupeEdgeOps(parsedPayload);
         if (!synonymErrors.length) {
-          validParsedPayload = parsedAttempt;
-          debugInfo.parsedPayload = parsedAttempt;
+          validParsedPayload = parsedPayload;
+          debugInfo.parsedPayload = parsedPayload;
           debugInfo.validationError = undefined;
           break;
         }
-        debugInfo.parsedPayload = parsedAttempt;
+        debugInfo.parsedPayload = parsedPayload;
         debugInfo.validationError =
           synonymErrors.length > 0
             ? `Invalid values: ${synonymErrors.join('; ')}`
             : 'Parsed payload failed structural/value validation.';
       } else {
-        debugInfo.validationError = 'Failed to parse AI response into valid JSON map update payload.';
+        debugInfo.validationError = parseError ?? 'Failed to parse AI response into valid JSON map update payload.';
       }
       if (attempt === MAX_RETRIES - 1) {
         console.error('Map Update Service: Failed to get valid map update payload after all retries.');

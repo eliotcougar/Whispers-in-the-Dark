@@ -15,11 +15,13 @@ import {
   addLogMessageToList,
   buildItemChangeRecords,
   applyAllItemChanges,
+  applyThemeFactChanges,
 } from '../utils/gameLogicUtils';
 import { itemsToString } from '../utils/promptFormatters/inventory';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { applyInventoryHints_Service } from '../services/inventory';
+import { refineLore_Service } from '../services/loremaster';
 
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
@@ -249,6 +251,7 @@ export interface ProcessAiResponseOptions {
   isFromDialogueSummary?: boolean;
   scoreChangeFromAction?: number;
   playerActionText?: string;
+  dialogueTranscript?: string;
 }
 
 export type ProcessAiResponseFn = (
@@ -337,6 +340,7 @@ export const useProcessAiResponse = ({
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        loremasterDebugInfo: draftState.lastDebugPacket?.loremasterDebugInfo ?? { collect: null, extract: null, integrate: null, distill: null },
       };
 
       if (aiData.localTime !== undefined) {
@@ -446,6 +450,42 @@ export const useProcessAiResponse = ({
         draftState.lastActionLog = aiData.logMessage;
       } else if (!isFromDialogueSummary) {
         draftState.lastActionLog = 'The Dungeon Master remains silent on the outcome of your last action.';
+      }
+
+      if (themeContextForResponse) {
+        const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
+        const contextParts = isFromDialogueSummary
+          ? [options.dialogueTranscript ?? '', thoughts ? `Thoughts:\n${thoughts}` : '']
+              .filter(Boolean)
+              .join('\n')
+          : [
+              playerActionText ? `Action: ${playerActionText}` : '',
+              aiData.sceneDescription,
+              aiData.logMessage ?? '',
+              thoughts ? `Thoughts:\n${thoughts}` : '',
+            ]
+              .filter(Boolean)
+              .join('\n');
+        const original = loadingReason;
+        setLoadingReason('loremaster');
+        const refineResult = await refineLore_Service({
+          themeName: themeContextForResponse.name,
+          turnContext: contextParts,
+          existingFacts: draftState.themeFacts,
+        });
+        setLoadingReason(original);
+        if (draftState.lastDebugPacket.loremasterDebugInfo) {
+          draftState.lastDebugPacket.loremasterDebugInfo.extract = refineResult?.debugInfo?.extract ?? null;
+          draftState.lastDebugPacket.loremasterDebugInfo.integrate = refineResult?.debugInfo?.integrate ?? null;
+        }
+        if (refineResult?.refinementResult) {
+          applyThemeFactChanges(
+            draftState,
+            refineResult.refinementResult.factsChange,
+            draftState.globalTurnNumber,
+            themeContextForResponse.name,
+          );
+        }
       }
 
       updateDialogueState(draftState, aiData, isFromDialogueSummary);

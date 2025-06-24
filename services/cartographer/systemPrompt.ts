@@ -38,7 +38,7 @@ Any subsection may be omitted or set to null when no updates are needed:
         "aliases": ["string"],   // REQUIRED for ALL nodes. ${ALIAS_INSTRUCTION} (can be empty []). Soft limit of 3-4 aliases.
         "status": "string",      // REQUIRED for ALL nodes. MUST be one of: ${VALID_NODE_STATUSES_FOR_MAP_AI}.
         "nodeType": "string",    // REQUIRED. One of: ${VALID_NODE_TYPES_FOR_MAP_AI}. Indicates hierarchy level.
-        "parentNodeId": string   // REQUIRED. NAME of parent node for hierarchical placement (use "Universe" only for the root node).
+        "parentNodeId": string   // REQUIRED. Parent Node ID, or "Universe" for the top-level node.
       }
     }
   ],
@@ -51,7 +51,7 @@ Any subsection may be omitted or set to null when no updates are needed:
         "aliases"?: ["string"],   // Optional. ${ALIAS_INSTRUCTION}
         "status"?: "string",      // Optional. MUST be one of: ${VALID_NODE_STATUSES_FOR_MAP_AI}
         "nodeType"?: "string",    // Optional. One of: ${VALID_NODE_TYPES_FOR_MAP_AI}
-        "parentNodeId"?: string   // Optional. NAME of parent node for hierarchy. Can be null to clear parent. Parent can be any other node.
+        "parentNodeId"?: string   // Optional. Parent Node ID, or "Universe" for the top-level node. Can not be a 'feature'-type Node.
       }
     }
   ],
@@ -100,11 +100,12 @@ CRITICAL INSTRUCTIONS:
     - "description" must be ${NODE_DESCRIPTION_INSTRUCTION}.
     - "aliases" must be an array of strings (${ALIAS_INSTRUCTION}).
     - You MUST provide "nodeType" to indicate hierarchy: ${VALID_NODE_TYPES_FOR_MAP_AI}.
+    - You MUST provide "parentNodeId" of a node higher in the hierarchy for every node. Top level nodes should be assigned 'Universe' as their parentNodeId.
 - Node Data for "nodesToUpdate":
     - "description" and "aliases" can be optionally provided in "newData" to update ANY node.
     - If you provide "newData.placeName", that will be the node's new primary name.
-      - When adding a new main location via "nodesToAdd", the "placeName" MUST correspond to a location name that the storyteller AI has indicated as significant.
-    - You MUST include "parentNodeId" to specify the parent for every node except the root. The hierarchy relies solely on parentNodeId.
+    - When adding a new main location via "nodesToAdd", the "placeName" MUST correspond to a location name that the Storyteller AI has indicated as significant.
+    - You MUST include "parentNodeId" of a node higher in the hierarchy for every node.
 - Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. NEVER create duplicates of existing nodes or edges.
 - NEVER add a node named "Universe" or create edges that reference a place named "Universe". That name is reserved for the root and already exists.
 - Edges only allowed to connect nodes of type='feature' that have the same parent (siblings), that have the same grandparent (grandchildren), or where one feature's parent is the grandparent of the other (child-grandchild), or edges of type='shortcut'.

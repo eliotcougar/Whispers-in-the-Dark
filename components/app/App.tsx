@@ -126,6 +126,7 @@ function App() {
     handleMapNodesPositionChange,
     commitGameState,
     updateItemContent,
+    handleDistillFacts,
   } = gameLogic;
 
   const handleApplyGameState = useCallback(
@@ -282,6 +283,10 @@ function App() {
   const handleRetryClick = useCallback(() => {
     void handleRetry();
   }, [handleRetry]);
+
+  const handleDistillClick = useCallback(() => {
+    void handleDistillFacts();
+  }, [handleDistillFacts]);
 
   const handleReadPage = useCallback(
     (item: Item) => {
@@ -738,6 +743,7 @@ function App() {
         onApplyGameState={handleApplyGameState}
         onClose={closeDebugView}
         onUndoTurn={handleUndoTurn}
+        onDistillFacts={handleDistillClick}
         travelPath={travelPath}
       />
 

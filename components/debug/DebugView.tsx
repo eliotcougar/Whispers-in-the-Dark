@@ -19,6 +19,7 @@ import {
   MapDataFullTab,
   MapLocationAITab,
   PlaygroundTab,
+  LoremasterAITab,
   MiscStateTab,
   ThemeHistoryTab,
   TravelPathTab,
@@ -32,6 +33,7 @@ interface DebugViewProps {
   readonly onUndoTurn: () => void; // New prop for undoing turn
   readonly onApplyGameState: (state: FullGameState) => void;
   readonly travelPath: Array<TravelStep> | null;
+  readonly onDistillFacts: () => void;
 }
 
 type DebugTab =
@@ -40,6 +42,7 @@ type DebugTab =
   | "MapLocationAI"
   | "InventoryAI"
   | "DialogueAI"
+  | "LoremasterAI"
   | "Inventory"
   | "Characters"
   | "MapDataFull"
@@ -60,6 +63,7 @@ function DebugView({
   onUndoTurn,
   onApplyGameState,
   travelPath,
+  onDistillFacts,
 }: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
 
@@ -78,6 +82,7 @@ function DebugView({
     { name: "MainAI", label: "Storyteller AI" },
     { name: "MapLocationAI", label: "Cartographer AI" },
     { name: "InventoryAI", label: "Inventory AI" },
+    { name: "LoremasterAI", label: "Loremaster AI" },
     { name: "DialogueAI", label: "Dialogue AI" },
     { name: "Inventory", label: "Inventory" },
     { name: "Characters", label: "Characters" },
@@ -109,6 +114,13 @@ function DebugView({
         return <MapLocationAITab debugPacket={debugPacket} />;
       case 'InventoryAI':
         return <InventoryAITab debugPacket={debugPacket} />;
+      case 'LoremasterAI':
+        return (
+          <LoremasterAITab
+            debugPacket={debugPacket}
+            onDistillFacts={onDistillFacts}
+          />
+        );
       case 'DialogueAI':
         return <DialogueAITab debugPacket={debugPacket} />;
       case 'Inventory':
