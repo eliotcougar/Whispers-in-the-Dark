@@ -36,6 +36,7 @@ export const DEVELOPER = "Eliot the Cougar"
 export const CURRENT_GAME_VERSION = "1.4.0 (Ink and Quill)";
 export const CURRENT_SAVE_GAME_VERSION = "6";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
+export const LOCAL_STORAGE_DEBUG_KEY = "whispersInTheDark_debugPacket";
 
 export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
 export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift

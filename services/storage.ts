@@ -3,10 +3,10 @@
  * @description Helper functions for persisting game state to browser localStorage.
  */
 
-import { FullGameState } from '../types';
+import { FullGameState, DebugPacket } from '../types';
 import {
   LOCAL_STORAGE_SAVE_KEY,
-  
+  LOCAL_STORAGE_DEBUG_KEY,
 } from '../constants';
 import {
   prepareGameStateForSaving,
@@ -61,10 +61,46 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
     }
     console.warn('Local save data is invalid or version mismatch for V3. Starting new game.');
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
     return null;
   } catch (error: unknown) {
     console.error('Error loading game state from localStorage:', error);
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
+    return null;
+  }
+};
+
+export const saveDebugPacketToLocalStorage = (packet: DebugPacket | null): void => {
+  try {
+    if (packet) {
+      localStorage.setItem(
+        LOCAL_STORAGE_DEBUG_KEY,
+        JSON.stringify(packet),
+      );
+    } else {
+      localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
+    }
+  } catch (error: unknown) {
+    console.error('Error saving debug packet to localStorage:', error);
+  }
+};
+
+export const loadDebugPacketFromLocalStorage = (): DebugPacket | null => {
+  try {
+    const savedDataString = localStorage.getItem(LOCAL_STORAGE_DEBUG_KEY);
+    if (!savedDataString) return null;
+    const parsedData: unknown = safeParseJson(savedDataString);
+    if (parsedData === null || typeof parsedData !== 'object') {
+      console.warn(
+        'Saved debug packet found in localStorage could not be parsed.',
+      );
+      return null;
+    }
+    return parsedData as DebugPacket;
+  } catch (error: unknown) {
+    console.error('Error loading debug packet from localStorage:', error);
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
     return null;
   }
 };

@@ -11,6 +11,8 @@ import {
 import {
   saveGameStateToLocalStorage,
   loadGameStateFromLocalStorage,
+  saveDebugPacketToLocalStorage,
+  loadDebugPacketFromLocalStorage,
 } from '../services/storage';
 import {
   DEFAULT_PLAYER_GENDER,
@@ -49,7 +51,9 @@ export const useSaveLoad = ({
 
   useEffect(() => {
     const loadedState = loadGameStateFromLocalStorage();
+    const loadedDebug = loadDebugPacketFromLocalStorage();
     if (loadedState) {
+      if (loadedDebug) loadedState.lastDebugPacket = loadedDebug;
       setPlayerGender(loadedState.playerGender);
       setEnabledThemePacks(loadedState.enabledThemePacks);
       setStabilityLevel(loadedState.stabilityLevel);
@@ -82,6 +86,7 @@ export const useSaveLoad = ({
           gameStateToSave,
           setError ? (msg) => { setError(msg); } : undefined,
         );
+        saveDebugPacketToLocalStorage(gameStateToSave.lastDebugPacket);
       }
     }, AUTOSAVE_DEBOUNCE_TIME);
 
@@ -136,6 +141,7 @@ export const useSaveLoad = ({
           loadedFullState,
           setError ? (msg) => { setError(msg); } : undefined,
         );
+        saveDebugPacketToLocalStorage(loadedFullState.lastDebugPacket);
       } else {
         setError?.('Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file.');
       }
