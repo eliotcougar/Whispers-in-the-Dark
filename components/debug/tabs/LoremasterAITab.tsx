@@ -92,13 +92,7 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
     );
   };
 
-  if (!debugPacket?.loremasterDebugInfo) {
-    return (
-      <p className="italic text-slate-300">
-        No Loremaster AI interaction debug packet captured.
-      </p>
-    );
-  }
+  const loremasterInfo = debugPacket?.loremasterDebugInfo;
 
   return (
     <>
@@ -111,13 +105,21 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
         variant="compact"
       />
 
-      {renderMode('Collect', debugPacket.loremasterDebugInfo.collect)}
+      {loremasterInfo ? (
+        <>
+          {renderMode('Collect', loremasterInfo.collect)}
 
-      {renderMode('Extract', debugPacket.loremasterDebugInfo.extract)}
+          {renderMode('Extract', loremasterInfo.extract)}
 
-      {renderMode('Integrate', debugPacket.loremasterDebugInfo.integrate)}
+          {renderMode('Integrate', loremasterInfo.integrate)}
 
-      {renderMode('Distill', debugPacket.loremasterDebugInfo.distill)}
+          {renderMode('Distill', loremasterInfo.distill)}
+        </>
+      ) : (
+        <p className="italic text-slate-300">
+          No Loremaster AI interaction debug packet captured.
+        </p>
+      )}
     </>
   );
 }

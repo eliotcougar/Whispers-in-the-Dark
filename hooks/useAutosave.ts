@@ -4,7 +4,10 @@
  */
 import { useEffect, useRef } from 'react';
 import { FullGameState } from '../types';
-import { saveGameStateToLocalStorage } from '../services/storage';
+import {
+  saveGameStateToLocalStorage,
+  saveDebugPacketToLocalStorage,
+} from '../services/storage';
 
 export const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
@@ -44,6 +47,7 @@ export function useAutosave({
         gameStateToSave,
         setError ? (msg) => { setError(msg); } : undefined,
       );
+      saveDebugPacketToLocalStorage(gameStateToSave.lastDebugPacket);
     }, AUTOSAVE_DEBOUNCE_TIME);
 
     return () => {
