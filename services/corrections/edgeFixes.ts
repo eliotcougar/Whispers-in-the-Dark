@@ -215,8 +215,8 @@ Return ONLY a JSON object strictly matching this structure:
     {
       "placeName": "string", /* A contextually relevant location name, based on Theme and Scene Description */
       "data": {
-        "description": "string", /* ${NODE_STATUS_LIST} */
-        "aliases": ["string"], /* ${EDGE_TYPE_LIST} */
+        "description": "string", /* short text describing the node */
+        "aliases": ["string"], /* alternative names for the node */
         "status": "string", /* ${NODE_STATUS_LIST} */
         "nodeType": "feature", /* ONLY add 'feature' type nodes! */
         "parentNodeId": "string" /* Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent */
@@ -230,7 +230,7 @@ Return ONLY a JSON object strictly matching this structure:
       "data": {
         "type": "string", /* ${EDGE_TYPE_LIST} */
         "status": "string", /* ${EDGE_STATUS_LIST} */
-        "description": "string" /* ${EDGE_STATUS_LIST} */
+        "description": "string" /* short text describing the connection */
       }
     }
   ]

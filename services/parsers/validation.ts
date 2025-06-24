@@ -38,7 +38,7 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
   if (typeof obj.promptEffect !== 'string' || obj.promptEffect.trim() === '') return false;
   if (obj.appliesWhenActive !== undefined && typeof obj.appliesWhenActive !== 'boolean') return false;
   if (obj.appliesWhenInactive !== undefined && typeof obj.appliesWhenInactive !== 'boolean') return false;
-  if (obj.description !== undefined && typeof obj.description !== 'string') return false;
+  if (typeof obj.description !== 'string' || obj.description.trim() === '') return false;
   return true;
 }
 

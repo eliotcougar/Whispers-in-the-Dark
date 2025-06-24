@@ -58,7 +58,7 @@ For "knownUses" (array of objects) or "addKnownUse" (single object): Each "Known
   "type": "(${VALID_ITEM_TYPES_STRING})",
   "description": "string",
   "activeDescription?": "string",
-  "holderId?": "string",
+  "holderId": "string",
   "isActive?": boolean,
   "tags?": ["junk"],
   "chapters"?: [
@@ -81,6 +81,7 @@ For "knownUses" (array of objects) or "addKnownUse" (single object): Each "Known
   specificActionInstructions = `Based *strictly* on Log/Scene and malformed payload:
   - Provide "name", "type", "description" for the gained item. These MUST be non-empty.
   - Choose "type" from: ${VALID_ITEM_TYPES_STRING}. The 'type' CANNOT be 'junk'. If the item is junk, add "junk" to its "tags" array and pick a suitable type.
+  - Provide "holderId" referencing the correct location or character. Use 'player' only if the item goes to the Player's inventory.
   - "isActive" defaults to false. The "tags" array defaults to []. "status effect" items can never have the "junk" tag.
   - For items with type "page", provide a numeric "contentLength" (up to 250 words).
   - "knownUses" is optional.
@@ -95,6 +96,7 @@ Instructions for "update":
     -   Only include fields ("type", "description", "isActive", "tags", "contentLength", "knownUses", "addKnownUse") if they are being explicitly changed or were present in the original payload.
     -   If "type" or "description" are not provided, the item's existing values will be retained.
     -   If "type" is provided, it must be from ${VALID_ITEM_TYPES_STRING} and CANNOT be 'junk'. If the item becomes junk, ensure "tags" includes "junk".
+    -   Always include the current "holderId" of the item.
 2.  **Transformation (Using "newName"):** If the malformed payload contains a "newName" OR the context clearly indicates a transformation:
     -   The corrected payload MUST include the "newName" field.
     -   Optionally include "type" and "description" if they change; otherwise they will be inherited.
