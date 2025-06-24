@@ -192,6 +192,7 @@ export const useInventoryActions = ({
           ? { ...item, archived: !item.archived }
           : item,
       );
+      draftState.lastTurnChanges = currentFullState.lastTurnChanges;
       commitGameState(draftState);
     },
     [getCurrentGameState, commitGameState, isLoading],
