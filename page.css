@@ -106,9 +106,8 @@
 
 .tag-smudged:not(.tag-recovered) {
   color: #4b3621;
-  filter: blur(1.1px);
-  text-shadow: 0 0 3px rgba(75, 54, 33, 0.5);
-  font-size-adjust: 0.55;
+  filter: blur(1px);
+  text-shadow: -6px 3px 3px rgba(75, 54, 33, 0.5), 6px 6px 3px rgba(99, 52, 25, 0.25);
 }
 
 .tag-torn {
