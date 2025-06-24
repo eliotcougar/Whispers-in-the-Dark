@@ -8,8 +8,8 @@ v1.4. Ink and Quill update
   + Notebook item type with real text notes inside.
   + Book item type with real chapters inside.
   + Page item type as a single page book subtype.
-  - Fact list, storing random static facts. Loremaster AI that extracts small immutable facts.
-  - Librarian AI: Selects relevant facts from the fact list before each turn.
+  + Fact list, storing random static facts. Loremaster AI that extracts small immutable facts.
+  + Librarian AI: Selects relevant facts from the fact list before each turn.
   - Inspect action on written materials to inject contents into Storyteller AI and Loremaster AI.
 
 v1.5? On the Road update

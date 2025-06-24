@@ -254,9 +254,6 @@ ${placesContext}
 ### Known Characters:
 ${charactersStrings}
 
-### Relevant Facts about the Current Theme:
-${relevantFactsSection}
-
 ### Companions traveling with the Player:
 ${companionStrings}
 
@@ -267,6 +264,9 @@ ${nearbyStrings}
 ${mapContext}
 
 ${detailedEntityContext}
+
+### Relevant Facts about the world:
+${relevantFactsSection}
 
 ### Recent Events to keep in mind (for context and continuity):
 ${recentEventsContext}

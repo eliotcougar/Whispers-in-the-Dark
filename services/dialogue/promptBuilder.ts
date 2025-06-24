@@ -67,7 +67,7 @@ export const buildDialogueTurnPrompt = (
         : 'Empty';
   const knownPlacesString = formatKnownPlacesForPrompt(knownMainMapNodesInTheme, true);
 
-  let characterContextString = 'Known Characters: ';
+  let characterContextString = '### Known Characters: ';
   if (knownCharactersInTheme.length > 0) {
     characterContextString +=
       knownCharactersInTheme
@@ -103,27 +103,32 @@ export const buildDialogueTurnPrompt = (
       ? relevantFacts.map(f => `- ${f}`).join('\n')
       : 'None';
 
-  return `
-Context for Dialogue Turn:
-- Current Theme: "${currentTheme.name}"
-- System Instruction Modifier for Theme: "${currentTheme.systemInstructionModifier}"
-- Current Main Quest: "${currentQuest ?? 'Not set'}"
-- Current Objective: "${currentObjective ?? 'Not set'}"
-- Scene Description (for environmental context): "${currentScene}"
-- Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}"
-- Player's Character Gender: ${playerGender}
+  return `**Context for Dialogue Turn**
+Current Theme: "${currentTheme.name}";
+System Instruction Modifier for Theme: "${currentTheme.systemInstructionModifier}";
+Current Main Quest: "${currentQuest ?? 'Not set'}";
+Current Objective: "${currentObjective ?? 'Not set'}";
+Scene Description (for environmental context): "${currentScene}";
+Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}";
+Player's Character Gender: ${playerGender};
 
-- Player's Inventory:
-${inventoryString}
-- Known Locations:
-${knownPlacesString}
-- ${characterContextString}
-- Relevant Facts about the Current Theme:
+### Relevant Facts about the world:
 ${relevantFactsSection}
-- Current Dialogue Participants: ${dialogueParticipants.join(', ')}
+
+### Player's Inventory:
+${inventoryString}
+
+### Known Locations:
+${knownPlacesString}
+
+${characterContextString}
+
+### Dialogue Context:
+- Current Dialogue Participants: ${dialogueParticipants.join(', ')};
 ${pastDialogueSummariesContext.trim() ? pastDialogueSummariesContext : '\n- No specific past dialogue summaries available for current participants.'}
- - Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):
+- Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):
 ${historyString}
+
 - Player's Last Utterance/Choice: "${playerLastUtterance}"
 
 Based on this context, provide the next part of the dialogue according to the DIALOGUE_SYSTEM_INSTRUCTION.

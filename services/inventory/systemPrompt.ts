@@ -29,12 +29,12 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 Structure for individual ItemChange objects within the array:
 - Example for gaining a *new* item from the provided New Items JSON:
-  { "action": "gain", /* "put" action follows the same structure, but is used for placing new items in the world. */
+  { "action": "gain", /* "put" action follows the same structure, but is used for placing new items in the world and can accept 'node_*' and 'char_*' IDs as holderId. */
     item: {
       "name": "Old Lantern", /* REQUIRED: Full name of the item. */
       "type": "equipment", /* REQUIRED. MUST be one of ${VALID_ITEM_TYPES_STRING} */
       "description": "A dusty old lantern that still flickers faintly.", /* REQUIRED: Short description of the item. */
-      "holderId": "player", /* REQUIRED: ID of the character or map node that will hold the item. Use "player" for Player's inventory, or a specific NPC ID for their inventory. */
+      "holderId": "player", /* REQUIRED: MUST BE 'player', or an ID of the character or map node that will hold the item if the action is 'put'. Use "player" for Player's inventory, or a specific NPC ID for their inventory. */
       "activeDescription"?: "The lantern is lit and casts a warm glow.", /* Optional: Description when the item is active. REQUIRED for toggle-able items.*/
       "isActive"?: false, /* Optional: true if the item is currently active (e.g., a lit lantern, powered equipment). Defaults to false if not provided. */
       "tags"?: ["junk"], /* Optional: array of short tags describing the item. Valid tags: ${VALID_TAGS_STRING}. Include "junk" if the item is unimportant or has served its ONLY purpose. IMPORTANT: "status effects" can never have the "junk" tag. */
@@ -79,7 +79,7 @@ Structure for individual ItemChange objects within the array:
           "contentLength": 200
         }
       ],
-      "holderId": "player", /* REQUIRED: ID of the character or map node that will hold the item. Use "player" for Player's inventory, or a specific NPC ID for their inventory. */
+      "holderId": "player", /* REQUIRED: ID of the character or map node that will hold the item. Use "player" for adding to Player's inventory, or a specific NPC ID for their inventory. */
     }
   }
 
@@ -155,7 +155,7 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
-  - CRITICALLY IMPORTANT: toId and fromId can only be 'node_*', 'char_*' or 'player'.
+  - CRITICALLY IMPORTANT: holderId, toId, and fromId can only be 'node_*', 'char_*' or 'player'.
   - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
   - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
   - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
