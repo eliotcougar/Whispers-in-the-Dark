@@ -6,9 +6,10 @@ import { filterObservationsAndRationale } from './tabUtils';
 
 interface LoremasterAITabProps {
   readonly debugPacket: DebugPacket | null;
+  readonly onDistillFacts: () => void;
 }
 
-function LoremasterAITab({ debugPacket }: LoremasterAITabProps) {
+function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) {
   const [showRaw, setShowRaw] = useState<Record<string, boolean>>({});
 
   const handleShowRaw = useCallback(
@@ -79,6 +80,15 @@ function LoremasterAITab({ debugPacket }: LoremasterAITabProps) {
 
   return (
     <>
+      <Button
+        ariaLabel="Trigger distill mode"
+        label="Run Distill"
+        onClick={onDistillFacts}
+        preset="purple"
+        size="sm"
+        variant="compact"
+      />
+
       {renderMode('Collect', debugPacket.loremasterDebugInfo.collect)}
       {renderMode('Extract', debugPacket.loremasterDebugInfo.extract)}
       {renderMode('Integrate', debugPacket.loremasterDebugInfo.integrate)}

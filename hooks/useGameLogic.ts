@@ -13,6 +13,8 @@ import { useGameInitialization, LoadInitialGameOptions } from './useGameInitiali
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
+import { distillFacts_Service } from '../services/loremaster';
+import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 
 export interface UseGameLogicProps {
   playerGenderProp: string;
@@ -258,6 +260,45 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     return map;
   }, [currentFullState.inventory, currentFullState.mapData.nodes]);
 
+  const handleDistillFacts = useCallback(async () => {
+    const currentFullState = getCurrentGameState();
+    const themeObj = currentFullState.currentThemeObject;
+    if (!themeObj) return;
+    setIsLoading(true);
+    setLoadingReason('loremaster');
+    setError(null);
+    const result = await distillFacts_Service({
+      themeName: themeObj.name,
+      facts: currentFullState.themeFacts,
+    });
+    const draftState = structuredCloneGameState(currentFullState);
+    draftState.lastDebugPacket ??= {
+      prompt: '',
+      rawResponseText: null,
+      parsedResponse: null,
+      timestamp: new Date().toISOString(),
+      storytellerThoughts: null,
+      mapUpdateDebugInfo: null,
+      inventoryDebugInfo: null,
+      loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
+      dialogueDebugInfo: null,
+    };
+    if (draftState.lastDebugPacket.loremasterDebugInfo) {
+      draftState.lastDebugPacket.loremasterDebugInfo.distill = result?.debugInfo ?? null;
+    }
+    if (result?.refinementResult) {
+      applyThemeFactChanges(
+        draftState,
+        result.refinementResult.factsChange,
+        draftState.globalTurnNumber,
+        themeObj.name,
+      );
+    }
+    commitGameState(draftState);
+    setIsLoading(false);
+    setLoadingReason(null);
+  }, [commitGameState, getCurrentGameState, setError, setIsLoading, setLoadingReason]);
+
   return {
     currentTheme: currentFullState.currentThemeObject,
     currentScene: currentFullState.currentScene,
@@ -346,5 +387,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleUndoTurn,
     addJournalEntry,
     commitGameState,
+    handleDistillFacts,
   };
 };

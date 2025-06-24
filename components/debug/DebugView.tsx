@@ -33,6 +33,7 @@ interface DebugViewProps {
   readonly onUndoTurn: () => void; // New prop for undoing turn
   readonly onApplyGameState: (state: FullGameState) => void;
   readonly travelPath: Array<TravelStep> | null;
+  readonly onDistillFacts: () => void;
 }
 
 type DebugTab =
@@ -62,6 +63,7 @@ function DebugView({
   onUndoTurn,
   onApplyGameState,
   travelPath,
+  onDistillFacts,
 }: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
 
@@ -113,7 +115,12 @@ function DebugView({
       case 'InventoryAI':
         return <InventoryAITab debugPacket={debugPacket} />;
       case 'LoremasterAI':
-        return <LoremasterAITab debugPacket={debugPacket} />;
+        return (
+          <LoremasterAITab
+            debugPacket={debugPacket}
+            onDistillFacts={onDistillFacts}
+          />
+        );
       case 'DialogueAI':
         return <DialogueAITab debugPacket={debugPacket} />;
       case 'Inventory':
