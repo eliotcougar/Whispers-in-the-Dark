@@ -122,8 +122,8 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
         disabled={disabled}
         filterMode={filterMode}
         onFilterAll={handleFilterAll}
-        onFilterKnowledge={handleFilterKnowledge}
         onFilterArchived={handleFilterArchived}
+        onFilterKnowledge={handleFilterKnowledge}
       />
 
       {displayedItems.length === 0 ? (
@@ -147,6 +147,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
                 isNew={isNew}
                 item={item}
                 key={item.name}
+                onArchiveToggle={handleArchiveToggleInternal}
                 onCancelDiscard={handleCancelDiscard}
                 onConfirmDrop={handleConfirmDrop}
                 onGenericUse={handleGenericUse}
@@ -155,9 +156,8 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
                 onSpecificUse={handleSpecificUse}
                 onStartConfirmDiscard={handleStartConfirmDiscard}
                 onVehicleToggle={handleVehicleToggle}
-                onArchiveToggle={handleArchiveToggleInternal}
-                registerRef={registerItemRef}
                 onWrite={handleWrite}
+                registerRef={registerItemRef}
               />
             );
           })}

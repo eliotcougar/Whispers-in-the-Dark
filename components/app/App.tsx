@@ -689,8 +689,8 @@ function App() {
                 mainQuest={mainQuest}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
-                onDropItem={gameLogic.handleDropItem}
                 onArchiveToggle={gameLogic.handleArchiveToggle}
+                onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
                 onTakeItem={handleTakeLocationItem}
