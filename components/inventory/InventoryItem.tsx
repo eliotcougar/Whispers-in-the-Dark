@@ -51,6 +51,8 @@ function InventoryItem({
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
+  const canShowGenericUse =
+    item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle';
   const canShowDrop =
     !item.tags?.includes('junk') &&
     !isConfirmingDiscard &&
@@ -162,7 +164,7 @@ function InventoryItem({
           />
         ) : null}
 
-        {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
+        {canShowGenericUse ? (
           <Button
             ariaLabel={`Attempt to use ${item.name} (generic action)`}
             data-item-name={item.name}
@@ -173,9 +175,9 @@ function InventoryItem({
             preset="sky"
             size="sm"
           />
-        )}
+        ) : null}
 
-        {item.type === 'vehicle' && (
+        {item.type === 'vehicle' ? (
           <Button
             ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
             data-item-name={item.name}
@@ -186,7 +188,7 @@ function InventoryItem({
             preset="sky"
             size="sm"
           />
-        )}
+        ) : null}
 
         {item.tags?.includes('junk') && !isConfirmingDiscard ? (
           <Button
@@ -258,7 +260,7 @@ function InventoryItem({
           />
         ) : null}
 
-        {canShowDrop && (
+        {canShowDrop ? (
           <Button
             ariaLabel={`Drop ${item.name}`}
             data-item-name={item.name}
@@ -269,9 +271,9 @@ function InventoryItem({
             preset="sky"
             size="sm"
           />
-        )}
+        ) : null}
 
-        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive && (
+        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive ? (
           <Button
             ariaLabel={`Park ${item.name} here`}
             data-item-name={item.name}
@@ -282,7 +284,7 @@ function InventoryItem({
             preset="sky"
             size="sm"
           />
-        )}
+        ) : null}
 
         {isConfirmingDiscard ? (
           <div className="grid grid-cols-2 gap-2 mt-2">

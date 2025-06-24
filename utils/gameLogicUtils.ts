@@ -20,6 +20,21 @@ export const addLogMessageToList = (
     : newLog;
 };
 
+/** Removes the most recent log entry added by dropping an item. */
+export const removeDroppedItemLog = (
+  currentLog: Array<string>,
+  itemName: string,
+): Array<string> => {
+  const prefix = `You left your ${itemName}`;
+  for (let i = currentLog.length - 1; i >= 0; i -= 1) {
+    if (currentLog[i].startsWith(prefix)) {
+      const updated = [...currentLog.slice(0, i), ...currentLog.slice(i + 1)];
+      return updated;
+    }
+  }
+  return currentLog;
+};
+
 /**
  * Selects the name of the next theme for a reality shift.
  */

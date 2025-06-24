@@ -9,7 +9,7 @@ import {
 } from '../types';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-import { addLogMessageToList } from '../utils/gameLogicUtils';
+import { addLogMessageToList, removeDroppedItemLog } from '../utils/gameLogicUtils';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 
 export interface UseInventoryActionsProps {
@@ -132,6 +132,11 @@ export const useInventoryActions = ({
         mapDataChanged: false,
       };
       draftState.lastTurnChanges = turnChangesForTake;
+
+      draftState.gameLog = removeDroppedItemLog(draftState.gameLog, itemName);
+      if (draftState.lastActionLog?.startsWith(`You left your ${itemName}`)) {
+        draftState.lastActionLog = null;
+      }
       commitGameState(draftState);
     },
     [getCurrentGameState, commitGameState, isLoading],
