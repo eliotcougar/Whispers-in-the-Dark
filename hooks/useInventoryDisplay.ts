@@ -88,14 +88,25 @@ export const useInventoryDisplay = ({
         const item = items.find(i => i.name === name);
         onArchiveToggle(name);
         if (item?.archived) {
-          setNewlyAddedItemNames(current => new Set(current).add(name));
-          setTimeout(() => {
-            setNewlyAddedItemNames(current => {
-              const updated = new Set(current);
-              updated.delete(name);
-              return updated;
-            });
-          }, 1500);
+          if (filterMode === 'archived') {
+            setArchivingItemNames(current => new Set(current).add(name));
+            setTimeout(() => {
+              setArchivingItemNames(current => {
+                const updated = new Set(current);
+                updated.delete(name);
+                return updated;
+              });
+            }, 1000);
+          } else {
+            setNewlyAddedItemNames(current => new Set(current).add(name));
+            setTimeout(() => {
+              setNewlyAddedItemNames(current => {
+                const updated = new Set(current);
+                updated.delete(name);
+                return updated;
+              });
+            }, 1500);
+          }
         } else {
           setArchivingItemNames(current => new Set(current).add(name));
           setTimeout(() => {
@@ -109,7 +120,7 @@ export const useInventoryDisplay = ({
         event.currentTarget.blur();
       }
     },
-    [items, onArchiveToggle],
+    [filterMode, items, onArchiveToggle],
   );
 
   const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
