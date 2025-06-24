@@ -690,6 +690,7 @@ function App() {
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
                 onDropItem={gameLogic.handleDropItem}
+                onArchiveToggle={gameLogic.handleArchiveToggle}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
                 onTakeItem={handleTakeLocationItem}

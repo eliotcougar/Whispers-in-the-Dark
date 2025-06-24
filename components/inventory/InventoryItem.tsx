@@ -20,6 +20,7 @@ interface InventoryItemProps {
   readonly onCancelDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onWrite: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onArchiveToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 function InventoryItem({
@@ -38,6 +39,7 @@ function InventoryItem({
   onCancelDiscard,
   onRead,
   onWrite,
+  onArchiveToggle,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
@@ -191,7 +193,20 @@ function InventoryItem({
           />
         ) : null}
 
-        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && (
+        {item.type === 'knowledge' && !isConfirmingDiscard ? (
+          <Button
+            ariaLabel={item.archived ? `Restore ${item.name}` : `Archive ${item.name}`}
+            data-item-name={item.name}
+            disabled={disabled}
+            key={`${item.name}-archive`}
+            label={item.archived ? 'Restore' : 'Archive'}
+            onClick={onArchiveToggle}
+            preset="sky"
+            size="sm"
+          />
+        ) : null}
+
+        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type !== 'vehicle' && item.type !== 'status effect' && item.type !== 'knowledge' && (
           <Button
             ariaLabel={`Drop ${item.name}`}
             data-item-name={item.name}

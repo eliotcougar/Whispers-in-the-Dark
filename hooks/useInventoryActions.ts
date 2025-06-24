@@ -181,6 +181,22 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
+  const handleArchiveToggle = useCallback(
+    (name: string) => {
+      const currentFullState = getCurrentGameState();
+      if (isLoading || currentFullState.dialogueState) return;
+
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item =>
+        item.name === name && item.holderId === PLAYER_HOLDER_ID
+          ? { ...item, archived: !item.archived }
+          : item,
+      );
+      commitGameState(draftState);
+    },
+    [getCurrentGameState, commitGameState, isLoading],
+  );
+
   const recordInspect = useCallback(
     (id: string): FullGameState => {
       const currentFullState = getStateRef.current();
@@ -196,7 +212,7 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
-  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag, recordInspect };
+  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag, recordInspect, handleArchiveToggle };
 };
 
 export type InventoryActions = ReturnType<typeof useInventoryActions>;

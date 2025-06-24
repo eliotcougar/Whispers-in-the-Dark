@@ -15,14 +15,17 @@ interface UseInventoryDisplayProps {
     knownUse?: KnownUse
   ) => void;
   readonly onDropItem: (itemName: string) => void;
+  readonly handleArchiveToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
 }
 
+export type FilterMode = 'all' | 'knowledge' | 'archived';
 export const useInventoryDisplay = ({
   items,
   onItemInteract,
   onDropItem,
+  handleArchiveToggle,
   onReadPage,
   onWriteJournal,
 }: UseInventoryDisplayProps) => {
@@ -30,6 +33,7 @@ export const useInventoryDisplay = ({
   const prevItemsRef = useRef<Array<Item>>(items);
   const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
 
   const handleSortByName = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setSortOrder(prev => (prev === 'name' ? 'default' : 'name'));
@@ -38,6 +42,21 @@ export const useInventoryDisplay = ({
 
   const handleSortByType = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setSortOrder(prev => (prev === 'type' ? 'default' : 'type'));
+    event.currentTarget.blur();
+  }, []);
+
+  const handleFilterAll = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setFilterMode('all');
+    event.currentTarget.blur();
+  }, []);
+
+  const handleFilterKnowledge = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setFilterMode(prev => (prev === 'knowledge' ? 'all' : 'knowledge'));
+    event.currentTarget.blur();
+  }, []);
+
+  const handleFilterArchived = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setFilterMode(prev => (prev === 'archived' ? 'all' : 'archived'));
     event.currentTarget.blur();
   }, []);
 
@@ -59,6 +78,17 @@ export const useInventoryDisplay = ({
       }
     },
     [onDropItem]
+  );
+
+  const handleArchiveToggleInternal = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const name = event.currentTarget.dataset.itemName;
+      if (name) {
+        handleArchiveToggle(name);
+        event.currentTarget.blur();
+      }
+    },
+    [handleArchiveToggle],
   );
 
   const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -175,12 +205,18 @@ export const useInventoryDisplay = ({
   }, [items]);
 
   const displayedItems = useMemo(() => {
-    const itemsToDisplay = [...items];
+    const itemsToDisplay = items.filter(item => {
+      if (filterMode === 'archived') return item.archived && item.type === 'knowledge';
+      if (filterMode === 'knowledge') return item.type === 'knowledge' && !item.archived;
+      return !(item.archived && item.type === 'knowledge');
+    });
+
+    const sortedItems = [...itemsToDisplay];
 
     if (sortOrder === 'name') {
-      itemsToDisplay.sort((a, b) => a.name.localeCompare(b.name));
+      sortedItems.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortOrder === 'type') {
-      itemsToDisplay.sort((a, b) => {
+      sortedItems.sort((a, b) => {
         const typeCompare = a.type.localeCompare(b.type);
         if (typeCompare !== 0) {
           return typeCompare;
@@ -188,10 +224,10 @@ export const useInventoryDisplay = ({
         return a.name.localeCompare(b.name);
       });
     } else {
-      itemsToDisplay.reverse();
+      sortedItems.reverse();
     }
-    return itemsToDisplay;
-  }, [items, sortOrder]);
+    return sortedItems;
+  }, [items, sortOrder, filterMode]);
 
   const getApplicableKnownUses = useCallback((item: Item): Array<KnownUse> => {
     if (!item.knownUses) return [];
@@ -220,8 +256,12 @@ export const useInventoryDisplay = ({
     newlyAddedItemNames,
     confirmingDiscardItemName,
     sortOrder,
+    filterMode,
     handleSortByName,
     handleSortByType,
+    handleFilterAll,
+    handleFilterKnowledge,
+    handleFilterArchived,
     handleStartConfirmDiscard,
     handleConfirmDrop,
     handleCancelDiscard,
@@ -229,6 +269,7 @@ export const useInventoryDisplay = ({
     handleInspect,
     handleGenericUse,
     handleVehicleToggle,
+    handleArchiveToggleInternal,
     handleRead,
     handleWrite,
     getApplicableKnownUses,

@@ -6,6 +6,7 @@ import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import InventoryItem from './InventoryItem';
 import InventorySortControls from './InventorySortControls';
+import InventoryFilterControls from './InventoryFilterControls';
 import { useInventoryDisplay } from '../../hooks/useInventoryDisplay';
 
 interface InventoryDisplayProps {
@@ -16,13 +17,14 @@ interface InventoryDisplayProps {
     knownUse?: KnownUse
   ) => void;
   readonly onDropItem: (itemName: string) => void;
+  readonly onArchiveToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
   readonly currentTurn: number;
   readonly disabled: boolean;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemNames,
@@ -30,6 +32,10 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWri
     sortOrder,
     handleSortByName,
     handleSortByType,
+    filterMode,
+    handleFilterAll,
+    handleFilterKnowledge,
+    handleFilterArchived,
     handleStartConfirmDiscard,
     handleConfirmDrop,
     handleCancelDiscard,
@@ -37,10 +43,18 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWri
     handleInspect,
     handleGenericUse,
     handleVehicleToggle,
+    handleArchiveToggleInternal,
     handleRead,
     handleWrite,
     getApplicableKnownUses,
-  } = useInventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWriteJournal });
+  } = useInventoryDisplay({
+    items,
+    onItemInteract,
+    onDropItem,
+    onArchiveToggle,
+    onReadPage,
+    onWriteJournal,
+  });
 
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
@@ -62,6 +76,14 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWri
         onSortByName={handleSortByName}
         onSortByType={handleSortByType}
         sortOrder={sortOrder}
+      />
+
+      <InventoryFilterControls
+        disabled={disabled}
+        filterMode={filterMode}
+        onFilterAll={handleFilterAll}
+        onFilterKnowledge={handleFilterKnowledge}
+        onFilterArchived={handleFilterArchived}
       />
 
       {displayedItems.length === 0 ? (
@@ -91,6 +113,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onReadPage, onWri
                 onSpecificUse={handleSpecificUse}
                 onStartConfirmDiscard={handleStartConfirmDiscard}
                 onVehicleToggle={handleVehicleToggle}
+                onArchiveToggle={handleArchiveToggleInternal}
                 onWrite={handleWrite}
               />
             );

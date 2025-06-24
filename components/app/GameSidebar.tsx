@@ -22,6 +22,7 @@ interface GameSidebarProps {
   readonly mapNodes: Array<MapNode>;
   readonly objectiveAnimationType: 'success' | 'neutral' | null;
   readonly onDropItem: (itemName: string) => void;
+  readonly onArchiveToggle: (itemName: string) => void;
   readonly onItemInteract: (
     item: Item,
     interactionType: 'generic' | 'specific' | 'inspect',
@@ -46,6 +47,7 @@ function GameSidebar({
   mapNodes,
   objectiveAnimationType,
   onDropItem,
+  onArchiveToggle,
   onItemInteract,
   onReadPage,
   onWriteJournal,
@@ -118,6 +120,7 @@ function GameSidebar({
         currentTurn={globalTurnNumber}
         disabled={disabled}
         items={inventory}
+        onArchiveToggle={onArchiveToggle}
         onDropItem={onDropItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}
