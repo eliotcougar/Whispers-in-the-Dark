@@ -31,7 +31,7 @@ export type MapEdgeStatus = typeof VALID_EDGE_STATUS_VALUES[number];
 export interface KnownUse {
   actionName: string; // Text for the button, e.g., "Light Torch"
   promptEffect: string; // What to send to AI, e.g., "Player attempts to light the Torch"
-  description?: string; // Optional: A small hint or detail about this use
+  description: string; // A small hint or detail about this use
   appliesWhenActive?: boolean; // If true, this use is shown when item.isActive is true
   appliesWhenInactive?: boolean; // If true, this use is shown when item.isActive is false (or undefined)
 }

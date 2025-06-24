@@ -75,6 +75,7 @@ export const useInventoryDisplay = ({
       const knownUse: KnownUse = {
         actionName,
         promptEffect,
+        description: actionName,
       };
       onItemInteract(item, 'specific', knownUse);
       event.currentTarget.blur();
@@ -116,6 +117,7 @@ export const useInventoryDisplay = ({
       const dynamicKnownUse: KnownUse = {
         actionName,
         promptEffect: actionName,
+        description: actionName,
       };
       onItemInteract(item, 'specific', dynamicKnownUse);
       event.currentTarget.blur();
