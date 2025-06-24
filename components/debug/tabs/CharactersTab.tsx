@@ -6,11 +6,13 @@ interface CharactersTabProps {
 }
 
 function CharactersTab({ characters }: CharactersTabProps) {
-  return (<DebugSection
-    content={characters}
-    maxHeightClass="max-h-[70vh]"
-    title="Current Characters"
-  />)
+  return (
+    <DebugSection
+      content={characters}
+      maxHeightClass="max-h-[70vh]"
+      title="Current Characters"
+    />
+  );
 }
 
 export default CharactersTab;

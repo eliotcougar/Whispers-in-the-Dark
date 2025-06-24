@@ -3,7 +3,7 @@
  * @description Provides debounced autosave functionality for App.
  */
 import { useEffect, useRef } from 'react';
-import { FullGameState } from '../types';
+import { GameStateStack } from '../types';
 import {
   saveGameStateToLocalStorage,
   saveDebugPacketToLocalStorage,
@@ -12,7 +12,7 @@ import {
 export const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 export interface UseAutosaveOptions {
-  readonly gatherCurrentGameState: () => FullGameState;
+  readonly gatherGameStateStack: () => GameStateStack;
   readonly isLoading: boolean;
   readonly hasGameBeenInitialized: boolean;
   readonly appReady: boolean;
@@ -22,7 +22,7 @@ export interface UseAutosaveOptions {
 }
 
 export function useAutosave({
-  gatherCurrentGameState,
+  gatherGameStateStack,
   isLoading,
   hasGameBeenInitialized,
   appReady,
@@ -42,12 +42,12 @@ export function useAutosave({
       clearTimeout(autosaveTimeoutRef.current);
     }
     autosaveTimeoutRef.current = window.setTimeout(() => {
-      const gameStateToSave = gatherCurrentGameState();
+      const gameStateStack = gatherGameStateStack();
       saveGameStateToLocalStorage(
-        gameStateToSave,
+        gameStateStack,
         setError ? (msg) => { setError(msg); } : undefined,
       );
-      saveDebugPacketToLocalStorage(gameStateToSave.lastDebugPacket);
+      saveDebugPacketToLocalStorage(gameStateStack[0].lastDebugPacket);
     }, AUTOSAVE_DEBOUNCE_TIME);
 
     return () => {
@@ -56,7 +56,7 @@ export function useAutosave({
       }
     };
   }, [
-    gatherCurrentGameState,
+    gatherGameStateStack,
     isLoading,
     hasGameBeenInitialized,
     appReady,

@@ -20,7 +20,7 @@ import { getInitialGameStates } from '../utils/initialStates';
 export interface UseRealityShiftProps {
   getCurrentGameState: () => FullGameState;
   setGameStateStack: Dispatch<SetStateAction<GameStateStack>>;
-  loadInitialGame: (options: { explicitThemeName?: string | null; isRestart?: boolean; isTransitioningFromShift?: boolean; customGameFlag?: boolean; savedStateToLoad?: FullGameState | null; }) => void;
+  loadInitialGame: (options: { explicitThemeName?: string | null; isRestart?: boolean; isTransitioningFromShift?: boolean; customGameFlag?: boolean; savedStateToLoad?: GameStateStack | null; }) => void;
   enabledThemePacksProp: Array<ThemePackName>;
   playerGenderProp: string;
   stabilityLevelProp: number;

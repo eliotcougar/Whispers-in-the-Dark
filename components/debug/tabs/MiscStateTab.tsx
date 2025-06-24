@@ -6,7 +6,8 @@ interface MiscStateTabProps {
 }
 
 function MiscStateTab({ currentState }: MiscStateTabProps) {
-  return (<DebugSection
+  return (
+    <DebugSection
     content={{
       currentMapNodeId: currentState.currentMapNodeId,
       currentObjective: currentState.currentObjective,
@@ -31,7 +32,8 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
     }}
     maxHeightClass="max-h-[70vh]"
     title="Miscellaneous State Values"
-  />)
+  />
+  );
 }
 
 export default MiscStateTab;

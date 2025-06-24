@@ -37,7 +37,8 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
     }
   }, [editableText, onApplyGameState]);
 
-  return (<>
+  return (
+    <>
     <Button
       ariaLabel="Undo last turn"
       disabled={!previousState || currentState.globalTurnNumber <= 1}
@@ -92,7 +93,7 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
         title="Previous Game State (Stack[1] - Bottom)"
       />
     ) : null}
-  </>
+    </>
   );
 }
 

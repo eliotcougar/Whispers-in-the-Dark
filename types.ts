@@ -598,6 +598,11 @@ export type SavedGameDataShape = Pick<
 
 export type GameStateStack = [FullGameState, FullGameState?];
 
+export interface SavedGameStack {
+  current: SavedGameDataShape;
+  previous: SavedGameDataShape | null;
+}
+
 
 
 // Payload for a validated character update, used in parsing

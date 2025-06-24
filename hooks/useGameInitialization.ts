@@ -8,6 +8,7 @@ import {
   FullGameState,
   ThemePackName,
   LoadingReason,
+  GameStateStack,
 } from '../types';
 import {
   executeAIMainTurn,
@@ -24,7 +25,6 @@ import {
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';
 import { buildInitialGamePrompt } from './initPromptHelpers';
-import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
 
@@ -33,7 +33,7 @@ export interface LoadInitialGameOptions {
   explicitThemeName?: string | null;
   isTransitioningFromShift?: boolean;
   customGameFlag?: boolean;
-  savedStateToLoad?: FullGameState | null;
+  savedStateToLoad?: GameStateStack | null;
 }
 
 export interface UseGameInitializationProps {
@@ -52,6 +52,7 @@ export interface UseGameInitializationProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (state: FullGameState) => void;
   resetGameStateStack: (state: FullGameState) => void;
+  setGameStateStack: (stack: GameStateStack) => void;
   processAiResponse: ProcessAiResponseFn;
 }
 
@@ -73,26 +74,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     getCurrentGameState,
     commitGameState,
     resetGameStateStack,
+    setGameStateStack,
     processAiResponse,
   } = props;
 
-  /** Returns a snapshot of the current game state suitable for saving. */
-  const gatherCurrentGameStateForSave = useCallback((): FullGameState => {
-    const currentFullState = getCurrentGameState();
-    return buildSaveStateSnapshot({
-      currentState: currentFullState,
-      playerGender: playerGenderProp,
-      enabledThemePacks: enabledThemePacksProp,
-      stabilityLevel: stabilityLevelProp,
-      chaosLevel: chaosLevelProp,
-    });
-  }, [
-    getCurrentGameState,
-    playerGenderProp,
-    enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
-  ]);
 
   /**
    * Loads the initial game state or applies a saved state to the game.
@@ -113,18 +98,19 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       setParseErrorCounter(0);
 
       if (savedStateToLoad) {
-        let themeForLoadedState = savedStateToLoad.currentThemeObject;
-        if (!themeForLoadedState && savedStateToLoad.currentThemeName) {
-          themeForLoadedState = findThemeByName(savedStateToLoad.currentThemeName);
+        const [currentSaved, previousSaved] = savedStateToLoad;
+        let themeForLoadedState = currentSaved.currentThemeObject;
+        if (!themeForLoadedState && currentSaved.currentThemeName) {
+          themeForLoadedState = findThemeByName(currentSaved.currentThemeName);
         }
-        if (savedStateToLoad.currentThemeName && !themeForLoadedState) {
-          setError(`Failed to apply loaded state: Theme "${savedStateToLoad.currentThemeName}" not found. Game state may be unstable.`);
+        if (currentSaved.currentThemeName && !themeForLoadedState) {
+          setError(`Failed to apply loaded state: Theme "${currentSaved.currentThemeName}" not found. Game state may be unstable.`);
         }
 
-        const mapDataToApply = savedStateToLoad.mapData;
-        const currentMapNodeIdToApply = savedStateToLoad.currentMapNodeId;
-        const destinationToApply = savedStateToLoad.destinationNodeId;
-        const mapLayoutConfigToApply = savedStateToLoad.mapLayoutConfig;
+        const mapDataToApply = currentSaved.mapData;
+        const currentMapNodeIdToApply = currentSaved.currentMapNodeId;
+        const destinationToApply = currentSaved.destinationNodeId;
+        const mapLayoutConfigToApply = currentSaved.mapLayoutConfig;
         if (typeof mapLayoutConfigToApply.NESTED_PADDING !== 'number') {
           mapLayoutConfigToApply.NESTED_PADDING = getDefaultMapLayoutConfig().NESTED_PADDING;
         }
@@ -133,19 +119,19 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         }
 
         const stateWithMapData = {
-          ...savedStateToLoad,
+          ...currentSaved,
           currentThemeObject: themeForLoadedState,
           mapData: mapDataToApply,
           currentMapNodeId: currentMapNodeIdToApply,
           destinationNodeId: destinationToApply,
           mapLayoutConfig: mapLayoutConfigToApply,
-          mapViewBox: savedStateToLoad.mapViewBox,
-          isCustomGameMode: savedStateToLoad.isCustomGameMode,
-          isAwaitingManualShiftThemeSelection: savedStateToLoad.isAwaitingManualShiftThemeSelection,
-          globalTurnNumber: savedStateToLoad.globalTurnNumber,
+          mapViewBox: currentSaved.mapViewBox,
+          isCustomGameMode: currentSaved.isCustomGameMode,
+          isAwaitingManualShiftThemeSelection: currentSaved.isAwaitingManualShiftThemeSelection,
+          globalTurnNumber: currentSaved.globalTurnNumber,
         } as FullGameState;
 
-        commitGameState(stateWithMapData);
+        setGameStateStack([stateWithMapData, previousSaved ?? stateWithMapData]);
 
         onSettingsUpdateFromLoad({
           stabilityLevel: stateWithMapData.stabilityLevel,
@@ -320,6 +306,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       getCurrentGameState,
       commitGameState,
       processAiResponse,
+      setGameStateStack,
     ]);
 
   /**
@@ -535,7 +522,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
   ]);
 
   return {
-    gatherCurrentGameStateForSave,
     loadInitialGame,
     handleStartNewGameFromButton,
     startCustomGame,

@@ -6,11 +6,13 @@ interface MapDataFullTabProps {
 }
 
 function MapDataFullTab({ mapData }: MapDataFullTabProps) {
-  return (<DebugSection
-    content={mapData}
-    maxHeightClass="max-h-[70vh]"
-    title="Current Map Data (Full)"
-  />)
+  return (
+    <DebugSection
+      content={mapData}
+      maxHeightClass="max-h-[70vh]"
+      title="Current Map Data (Full)"
+    />
+  );
 }
 
 export default MapDataFullTab;

@@ -2,10 +2,14 @@
  * @file fileOps.ts
  * @description Helpers for saving to and loading from external files.
  */
-import { FullGameState } from '../../types';
+import { GameStateStack } from '../../types';
 import { CURRENT_SAVE_GAME_VERSION } from '../../constants';
 import { safeParseJson } from '../../utils/jsonUtils';
-import { prepareGameStateForSaving, expandSavedDataToFullState, normalizeLoadedSaveData } from './migrations';
+import {
+  prepareGameStateStackForSaving,
+  expandSavedStackToFullStates,
+  normalizeLoadedSaveDataStack,
+} from './migrations';
 
 const triggerDownload = (data: string, filename: string, type: string): void => {
   const blob = new Blob([data], { type });
@@ -20,11 +24,11 @@ const triggerDownload = (data: string, filename: string, type: string): void => 
 };
 
 export const saveGameStateToFile = (
-  gameState: FullGameState,
+  stack: GameStateStack,
   onError?: (message: string) => void,
 ): boolean => {
   try {
-    const dataToSave = prepareGameStateForSaving(gameState);
+    const dataToSave = prepareGameStateStackForSaving(stack);
     const jsonString = JSON.stringify(dataToSave, null, 2);
     triggerDownload(jsonString, `WhispersInTheDark_Save_V${CURRENT_SAVE_GAME_VERSION}_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
     return true;
@@ -35,7 +39,7 @@ export const saveGameStateToFile = (
   }
 };
 
-export const loadGameStateFromFile = async (file: File): Promise<FullGameState | null> => {
+export const loadGameStateFromFile = async (file: File): Promise<GameStateStack | null> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -46,9 +50,9 @@ export const loadGameStateFromFile = async (file: File): Promise<FullGameState |
             resolve(null);
             return;
           }
-          const processed = normalizeLoadedSaveData(parsedData as Record<string, unknown>, 'file');
+          const processed = normalizeLoadedSaveDataStack(parsedData as Record<string, unknown>, 'file');
           if (processed) {
-            resolve(expandSavedDataToFullState(processed));
+            resolve(expandSavedStackToFullStates(processed));
             return;
           }
         }
