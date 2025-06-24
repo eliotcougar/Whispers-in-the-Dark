@@ -10,6 +10,7 @@ import { useDialogueManagement } from './useDialogueManagement';
 import { useRealityShift } from './useRealityShift';
 import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
+import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
@@ -24,7 +25,7 @@ export interface UseGameLogicProps {
   onSettingsUpdateFromLoad: (
     loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>
   ) => void;
-  initialSavedStateFromApp: FullGameState | null;
+  initialSavedStateFromApp: GameStateStack | null;
   isAppReady: boolean;
 }
 
@@ -70,6 +71,34 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const resetGameStateStack = useCallback((newState: FullGameState) => {
     setGameStateStack([newState, newState]);
   }, []);
+
+  const gatherGameStateStackForSave = useCallback((): GameStateStack => {
+    const [current, previous] = gameStateStack;
+    return [
+      buildSaveStateSnapshot({
+        currentState: current,
+        playerGender: playerGenderProp,
+        enabledThemePacks: enabledThemePacksProp,
+        stabilityLevel: stabilityLevelProp,
+        chaosLevel: chaosLevelProp,
+      }),
+      previous
+        ? buildSaveStateSnapshot({
+            currentState: previous,
+            playerGender: playerGenderProp,
+            enabledThemePacks: enabledThemePacksProp,
+            stabilityLevel: stabilityLevelProp,
+            chaosLevel: chaosLevelProp,
+          })
+        : undefined,
+    ];
+  }, [
+    gameStateStack,
+    playerGenderProp,
+    enabledThemePacksProp,
+    stabilityLevelProp,
+    chaosLevelProp,
+  ]);
 
   const {
     triggerRealityShift,
@@ -127,7 +156,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   });
 
   const {
-    gatherCurrentGameStateForSave,
     loadInitialGame,
     handleStartNewGameFromButton,
     startCustomGame,
@@ -147,6 +175,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     getCurrentGameState,
     commitGameState,
     resetGameStateStack,
+    setGameStateStack,
     processAiResponse,
   });
   loadInitialGameRef.current = loadInitialGame;
@@ -374,7 +403,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     completeManualShiftWithSelectedTheme,
     cancelManualShiftThemeSelection,
     startCustomGame,
-    gatherCurrentGameState: gatherCurrentGameStateForSave,
+    gatherCurrentGameState: gatherGameStateStackForSave,
     applyLoadedGameState: loadInitialGame,
     setError,
     setIsLoading,

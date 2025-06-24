@@ -55,7 +55,7 @@ const mapData: MapData = {
 };
 
 const baseState: FullGameState = {
-  saveGameVersion: '6',
+  saveGameVersion: '7',
   currentThemeName: theme.name,
   currentThemeObject: theme,
   currentScene: '',

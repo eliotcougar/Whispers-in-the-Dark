@@ -2,7 +2,13 @@
  * @file migrations.ts
  * @description Functions for normalizing and converting saved game data between versions.
  */
-import { FullGameState, SavedGameDataShape, MapData } from '../../types';
+import {
+  FullGameState,
+  SavedGameDataShape,
+  MapData,
+  GameStateStack,
+  SavedGameStack,
+} from '../../types';
 import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../../constants';
 import { findThemeByName } from '../../utils/themeUtils';
 import {
@@ -176,3 +182,35 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     lastTurnChanges: null,
   };
 };
+
+export const prepareGameStateStackForSaving = (
+  stack: GameStateStack,
+): SavedGameStack => ({
+  current: prepareGameStateForSaving(stack[0]),
+  previous: stack[1] ? prepareGameStateForSaving(stack[1]) : null,
+});
+
+export const expandSavedStackToFullStates = (
+  savedStack: SavedGameStack,
+): GameStateStack => [
+  expandSavedDataToFullState(savedStack.current),
+  savedStack.previous ? expandSavedDataToFullState(savedStack.previous) : undefined,
+];
+
+export function normalizeLoadedSaveDataStack(
+  parsedObj: Record<string, unknown>,
+  sourceLabel: string,
+): SavedGameStack | null {
+  if (typeof parsedObj !== 'object' || parsedObj === null) return null;
+  const currentRaw = (parsedObj as { current?: unknown }).current;
+  if (!currentRaw || typeof currentRaw !== 'object') return null;
+  const current = normalizeLoadedSaveData(currentRaw as Record<string, unknown>, sourceLabel);
+  if (!current) return null;
+  const prevRaw = (parsedObj as { previous?: unknown }).previous;
+  let previous: SavedGameDataShape | null = null;
+  if (prevRaw && typeof prevRaw === 'object') {
+    const processedPrev = normalizeLoadedSaveData(prevRaw as Record<string, unknown>, sourceLabel);
+    if (processedPrev) previous = processedPrev;
+  }
+  return { current, previous };
+}

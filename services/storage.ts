@@ -3,25 +3,25 @@
  * @description Helper functions for persisting game state to browser localStorage.
  */
 
-import { FullGameState, DebugPacket } from '../types';
+import { DebugPacket, GameStateStack } from '../types';
 import {
   LOCAL_STORAGE_SAVE_KEY,
   LOCAL_STORAGE_DEBUG_KEY,
 } from '../constants';
 import {
-  prepareGameStateForSaving,
-  expandSavedDataToFullState,
-  normalizeLoadedSaveData,
+  prepareGameStateStackForSaving,
+  expandSavedStackToFullStates,
+  normalizeLoadedSaveDataStack,
 } from './saveLoad';
 import { safeParseJson } from '../utils/jsonUtils';
 
 /** Saves the current game state to localStorage. */
 export const saveGameStateToLocalStorage = (
-  gameState: FullGameState,
+  stack: GameStateStack,
   onError?: (message: string) => void,
 ): boolean => {
   try {
-    const dataToSave = prepareGameStateForSaving(gameState);
+    const dataToSave = prepareGameStateStackForSaving(stack);
     localStorage.setItem(LOCAL_STORAGE_SAVE_KEY, JSON.stringify(dataToSave));
     return true;
   } catch (error: unknown) {
@@ -40,7 +40,7 @@ export const saveGameStateToLocalStorage = (
  * Loads the latest saved game from localStorage if available.
  * Handles version conversion and validation steps.
  */
-export const loadGameStateFromLocalStorage = (): FullGameState | null => {
+export const loadGameStateFromLocalStorage = (): GameStateStack | null => {
   try {
     const savedDataString = localStorage.getItem(LOCAL_STORAGE_SAVE_KEY);
     if (!savedDataString) return null;
@@ -55,9 +55,9 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
       return null;
     }
 
-    const processed = normalizeLoadedSaveData(parsedData as Record<string, unknown>, 'localStorage');
+    const processed = normalizeLoadedSaveDataStack(parsedData as Record<string, unknown>, 'localStorage');
     if (processed) {
-      return expandSavedDataToFullState(processed);
+      return expandSavedStackToFullStates(processed);
     }
     console.warn('Local save data is invalid or version mismatch for V3. Starting new game.');
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);

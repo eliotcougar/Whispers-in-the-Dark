@@ -34,7 +34,7 @@ export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the
 
 export const DEVELOPER = "Eliot the Cougar"
 export const CURRENT_GAME_VERSION = "1.4.0 (Ink and Quill)";
-export const CURRENT_SAVE_GAME_VERSION = "6";
+export const CURRENT_SAVE_GAME_VERSION = "7";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 export const LOCAL_STORAGE_DEBUG_KEY = "whispersInTheDark_debugPacket";
 

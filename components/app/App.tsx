@@ -70,7 +70,7 @@ function App() {
     handleFileInputChange,
     updateSettingsFromLoad,
   } = useSaveLoad({
-    gatherCurrentGameState: () => getGameLogic().gatherCurrentGameState(),
+    gatherGameStateStack: () => getGameLogic().gatherCurrentGameState(),
     applyLoadedGameState: (args) => getGameLogic().applyLoadedGameState(args),
     setError: (msg) => { getGameLogic().setError(msg); },
     setIsLoading: (val) => { getGameLogic().setIsLoading(val); },
@@ -104,7 +104,7 @@ function App() {
     cancelManualShiftThemeSelection,
     isAwaitingManualShiftThemeSelection,
     startCustomGame,
-    gatherCurrentGameState, hasGameBeenInitialized, handleStartNewGameFromButton,
+    gatherCurrentGameState: gatherGameStateStack, hasGameBeenInitialized, handleStartNewGameFromButton,
     localTime, localEnvironment, localPlace,
     dialogueState,
     handleDialogueOptionSelect,
@@ -245,7 +245,7 @@ function App() {
   }, [currentScene, setVisualizerImageUrl, setVisualizerImageScene]);
 
   useAutosave({
-    gatherCurrentGameState,
+    gatherGameStateStack,
     isLoading,
     hasGameBeenInitialized,
     appReady,
