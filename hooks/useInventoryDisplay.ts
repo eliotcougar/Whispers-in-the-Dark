@@ -15,7 +15,7 @@ interface UseInventoryDisplayProps {
     knownUse?: KnownUse
   ) => void;
   readonly onDropItem: (itemName: string) => void;
-  readonly handleArchiveToggle: (itemName: string) => void;
+  readonly onArchiveToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
 }
@@ -25,7 +25,7 @@ export const useInventoryDisplay = ({
   items,
   onItemInteract,
   onDropItem,
-  handleArchiveToggle,
+  onArchiveToggle,
   onReadPage,
   onWriteJournal,
 }: UseInventoryDisplayProps) => {
@@ -84,11 +84,11 @@ export const useInventoryDisplay = ({
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const name = event.currentTarget.dataset.itemName;
       if (name) {
-        handleArchiveToggle(name);
+        onArchiveToggle(name);
         event.currentTarget.blur();
       }
     },
-    [handleArchiveToggle],
+    [onArchiveToggle],
   );
 
   const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
