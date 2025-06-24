@@ -8,6 +8,7 @@ import InventoryItem from './InventoryItem';
 import InventorySortControls from './InventorySortControls';
 import InventoryFilterControls from './InventoryFilterControls';
 import { useInventoryDisplay } from '../../hooks/useInventoryDisplay';
+import { useLayoutEffect, useRef, useCallback } from 'react';
 
 interface InventoryDisplayProps {
   readonly items: Array<Item>;
@@ -56,6 +57,44 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
     onReadPage,
     onWriteJournal,
   });
+
+  const itemElementMap = useRef(new Map<string, HTMLLIElement>());
+  const prevRectsRef = useRef(new Map<string, DOMRect>());
+
+  const registerItemRef = useCallback((el: HTMLLIElement | null) => {
+    if (!el) return;
+    const name = el.dataset.itemName;
+    if (name) {
+      itemElementMap.current.set(name, el);
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    const newRects = new Map<string, DOMRect>();
+    itemElementMap.current.forEach((el, name) => {
+      newRects.set(name, el.getBoundingClientRect());
+    });
+
+    prevRectsRef.current.forEach((prevRect, name) => {
+      const newRect = newRects.get(name);
+      const el = itemElementMap.current.get(name);
+      if (!newRect || !el) return;
+      const dx = prevRect.left - newRect.left;
+      const dy = prevRect.top - newRect.top;
+      if (dx !== 0 || dy !== 0) {
+        el.style.transition = 'transform 0.2s';
+        el.style.transform = `translate(${String(dx)}px, ${String(dy)}px)`;
+        requestAnimationFrame(() => {
+          el.style.transform = '';
+        });
+        setTimeout(() => {
+          el.style.transition = '';
+        }, 200);
+      }
+    });
+
+    prevRectsRef.current = newRects;
+  }, [displayedItems]);
 
   return (
     <div className="bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700 h-full">
@@ -117,6 +156,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onArchiveToggle, 
                 onStartConfirmDiscard={handleStartConfirmDiscard}
                 onVehicleToggle={handleVehicleToggle}
                 onArchiveToggle={handleArchiveToggleInternal}
+                registerRef={registerItemRef}
                 onWrite={handleWrite}
               />
             );

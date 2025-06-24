@@ -22,6 +22,7 @@ interface InventoryItemProps {
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onWrite: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onArchiveToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly registerRef?: (el: HTMLLIElement | null) => void;
 }
 
 function InventoryItem({
@@ -42,13 +43,16 @@ function InventoryItem({
   onRead,
   onWrite,
   onArchiveToggle,
+  registerRef,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isArchiving ? 'animate-archive-fade-out' : ''} flex flex-col`}
+      data-item-name={item.name}
       key={item.name}
+      ref={registerRef}
     >
       <div className="flex justify-between items-center mb-1 text-xs">
         <ItemTypeDisplay type={item.type} />
@@ -262,5 +266,9 @@ function InventoryItem({
     </li>
   );
 }
+
+InventoryItem.defaultProps = {
+  registerRef: undefined,
+};
 
 export default InventoryItem;

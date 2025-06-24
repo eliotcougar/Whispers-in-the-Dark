@@ -70,7 +70,8 @@ export function isValidItemForSave(item: unknown): item is Item {
         maybe.knownUses.every((ku: KnownUse) =>
           typeof ku.actionName === 'string' &&
           typeof ku.promptEffect === 'string' &&
-          (ku.description === undefined || typeof ku.description === 'string') &&
+          ((ku as { description?: unknown }).description === undefined ||
+            typeof (ku as { description?: unknown }).description === 'string') &&
           (ku.appliesWhenActive === undefined || typeof ku.appliesWhenActive === 'boolean') &&
           (ku.appliesWhenInactive === undefined || typeof ku.appliesWhenInactive === 'boolean')
         )))
