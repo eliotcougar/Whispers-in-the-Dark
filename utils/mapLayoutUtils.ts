@@ -60,7 +60,7 @@ export const applyNestedCircleLayout = (
     if (!node) throw new Error(`Node ${nodeId} missing in layout`);
     const childIds = childrenByParent.get(nodeId) ?? [];
 
-    if (node.data.nodeType === 'feature' || childIds.length === 0) {
+    if (childIds.length === 0) {
       node.data.visualRadius = BASE_FEATURE_RADIUS;
       node.position = { x: 0, y: 0 };
       return node.data.visualRadius;
