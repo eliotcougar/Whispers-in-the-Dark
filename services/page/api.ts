@@ -23,7 +23,7 @@ export const generatePageText = async (
     return null;
   }
 
-  const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
+  const questLine = currentQuest ? `"${currentQuest}"` : 'Not set';
   const thoughtsLine = storytellerThoughts;
   const previousChapterLine = previousChapterText ?? '';
   const prompt = `You are a writer providing the exact contents of a written item in a video game.
@@ -31,7 +31,7 @@ export const generatePageText = async (
   Theme Name: "${themeName}";
   Theme Description: "${themeDescription}";
   Scene Description: "${sceneDescription}";
-  Current Player's Quest: "${questLine}";
+  Current Player's Quest: ${questLine};
   Storyteller's thoughts for the last turn: "${thoughtsLine}" (use these as your background knowledge and possible adventure guidance);
 
   Known Locations:
