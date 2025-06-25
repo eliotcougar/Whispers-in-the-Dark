@@ -63,18 +63,19 @@ Respond ONLY with a JSON array of strings, e.g.:
   "The mayor's daughter vanished last year."
 ]`;
 
-export const DISTILL_SYSTEM_INSTRUCTION = `You are the Loremaster refining accumulated facts.
-
+export const DISTILL_SYSTEM_INSTRUCTION = `You are the Loremaster refining and pruning accumulated facts.
 Look for statements that describe the same idea and merge them into a single, more specific fact.
-Delete a fact if it is tier 1 and being merged into another fact and increase the tier of the surviving fact by one when merging.
+Increase the tier of the merged fact by one.
 
-After merging, look for obsolete facts that reference items, characters, or places that no longer exist according to the context data.
-Delete a fact of any tier if it is obsolete.
+Prune facts that reference obsolete or irrelevant details, such as:
+- places that no longer exist;
+- items that no longer exist;
+- old quest and objective that is different from the current quest and objective.
 
 Respond ONLY with a JSON object of the form:
 {
-  "observations": "string",
-  "rationale": "string",
+  "observations": "string", /* REQUIRED. Minimum 500 chars. Observations about the lore state, e.g. "There are 3 facts that can be merged." */
+  "rationale": "string", /* REQUIRED. Minimum 500 chars. Rationale for the changes, e.g. "The facts about the old tavern are no longer relevant." */
   "factsChange": [
     { "action": "change", "id": 1, "fact": { "text": "string", "tier": 2 } },
     { "action": "delete", "id": 2 }
