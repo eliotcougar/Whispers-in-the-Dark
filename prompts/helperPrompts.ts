@@ -8,6 +8,8 @@ import {
   VALID_ITEM_TYPES_STRING,
   VALID_TAGS_STRING,
   WRITING_TAGS_STRING,
+  MIN_BOOK_CHAPTERS,
+  MAX_BOOK_CHAPTERS,
 } from '../constants';
 
 export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
@@ -102,7 +104,7 @@ Examples illustrating the hint style:
     "type": "book",
     "description": "Weathered log of travels.",
     "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
-    "chapters": [ /* No less than 4. Anywhere from 4 to 10 chapters. */
+    "chapters": [ /* Anywhere from ${String(MIN_BOOK_CHAPTERS)} to ${String(MAX_BOOK_CHAPTERS)} chapters. */
       { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
         "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
         "contentLength": 50 /* REQUIRED. Length of the content in words. Range: 50-500 */
