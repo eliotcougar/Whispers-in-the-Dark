@@ -104,6 +104,10 @@
   color: #c0a87b;
 }
 
+.tag-faded.tag-gothic:not(.tag-recovered) {
+  color: #4e4129;
+}
+
 .tag-smudged:not(.tag-recovered) {
   color: #4b3621;
   filter: blur(1px);
