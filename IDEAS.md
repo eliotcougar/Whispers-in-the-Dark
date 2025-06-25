@@ -6,11 +6,12 @@ Using items is a mess, they have their own states.
 
 v1.4. Ink and Quill update
   + Notebook item type with real text notes inside.
+  - Notebook/Journal as a core feature of the game instead of an item that can be lost.
   + Book item type with real chapters inside.
   + Page item type as a single page book subtype.
   + Fact list, storing random static facts. Loremaster AI that extracts small immutable facts.
   + Librarian AI: Selects relevant facts from the fact list before each turn.
-  - Inspect action on written materials to inject contents into Storyteller AI and Loremaster AI.
+  + Inspect action on written materials to inject contents into Storyteller AI and Loremaster AI.
 
 v1.5? On the Road update
   - Mobile Locations, large multi-crew vehicles (Ships, Airships, Spaseships, ...)
