@@ -17,6 +17,7 @@ import {
   InventoryTab,
   MainAITab,
   MapDataFullTab,
+  LoreTab,
   MapLocationAITab,
   PlaygroundTab,
   LoremasterAITab,
@@ -46,6 +47,7 @@ type DebugTab =
   | "Inventory"
   | "NPCs"
   | "MapDataFull"
+  | "Lore"
   | "ThemeHistory"
   | "GameLog"
   | "TravelPath"
@@ -87,6 +89,7 @@ function DebugView({
     { name: "Inventory", label: "Inventory" },
     { name: "NPCs", label: "NPCs" },
     { name: "MapDataFull", label: "Map Data" },
+    { name: "Lore", label: "Lore" },
     { name: "ThemeHistory", label: "Theme History" },
     { name: "GameLog", label: "Game Log" },
     { name: "TravelPath", label: "Travel Path" },
@@ -129,6 +132,14 @@ function DebugView({
         return <NPCsTab npcs={currentState.allNPCs} />;
       case 'MapDataFull':
         return <MapDataFullTab mapData={currentState.mapData} />;
+      case 'Lore':
+        return (
+          <LoreTab
+            themeFacts={currentState.themeFacts.filter(
+              fact => fact.themeName === currentState.currentThemeName
+            )}
+          />
+        );
       case 'ThemeHistory':
         return <ThemeHistoryTab themeHistory={currentState.themeHistory} />;
       case 'GameLog':

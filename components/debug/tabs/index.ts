@@ -6,6 +6,7 @@ export { default as InventoryAITab } from './InventoryAITab';
 export { default as InventoryTab } from './InventoryTab';
 export { default as MainAITab } from './MainAITab';
 export { default as MapDataFullTab } from './MapDataFullTab';
+export { default as LoreTab } from './LoreTab';
 export { default as MapLocationAITab } from './MapLocationAITab';
 export { default as LoremasterAITab } from './LoremasterAITab';
 export { default as MiscStateTab } from './MiscStateTab';
