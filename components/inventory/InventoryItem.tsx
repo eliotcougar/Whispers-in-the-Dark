@@ -57,7 +57,7 @@ function InventoryItem({
     !isConfirmingDiscard &&
     item.type !== 'vehicle' &&
     item.type !== 'status effect' &&
-    (!isWrittenItem || item.stashed === true);
+    (!isWrittenItem || item.stashed === true || filterMode === 'stashed');
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isStashing ? 'animate-archive-fade-out' : ''} flex flex-col`}
