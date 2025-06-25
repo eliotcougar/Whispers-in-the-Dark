@@ -133,20 +133,20 @@ export const LOADING_REASONS = [
 ] as const;
 
 export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { text: string; icon: string }> = {
-  storyteller: { text: 'Dungeon Master is thinking...', icon: '██' },
-  map: { text: 'Dungeon Master is drawing the map...', icon: '▓▓' },
-  correction: { text: 'Dungeon Master is fixing mistakes...', icon: '○' },
+  storyteller: { text: 'Dungeon Master is thinking...', icon: '░░' },
+  map: { text: 'Dungeon Master is drawing the map...', icon: '░░' },
+  correction: { text: 'Dungeon Master is fixing mistakes...', icon: '▓' },
   inventory: { text: 'Dungeon Master is handling items...', icon: '░░' },
-  dialogue_turn: { text: 'The conversation continues...', icon: '○' },
-  dialogue_summary: { text: 'Concluding dialogue...', icon: '○' },
-  dialogue_memory_creation: { text: 'Forming memories...', icon: '○' },
-  dialogue_conclusion_summary: { text: 'Returning to the world...', icon: '○' },
-  initial_load: { text: 'Loading...', icon: '▒▒' },
-  reality_shift_load: { text: 'Reality is shifting...', icon: '▒▒' },
-  visualize: { text: 'Visualizing the scene...', icon: '▒▒' },
+  dialogue_turn: { text: 'The conversation continues...', icon: '░░' },
+  dialogue_summary: { text: 'Concluding dialogue...', icon: '░░' },
+  dialogue_memory_creation: { text: 'Forming memories...', icon: '░░' },
+  dialogue_conclusion_summary: { text: 'Returning to the world...', icon: '░░' },
+  initial_load: { text: 'Loading...', icon: '░░' },
+  reality_shift_load: { text: 'Reality is shifting...', icon: '░░' },
+  visualize: { text: 'Visualizing the scene...', icon: '░░' },
   page: { text: 'Reading...', icon: '░░' },
   journal: { text: 'Writing...', icon: '░░' },
-  loremaster: { text: 'Analyzing world facts...', icon: '░░' },
+  loremaster: { text: 'Analyzing world facts...', icon: '░' },
   book: { text: 'Reading...', icon: '░░' }
 };
 
@@ -234,4 +234,4 @@ export const NODE_DESCRIPTION_INSTRUCTION =
   'a short creative description of the location, <300 chars';
 export const EDGE_DESCRIPTION_INSTRUCTION =
   'a short creative description, focusing of travel conditions of the path';
-export const ALIAS_INSTRUCTION = 'alternative names, partial names, shorthands';
+export const ALIAS_INSTRUCTION = 'alternative names, partial names, shorthands. Avoid generic common terms.';
