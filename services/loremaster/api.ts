@@ -162,6 +162,10 @@ export const collectRelevantFacts_Service = async (
 export interface DistillFactsParams {
   themeName: string;
   facts: Array<ThemeFact>;
+  currentQuest: string | null;
+  currentObjective: string | null;
+  inventoryItemNames: Array<string>;
+  mapNodeNames: Array<string>;
 }
 
 export interface DistillFactsServiceResult {
@@ -182,9 +186,23 @@ export const distillFacts_Service = async (
     console.error('distillFacts_Service: API not configured');
     return null;
   }
-  const { themeName, facts } = params;
+  const {
+    themeName,
+    facts,
+    currentQuest,
+    currentObjective,
+    inventoryItemNames,
+    mapNodeNames,
+  } = params;
 
-  const prompt = buildDistillFactsPrompt(themeName, facts);
+  const prompt = buildDistillFactsPrompt(
+    themeName,
+    facts,
+    currentQuest,
+    currentObjective,
+    inventoryItemNames,
+    mapNodeNames,
+  );
 
   const result = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
