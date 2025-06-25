@@ -7,6 +7,7 @@ vi.mock('../services/modelDispatcher', () => ({
 import { dispatchAIRequest } from '../services/modelDispatcher';
 import { fetchCorrectedNodeType_Service } from '../services/corrections/placeDetails.ts';
 import { fetchCorrectedEdgeType_Service } from '../services/corrections/edgeFixes.ts';
+import { fetchCorrectedItemTag_Service } from '../services/corrections/item.ts';
 
 const mockedDispatch = vi.mocked(dispatchAIRequest);
 
@@ -22,6 +23,21 @@ describe('correction heuristics', () => {
       description: 'secret tunnel',
     });
     expect(edgeType).toBe('secret_passage');
+
+    const tag = await fetchCorrectedItemTag_Service(
+      'rune-inscribed',
+      'Stone Tablet',
+      'A weathered slab covered in strange symbols.',
+      {
+        name: '',
+        systemInstructionModifier: '',
+        initialMainQuest: '',
+        initialCurrentObjective: '',
+        initialSceneDescriptionSeed: '',
+        initialItems: '',
+      },
+    );
+    expect(tag).toBe('runic');
 
     expect(mockedDispatch).not.toHaveBeenCalled();
   });

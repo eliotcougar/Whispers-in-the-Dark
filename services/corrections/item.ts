@@ -2,7 +2,7 @@
  * @file services/corrections/item.ts
  * @description Correction helpers for item related data.
  */
-import { Item, AdventureTheme, ItemChange, ItemChapter } from '../../types';
+import { Item, AdventureTheme, ItemChange, ItemChapter, ItemTag } from '../../types';
 import {
   MAX_RETRIES,
   VALID_ITEM_TYPES_STRING,
@@ -17,6 +17,12 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
+import {
+  TAG_SYNONYMS,
+  createTagHeuristicRegexes,
+  normalizeTag,
+} from '../../utils/tagSynonyms';
+import { VALID_TAGS_STRING, VALID_TAGS } from '../../constants';
 
 /**
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
@@ -243,6 +249,72 @@ If no action can be confidently determined, respond with an empty string.`;
       }
     } catch (error: unknown) {
       console.error(`fetchCorrectedItemAction_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
+      throw error;
+    }
+    return { result: null };
+  });
+};
+
+export const fetchCorrectedItemTag_Service = async (
+  proposedTag: string,
+  itemName: string,
+  itemDescription: string,
+  currentTheme: AdventureTheme,
+): Promise<ItemTag | null> => {
+  const direct = normalizeTag(proposedTag);
+  if (direct) return direct;
+
+  const heuristics = createTagHeuristicRegexes();
+  for (const [regex, tag] of heuristics) {
+    if (
+      regex.test(proposedTag) ||
+      regex.test(itemName) ||
+      regex.test(itemDescription)
+    ) {
+      return tag;
+    }
+  }
+
+  if (!isApiConfigured()) {
+    console.error('fetchCorrectedItemTag_Service: API Key not configured.');
+    return null;
+  }
+
+  const prompt = `Resolve an ambiguous item tag to one of the valid tags.
+Candidate tag: "${proposedTag}"
+Item name: "${itemName}"
+Description: "${itemDescription}"
+Theme Guidance: "${currentTheme.systemInstructionModifier}"
+Valid tags: ${VALID_TAGS_STRING}
+Respond ONLY with the single best tag.`;
+
+  const systemInstruction = `Map ambiguous item tag synonyms to canonical tags. Choose from: ${VALID_TAGS_STRING}.`;
+
+  return retryAiCall<ItemTag>(async attempt => {
+    try {
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const aiResponse = response.text?.trim();
+      if (aiResponse) {
+        const cleaned = aiResponse.replace(/^['"]+|['"]+$/g, '').trim().toLowerCase();
+        const mapped = TAG_SYNONYMS[cleaned] ?? cleaned;
+        if ((VALID_TAGS as ReadonlyArray<string>).includes(mapped as ItemTag)) {
+          return { result: mapped as ItemTag };
+        }
+      }
+    } catch (error: unknown) {
+      console.error(
+        `fetchCorrectedItemTag_Service error (Attempt ${String(attempt + 1)}/${String(
+          MAX_RETRIES + 1,
+        )}):`,
+        error,
+      );
       throw error;
     }
     return { result: null };

@@ -13,14 +13,22 @@ import {
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
-import { AdventureTheme, ItemChange, NewItemSuggestion } from '../../types';
+import {
+  AdventureTheme,
+  ItemChange,
+  NewItemSuggestion,
+  Item,
+  ItemTag,
+} from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
 import { parseInventoryResponse, InventoryAIPayload } from './responseParser';
 import {
   fetchCorrectedItemChangeArray_Service,
   fetchAdditionalBookChapters_Service,
+  fetchCorrectedItemTag_Service,
 } from '../corrections';
 import { addProgressSymbol } from '../../utils/loadingProgress';
+import { normalizeTag } from '../../utils/tagSynonyms';
 
 /**
  * Executes the inventory AI call using model fallback.
@@ -72,6 +80,31 @@ const mergeBookChaptersFromSuggestions = (
       }
     }
   }
+};
+
+const resolveItemTags = async (
+  item: Item,
+  currentTheme: AdventureTheme,
+): Promise<void> => {
+  if (!item.tags || item.tags.length === 0) return;
+  const final: Array<ItemTag> = [];
+  for (const raw of item.tags) {
+    const direct = normalizeTag(raw);
+    if (direct) {
+      if (!final.includes(direct)) final.push(direct);
+      continue;
+    }
+    const corrected = await fetchCorrectedItemTag_Service(
+      raw,
+      item.name,
+      item.description,
+      currentTheme,
+    );
+    if (corrected && !final.includes(corrected)) {
+      final.push(corrected);
+    }
+  }
+  item.tags = final;
 };
 
 export const applyInventoryHints_Service = async (
@@ -146,6 +179,7 @@ export const applyInventoryHints_Service = async (
           }
         }
       }
+      await resolveItemTags(change.item as Item, currentTheme);
     }
   }
   return {
