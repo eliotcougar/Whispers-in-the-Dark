@@ -195,22 +195,6 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
-  const handleArchiveToggle = useCallback(
-    (name: string) => {
-      const currentFullState = getCurrentGameState();
-      if (isLoading || currentFullState.dialogueState) return;
-
-      const draftState = structuredCloneGameState(currentFullState);
-      draftState.inventory = draftState.inventory.map(item =>
-        item.name === name && item.holderId === PLAYER_HOLDER_ID
-          ? { ...item, archived: !item.archived }
-          : item,
-      );
-      draftState.lastTurnChanges = currentFullState.lastTurnChanges;
-      commitGameState(draftState);
-    },
-    [getCurrentGameState, commitGameState, isLoading],
-  );
 
   const handleStashToggle = useCallback(
     (name: string) => {
@@ -229,43 +213,6 @@ export const useInventoryActions = ({
     [getCurrentGameState, commitGameState, isLoading],
   );
 
-  const handleForgetItem = useCallback(
-    (name: string) => {
-      const currentFullState = getCurrentGameState();
-      if (isLoading || currentFullState.dialogueState) return;
-
-      const itemToForget = currentFullState.inventory.find(
-        item => item.name === name && item.holderId === PLAYER_HOLDER_ID,
-      );
-      if (!itemToForget) return;
-
-      const draftState = structuredCloneGameState(currentFullState);
-      draftState.inventory = draftState.inventory.filter(
-        item => !(item.name === name && item.holderId === PLAYER_HOLDER_ID),
-      );
-
-      const itemChangeRecord: ItemChangeRecord = {
-        type: 'loss',
-        lostItem: { ...itemToForget },
-      };
-      draftState.lastTurnChanges = {
-        itemChanges: [itemChangeRecord],
-        characterChanges: [],
-        objectiveAchieved: false,
-        objectiveTextChanged: false,
-        mainQuestTextChanged: false,
-        localTimeChanged: false,
-        localEnvironmentChanged: false,
-        localPlaceChanged: false,
-        currentMapNodeIdChanged: false,
-        scoreChangedBy: 0,
-        mapDataChanged: false,
-      };
-
-      commitGameState(draftState);
-    },
-    [getCurrentGameState, commitGameState, isLoading],
-  );
 
   const recordInspect = useCallback(
     (id: string): FullGameState => {
@@ -289,9 +236,7 @@ export const useInventoryActions = ({
     addJournalEntry,
     addTag,
     recordInspect,
-    handleArchiveToggle,
     handleStashToggle,
-    handleForgetItem,
   };
 };
 

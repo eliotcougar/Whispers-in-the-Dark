@@ -19,7 +19,6 @@ export function ItemTypeDisplay({ type }: ItemTypeDisplayProps): React.ReactElem
     weapon: 'text-amber-400',
     ammunition: 'text-cyan-400',
     vehicle: 'text-indigo-400',
-    knowledge: 'text-purple-400',
     'status effect': 'text-pink-400',
     page: 'text-green-400',
     journal: 'text-green-400',

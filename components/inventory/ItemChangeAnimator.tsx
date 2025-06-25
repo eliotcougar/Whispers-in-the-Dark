@@ -75,7 +75,7 @@ function ItemChangeAnimator({ lastTurnChanges, isGameBusy }: ItemChangeAnimatorP
           size="sm"
         />
 
-        {(item.type !== 'knowledge' && item.type !== 'status effect' && item.type !== 'vehicle') && (
+        {item.type !== 'status effect' && item.type !== 'vehicle' && (
           <Button
             aria-hidden="true"
             ariaLabel="Attempt to Use (Generic)"
