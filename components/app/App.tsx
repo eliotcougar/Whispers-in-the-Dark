@@ -686,13 +686,7 @@ function App() {
                 currentMapNodeId={currentMapNodeId}
                 currentObjective={currentObjective}
                 currentThemeName={currentTheme ? currentTheme.name : null}
-                disabled={
-                  isLoading ||
-                  !!dialogueState ||
-                  effectiveIsTitleMenuOpen ||
-                  isCustomGameSetupVisible ||
-                  isManualShiftThemeSelectionVisible
-                }
+                disabled={isLoading || isAnyModalOrDialogueActive}
                 enableMobileTap={enableMobileTap}
                 globalTurnNumber={globalTurnNumber}
                 inventory={inventory}
