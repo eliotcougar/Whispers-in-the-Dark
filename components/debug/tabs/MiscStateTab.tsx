@@ -16,7 +16,7 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
       isAwaitingManualShiftThemeSelection: currentState.isAwaitingManualShiftThemeSelection,
       isCustomGameMode: currentState.isCustomGameMode,
       lastTurnChangesBrief: currentState.lastTurnChanges ? {
-        chars: currentState.lastTurnChanges.characterChanges.length,
+        npcs: currentState.lastTurnChanges.npcChanges.length,
         items: currentState.lastTurnChanges.itemChanges.length,
         mapChanged: currentState.lastTurnChanges.mapDataChanged,
         objAchieved: currentState.lastTurnChanges.objectiveAchieved,

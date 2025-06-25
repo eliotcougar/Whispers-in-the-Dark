@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Item, ItemChapter, MapData, Character, AdventureTheme } from '../../types';
-import { formatKnownPlacesForPrompt, charactersToString } from '../../utils/promptFormatters';
+import { Item, ItemChapter, MapData, NPC, AdventureTheme } from '../../types';
+import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
 import { rot13, toRunic } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
@@ -14,7 +14,7 @@ interface PageViewProps {
   readonly currentScene: string;
   readonly storytellerThoughts: string;
   readonly mapData: MapData;
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly currentQuest: string | null;
   readonly isVisible: boolean;
   readonly startIndex?: number;
@@ -28,7 +28,7 @@ function PageView({
   currentScene,
   storytellerThoughts,
   mapData,
-  allCharacters,
+  allNPCs,
   currentQuest,
   isVisible,
   startIndex = 0,
@@ -170,12 +170,12 @@ function PageView({
     return formatKnownPlacesForPrompt(nodes, true);
   }, [mapData, themeName]);
 
-  const knownCharacters = useMemo(() => {
-    const chars = allCharacters.filter(c => c.themeName === themeName);
-    return chars.length > 0
-      ? charactersToString(chars, ' - ', false, false, false, true)
+  const knownNPCs = useMemo(() => {
+    const npcs = allNPCs.filter(npc => npc.themeName === themeName);
+    return npcs.length > 0
+      ? npcsToString(npcs, ' - ', false, false, false, true)
       : 'None specifically known in this theme yet.';
-  }, [allCharacters, themeName]);
+  }, [allNPCs, themeName]);
 
   useEffect(() => {
     if (!isVisible || !item) {
@@ -211,7 +211,7 @@ function PageView({
         currentScene,
         storytellerThoughts,
         knownPlaces,
-        knownCharacters,
+        knownNPCs,
         currentQuest,
         'Write it exclusively in English without any foreign, encrypted, or gibberish text.',
         item.type === 'book' && idx > 0 ? chapters[idx - 1].actualContent ?? '' : undefined
@@ -228,7 +228,7 @@ function PageView({
             currentScene,
             storytellerThoughts,
             knownPlaces,
-            knownCharacters,
+            knownNPCs,
             currentQuest,
             `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
           );
@@ -253,7 +253,7 @@ function PageView({
     currentScene,
     storytellerThoughts,
     knownPlaces,
-    knownCharacters,
+    knownNPCs,
     currentQuest,
     updateItemContent,
   ]);

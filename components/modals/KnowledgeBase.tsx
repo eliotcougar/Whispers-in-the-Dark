@@ -1,27 +1,27 @@
 
 /**
  * @file KnowledgeBase.tsx
- * @description Displays discovered characters and theme info.
+ * @description Displays discovered NPCs.
  */
 import * as React from 'react';
-import { Character, AdventureTheme } from '../../types';
+import { NPC, AdventureTheme } from '../../types';
 import { Icon } from '../elements/icons';
 import Button from '../elements/Button';
 
 interface KnowledgeBaseProps {
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly currentTheme: AdventureTheme | null; // Changed to AdventureTheme object
   readonly isVisible: boolean;
   readonly onClose: () => void;
 }
 
-type GroupedEntities = Record<string, Array<Character> | undefined>;
+type GroupedEntities = Record<string, Array<NPC> | undefined>;
 
 /**
- * Lists discovered characters grouped by their associated theme.
+ * Lists discovered NPCs grouped by their associated theme.
  */
 function KnowledgeBase({
-  allCharacters,
+  allNPCs: allNPCs,
   currentTheme, // This is now AdventureTheme | null
   isVisible,
   onClose,
@@ -29,16 +29,16 @@ function KnowledgeBase({
   const groupedEntities = React.useMemo(() => {
     const grouped: GroupedEntities = {};
 
-    allCharacters.forEach(character => {
-      let bucket = grouped[character.themeName];
+    allNPCs.forEach(npc => {
+      let bucket = grouped[npc.themeName];
       if (!bucket) {
         bucket = [];
-        grouped[character.themeName] = bucket;
+        grouped[npc.themeName] = bucket;
       }
-      bucket.push(character);
+      bucket.push(npc);
     });
     return grouped;
-  }, [allCharacters]);
+  }, [allNPCs]);
 
   const sortedThemeNames = React.useMemo(() => {
     return Object.keys(groupedEntities).sort((a, b) => {
@@ -80,9 +80,9 @@ function KnowledgeBase({
           </p> : null}
 
           {isVisible ? sortedThemeNames.map(themeName => {
-            const characters = groupedEntities[themeName] ?? [];
+            const npcs = groupedEntities[themeName] ?? [];
 
-            if (characters.length === 0) { 
+            if (npcs.length === 0) { 
               return null; 
             }
 
@@ -102,21 +102,21 @@ function KnowledgeBase({
                   </span> : null}
                 </h2>
                 
-                {characters.length > 0 && (
+                {npcs.length > 0 && (
                   <>
                     <h3 className="text-xl font-semibold text-emerald-400 mt-4 mb-2">
-                      Characters
+                      NPCs
                     </h3>
 
                     <div className="kb-card-grid">
-                      {characters.map(character => {
+                      {npcs.map(npc => {
                         let locationDisplay: React.ReactNode;
-                        const isCurrentThemeCharacter = currentTheme && themeName === currentTheme.name;
+                        const isCurrentThemeNPC = currentTheme && themeName === currentTheme.name;
 
-                        if (isCurrentThemeCharacter && (character.presenceStatus === 'companion' || character.presenceStatus === 'nearby')) {
-                          const iconName = character.presenceStatus === 'companion' ? 'companion' : 'nearbyNpc';
-                          const statusText = character.presenceStatus === 'companion' ? '(Companion)' : '(Nearby)';
-                          const colorClass = character.presenceStatus === 'companion' ? 'text-green-300' : 'text-sky-300';
+                        if (isCurrentThemeNPC && (npc.presenceStatus === 'companion' || npc.presenceStatus === 'nearby')) {
+                          const iconName = npc.presenceStatus === 'companion' ? 'companion' : 'nearbyNpc';
+                          const statusText = npc.presenceStatus === 'companion' ? '(Companion)' : '(Nearby)';
+                          const colorClass = npc.presenceStatus === 'companion' ? 'text-green-300' : 'text-sky-300';
                           locationDisplay = (
                             <p className="text-sm text-slate-300 flex items-center">
                               <Icon
@@ -128,7 +128,7 @@ function KnowledgeBase({
                               />
 
                               <span className={`ml-1 ${colorClass} italic`}>
-                                {character.preciseLocation ?? ''}
+                                {npc.preciseLocation ?? ''}
 
                                 {' '}
 
@@ -136,16 +136,16 @@ function KnowledgeBase({
                               </span>
                             </p>
                           );
-                        } else if (character.lastKnownLocation && character.lastKnownLocation !== "Unknown") { 
+                        } else if (npc.lastKnownLocation && npc.lastKnownLocation !== "Unknown") { 
                            locationDisplay = (
                              <p className="text-sm text-slate-300 flex items-center">
                                <span className="ml-1 italic">
-                                 {character.lastKnownLocation}
+                                 {npc.lastKnownLocation}
 
                                  {' '}
                                  (
 
-                                 {character.presenceStatus}
+                                 {npc.presenceStatus}
                                  )
                                </span>
                              </p>
@@ -155,7 +155,7 @@ function KnowledgeBase({
                              <p className="text-sm text-slate-500 flex items-center">
                                <span className="ml-1 italic">
                                  (
-                                 {character.presenceStatus}
+                                 {npc.presenceStatus}
                                  , Location Unknown)
                                </span>
                              </p>
@@ -165,19 +165,19 @@ function KnowledgeBase({
                         return (
                           <div
                             className="kb-card"
-                            key={`${themeName}-char-${character.name}`}
+                            key={`${themeName}-npc-${npc.name}`}
                           >
                             <div className="kb-card-name-header">
-                              {character.name}
+                              {npc.name}
                             </div>
 
-                            {character.aliases && character.aliases.length > 0 ? <p className="kb-card-aliases">
+                            {npc.aliases && npc.aliases.length > 0 ? <p className="kb-card-aliases">
                               Aliases:
-                              {character.aliases.join(', ')}
+                              {npc.aliases.join(', ')}
                             </p> : null}
 
                             <p className="kb-card-description">
-                              {character.description}
+                              {npc.description}
                             </p>
 
                             <div className="mt-2 pt-2 border-t border-slate-600">

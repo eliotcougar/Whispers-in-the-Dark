@@ -365,7 +365,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     loadingReason,
     error,
     themeHistory: currentFullState.themeHistory,
-    allCharacters: currentFullState.allCharacters,
+    allNPCs: currentFullState.allNPCs,
     mapData: currentFullState.mapData,
     currentMapNodeId: currentFullState.currentMapNodeId,
     destinationNodeId: currentFullState.destinationNodeId,

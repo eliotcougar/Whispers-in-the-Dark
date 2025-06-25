@@ -59,7 +59,7 @@ export const getInitialGameStates = (): FullGameState => {
     themeHistory: {},
     themeFacts: [],
     pendingNewThemeNameAfterShift: null,
-    allCharacters: [],
+    allNPCs: [],
     mapData: { nodes: [], edges: [] },
     currentMapNodeId: null,
     destinationNodeId: null,

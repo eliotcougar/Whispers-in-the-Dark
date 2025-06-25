@@ -198,10 +198,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
               (targetNode?.themeName !== themeObjToLoad.name)
             );
           });
-        draftState.allCharacters = previousState.allCharacters.filter((c) => c.themeName !== themeObjToLoad.name);
+        draftState.allNPCs = previousState.allNPCs.filter((npc) => npc.themeName !== themeObjToLoad.name);
       } else {
         draftState.mapData = { nodes: [], edges: [] };
-        draftState.allCharacters = [];
+        draftState.allNPCs = [];
         draftState.themeHistory = {};
         draftState.score = 0;
         draftState.inventory = [];
@@ -220,7 +220,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         isTransitioningFromShift,
         themeMemory: hasExistingHistory ? draftState.themeHistory[themeObjToLoad.name] : undefined,
         mapDataForTheme: draftState.mapData,
-        charactersForTheme: draftState.allCharacters.filter(c => c.themeName === themeObjToLoad.name),
+        npcsForTheme: draftState.allNPCs.filter(npc => npc.themeName === themeObjToLoad.name),
       });
       draftState.lastDebugPacket = {
         prompt,
@@ -257,7 +257,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           () => { setParseErrorCounter(1); },
           undefined,
           undefined,
-          draftState.allCharacters.filter((c) => c.themeName === themeObjToLoad.name),
+          draftState.allNPCs.filter((npc) => npc.themeName === themeObjToLoad.name),
           currentThemeMapDataForParse,
           draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
@@ -446,12 +446,12 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.lastDebugPacket.rawResponseText = response.text ?? null;
       draftState.lastDebugPacket.storytellerThoughts = thoughts;
 
-      const currentThemeCharacters = draftState.allCharacters.filter(
-        (c) => c.themeName === currentThemeObj.name,
+      const currentThemeNPCs = draftState.allNPCs.filter(
+        (npc) => npc.themeName === currentThemeObj.name,
       );
       const currentThemeMapDataForParse = {
         nodes: draftState.mapData.nodes.filter(
-          (n) => n.themeName === currentThemeObj.name,
+          (node) => node.themeName === currentThemeObj.name,
         ),
         edges: draftState.mapData.edges.filter((e) => {
           const sourceNode = draftState.mapData.nodes.find(
@@ -474,7 +474,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         () => { setParseErrorCounter(1); },
         currentFullState.lastActionLog ?? undefined,
         currentFullState.currentScene,
-        currentThemeCharacters,
+        currentThemeNPCs,
         currentThemeMapDataForParse,
         currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
       );

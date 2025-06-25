@@ -23,7 +23,7 @@ export const generateJournalEntry = async (
   sceneDescription: string,
   storytellerThoughts: string,
   knownPlaces: string,
-  knownCharacters: string,
+  knownNPCs: string,
   recentLogEntries: Array<string>,
   currentQuest: string | null,
 ): Promise<GeneratedJournalEntry | null> => {
@@ -43,8 +43,8 @@ export const generateJournalEntry = async (
 
   Known Locations:
   ${knownPlaces}
-  Known Characters:
-  ${knownCharacters}
+  Known NPCs:
+  ${knownNPCs}
   Previous Journal Entry:
   ${previousEntry}
 

@@ -9,7 +9,7 @@ import { Icon } from '../elements/icons';
 import { GameStateStack, DebugPacket, FullGameState } from '../../types';
 import { TravelStep } from '../../utils/mapPathfinding';
 import {
-  CharactersTab,
+  NPCsTab,
   DialogueAITab,
   GameLogTab,
   GameStateTab,
@@ -44,7 +44,7 @@ type DebugTab =
   | "DialogueAI"
   | "LoremasterAI"
   | "Inventory"
-  | "Characters"
+  | "NPCs"
   | "MapDataFull"
   | "ThemeHistory"
   | "GameLog"
@@ -85,7 +85,7 @@ function DebugView({
     { name: "LoremasterAI", label: "Loremaster AI" },
     { name: "DialogueAI", label: "Dialogue AI" },
     { name: "Inventory", label: "Inventory" },
-    { name: "Characters", label: "Characters" },
+    { name: "NPCs", label: "NPCs" },
     { name: "MapDataFull", label: "Map Data" },
     { name: "ThemeHistory", label: "Theme History" },
     { name: "GameLog", label: "Game Log" },
@@ -125,8 +125,8 @@ function DebugView({
         return <DialogueAITab debugPacket={debugPacket} />;
       case 'Inventory':
         return <InventoryTab inventory={currentState.inventory} />;
-      case 'Characters':
-        return <CharactersTab characters={currentState.allCharacters} />;
+      case 'NPCs':
+        return <NPCsTab npcs={currentState.allNPCs} />;
       case 'MapDataFull':
         return <MapDataFullTab mapData={currentState.mapData} />;
       case 'ThemeHistory':

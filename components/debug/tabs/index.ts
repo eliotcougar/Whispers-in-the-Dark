@@ -1,4 +1,4 @@
-export { default as CharactersTab } from './CharactersTab';
+export { default as NPCsTab } from './NPCsTab';
 export { default as DialogueAITab } from './DialogueAITab';
 export { default as GameLogTab } from './GameLogTab';
 export { default as GameStateTab } from './GameStateTab';

@@ -81,7 +81,7 @@ For "knownUses" (array of objects) or "addKnownUse" (single object): Each "Known
   specificActionInstructions = `Based *strictly* on Log/Scene and malformed payload:
   - Provide "name", "type", "description" for the gained item. These MUST be non-empty.
   - Choose "type" from: ${VALID_ITEM_TYPES_STRING}. The 'type' CANNOT be 'junk'. If the item is junk, add "junk" to its "tags" array and pick a suitable type.
-  - Provide "holderId" referencing the correct location or character. Use 'player' only if the item goes to the Player's inventory.
+  - Provide "holderId" referencing the correct location or NPC. Use 'player' only if the item goes to the Player's inventory.
   - "isActive" defaults to false. The "tags" array defaults to []. "status effect" items can never have the "junk" tag.
   - For items with type "page", provide a numeric "contentLength" (up to 250 words).
   - "knownUses" is optional.

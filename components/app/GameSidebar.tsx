@@ -4,14 +4,14 @@ import InventoryDisplay from '../inventory/InventoryDisplay';
 import { useMemo } from 'react';
 import { buildHighlightableEntities } from '../../utils/highlightHelper';
 import {
-  Character,
+  NPC,
   Item,
   KnownUse,
   MapNode,
 } from '../../types';
 
 interface GameSidebarProps {
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly currentMapNodeId: string | null;
   readonly currentObjective: string | null;
   readonly currentThemeName: string | null;
@@ -36,7 +36,7 @@ interface GameSidebarProps {
 }
 
 function GameSidebar({
-  allCharacters,
+  allNPCs: allNPCs,
   currentMapNodeId,
   currentObjective,
   currentThemeName,
@@ -60,10 +60,10 @@ function GameSidebar({
       buildHighlightableEntities(
         inventory,
         mapNodes,
-        allCharacters,
+        allNPCs,
         currentThemeName,
       ),
-    [inventory, mapNodes, allCharacters, currentThemeName],
+    [inventory, mapNodes, allNPCs, currentThemeName],
   );
 
   return (

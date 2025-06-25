@@ -6,7 +6,7 @@
 import {
   AdventureTheme,
   Item,
-  Character,
+  NPC,
   MapData,
   MapNode,
   ThemeMemory,
@@ -16,7 +16,7 @@ import {
   itemsToString,
   formatKnownPlacesForPrompt,
   formatMapContextForPrompt,
-  charactersToString,
+  npcsToString,
   formatRecentEventsForPrompt,
   formatDetailedContextForMentionedEntities,
   formatTravelPlanLine,
@@ -87,26 +87,26 @@ export const buildReturnToThemePostShiftPrompt = (
   playerGender: string,
   themeMemory: ThemeMemory,
   mapDataForTheme: MapData,
-  currentThemeCharacters: Array<Character>
+  currentThemeNPCs: Array<NPC>
 ): string => {
   const inventoryPrompt = itemsToString(inventory, ' - ');
   const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
-    n => n.themeName === theme.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+    node => node.themeName === theme.name && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
   );
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
 
-    // Filter characters that are companions, as they are traveling with the player
-  const companions = currentThemeCharacters.filter(c => c.presenceStatus === 'companion');
+    // Filter NPCs that are companions, as they are traveling with the player
+  const companions = currentThemeNPCs.filter(npc => npc.presenceStatus === 'companion');
   const companionStrings =
-    companions.length > 0 ? charactersToString(companions, ' - ', false, false, false, true) : 'None';
-  // Filter characters that are nearby, as they are currently present and can be interacted with
-  const nearbyChars = currentThemeCharacters.filter(c => c.presenceStatus === 'nearby');
+    companions.length > 0 ? npcsToString(companions, ' - ', false, false, false, true) : 'None';
+  // Filter NPCs that are nearby, as they are currently present and can be interacted with
+  const nearbyNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'nearby');
   const nearbyStrings =
-    nearbyChars.length > 0 ? charactersToString(nearbyChars, ' - ', false, false, false, true) : 'None';
-  // Filter characters that are distant or unknown, as they are not currently present but may be relevant
-  const knownChars = currentThemeCharacters.filter(c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown');
-  const charactersStrings =
-    knownChars.length > 0 ? charactersToString(knownChars, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
+    nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, false, false, true) : 'None';
+  // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
+  const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
+  const npcsStrings =
+    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
 
   const prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
@@ -125,13 +125,13 @@ ${inventoryPrompt}
 ## Known Locations:
 ${placesContext}
 
-## Known Characters (including presence):
-${charactersStrings}
+## Known NPCs (including presence):
+${npcsStrings}
 
 ## Companions traveling with the Player:
 ${companionStrings}
 
-## Characters Player can interact with (nearby):
+## NPCs Player can interact with (nearby):
 ${nearbyStrings}
 
 Describe the scene as they re-enter, potentially in a state of confusion from the shift, making it feel like a continuation or a new starting point consistent with the Adventure Summary and current quest/objective.
@@ -155,7 +155,7 @@ export const buildMainGameTurnPrompt = (
   currentTheme: AdventureTheme,
   recentLogEntries: Array<string>,
   currentThemeMainMapNodes: Array<MapNode>,
-  currentThemeCharacters: Array<Character>,
+  currentThemeNPCs: Array<NPC>,
   relevantFacts: Array<string>,
   localTime: string | null,
   localEnvironment: string | null,
@@ -171,18 +171,18 @@ export const buildMainGameTurnPrompt = (
   const locationItemsStrings =
     locationItems.length > 0 ? `There are items at this location: \n${itemsToString(locationItems, ' - ')}` : `There are no visible items at this location.`;
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
-  // Filter characters that are companions, as they are traveling with the player
-  const companions = currentThemeCharacters.filter(c => c.presenceStatus === 'companion');
+  // Filter NPCs that are companions, as they are traveling with the player
+  const companions = currentThemeNPCs.filter(npc => npc.presenceStatus === 'companion');
   const companionStrings =
-    companions.length > 0 ? charactersToString(companions, ' - ', false, false, false, true) : 'None';
-  // Filter characters that are nearby, as they are currently present and can be interacted with
-  const nearbyChars = currentThemeCharacters.filter(c => c.presenceStatus === 'nearby');
+    companions.length > 0 ? npcsToString(companions, ' - ', false, false, false, true) : 'None';
+  // Filter NPCs that are nearby, as they are currently present and can be interacted with
+  const nearbyNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'nearby');
   const nearbyStrings =
-    nearbyChars.length > 0 ? charactersToString(nearbyChars, ' - ', false, false, false, true) : 'None';
-  // Filter characters that are distant or unknown, as they are not currently present but may be relevant
-  const knownChars = currentThemeCharacters.filter(c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown');
-  const charactersStrings =
-    knownChars.length > 0 ? charactersToString(knownChars, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
+    nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, false, false, true) : 'None';
+  // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
+  const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
+  const NPCsStrings =
+    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
 
   const relevantFactsSection =
     relevantFacts.length > 0 ? relevantFacts.map(f => `- ${f}`).join('\n') : 'None';
@@ -226,10 +226,10 @@ export const buildMainGameTurnPrompt = (
 
   const detailedEntityContext = formatDetailedContextForMentionedEntities(
     currentThemeMainMapNodes,
-    currentThemeCharacters,
+    currentThemeNPCs,
     `${currentScene} ${playerAction}`,
     '### Details on relevant locations mentioned in current scene or action:',
-    '### Details on relevant characters mentioned in current scene or action:'
+    '### Details on relevant NPCs mentioned in current scene or action:'
   );
 
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
@@ -251,13 +251,13 @@ ${locationItemsStrings}
 ### Known Locations:
 ${placesContext}
 
-### Known Characters:
-${charactersStrings}
+### Known NPCs:
+${NPCsStrings}
 
 ### Companions traveling with the Player:
 ${companionStrings}
 
-### Characters Player can interact with (nearby):
+### NPCs Player can interact with (nearby):
 ${nearbyStrings}
 
 ### Current Map Context (including your location, possible exits, nearby paths, and other nearby locations):

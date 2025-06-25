@@ -92,9 +92,9 @@ ${MAP_NODE_TYPE_GUIDE}
 ${MAP_EDGE_TYPE_GUIDE}
 
 CRITICAL INSTRUCTIONS:
-- All nodes MUST represent physical locations. NEVER add small items and characters to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Feature-type nodes represent sub-spaces within larger spaces. NEVER create nodes that represent inventory items.
+- All nodes MUST represent physical locations. NEVER add small items and NPCs to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Feature-type nodes represent sub-spaces within larger spaces. NEVER create nodes that represent inventory items.
 - IMPORTANT: Large multi-crew vehicles (e.g., ships, airships, spaceships, trains) can be represented as nodes if they are significant locations in the narrative. They should have a "nodeType" of "exterior" and MUST have sub-nodes for their interior spaces. When creating a node for a large vehicle, ensure it has a "description" that indicates its size and purpose, and that it contains a significant number of constituent nodes required for the large vehicle operation (e.g. main deck, engine room, captain's quarters, cargo hold, bridge, observation deck, reactor room, life support, etc.). At least one of the feature nodes must be clearly defined as a connection point to the outer world (e.g., "Docking Bay", "Hangar", "Airlock", "Gang Plank" etc.).
-- When considering a new location, check existing item and character names (including aliases). If the name matches or closely resembles one, SKIP adding that node and omit any edges that would connect to it.
+- When considering a new location, check existing item and NPC names (including aliases). If the name matches or closely resembles one, SKIP adding that node and omit any edges that would connect to it.
 - Node Data for "nodesToAdd":
     - "description", "aliases", and "status" are ALWAYS REQUIRED in the "data" field for ALL added nodes.
     - "description" must be ${NODE_DESCRIPTION_INSTRUCTION}.

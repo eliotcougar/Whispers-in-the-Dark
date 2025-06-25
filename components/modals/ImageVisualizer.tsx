@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { geminiClient as ai, isApiConfigured } from '../../services/apiClient';
 import type { Part } from '@google/genai';
-import { AdventureTheme, Character, MapNode } from '../../types';
+import { AdventureTheme, NPC, MapNode } from '../../types';
 import LoadingSpinner from '../LoadingSpinner';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';
 import { dispatchAIRequest } from '../../services/modelDispatcher';
@@ -37,7 +37,7 @@ interface ImageVisualizerProps {
   readonly currentSceneDescription: string;
   readonly currentTheme: AdventureTheme | null;
   readonly mapData: Array<MapNode>; 
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly localTime: string | null; 
   readonly localEnvironment: string | null; 
   readonly localPlace: string | null;
@@ -55,7 +55,7 @@ function ImageVisualizer({
   currentSceneDescription,
   currentTheme, // This is now AdventureTheme | null
   mapData,
-  allCharacters,
+  allNPCs: allNPCs,
   localTime,
   localEnvironment,
   localPlace,
@@ -192,11 +192,11 @@ function ImageVisualizer({
         }
       });
 
-    const mentionedCharacters: Array<string> = [];
-    allCharacters.forEach(character => {
-      if (character.themeName === currentTheme.name && currentSceneDescription.toLowerCase().includes(character.name.toLowerCase())) {
-        rawPrompt += ` ${character.name} here, appearing as: ${character.description}.`;
-        mentionedCharacters.push(character.name);
+    const mentionedNPCs: Array<string> = [];
+    allNPCs.forEach(npc => {
+      if (npc.themeName === currentTheme.name && currentSceneDescription.toLowerCase().includes(npc.name.toLowerCase())) {
+        rawPrompt += ` ${npc.name} here, appearing as: ${npc.description}.`;
+        mentionedNPCs.push(npc.name);
       }
     });
     
@@ -304,7 +304,7 @@ function ImageVisualizer({
     } finally {
       setIsLoading(false);
     }
-  }, [currentSceneDescription, currentTheme, mapData, allCharacters, localTime, localEnvironment, localPlace, setGeneratedImage]);
+  }, [currentSceneDescription, currentTheme, mapData, allNPCs, localTime, localEnvironment, localPlace, setGeneratedImage]);
 
   const handleRetry = useCallback(() => {
     void generateImage();

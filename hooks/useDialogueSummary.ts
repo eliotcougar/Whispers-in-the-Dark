@@ -19,7 +19,7 @@ import {
   executeDialogueSummary,
   executeMemorySummary,
 } from '../services/dialogue';
-import { MAX_LOG_MESSAGES, MAX_DIALOGUE_SUMMARIES_PER_CHARACTER, PLAYER_HOLDER_ID } from '../constants';
+import { MAX_LOG_MESSAGES, MAX_DIALOGUE_SUMMARIES_PER_NPC, PLAYER_HOLDER_ID } from '../constants';
 import { addLogMessageToList } from '../utils/gameLogicUtils';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
@@ -108,24 +108,24 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       dialogueParticipants: finalParticipants,
       dialogueLog: finalHistory,
     };
-    const characterMemoryText = await executeMemorySummary(memorySummaryContext);
+    const npcMemoryText = await executeMemorySummary(memorySummaryContext);
 
     const newSummaryRecord: DialogueSummaryRecord = {
-      summaryText: characterMemoryText ?? 'A conversation took place, but the details are hazy.',
+      summaryText: npcMemoryText ?? 'A conversation took place, but the details are hazy.',
       participants: finalParticipants,
       timestamp: workingGameState.localTime ?? 'Unknown Time',
       location: workingGameState.localPlace ?? 'Unknown Location',
     };
 
-    workingGameState.allCharacters = workingGameState.allCharacters.map((char) => {
-      if (finalParticipants.includes(char.name) && char.themeName === currentThemeObj.name) {
-        const newSummaries = [...(char.dialogueSummaries ?? []), newSummaryRecord];
-        if (newSummaries.length > MAX_DIALOGUE_SUMMARIES_PER_CHARACTER) {
+    workingGameState.allNPCs = workingGameState.allNPCs.map((npc) => {
+      if (finalParticipants.includes(npc.name) && npc.themeName === currentThemeObj.name) {
+        const newSummaries = [...(npc.dialogueSummaries ?? []), newSummaryRecord];
+        if (newSummaries.length > MAX_DIALOGUE_SUMMARIES_PER_NPC) {
           newSummaries.shift();
         }
-        return { ...char, dialogueSummaries: newSummaries };
+        return { ...npc, dialogueSummaries: newSummaries };
       }
-      return char;
+      return npc;
     });
 
     setLoadingReason('dialogue_conclusion_summary');
@@ -145,8 +145,8 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       localEnvironment: workingGameState.localEnvironment,
       localPlace: workingGameState.localPlace,
       mapDataForTheme: mapDataForSummary,
-      knownCharactersInTheme: workingGameState.allCharacters.filter((c) => c.themeName === currentThemeObj.name),
-      inventory: workingGameState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+      knownNPCsInTheme: workingGameState.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
+      inventory: workingGameState.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
       playerGender: playerGenderProp,
       dialogueLog: finalHistory,
       dialogueParticipants: finalParticipants,

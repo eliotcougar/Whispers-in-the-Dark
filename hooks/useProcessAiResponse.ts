@@ -168,24 +168,24 @@ const handleInventoryHints = async ({
   baseInventoryForPlayer: Array<Item>;
 }> => {
   const baseInventoryForPlayer = baseState.inventory.filter(
-    (i) => i.holderId === PLAYER_HOLDER_ID,
+    (item) => item.holderId === PLAYER_HOLDER_ID,
   );
   const locationInventory = baseState.inventory.filter(
-    (i) => i.holderId === baseState.currentMapNodeId,
+    (item) => item.holderId === baseState.currentMapNodeId,
   );
-  const companionChars = baseState.allCharacters.filter(
-    (c) => c.presenceStatus === 'companion',
+  const companionNPCs = baseState.allNPCs.filter(
+    (npc) => npc.presenceStatus === 'companion',
   );
-  const nearbyChars = baseState.allCharacters.filter(
-    (c) => c.presenceStatus === 'nearby',
+  const nearbyNPCs = baseState.allNPCs.filter(
+    (npc) => npc.presenceStatus === 'nearby',
   );
 
-  const formatCharInventoryList = (chars: typeof companionChars): string => {
-    if (chars.length === 0) return 'None.';
-    return chars
-      .map((ch) => {
-        const items = baseState.inventory.filter((i) => i.holderId === ch.id);
-        return `ID: ${ch.id} - ${ch.name}: ${itemsToString(items, ' - ')}`;
+  const formatNPCInventoryList = (npcs: typeof companionNPCs): string => {
+    if (npcs.length === 0) return 'None.';
+    return npcs
+      .map((npc) => {
+        const items = baseState.inventory.filter((i) => i.holderId === npc.id);
+        return `ID: ${npc.id} - ${npc.name}: ${itemsToString(items, ' - ')}`;
       })
       .join('\n');
   };
@@ -209,8 +209,8 @@ const handleInventoryHints = async ({
       itemsToString(baseInventoryForPlayer, ' - '),
       itemsToString(locationInventory, ' - '),
       baseState.currentMapNodeId ?? null,
-      formatCharInventoryList(companionChars),
-      formatCharInventoryList(nearbyChars),
+      formatNPCInventoryList(companionNPCs),
+      formatNPCInventoryList(nearbyNPCs),
       'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
       aiData.logMessage,
       theme,
@@ -300,7 +300,7 @@ export const useProcessAiResponse = ({
 
       const turnChanges: TurnChanges = {
         itemChanges: [],
-        characterChanges: [],
+        npcChanges: [],
         objectiveAchieved: false,
         objectiveTextChanged: false,
         mainQuestTextChanged: false,

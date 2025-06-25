@@ -10,13 +10,13 @@ import {
   TurnChanges,
   MapNode,
   LoadingReason,
-  ValidNewCharacterPayload,
-  ValidCharacterUpdatePayload
+  ValidNewNPCPayload,
+  ValidNPCUpdatePayload
 } from '../types';
 import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/cartographer';
 import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/corrections';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
-import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
+import { buildNPCChangeRecords, applyAllNPCChanges } from './gameLogicUtils';
 import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
 import {
   existsNonRumoredPath,
@@ -53,7 +53,7 @@ export const handleMapUpdates = async (
       knownMainMapNodesForTheme,
       baseStateSnapshot.currentMapNodeId,
       draftState.inventory,
-      draftState.allCharacters
+      draftState.allNPCs
     );
     setLoadingReason(originalLoadingReason);
 
@@ -129,11 +129,11 @@ export const handleMapUpdates = async (
   );
 
   const themeName = themeContextForResponse.name;
-  const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as Array<ValidNewCharacterPayload>;
-  const charactersUpdatedFromAI = ('charactersUpdated' in aiData && aiData.charactersUpdated ? aiData.charactersUpdated : []) as Array<ValidCharacterUpdatePayload>;
-  if (charactersAddedFromAI.length > 0 || charactersUpdatedFromAI.length > 0) {
-    turnChanges.characterChanges = buildCharacterChangeRecords(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
-    draftState.allCharacters = applyAllCharacterChanges(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
+  const npcsAddedFromAI = ('npcsAdded' in aiData && aiData.npcsAdded ? aiData.npcsAdded : []) as Array<ValidNewNPCPayload>;
+  const npcsUpdatedFromAI = ('npcsUpdated' in aiData && aiData.npcsUpdated ? aiData.npcsUpdated : []) as Array<ValidNPCUpdatePayload>;
+  if (npcsAddedFromAI.length > 0 || npcsUpdatedFromAI.length > 0) {
+    turnChanges.npcChanges = buildNPCChangeRecords(npcsAddedFromAI, npcsUpdatedFromAI, themeName, draftState.allNPCs);
+    draftState.allNPCs = applyAllNPCChanges(npcsAddedFromAI, npcsUpdatedFromAI, themeName, draftState.allNPCs);
   }
 
   const oldMapNodeId = baseStateSnapshot.currentMapNodeId;

@@ -1,25 +1,25 @@
 import { describe, it, expect } from 'vitest';
-import { buildCharacterChangeRecords, applyAllCharacterChanges } from '../utils/characterUtils';
-import type { ValidNewCharacterPayload } from '../types';
+import { buildNPCChangeRecords, applyAllNPCChanges } from '../utils/npcUtils';
+import type { ValidNewNPCPayload } from '../types';
 
-describe('characterUtils', () => {
-  it('applyAllCharacterChanges adds new character', () => {
-    const newChar: ValidNewCharacterPayload = {
+describe('npcUtils', () => {
+  it('applyAllNPCChanges adds new NPC', () => {
+    const newNPC: ValidNewNPCPayload = {
       name: 'Alice',
       description: 'An adventurer',
     };
-    const result = applyAllCharacterChanges([newChar], [], 'theme', []);
+    const result = applyAllNPCChanges([newNPC], [], 'theme', []);
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('Alice');
   });
 
-  it('buildCharacterChangeRecords returns add record', () => {
-    const newChar: ValidNewCharacterPayload = {
+  it('buildNPCChangeRecords returns add record', () => {
+    const newNPC: ValidNewNPCPayload = {
       name: 'Bob',
       description: 'NPC',
     };
-    const records = buildCharacterChangeRecords([newChar], [], 'theme', []);
-    expect(records[0].characterName).toBe('Bob');
+    const records = buildNPCChangeRecords([newNPC], [], 'theme', []);
+    expect(records[0].npcName).toBe('Bob');
     expect(records[0].type).toBe('add');
   });
 });

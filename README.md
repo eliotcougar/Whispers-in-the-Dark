@@ -1,6 +1,6 @@
 # Whispers in the Dark
 
-An AI-powered text adventure built with React and TypeScript. The game uses Google's Gemini models to generate the narrative, handle conversations, and create scene images.  Reality frequently shifts between different themes such as dungeon crawls, Greek myths, or samurai tales.  Players manage an inventory, explore a node based map of locations, talk to characters, and can manually or randomly switch realities.
+An AI-powered text adventure built with React and TypeScript. The game uses Google's Gemini models to generate the narrative, handle conversations, and create scene images.  Reality frequently shifts between different themes such as dungeon crawls, Greek myths, or samurai tales.  Players manage an inventory, explore a node based map of locations, talk to NPCs, and can manually or randomly switch realities.
 
 ## Getting Started
 
@@ -25,9 +25,9 @@ An AI-powered text adventure built with React and TypeScript. The game uses Goog
 
 - AI driven story generation with optional custom starting theme.
 - Dynamic map with nodes and edges that update based on the narrative.
-- Dialogue system with memory summaries so characters remember past talks.
+- Dialogue system with memory summaries so NPCs remember past talks.
 - Manual and random "Reality Shifts" that change the current theme.
-- Items can reside in any character inventory or map location, and all such
+- Items can reside in any NPC's inventory or map location, and all such
   items are included when viewing or saving the full game state.
 - Save/Load to local files plus automatic local storage saves.
 - Map display, knowledge base, image visualizer and more.

@@ -116,7 +116,7 @@ export const upgradeFeaturesWithChildren = async (
       if (childNodes.length > 0) {
         const decision = await decideFeatureHierarchyUpgrade_Service(node, childNodes[0], currentTheme);
         if (decision === 'convert_child') {
-          childNodes.forEach(c => { c.data.parentNodeId = node.data.parentNodeId; });
+          childNodes.forEach(child => { child.data.parentNodeId = node.data.parentNodeId; });
         } else {
           const res = upgradeFeatureToRegion(working, node.id, 'Temp Approach');
           working = res.updatedMapData;

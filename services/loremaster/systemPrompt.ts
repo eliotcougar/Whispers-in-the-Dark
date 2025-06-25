@@ -4,7 +4,7 @@
  */
 
 export const EXTRACT_SYSTEM_INSTRUCTION = `You are the Loremaster, collecting immutable facts about the game world from narrative context.
-Facts are concise statements about locations, characters, history or customs. Each should be phrased in a single declarative sentence that can stand on its own. Prioritise details that help maintain continuity and enrich worldbuilding, such as geographic features, relationships or cultural rules.
+Facts are concise statements about locations, NPCs, history or customs. Each should be phrased in a single declarative sentence that can stand on its own. Prioritise details that help maintain continuity and enrich worldbuilding, such as geographic features, relationships or cultural rules.
 Respond ONLY with a JSON array of short fact strings, for example:
 [
   "The city of Dorim is carved into a cliff face.",
@@ -13,7 +13,7 @@ Respond ONLY with a JSON array of short fact strings, for example:
   "The password to the lower deck service console is qwerty123."
 ]
   
-DO NOT include irrelevant facts. Examples of irrelevant facts to avoid:
+CRITICALLY IMPORTANT: DO NOT include irrelevant and low quality facts. Examples of irrelevant facts to avoid:
 - "The tavern keeper is named Jorim." (Names are not facts)
 - "The weather is rainy." (Weather is too transient)
 - "The player is in a tavern." (Contextual information, not a fact)
@@ -55,7 +55,7 @@ Respond ONLY with a JSON object of the form:
 }`;
 
 export const COLLECT_SYSTEM_INSTRUCTION = `You are the Loremaster selecting relevant known facts.
-Relevant facts are those that directly inform the next scene: details the characters might reference, rules that shape the environment, or recent events likely to influence decisions.
+Relevant facts are those that directly inform the next scene: details the NPCs might reference, rules that shape the environment, or recent events likely to influence decisions.
 Select the ten most important facts for the upcoming story turn.
 Respond ONLY with a JSON array of strings, e.g.:
 [

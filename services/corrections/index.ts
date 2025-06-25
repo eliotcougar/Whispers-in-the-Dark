@@ -2,7 +2,7 @@
  * @file services/corrections/index.ts
  * @description Central exports for correction helpers.
  */
-export * from './character';
+export * from './npc';
 export * from './item';
 export * from './map';
 export * from './placeDetails';

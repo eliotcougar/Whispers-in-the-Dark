@@ -8,7 +8,7 @@ import {
   ThemeHistoryState,
   ThemeMemory,
   AdventureTheme,
-  Character,
+  NPC,
   ThemePackName,
   KnownUse,
   MapData,
@@ -28,7 +28,7 @@ import {
 import { ALL_THEME_PACK_NAMES } from '../../themes';
 import { getDefaultMapLayoutConfig } from '../../hooks/useMapUpdates';
 import { DEFAULT_VIEWBOX } from '../../constants';
-import { buildCharacterId, buildItemId } from '../../utils/entityUtils';
+import { buildNPCId, buildItemId } from '../../utils/entityUtils';
 
 // --- Validation Helpers for SavedGameDataShape (V3) ---
 export function isValidDialogueSummaryRecord(record: unknown): record is DialogueSummaryRecord {
@@ -91,8 +91,8 @@ export function isValidThemeHistory(history: unknown): history is ThemeHistorySt
         typeof entry.currentObjective !== 'string' ||
         !Array.isArray(entry.placeNames) ||
         !entry.placeNames.every((name: unknown) => typeof name === 'string') ||
-        !Array.isArray(entry.characterNames) ||
-        !entry.characterNames.every((name: unknown) => typeof name === 'string')
+        !Array.isArray(entry.npcNames) ||
+        !entry.npcNames.every((name: unknown) => typeof name === 'string')
       )
         return false;
     }
@@ -112,9 +112,9 @@ export function isValidThemeFact(fact: unknown): fact is ThemeFact {
   );
 }
 
-export function isValidCharacterForSave(character: unknown): character is Character {
-  if (!character || typeof character !== 'object') return false;
-  const maybe = character as Partial<Character>;
+export function isValidNPCForSave(npc: unknown): npc is NPC {
+  if (!npc || typeof npc !== 'object') return false;
+  const maybe = npc as Partial<NPC>;
   return (
     typeof maybe.id === 'string' &&
     maybe.id.trim() !== '' &&
@@ -247,7 +247,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
     'inventory', 'gameLog', 'lastActionLog', 'themeHistory', 'themeFacts',
     'pendingNewThemeNameAfterShift',
-    'allCharacters', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
+    'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
     'turnsSinceLastShift', 'globalTurnNumber', 'isCustomGameMode'
   ];
@@ -297,7 +297,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     return false;
   }
   if (obj.pendingNewThemeNameAfterShift !== null && typeof obj.pendingNewThemeNameAfterShift !== 'string') { console.warn('Invalid save data (V3): pendingNewThemeNameAfterShift type.'); return false; }
-  if (!Array.isArray(obj.allCharacters) || !obj.allCharacters.every(isValidCharacterForSave)) { console.warn('Invalid save data (V3): allCharacters.'); return false; }
+  if (!Array.isArray(obj.allNPCs) || !obj.allNPCs.every(isValidNPCForSave)) { console.warn('Invalid save data (V3): allNPCs.'); return false; }
   if (!isValidMapData(obj.mapData)) { console.warn('Invalid save data (V3): mapData.'); return false; }
   if (obj.currentMapNodeId !== null && typeof obj.currentMapNodeId !== 'string') { console.warn('Invalid save data (V3): currentMapNodeId type.'); return false; }
   if (obj.destinationNodeId !== null && typeof obj.destinationNodeId !== 'string') { console.warn('Invalid save data (V3): destinationNodeId type.'); return false; }
@@ -382,17 +382,17 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     holderId: item.holderId || PLAYER_HOLDER_ID,
   }));
   // Numeric fields and nullable strings are guaranteed by validation
-  data.allCharacters = data.allCharacters.map((c: unknown) => {
-    const char = c as Partial<Character>;
+  data.allNPCs = data.allNPCs.map((npc: unknown) => {
+    const oneNpc = npc as Partial<NPC>;
     return {
-      ...char,
-      id: char.id ?? buildCharacterId(char.name ?? ''),
-      aliases: char.aliases ?? [],
-      presenceStatus: char.presenceStatus ?? 'unknown',
-      lastKnownLocation: char.lastKnownLocation ?? null,
-      preciseLocation: char.preciseLocation ?? null,
-      dialogueSummaries: char.dialogueSummaries ?? [],
-    } as Character;
+      ...oneNpc,
+      id: oneNpc.id ?? buildNPCId(oneNpc.name ?? ''),
+      aliases: oneNpc.aliases ?? [],
+      presenceStatus: oneNpc.presenceStatus ?? 'unknown',
+      lastKnownLocation: oneNpc.lastKnownLocation ?? null,
+      preciseLocation: oneNpc.preciseLocation ?? null,
+      dialogueSummaries: oneNpc.dialogueSummaries ?? [],
+    } as NPC;
   });
   data.mapViewBox = typeof data.mapViewBox === 'string' ? data.mapViewBox : DEFAULT_VIEWBOX;
   if (!Array.isArray(data.themeFacts)) {

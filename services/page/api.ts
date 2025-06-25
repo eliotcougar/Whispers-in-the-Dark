@@ -13,7 +13,7 @@ export const generatePageText = async (
   sceneDescription: string,
   storytellerThoughts: string,
   knownPlaces: string,
-  knownCharacters: string,
+  knownNPCs: string,
   currentQuest: string | null,
   extraInstruction = '',
   previousChapterText?: string,
@@ -36,8 +36,8 @@ export const generatePageText = async (
 
   Known Locations:
   ${knownPlaces}
-  Known Characters:
-  ${knownCharacters}
+  Known NPCs:
+  ${knownNPCs}
 
   Previous Chapter:
   ${previousChapterLine}

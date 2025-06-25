@@ -56,7 +56,7 @@ export const useInventoryActions = ({
       const itemChangeRecord: ItemChangeRecord = { type: 'loss', lostItem: { ...itemToDiscard } };
       const turnChangesForDiscard: TurnChanges = {
         itemChanges: [itemChangeRecord],
-        characterChanges: [],
+        npcChanges: [],
         objectiveAchieved: false,
         objectiveTextChanged: false,
         mainQuestTextChanged: false,
@@ -120,7 +120,7 @@ export const useInventoryActions = ({
       };
       const turnChangesForTake: TurnChanges = {
         itemChanges: [itemChangeRecord],
-        characterChanges: [],
+        npcChanges: [],
         objectiveAchieved: false,
         objectiveTextChanged: false,
         mainQuestTextChanged: false,

@@ -8,7 +8,7 @@ import {
   MapData,
   MapNode,
   Item,
-  Character,
+  NPC,
   MinimalModelCallRecord,
 } from '../../types';
 import { SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION } from './systemPrompt';
@@ -32,7 +32,7 @@ export const updateMapFromAIData_Service = async (
   allKnownMainMapNodesForTheme: Array<MapNode>,
   previousMapNodeId: string | null,
   inventoryItems: Array<Item>,
-  knownCharacters: Array<Character>,
+  knownNPCs: Array<NPC>,
 ): Promise<MapUpdateServiceResult | null> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Map Update Service.');
@@ -111,7 +111,7 @@ export const updateMapFromAIData_Service = async (
     currentTheme,
     previousMapNodeId,
     inventoryItems,
-    knownCharacters,
+    knownNPCs,
     aiData,
     minimalModelCalls,
     debugInfo,

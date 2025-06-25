@@ -90,7 +90,7 @@ export const applyNestedCircleLayout = (
           (a.data.visualRadius ?? BASE_FEATURE_RADIUS)
       );
 
-    let R = Math.max(...children.map(c => c.data.visualRadius ?? BASE_FEATURE_RADIUS)) + PADDING;
+    let R = Math.max(...children.map(child => child.data.visualRadius ?? BASE_FEATURE_RADIUS)) + PADDING;
 
     for (;;) {
       let totalAngle = 0;
@@ -120,7 +120,7 @@ export const applyNestedCircleLayout = (
       currentAngle += 2 * Math.asin((rCurr + rNext + PADDING) / (2 * R)) + SMALL_ANGLE_PADDING;
     }
 
-    const maxChildRadius = Math.max(...children.map(c => c.data.visualRadius ?? BASE_FEATURE_RADIUS));
+    const maxChildRadius = Math.max(...children.map(child => child.data.visualRadius ?? BASE_FEATURE_RADIUS));
     node.data.visualRadius = R + maxChildRadius + PADDING;
     node.position = { x: 0, y: 0 };
     return node.data.visualRadius;

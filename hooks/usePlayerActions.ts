@@ -131,7 +131,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
             n.data.nodeType !== 'feature' &&
             n.data.nodeType !== 'room'
         );
-      const currentThemeCharacters = currentFullState.allCharacters.filter((c) => c.themeName === currentThemeObj.name);
+      const currentThemeNPCs = currentFullState.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name);
       const currentMapNodeDetails = currentFullState.currentMapNodeId
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
         : null;
@@ -144,10 +144,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
       const detailedContextForFacts = formatDetailedContextForMentionedEntities(
         currentThemeMainMapNodes,
-        currentThemeCharacters,
+        currentThemeNPCs,
         `${currentFullState.currentScene} ${action}`,
         'Locations mentioned:',
-        'Characters mentioned:'
+        'NPCs mentioned:'
       );
 
       const sortedFacts = [...currentFullState.themeFacts]
@@ -176,7 +176,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentThemeObj,
         recentLogs,
         currentThemeMainMapNodes,
-        currentThemeCharacters,
+        currentThemeNPCs,
         relevantFacts,
         currentFullState.localTime,
         currentFullState.localEnvironment,
@@ -236,7 +236,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           () => { setParseErrorCounter(1); },
           currentFullState.lastActionLog ?? undefined,
           currentFullState.currentScene,
-          currentThemeCharacters,
+          currentThemeNPCs,
           currentThemeMapDataForParse,
           currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );

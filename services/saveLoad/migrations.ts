@@ -115,13 +115,13 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
       stashed: item.stashed ?? false,
       holderId: item.holderId || PLAYER_HOLDER_ID,
     })),
-      allCharacters: gameState.allCharacters.map(c => ({
-        ...c,
-        aliases: c.aliases ?? [],
-        presenceStatus: c.presenceStatus,
-        lastKnownLocation: c.lastKnownLocation,
-        preciseLocation: c.preciseLocation,
-        dialogueSummaries: c.dialogueSummaries ?? [],
+      allNPCs: gameState.allNPCs.map(npc => ({
+        ...npc,
+        aliases: npc.aliases ?? [],
+        presenceStatus: npc.presenceStatus,
+        lastKnownLocation: npc.lastKnownLocation,
+        preciseLocation: npc.preciseLocation,
+        dialogueSummaries: npc.dialogueSummaries ?? [],
       })),
     mapData: mapDataForSave,
       currentMapNodeId: gameState.currentMapNodeId,
@@ -168,9 +168,9 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
   return {
     ...savedData,
     currentThemeObject: themeObjectToUse,
-    allCharacters: savedData.allCharacters.map(c => ({
-      ...c,
-      dialogueSummaries: c.dialogueSummaries ?? [],
+    allNPCs: savedData.allNPCs.map(npc => ({
+      ...npc,
+      dialogueSummaries: npc.dialogueSummaries ?? [],
     })),
     mapData: mapDataFromLoad,
     currentMapNodeId: savedData.currentMapNodeId,

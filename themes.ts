@@ -216,7 +216,7 @@ export const TESTING_THEMES: Array<AdventureTheme> = [
     systemInstructionModifier: "The world of modern fantasy in the United Kingdom. It is intended for testing locations. Create many Map Nodes of all types and statuses, and connected with edges.",
     initialMainQuest: "Move from place to place until the test is complete.",
     initialCurrentObjective: "Move somewhere",
-    initialSceneDescriptionSeed: "You are in London, a bustling city filled with magic and mystery. The streets are alive with the sounds of people, vehicles, and the occasional magical creature. Your task is to explore various locations, interact with characters, and uncover secrets.",
+    initialSceneDescriptionSeed: "You are in London, a bustling city filled with magic and mystery. The streets are alive with the sounds of people, vehicles, and the occasional magical creature. Your task is to explore various locations, interact with NPCs, and uncover secrets.",
     initialItems: "a magical compass that points to the nearest interesting location, a notebook for recording your findings, and a charm that protects you from minor magical mishaps."
   },
   {

@@ -9,7 +9,7 @@ import {
   DialogueSummaryContext,
   GameStateFromAI,
   Item,
-  Character,
+  NPC,
   MapNode,
   DialogueMemorySummaryContext,
   AdventureTheme,
@@ -78,7 +78,7 @@ export const executeDialogueTurn = async (
   localEnvironment: string | null,
   localPlace: string | null,
   knownMainMapNodesInTheme: Array<MapNode>,
-  knownCharactersInTheme: Array<Character>,
+  knownNPCsInTheme: Array<NPC>,
   inventory: Array<Item>,
   playerGender: string,
   dialogueHistory: Array<DialogueHistoryEntry>,
@@ -100,7 +100,7 @@ export const executeDialogueTurn = async (
     localEnvironment,
     localPlace,
     knownMainMapNodesInTheme,
-    knownCharactersInTheme,
+    knownNPCsInTheme: knownNPCsInTheme,
     inventory,
     playerGender,
     dialogueHistory,
@@ -188,7 +188,7 @@ export const executeDialogueSummary = async (
         undefined,
         undefined,
         undefined,
-        summaryContext.knownCharactersInTheme,
+        summaryContext.knownNPCsInTheme,
         summaryContext.mapDataForTheme,
         summaryContext.inventory,
       );
@@ -207,7 +207,7 @@ export const executeDialogueSummary = async (
 };
 
 /**
- * Generates a detailed narrative summary of a dialogue for character memory.
+ * Generates a detailed narrative summary of a dialogue for NPC memory.
  */
 export const executeMemorySummary = async (
   context: DialogueMemorySummaryContext,

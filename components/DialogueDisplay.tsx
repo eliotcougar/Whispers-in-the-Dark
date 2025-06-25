@@ -6,7 +6,7 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 
 import * as React from 'react';
-import { DialogueHistoryEntry, Item, Character, MapNode, LoadingReason } from '../types';
+import { DialogueHistoryEntry, Item, NPC, MapNode, LoadingReason } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 import LoadingSpinner from './LoadingSpinner';
 import ModelUsageIndicators from './ModelUsageIndicators';
@@ -24,7 +24,7 @@ interface DialogueDisplayProps {
   readonly isDialogueExiting?: boolean;
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>; 
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly currentThemeName: string | null;
   readonly loadingReason: LoadingReason | null; // Added prop
 }
@@ -43,7 +43,7 @@ function DialogueDisplay({
   isDialogueExiting,
   inventory,
   mapData,
-  allCharacters,
+  allNPCs: allNPCs,
   currentThemeName,
   loadingReason, // Destructure prop
 }: DialogueDisplayProps) {
@@ -72,8 +72,8 @@ function DialogueDisplay({
   }, [isLoading, isDialogueExiting, options.length, isVisible, history.length]);
 
   const entitiesForHighlighting = useMemo(
-    () => buildHighlightableEntities(inventory, mapData, allCharacters, currentThemeName),
-    [inventory, mapData, allCharacters, currentThemeName]
+    () => buildHighlightableEntities(inventory, mapData, allNPCs, currentThemeName),
+    [inventory, mapData, allNPCs, currentThemeName]
   );
 
 

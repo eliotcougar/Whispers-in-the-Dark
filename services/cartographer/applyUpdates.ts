@@ -11,7 +11,7 @@ import {
   AIMapUpdatePayload,
   MinimalModelCallRecord,
   Item,
-  Character,
+  NPC,
 } from '../../types';
 import { structuredCloneGameState } from '../../utils/cloneUtils';
 import { fetchCorrectedNodeIdentifier_Service } from '../corrections/placeDetails';
@@ -30,7 +30,7 @@ export interface ApplyMapUpdatesParams {
   currentTheme: AdventureTheme;
   previousMapNodeId: string | null;
   inventoryItems: Array<Item>;
-  knownCharacters: Array<Character>;
+  knownNPCs: Array<NPC>;
   aiData: GameStateFromAI;
   minimalModelCalls: Array<MinimalModelCallRecord>;
   debugInfo: MapUpdateDebugInfo;
@@ -49,7 +49,7 @@ export const applyMapUpdates = async ({
   currentTheme,
   previousMapNodeId,
   inventoryItems,
-  knownCharacters,
+  knownNPCs,
   aiData,
   minimalModelCalls,
   debugInfo,
@@ -141,15 +141,15 @@ export const applyMapUpdates = async ({
     norm: normalizeName(i.name),
     tokens: tokenize(i.name),
   }));
-  const charNameTokens: Array<{ norm: string; tokens: Array<string> }> = [];
-    knownCharacters.forEach(c => {
-      charNameTokens.push({ norm: normalizeName(c.name), tokens: tokenize(c.name) });
-      (c.aliases ?? []).forEach(a => {
-        charNameTokens.push({ norm: normalizeName(a), tokens: tokenize(a) });
+  const npcNameTokens: Array<{ norm: string; tokens: Array<string> }> = [];
+    knownNPCs.forEach(npc => {
+      npcNameTokens.push({ norm: normalizeName(npc.name), tokens: tokenize(npc.name) });
+      (npc.aliases ?? []).forEach(a => {
+        npcNameTokens.push({ norm: normalizeName(a), tokens: tokenize(a) });
       });
     });
 
-  const nameMatchesItemOrChar = (name: string): boolean => {
+  const nameMatchesItemOrNPC = (name: string): boolean => {
     const norm = normalizeName(name);
     const tokens = tokenize(name);
     const checkTokens = (candidate: { norm: string; tokens: Array<string> }): boolean => {
@@ -159,7 +159,7 @@ export const applyMapUpdates = async ({
       const ratioB = intersection.length / candidate.tokens.length;
       return intersection.length > 0 && ratioA >= 0.6 && ratioB >= 0.6;
     };
-    return itemNameTokens.some(checkTokens) || charNameTokens.some(checkTokens);
+    return itemNameTokens.some(checkTokens) || npcNameTokens.some(checkTokens);
   };
 
   // Proceed with map data processing using payload
@@ -217,7 +217,7 @@ export const applyMapUpdates = async ({
     edgesToAdd_mut,
     edgesToRemove_mut,
     resolveNodeReference,
-    nameMatchesItemOrChar,
+    nameMatchesItemOrNPC,
     minimalModelCalls,
     sceneDesc,
     logMsg,

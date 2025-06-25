@@ -68,7 +68,7 @@ const baseState: FullGameState = {
   themeHistory: {} as ThemeHistoryState,
   themeFacts: [],
   pendingNewThemeNameAfterShift: null,
-  allCharacters: [],
+  allNPCs: [],
   mapData: structuredCloneGameState(mapData),
   currentMapNodeId: 'universe',
   destinationNodeId: null,
@@ -107,7 +107,7 @@ const aiData = {
 
 const turnChanges: TurnChanges = {
   itemChanges: [],
-  characterChanges: [],
+  npcChanges: [],
   objectiveAchieved: false,
   objectiveTextChanged: false,
   mainQuestTextChanged: false,

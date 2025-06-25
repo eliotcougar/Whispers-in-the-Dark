@@ -77,7 +77,7 @@ Examples illustrating the hint style:
     "name": "Rusty Key",
     "type": "key",
     "description": "Opens an old door.",
-    "holderId": "char_guard_4f3a"
+    "holderId": "npc_guard_4f3a"
   }]
 
 - Example for a short page item:
@@ -102,7 +102,7 @@ Examples illustrating the hint style:
     "type": "book",
     "description": "Weathered log of travels.",
     "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
-    "chapters": [ /* Anywhere from 3 to 10 chapters. */
+    "chapters": [ /* No less than 4. Anywhere from 4 to 10 chapters. */
       { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
         "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
         "contentLength": 50 /* REQUIRED. Length of the content in words. Range: 50-500 */

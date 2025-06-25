@@ -2,7 +2,7 @@
  * @file services/corrections/dialogue.ts
  * @description Correction helper for malformed dialogue setup payloads.
  */
-import { AdventureTheme, Character, MapNode, Item, DialogueSetupPayload, DialogueAIResponse } from '../../types';
+import { AdventureTheme, NPC, MapNode, Item, DialogueSetupPayload, DialogueAIResponse } from '../../types';
 import {
   MAX_RETRIES,
   MINIMAL_MODEL_NAME,
@@ -10,7 +10,7 @@ import {
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
-import { charactersToString } from '../../utils/promptFormatters';
+import { npcsToString } from '../../utils/promptFormatters';
 import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
 import { CORRECTION_TEMPERATURE } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -28,7 +28,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
   currentTheme: AdventureTheme,
-  allRelevantCharacters: Array<Character>,
+  allRelevantNPCs: Array<NPC>,
   allRelevantMapNodes: Array<MapNode>,
   currentInventory: Array<Item>,
   playerGender: string,
@@ -39,9 +39,9 @@ export const fetchCorrectedDialogueSetup_Service = async (
     return null;
   }
 
-  const characterContext =
-    allRelevantCharacters.length > 0
-      ? charactersToString(allRelevantCharacters, ' - ')
+  const npcContext =
+    allRelevantNPCs.length > 0
+      ? npcsToString(allRelevantNPCs, ' - ')
       : 'None specifically known in this theme yet.';
   const placeContext = formatKnownPlacesForPrompt(allRelevantMapNodes, true);
   const inventoryContext = currentInventory.map(i => i.name).join(', ') || 'Empty';
@@ -60,15 +60,15 @@ Narrative Context:
  - Log Message: "${logMessageContext ?? 'Not specified'}"
  - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
  - Theme Guidance: "${currentTheme.systemInstructionModifier}"
-- Known/Available Characters for Dialogue: ${characterContext}
+- Known/Available NPCs for Dialogue: ${npcContext}
 - Known Map Locations: ${placeContext}
 - Player Inventory: ${inventoryContext}
 - Player Gender: "${playerGender}"
 
 Required JSON Structure for corrected 'dialogueSetup':
 {
-  "participants": ["Character Name 1", "Character Name 2"?],
-  "initialNpcResponses": [{ "speaker": "Character Name 1", "line": "Their first line." }],
+  "participants": ["NPC Name 1", "NPC Name 2"?],
+  "initialNpcResponses": [{ "speaker": "NPCr Name 1", "line": "Their first line." }],
   "initialPlayerOptions": []
 }
 

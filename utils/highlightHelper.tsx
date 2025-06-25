@@ -4,7 +4,7 @@
  * @description Utility for highlighting entities within text snippets.
  */
 import * as React from 'react';
-import { Item, Character, MapNode } from '../types';
+import { Item, NPC, MapNode } from '../types';
 
 const showMobileTooltip = (text: string, rect: DOMRect) => {
   const existing = document.querySelector('.highlight-tooltip');
@@ -36,12 +36,12 @@ const showMobileTooltip = (text: string, rect: DOMRect) => {
     document.addEventListener('click', handleDocumentClick);
   }, 0);
 };
-// Item and Character types are fine. Place-like entities will be mapped to HighlightableEntity.
+// Item and NPC types are fine. Place-like entities will be mapped to HighlightableEntity.
 // No direct type change needed here as long as the calling components map MapNode data to HighlightableEntity structure.
 
 export interface HighlightableEntity {
   name: string;
-  type: 'item' | 'place' | 'character';
+  type: 'item' | 'place' | 'npc';
   description: string;
   aliases?: Array<string>;
 }
@@ -126,7 +126,7 @@ const getEntityHighlightClass = (type: HighlightableEntity['type']): string => {
       return 'font-semibold text-amber-400 hover:text-amber-300 cursor-pointer'; 
     case 'place':
       return 'font-semibold text-violet-400 hover:text-violet-300 cursor-pointer';
-    case 'character':
+    case 'npc':
       return 'font-semibold text-green-300 hover:text-green-200 cursor-pointer';
     default:
       return '';
@@ -190,12 +190,12 @@ export const highlightEntitiesInText = (
 
 /**
  * Builds a list of highlightable entities from inventory items, map nodes and
- * characters for the current theme.
+ * NPCs for the current theme.
  */
 export const buildHighlightableEntities = (
   inventory: Array<Item>,
   mapData: Array<MapNode>,
-  allCharacters: Array<Character>,
+  allNPCs: Array<NPC>,
   currentThemeName: string | null
 ): Array<HighlightableEntity> => {
   const items: Array<HighlightableEntity> = inventory.map(item => ({
@@ -216,16 +216,16 @@ export const buildHighlightableEntities = (
         }))
     : [];
 
-  const characters: Array<HighlightableEntity> = currentThemeName
-    ? allCharacters
-        .filter(c => c.themeName === currentThemeName)
-        .map(c => ({
-          name: c.name,
-          type: 'character',
-          description: c.description,
-          aliases: c.aliases,
+  const npcs: Array<HighlightableEntity> = currentThemeName
+    ? allNPCs
+        .filter(npc => npc.themeName === currentThemeName)
+        .map(npc => ({
+          name: npc.name,
+          type: 'npc',
+          description: npc.description,
+          aliases: npc.aliases,
         }))
     : [];
 
-  return [...items, ...places, ...characters];
+  return [...items, ...places, ...npcs];
 };

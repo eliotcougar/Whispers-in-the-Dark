@@ -2,7 +2,7 @@
  * @file initPromptHelpers.ts
  * @description Helper for constructing initial game prompts.
  */
-import { AdventureTheme, Character, MapData, ThemeMemory, Item } from '../types';
+import { AdventureTheme, NPC, MapData, ThemeMemory, Item } from '../types';
 import { PLAYER_HOLDER_ID } from '../constants';
 import {
   buildNewGameFirstTurnPrompt,
@@ -17,7 +17,7 @@ export interface BuildInitialGamePromptOptions {
   isTransitioningFromShift: boolean;
   themeMemory?: ThemeMemory;
   mapDataForTheme?: MapData;
-  charactersForTheme?: Array<Character>;
+  npcsForTheme?: Array<NPC>;
 }
 
 /**
@@ -33,20 +33,20 @@ export const buildInitialGamePrompt = (
     isTransitioningFromShift,
     themeMemory,
     mapDataForTheme,
-    charactersForTheme,
+    npcsForTheme,
   } = options;
 
   const inventoryForPrompt = inventory.filter(i => i.holderId === PLAYER_HOLDER_ID);
 
   let prompt = '';
-  if (isTransitioningFromShift && themeMemory && mapDataForTheme && charactersForTheme) {
+  if (isTransitioningFromShift && themeMemory && mapDataForTheme && npcsForTheme) {
     prompt = buildReturnToThemePostShiftPrompt(
       theme,
       inventoryForPrompt,
       playerGender,
       themeMemory,
       mapDataForTheme,
-      charactersForTheme,
+      npcsForTheme,
     );
   } else if (isTransitioningFromShift) {
     prompt = buildNewThemePostShiftPrompt(

@@ -133,12 +133,12 @@ export type ItemChange =
 
 export interface DialogueSummaryRecord {
   summaryText: string;
-  participants: Array<string>; // Names of characters involved in that dialogue
+  participants: Array<string>; // Names of NPCs involved in that dialogue
   timestamp: string; // localTime when the dialogue occurred
   location: string; // localPlace where the dialogue occurred
 }
 
-export interface Character {
+export interface NPC {
   id: string;
   themeName: string;
   name: string;
@@ -191,7 +191,7 @@ export interface DialogueTurnContext {
   localEnvironment: string | null;
   localPlace: string | null;
   knownMainMapNodesInTheme: Array<MapNode>;
-  knownCharactersInTheme: Array<Character>;
+  knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
   playerGender: string;
   dialogueHistory: Array<DialogueHistoryEntry>;
@@ -208,7 +208,7 @@ export interface DialogueSummaryContext {
   localEnvironment: string | null;
   localPlace: string | null; // The free-text local place string
   mapDataForTheme: MapData; // Map data for the current theme (nodes and edges)
-  knownCharactersInTheme: Array<Character>;
+  knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
   playerGender: string;
   dialogueLog: Array<DialogueHistoryEntry>; 
@@ -242,20 +242,20 @@ export interface GameStateFromAI {
   currentObjective?: string;
   itemChange: Array<ItemChange>; 
   logMessage?: string;
-  charactersAdded?: Array<{ 
+  npcsAdded?: Array<{ 
     name: string; 
     description: string; 
     aliases?: Array<string>; 
-    presenceStatus?: Character['presenceStatus'];
+    presenceStatus?: NPC['presenceStatus'];
     lastKnownLocation?: string | null; 
     preciseLocation?: string | null;
   }>; 
-  charactersUpdated?: Array<{ 
+  npcsUpdated?: Array<{ 
     name: string; 
     newDescription?: string; 
     newAliases?: Array<string>; 
     addAlias?: string; 
-    newPresenceStatus?: Character['presenceStatus'];
+    newPresenceStatus?: NPC['presenceStatus'];
     newLastKnownLocation?: string | null; 
     newPreciseLocation?: string | null;
   }>;
@@ -288,7 +288,7 @@ export interface ThemeMemory {
   mainQuest: string;
   currentObjective: string;
   placeNames: Array<string>; // These will be MapNode.placeName of main map nodes in the theme
-  characterNames: Array<string>;
+  npcNames: Array<string>;
 }
 
 export type ThemeHistoryState = Record<string, ThemeMemory>;
@@ -336,17 +336,17 @@ export interface ItemChangeRecord {
   newItem?: Item;        // For 'update' (item state after update, including transformations)
 }
 
-export interface CharacterChangeRecord {
+export interface NPCChangeRecord {
   type: 'add' | 'update';
-  characterName: string; // Common identifier
-  addedCharacter?: Character; // For 'add' (will include new presence fields)
-  oldCharacter?: Character;   // For 'update' (will include old presence fields)
-  newCharacter?: Character;   // For 'update' (will include new presence fields)
+  npcName: string; // Common identifier
+  addedNPC?: NPC; // For 'add' (will include new presence fields)
+  oldNPC?: NPC;   // For 'update' (will include old presence fields)
+  newNPC?: NPC;   // For 'update' (will include new presence fields)
 }
 
 export interface TurnChanges {
   itemChanges: Array<ItemChangeRecord>;
-  characterChanges: Array<CharacterChangeRecord>;
+  npcChanges: Array<NPCChangeRecord>;
   objectiveAchieved: boolean;
   objectiveTextChanged: boolean;
   mainQuestTextChanged: boolean;
@@ -532,7 +532,7 @@ export interface FullGameState {
   themeHistory: ThemeHistoryState;
   themeFacts: Array<ThemeFact>;
   pendingNewThemeNameAfterShift: string | null;
-  allCharacters: Array<Character>;
+  allNPCs: Array<NPC>;
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
   destinationNodeId: string | null; // Optional destination node ID
@@ -576,7 +576,7 @@ export type SavedGameDataShape = Pick<
   | 'themeHistory'
   | 'themeFacts'
   | 'pendingNewThemeNameAfterShift'
-  | 'allCharacters'
+  | 'allNPCs'
   | 'mapData'
   | 'currentMapNodeId'
   | 'destinationNodeId'
@@ -604,23 +604,23 @@ export interface SavedGameStack {
 
 
 
-// Payload for a validated character update, used in parsing
-export interface ValidCharacterUpdatePayload {
+// Payload for a validated NPC update, used in parsing
+export interface ValidNPCUpdatePayload {
   name: string;
   newDescription?: string;
   newAliases?: Array<string>;
   addAlias?: string;
-  newPresenceStatus?: Character['presenceStatus'];
+  newPresenceStatus?: NPC['presenceStatus'];
   newLastKnownLocation?: string | null;
   newPreciseLocation?: string | null;
 }
 
-// Payload for a validated new character, used in parsing
-export interface ValidNewCharacterPayload {
+// Payload for a validated new NPC, used in parsing
+export interface ValidNewNPCPayload {
   name: string;
   description: string;
   aliases?: Array<string>;
-  presenceStatus?: Character['presenceStatus'];
+  presenceStatus?: NPC['presenceStatus'];
   lastKnownLocation?: string | null;
   preciseLocation?: string | null;
 }

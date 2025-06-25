@@ -8,8 +8,8 @@ import {
   ItemChapter,
   KnownUse,
   NewItemSuggestion,
-  ValidCharacterUpdatePayload,
-  ValidNewCharacterPayload,
+  ValidNPCUpdatePayload,
+  ValidNewNPCPayload,
   DialogueSetupPayload,
 } from '../../types';
 import {
@@ -261,10 +261,10 @@ export function isValidNameDescAliasesPair(
   );
 }
 
-// Specific validator for CharacterUpdate payload elements from AI
-export function isValidCharacterUpdate(obj: unknown): obj is ValidCharacterUpdatePayload {
+// Specific validator for NPCUpdate payload elements from AI
+export function isValidNPCUpdate(obj: unknown): obj is ValidNPCUpdatePayload {
     if (!obj || typeof obj !== 'object') return false;
-    const maybe = obj as Partial<ValidCharacterUpdatePayload>;
+    const maybe = obj as Partial<ValidNPCUpdatePayload>;
     if (typeof maybe.name !== 'string' || maybe.name.trim() === '') return false;
     if (maybe.newDescription !== undefined && typeof maybe.newDescription !== 'string') return false;
     if (maybe.newAliases !== undefined && !(Array.isArray(maybe.newAliases) && maybe.newAliases.every((alias: unknown) => typeof alias === 'string'))) return false;
@@ -277,15 +277,15 @@ export function isValidCharacterUpdate(obj: unknown): obj is ValidCharacterUpdat
       // This could be problematic if AI intends to set a location but omits the field.
     }
     if ((maybe.newPresenceStatus === 'distant' || maybe.newPresenceStatus === 'unknown') && maybe.newPreciseLocation != null) {
-      // console.warn("Character update: preciseLocation provided for a non-present character. This will be ignored or nulled by game logic.");
+      // console.warn("NPC update: preciseLocation provided for a non-present NPC. This will be ignored or nulled by game logic.");
     }
     return true;
 }
 
-// Validator for Character object from AI charactersAdded
-export function isValidNewCharacterPayload(obj: unknown): obj is ValidNewCharacterPayload {
+// Validator for NPC object from AI npcsAdded
+export function isValidNewNPCPayload(obj: unknown): obj is ValidNewNPCPayload {
     if (!obj || typeof obj !== 'object') return false;
-    const maybe = obj as Partial<ValidNewCharacterPayload>;
+    const maybe = obj as Partial<ValidNewNPCPayload>;
     if (typeof maybe.name !== 'string' || maybe.name.trim() === '') return false;
     if (typeof maybe.description !== 'string' || maybe.description.trim() === '') return false;
     if (maybe.aliases !== undefined && !(Array.isArray(maybe.aliases) && maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) return false;
@@ -294,10 +294,10 @@ export function isValidNewCharacterPayload(obj: unknown): obj is ValidNewCharact
     if (maybe.preciseLocation !== undefined && maybe.preciseLocation != null && typeof maybe.preciseLocation !== 'string') return false;
 
     if ((maybe.presenceStatus === 'nearby' || maybe.presenceStatus === 'companion') && maybe.preciseLocation === undefined) {
-      // console.warn("New character: preciseLocation undefined for a present character.");
+      // console.warn("New NPC: preciseLocation undefined for a present NPC.");
     }
     if ((maybe.presenceStatus === 'distant' || maybe.presenceStatus === 'unknown') && maybe.preciseLocation != null) {
-      // console.warn("New character: preciseLocation provided for a non-present character.");
+      // console.warn("New NPC: preciseLocation provided for a non-present NPC.");
     }
     return true;
 }

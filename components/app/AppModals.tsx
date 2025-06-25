@@ -8,7 +8,7 @@ import {
   AdventureTheme,
   MapData,
   MapLayoutConfig,
-  Character,
+  NPC,
   ThemeHistoryState,
   MapNode,
   Item,
@@ -24,7 +24,7 @@ interface AppModalsProps {
   readonly currentScene: string;
   readonly currentTheme: AdventureTheme;
   readonly mapData: MapData;
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly localTime: string | null;
   readonly localEnvironment: string | null;
   readonly localPlace: string | null;
@@ -84,7 +84,7 @@ function AppModals({
   currentScene,
   currentTheme,
   mapData,
-  allCharacters,
+  allNPCs,
   localTime,
   localEnvironment,
   localPlace,
@@ -137,7 +137,7 @@ function AppModals({
   return (
     <>
       <ImageVisualizer
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
         cachedImageScene={visualizerImageScene}
         cachedImageUrl={visualizerImageUrl}
         currentSceneDescription={currentScene}
@@ -152,7 +152,7 @@ function AppModals({
       />
 
       <KnowledgeBase
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
         currentTheme={currentTheme}
         isVisible={isKnowledgeBaseVisible}
         onClose={onCloseKnowledgeBase}
@@ -166,7 +166,7 @@ function AppModals({
       />
 
       <PageView
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
         currentQuest={currentQuest}
         currentScene={currentScene}
         currentTheme={currentTheme}

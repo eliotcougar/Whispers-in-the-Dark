@@ -78,14 +78,14 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
           node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
         );
-        const currentThemeCharacters = stateAfterPlayerChoice.allCharacters.filter(c => c.themeName === currentThemeObj.name);
+        const currentThemeNPCs = stateAfterPlayerChoice.allNPCs.filter(npc => npc.themeName === currentThemeObj.name);
         const recentLogs = stateAfterPlayerChoice.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
         const detailedContextForFacts = formatDetailedContextForMentionedEntities(
           currentThemeMapNodes,
-          currentThemeCharacters,
+          currentThemeNPCs,
           `${stateAfterPlayerChoice.currentScene} ${option}`,
           'Locations mentioned:',
-          'Characters mentioned:'
+          'NPCs mentioned:'
         );
         const sortedFacts = [...stateAfterPlayerChoice.themeFacts]
           .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
@@ -110,8 +110,8 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.localEnvironment,
           stateAfterPlayerChoice.localPlace,
           currentThemeMapNodes,
-          stateAfterPlayerChoice.allCharacters.filter((c) => c.themeName === currentThemeObj.name),
-          stateAfterPlayerChoice.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+          stateAfterPlayerChoice.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
+          stateAfterPlayerChoice.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
           playerGenderProp,
           historyWithPlayerChoice,
           option,

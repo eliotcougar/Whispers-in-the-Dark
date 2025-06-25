@@ -26,7 +26,7 @@ import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
 import FreeActionInput from './FreeActionInput';
-import { formatKnownPlacesForPrompt, charactersToString } from '../../utils/promptFormatters';
+import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
 import { generateJournalEntry } from '../../services/journal';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
@@ -96,7 +96,7 @@ function App() {
     currentScene, mainQuest, currentObjective, actionOptions,
     inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
     currentMapNodeId, mapLayoutConfig,
-    allCharacters,
+    allNPCs,
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
     handleItemInteraction, handleTakeLocationItem, handleRetry, executeManualRealityShift,
@@ -254,7 +254,7 @@ function App() {
     dependencies: [
       currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
       inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId,
-      mapLayoutConfig, allCharacters, score, localTime, localEnvironment, localPlace,
+      mapLayoutConfig, allNPCs, score, localTime, localEnvironment, localPlace,
       playerGender, enabledThemePacks, stabilityLevel, chaosLevel, turnsSinceLastShift,
       isCustomGameMode, isAwaitingManualShiftThemeSelection,
     ],
@@ -306,12 +306,12 @@ function App() {
       if (!currentTheme) return;
       const { name: themeName, systemInstructionModifier } = currentTheme;
       const nodes = mapData.nodes.filter(
-        n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+        node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
       );
       const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-      const chars = allCharacters.filter(c => c.themeName === themeName);
-      const knownCharacters = chars.length > 0
-        ? charactersToString(chars, ' - ', false, false, false, true)
+      const npcs = allNPCs.filter(npc => npc.themeName === themeName);
+      const knownNPCs = npcs.length > 0
+        ? npcsToString(npcs, ' - ', false, false, false, true)
         : 'None specifically known in this theme yet.';
       const prev = item.chapters?.[item.chapters.length - 1]?.actualContent ?? '';
       const entry = await generateJournalEntry(
@@ -323,7 +323,7 @@ function App() {
         currentScene,
         lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
         knownPlaces,
-        knownCharacters,
+        knownNPCs,
         gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
         mainQuest
       );
@@ -340,7 +340,7 @@ function App() {
       }
     })();
   }, [
-    allCharacters,
+    allNPCs,
     currentTheme,
     currentScene,
     gameLogic,
@@ -633,7 +633,7 @@ function App() {
                 <>
                   <div className="relative">
                     <SceneDisplay
-                      allCharacters={allCharacters}
+                      allNPCs={allNPCs}
                       currentThemeName={currentTheme ? currentTheme.name : null}
                       description={currentScene}
                       inventory={inventory}
@@ -652,7 +652,7 @@ function App() {
                   </div>
 
                 <ActionOptions
-                  allCharacters={allCharacters}
+                  allNPCs={allNPCs}
                   currentThemeName={currentTheme ? currentTheme.name : null}
                   disabled={isLoading || !!dialogueState}
                   inventory={inventory}
@@ -675,7 +675,7 @@ function App() {
               <div className="hidden lg:block bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
             ) : (
               <GameSidebar
-                allCharacters={allCharacters}
+                allNPCs={allNPCs}
                 currentMapNodeId={currentMapNodeId}
                 currentObjective={currentObjective}
                 currentThemeName={currentTheme ? currentTheme.name : null}
@@ -726,7 +726,7 @@ function App() {
       />
 
       <DialogueDisplay
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
         currentThemeName={currentTheme ? currentTheme.name : null}
         history={dialogueState?.history ?? []}
         inventory={inventory}
@@ -799,7 +799,7 @@ function App() {
       />
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
         currentMapNodeId={currentMapNodeId}
         currentQuest={mainQuest}
         currentScene={currentScene}

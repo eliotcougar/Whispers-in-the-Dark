@@ -1,4 +1,4 @@
-import { MapNode, MapData, Character, Item, FullGameState } from '../types';
+import { MapNode, MapData, NPC, Item, FullGameState } from '../types';
 import { findTravelPath, buildTravelAdjacency, TravelAdjacency } from './mapPathfinding';
 
 export const generateUniqueId = (base: string): string => {
@@ -37,7 +37,7 @@ export const findMapNodeByIdentifier = (
 ): MapNode | Array<MapNode> | undefined => {
   if (!identifier) return getAll ? [] : undefined;
 
-  const idMatch = nodes.find(n => n.id === identifier);
+  const idMatch = nodes.find(node => node.id === identifier);
   if (!getAll && idMatch) return idMatch;
 
   const sanitize = (s: string) =>
@@ -47,13 +47,13 @@ export const findMapNodeByIdentifier = (
       .trim();
 
   const normalized = sanitize(identifier);
-  const nameMatches = nodes.filter(n => sanitize(n.placeName) === normalized);
+  const nameMatches = nodes.filter(node => sanitize(node.placeName) === normalized);
   const aliasMatches = nodes
     .filter(
       n =>
         n.data.aliases?.some(a => sanitize(a) === normalized)
     )
-    .filter(n => !nameMatches.includes(n));
+    .filter(node => !nameMatches.includes(node));
 
   const adjacency: TravelAdjacency | undefined = mapData ? buildTravelAdjacency(mapData) : undefined;
   const sortByDistance = (arr: Array<MapNode>) => {
@@ -80,7 +80,7 @@ export const findMapNodeByIdentifier = (
   if (sortedAliases.length > 0) return sortedAliases[0];
 
   const lowerId = identifier.toLowerCase();
-  let partialMatch = nodes.find(n => n.id.toLowerCase().includes(lowerId));
+  let partialMatch = nodes.find(node => node.id.toLowerCase().includes(lowerId));
 
   const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
   let base: string | null = null;
@@ -89,14 +89,14 @@ export const findMapNodeByIdentifier = (
     if (m) {
       const baseStr = m[1];
       base = baseStr;
-      partialMatch = nodes.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
+      partialMatch = nodes.find(node => node.id.toLowerCase().includes(baseStr.toLowerCase()));
     }
   }
 
   if (partialMatch) return partialMatch;
 
   const normalizedBase = sanitize((base ?? identifier).replace(/_/g, ' '));
-  const byName = nodes.find(n => sanitize(n.placeName) === normalizedBase);
+  const byName = nodes.find(node => sanitize(node.placeName) === normalizedBase);
   if (byName) return byName;
   const byAlias = nodes.find(
     n => n.data.aliases?.some(a => sanitize(a) === normalizedBase),
@@ -106,24 +106,24 @@ export const findMapNodeByIdentifier = (
   return idMatch; // might be undefined
 };
 
-export const findCharacterByIdentifier = (
+export const findNPCByIdentifier = (
   identifier: string | undefined | null,
-  characters: Array<Character>,
+  npcs: Array<NPC>,
   getAll = false
-): Character | Array<Character> | undefined => {
+): NPC | Array<NPC> | undefined => {
   if (!identifier) return getAll ? [] : undefined;
 
-  const idMatch = characters.find(c => c.id === identifier);
+  const idMatch = npcs.find(npc => npc.id === identifier);
   if (!getAll && idMatch) return idMatch;
 
   const lower = identifier.toLowerCase();
-  const nameMatches = characters.filter(c => c.name.toLowerCase() === lower);
-  const aliasMatches = characters.filter(c =>
-    c.aliases?.some(a => a.toLowerCase() === lower)
-  ).filter(c => !nameMatches.includes(c));
+  const nameMatches = npcs.filter(npc => npc.name.toLowerCase() === lower);
+  const aliasMatches = npcs.filter(npc =>
+    npc.aliases?.some(a => a.toLowerCase() === lower)
+  ).filter(npc => !nameMatches.includes(npc));
 
   if (getAll) {
-    const results: Array<Character> = [];
+    const results: Array<NPC> = [];
     if (idMatch) results.push(idMatch);
     results.push(...nameMatches);
     results.push(...aliasMatches);
@@ -157,7 +157,7 @@ export const findItemByIdentifier = (
   };
 
   if (id) {
-    const idMatch = items.find(i => i.id === id);
+    const idMatch = items.find(item => item.id === id);
     if (idMatch) {
       if (nameToCheck && !cmp(idMatch.name, nameToCheck)) {
         console.warn(
@@ -171,7 +171,7 @@ export const findItemByIdentifier = (
 
   if (!id || getAll) {
     if (nameToCheck) {
-      const nameMatches = items.filter(i => cmp(i.name, nameToCheck) && (!id || i.id !== id));
+      const nameMatches = items.filter(item => cmp(item.name, nameToCheck) && (!id || item.id !== id));
       if (getAll) {
         results.push(...nameMatches);
       } else if (nameMatches.length > 0) {
@@ -198,23 +198,23 @@ export const findItemByIdentifier = (
 export const getEntityById = (
   id: string,
   state: FullGameState,
-): MapNode | Character | Item | undefined => {
+): MapNode | NPC | Item | undefined => {
   if (!id) return undefined;
 
   if (id.startsWith('node_')) {
-    return state.mapData.nodes.find(n => n.id === id);
+    return state.mapData.nodes.find(node => node.id === id);
   }
-  if (id.startsWith('char_')) {
-    return state.allCharacters.find(c => c.id === id);
+  if (id.startsWith('npc_')) {
+    return state.allNPCs.find(npc => npc.id === id);
   }
   if (id.startsWith('item_')) {
-    return state.inventory.find(i => i.id === id);
+    return state.inventory.find(item => item.id === id);
   }
 
   return (
-    state.mapData.nodes.find(n => n.id === id) ??
-    state.allCharacters.find(c => c.id === id) ??
-    state.inventory.find(i => i.id === id)
+    state.mapData.nodes.find(node => node.id === id) ??
+    state.allNPCs.find(npc => npc.id === id) ??
+    state.inventory.find(item => item.id === id)
   );
 };
 
@@ -234,8 +234,8 @@ export const buildEdgeId = (
   return generateUniqueId(`${sourceNodeId}_to_${targetNodeId}`);
 };
 
-export const buildCharacterId = (charName: string): string => {
-  return generateUniqueId(`char_${charName}`);
+export const buildNPCId = (npcName: string): string => {
+  return generateUniqueId(`npc_${npcName}`);
 };
 
 export const buildItemId = (itemName: string): string => {

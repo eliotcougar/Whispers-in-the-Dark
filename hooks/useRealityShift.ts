@@ -63,14 +63,14 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
         n.data.nodeType !== 'feature' &&
         n.data.nodeType !== 'room'
     );
-    const themeCharacters = finalStateBeforeShift.allCharacters.filter(c => c.themeName === themeToSummarize.name);
+    const themeNPCs = finalStateBeforeShift.allNPCs.filter(npc => npc.themeName === themeToSummarize.name);
 
     const themeMemory: ThemeMemory = {
       summary: summary ?? 'The details of this reality are hazy...',
       mainQuest: finalStateBeforeShift.mainQuest ?? 'Unknown',
       currentObjective: finalStateBeforeShift.currentObjective ?? 'Unknown',
       placeNames: themeMainMapNodes.map(node => node.placeName),
-      characterNames: themeCharacters.map(c => c.name)
+      npcNames: themeNPCs.map(npc => npc.name)
     };
 
     setGameStateStack((prevStack: GameStateStack) => {
@@ -122,7 +122,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       const scoreToCarryOver = newStateForShiftStart.score;
       const themeHistoryToCarryOver = newStateForShiftStart.themeHistory;
       const mapDataToCarryOver = newStateForShiftStart.mapData;
-      const allCharactersToCarryOver = newStateForShiftStart.allCharacters;
+      const allNPCsToCarryOver = newStateForShiftStart.allNPCs;
       const mapLayoutConfigToCarryOver = newStateForShiftStart.mapLayoutConfig;
       const globalTurnNumberToCarryOver = newStateForShiftStart.globalTurnNumber;
 
@@ -131,7 +131,7 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       newStateForShiftStart.score = scoreToCarryOver;
       newStateForShiftStart.themeHistory = themeHistoryToCarryOver;
       newStateForShiftStart.mapData = mapDataToCarryOver;
-      newStateForShiftStart.allCharacters = allCharactersToCarryOver;
+      newStateForShiftStart.allNPCs = allNPCsToCarryOver;
       newStateForShiftStart.mapLayoutConfig = mapLayoutConfigToCarryOver;
       newStateForShiftStart.globalTurnNumber = globalTurnNumberToCarryOver;
 

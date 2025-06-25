@@ -1,10 +1,10 @@
 /**
  * @file gameLogicUtils.ts
- * @description Central exports for game logic utilities such as inventory and character helpers.
+ * @description Central exports for game logic utilities such as inventory and NPC helpers.
  */
 
 export * from './inventoryUtils';
-export * from './characterUtils';
+export * from './npcUtils';
 
 import { AdventureTheme } from '../types';
 
