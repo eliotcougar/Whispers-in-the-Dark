@@ -297,9 +297,31 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setIsLoading(true);
     setLoadingReason('loremaster');
     setError(null);
+    const currentThemeNodes = currentFullState.mapData.nodes.filter(
+      n => n.themeName === themeObj.name,
+    );
+    const inventoryItemNames = Array.from(
+      new Set(
+        currentFullState.inventory
+          .filter(item => {
+            if (item.holderId === PLAYER_HOLDER_ID) return true;
+            if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
+            const holderNpc = currentFullState.allNPCs.find(
+              npc => npc.id === item.holderId && npc.themeName === themeObj.name,
+            );
+            return Boolean(holderNpc);
+          })
+          .map(item => item.name),
+      ),
+    );
+    const mapNodeNames = currentThemeNodes.map(n => n.placeName);
     const result = await distillFacts_Service({
       themeName: themeObj.name,
       facts: currentFullState.themeFacts,
+      currentQuest: currentFullState.mainQuest,
+      currentObjective: currentFullState.currentObjective,
+      inventoryItemNames,
+      mapNodeNames,
     });
     const draftState = structuredCloneGameState(currentFullState);
     draftState.lastDebugPacket ??= {
