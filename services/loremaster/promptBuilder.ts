@@ -70,13 +70,29 @@ export const buildCollectRelevantFactsPrompt = (
 export const buildDistillFactsPrompt = (
   themeName: string,
   facts: Array<ThemeFact>,
+  currentQuest: string | null,
+  currentObjective: string | null,
+  inventoryItemNames: Array<string>,
+  mapNodeNames: Array<string>,
 ): string => {
   const factLines = facts
-    .map(f => `- ID ${String(f.id)}: "${f.text}" (Tier ${String(f.tier)}`)
+    .map(f => `- ID ${String(f.id)}: "${f.text}" (Tier ${String(f.tier)})`)
     .join('\n');
+  const inventoryLines = inventoryItemNames
+    .map(name => `- ${name}`)
+    .join('\n');
+  const mapLines = mapNodeNames.map(name => `- ${name}`).join('\n');
   return `Theme: ${themeName}
+  Current Quest: ${currentQuest ?? 'None'}
+  Current Objective: ${currentObjective ?? 'None'}
+  Inventory Items:
+  ${inventoryLines || 'None'}
+  Known Places:
+  ${mapLines || 'None'}
+
   Current Facts:
   ${factLines}
-  
-  Identify pairs of facts that could be merged into a single, more specific statement. If merging, provide instructions.`;
+
+  Identify pairs of facts that could be merged into a single, more specific statement.
+  Delete facts that reference obsolete quests, objectives, items or places. If merging or deleting, provide instructions.`;
 };
