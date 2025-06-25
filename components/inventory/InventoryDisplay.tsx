@@ -59,6 +59,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
 
   const itemElementMap = useRef(new Map<string, HTMLLIElement>());
   const prevRectsRef = useRef(new Map<string, DOMRect>());
+  const prevDisabledRef = useRef(disabled);
 
   const registerItemRef = useCallback((el: HTMLLIElement | null) => {
     if (!el) return;
@@ -79,13 +80,19 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
       newRects.set(name, el.getBoundingClientRect());
     });
 
+    if (prevDisabledRef.current !== disabled) {
+      prevDisabledRef.current = disabled;
+      prevRectsRef.current = newRects;
+      return;
+    }
+
     if (!disabled) {
       prevRectsRef.current.forEach((prevRect, name) => {
         const newRect = newRects.get(name);
         const el = itemElementMap.current.get(name);
         if (!newRect || !el) return;
-        const dx = prevRect.left - newRect.left;
-        const dy = prevRect.top - newRect.top;
+        const dx = Math.round(prevRect.left - newRect.left);
+        const dy = Math.round(prevRect.top - newRect.top);
         if (dx !== 0 || dy !== 0) {
           el.style.transition = 'none';
           el.style.transform = `translate(${String(dx)}px, ${String(dy)}px)`;
@@ -148,6 +155,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
                 applicableUses={applicableUses}
                 currentTurn={currentTurn}
                 disabled={disabled}
+                filterMode={filterMode}
                 isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 isStashing={isStashing}
