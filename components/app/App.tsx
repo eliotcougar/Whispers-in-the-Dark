@@ -221,13 +221,20 @@ function App() {
 
 
   useEffect(() => {
+    const body = document.body;
     if (isAnyModalOrDialogueActive) {
-      document.body.style.overflow = 'hidden';
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      body.style.overflow = 'hidden';
+      if (scrollBarWidth > 0) {
+        body.style.paddingRight = `${String(scrollBarWidth)}px`;
+      }
     } else {
-      document.body.style.overflow = '';
+      body.style.overflow = '';
+      body.style.paddingRight = '';
     }
     return () => {
-      document.body.style.overflow = '';
+      body.style.overflow = '';
+      body.style.paddingRight = '';
     };
   }, [isAnyModalOrDialogueActive]);
 
