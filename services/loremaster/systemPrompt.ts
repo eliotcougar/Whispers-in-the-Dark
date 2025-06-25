@@ -64,8 +64,9 @@ Respond ONLY with a JSON array of strings, e.g.:
 ]`;
 
 export const DISTILL_SYSTEM_INSTRUCTION = `You are the Loremaster refining accumulated facts.
+Look for obsolete facts that reference items, characters, or places that no longer exist according to the context data.
 Look for statements that describe the same idea and merge them into a single, more specific fact.
-Only delete a fact if it is tier 1 and being merged into another.
+Only delete a fact if it is tier 1 and being merged into another, or if it is obsolete.
 Increase the tier of the surviving fact by one when merging.
 Respond ONLY with a JSON object of the form:
 {
