@@ -57,7 +57,7 @@ export const buildNewThemePostShiftPrompt = (
   inventory: Array<Item>,
   playerGender: string
 ): string => {
-  const inventoryStrings = itemsToString(inventory, ' - ');
+  const inventoryStrings = itemsToString(inventory, ' - ', true, true, false, false, true);
   const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
 Initial Scene: "${theme.initialSceneDescriptionSeed}" (adapt to an arrival scene describing the disorienting transition).
@@ -89,7 +89,15 @@ export const buildReturnToThemePostShiftPrompt = (
   mapDataForTheme: MapData,
   currentThemeNPCs: Array<NPC>
 ): string => {
-  const inventoryPrompt = itemsToString(inventory, ' - ');
+  const inventoryPrompt = itemsToString(
+    inventory,
+    ' - ',
+    true,
+    true,
+    false,
+    false,
+    true,
+  );
   const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
     node => node.themeName === theme.name && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
   );
@@ -166,10 +174,22 @@ export const buildMainGameTurnPrompt = (
   fullMapData: MapData,
   destinationNodeId: string | null
 ): string => {
-  const inventoryStrings = 
-    inventory.length > 0 ? itemsToString(inventory, ' - ') : `There are no items in player's inventory.`;
+  const inventoryStrings =
+    inventory.length > 0
+      ? itemsToString(inventory, ' - ', true, true, false, false, true)
+      : `There are no items in player's inventory.`;
   const locationItemsStrings =
-    locationItems.length > 0 ? `There are items at this location: \n${itemsToString(locationItems, ' - ')}` : `There are no visible items at this location.`;
+    locationItems.length > 0
+      ? `There are items at this location: \n${itemsToString(
+          locationItems,
+          ' - ',
+          true,
+          true,
+          false,
+          false,
+          true,
+        )}`
+      : `There are no visible items at this location.`;
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
   // Filter NPCs that are companions, as they are traveling with the player
   const companions = currentThemeNPCs.filter(npc => npc.presenceStatus === 'companion');
