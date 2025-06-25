@@ -2,7 +2,7 @@
  * @file services/corrections/item.ts
  * @description Correction helpers for item related data.
  */
-import { Item, AdventureTheme, ItemChange } from '../../types';
+import { Item, AdventureTheme, ItemChange, ItemChapter } from '../../types';
 import {
   MAX_RETRIES,
   VALID_ITEM_TYPES_STRING,
@@ -243,6 +243,67 @@ If no action can be confidently determined, respond with an empty string.`;
       }
     } catch (error: unknown) {
       console.error(`fetchCorrectedItemAction_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
+      throw error;
+    }
+    return { result: null };
+  });
+};
+
+/**
+ * Generates additional chapters for a book item when fewer than MIN_BOOK_CHAPTERS exist.
+ */
+export const fetchAdditionalBookChapters_Service = async (
+  bookTitle: string,
+  bookDescription: string,
+  existingHeadings: Array<string>,
+  countNeeded: number,
+): Promise<Array<ItemChapter> | null> => {
+  if (!isApiConfigured()) {
+    console.error('fetchAdditionalBookChapters_Service: API Key not configured.');
+    return null;
+  }
+  if (countNeeded <= 0) return [];
+
+  const list = existingHeadings.map(h => `- ${h}`).join('\n');
+  const prompt = `
+Role: You are an AI assistant adding missing chapters to a book.
+Book Title: "${bookTitle}"
+Description: "${bookDescription}"
+Existing Chapter Headings:\n${list}
+
+Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. Each object must have "heading", "description", and "contentLength" (50-200).`;
+
+  const systemInstruction = `Return ONLY the JSON array of ${String(countNeeded)} chapter objects.`;
+
+  return retryAiCall<Array<ItemChapter>>(async attempt => {
+    try {
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        responseMimeType: 'application/json',
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const jsonStr = response.text ?? '';
+      const parsed = safeParseJson<Array<ItemChapter>>(extractJsonFromFence(jsonStr));
+      if (Array.isArray(parsed) && parsed.every(ch => typeof ch.heading === 'string')) {
+        return { result: parsed };
+      }
+      console.warn(
+        `fetchAdditionalBookChapters_Service (Attempt ${String(attempt + 1)}/${String(
+          MAX_RETRIES + 1,
+        )}): invalid response`,
+        parsed,
+      );
+    } catch (error: unknown) {
+      console.error(
+        `fetchAdditionalBookChapters_Service error (Attempt ${String(attempt + 1)}/${String(
+          MAX_RETRIES + 1,
+        )}):`,
+        error,
+      );
       throw error;
     }
     return { result: null };

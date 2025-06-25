@@ -4,14 +4,22 @@
  */
 
 import { GenerateContentResponse } from '@google/genai';
-import { MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
+import {
+  MINIMAL_MODEL_NAME,
+  GEMINI_MODEL_NAME,
+  LOADING_REASON_UI_MAP,
+  MIN_BOOK_CHAPTERS,
+} from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
 import { AdventureTheme, ItemChange, NewItemSuggestion } from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
 import { parseInventoryResponse, InventoryAIPayload } from './responseParser';
-import { fetchCorrectedItemChangeArray_Service } from '../corrections';
+import {
+  fetchCorrectedItemChangeArray_Service,
+  fetchAdditionalBookChapters_Service,
+} from '../corrections';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 
 /**
@@ -123,6 +131,22 @@ export const applyInventoryHints_Service = async (
   }
   if (parsed) {
     mergeBookChaptersFromSuggestions(parsed.itemChanges, newItems);
+    for (const change of parsed.itemChanges) {
+      if ((change.action === 'gain' || change.action === 'put') && change.item.type === 'book') {
+        const chapters = change.item.chapters ?? [];
+        if (chapters.length < MIN_BOOK_CHAPTERS) {
+          const additional = await fetchAdditionalBookChapters_Service(
+            change.item.name,
+            change.item.description,
+            chapters.map(ch => ch.heading),
+            MIN_BOOK_CHAPTERS - chapters.length,
+          );
+          if (additional && additional.length > 0) {
+            change.item.chapters = chapters.concat(additional).slice(0, MIN_BOOK_CHAPTERS);
+          }
+        }
+      }
+    }
   }
   return {
     itemChanges: parsed ? parsed.itemChanges : [],

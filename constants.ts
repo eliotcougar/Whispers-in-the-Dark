@@ -55,6 +55,9 @@ export const JOURNAL_WRITE_COOLDOWN = 5; // Turns before a journal can be writte
 
 export const INSPECT_COOLDOWN = 10; // Turns before the same item can be inspected again
 
+export const MIN_BOOK_CHAPTERS = 4;
+export const MAX_BOOK_CHAPTERS = 10;
+
 export const VALID_ITEM_TYPES = [
   'single-use',
   'multi-use',
