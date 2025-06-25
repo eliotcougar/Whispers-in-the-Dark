@@ -91,8 +91,8 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
         const newRect = newRects.get(name);
         const el = itemElementMap.current.get(name);
         if (!newRect || !el) return;
-        const dx = prevRect.left - newRect.left;
-        const dy = prevRect.top - newRect.top;
+        const dx = Math.round(prevRect.left - newRect.left);
+        const dy = Math.round(prevRect.top - newRect.top);
         if (dx !== 0 || dy !== 0) {
           el.style.transition = 'none';
           el.style.transform = `translate(${String(dx)}px, ${String(dy)}px)`;

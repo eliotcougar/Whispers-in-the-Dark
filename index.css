@@ -4,6 +4,7 @@ body {
   font-family: "Georgia", serif; /* Thematic font */
   /* Prevent layout shifts when modals toggle body overflow */
   overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 /* Font used for the main game title */
