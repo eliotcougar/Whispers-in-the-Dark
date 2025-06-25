@@ -155,6 +155,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
                 applicableUses={applicableUses}
                 currentTurn={currentTurn}
                 disabled={disabled}
+                filterMode={filterMode}
                 isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 isStashing={isStashing}

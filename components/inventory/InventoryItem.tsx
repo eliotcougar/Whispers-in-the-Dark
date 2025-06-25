@@ -3,6 +3,7 @@ import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from '../elements/Button';
 import { JOURNAL_WRITE_COOLDOWN, INSPECT_COOLDOWN } from '../../constants';
+import { FilterMode } from '../../hooks/useInventoryDisplay';
 
 interface InventoryItemProps {
   readonly item: Item;
@@ -22,6 +23,7 @@ interface InventoryItemProps {
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onWrite: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onStashToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly filterMode: FilterMode;
   readonly registerRef?: (el: HTMLLIElement | null) => void;
 }
 
@@ -43,6 +45,7 @@ function InventoryItem({
   onRead,
   onWrite,
   onStashToggle,
+  filterMode,
   registerRef,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
@@ -209,11 +212,11 @@ function InventoryItem({
 
         {(item.type === 'page' || item.type === 'book' || item.type === 'journal') && !isConfirmingDiscard ? (
           <Button
-            ariaLabel={item.stashed ? `Retrieve ${item.name}` : `Stash ${item.name}`}
+            ariaLabel={filterMode === 'stashed' ? `Retrieve ${item.name}` : `Stash ${item.name}`}
             data-item-name={item.name}
             disabled={disabled}
             key={`${item.name}-stash`}
-            label={item.stashed ? 'Retrieve' : 'Stash'}
+            label={filterMode === 'stashed' ? 'Retrieve' : 'Stash'}
             onClick={onStashToggle}
             preset="sky"
             size="sm"

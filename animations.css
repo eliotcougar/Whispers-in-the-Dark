@@ -147,4 +147,5 @@
 }
 .animate-archive-fade-out {
   animation: archiveFadeOut 1s ease-out forwards;
+  pointer-events: none;
 }
