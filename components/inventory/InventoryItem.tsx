@@ -58,10 +58,12 @@ function InventoryItem({
     !item.tags?.includes('junk') &&
     item.type !== 'vehicle' &&
     item.type !== 'status effect';
+  const showDropForWrittenItem =
+    filterMode === 'stashed' && (Boolean(item.stashed) || isStashing);
   const canShowDropNow =
     canEverDrop &&
     !isConfirmingDiscard &&
-    (!isWrittenItem || (filterMode === 'stashed' && item.stashed && !isStashing));
+    (!isWrittenItem || showDropForWrittenItem);
   const actionButtons: Array<React.ReactElement> = [];
 
   applicableUses.forEach(knownUse => {
