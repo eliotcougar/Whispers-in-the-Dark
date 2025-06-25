@@ -8,7 +8,7 @@ interface MiscStateTabProps {
 function MiscStateTab({ currentState }: MiscStateTabProps) {
   return (
     <DebugSection
-    content={{
+      content={{
       currentMapNodeId: currentState.currentMapNodeId,
       currentObjective: currentState.currentObjective,
       currentThemeName: currentState.currentThemeName,
@@ -30,9 +30,9 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
       score: currentState.score,
       turnsSinceLastShift: currentState.turnsSinceLastShift,
     }}
-    maxHeightClass="max-h-[70vh]"
-    title="Miscellaneous State Values"
-  />
+      maxHeightClass="max-h-[70vh]"
+      title="Miscellaneous State Values"
+    />
   );
 }
 

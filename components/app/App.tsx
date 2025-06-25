@@ -651,23 +651,23 @@ function App() {
                     ) : null}
                   </div>
 
-                <ActionOptions
-                  allNPCs={allNPCs}
-                  currentThemeName={currentTheme ? currentTheme.name : null}
-                  disabled={isLoading || !!dialogueState}
-                  inventory={inventory}
-                  mapData={mapData.nodes}
-                  onActionSelect={handleActionSelect}
-                  options={actionOptions}
-                />
+                  <ActionOptions
+                    allNPCs={allNPCs}
+                    currentThemeName={currentTheme ? currentTheme.name : null}
+                    disabled={isLoading || !!dialogueState}
+                    inventory={inventory}
+                    mapData={mapData.nodes}
+                    onActionSelect={handleActionSelect}
+                    options={actionOptions}
+                  />
 
-                <FreeActionInput
-                  canPerformFreeAction={canPerformFreeAction}
-                  freeFormActionText={freeFormActionText}
-                  onChange={handleFreeFormActionChange}
-                  onSubmit={handleFreeFormActionSubmit}
-                />
-              </>)}
+                  <FreeActionInput
+                    canPerformFreeAction={canPerformFreeAction}
+                    freeFormActionText={freeFormActionText}
+                    onChange={handleFreeFormActionChange}
+                    onSubmit={handleFreeFormActionSubmit}
+                  />
+                </>)}
           </div>
 
           <div className="lg:col-span-2 space-y-2 flex flex-col">
@@ -693,10 +693,10 @@ function App() {
                 mainQuest={mainQuest}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
-                onStashToggle={gameLogic.handleStashToggle}
                 onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
+                onStashToggle={gameLogic.handleStashToggle}
                 onTakeItem={handleTakeLocationItem}
                 onWriteJournal={handleWriteJournal}
               />

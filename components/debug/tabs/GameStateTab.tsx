@@ -39,59 +39,59 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
 
   return (
     <>
-    <Button
-      ariaLabel="Undo last turn"
-      disabled={!previousState || currentState.globalTurnNumber <= 1}
-      label={`Undo Turn (Global Turn: ${String(currentState.globalTurnNumber)})`}
-      onClick={onUndoTurn}
-      preset="orange"
-      size="sm"
-      variant="compact"
-    />
-
-    <div className="my-2">
-      <label
-        className="block text-sm text-amber-300 mb-1"
-        htmlFor="gameStateEdit"
-      >
-        Edit Game State
-      </label>
-
-      <textarea
-        className="w-full p-2 bg-slate-900 text-white border border-slate-600 rounded-md text-sm min-h-[40em] font-mono"
-        id="gameStateEdit"
-        onChange={handleChange}
-        value={editableText}
-      />
-
       <Button
-        ariaLabel="Verify and apply edited game state"
-        label="Verify & Apply"
-        onClick={handleApply}
-        preset="green"
+        ariaLabel="Undo last turn"
+        disabled={!previousState || currentState.globalTurnNumber <= 1}
+        label={`Undo Turn (Global Turn: ${String(currentState.globalTurnNumber)})`}
+        onClick={onUndoTurn}
+        preset="orange"
         size="sm"
         variant="compact"
       />
 
-      {parseError ? (
-        <p className="text-red-400 text-xs mt-1">
-          {parseError}
-        </p>
+      <div className="my-2">
+        <label
+          className="block text-sm text-amber-300 mb-1"
+          htmlFor="gameStateEdit"
+        >
+          Edit Game State
+        </label>
+
+        <textarea
+          className="w-full p-2 bg-slate-900 text-white border border-slate-600 rounded-md text-sm min-h-[40em] font-mono"
+          id="gameStateEdit"
+          onChange={handleChange}
+          value={editableText}
+        />
+
+        <Button
+          ariaLabel="Verify and apply edited game state"
+          label="Verify & Apply"
+          onClick={handleApply}
+          preset="green"
+          size="sm"
+          variant="compact"
+        />
+
+        {parseError ? (
+          <p className="text-red-400 text-xs mt-1">
+            {parseError}
+          </p>
       ) : null}
-    </div>
+      </div>
 
-    <DebugSection
-      content={currentState}
-      maxHeightClass="max-h-[30vh]"
-      title="Current Game State (Stack[0] - Top)"
-    />
-
-    {previousState ? (
       <DebugSection
-        content={previousState}
+        content={currentState}
         maxHeightClass="max-h-[30vh]"
-        title="Previous Game State (Stack[1] - Bottom)"
+        title="Current Game State (Stack[0] - Top)"
       />
+
+      {previousState ? (
+        <DebugSection
+          content={previousState}
+          maxHeightClass="max-h-[30vh]"
+          title="Previous Game State (Stack[1] - Bottom)"
+        />
     ) : null}
     </>
   );

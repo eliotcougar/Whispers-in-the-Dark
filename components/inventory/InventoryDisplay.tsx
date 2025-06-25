@@ -148,12 +148,11 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
                 applicableUses={applicableUses}
                 currentTurn={currentTurn}
                 disabled={disabled}
-                isStashing={isStashing}
                 isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
+                isStashing={isStashing}
                 item={item}
                 key={item.name}
-                onStashToggle={handleStashToggleInternal}
                 onCancelDiscard={handleCancelDiscard}
                 onConfirmDrop={handleConfirmDrop}
                 onGenericUse={handleGenericUse}
@@ -161,6 +160,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
                 onRead={handleRead}
                 onSpecificUse={handleSpecificUse}
                 onStartConfirmDiscard={handleStartConfirmDiscard}
+                onStashToggle={handleStashToggleInternal}
                 onVehicleToggle={handleVehicleToggle}
                 onWrite={handleWrite}
                 registerRef={registerItemRef}

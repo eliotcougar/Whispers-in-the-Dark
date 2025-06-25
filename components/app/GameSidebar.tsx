@@ -120,10 +120,10 @@ function GameSidebar({
         currentTurn={globalTurnNumber}
         disabled={disabled}
         items={inventory}
-        onStashToggle={onStashToggle}
         onDropItem={onDropItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}
+        onStashToggle={onStashToggle}
         onWriteJournal={onWriteJournal}
       />
     </>
