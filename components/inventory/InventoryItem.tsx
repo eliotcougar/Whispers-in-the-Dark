@@ -226,23 +226,17 @@ function InventoryItem({
 
 
         {canShowDrop ? (
-          <div className="relative h-8">
-            <div
-              className={
-                hideDropButton ? 'absolute inset-0 opacity-0 pointer-events-none' : undefined
-              }
-            >
-              <Button
-                ariaLabel={`Drop ${item.name}`}
-                data-item-name={item.name}
-                disabled={disabled}
-                key={`${item.name}-drop`}
-                label="Drop"
-                onClick={onStartConfirmDiscard}
-                preset="sky"
-                size="sm"
-              />
-            </div>
+          <div className={hideDropButton ? 'opacity-0 pointer-events-none' : undefined}>
+            <Button
+              ariaLabel={`Drop ${item.name}`}
+              data-item-name={item.name}
+              disabled={disabled}
+              key={`${item.name}-drop`}
+              label="Drop"
+              onClick={onStartConfirmDiscard}
+              preset="sky"
+              size="sm"
+            />
           </div>
         ) : null}
 
