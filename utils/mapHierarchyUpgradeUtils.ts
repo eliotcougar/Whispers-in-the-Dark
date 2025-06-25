@@ -129,3 +129,16 @@ export const upgradeFeaturesWithChildren = async (
 
   return { updatedMapData: working, addedNodes, addedEdges };
 };
+
+export const repairFeatureHierarchy = async (
+  mapData: MapData,
+  currentTheme: AdventureTheme,
+): Promise<MapData> => {
+  try {
+    const result = await upgradeFeaturesWithChildren(mapData, currentTheme);
+    return result.updatedMapData;
+  } catch (error: unknown) {
+    console.error('repairFeatureHierarchy error:', error);
+    return mapData;
+  }
+};
