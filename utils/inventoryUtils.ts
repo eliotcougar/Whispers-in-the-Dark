@@ -313,6 +313,29 @@ export const applyItemChangeAction = (
       return loseItem(currentInventory, itemChange.item);
     case 'update':
       return updateItem(currentInventory, itemChange.item);
+    case 'addChapter': {
+      const { item } = itemChange;
+      const ref: ItemReference = { id: item.id, name: item.name };
+      const target = findItemByIdentifier(
+        [ref.id, ref.name],
+        currentInventory,
+        false,
+        true,
+      ) as Item | null;
+      if (!target) {
+        console.warn(`applyItemChangeAction ('addChapter'): Item not found.`);
+        return currentInventory;
+      }
+      const idx = currentInventory.findIndex(i => i.id === target.id);
+      const updated: Item = {
+        ...target,
+        chapters: [...(target.chapters ?? []), item.chapter],
+        lastInspectTurn: undefined,
+      };
+      const newInventory = [...currentInventory];
+      newInventory[idx] = updated;
+      return newInventory;
+    }
     default:
       return currentInventory;
   }
@@ -486,6 +509,22 @@ export const buildItemChangeRecords = (
           else currentKnownUses.push(addKnownUse);
           newItemData.knownUses = currentKnownUses;
         }
+        record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };
+      }
+    } else if (change.action === 'addChapter') {
+      const { item } = change;
+      const oldItem = findItemByIdentifier(
+        [item.id, item.name],
+        currentInventory,
+        false,
+        true,
+      ) as Item | null;
+      if (oldItem) {
+        const oldItemCopy = { ...oldItem };
+        const newItemData: Item = {
+          ...oldItem,
+          chapters: [...(oldItem.chapters ?? []), item.chapter],
+        };
         record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };
       }
     }

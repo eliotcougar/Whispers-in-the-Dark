@@ -155,6 +155,19 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
+- Example for adding a new chapter to an existing written item:
+  { "action": "addChapter",
+    "item": {
+      "id": "item_codex_8g3c", /* REQUIRED: Unique identifier for the item. */
+      "name": "The Codex of Whispering Echoes", /* REQUIRED: Name of the book. */
+      "chapter": {
+        "heading": "The Sacrifice of Silence",
+        "description": "A grim tale about the price of forbidden knowledge.",
+        "contentLength": 120
+      }
+    }
+  }
+
   - CRITICALLY IMPORTANT: holderId, toId, and fromId can only be 'node_*', 'npc_*' or 'player'. NEVER put an item inside another item!
   - If the Player successfully restores, decodes or translates a 'book' or a 'page', you MUST add 'recovered' tag to the item, in addition to existing tags.
   - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
@@ -162,6 +175,7 @@ Structure for individual ItemChange objects within the array:
   - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
   - IMPORTANT: For written 'page', 'journal', and 'book' items, determine whether the text appears 'printed', 'handwritten', 'typed' or 'digital' and ALWAYS add the matching tag. If the text condition implies it, add other tags like 'faded', 'smudged', 'torn', or 'encrypted'. Available writing tags: ${WRITING_TAGS_STRING}.
   - 'Journal' items contain no text until the player writes in them. Depending on item description, convert a 'journal' item with chapters into a 'book' item OR remove 'chapters' and keep the 'journal' item type.
+  - When using "addChapter", simply append the chapter and reset "lastInspect" so the player discovers it later.
   IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).

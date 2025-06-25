@@ -5,7 +5,7 @@
 
 import { ItemChange, GiveItemPayload, ItemReference, KnownUse } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isValidItem, isValidItemReference } from '../parsers/validation';
+import { isValidItem, isValidItemReference, isValidAddChapterPayload } from '../parsers/validation';
 import {
   filterBlockedKnownUses,
   isBlockedKnownUse,
@@ -71,6 +71,16 @@ const parseItemChange = (raw: Record<string, unknown>): ItemChange | null => {
           delete itm.addKnownUse;
         }
         return { action: 'update', item: raw.item };
+      }
+      return null;
+    }
+    case 'addChapter': {
+      if (
+        raw.item &&
+        typeof raw.item === 'object' &&
+        isValidAddChapterPayload(raw.item)
+      ) {
+        return { action: 'addChapter', item: raw.item };
       }
       return null;
     }
