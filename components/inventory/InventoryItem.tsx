@@ -52,6 +52,7 @@ function InventoryItem({
   const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
   const canShowGenericUse =
     item.type !== 'status effect' && item.type !== 'vehicle';
+  const hideDropButton = isWrittenItem && isStashing && item.stashed;
   const canShowDrop =
     !item.tags?.includes('junk') &&
     !isConfirmingDiscard &&
@@ -225,16 +226,18 @@ function InventoryItem({
 
 
         {canShowDrop ? (
-          <Button
-            ariaLabel={`Drop ${item.name}`}
-            data-item-name={item.name}
-            disabled={disabled}
-            key={`${item.name}-drop`}
-            label="Drop"
-            onClick={onStartConfirmDiscard}
-            preset="sky"
-            size="sm"
-          />
+          <div className={hideDropButton ? 'invisible' : undefined}>
+            <Button
+              ariaLabel={`Drop ${item.name}`}
+              data-item-name={item.name}
+              disabled={disabled}
+              key={`${item.name}-drop`}
+              label="Drop"
+              onClick={onStartConfirmDiscard}
+              preset="sky"
+              size="sm"
+            />
+          </div>
         ) : null}
 
         {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive ? (
