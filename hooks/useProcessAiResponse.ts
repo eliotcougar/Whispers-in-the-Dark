@@ -185,7 +185,7 @@ const handleInventoryHints = async ({
     return npcs
       .map((npc) => {
         const items = baseState.inventory.filter((i) => i.holderId === npc.id);
-        return `ID: ${npc.id} - ${npc.name}: ${itemsToString(items, ' - ')}`;
+        return `ID: ${npc.id} - ${npc.name}: ${itemsToString(items, ' - ', true, true, false, true)}`;
       })
       .join('\n');
   };
@@ -206,8 +206,8 @@ const handleInventoryHints = async ({
       'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
       'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [],
       playerActionText ?? '',
-      itemsToString(baseInventoryForPlayer, ' - '),
-      itemsToString(locationInventory, ' - '),
+      itemsToString(baseInventoryForPlayer, ' - ', true, true, false, true),
+      itemsToString(locationInventory, ' - ', true, true, false, true),
       baseState.currentMapNodeId ?? null,
       formatNPCInventoryList(companionNPCs),
       formatNPCInventoryList(nearbyNPCs),
