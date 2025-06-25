@@ -6,9 +6,17 @@ interface LoreTabProps {
 }
 
 function LoreTab({ themeFacts }: LoreTabProps) {
+  const formatted = [...themeFacts]
+    .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
+    .map(
+      (fact, idx) => `${String(idx + 1)}. (Tier ${String(fact.tier)}) ${fact.text}`,
+    )
+    .join('\n');
+
   return (
     <DebugSection
-      content={themeFacts}
+      content={formatted}
+      isJson={false}
       maxHeightClass="max-h-[70vh]"
       title="Current Theme Lore"
     />
