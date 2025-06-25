@@ -112,7 +112,6 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     inventory: gameState.inventory.map(item => ({
       ...item,
       tags: item.tags ?? [],
-      archived: item.archived ?? false,
       stashed: item.stashed ?? false,
       holderId: item.holderId || PLAYER_HOLDER_ID,
     })),
@@ -207,7 +206,6 @@ export function normalizeLoadedSaveDataStack(
   parsedObj: Record<string, unknown>,
   sourceLabel: string,
 ): SavedGameStack | null {
-  if (typeof parsedObj !== 'object' || parsedObj === null) return null;
   const currentRaw = (parsedObj as { current?: unknown }).current;
   if (!currentRaw || typeof currentRaw !== 'object') return null;
   const current = normalizeLoadedSaveData(currentRaw as Record<string, unknown>, sourceLabel);

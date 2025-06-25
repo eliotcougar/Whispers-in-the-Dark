@@ -15,20 +15,16 @@ interface UseInventoryDisplayProps {
     knownUse?: KnownUse
   ) => void;
   readonly onDropItem: (itemName: string) => void;
-  readonly onForgetItem: (itemName: string) => void;
-  readonly onArchiveToggle: (itemName: string) => void;
   readonly onStashToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
 }
 
-export type FilterMode = 'all' | 'knowledge' | 'archived' | 'stashed';
+export type FilterMode = 'all' | 'stashed';
 export const useInventoryDisplay = ({
   items,
   onItemInteract,
   onDropItem,
-  onForgetItem,
-  onArchiveToggle,
   onStashToggle,
   onReadPage,
   onWriteJournal,
@@ -38,7 +34,6 @@ export const useInventoryDisplay = ({
   const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
-  const [archivingItemNames, setArchivingItemNames] = useState<Set<string>>(new Set());
   const [stashingItemNames, setStashingItemNames] = useState<Set<string>>(new Set());
 
   const handleSortByName = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -53,16 +48,6 @@ export const useInventoryDisplay = ({
 
   const handleFilterAll = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setFilterMode('all');
-    event.currentTarget.blur();
-  }, []);
-
-  const handleFilterKnowledge = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    setFilterMode(prev => (prev === 'knowledge' ? 'all' : 'knowledge'));
-    event.currentTarget.blur();
-  }, []);
-
-  const handleFilterArchived = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    setFilterMode(prev => (prev === 'archived' ? 'all' : 'archived'));
     event.currentTarget.blur();
   }, []);
 
@@ -85,60 +70,14 @@ export const useInventoryDisplay = ({
       if (!name) return;
       const item = items.find(i => i.name === name);
       if (!item) return;
-
-      if (item.type === 'knowledge' && item.archived) {
-        onForgetItem(name);
-      } else {
-        onDropItem(name);
-      }
+      onDropItem(name);
 
       setConfirmingDiscardItemName(null);
       event.currentTarget.blur();
     },
-    [items, onDropItem, onForgetItem]
+    [items, onDropItem]
   );
 
-  const handleArchiveToggleInternal = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      const name = event.currentTarget.dataset.itemName;
-      if (name) {
-        const item = items.find(i => i.name === name);
-        onArchiveToggle(name);
-        if (item?.archived) {
-          if (filterMode === 'archived') {
-            setArchivingItemNames(current => new Set(current).add(name));
-            setTimeout(() => {
-              setArchivingItemNames(current => {
-                const updated = new Set(current);
-                updated.delete(name);
-                return updated;
-              });
-            }, 1000);
-          } else {
-            setNewlyAddedItemNames(current => new Set(current).add(name));
-            setTimeout(() => {
-              setNewlyAddedItemNames(current => {
-                const updated = new Set(current);
-                updated.delete(name);
-                return updated;
-              });
-            }, 1500);
-          }
-        } else {
-          setArchivingItemNames(current => new Set(current).add(name));
-          setTimeout(() => {
-            setArchivingItemNames(current => {
-              const updated = new Set(current);
-              updated.delete(name);
-              return updated;
-            });
-          }, 1000);
-        }
-        event.currentTarget.blur();
-      }
-    },
-    [filterMode, items, onArchiveToggle],
-  );
 
   const handleStashToggleInternal = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -297,16 +236,11 @@ export const useInventoryDisplay = ({
 
   const displayedItems = useMemo(() => {
     const itemsToDisplay = items.filter(item => {
-      if (archivingItemNames.has(item.name)) return true;
       if (stashingItemNames.has(item.name)) return true;
-      if (filterMode === 'archived') return item.archived && item.type === 'knowledge';
       const isWritten = ['page', 'book', 'journal'].includes(item.type);
       if (filterMode === 'stashed') return item.stashed && isWritten;
-      if (filterMode === 'knowledge') return item.type === 'knowledge' && !item.archived;
-      const isArchivedKnowledge = item.archived && item.type === 'knowledge';
       const isStashedWritten = item.stashed && isWritten;
-      const shouldHide = isArchivedKnowledge ? true : isStashedWritten;
-      return !shouldHide;
+      return !isStashedWritten;
     });
 
     const sortedItems = [...itemsToDisplay];
@@ -325,7 +259,7 @@ export const useInventoryDisplay = ({
       sortedItems.reverse();
     }
     return sortedItems;
-  }, [items, sortOrder, filterMode, archivingItemNames, stashingItemNames]);
+  }, [items, sortOrder, filterMode, stashingItemNames]);
 
   const getApplicableKnownUses = useCallback((item: Item): Array<KnownUse> => {
     if (!item.knownUses) return [];
@@ -352,7 +286,6 @@ export const useInventoryDisplay = ({
   return {
     displayedItems,
     newlyAddedItemNames,
-    archivingItemNames,
     stashingItemNames,
     confirmingDiscardItemName,
     sortOrder,
@@ -360,8 +293,6 @@ export const useInventoryDisplay = ({
     handleSortByName,
     handleSortByType,
     handleFilterAll,
-    handleFilterKnowledge,
-    handleFilterArchived,
     handleFilterStashed,
     handleStartConfirmDiscard,
     handleConfirmDrop,
@@ -370,7 +301,6 @@ export const useInventoryDisplay = ({
     handleInspect,
     handleGenericUse,
     handleVehicleToggle,
-    handleArchiveToggleInternal,
     handleStashToggleInternal,
     handleRead,
     handleWrite,

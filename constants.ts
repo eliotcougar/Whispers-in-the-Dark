@@ -56,8 +56,18 @@ export const JOURNAL_WRITE_COOLDOWN = 5; // Turns before a journal can be writte
 export const INSPECT_COOLDOWN = 10; // Turns before the same item can be inspected again
 
 export const VALID_ITEM_TYPES = [
-  'single-use', 'multi-use', 'equipment',
-  'container', 'key', 'weapon', 'ammunition', 'vehicle', 'knowledge', 'status effect', 'page', 'journal', 'book'
+  'single-use',
+  'multi-use',
+  'equipment',
+  'container',
+  'key',
+  'weapon',
+  'ammunition',
+  'vehicle',
+  'status effect',
+  'page',
+  'journal',
+  'book',
 ] as const; // 'as const' makes it a tuple of string literals
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
@@ -67,7 +77,6 @@ export const COMMON_TAGS = [
   'bloodstained',
   'water-damaged',
   'recovered',
-  'archived',
   'stashed',
 ] as const;
 
