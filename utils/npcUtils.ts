@@ -68,11 +68,11 @@ export const applyAllNPCChanges = (
   npcsAddedFromAI: Array<ValidNewNPCPayload>,
   npcsUpdatedFromAI: Array<ValidNPCUpdatePayload>,
   currentThemeName: string,
-  currentallNPCs: Array<NPC>,
+  currentAllNPCs: Array<NPC>,
 ): Array<NPC> => {
-  const newallNPCs = [...currentallNPCs];
+  const newAllNPCs = [...currentAllNPCs];
   npcsAddedFromAI.forEach(npcAdd => {
-    if (!newallNPCs.some(npc => npc.name === npcAdd.name && npc.themeName === currentThemeName)) {
+    if (!newAllNPCs.some(npc => npc.name === npcAdd.name && npc.themeName === currentThemeName)) {
       const newNPC: NPC = {
         ...npcAdd,
         id: buildNPCId(npcAdd.name),
@@ -86,18 +86,18 @@ export const applyAllNPCChanges = (
       if (newNPC.presenceStatus === 'distant' || newNPC.presenceStatus === 'unknown') {
         newNPC.preciseLocation = null;
       }
-      newallNPCs.push(newNPC);
+      newAllNPCs.push(newNPC);
     }
   });
 
   npcsUpdatedFromAI.forEach(npcUpdate => {
-    const idx = newallNPCs.findIndex(
+    const idx = newAllNPCs.findIndex(
       npc => npc.name === npcUpdate.name && npc.themeName === currentThemeName,
     );
     if (idx !== -1) {
       const npcToUpdate: NPC = {
-        ...newallNPCs[idx],
-        dialogueSummaries: newallNPCs[idx].dialogueSummaries ?? [],
+        ...newAllNPCs[idx],
+        dialogueSummaries: newAllNPCs[idx].dialogueSummaries ?? [],
       };
       if (npcUpdate.newDescription !== undefined) npcToUpdate.description = npcUpdate.newDescription;
       if (npcUpdate.newAliases !== undefined) npcToUpdate.aliases = npcUpdate.newAliases;
@@ -116,8 +116,8 @@ export const applyAllNPCChanges = (
         npcToUpdate.preciseLocation ??=
           npcToUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
       }
-      newallNPCs[idx] = npcToUpdate;
+      newAllNPCs[idx] = npcToUpdate;
     }
   });
-  return newallNPCs;
+  return newAllNPCs;
 };
