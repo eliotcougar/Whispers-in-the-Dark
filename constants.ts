@@ -108,6 +108,19 @@ export const COMMON_TAGS_STRING = COMMON_TAGS.map(t => `"${t}"`).join(' | ');
 export const WRITING_TAGS_STRING = WRITING_TAGS.map(t => `"${t}"`).join(' | ');
 export const VALID_TAGS_STRING = VALID_TAGS.map(t => `"${t}"`).join(' | ');
 
+export const DEDICATED_BUTTON_USES = [
+  'inspect',
+  'use',
+  'drop',
+  'discard',
+  'enter',
+  'park',
+  'read',
+  'write',
+] as const;
+
+export const DEDICATED_BUTTON_USES_STRING = DEDICATED_BUTTON_USES.map(u => `"${u}"`).join(' | ');
+
 export const VALID_PRESENCE_STATUS_VALUES = [
   'distant',
   'nearby',

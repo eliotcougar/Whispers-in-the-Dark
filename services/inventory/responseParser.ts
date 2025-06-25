@@ -3,9 +3,13 @@
  * @description Parses inventory AI responses.
  */
 
-import { ItemChange, GiveItemPayload, ItemReference } from '../../types';
+import { ItemChange, GiveItemPayload, ItemReference, KnownUse } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isValidItem, isValidItemReference } from '../parsers/validation';
+import {
+  filterBlockedKnownUses,
+  isBlockedKnownUse,
+} from '../../utils/knownUseUtils';
 import { PLAYER_HOLDER_ID } from '../../constants';
 import { normalizeItemType, DESTROY_SYNONYMS } from '../../utils/itemSynonyms';
 
@@ -30,7 +34,12 @@ const parseItemChange = (raw: Record<string, unknown>): ItemChange | null => {
           item.holderId = PLAYER_HOLDER_ID;
         }
       }
-      return isValidItem(raw.item, 'gain') ? { action, item: raw.item } : null;
+      if (isValidItem(raw.item, 'gain')) {
+        const itm = raw.item as { knownUses?: Array<KnownUse> };
+        itm.knownUses = filterBlockedKnownUses(itm.knownUses);
+        return { action, item: raw.item };
+      }
+      return null;
     }
     case 'update': {
       if (raw.item && typeof raw.item === 'object') {
@@ -52,7 +61,18 @@ const parseItemChange = (raw: Record<string, unknown>): ItemChange | null => {
           return isValidItemReference(itemRef) ? { action: 'destroy', item: itemRef } : null;
         }
       }
-      return isValidItem(raw.item, 'update') ? { action: 'update', item: raw.item } : null;
+      if (isValidItem(raw.item, 'update')) {
+        const itm = raw.item as {
+          knownUses?: Array<KnownUse>;
+          addKnownUse?: KnownUse;
+        };
+        itm.knownUses = filterBlockedKnownUses(itm.knownUses);
+        if (itm.addKnownUse && isBlockedKnownUse(itm.addKnownUse)) {
+          delete itm.addKnownUse;
+        }
+        return { action: 'update', item: raw.item };
+      }
+      return null;
     }
     case 'destroy':
       return isValidItemReference(raw.item) ? { action: 'destroy', item: raw.item } : null;
