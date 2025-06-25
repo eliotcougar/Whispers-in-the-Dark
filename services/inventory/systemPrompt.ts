@@ -155,7 +155,8 @@ Structure for individual ItemChange objects within the array:
     }
   }
 
-  - CRITICALLY IMPORTANT: holderId, toId, and fromId can only be 'node_*', 'npc_*' or 'player'.
+  - CRITICALLY IMPORTANT: holderId, toId, and fromId can only be 'node_*', 'npc_*' or 'player'. NEVER put an item inside another item!
+  - If the Player successfully restores, decodes or translates a 'book' or a 'page', you MUST add 'recovered' tag to the item, in addition to existing tags.
   - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
   - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
   - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
@@ -164,7 +165,7 @@ Structure for individual ItemChange objects within the array:
   IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
-IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park", "Read" known uses - there are dedicated buttons for those in the game.
+IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park", "Read", "Write" known uses - there are dedicated buttons for those in the game.
 
 If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, use "itemChange" "update" (e.g., with "addKnownUse").
 If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, consider "itemChange" "update" for "addKnownUse" in addition to main outcome.

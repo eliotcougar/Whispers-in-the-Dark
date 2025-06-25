@@ -79,16 +79,17 @@ Examples illustrating the hint style:
     "name": "Rusty Key",
     "type": "key",
     "description": "Opens an old door.",
+    "tags": [],
     "holderId": "npc_guard_4f3a"
   }]
 
 - Example for a short page item:
-  playerItemsHint: "Found Torn Note."
+  playerItemsHint: "Found Smudged Note."
   newItems: [{
-    "name": "Torn Note",
+    "name": "Smudged Note",
     "type": "page",
-    "description": "A hastily scribbled message.", /* REQUIRED. Moderatly detailed description of the note and its contents. */
-    "tags": ["typed", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
+    "description": "A hastily scribbled message with a big smudge over it.", /* REQUIRED. Moderatly detailed description of the note and its contents. Should NEVER include direct quotes of the contents. */
+    "tags": ["typed", "smudged"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
     "chapters": [ /* REQUIRED. Always a single chapter. */
       { "heading": "string", /* REQUIRED. Can be anything*/
         "description": "A hastily scribbled message about the dangers of the sunken tunnel.", /* REQUIRED. Moderately detailed abstract of the contents. */
@@ -102,7 +103,7 @@ Examples illustrating the hint style:
   newItems: [{
     "name": "Explorer's Adventures",
     "type": "book",
-    "description": "Weathered log of travels.",
+    "description": "Weathered log of travels.", /* Should NEVER include any direct quotes from the book contents. */
     "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
     "chapters": [ /* Anywhere from ${String(MIN_BOOK_CHAPTERS)} to ${String(MAX_BOOK_CHAPTERS)} chapters. */
       { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
@@ -116,6 +117,10 @@ Examples illustrating the hint style:
       { "heading": "Journey Two",
         "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
         "contentLength": 300 
+      },
+      { "heading": "Final Thoughts",
+        "description": "The author's contemplation about whether the journeys were worth it", 
+        "contentLength": 100 
       }
     ],
     "holderId": "player"
@@ -135,21 +140,6 @@ Examples illustrating the hint style:
 
 - Example for transformation or crafting:
   playerItemsHint: "Scrap Metal transformed into Makeshift Shiv."
-  newItems: [{
-    "name": "Makeshift Shiv",
-    "type": "weapon",
-    "description": "A sharp piece of metal.",
-    "tags": [],
-    "knownUses": [
-      {
-        "actionName": "Cut",
-        "promptEffect": "Cut something.",
-        "description": "Use this to cut things.",
-        "appliesWhenActive": false,
-        "appliesWhenInactive": false
-      }
-    ]
-  }]
 
 - Example for adding a known use (type/description etc. inherited):
   playerItemsHint: "Mystic Orb can now 'Peer into the Orb'."
