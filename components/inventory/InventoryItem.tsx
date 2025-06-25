@@ -61,9 +61,7 @@ function InventoryItem({
   const canShowDropNow =
     canEverDrop &&
     !isConfirmingDiscard &&
-    (!isWrittenItem || Boolean(item.stashed) || filterMode === 'stashed');
-  const keepDropButtonSpace =
-    isWrittenItem && isStashing && item.stashed && !canShowDropNow;
+    (!isWrittenItem || (filterMode === 'stashed' && item.stashed && !isStashing));
   const actionButtons: Array<React.ReactElement> = [];
 
   applicableUses.forEach(knownUse => {
@@ -205,25 +203,18 @@ function InventoryItem({
     );
   }
 
-  if (canEverDrop && isWrittenItem && (canShowDropNow || keepDropButtonSpace)) {
+  if (canEverDrop && isWrittenItem && canShowDropNow) {
     actionButtons.push(
-      <div
-        className={
-          keepDropButtonSpace ? 'invisible pointer-events-none' : undefined
-        }
-        key={`${item.name}-drop-wrapper`}
-      >
-        <Button
-          ariaLabel={`Drop ${item.name}`}
-          data-item-name={item.name}
-          disabled={disabled}
-          key={`${item.name}-drop`}
-          label="Drop"
-          onClick={onStartConfirmDiscard}
-          preset="sky"
-          size="sm"
-        />
-      </div>
+      <Button
+        ariaLabel={`Drop ${item.name}`}
+        data-item-name={item.name}
+        disabled={disabled}
+        key={`${item.name}-drop`}
+        label="Drop"
+        onClick={onStartConfirmDiscard}
+        preset="sky"
+        size="sm"
+      />
     );
   }
 
