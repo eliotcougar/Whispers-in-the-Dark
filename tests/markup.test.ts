@@ -20,6 +20,15 @@ describe('applyBasicMarkup', () => {
       .join('');
     expect(html).toBe('<ul class="list-disc list-inside ml-4 space-y-1"><li>First</li><li>Second <strong>bold</strong></li></ul>');
   });
+
+  it('formats headings as strong', () => {
+    const text = '# Heading 1';
+    const nodes = applyBasicMarkup(text);
+    const html = nodes
+      .map(n => renderToStaticMarkup(n as React.ReactElement))
+      .join('');
+    expect(html).toBe('<p><strong>Heading 1</strong></p>');
+  });
 });
 
 export default {};
