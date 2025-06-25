@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { applyItemChangeAction, buildItemChangeRecords, applyAllItemChanges } from '../utils/inventoryUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
-import type { ItemChange } from '../types';
+import type { ItemChange, Item } from '../types';
 
 describe('inventoryUtils', () => {
   it('applyItemChangeAction adds gained item', () => {
@@ -73,5 +73,32 @@ describe('inventoryUtils', () => {
     ];
     const result = applyAllItemChanges(changes, []);
     expect(result[0].isActive).toBe(true);
+  });
+
+  it('addChapter action appends chapter and resets inspect turn', () => {
+    const initial: Array<Item> = [
+      {
+        id: 'book1',
+        name: 'Mysteries',
+        type: 'book',
+        description: 'Old book',
+        holderId: PLAYER_HOLDER_ID,
+        chapters: [
+          { heading: 'Intro', description: 'start', contentLength: 50 },
+        ],
+        lastInspectTurn: 3,
+      },
+    ];
+    const change: ItemChange = {
+      action: 'addChapter',
+      item: {
+        id: 'book1',
+        name: 'Mysteries',
+        chapter: { heading: 'New', description: 'More', contentLength: 60 },
+      },
+    };
+    const result = applyItemChangeAction(initial, change);
+    expect(result[0].chapters?.length).toBe(2);
+    expect(result[0].lastInspectTurn).toBeUndefined();
   });
 });

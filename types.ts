@@ -99,6 +99,12 @@ export interface NewItemSuggestion {
   knownUses?: Array<KnownUse>;
 }
 
+export interface AddChapterPayload {
+  id?: string;
+  name?: string;
+  chapter: ItemChapter;
+}
+
 export type ItemChange =
   | {
       action: 'gain';
@@ -118,6 +124,11 @@ export type ItemChange =
   | {
       action: 'update';
       item: ItemUpdatePayload;
+      invalidPayload?: unknown;
+    }
+  | {
+      action: 'addChapter';
+      item: AddChapterPayload;
       invalidPayload?: unknown;
     }
   | {

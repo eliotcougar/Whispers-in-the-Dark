@@ -22,6 +22,10 @@ import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map'
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { applyInventoryHints_Service } from '../services/inventory';
 import { refineLore_Service } from '../services/loremaster';
+import { generatePageText } from '../services/page';
+import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
+import { rot13, toRunic } from '../utils/textTransforms';
+import { findItemByIdentifier } from '../utils/entityUtils';
 
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
@@ -450,6 +454,75 @@ export const useProcessAiResponse = ({
         draftState.lastActionLog = aiData.logMessage;
       } else if (!isFromDialogueSummary) {
         draftState.lastActionLog = 'The Dungeon Master remains silent on the outcome of your last action.';
+      }
+
+      if (themeContextForResponse) {
+        for (const change of combinedItemChanges) {
+          if (change.action === 'addChapter') {
+            const target = findItemByIdentifier([
+              change.item.id,
+              change.item.name,
+            ], draftState.inventory, false, true) as Item | null;
+            if (!target) continue;
+            const { chapter } = change.item;
+            const { name: themeName, systemInstructionModifier } = themeContextForResponse;
+            const nodes = draftState.mapData.nodes.filter(
+              n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+            );
+            const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
+            const npcs = draftState.allNPCs.filter(npc => npc.themeName === themeName);
+            const knownNPCs = npcs.length > 0
+              ? npcsToString(npcs, ' - ', false, false, false, true)
+              : 'None specifically known in this theme yet.';
+            const prev = target.chapters?.[target.chapters.length - 1]?.actualContent ?? '';
+            const thoughts = draftState.lastDebugPacket.storytellerThoughts?.slice(-1)[0] ?? '';
+            const actual = await generatePageText(
+              chapter.heading,
+              chapter.description,
+              chapter.contentLength,
+              themeName,
+              systemInstructionModifier,
+              draftState.currentScene,
+              thoughts,
+              knownPlaces,
+              knownNPCs,
+              draftState.mainQuest,
+              `Take into account: ${draftState.lastActionLog ?? ''}`,
+              prev
+            );
+            if (actual) {
+              let visible = actual;
+              if (target.tags?.includes('foreign')) {
+                const fake = await generatePageText(
+                  chapter.heading,
+                  chapter.description,
+                  chapter.contentLength,
+                  themeName,
+                  systemInstructionModifier,
+                  draftState.currentScene,
+                  thoughts,
+                  knownPlaces,
+                  knownNPCs,
+                  draftState.mainQuest,
+                  `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
+                );
+                visible = fake ?? actual;
+              } else if (target.tags?.includes('encrypted')) {
+                visible = rot13(actual);
+              } else if (target.tags?.includes('runic')) {
+                visible = toRunic(actual);
+              }
+              const updatedChapter = { ...chapter, actualContent: actual, visibleContent: visible };
+              const idx = draftState.inventory.findIndex(i => i.id === target.id);
+              const updated = {
+                ...target,
+                chapters: [...(target.chapters ?? []), updatedChapter],
+                lastInspectTurn: undefined,
+              };
+              draftState.inventory[idx] = updated;
+            }
+          }
+        }
       }
 
       if (themeContextForResponse) {

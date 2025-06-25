@@ -6,6 +6,7 @@ import {
   Item,
   ItemReference,
   ItemChapter,
+  AddChapterPayload,
   KnownUse,
   NewItemSuggestion,
   ValidNPCUpdatePayload,
@@ -221,6 +222,25 @@ export function isValidItemReference(obj: unknown): obj is ItemReference {
     typeof maybe.id === 'string' && maybe.id.trim() !== '' &&
     typeof maybe.name === 'string' && maybe.name.trim() !== ''
   );
+}
+
+export function isValidAddChapterPayload(obj: unknown): obj is AddChapterPayload {
+  if (!obj || typeof obj !== 'object') return false;
+  const maybe = obj as Partial<AddChapterPayload> & { chapter?: unknown };
+  if (
+    (!maybe.id || typeof maybe.id === 'string') &&
+    (!maybe.name || typeof maybe.name === 'string') &&
+    maybe.chapter &&
+    typeof maybe.chapter === 'object'
+  ) {
+    const ch = maybe.chapter as Partial<ItemChapter>;
+    return (
+      typeof ch.heading === 'string' &&
+      typeof ch.description === 'string' &&
+      typeof ch.contentLength === 'number'
+    );
+  }
+  return false;
 }
 
 export function isValidNewItemSuggestion(obj: unknown): obj is NewItemSuggestion {
