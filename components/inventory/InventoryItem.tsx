@@ -49,16 +49,20 @@ function InventoryItem({
   registerRef,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
-  const isWrittenItem = item.type === 'page' || item.type === 'book' || item.type === 'journal';
+  const isWrittenItem =
+    item.type === 'page' || item.type === 'book' || item.type === 'journal';
   const canShowGenericUse =
     item.type !== 'status effect' && item.type !== 'vehicle';
-  const hideDropButton = isWrittenItem && isStashing && item.stashed;
-  const canShowDrop =
+  const canEverDrop =
     !item.tags?.includes('junk') &&
-    !isConfirmingDiscard &&
     item.type !== 'vehicle' &&
-    item.type !== 'status effect' &&
-    (!isWrittenItem || item.stashed === true || filterMode === 'stashed');
+    item.type !== 'status effect';
+  const canShowDropNow =
+    canEverDrop &&
+    !isConfirmingDiscard &&
+    (!isWrittenItem || Boolean(item.stashed) || filterMode === 'stashed');
+  const hideDropButton =
+    isWrittenItem && isStashing && item.stashed;
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isStashing ? 'animate-archive-fade-out' : ''} flex flex-col`}
@@ -225,8 +229,14 @@ function InventoryItem({
         ) : null}
 
 
-        {canShowDrop ? (
-          <div className={hideDropButton ? 'opacity-0 pointer-events-none' : undefined}>
+        {canEverDrop && isWrittenItem ? (
+          <div
+            className={
+              hideDropButton || !canShowDropNow
+                ? 'opacity-0 pointer-events-none'
+                : undefined
+            }
+          >
             <Button
               ariaLabel={`Drop ${item.name}`}
               data-item-name={item.name}
@@ -238,6 +248,19 @@ function InventoryItem({
               size="sm"
             />
           </div>
+        ) : null}
+
+        {canEverDrop && !isWrittenItem && canShowDropNow ? (
+          <Button
+            ariaLabel={`Drop ${item.name}`}
+            data-item-name={item.name}
+            disabled={disabled}
+            key={`${item.name}-drop`}
+            label="Drop"
+            onClick={onStartConfirmDiscard}
+            preset="sky"
+            size="sm"
+          />
         ) : null}
 
         {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive ? (
