@@ -59,6 +59,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
 
   const itemElementMap = useRef(new Map<string, HTMLLIElement>());
   const prevRectsRef = useRef(new Map<string, DOMRect>());
+  const prevDisabledRef = useRef(disabled);
 
   const registerItemRef = useCallback((el: HTMLLIElement | null) => {
     if (!el) return;
@@ -78,6 +79,12 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
       }
       newRects.set(name, el.getBoundingClientRect());
     });
+
+    if (prevDisabledRef.current !== disabled) {
+      prevDisabledRef.current = disabled;
+      prevRectsRef.current = newRects;
+      return;
+    }
 
     if (!disabled) {
       prevRectsRef.current.forEach((prevRect, name) => {
