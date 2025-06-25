@@ -1,3 +1,4 @@
+import React from 'react';
 import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
@@ -61,8 +62,234 @@ function InventoryItem({
     canEverDrop &&
     !isConfirmingDiscard &&
     (!isWrittenItem || Boolean(item.stashed) || filterMode === 'stashed');
-  const hideDropButton =
-    isWrittenItem && isStashing && item.stashed;
+  const keepDropButtonSpace =
+    isWrittenItem && isStashing && item.stashed && !canShowDropNow;
+  const actionButtons: Array<React.ReactElement> = [];
+
+  applicableUses.forEach(knownUse => {
+    actionButtons.push(
+      <Button
+        ariaLabel={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
+        data-action-name={knownUse.actionName}
+        data-item-name={item.name}
+        data-prompt-effect={knownUse.promptEffect}
+        disabled={disabled || isConfirmingDiscard}
+        key={`${item.name}-knownuse-${knownUse.actionName}`}
+        label={knownUse.actionName}
+        onClick={onSpecificUse}
+        preset="teal"
+        size="sm"
+        title={knownUse.description}
+      />
+    );
+  });
+
+  actionButtons.push(
+    <Button
+      ariaLabel={`Inspect ${item.name}`}
+      data-item-name={item.name}
+      disabled={
+        disabled ||
+        isConfirmingDiscard ||
+        (isWrittenItem
+          ? item.type === 'journal'
+            ? (item.chapters?.length ?? 0) === 0
+            : (item.chapters?.some(ch => !ch.actualContent) ?? true)
+          : false) ||
+        (item.lastInspectTurn !== undefined && currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN)
+      }
+      key={`${item.name}-inspect`}
+      label="Inspect"
+      onClick={onInspect}
+      preset="indigo"
+      size="sm"
+    />
+  );
+
+  if (item.type === 'page' || item.type === 'book' || item.type === 'journal') {
+    actionButtons.push(
+      <Button
+        ariaLabel={`Read ${item.name}`}
+        data-item-name={item.name}
+        disabled={
+          disabled ||
+          isConfirmingDiscard ||
+          (item.type === 'journal' && (item.chapters?.length ?? 0) === 0)
+        }
+        key={`${item.name}-read`}
+        label="Read"
+        onClick={onRead}
+        preset="teal"
+        size="sm"
+      />
+    );
+  }
+
+  if (item.type === 'journal') {
+    actionButtons.push(
+      <Button
+        ariaLabel={`Write in ${item.name}`}
+        data-item-name={item.name}
+        disabled={
+          disabled ||
+          isConfirmingDiscard ||
+          (item.lastWriteTurn !== undefined && currentTurn - item.lastWriteTurn < JOURNAL_WRITE_COOLDOWN)
+        }
+        key={`${item.name}-write`}
+        label="Write"
+        onClick={onWrite}
+        preset="teal"
+        size="sm"
+      />
+    );
+  }
+
+  if (canShowGenericUse) {
+    actionButtons.push(
+      <Button
+        ariaLabel={`Attempt to use ${item.name} (generic action)`}
+        data-item-name={item.name}
+        disabled={disabled || isConfirmingDiscard}
+        key={`${item.name}-generic-use`}
+        label="Attempt to Use (Generic)"
+        onClick={onGenericUse}
+        preset="sky"
+        size="sm"
+      />
+    );
+  }
+
+  if (item.type === 'vehicle') {
+    actionButtons.push(
+      <Button
+        ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
+        data-item-name={item.name}
+        disabled={disabled || isConfirmingDiscard}
+        key={`${item.name}-vehicle-action`}
+        label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
+        onClick={onVehicleToggle}
+        preset="sky"
+        size="sm"
+      />
+    );
+  }
+
+  if (item.tags?.includes('junk') && !isConfirmingDiscard) {
+    actionButtons.push(
+      <Button
+        ariaLabel={`Discard ${item.name}`}
+        data-item-name={item.name}
+        disabled={disabled}
+        icon={<Icon color="white" inline marginRight={4} name="trash" size={16} />}
+        key={`${item.name}-discard`}
+        label="Discard"
+        onClick={onStartConfirmDiscard}
+        preset="orange"
+        size="sm"
+      />
+    );
+  }
+
+  if ((item.type === 'page' || item.type === 'book' || item.type === 'journal') && !isConfirmingDiscard) {
+    actionButtons.push(
+      <Button
+        ariaLabel={filterMode === 'stashed' ? `Retrieve ${item.name}` : `Stash ${item.name}`}
+        data-item-name={item.name}
+        disabled={disabled}
+        key={`${item.name}-stash`}
+        label={filterMode === 'stashed' ? 'Retrieve' : 'Stash'}
+        onClick={onStashToggle}
+        preset="sky"
+        size="sm"
+      />
+    );
+  }
+
+  if (canEverDrop && isWrittenItem && (canShowDropNow || keepDropButtonSpace)) {
+    actionButtons.push(
+      <div
+        className={
+          keepDropButtonSpace ? 'invisible pointer-events-none' : undefined
+        }
+        key={`${item.name}-drop-wrapper`}
+      >
+        <Button
+          ariaLabel={`Drop ${item.name}`}
+          data-item-name={item.name}
+          disabled={disabled}
+          key={`${item.name}-drop`}
+          label="Drop"
+          onClick={onStartConfirmDiscard}
+          preset="sky"
+          size="sm"
+        />
+      </div>
+    );
+  }
+
+  if (canEverDrop && !isWrittenItem && canShowDropNow) {
+    actionButtons.push(
+      <Button
+        ariaLabel={`Drop ${item.name}`}
+        data-item-name={item.name}
+        disabled={disabled}
+        key={`${item.name}-drop`}
+        label="Drop"
+        onClick={onStartConfirmDiscard}
+        preset="sky"
+        size="sm"
+      />
+    );
+  }
+
+  if (!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive) {
+    actionButtons.push(
+      <Button
+        ariaLabel={`Park ${item.name} here`}
+        data-item-name={item.name}
+        disabled={disabled}
+        key={`${item.name}-drop`}
+        label="Park Here"
+        onClick={onStartConfirmDiscard}
+        preset="sky"
+        size="sm"
+      />
+    );
+  }
+
+  if (isConfirmingDiscard) {
+    actionButtons.push(
+      <div className="grid grid-cols-2 gap-2 mt-2" key={`${item.name}-confirm-group`}>
+        <Button
+          ariaLabel={`Confirm drop of ${item.name}`}
+          data-item-name={item.name}
+          disabled={disabled}
+          key={`${item.name}-confirm-drop`}
+          label={
+            item.type === 'vehicle' && !item.isActive
+              ? 'Confirm Park'
+              : item.tags?.includes('junk')
+                ? 'Confirm Discard'
+                : 'Confirm Drop'
+          }
+          onClick={onConfirmDrop}
+          preset="red"
+          size="sm"
+        />
+
+        <Button
+          ariaLabel="Cancel discard"
+          disabled={disabled}
+          key={`${item.name}-cancel-discard`}
+          label="Cancel"
+          onClick={onCancelDiscard}
+          preset="slate"
+          size="sm"
+        />
+      </div>
+    );
+  }
+
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isStashing ? 'animate-archive-fade-out' : ''} flex flex-col`}
@@ -97,215 +324,7 @@ function InventoryItem({
       ) : null}
 
       <div className="space-y-2 mt-auto">
-        {applicableUses.map(knownUse => (
-          <Button
-            ariaLabel={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
-            data-action-name={knownUse.actionName}
-            data-item-name={item.name}
-            data-prompt-effect={knownUse.promptEffect}
-            disabled={disabled || isConfirmingDiscard}
-            key={`${item.name}-knownuse-${knownUse.actionName}`}
-            label={knownUse.actionName}
-            onClick={onSpecificUse}
-            preset="teal"
-            size="sm"
-            title={knownUse.description}
-          />
-      ))}
-
-        <Button
-          ariaLabel={`Inspect ${item.name}`}
-          data-item-name={item.name}
-          disabled={
-            disabled ||
-            isConfirmingDiscard ||
-            (isWrittenItem
-              ? item.type === 'journal'
-                ? (item.chapters?.length ?? 0) === 0
-                : (item.chapters?.some(ch => !ch.actualContent) ?? true)
-              : false) ||
-            (item.lastInspectTurn !== undefined && currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN)
-          }
-          key={`${item.name}-inspect`}
-          label="Inspect"
-          onClick={onInspect}
-          preset="indigo"
-          size="sm"
-        />
-
-        {item.type === 'page' || item.type === 'book' || item.type === 'journal' ? (
-          <Button
-            ariaLabel={`Read ${item.name}`}
-            data-item-name={item.name}
-            disabled={
-              disabled ||
-              isConfirmingDiscard ||
-              (item.type === 'journal' && (item.chapters?.length ?? 0) === 0)
-            }
-            key={`${item.name}-read`}
-            label="Read"
-            onClick={onRead}
-            preset="teal"
-            size="sm"
-          />
-        ) : null}
-
-        {item.type === 'journal' ? (
-          <Button
-            ariaLabel={`Write in ${item.name}`}
-            data-item-name={item.name}
-            disabled={
-              disabled ||
-              isConfirmingDiscard ||
-              (item.lastWriteTurn !== undefined && currentTurn - item.lastWriteTurn < JOURNAL_WRITE_COOLDOWN)
-            }
-            key={`${item.name}-write`}
-            label="Write"
-            onClick={onWrite}
-            preset="teal"
-            size="sm"
-          />
-        ) : null}
-
-        {canShowGenericUse ? (
-          <Button
-            ariaLabel={`Attempt to use ${item.name} (generic action)`}
-            data-item-name={item.name}
-            disabled={disabled || isConfirmingDiscard}
-            key={`${item.name}-generic-use`}
-            label="Attempt to Use (Generic)"
-            onClick={onGenericUse}
-            preset="sky"
-            size="sm"
-          />
-        ) : null}
-
-        {item.type === 'vehicle' ? (
-          <Button
-            ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
-            data-item-name={item.name}
-            disabled={disabled || isConfirmingDiscard}
-            key={`${item.name}-vehicle-action`}
-            label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
-            onClick={onVehicleToggle}
-            preset="sky"
-            size="sm"
-          />
-        ) : null}
-
-        {item.tags?.includes('junk') && !isConfirmingDiscard ? (
-          <Button
-            ariaLabel={`Discard ${item.name}`}
-            data-item-name={item.name}
-            disabled={disabled}
-            icon={
-              <Icon
-                color="white"
-                inline
-                marginRight={4}
-                name="trash"
-                size={16}
-              />
-            }
-            key={`${item.name}-discard`}
-            label="Discard"
-            onClick={onStartConfirmDiscard}
-            preset="orange"
-            size="sm"
-          />
-        ) : null}
-
-        {(item.type === 'page' || item.type === 'book' || item.type === 'journal') && !isConfirmingDiscard ? (
-          <Button
-            ariaLabel={filterMode === 'stashed' ? `Retrieve ${item.name}` : `Stash ${item.name}`}
-            data-item-name={item.name}
-            disabled={disabled}
-            key={`${item.name}-stash`}
-            label={filterMode === 'stashed' ? 'Retrieve' : 'Stash'}
-            onClick={onStashToggle}
-            preset="sky"
-            size="sm"
-          />
-        ) : null}
-
-
-        {canEverDrop && isWrittenItem ? (
-          <div
-            className={
-              hideDropButton || !canShowDropNow
-                ? 'opacity-0 pointer-events-none'
-                : undefined
-            }
-          >
-            <Button
-              ariaLabel={`Drop ${item.name}`}
-              data-item-name={item.name}
-              disabled={disabled}
-              key={`${item.name}-drop`}
-              label="Drop"
-              onClick={onStartConfirmDiscard}
-              preset="sky"
-              size="sm"
-            />
-          </div>
-        ) : null}
-
-        {canEverDrop && !isWrittenItem && canShowDropNow ? (
-          <Button
-            ariaLabel={`Drop ${item.name}`}
-            data-item-name={item.name}
-            disabled={disabled}
-            key={`${item.name}-drop`}
-            label="Drop"
-            onClick={onStartConfirmDiscard}
-            preset="sky"
-            size="sm"
-          />
-        ) : null}
-
-        {!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive ? (
-          <Button
-            ariaLabel={`Park ${item.name} here`}
-            data-item-name={item.name}
-            disabled={disabled}
-            key={`${item.name}-drop`}
-            label="Park Here"
-            onClick={onStartConfirmDiscard}
-            preset="sky"
-            size="sm"
-          />
-        ) : null}
-
-        {isConfirmingDiscard ? (
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <Button
-              ariaLabel={`Confirm drop of ${item.name}`}
-              data-item-name={item.name}
-              disabled={disabled}
-              key={`${item.name}-confirm-drop`}
-              label={
-                item.type === 'vehicle' && !item.isActive
-                  ? 'Confirm Park'
-                  : item.tags?.includes('junk')
-                    ? 'Confirm Discard'
-                    : 'Confirm Drop'
-              }
-              onClick={onConfirmDrop}
-              preset="red"
-              size="sm"
-            />
-
-            <Button
-              ariaLabel="Cancel discard"
-              disabled={disabled}
-              key={`${item.name}-cancel-discard`}
-              label="Cancel"
-              onClick={onCancelDiscard}
-              preset="slate"
-              size="sm"
-            />
-          </div>
-        ) : null}
+        {actionButtons}
       </div>
     </li>
   );
