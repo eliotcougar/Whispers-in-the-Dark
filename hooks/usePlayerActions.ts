@@ -48,7 +48,6 @@ export interface UsePlayerActionsProps {
   hasGameBeenInitialized: boolean;
   loadingReason: LoadingReason | null;
   debugLore: boolean;
-  addDebugLoreFacts: (good: Array<string>, bad: Array<string>) => void;
   openDebugLoreModal: (
     facts: Array<string>,
     resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
@@ -78,7 +77,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     hasGameBeenInitialized,
     loadingReason,
     debugLore,
-    addDebugLoreFacts,
     openDebugLoreModal,
   } = props;
 
@@ -88,7 +86,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setError,
     setGameStateStack,
     debugLore,
-    addDebugLoreFacts,
     openDebugLoreModal,
   });
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 
@@ -11,6 +11,12 @@ interface DebugLoreModalProps {
 
 function DebugLoreModal({ isVisible, facts, onSubmit, onClose }: DebugLoreModalProps) {
   const [ratings, setRatings] = useState<Record<number, 'good' | 'bad' | undefined>>({});
+
+  useEffect(() => {
+    if (isVisible) {
+      setRatings({});
+    }
+  }, [facts, isVisible]);
 
   const toggle = useCallback((idx: number, val: 'good' | 'bad') => {
     setRatings(prev => ({ ...prev, [idx]: prev[idx] === val ? undefined : val }));

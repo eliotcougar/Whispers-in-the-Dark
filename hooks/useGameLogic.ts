@@ -135,16 +135,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     ]);
   }, []);
 
-  const addDebugLoreFacts = useCallback((good: Array<string>, bad: Array<string>) => {
-    setGameStateStack(prev => [
-      {
-        ...prev[0],
-        debugGoodFacts: [...prev[0].debugGoodFacts, ...good],
-        debugBadFacts: [...prev[0].debugBadFacts, ...bad],
-      },
-      prev[1],
-    ]);
-  }, []);
 
   const {
     handleMapLayoutConfigChange,
@@ -180,7 +170,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     hasGameBeenInitialized,
     loadingReason,
     debugLore: currentSnapshot.debugLore,
-    addDebugLoreFacts,
     openDebugLoreModal,
   });
 
@@ -471,7 +460,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     commitGameState,
     handleDistillFacts,
     toggleDebugLore,
-    addDebugLoreFacts,
     debugLore: currentFullState.debugLore,
     debugGoodFacts: currentFullState.debugGoodFacts,
     debugBadFacts: currentFullState.debugBadFacts,

@@ -271,7 +271,6 @@ export interface UseProcessAiResponseProps {
   setError: (err: string | null) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
   debugLore: boolean;
-  addDebugLoreFacts: (good: Array<string>, bad: Array<string>) => void;
   openDebugLoreModal: (
     facts: Array<string>,
     resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
@@ -284,7 +283,6 @@ export const useProcessAiResponse = ({
   setError,
   setGameStateStack,
   debugLore,
-  addDebugLoreFacts,
   openDebugLoreModal,
 }: UseProcessAiResponseProps) => {
   const { processMapUpdates } = useMapUpdateProcessor({
@@ -558,7 +556,10 @@ export const useProcessAiResponse = ({
             ? async (facts) =>
                 new Promise<{ proceed: boolean }>(resolve => {
                   openDebugLoreModal(facts, (good, bad, proceed) => {
-                    if (proceed) addDebugLoreFacts(good, bad);
+                    if (proceed) {
+                      draftState.debugGoodFacts.push(...good);
+                      draftState.debugBadFacts.push(...bad);
+                    }
                     resolve({ proceed });
                   });
                 })
@@ -590,7 +591,6 @@ export const useProcessAiResponse = ({
       setGameStateStack,
       processMapUpdates,
       clearObjectiveAnimationTimer,
-      addDebugLoreFacts,
       debugLore,
       openDebugLoreModal,
     ],
