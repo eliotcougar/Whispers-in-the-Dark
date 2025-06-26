@@ -17,6 +17,7 @@ interface HistoryDisplayProps {
   readonly onReadJournal: () => void;
   readonly onWriteJournal: () => void;
   readonly canWriteJournal: boolean;
+  readonly isWritingJournal: boolean;
 }
 
 /**
@@ -30,6 +31,7 @@ function HistoryDisplay({
   onReadJournal,
   onWriteJournal,
   canWriteJournal,
+  isWritingJournal,
   // mapData // If needed in future
 }: HistoryDisplayProps) {
   const rememberedThemes = Object.entries(themeHistory);
@@ -115,8 +117,7 @@ function HistoryDisplay({
             <div className="flex justify-center gap-2 mt-4">
               <Button
                 ariaLabel="Read journal"
-                icon={<Icon name="bookOpen" size={20} />}
-                label="Read Journal"
+                label="Read"
                 onClick={onReadJournal}
                 preset="blue"
                 size="sm"
@@ -125,9 +126,8 @@ function HistoryDisplay({
 
               <Button
                 ariaLabel="Write journal entry"
-                disabled={!canWriteJournal}
-                icon={<Icon name="log" size={20} />}
-                label="Write Entry"
+                disabled={!canWriteJournal || isWritingJournal}
+                label="Write"
                 onClick={onWriteJournal}
                 preset="blue"
                 size="sm"

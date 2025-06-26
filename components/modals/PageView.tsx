@@ -22,6 +22,9 @@ interface PageViewProps {
   readonly updateItemContent: (itemId: string, actual: string, visible: string, chapterIndex?: number) => void;
   readonly onInspect?: () => void;
   readonly onWriteJournal?: () => void;
+  readonly canWriteJournal?: boolean;
+  readonly canInspectJournal?: boolean;
+  readonly isWritingJournal?: boolean;
 }
 
 function PageView({
@@ -38,6 +41,9 @@ function PageView({
   updateItemContent,
   onInspect,
   onWriteJournal,
+  canWriteJournal = true,
+  canInspectJournal = true,
+  isWritingJournal = false,
 }: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -285,8 +291,8 @@ function PageView({
   }, [showDecoded, item, text, chapterIndex, chapters]);
 
   const pendingWrite = useMemo(
-    () => isJournal && chapters.length > 0 && chapterIndex === chapters.length,
-    [isJournal, chapterIndex, chapters.length]
+    () => isJournal && isWritingJournal,
+    [isJournal, isWritingJournal]
   );
 
   const tearOrientation = useMemo(() => {
@@ -337,7 +343,8 @@ function PageView({
             {onInspect ? (
               <Button
                 ariaLabel="Inspect"
-                icon={<Icon name="log" size={20} />}
+                disabled={!canInspectJournal}
+                label="Inspect"
                 onClick={handleInspectClick}
                 preset="indigo"
                 size="sm"
@@ -407,7 +414,8 @@ function PageView({
             {isJournal && onWriteJournal ? (
               <Button
                 ariaLabel="Write entry"
-                icon={<Icon name="journalPen" size={20} />}
+                disabled={!canWriteJournal || isWritingJournal}
+                label="Write"
                 onClick={handleWriteClick}
                 preset="blue"
                 size="sm"
@@ -463,4 +471,7 @@ PageView.defaultProps = {
   startIndex: 0,
   onInspect: undefined,
   onWriteJournal: undefined,
+  canWriteJournal: true,
+  canInspectJournal: true,
+  isWritingJournal: false,
 };

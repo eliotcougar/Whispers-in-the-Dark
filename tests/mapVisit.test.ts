@@ -65,6 +65,7 @@ const baseState: FullGameState = {
   inventory: [],
   playerJournal: [],
   lastJournalWriteTurn: 0,
+  lastJournalInspectTurn: 0,
   gameLog: [],
   lastActionLog: null,
   themeHistory: {} as ThemeHistoryState,

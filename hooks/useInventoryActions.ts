@@ -204,6 +204,14 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
+  const recordPlayerJournalInspect = useCallback(() => {
+    const currentFullState = getStateRef.current();
+    const draftState = structuredCloneGameState(currentFullState);
+    draftState.lastJournalInspectTurn = currentFullState.globalTurnNumber;
+    commitGameState(draftState);
+    return draftState;
+  }, [commitGameState]);
+
   const addTag = useCallback(
     (id: string, tag: ItemTag) => {
       const currentFullState = getStateRef.current();
@@ -263,6 +271,7 @@ export const useInventoryActions = ({
     updatePlayerJournalContent,
     addTag,
     recordInspect,
+    recordPlayerJournalInspect,
     handleStashToggle,
   };
 };

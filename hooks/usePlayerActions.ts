@@ -96,6 +96,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     addJournalEntry,
     addPlayerJournalEntry,
     updatePlayerJournalContent,
+    recordPlayerJournalInspect,
     recordInspect,
     handleStashToggle,
   } = useInventoryActions({
@@ -413,6 +414,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     addPlayerJournalEntry,
     updatePlayerJournalContent,
     handleStashToggle,
+    recordPlayerJournalInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   };

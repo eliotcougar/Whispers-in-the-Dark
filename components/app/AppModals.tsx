@@ -83,6 +83,8 @@ interface AppModalsProps {
   readonly onInventoryWriteJournal: (itemId: string) => void;
   readonly onItemInspect: (itemId: string) => void;
   readonly canWriteJournal: boolean;
+  readonly canInspectJournal: boolean;
+  readonly isWritingJournal: boolean;
 }
 
 function AppModals({
@@ -150,6 +152,8 @@ function AppModals({
   onInventoryWriteJournal,
   onItemInspect,
   canWriteJournal,
+  canInspectJournal,
+  isWritingJournal,
 }: AppModalsProps) {
 
   const updateContentHandler = useCallback(
@@ -209,6 +213,7 @@ function AppModals({
         onReadJournal={onReadJournal}
         onWriteJournal={onWriteJournal}
         canWriteJournal={canWriteJournal}
+        isWritingJournal={isWritingJournal}
         themeHistory={themeHistory}
       />
 
@@ -238,6 +243,9 @@ function AppModals({
         updateItemContent={updateContentHandler}
         onInspect={pageItemId ? inspectHandler : undefined}
         onWriteJournal={pageItemId ? writeJournalHandler : undefined}
+        canWriteJournal={canWriteJournal}
+        canInspectJournal={canInspectJournal}
+        isWritingJournal={isWritingJournal}
       />
 
       <MapDisplay

@@ -43,6 +43,7 @@ import {
   RECENT_LOG_COUNT_FOR_PROMPT,
   PLAYER_HOLDER_ID,
   PLAYER_JOURNAL_ID,
+  INSPECT_COOLDOWN,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
@@ -194,14 +195,17 @@ function App() {
     updateItemContent,
     addPlayerJournalEntry,
     updatePlayerJournalContent,
+    recordPlayerJournalInspect,
     playerJournal,
     lastJournalWriteTurn,
+    lastJournalInspectTurn,
     handleDistillFacts,
     toggleDebugLore,
     debugLore,
     debugGoodFacts,
     debugBadFacts,
   } = gameLogic;
+
 
   const handleApplyGameState = useCallback(
     (state: FullGameState) => { commitGameState(state); },
@@ -401,16 +405,25 @@ function App() {
     globalTurnNumber,
   ]);
 
+  const [isPlayerJournalWriting, setIsPlayerJournalWriting] = useState(false);
+
+  const canWritePlayerJournal =
+    lastJournalWriteTurn !== globalTurnNumber && !isPlayerJournalWriting;
+  const canInspectPlayerJournal =
+    playerJournal.length > 0 &&
+    globalTurnNumber - lastJournalInspectTurn >= INSPECT_COOLDOWN;
+
   const handleReadPlayerJournal = useCallback(() => {
     const index = playerJournal.length > 0 ? playerJournal.length - 1 : 0;
     openPageView(PLAYER_JOURNAL_ID, index);
   }, [openPageView, playerJournal.length]);
 
   const handleWritePlayerJournal = useCallback(() => {
-    if (lastJournalWriteTurn === globalTurnNumber) return;
+    if (lastJournalWriteTurn === globalTurnNumber || isPlayerJournalWriting) return;
+    setIsPlayerJournalWriting(true);
     openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
     void (async () => {
-      if (!currentTheme) return;
+      if (!currentTheme) { setIsPlayerJournalWriting(false); return; }
       const { name: themeName, systemInstructionModifier } = currentTheme;
       const nodes = mapData.nodes.filter(
         node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
@@ -445,6 +458,7 @@ function App() {
         addPlayerJournalEntry(chapter);
         openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
       }
+      setIsPlayerJournalWriting(false);
     })();
   }, [
     allNPCs,
@@ -459,6 +473,7 @@ function App() {
     gameLog,
     globalTurnNumber,
     lastJournalWriteTurn,
+    isPlayerJournalWriting,
   ]);
 
   const handleInspectFromPage = useCallback(
@@ -473,6 +488,7 @@ function App() {
           chapters: playerJournal,
           lastWriteTurn: lastJournalWriteTurn,
         };
+        recordPlayerJournalInspect();
         handleItemInteraction(pseudoItem, 'inspect');
         return;
       }
@@ -487,6 +503,7 @@ function App() {
       handleItemInteraction,
       playerJournal,
       lastJournalWriteTurn,
+      recordPlayerJournalInspect,
     ]
   );
 
@@ -1011,7 +1028,9 @@ function App() {
         onWriteJournal={handleWritePlayerJournal}
         onInventoryWriteJournal={handleWriteJournalFromPage}
         onItemInspect={handleInspectFromPage}
-        canWriteJournal={lastJournalWriteTurn !== globalTurnNumber}
+        canWriteJournal={canWritePlayerJournal}
+        canInspectJournal={canInspectPlayerJournal}
+        isWritingJournal={isPlayerJournalWriting}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
       /> : null}

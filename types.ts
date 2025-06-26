@@ -544,6 +544,7 @@ export interface FullGameState {
   inventory: Array<Item>;
   playerJournal: Array<ItemChapter>;
   lastJournalWriteTurn: number;
+  lastJournalInspectTurn: number;
   gameLog: Array<string>;
   lastActionLog: string | null;
   themeHistory: ThemeHistoryState;
@@ -594,6 +595,7 @@ export type SavedGameDataShape = Pick<
   | 'inventory'
   | 'playerJournal'
   | 'lastJournalWriteTurn'
+  | 'lastJournalInspectTurn'
   | 'gameLog'
   | 'lastActionLog'
   | 'themeHistory'
