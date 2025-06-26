@@ -135,6 +135,13 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     ]);
   }, []);
 
+  const clearDebugFacts = useCallback(() => {
+    setGameStateStack(prev => [
+      { ...prev[0], debugGoodFacts: [], debugBadFacts: [] },
+      prev[1],
+    ]);
+  }, []);
+
 
   const {
     handleMapLayoutConfigChange,
@@ -460,6 +467,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     commitGameState,
     handleDistillFacts,
     toggleDebugLore,
+    clearDebugFacts,
     debugLore: currentFullState.debugLore,
     debugGoodFacts: currentFullState.debugGoodFacts,
     debugBadFacts: currentFullState.debugBadFacts,

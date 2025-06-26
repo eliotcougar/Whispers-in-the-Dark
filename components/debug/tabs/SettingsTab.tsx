@@ -8,6 +8,7 @@ interface SettingsTabProps {
   readonly goodFacts: Array<string>;
   readonly badFacts: Array<string>;
   readonly onSaveFacts: (data: string) => void;
+  readonly onClearFacts: () => void;
 }
 
 function SettingsTab({
@@ -16,6 +17,7 @@ function SettingsTab({
   goodFacts,
   badFacts,
   onSaveFacts,
+  onClearFacts,
 }: SettingsTabProps) {
   const [showFacts, setShowFacts] = useState(false);
 
@@ -27,6 +29,10 @@ function SettingsTab({
     const data = JSON.stringify({ goodFacts, badFacts }, null, 2);
     onSaveFacts(data);
   }, [goodFacts, badFacts, onSaveFacts]);
+
+  const handleClear = useCallback(() => {
+    onClearFacts();
+  }, [onClearFacts]);
 
   return (
     <div>
@@ -58,6 +64,16 @@ function SettingsTab({
             label="Save JSON"
             onClick={handleSave}
             preset="green"
+            size="sm"
+            variant="compact"
+          />
+        ) : null}
+        {showFacts ? (
+          <Button
+            ariaLabel="Clear collected facts"
+            label="Clear Facts"
+            onClick={handleClear}
+            preset="red"
             size="sm"
             variant="compact"
           />

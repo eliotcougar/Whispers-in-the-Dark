@@ -41,6 +41,7 @@ interface DebugViewProps {
   readonly goodFacts: Array<string>;
   readonly badFacts: Array<string>;
   readonly onSaveFacts: (data: string) => void;
+  readonly onClearFacts: () => void;
 }
 
 type DebugTab =
@@ -78,6 +79,7 @@ function DebugView({
   goodFacts,
   badFacts,
   onSaveFacts,
+  onClearFacts,
 }: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
 
@@ -174,6 +176,7 @@ function DebugView({
             badFacts={badFacts}
             debugLore={debugLore}
             goodFacts={goodFacts}
+            onClearFacts={onClearFacts}
             onSaveFacts={onSaveFacts}
             onToggleDebugLore={onToggleDebugLore}
           />

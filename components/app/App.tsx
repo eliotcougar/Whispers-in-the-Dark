@@ -43,6 +43,7 @@ import {
   RECENT_LOG_COUNT_FOR_PROMPT,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
+import { saveDebugLoreToLocalStorage } from '../../services/storage';
 
 
 function App() {
@@ -213,6 +214,15 @@ function App() {
     URL.revokeObjectURL(url);
   }, []);
 
+  const handleClearFacts = useCallback(() => {
+    gameLogic.clearDebugFacts();
+    saveDebugLoreToLocalStorage({
+      debugLore: gameLogic.debugLore,
+      debugGoodFacts: [],
+      debugBadFacts: [],
+    });
+  }, [gameLogic]);
+
   useEffect(() => {
     if (!isLoading) {
       clearProgress();
@@ -289,6 +299,7 @@ function App() {
       mapLayoutConfig, allNPCs, score, localTime, localEnvironment, localPlace,
       playerGender, enabledThemePacks, stabilityLevel, chaosLevel, turnsSinceLastShift,
       isCustomGameMode, isAwaitingManualShiftThemeSelection,
+      debugLore, debugGoodFacts, debugBadFacts,
     ],
   });
 
@@ -778,6 +789,7 @@ function App() {
         goodFacts={debugGoodFacts}
         badFacts={debugBadFacts}
         onToggleDebugLore={toggleDebugLore}
+        onClearFacts={handleClearFacts}
         onSaveFacts={handleSaveFacts}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
