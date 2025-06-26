@@ -114,27 +114,27 @@ function HistoryDisplay({
             </ul>
             )}
 
-            <div className="flex justify-center gap-2 mt-4">
-              <Button
-                ariaLabel="Read journal"
-                label="Read"
-                onClick={onReadJournal}
-                preset="blue"
-                size="sm"
-                variant="toolbar"
-              />
+          <div className="flex justify-center gap-2 mt-4">
+            <Button
+              ariaLabel="Read journal"
+              label="Read"
+              onClick={onReadJournal}
+              preset="blue"
+              size="sm"
+              variant="toolbar"
+            />
 
-              <Button
-                ariaLabel="Write journal entry"
-                disabled={!canWriteJournal || isWritingJournal}
-                label="Write"
-                onClick={onWriteJournal}
-                preset="blue"
-                size="sm"
-                variant="toolbar"
-              />
-            </div>
+            <Button
+              ariaLabel="Write journal entry"
+              disabled={!canWriteJournal || isWritingJournal}
+              label="Write"
+              onClick={onWriteJournal}
+              preset="blue"
+              size="sm"
+              variant="toolbar"
+            />
           </div>
+        </div>
       </div>
     </div>
   );

@@ -474,10 +474,10 @@ function PageView({
 export default PageView;
 
 PageView.defaultProps = {
-  startIndex: 0,
+  canInspectJournal: true,
+  canWriteJournal: true,
+  isWritingJournal: false,
   onInspect: undefined,
   onWriteJournal: undefined,
-  canWriteJournal: true,
-  canInspectJournal: true,
-  isWritingJournal: false,
+  startIndex: 0,
 };

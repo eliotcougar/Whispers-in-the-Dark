@@ -50,6 +50,7 @@ function SettingsTab({
           size="sm"
           variant="toggle"
         />
+
         <Button
           ariaLabel="View collected facts"
           label={showFacts ? 'Hide Facts' : 'View Facts'}
@@ -58,6 +59,7 @@ function SettingsTab({
           size="sm"
           variant="compact"
         />
+
         {showFacts ? (
           <Button
             ariaLabel="Save facts to file"
@@ -68,6 +70,7 @@ function SettingsTab({
             variant="compact"
           />
         ) : null}
+
         {showFacts ? (
           <Button
             ariaLabel="Clear collected facts"

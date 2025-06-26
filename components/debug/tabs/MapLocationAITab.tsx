@@ -68,26 +68,26 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
               />
 
               <div className="my-2 flex flex-wrap gap-2">
-              <Button
-                ariaLabel="Show raw map response"
-                label="Raw"
-                onClick={handleShowRaw}
-                preset={showRaw ? 'sky' : 'slate'}
-                pressed={showRaw}
-                size="sm"
-                variant="toggle"
-              />
+                <Button
+                  ariaLabel="Show raw map response"
+                  label="Raw"
+                  onClick={handleShowRaw}
+                  preset={showRaw ? 'sky' : 'slate'}
+                  pressed={showRaw}
+                  size="sm"
+                  variant="toggle"
+                />
 
-            <Button
-              ariaLabel="Show parsed map response"
-              label="Parsed"
-              onClick={handleShowParsed}
-              preset={showRaw ? 'slate' : 'sky'}
-              pressed={!showRaw}
-              size="sm"
-              variant="toggle"
-            />
-          </div>
+                <Button
+                  ariaLabel="Show parsed map response"
+                  label="Parsed"
+                  onClick={handleShowParsed}
+                  preset={showRaw ? 'slate' : 'sky'}
+                  pressed={!showRaw}
+                  size="sm"
+                  variant="toggle"
+                />
+              </div>
 
               {showRaw ? (
                 <DebugSection

@@ -50,26 +50,26 @@ function InventoryAITab({ debugPacket }: InventoryAITabProps) {
           />
 
           <div className="my-2 flex flex-wrap gap-2">
-          <Button
-            ariaLabel="Show raw inventory response"
-            label="Raw"
-            onClick={handleShowRaw}
-            preset={showRaw ? 'sky' : 'slate'}
-            pressed={showRaw}
-            size="sm"
-            variant="toggle"
-          />
+            <Button
+              ariaLabel="Show raw inventory response"
+              label="Raw"
+              onClick={handleShowRaw}
+              preset={showRaw ? 'sky' : 'slate'}
+              pressed={showRaw}
+              size="sm"
+              variant="toggle"
+            />
 
-        <Button
-          ariaLabel="Show parsed inventory response"
-          label="Parsed"
-          onClick={handleShowParsed}
-          preset={showRaw ? 'slate' : 'sky'}
-          pressed={!showRaw}
-          size="sm"
-          variant="toggle"
-        />
-      </div>
+            <Button
+              ariaLabel="Show parsed inventory response"
+              label="Parsed"
+              onClick={handleShowParsed}
+              preset={showRaw ? 'slate' : 'sky'}
+              pressed={!showRaw}
+              size="sm"
+              variant="toggle"
+            />
+          </div>
 
           {showRaw ? (
             <DebugSection

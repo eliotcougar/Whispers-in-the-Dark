@@ -66,20 +66,32 @@ function DebugLoreModal({ isVisible, facts, onSubmit, onClose }: DebugLoreModalP
       <div className="animated-frame-content">
         <Button
           ariaLabel="Close debug lore"
-          icon={<Icon name="x" size={20} />}
+          icon={<Icon
+            name="x"
+            size={20}
+          />}
           onClick={onClose}
           size="sm"
           variant="close"
         />
 
-        <h1 className="text-2xl font-bold text-amber-400 mb-3 text-center" id="debug-lore-title">
+        <h1
+          className="text-2xl font-bold text-amber-400 mb-3 text-center"
+          id="debug-lore-title"
+        >
           Evaluate Extracted Facts
         </h1>
 
         <ul className="mb-4 space-y-2">
           {facts.map((fact, idx) => (
-            <li className="flex items-start gap-2" key={fact}>
-              <span className="flex-grow text-slate-300">{fact}</span>
+            <li
+              className="flex items-start gap-2"
+              key={fact}
+            >
+              <span className="flex-grow text-slate-300">
+                {fact}
+              </span>
+
               <Button
                 ariaLabel="Mark good"
                 label="Good"
@@ -89,6 +101,7 @@ function DebugLoreModal({ isVisible, facts, onSubmit, onClose }: DebugLoreModalP
                 size="sm"
                 variant="toggle"
               />
+
               <Button
                 ariaLabel="Mark bad"
                 label="Bad"
@@ -103,8 +116,21 @@ function DebugLoreModal({ isVisible, facts, onSubmit, onClose }: DebugLoreModalP
         </ul>
 
         <div className="flex justify-end gap-2">
-          <Button ariaLabel="Skip" label="Skip" onClick={handleSkip} preset="stone" size="sm" />
-          <Button ariaLabel="OK" label="OK" onClick={handleOk} preset="sky" size="sm" />
+          <Button
+            ariaLabel="Skip"
+            label="Skip"
+            onClick={handleSkip}
+            preset="stone"
+            size="sm"
+          />
+
+          <Button
+            ariaLabel="OK"
+            label="OK"
+            onClick={handleOk}
+            preset="sky"
+            size="sm"
+          />
         </div>
       </div>
     </div>
