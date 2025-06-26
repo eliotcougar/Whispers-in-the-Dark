@@ -277,6 +277,20 @@ function PageView({
     [isJournal, chapterIndex, chapters.length]
   );
 
+  const tearOrientation = useMemo(() => {
+    if (
+      !item ||
+      !item.tags?.includes('torn') ||
+      item.tags.includes('recovered') ||
+      !displayedText
+    )
+      return null;
+    const trimmed = displayedText.trim();
+    if (trimmed.startsWith('--- torn ---')) return 'top';
+    if (trimmed.endsWith('--- torn ---')) return 'bottom';
+    return null;
+  }, [displayedText, item]);
+
   return (
     <div
       aria-labelledby="page-view-title"
@@ -396,7 +410,7 @@ function PageView({
             ))}
           </ul>
         ) : displayedText ? (
-          <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames}`}>
+          <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}>
             {applyBasicMarkup(displayedText)}
           </div>
         ) : null}
