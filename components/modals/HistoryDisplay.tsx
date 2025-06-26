@@ -53,26 +53,6 @@ function HistoryDisplay({
           variant="close"
         />
 
-        <div className="flex justify-end gap-2 mb-2">
-          <Button
-            ariaLabel="Read journal"
-            icon={<Icon name="bookOpen" size={20} />}
-            onClick={onReadJournal}
-            preset="blue"
-            size="sm"
-            variant="toolbar"
-          />
-
-          <Button
-            ariaLabel="Write journal entry"
-            disabled={!canWriteJournal}
-            icon={<Icon name="log" size={20} />}
-            onClick={onWriteJournal}
-            preset="blue"
-            size="sm"
-            variant="toolbar"
-          />
-        </div>
 
         <div className="theme-memory-content-area">
           <TextBox
@@ -130,8 +110,31 @@ function HistoryDisplay({
                 </li>
               ))}
             </ul>
-          )}
-        </div>
+            )}
+
+            <div className="flex justify-center gap-2 mt-4">
+              <Button
+                ariaLabel="Read journal"
+                icon={<Icon name="bookOpen" size={20} />}
+                label="Read Journal"
+                onClick={onReadJournal}
+                preset="blue"
+                size="sm"
+                variant="toolbar"
+              />
+
+              <Button
+                ariaLabel="Write journal entry"
+                disabled={!canWriteJournal}
+                icon={<Icon name="log" size={20} />}
+                label="Write Entry"
+                onClick={onWriteJournal}
+                preset="blue"
+                size="sm"
+                variant="toolbar"
+              />
+            </div>
+          </div>
       </div>
     </div>
   );

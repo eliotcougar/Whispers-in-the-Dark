@@ -935,8 +935,6 @@ function App() {
         inventory={inventory}
         playerJournal={playerJournal}
         lastJournalWriteTurn={lastJournalWriteTurn}
-        globalTurnNumber={globalTurnNumber}
-        openPageView={openPageView}
         isCustomGameModeShift={isCustomGameMode}
         isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
