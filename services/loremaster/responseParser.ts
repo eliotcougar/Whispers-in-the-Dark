@@ -27,18 +27,29 @@ export const parseExtractFactsResponse = (
 
 export const parseIntegrationResponse = (
   responseText: string,
+  existingFacts: Array<{ id: number }> = [],
 ): LoreRefinementResult | null => {
   const jsonStr = extractJsonFromFence(responseText);
   const parsed = safeParseJson<unknown>(jsonStr);
   if (!parsed || typeof parsed !== 'object') return null;
   const obj = parsed as Partial<LoreRefinementResult> & { factsChange?: unknown };
   const factsArr: Array<ThemeFactChange> = [];
+  const validIds = existingFacts.map(f => f.id);
   if (Array.isArray(obj.factsChange)) {
     obj.factsChange.forEach(raw => {
       if (isThemeFactChange(raw)) {
         factsArr.push(raw);
       }
     });
+  }
+  if (
+    factsArr.some(
+      fc =>
+        (fc.action === 'change' || fc.action === 'delete') &&
+        (typeof fc.id !== 'number' || !validIds.includes(fc.id)),
+    )
+  ) {
+    return null;
   }
   const outcome = typeof obj.loreRefinementOutcome === 'string'
     ? obj.loreRefinementOutcome

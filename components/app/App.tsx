@@ -41,6 +41,9 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 import {
   FREE_FORM_ACTION_COST,
   RECENT_LOG_COUNT_FOR_PROMPT,
+  PLAYER_HOLDER_ID,
+  PLAYER_JOURNAL_ID,
+  INSPECT_COOLDOWN,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
@@ -190,12 +193,19 @@ function App() {
     handleMapNodesPositionChange,
     commitGameState,
     updateItemContent,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    recordPlayerJournalInspect,
+    playerJournal,
+    lastJournalWriteTurn,
+    lastJournalInspectTurn,
     handleDistillFacts,
     toggleDebugLore,
     debugLore,
     debugGoodFacts,
     debugBadFacts,
   } = gameLogic;
+
 
   const handleApplyGameState = useCallback(
     (state: FullGameState) => { commitGameState(state); },
@@ -394,6 +404,121 @@ function App() {
     gameLog,
     globalTurnNumber,
   ]);
+
+  const [isPlayerJournalWriting, setIsPlayerJournalWriting] = useState(false);
+
+  const canWritePlayerJournal =
+    lastJournalWriteTurn !== globalTurnNumber && !isPlayerJournalWriting;
+  const canInspectPlayerJournal =
+    playerJournal.length > 0 &&
+    (lastJournalInspectTurn === 0 ||
+      globalTurnNumber - lastJournalInspectTurn >= INSPECT_COOLDOWN);
+
+  const handleReadPlayerJournal = useCallback(() => {
+    const index = playerJournal.length > 0 ? playerJournal.length - 1 : 0;
+    openPageView(PLAYER_JOURNAL_ID, index);
+  }, [openPageView, playerJournal.length]);
+
+  const handleWritePlayerJournal = useCallback(() => {
+    if (lastJournalWriteTurn === globalTurnNumber || isPlayerJournalWriting) return;
+    setIsPlayerJournalWriting(true);
+    openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
+    void (async () => {
+      if (!currentTheme) { setIsPlayerJournalWriting(false); return; }
+      const { name: themeName, systemInstructionModifier } = currentTheme;
+      const nodes = mapData.nodes.filter(
+        node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
+      );
+      const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
+      const npcs = allNPCs.filter(npc => npc.themeName === themeName);
+      const knownNPCs = npcs.length > 0
+        ? npcsToString(npcs, ' - ', false, false, false, true)
+        : 'None specifically known in this theme yet.';
+      const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
+      const entry = await generateJournalEntry(
+        'Personal Journal',
+        'Your own journal',
+        prev,
+        themeName,
+        systemInstructionModifier,
+        currentScene,
+        lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
+        knownPlaces,
+        knownNPCs,
+        gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
+        mainQuest
+      );
+      if (entry) {
+        const chapter = {
+          heading: entry.heading,
+          description: entry.heading,
+          contentLength: 50,
+          actualContent: entry.text,
+          visibleContent: entry.text,
+        } as ItemChapter;
+        addPlayerJournalEntry(chapter);
+        openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
+      }
+      setIsPlayerJournalWriting(false);
+    })();
+  }, [
+    allNPCs,
+    currentTheme,
+    currentScene,
+    addPlayerJournalEntry,
+    mapData.nodes,
+    mainQuest,
+    openPageView,
+    playerJournal,
+    lastDebugPacket,
+    gameLog,
+    globalTurnNumber,
+    lastJournalWriteTurn,
+    isPlayerJournalWriting,
+  ]);
+
+  const handleInspectFromPage = useCallback(
+    (itemId: string) => {
+      if (itemId === PLAYER_JOURNAL_ID) {
+        const pseudoItem: Item = {
+          id: PLAYER_JOURNAL_ID,
+          name: 'Personal Journal',
+          type: 'journal',
+          description: 'Your own journal',
+          holderId: PLAYER_HOLDER_ID,
+          chapters: playerJournal,
+          lastWriteTurn: lastJournalWriteTurn,
+          tags: [currentTheme?.playerJournalStyle ?? 'handwritten'],
+        };
+        const updatedState = recordPlayerJournalInspect();
+        handleItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
+        return;
+      }
+
+      const item = inventory.find(it => it.id === itemId);
+      if (item) {
+        handleItemInteraction(item, 'inspect');
+      }
+    },
+    [
+      inventory,
+      handleItemInteraction,
+      playerJournal,
+      lastJournalWriteTurn,
+      recordPlayerJournalInspect,
+      currentTheme,
+    ]
+  );
+
+  const handleWriteJournalFromPage = useCallback(
+    (itemId: string) => {
+      const item = inventory.find(it => it.id === itemId);
+      if (item) {
+        handleWriteJournal(item);
+      }
+    },
+    [inventory, handleWriteJournal]
+  );
 
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -736,6 +861,7 @@ function App() {
                 onStashToggle={gameLogic.handleStashToggle}
                 onTakeItem={handleTakeLocationItem}
                 onWriteJournal={handleWriteJournal}
+                onReadPlayerJournal={handleReadPlayerJournal}
               />
             )}
           </div>
@@ -868,6 +994,8 @@ function App() {
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
         inventory={inventory}
+        playerJournal={playerJournal}
+        lastJournalWriteTurn={lastJournalWriteTurn}
         isCustomGameModeShift={isCustomGameMode}
         isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
@@ -898,6 +1026,14 @@ function App() {
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
         themeHistory={themeHistory}
         updateItemContent={updateItemContent}
+        updatePlayerJournalContent={updatePlayerJournalContent}
+        onReadJournal={handleReadPlayerJournal}
+        onWriteJournal={handleWritePlayerJournal}
+        onInventoryWriteJournal={handleWriteJournalFromPage}
+        onItemInspect={handleInspectFromPage}
+        canWriteJournal={canWritePlayerJournal}
+        canInspectJournal={canInspectPlayerJournal}
+        isWritingJournal={isPlayerJournalWriting}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
       /> : null}

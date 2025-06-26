@@ -4,6 +4,8 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import HistoryDisplay from '../modals/HistoryDisplay';
 import ImageVisualizer from '../modals/ImageVisualizer';
 import PageView from '../modals/PageView';
+import { PLAYER_HOLDER_ID, PLAYER_JOURNAL_ID } from '../../constants';
+import { useCallback } from 'react';
 import {
   AdventureTheme,
   MapData,
@@ -12,6 +14,7 @@ import {
   ThemeHistoryState,
   MapNode,
   Item,
+  ItemChapter,
 } from '../../types';
 
 interface AppModalsProps {
@@ -65,6 +68,8 @@ interface AppModalsProps {
   readonly handleCancelShift: () => void;
   readonly isCustomGameModeShift: boolean;
   readonly inventory: Array<Item>;
+  readonly playerJournal: Array<ItemChapter>;
+  readonly lastJournalWriteTurn: number;
   readonly pageItemId: string | null;
   readonly pageStartChapterIndex: number;
   readonly isPageVisible: boolean;
@@ -72,6 +77,14 @@ interface AppModalsProps {
   readonly storytellerThoughts: string;
   readonly currentQuest: string | null;
   readonly updateItemContent: (id: string, actual: string, visible: string, chapterIndex?: number) => void;
+  readonly updatePlayerJournalContent: (actual: string, visible: string, chapterIndex?: number) => void;
+  readonly onReadJournal: () => void;
+  readonly onWriteJournal: () => void;
+  readonly onInventoryWriteJournal: (itemId: string) => void;
+  readonly onItemInspect: (itemId: string) => void;
+  readonly canWriteJournal: boolean;
+  readonly canInspectJournal: boolean;
+  readonly isWritingJournal: boolean;
 }
 
 function AppModals({
@@ -124,6 +137,8 @@ function AppModals({
   handleCancelShift,
   isCustomGameModeShift,
   inventory,
+  playerJournal,
+  lastJournalWriteTurn,
   pageItemId,
   pageStartChapterIndex,
   isPageVisible,
@@ -131,7 +146,41 @@ function AppModals({
   storytellerThoughts,
   currentQuest,
   updateItemContent,
+  updatePlayerJournalContent,
+  onReadJournal,
+  onWriteJournal,
+  onInventoryWriteJournal,
+  onItemInspect,
+  canWriteJournal,
+  canInspectJournal,
+  isWritingJournal,
 }: AppModalsProps) {
+
+  const updateContentHandler = useCallback(
+    (itemId: string, a: string, v: string, idx?: number) => {
+      if (pageItemId === PLAYER_JOURNAL_ID) {
+        updatePlayerJournalContent(a, v, idx);
+      } else {
+        updateItemContent(itemId, a, v, idx);
+      }
+    },
+    [pageItemId, updateItemContent, updatePlayerJournalContent]
+  );
+
+  const inspectHandler = useCallback(() => {
+    if (pageItemId) {
+      onItemInspect(pageItemId);
+      onClosePage();
+    }
+  }, [pageItemId, onItemInspect, onClosePage]);
+
+  const writeJournalHandler = useCallback(() => {
+    if (pageItemId === PLAYER_JOURNAL_ID) {
+      onWriteJournal();
+    } else if (pageItemId) {
+      onInventoryWriteJournal(pageItemId);
+    }
+  }, [pageItemId, onWriteJournal, onInventoryWriteJournal]);
 
 
   return (
@@ -162,6 +211,10 @@ function AppModals({
         gameLog={gameLog}
         isVisible={isHistoryVisible}
         onClose={onCloseHistory}
+        onReadJournal={onReadJournal}
+        onWriteJournal={onWriteJournal}
+        canWriteJournal={canWriteJournal}
+        isWritingJournal={isWritingJournal}
         themeHistory={themeHistory}
       />
 
@@ -171,12 +224,30 @@ function AppModals({
         currentScene={currentScene}
         currentTheme={currentTheme}
         isVisible={isPageVisible}
-        item={inventory.find(it => it.id === pageItemId) ?? null}
+        item={
+          pageItemId === PLAYER_JOURNAL_ID
+            ? {
+                id: PLAYER_JOURNAL_ID,
+                name: 'Personal Journal',
+                type: 'journal',
+                description: 'Your own journal',
+                holderId: PLAYER_HOLDER_ID,
+                chapters: playerJournal,
+                lastWriteTurn: lastJournalWriteTurn,
+                tags: [currentTheme.playerJournalStyle],
+              }
+            : inventory.find(it => it.id === pageItemId) ?? null
+        }
         mapData={mapData}
         onClose={onClosePage}
         startIndex={pageStartChapterIndex}
         storytellerThoughts={storytellerThoughts}
-        updateItemContent={updateItemContent}
+        updateItemContent={updateContentHandler}
+        onInspect={pageItemId ? inspectHandler : undefined}
+        onWriteJournal={pageItemId ? writeJournalHandler : undefined}
+        canWriteJournal={canWriteJournal}
+        canInspectJournal={canInspectJournal}
+        isWritingJournal={isWritingJournal}
       />
 
       <MapDisplay

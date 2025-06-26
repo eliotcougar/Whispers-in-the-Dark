@@ -1,6 +1,8 @@
 import TextBox from '../elements/TextBox';
 import LocationItemsDisplay from '../inventory/LocationItemsDisplay';
 import InventoryDisplay from '../inventory/InventoryDisplay';
+import Button from '../elements/Button';
+import { Icon } from '../elements/icons';
 import { useMemo } from 'react';
 import { buildHighlightableEntities } from '../../utils/highlightHelper';
 import {
@@ -30,6 +32,7 @@ interface GameSidebarProps {
   ) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
+  readonly onReadPlayerJournal: () => void;
   readonly onTakeItem: (itemName: string) => void;
   readonly globalTurnNumber: number;
   readonly disabled: boolean;
@@ -51,6 +54,7 @@ function GameSidebar({
   onItemInteract,
   onReadPage,
   onWriteJournal,
+  onReadPlayerJournal,
   onTakeItem,
   globalTurnNumber,
   disabled,
@@ -68,6 +72,17 @@ function GameSidebar({
 
   return (
     <>
+      <div className="flex justify-start gap-4 mb-2">
+        <Button
+          ariaLabel="Open journal"
+          disabled={disabled}
+          icon={<Icon name="journalPen" size={24} />}
+          onClick={onReadPlayerJournal}
+          preset="blue"
+          size="lg"
+          variant="toolbarLarge"
+        />
+      </div>
       {mainQuest ? (
         <TextBox
           backgroundColorClass="bg-purple-800/50"

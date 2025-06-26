@@ -20,6 +20,11 @@ interface PageViewProps {
   readonly startIndex?: number;
   readonly onClose: () => void;
   readonly updateItemContent: (itemId: string, actual: string, visible: string, chapterIndex?: number) => void;
+  readonly onInspect?: () => void;
+  readonly onWriteJournal?: () => void;
+  readonly canWriteJournal?: boolean;
+  readonly canInspectJournal?: boolean;
+  readonly isWritingJournal?: boolean;
 }
 
 function PageView({
@@ -34,6 +39,11 @@ function PageView({
   startIndex = 0,
   onClose,
   updateItemContent,
+  onInspect,
+  onWriteJournal,
+  canWriteJournal = true,
+  canInspectJournal = true,
+  isWritingJournal = false,
 }: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +96,14 @@ function PageView({
       return Math.min(unlockedChapterCount, i + 1);
     });
   }, [isJournal, chapters.length, unlockedChapterCount]);
+
+  const handleInspectClick = useCallback(() => {
+    onInspect?.();
+  }, [onInspect]);
+
+  const handleWriteClick = useCallback(() => {
+    onWriteJournal?.();
+  }, [onWriteJournal]);
 
   const handleSelectChapter = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -273,8 +291,8 @@ function PageView({
   }, [showDecoded, item, text, chapterIndex, chapters]);
 
   const pendingWrite = useMemo(
-    () => isJournal && chapterIndex === chapters.length,
-    [isJournal, chapterIndex, chapters.length]
+    () => isJournal && isWritingJournal,
+    [isJournal, isWritingJournal]
   );
 
   const tearOrientation = useMemo(() => {
@@ -322,6 +340,18 @@ function PageView({
 
         {item?.type === 'book' || item?.type === 'journal' ? (
           <div className="flex justify-center items-center gap-2 mb-2">
+            {onInspect ? (
+              <Button
+                ariaLabel="Inspect"
+                disabled={!canInspectJournal}
+                label="Inspect"
+                onClick={handleInspectClick}
+                preset="indigo"
+                size="sm"
+                variant="compact"
+              />
+            ) : null}
+
             <Button
               ariaLabel="Previous chapter"
               disabled={chapterIndex === 0}
@@ -380,6 +410,18 @@ function PageView({
               size="lg"
               variant="toolbar"
             />
+
+            {isJournal && onWriteJournal ? (
+              <Button
+                ariaLabel="Write entry"
+                disabled={!canWriteJournal || isWritingJournal}
+                label="Write"
+                onClick={handleWriteClick}
+                preset="blue"
+                size="sm"
+                variant="compact"
+              />
+            ) : null}
           </div>
         ) : null}
 
@@ -410,9 +452,15 @@ function PageView({
             ))}
           </ul>
         ) : displayedText ? (
-          <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}>
+          <div
+            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}
+          >
             {applyBasicMarkup(displayedText)}
           </div>
+        ) : item?.type === 'journal' && chapters.length === 0 ? (
+          <div
+            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 min-h-[20rem] tag-${currentTheme.playerJournalStyle}`}
+          />
         ) : null}
       </div>
     </div>
@@ -423,4 +471,9 @@ export default PageView;
 
 PageView.defaultProps = {
   startIndex: 0,
+  onInspect: undefined,
+  onWriteJournal: undefined,
+  canWriteJournal: true,
+  canInspectJournal: true,
+  isWritingJournal: false,
 };

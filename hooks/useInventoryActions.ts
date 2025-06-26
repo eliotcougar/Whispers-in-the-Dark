@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { makeUniqueHeading } from '../utils/uniqueHeading';
 import { addLogMessageToList, removeDroppedItemLog } from '../utils/gameLogicUtils';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 
@@ -168,9 +169,13 @@ export const useInventoryActions = ({
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item => {
         if (item.id !== id) return item;
+        const newChapter = {
+          ...chapter,
+          heading: makeUniqueHeading(chapter.heading, item.chapters ?? []),
+        };
         return {
           ...item,
-          chapters: [...(item.chapters ?? []), chapter],
+          chapters: [...(item.chapters ?? []), newChapter],
           lastWriteTurn: currentFullState.globalTurnNumber,
         };
       });
@@ -178,6 +183,43 @@ export const useInventoryActions = ({
     },
     [commitGameState]
   );
+
+  const addPlayerJournalEntry = useCallback(
+    (chapter: ItemChapter) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      const newChapter = {
+        ...chapter,
+        heading: makeUniqueHeading(chapter.heading, draftState.playerJournal),
+      };
+      draftState.playerJournal = [...draftState.playerJournal, newChapter];
+      draftState.lastJournalWriteTurn = currentFullState.globalTurnNumber;
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  const updatePlayerJournalContent = useCallback(
+    (actual: string, visible: string, chapterIndex?: number) => {
+      const currentFullState = getStateRef.current();
+      const idx = typeof chapterIndex === 'number' ? chapterIndex : 0;
+      if (idx < 0 || idx >= currentFullState.playerJournal.length) return;
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.playerJournal = draftState.playerJournal.map((ch, cIdx) =>
+        cIdx === idx ? { ...ch, actualContent: actual, visibleContent: visible } : ch
+      );
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  const recordPlayerJournalInspect = useCallback(() => {
+    const currentFullState = getStateRef.current();
+    const draftState = structuredCloneGameState(currentFullState);
+    draftState.lastJournalInspectTurn = currentFullState.globalTurnNumber;
+    commitGameState(draftState);
+    return draftState;
+  }, [commitGameState]);
 
   const addTag = useCallback(
     (id: string, tag: ItemTag) => {
@@ -215,8 +257,8 @@ export const useInventoryActions = ({
 
 
   const recordInspect = useCallback(
-    (id: string): FullGameState => {
-      const currentFullState = getStateRef.current();
+    (id: string, baseState?: FullGameState): FullGameState => {
+      const currentFullState = baseState ?? getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item =>
         item.id === id
@@ -234,8 +276,11 @@ export const useInventoryActions = ({
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
     addTag,
     recordInspect,
+    recordPlayerJournalInspect,
     handleStashToggle,
   };
 };

@@ -35,6 +35,7 @@ describe('correction heuristics', () => {
         initialCurrentObjective: '',
         initialSceneDescriptionSeed: '',
         initialItems: '',
+        playerJournalStyle: 'handwritten',
       },
     );
     expect(tag).toBe('runic');

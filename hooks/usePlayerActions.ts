@@ -94,6 +94,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    recordPlayerJournalInspect,
     recordInspect,
     handleStashToggle,
   } = useInventoryActions({
@@ -343,9 +346,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       item: Item,
       interactionType: 'generic' | 'specific' | 'inspect',
       knownUse?: KnownUse,
+      stateOverride?: FullGameState,
     ) => {
       if (interactionType === 'inspect') {
-        const updatedState = recordInspect(item.id);
+        const updatedState = recordInspect(item.id, stateOverride);
 
         const showActual = item.tags?.includes('recovered');
         const contents = (item.chapters ?? [])
@@ -408,7 +412,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
     handleStashToggle,
+    recordPlayerJournalInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   };

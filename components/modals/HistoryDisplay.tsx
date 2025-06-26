@@ -14,6 +14,10 @@ interface HistoryDisplayProps {
   // mapData?: MapNode[]; // If we need to look up MapNode details by placeName from ThemeMemory
   readonly isVisible: boolean;
   readonly onClose: () => void;
+  readonly onReadJournal: () => void;
+  readonly onWriteJournal: () => void;
+  readonly canWriteJournal: boolean;
+  readonly isWritingJournal: boolean;
 }
 
 /**
@@ -24,6 +28,10 @@ function HistoryDisplay({
   gameLog,
   isVisible,
   onClose,
+  onReadJournal,
+  onWriteJournal,
+  canWriteJournal,
+  isWritingJournal,
   // mapData // If needed in future
 }: HistoryDisplayProps) {
   const rememberedThemes = Object.entries(themeHistory);
@@ -46,6 +54,7 @@ function HistoryDisplay({
           size="sm"
           variant="close"
         />
+
 
         <div className="theme-memory-content-area">
           <TextBox
@@ -103,8 +112,29 @@ function HistoryDisplay({
                 </li>
               ))}
             </ul>
-          )}
-        </div>
+            )}
+
+            <div className="flex justify-center gap-2 mt-4">
+              <Button
+                ariaLabel="Read journal"
+                label="Read"
+                onClick={onReadJournal}
+                preset="blue"
+                size="sm"
+                variant="toolbar"
+              />
+
+              <Button
+                ariaLabel="Write journal entry"
+                disabled={!canWriteJournal || isWritingJournal}
+                label="Write"
+                onClick={onWriteJournal}
+                preset="blue"
+                size="sm"
+                variant="toolbar"
+              />
+            </div>
+          </div>
       </div>
     </div>
   );

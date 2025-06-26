@@ -88,7 +88,7 @@ export const refineLore_Service = async (
   }
 
   const integratePrompt = buildIntegrateFactsPrompt(themeName, existingFacts, newFacts.parsed ?? []);
-  const integration = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string; thoughts: Array<string> } | null>(async () => {
+  const integration = await retryAiCall<{ parsed: LoreRefinementResult; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
@@ -104,7 +104,8 @@ export const refineLore_Service = async (
     const thoughtParts = parts
       .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
       .map(p => p.text);
-    return { result: { parsed: parseIntegrationResponse(response.text ?? ''), raw: response.text ?? '', thoughts: thoughtParts } };
+    const parsed = parseIntegrationResponse(response.text ?? '', existingFacts);
+    return { result: parsed ? { parsed, raw: response.text ?? '', thoughts: thoughtParts } : null };
   });
   return {
     refinementResult: integration?.parsed ?? null,
@@ -246,7 +247,7 @@ export const distillFacts_Service = async (
     mapNodeNames,
   );
 
-  const result = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string; thoughts: Array<string> } | null>(async () => {
+  const result = await retryAiCall<{ parsed: LoreRefinementResult; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME],
@@ -262,7 +263,8 @@ export const distillFacts_Service = async (
     const thoughtParts = parts
       .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
       .map(p => p.text);
-    return { result: { parsed: parseIntegrationResponse(response.text ?? ''), raw: response.text ?? '', thoughts: thoughtParts } };
+    const parsed = parseIntegrationResponse(response.text ?? '', facts);
+    return { result: parsed ? { parsed, raw: response.text ?? '', thoughts: thoughtParts } : null };
   });
 
   return {

@@ -292,6 +292,7 @@ export interface AdventureTheme {
   initialCurrentObjective: string;
   initialSceneDescriptionSeed: string;
   initialItems: string;
+  playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
 }
 
 export interface ThemeMemory {
@@ -542,7 +543,11 @@ export interface FullGameState {
   mainQuest: string | null;
   currentObjective: string | null;
   inventory: Array<Item>;
-  gameLog: Array<string>; 
+  playerJournal: Array<ItemChapter>;
+  lastJournalWriteTurn: number;
+  lastJournalInspectTurn: number;
+  lastLoreDistillTurn: number;
+  gameLog: Array<string>;
   lastActionLog: string | null;
   themeHistory: ThemeHistoryState;
   themeFacts: Array<ThemeFact>;
@@ -590,6 +595,10 @@ export type SavedGameDataShape = Pick<
   | 'mainQuest'
   | 'currentObjective'
   | 'inventory'
+  | 'playerJournal'
+  | 'lastJournalWriteTurn'
+  | 'lastJournalInspectTurn'
+  | 'lastLoreDistillTurn'
   | 'gameLog'
   | 'lastActionLog'
   | 'themeHistory'
