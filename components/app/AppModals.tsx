@@ -229,7 +229,7 @@ function AppModals({
             ? {
                 id: PLAYER_JOURNAL_ID,
                 name: 'Personal Journal',
-                type: 'journal',
+                type: 'book',
                 description: 'Your own journal',
                 holderId: PLAYER_HOLDER_ID,
                 chapters: playerJournal,

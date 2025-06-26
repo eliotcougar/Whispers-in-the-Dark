@@ -121,9 +121,9 @@ This layer abstracts external interactions and complex data processing.
 
 *   **Type Definitions:**
     *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`, `globalTurnNumber: number`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. Items include a `holderId` for their owner and `NPC` objects have a unique `id` similar to `MapNode.id`.
-    *   `ItemChapter` and the `chapters` array store text for `page`, `journal`, and `book` items, which also record `lastWriteTurn` to throttle writing.
+   *   `ItemChapter` and the `chapters` array store text for `page` and `book` items. Journals use the `book` type and start empty. Each item records `lastWriteTurn` to throttle writing.
 *   **Constants & Configuration:**
-    *   `constants.ts`: Global constants and model names. `PLAYER_HOLDER_ID` marks items belonging to the player. Includes `JOURNAL_WRITE_COOLDOWN`, lists of valid item types (`page`, `journal`, `book`, etc.) and text style tags used for written items.
+   *   `constants.ts`: Global constants and model names. `PLAYER_HOLDER_ID` marks items belonging to the player. Includes `JOURNAL_WRITE_COOLDOWN`, lists of valid item types (`page`, `book`, etc.) and text style tags used for written items.
     *   `services/cartographer/systemPrompt.ts`: Defines `MAP_UPDATE_SYSTEM_INSTRUCTION` (exported as `SYSTEM_INSTRUCTION`).
 *   **Theme Definitions:**
     *   `themes.ts`: Defines adventure themes.

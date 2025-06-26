@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Item, ItemChapter, MapData, NPC, AdventureTheme } from '../../types';
 import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
+import { PLAYER_JOURNAL_ID } from '../../constants';
 import { rot13, toRunic, tornVisibleText } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
@@ -50,11 +51,11 @@ function PageView({
   const [showDecoded, setShowDecoded] = useState(false);
   const [chapterIndex, setChapterIndex] = useState(startIndex);
   const isBook = item?.type === 'book';
-  const isJournal = item?.type === 'journal';
+  const isJournal = item?.id === PLAYER_JOURNAL_ID;
 
   const chapters = useMemo(() => {
     if (!item) return [];
-    if (item.type === 'journal') return item.chapters ?? [];
+    if (item.id === PLAYER_JOURNAL_ID) return item.chapters ?? [];
     if (item.chapters && item.chapters.length > 0) return item.chapters;
     const legacy = item as Item & {
       contentLength?: number;
@@ -108,13 +109,13 @@ function PageView({
   const handleSelectChapter = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = Number(e.target.value);
-      if (item?.type === 'book') {
+      if (isBook && !isJournal) {
         if (value <= unlockedChapterCount) setChapterIndex(value);
       } else if (value < unlockedChapterCount) {
         setChapterIndex(value);
       }
     },
-    [unlockedChapterCount, item]
+    [unlockedChapterCount, isBook, isJournal]
   );
 
   const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
@@ -144,7 +145,7 @@ function PageView({
     const tags = item?.tags ?? [];
     const classes: Array<string> = [];
 
-    const idx = item?.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    const idx = item?.type === 'book' && !isJournal ? chapterIndex - 1 : chapterIndex;
     const chapterValid = idx >= 0 && idx < chapters.length;
     const chapter: ItemChapter | undefined = chapterValid ? chapters[idx] : undefined;
     const showActual = showDecoded && Boolean(chapter?.actualContent);
@@ -173,7 +174,7 @@ function PageView({
     if (tags.includes('recovered') && showDecoded) classes.push('tag-recovered');
 
     return classes.join(' ');
-  }, [item, showDecoded, chapterIndex, chapters]);
+  }, [item, showDecoded, chapterIndex, chapters, isJournal]);
 
 
   const knownPlaces = useMemo(() => {
@@ -199,12 +200,12 @@ function PageView({
       return;
     }
 
-    if (item.type === 'book' && chapterIndex === 0) {
+    if (item.type === 'book' && !isJournal && chapterIndex === 0) {
       setText(null);
       return;
     }
 
-    const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    const idx = item.type === 'book' && !isJournal ? chapterIndex - 1 : chapterIndex;
     if (idx < 0 || idx >= chapters.length) {
       setText(null);
       return;
@@ -230,7 +231,9 @@ function PageView({
         knownNPCs,
         currentQuest,
         'Write it exclusively in English without any foreign, encrypted, or gibberish text.',
-        item.type === 'book' && idx > 0 ? chapters[idx - 1].actualContent ?? '' : undefined
+        item.type === 'book' && !isJournal && idx > 0
+          ? chapters[idx - 1].actualContent ?? ''
+          : undefined
       );
       if (actual) {
         const tags = item.tags ?? [];
@@ -276,11 +279,12 @@ function PageView({
     knownNPCs,
     currentQuest,
     updateItemContent,
+    isJournal,
   ]);
 
   const displayedText = useMemo(() => {
     if (!item) return text;
-    const idx = item.type === 'book' ? chapterIndex - 1 : chapterIndex;
+    const idx = item.type === 'book' && !isJournal ? chapterIndex - 1 : chapterIndex;
     const chapterValid = idx >= 0 && idx < chapters.length;
     if (!chapterValid) return text;
     const chapter = chapters[idx];
@@ -288,7 +292,7 @@ function PageView({
       return chapter.actualContent;
     }
     return text;
-  }, [showDecoded, item, text, chapterIndex, chapters]);
+  }, [showDecoded, item, text, chapterIndex, chapters, isJournal]);
 
   const pendingWrite = useMemo(
     () => isJournal && isWritingJournal,
@@ -338,7 +342,7 @@ function PageView({
           </h2>
         ) : null}
 
-        {item?.type === 'book' || item?.type === 'journal' ? (
+        {item?.type === 'book' || isJournal ? (
           <div className="flex justify-center items-center gap-2 mb-2">
             {onInspect ? (
               <Button
@@ -368,7 +372,7 @@ function PageView({
               onChange={handleSelectChapter}
               value={chapterIndex}
             >
-              {item.type === 'book' ? (
+              {isBook && !isJournal ? (
                 <>
                   <option value={0}>
                     ToC
@@ -399,7 +403,7 @@ function PageView({
               ariaLabel="Next chapter"
               disabled={
                 isLoading ||
-                (isBook
+                (isBook && !isJournal
                   ? chapterIndex >= unlockedChapterCount ||
                     chapterIndex === chapters.length
                   : chapterIndex >= chapters.length - 1)
@@ -443,7 +447,7 @@ function PageView({
           <LoadingSpinner loadingReason="journal" />
         ) : isLoading ? (
           <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
-        ) : item?.type === 'book' && chapterIndex === 0 ? (
+        ) : item?.type === 'book' && !isJournal && chapterIndex === 0 ? (
           <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
               <p key={ch.heading}>
@@ -457,7 +461,7 @@ function PageView({
           >
             {applyBasicMarkup(displayedText)}
           </div>
-        ) : item?.type === 'journal' && chapters.length === 0 ? (
+        ) : isJournal && chapters.length === 0 ? (
           <div
             className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 min-h-[20rem] tag-${currentTheme.playerJournalStyle}`}
           />

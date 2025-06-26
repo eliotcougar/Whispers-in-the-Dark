@@ -53,7 +53,7 @@ export interface Item {
   isActive?: boolean; // Defaults to false if undefined
   knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
   tags?: Array<ItemTag>; // Tags for classification, e.g., ["junk"]
-  stashed?: boolean; // Hidden pages, books, and journals when true
+  stashed?: boolean; // Hidden pages and books when true
   holderId: string; // ID of the entity holding this item or 'player'
   /**
    * Text content for written items.
