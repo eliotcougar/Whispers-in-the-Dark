@@ -117,8 +117,9 @@ Respond ONLY with a JSON object of the form:
   "observations": "string", /* REQUIRED. Minimum 300 words. Observations about the lore state, e.g. "There are 3 facts that can be merged." */
   "rationale": "string", /* REQUIRED. Minimum 300 words. Rationale for the changes, e.g. "The facts about the old tavern are no longer relevant." */
   "factsChange": [
-    { "action": "change", "id": 1, "fact": { "text": "string", "tier": 2 } },
+    { "action": "change", "id": 1, "fact": { "text": "string", "tier": 2 } }, /* The id MUST be one of the old ids */
     { "action": "delete", "id": 2 }
+    { "action": "add", "fact": { "text": "string" } } /* Use for splitting long facts */
   ],
   "loreRefinementOutcome": "string"
 }`;
