@@ -233,6 +233,7 @@ function AppModals({
                 holderId: PLAYER_HOLDER_ID,
                 chapters: playerJournal,
                 lastWriteTurn: lastJournalWriteTurn,
+                tags: [currentTheme.playerJournalStyle],
               }
             : inventory.find(it => it.id === pageItemId) ?? null
         }

@@ -411,7 +411,8 @@ function App() {
     lastJournalWriteTurn !== globalTurnNumber && !isPlayerJournalWriting;
   const canInspectPlayerJournal =
     playerJournal.length > 0 &&
-    globalTurnNumber - lastJournalInspectTurn >= INSPECT_COOLDOWN;
+    (lastJournalInspectTurn === 0 ||
+      globalTurnNumber - lastJournalInspectTurn >= INSPECT_COOLDOWN);
 
   const handleReadPlayerJournal = useCallback(() => {
     const index = playerJournal.length > 0 ? playerJournal.length - 1 : 0;
@@ -487,6 +488,7 @@ function App() {
           holderId: PLAYER_HOLDER_ID,
           chapters: playerJournal,
           lastWriteTurn: lastJournalWriteTurn,
+          tags: [currentTheme?.playerJournalStyle ?? 'handwritten'],
         };
         recordPlayerJournalInspect();
         handleItemInteraction(pseudoItem, 'inspect');
@@ -504,6 +506,7 @@ function App() {
       playerJournal,
       lastJournalWriteTurn,
       recordPlayerJournalInspect,
+      currentTheme,
     ]
   );
 

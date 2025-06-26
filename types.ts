@@ -292,6 +292,7 @@ export interface AdventureTheme {
   initialCurrentObjective: string;
   initialSceneDescriptionSeed: string;
   initialItems: string;
+  playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
 }
 
 export interface ThemeMemory {
