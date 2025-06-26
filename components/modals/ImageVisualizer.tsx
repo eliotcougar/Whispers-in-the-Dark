@@ -221,7 +221,7 @@ function ImageVisualizer({
 
     try {
       const response = await ai.models.generateImages({
-        model: 'imagen-3.0-generate-002',
+        model: 'imagen-4.0-generate-preview-06-06',
         prompt: safePrompt,
         config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
       });
