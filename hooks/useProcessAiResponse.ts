@@ -583,7 +583,17 @@ export const useProcessAiResponse = ({
 
       draftState.lastTurnChanges = turnChanges;
     },
-    [loadingReason, setLoadingReason, setError, setGameStateStack, processMapUpdates, clearObjectiveAnimationTimer],
+    [
+      loadingReason,
+      setLoadingReason,
+      setError,
+      setGameStateStack,
+      processMapUpdates,
+      clearObjectiveAnimationTimer,
+      addDebugLoreFacts,
+      debugLore,
+      openDebugLoreModal,
+    ],
   );
 
   return { processAiResponse, clearObjectiveAnimationTimer };

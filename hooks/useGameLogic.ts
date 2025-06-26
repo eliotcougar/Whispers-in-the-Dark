@@ -126,7 +126,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   triggerShiftRef.current = triggerRealityShift;
   manualShiftRef.current = executeManualRealityShift;
 
-  const initialFullState = getCurrentGameState();
+  const currentSnapshot = getCurrentGameState();
 
   const toggleDebugLore = useCallback(() => {
     setGameStateStack(prev => [
@@ -179,7 +179,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     isLoading,
     hasGameBeenInitialized,
     loadingReason,
-    debugLore: initialFullState.debugLore,
+    debugLore: currentSnapshot.debugLore,
     addDebugLoreFacts,
     openDebugLoreModal,
   });
