@@ -115,7 +115,7 @@ function PageView({
         setChapterIndex(value);
       }
     },
-    [unlockedChapterCount, item, isBook, isJournal]
+    [unlockedChapterCount, isBook, isJournal]
   );
 
   const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
@@ -174,7 +174,7 @@ function PageView({
     if (tags.includes('recovered') && showDecoded) classes.push('tag-recovered');
 
     return classes.join(' ');
-  }, [item, showDecoded, chapterIndex, chapters]);
+  }, [item, showDecoded, chapterIndex, chapters, isJournal]);
 
 
   const knownPlaces = useMemo(() => {
@@ -279,6 +279,7 @@ function PageView({
     knownNPCs,
     currentQuest,
     updateItemContent,
+    isJournal,
   ]);
 
   const displayedText = useMemo(() => {
@@ -291,7 +292,7 @@ function PageView({
       return chapter.actualContent;
     }
     return text;
-  }, [showDecoded, item, text, chapterIndex, chapters]);
+  }, [showDecoded, item, text, chapterIndex, chapters, isJournal]);
 
   const pendingWrite = useMemo(
     () => isJournal && isWritingJournal,
@@ -446,7 +447,7 @@ function PageView({
           <LoadingSpinner loadingReason="journal" />
         ) : isLoading ? (
           <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
-        ) : item?.type === 'book' && chapterIndex === 0 ? (
+        ) : item?.type === 'book' && !isJournal && chapterIndex === 0 ? (
           <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
               <p key={ch.heading}>
