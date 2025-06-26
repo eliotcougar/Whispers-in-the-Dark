@@ -35,7 +35,7 @@ import { normalizeTag } from '../../utils/tagSynonyms';
  */
 export const executeInventoryRequest = async (
   prompt: string,
-): Promise<GenerateContentResponse> => {
+): Promise<{ response: GenerateContentResponse; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Inventory Service.');
     return Promise.reject(new Error('API Key not configured.'));
@@ -45,11 +45,17 @@ export const executeInventoryRequest = async (
     modelNames: [MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction: SYSTEM_INSTRUCTION,
+    thinkingBudget: 1024,
+    includeThoughts: true,
     responseMimeType: 'application/json',
     temperature: 0.7,
     label: 'Inventory',
   });
-  return response;
+  const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+  const thoughtParts = parts
+    .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+    .map(p => p.text);
+  return { response, thoughts: thoughtParts };
 };
 
 export interface InventoryUpdateResult {
@@ -60,6 +66,7 @@ export interface InventoryUpdateResult {
     parsedItemChanges?: Array<ItemChange>;
     observations?: string;
     rationale?: string;
+    thoughts?: Array<string>;
   } | null;
 }
 
@@ -143,7 +150,7 @@ export const applyInventoryHints_Service = async (
     nearbyNpcsInventory,
     limitedMapContext,
   );
-  const response = await executeInventoryRequest(prompt);
+  const { response, thoughts } = await executeInventoryRequest(prompt);
   let parsed = parseInventoryResponse(response.text ?? '');
   if (!parsed ||
       (parsed.itemChanges.length === 0 && (response.text?.trim() ?? '') !== '[]')) {
@@ -190,6 +197,7 @@ export const applyInventoryHints_Service = async (
       parsedItemChanges: parsed ? parsed.itemChanges : undefined,
       observations: parsed?.observations,
       rationale: parsed?.rationale,
+      thoughts: thoughts,
     },
   };
 };
