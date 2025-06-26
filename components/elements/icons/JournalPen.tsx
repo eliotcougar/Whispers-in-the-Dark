@@ -15,6 +15,7 @@ function SvgJournalPen({ height = '1em', width = '1em' }: SVGProps<SVGSVGElement
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+
       <path
         d="M19.5 10.5V18A2.25 2.25 0 0 1 17.25 20.25H6.75A2.25 2.25 0 0 1 4.5 18V6.75A2.25 2.25 0 0 1 6.75 4.5H14.25"
         strokeLinecap="round"

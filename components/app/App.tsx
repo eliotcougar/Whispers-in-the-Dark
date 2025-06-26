@@ -858,10 +858,10 @@ function App() {
                 onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
+                onReadPlayerJournal={handleReadPlayerJournal}
                 onStashToggle={gameLogic.handleStashToggle}
                 onTakeItem={handleTakeLocationItem}
                 onWriteJournal={handleWriteJournal}
-                onReadPlayerJournal={handleReadPlayerJournal}
               />
             )}
           </div>
@@ -905,18 +905,18 @@ function App() {
       />
 
       <DebugView
+        badFacts={debugBadFacts}
+        debugLore={debugLore}
         debugPacket={lastDebugPacket}
         gameStateStack={gameStateStack}
+        goodFacts={debugGoodFacts}
         isVisible={isDebugViewVisible}
         onApplyGameState={handleApplyGameState}
+        onClearFacts={handleClearFacts}
         onClose={closeDebugView}
         onDistillFacts={handleDistillClick}
-        debugLore={debugLore}
-        goodFacts={debugGoodFacts}
-        badFacts={debugBadFacts}
-        onToggleDebugLore={toggleDebugLore}
-        onClearFacts={handleClearFacts}
         onSaveFacts={handleSaveFacts}
+        onToggleDebugLore={toggleDebugLore}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
       />
@@ -976,6 +976,8 @@ function App() {
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allNPCs={allNPCs}
+        canInspectJournal={canInspectPlayerJournal}
+        canWriteJournal={canWritePlayerJournal}
         currentMapNodeId={currentMapNodeId}
         currentQuest={mainQuest}
         currentScene={currentScene}
@@ -994,15 +996,15 @@ function App() {
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
         inventory={inventory}
-        playerJournal={playerJournal}
-        lastJournalWriteTurn={lastJournalWriteTurn}
         isCustomGameModeShift={isCustomGameMode}
         isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
         isMapVisible={isMapVisible}
         isPageVisible={isPageVisible}
         isVisualizerVisible={isVisualizerVisible}
+        isWritingJournal={isPlayerJournalWriting}
         itemPresenceByNode={itemPresenceByNode}
+        lastJournalWriteTurn={lastJournalWriteTurn}
         loadGameFromMenuConfirmOpen={loadGameFromMenuConfirmOpen}
         localEnvironment={localEnvironment}
         localPlace={localPlace}
@@ -1015,25 +1017,23 @@ function App() {
         onCloseMap={closeMap}
         onClosePage={closePageView}
         onCloseVisualizer={closeVisualizer}
+        onInventoryWriteJournal={handleWriteJournalFromPage}
+        onItemInspect={handleInspectFromPage}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
+        onReadJournal={handleReadPlayerJournal}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
+        onWriteJournal={handleWritePlayerJournal}
         pageItemId={pageItemId}
         pageStartChapterIndex={pageStartChapterIndex}
+        playerJournal={playerJournal}
         setGeneratedImage={setGeneratedImageCache}
         shiftConfirmOpen={shiftConfirmOpen}
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
         themeHistory={themeHistory}
         updateItemContent={updateItemContent}
         updatePlayerJournalContent={updatePlayerJournalContent}
-        onReadJournal={handleReadPlayerJournal}
-        onWriteJournal={handleWritePlayerJournal}
-        onInventoryWriteJournal={handleWriteJournalFromPage}
-        onItemInspect={handleInspectFromPage}
-        canWriteJournal={canWritePlayerJournal}
-        canInspectJournal={canInspectPlayerJournal}
-        isWritingJournal={isPlayerJournalWriting}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
       /> : null}

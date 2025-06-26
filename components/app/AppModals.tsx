@@ -208,22 +208,25 @@ function AppModals({
       />
 
       <HistoryDisplay
+        canWriteJournal={canWriteJournal}
         gameLog={gameLog}
         isVisible={isHistoryVisible}
+        isWritingJournal={isWritingJournal}
         onClose={onCloseHistory}
         onReadJournal={onReadJournal}
         onWriteJournal={onWriteJournal}
-        canWriteJournal={canWriteJournal}
-        isWritingJournal={isWritingJournal}
         themeHistory={themeHistory}
       />
 
       <PageView
         allNPCs={allNPCs}
+        canInspectJournal={canInspectJournal}
+        canWriteJournal={canWriteJournal}
         currentQuest={currentQuest}
         currentScene={currentScene}
         currentTheme={currentTheme}
         isVisible={isPageVisible}
+        isWritingJournal={isWritingJournal}
         item={
           pageItemId === PLAYER_JOURNAL_ID
             ? {
@@ -240,14 +243,11 @@ function AppModals({
         }
         mapData={mapData}
         onClose={onClosePage}
+        onInspect={pageItemId ? inspectHandler : undefined}
+        onWriteJournal={pageItemId ? writeJournalHandler : undefined}
         startIndex={pageStartChapterIndex}
         storytellerThoughts={storytellerThoughts}
         updateItemContent={updateContentHandler}
-        onInspect={pageItemId ? inspectHandler : undefined}
-        onWriteJournal={pageItemId ? writeJournalHandler : undefined}
-        canWriteJournal={canWriteJournal}
-        canInspectJournal={canInspectJournal}
-        isWritingJournal={isWritingJournal}
       />
 
       <MapDisplay

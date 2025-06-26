@@ -180,7 +180,13 @@ function InventoryItem({
         ariaLabel={`Discard ${item.name}`}
         data-item-name={item.name}
         disabled={disabled}
-        icon={<Icon color="white" inline marginRight={4} name="trash" size={16} />}
+        icon={<Icon
+          color="white"
+          inline
+          marginRight={4}
+          name="trash"
+          size={16}
+        />}
         key={`${item.name}-discard`}
         label="Discard"
         onClick={onStartConfirmDiscard}
@@ -252,7 +258,10 @@ function InventoryItem({
 
   if (isConfirmingDiscard) {
     actionButtons.push(
-      <div className="grid grid-cols-2 gap-2 mt-2" key={`${item.name}-confirm-group`}>
+      <div
+        className="grid grid-cols-2 gap-2 mt-2"
+        key={`${item.name}-confirm-group`}
+      >
         <Button
           ariaLabel={`Confirm drop of ${item.name}`}
           data-item-name={item.name}

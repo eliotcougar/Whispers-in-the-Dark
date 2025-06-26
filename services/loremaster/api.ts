@@ -119,9 +119,9 @@ export const refineLore_Service = async (
       integrate: {
         prompt: integratePrompt,
         rawResponse: integration?.raw,
-        parsedPayload: integration?.parsed ?? undefined,
-        observations: integration?.parsed?.observations,
-        rationale: integration?.parsed?.rationale,
+        parsedPayload: integration?.parsed,
+        observations: integration?.parsed.observations,
+        rationale: integration?.parsed.rationale,
         thoughts: integration?.thoughts,
       },
     },
@@ -272,9 +272,9 @@ export const distillFacts_Service = async (
     debugInfo: {
       prompt,
       rawResponse: result?.raw,
-      parsedPayload: result?.parsed ?? undefined,
-      observations: result?.parsed?.observations,
-      rationale: result?.parsed?.rationale,
+      parsedPayload: result?.parsed,
+      observations: result?.parsed.observations,
+      rationale: result?.parsed.rationale,
       thoughts: result?.thoughts,
     },
   };

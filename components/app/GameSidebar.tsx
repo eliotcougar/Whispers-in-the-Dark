@@ -76,13 +76,17 @@ function GameSidebar({
         <Button
           ariaLabel="Open journal"
           disabled={disabled}
-          icon={<Icon name="journalPen" size={24} />}
+          icon={<Icon
+            name="journalPen"
+            size={24}
+          />}
           onClick={onReadPlayerJournal}
           preset="blue"
           size="lg"
           variant="toolbarLarge"
         />
       </div>
+
       {mainQuest ? (
         <TextBox
           backgroundColorClass="bg-purple-800/50"

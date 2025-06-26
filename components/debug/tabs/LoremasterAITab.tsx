@@ -44,26 +44,26 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
             />
 
             <div className="my-2 flex flex-wrap gap-2">
-          <Button
-            ariaLabel={`Show raw ${modeLabel} response`}
-            label="Raw"
-            onClick={handleShowRaw(modeLabel)}
-            preset={raw ? 'sky' : 'slate'}
-            pressed={raw}
-            size="sm"
-            variant="toggle"
-          />
+              <Button
+                ariaLabel={`Show raw ${modeLabel} response`}
+                label="Raw"
+                onClick={handleShowRaw(modeLabel)}
+                preset={raw ? 'sky' : 'slate'}
+                pressed={raw}
+                size="sm"
+                variant="toggle"
+              />
 
-          <Button
-            ariaLabel={`Show parsed ${modeLabel} response`}
-            label="Parsed"
-            onClick={handleShowParsed(modeLabel)}
-            preset={raw ? 'slate' : 'sky'}
-            pressed={!raw}
-            size="sm"
-            variant="toggle"
-          />
-        </div>
+              <Button
+                ariaLabel={`Show parsed ${modeLabel} response`}
+                label="Parsed"
+                onClick={handleShowParsed(modeLabel)}
+                preset={raw ? 'slate' : 'sky'}
+                pressed={!raw}
+                size="sm"
+                variant="toggle"
+              />
+            </div>
 
             {raw ? (
               <DebugSection
