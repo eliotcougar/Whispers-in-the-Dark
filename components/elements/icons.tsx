@@ -19,6 +19,7 @@ import MapWheelIcon from './icons/MapWheel';
 import XIcon from './icons/X';
 import ClockIcon from './icons/Clock';
 import ErrorIcon from './icons/Error';
+import JournalPenIcon from './icons/JournalPen';
 
 const iconMap = {
   realityShift: RealityShiftIcon,
@@ -39,6 +40,7 @@ const iconMap = {
   clock: ClockIcon,
   error: ErrorIcon,
   x: XIcon,
+  journalPen: JournalPenIcon,
 } as const;
 
 export type IconName = keyof typeof iconMap;

@@ -460,6 +460,26 @@ function App() {
     lastJournalWriteTurn,
   ]);
 
+  const handleInspectFromPage = useCallback(
+    (itemId: string) => {
+      const item = inventory.find(it => it.id === itemId);
+      if (item) {
+        handleItemInteraction(item, 'inspect');
+      }
+    },
+    [inventory, handleItemInteraction]
+  );
+
+  const handleWriteJournalFromPage = useCallback(
+    (itemId: string) => {
+      const item = inventory.find(it => it.id === itemId);
+      if (item) {
+        handleWriteJournal(item);
+      }
+    },
+    [inventory, handleWriteJournal]
+  );
+
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setFreeFormActionText(e.target.value);
@@ -801,6 +821,9 @@ function App() {
                 onStashToggle={gameLogic.handleStashToggle}
                 onTakeItem={handleTakeLocationItem}
                 onWriteJournal={handleWriteJournal}
+                onReadPlayerJournal={handleReadPlayerJournal}
+                onWritePlayerJournal={handleWritePlayerJournal}
+                canWritePlayerJournal={lastJournalWriteTurn !== globalTurnNumber}
               />
             )}
           </div>
@@ -968,6 +991,8 @@ function App() {
         updatePlayerJournalContent={updatePlayerJournalContent}
         onReadJournal={handleReadPlayerJournal}
         onWriteJournal={handleWritePlayerJournal}
+        onInventoryWriteJournal={handleWriteJournalFromPage}
+        onItemInspect={handleInspectFromPage}
         canWriteJournal={lastJournalWriteTurn !== globalTurnNumber}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}

@@ -80,6 +80,8 @@ interface AppModalsProps {
   readonly updatePlayerJournalContent: (actual: string, visible: string, chapterIndex?: number) => void;
   readonly onReadJournal: () => void;
   readonly onWriteJournal: () => void;
+  readonly onInventoryWriteJournal: (itemId: string) => void;
+  readonly onItemInspect: (itemId: string) => void;
   readonly canWriteJournal: boolean;
 }
 
@@ -145,6 +147,8 @@ function AppModals({
   updatePlayerJournalContent,
   onReadJournal,
   onWriteJournal,
+  onInventoryWriteJournal,
+  onItemInspect,
   canWriteJournal,
 }: AppModalsProps) {
 
@@ -158,6 +162,20 @@ function AppModals({
     },
     [pageItemId, updateItemContent, updatePlayerJournalContent]
   );
+
+  const inspectHandler = useCallback(() => {
+    if (pageItemId && pageItemId !== PLAYER_JOURNAL_ID) {
+      onItemInspect(pageItemId);
+    }
+  }, [pageItemId, onItemInspect]);
+
+  const writeJournalHandler = useCallback(() => {
+    if (pageItemId === PLAYER_JOURNAL_ID) {
+      onWriteJournal();
+    } else if (pageItemId) {
+      onInventoryWriteJournal(pageItemId);
+    }
+  }, [pageItemId, onWriteJournal, onInventoryWriteJournal]);
 
 
   return (
@@ -218,6 +236,8 @@ function AppModals({
         startIndex={pageStartChapterIndex}
         storytellerThoughts={storytellerThoughts}
         updateItemContent={updateContentHandler}
+        onInspect={pageItemId ? inspectHandler : undefined}
+        onWriteJournal={pageItemId ? writeJournalHandler : undefined}
       />
 
       <MapDisplay

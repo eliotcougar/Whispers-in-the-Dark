@@ -20,6 +20,8 @@ interface PageViewProps {
   readonly startIndex?: number;
   readonly onClose: () => void;
   readonly updateItemContent: (itemId: string, actual: string, visible: string, chapterIndex?: number) => void;
+  readonly onInspect?: () => void;
+  readonly onWriteJournal?: () => void;
 }
 
 function PageView({
@@ -34,6 +36,8 @@ function PageView({
   startIndex = 0,
   onClose,
   updateItemContent,
+  onInspect,
+  onWriteJournal,
 }: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +90,14 @@ function PageView({
       return Math.min(unlockedChapterCount, i + 1);
     });
   }, [isJournal, chapters.length, unlockedChapterCount]);
+
+  const handleInspectClick = useCallback(() => {
+    onInspect?.();
+  }, [onInspect]);
+
+  const handleWriteClick = useCallback(() => {
+    onWriteJournal?.();
+  }, [onWriteJournal]);
 
   const handleSelectChapter = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -273,7 +285,7 @@ function PageView({
   }, [showDecoded, item, text, chapterIndex, chapters]);
 
   const pendingWrite = useMemo(
-    () => isJournal && chapterIndex === chapters.length,
+    () => isJournal && chapters.length > 0 && chapterIndex === chapters.length,
     [isJournal, chapterIndex, chapters.length]
   );
 
@@ -322,6 +334,17 @@ function PageView({
 
         {item?.type === 'book' || item?.type === 'journal' ? (
           <div className="flex justify-center items-center gap-2 mb-2">
+            {onInspect ? (
+              <Button
+                ariaLabel="Inspect"
+                icon={<Icon name="log" size={20} />}
+                onClick={handleInspectClick}
+                preset="indigo"
+                size="sm"
+                variant="toolbar"
+              />
+            ) : null}
+
             <Button
               ariaLabel="Previous chapter"
               disabled={chapterIndex === 0}
@@ -380,6 +403,17 @@ function PageView({
               size="lg"
               variant="toolbar"
             />
+
+            {isJournal && onWriteJournal ? (
+              <Button
+                ariaLabel="Write entry"
+                icon={<Icon name="journalPen" size={20} />}
+                onClick={handleWriteClick}
+                preset="blue"
+                size="sm"
+                variant="toolbar"
+              />
+            ) : null}
           </div>
         ) : null}
 
@@ -410,9 +444,13 @@ function PageView({
             ))}
           </ul>
         ) : displayedText ? (
-          <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}>
+          <div
+            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}
+          >
             {applyBasicMarkup(displayedText)}
           </div>
+        ) : item?.type === 'journal' && chapters.length === 0 ? (
+          <div className="whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 tag-handwritten" />
         ) : null}
       </div>
     </div>
@@ -423,4 +461,6 @@ export default PageView;
 
 PageView.defaultProps = {
   startIndex: 0,
+  onInspect: undefined,
+  onWriteJournal: undefined,
 };
