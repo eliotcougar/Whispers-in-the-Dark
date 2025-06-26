@@ -248,8 +248,8 @@ export const useInventoryActions = ({
 
 
   const recordInspect = useCallback(
-    (id: string): FullGameState => {
-      const currentFullState = getStateRef.current();
+    (id: string, baseState?: FullGameState): FullGameState => {
+      const currentFullState = baseState ?? getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item =>
         item.id === id

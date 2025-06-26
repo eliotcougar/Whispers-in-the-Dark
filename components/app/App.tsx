@@ -490,8 +490,8 @@ function App() {
           lastWriteTurn: lastJournalWriteTurn,
           tags: [currentTheme?.playerJournalStyle ?? 'handwritten'],
         };
-        recordPlayerJournalInspect();
-        handleItemInteraction(pseudoItem, 'inspect');
+        const updatedState = recordPlayerJournalInspect();
+        handleItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
         return;
       }
 

@@ -346,9 +346,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       item: Item,
       interactionType: 'generic' | 'specific' | 'inspect',
       knownUse?: KnownUse,
+      stateOverride?: FullGameState,
     ) => {
       if (interactionType === 'inspect') {
-        const updatedState = recordInspect(item.id);
+        const updatedState = recordInspect(item.id, stateOverride);
 
         const showActual = item.tags?.includes('recovered');
         const contents = (item.chapters ?? [])
