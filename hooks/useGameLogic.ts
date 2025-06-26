@@ -351,6 +351,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       mapNodeNames,
     });
     const draftState = structuredCloneGameState(currentFullState);
+    draftState.lastLoreDistillTurn = currentFullState.globalTurnNumber;
     draftState.lastDebugPacket ??= {
       prompt: '',
       rawResponseText: null,
@@ -387,12 +388,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       return;
     if (
       currentFullState.globalTurnNumber > 0 &&
-      currentFullState.globalTurnNumber % DISTILL_LORE_INTERVAL === 0
+      currentFullState.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
+      currentFullState.lastLoreDistillTurn !== currentFullState.globalTurnNumber
     ) {
       void handleDistillFacts();
     }
   }, [
     currentFullState.globalTurnNumber,
+    currentFullState.lastLoreDistillTurn,
     handleDistillFacts,
     hasGameBeenInitialized,
     isLoading,
@@ -409,6 +412,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     playerJournal: currentFullState.playerJournal,
     lastJournalWriteTurn: currentFullState.lastJournalWriteTurn,
     lastJournalInspectTurn: currentFullState.lastJournalInspectTurn,
+    lastLoreDistillTurn: currentFullState.lastLoreDistillTurn,
     itemsHere: useMemo(() => {
       if (!currentFullState.currentMapNodeId) return [];
       const atCurrent = currentFullState.inventory.filter(

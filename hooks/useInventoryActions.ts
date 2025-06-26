@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { makeUniqueHeading } from '../utils/uniqueHeading';
 import { addLogMessageToList, removeDroppedItemLog } from '../utils/gameLogicUtils';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 
@@ -168,9 +169,13 @@ export const useInventoryActions = ({
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item => {
         if (item.id !== id) return item;
+        const newChapter = {
+          ...chapter,
+          heading: makeUniqueHeading(chapter.heading, item.chapters ?? []),
+        };
         return {
           ...item,
-          chapters: [...(item.chapters ?? []), chapter],
+          chapters: [...(item.chapters ?? []), newChapter],
           lastWriteTurn: currentFullState.globalTurnNumber,
         };
       });
@@ -183,7 +188,11 @@ export const useInventoryActions = ({
     (chapter: ItemChapter) => {
       const currentFullState = getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
-      draftState.playerJournal = [...draftState.playerJournal, chapter];
+      const newChapter = {
+        ...chapter,
+        heading: makeUniqueHeading(chapter.heading, draftState.playerJournal),
+      };
+      draftState.playerJournal = [...draftState.playerJournal, newChapter];
       draftState.lastJournalWriteTurn = currentFullState.globalTurnNumber;
       commitGameState(draftState);
     },

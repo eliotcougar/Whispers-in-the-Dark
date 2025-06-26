@@ -245,7 +245,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
 
   const fields: Array<keyof SavedGameDataShape> = [
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
-    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'gameLog', 'lastActionLog', 'themeHistory', 'themeFacts',
+    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeHistory', 'themeFacts',
     'pendingNewThemeNameAfterShift',
     'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
@@ -288,6 +288,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (!Array.isArray(obj.playerJournal)) { console.warn('Invalid save data (V3): playerJournal type.'); return false; }
   if (typeof obj.lastJournalWriteTurn !== 'number') { console.warn('Invalid save data (V3): lastJournalWriteTurn type.'); return false; }
   if (typeof obj.lastJournalInspectTurn !== 'number') { console.warn('Invalid save data (V3): lastJournalInspectTurn type.'); return false; }
+  if (typeof obj.lastLoreDistillTurn !== 'number') { console.warn('Invalid save data (V3): lastLoreDistillTurn type.'); return false; }
   if (!Array.isArray(obj.gameLog) || !obj.gameLog.every((msg: unknown) => typeof msg === 'string')) { console.warn('Invalid save data (V3): gameLog.'); return false; }
   if (obj.lastActionLog !== null && typeof obj.lastActionLog !== 'string') { console.warn('Invalid save data (V3): lastActionLog type.'); return false; }
   if (!isValidThemeHistory(obj.themeHistory)) { console.warn('Invalid save data (V3): themeHistory.'); return false; }
@@ -406,6 +407,9 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
   }
   if (typeof data.lastJournalInspectTurn !== 'number') {
     data.lastJournalInspectTurn = 0;
+  }
+  if (typeof data.lastLoreDistillTurn !== 'number') {
+    data.lastLoreDistillTurn = 0;
   }
   return data;
 }

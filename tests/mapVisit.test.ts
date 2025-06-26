@@ -66,6 +66,7 @@ const baseState: FullGameState = {
   playerJournal: [],
   lastJournalWriteTurn: 0,
   lastJournalInspectTurn: 0,
+  lastLoreDistillTurn: 0,
   gameLog: [],
   lastActionLog: null,
   themeHistory: {} as ThemeHistoryState,

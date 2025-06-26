@@ -57,6 +57,7 @@ export const getInitialGameStates = (): FullGameState => {
     playerJournal: [],
     lastJournalWriteTurn: 0,
     lastJournalInspectTurn: 0,
+    lastLoreDistillTurn: 0,
     gameLog: ["Welcome to Whispers in the Dark!"],
     lastActionLog: null,
     themeHistory: {},
