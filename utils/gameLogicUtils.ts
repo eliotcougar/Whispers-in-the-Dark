@@ -67,13 +67,11 @@ export const applyThemeFactChanges = (
   for (const change of changes) {
     switch (change.action) {
       case 'add':
-        if (change.fact && change.fact.text) {
-          const themeName = change.fact.themeName ?? defaultThemeName;
-          if (!themeName) break;
+        if (change.fact && change.fact.text && defaultThemeName) {
           const newFact: ThemeFact = {
             id: nextId++,
             text: change.fact.text,
-            themeName,
+            themeName: defaultThemeName,
             createdTurn: change.fact.createdTurn ?? currentTurn,
             tier: change.fact.tier ?? 1,
           };
@@ -83,11 +81,10 @@ export const applyThemeFactChanges = (
       case 'change': {
         const idx = state.themeFacts.findIndex(f => f.id === change.id);
         if (idx >= 0 && change.fact) {
-          const themeName = change.fact.themeName ?? defaultThemeName;
           const updated: ThemeFact = {
             ...state.themeFacts[idx],
             ...change.fact,
-            themeName: themeName ?? state.themeFacts[idx].themeName,
+            themeName: state.themeFacts[idx].themeName,
           };
           state.themeFacts[idx] = updated;
         }

@@ -75,7 +75,7 @@ Respond ONLY with a JSON object of the form:
   "observations": "string",
   "rationale": "string",
   "factsChange": [ /* Array of ThemeFactChange */
-    { "action": "add", "fact": { "text": "string", "themeName": "string", "tier": 1 } }
+    { "action": "add", "fact": { "text": "string" } }
   ],
   "loreRefinementOutcome": "string"
 }`;
@@ -87,7 +87,7 @@ Respond ONLY with a JSON object of the form:
   "observations": "string",
   "rationale": "string",
   "factsChange": [ /* Array of ThemeFactChange */
-    { "action": "add", "fact": { "text": "string", "themeName": "string", "tier": 1 } },
+    { "action": "add", "fact": { "text": "string" } },
     { "action": "change", "id": 2, "fact": { "text": "string", "tier": 2 } },
     { "action": "delete", "id": 3 }
   ],
