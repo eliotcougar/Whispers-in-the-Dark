@@ -270,6 +270,12 @@ export interface UseProcessAiResponseProps {
   setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
+  debugLore: boolean;
+  addDebugLoreFacts: (good: Array<string>, bad: Array<string>) => void;
+  openDebugLoreModal: (
+    facts: Array<string>,
+    resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
+  ) => void;
 }
 
 export const useProcessAiResponse = ({
@@ -277,6 +283,9 @@ export const useProcessAiResponse = ({
   setLoadingReason,
   setError,
   setGameStateStack,
+  debugLore,
+  addDebugLoreFacts,
+  openDebugLoreModal,
 }: UseProcessAiResponseProps) => {
   const { processMapUpdates } = useMapUpdateProcessor({
     loadingReason,
@@ -545,6 +554,15 @@ export const useProcessAiResponse = ({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
           existingFacts: draftState.themeFacts,
+          onFactsExtracted: debugLore
+            ? async (facts) =>
+                new Promise<{ proceed: boolean }>(resolve => {
+                  openDebugLoreModal(facts, (good, bad, proceed) => {
+                    if (proceed) addDebugLoreFacts(good, bad);
+                    resolve({ proceed });
+                  });
+                })
+            : undefined,
         });
         setLoadingReason(original);
         if (draftState.lastDebugPacket.loremasterDebugInfo) {

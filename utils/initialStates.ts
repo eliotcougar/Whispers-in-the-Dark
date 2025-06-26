@@ -85,6 +85,10 @@ export const getInitialGameStates = (): FullGameState => {
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
     stabilityLevel: DEFAULT_STABILITY_LEVEL,
     chaosLevel: DEFAULT_CHAOS_LEVEL,
+
+    debugLore: false,
+    debugGoodFacts: [],
+    debugBadFacts: [],
   };
 };
 

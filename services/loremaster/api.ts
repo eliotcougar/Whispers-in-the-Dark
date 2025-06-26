@@ -31,6 +31,7 @@ export interface RefineLoreParams {
   themeName: string;
   turnContext: string;
   existingFacts: Array<ThemeFact>;
+  onFactsExtracted?: (facts: Array<string>) => Promise<{ proceed: boolean }>;
 }
 
 export interface RefineLoreServiceResult {
@@ -45,7 +46,7 @@ export const refineLore_Service = async (
     console.error('refineLore_Service: API not configured');
     return null;
   }
-  const { themeName, turnContext, existingFacts } = params;
+  const { themeName, turnContext, existingFacts, onFactsExtracted } = params;
 
   const extractPrompt = buildExtractFactsPrompt(themeName, turnContext);
   const newFacts = await retryAiCall<{ parsed: Array<string> | null; raw: string } | null>(async () => {
@@ -61,6 +62,23 @@ export const refineLore_Service = async (
     return { result: { parsed: parseExtractFactsResponse(response.text ?? ''), raw: response.text ?? '' } };
   });
   if (!newFacts) return null;
+
+  if (onFactsExtracted) {
+    const { proceed } = await onFactsExtracted(newFacts.parsed ?? []);
+    if (!proceed) {
+      return {
+        refinementResult: null,
+        debugInfo: {
+          extract: {
+            prompt: extractPrompt,
+            rawResponse: newFacts.raw,
+            parsedPayload: newFacts.parsed ?? undefined,
+          },
+          integrate: null,
+        },
+      };
+    }
+  }
 
   const integratePrompt = buildIntegrateFactsPrompt(themeName, existingFacts, newFacts.parsed ?? []);
   const integration = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string } | null>(async () => {

@@ -125,6 +125,9 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       const allNPCsToCarryOver = newStateForShiftStart.allNPCs;
       const mapLayoutConfigToCarryOver = newStateForShiftStart.mapLayoutConfig;
       const globalTurnNumberToCarryOver = newStateForShiftStart.globalTurnNumber;
+      const debugLoreFlag = newStateForShiftStart.debugLore;
+      const debugGoodFactsToCarryOver = newStateForShiftStart.debugGoodFacts;
+      const debugBadFactsToCarryOver = newStateForShiftStart.debugBadFacts;
 
       newStateForShiftStart = getInitialGameStates();
       newStateForShiftStart.inventory = inventoryToCarryOver;
@@ -134,6 +137,9 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       newStateForShiftStart.allNPCs = allNPCsToCarryOver;
       newStateForShiftStart.mapLayoutConfig = mapLayoutConfigToCarryOver;
       newStateForShiftStart.globalTurnNumber = globalTurnNumberToCarryOver;
+      newStateForShiftStart.debugLore = debugLoreFlag;
+      newStateForShiftStart.debugGoodFacts = debugGoodFactsToCarryOver;
+      newStateForShiftStart.debugBadFacts = debugBadFactsToCarryOver;
 
       newStateForShiftStart.pendingNewThemeNameAfterShift = targetThemeName;
       newStateForShiftStart.currentThemeName = null;
