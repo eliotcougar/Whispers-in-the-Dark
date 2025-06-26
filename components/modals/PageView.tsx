@@ -341,7 +341,7 @@ function PageView({
                 onClick={handleInspectClick}
                 preset="indigo"
                 size="sm"
-                variant="toolbar"
+                variant="compact"
               />
             ) : null}
 
@@ -411,7 +411,7 @@ function PageView({
                 onClick={handleWriteClick}
                 preset="blue"
                 size="sm"
-                variant="toolbar"
+                variant="compact"
               />
             ) : null}
           </div>

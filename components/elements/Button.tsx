@@ -110,7 +110,7 @@ function Button({
     center: 'w-full flex items-center text-center',
     compact: 'inline-flex items-center justify-center',
     toolbar: 'flex items-center justify-center w-9 h-9 p-2',
-    toolbarLarge: 'flex items-center justify-center w-14 h-14 p-3',
+    toolbarLarge: 'flex items-center justify-center w-[4.33rem] h-[4.33rem] p-3',
     toggle: 'inline-flex items-center justify-center px-3 py-1 text-xs',
     close: 'animated-frame-close-button',
     tab: 'px-3 py-2 text-sm font-medium transition-colors',

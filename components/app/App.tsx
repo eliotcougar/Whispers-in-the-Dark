@@ -41,6 +41,7 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 import {
   FREE_FORM_ACTION_COST,
   RECENT_LOG_COUNT_FOR_PROMPT,
+  PLAYER_HOLDER_ID,
   PLAYER_JOURNAL_ID,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
@@ -462,12 +463,31 @@ function App() {
 
   const handleInspectFromPage = useCallback(
     (itemId: string) => {
+      if (itemId === PLAYER_JOURNAL_ID) {
+        const pseudoItem: Item = {
+          id: PLAYER_JOURNAL_ID,
+          name: 'Personal Journal',
+          type: 'journal',
+          description: 'Your own journal',
+          holderId: PLAYER_HOLDER_ID,
+          chapters: playerJournal,
+          lastWriteTurn: lastJournalWriteTurn,
+        };
+        handleItemInteraction(pseudoItem, 'inspect');
+        return;
+      }
+
       const item = inventory.find(it => it.id === itemId);
       if (item) {
         handleItemInteraction(item, 'inspect');
       }
     },
-    [inventory, handleItemInteraction]
+    [
+      inventory,
+      handleItemInteraction,
+      playerJournal,
+      lastJournalWriteTurn,
+    ]
   );
 
   const handleWriteJournalFromPage = useCallback(
@@ -822,8 +842,6 @@ function App() {
                 onTakeItem={handleTakeLocationItem}
                 onWriteJournal={handleWriteJournal}
                 onReadPlayerJournal={handleReadPlayerJournal}
-                onWritePlayerJournal={handleWritePlayerJournal}
-                canWritePlayerJournal={lastJournalWriteTurn !== globalTurnNumber}
               />
             )}
           </div>

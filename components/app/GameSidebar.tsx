@@ -33,8 +33,6 @@ interface GameSidebarProps {
   readonly onReadPage: (item: Item) => void;
   readonly onWriteJournal: (item: Item) => void;
   readonly onReadPlayerJournal: () => void;
-  readonly onWritePlayerJournal: () => void;
-  readonly canWritePlayerJournal: boolean;
   readonly onTakeItem: (itemName: string) => void;
   readonly globalTurnNumber: number;
   readonly disabled: boolean;
@@ -57,8 +55,6 @@ function GameSidebar({
   onReadPage,
   onWriteJournal,
   onReadPlayerJournal,
-  onWritePlayerJournal,
-  canWritePlayerJournal,
   onTakeItem,
   globalTurnNumber,
   disabled,
@@ -76,22 +72,12 @@ function GameSidebar({
 
   return (
     <>
-      <div className="flex justify-center gap-4 mb-2">
+      <div className="flex justify-start gap-4 mb-2">
         <Button
           ariaLabel="Open journal"
           disabled={disabled}
-          icon={<Icon name="bookOpen" size={24} />}
-          onClick={onReadPlayerJournal}
-          preset="blue"
-          size="lg"
-          variant="toolbarLarge"
-        />
-
-        <Button
-          ariaLabel="Write journal entry"
-          disabled={disabled || !canWritePlayerJournal}
           icon={<Icon name="journalPen" size={24} />}
-          onClick={onWritePlayerJournal}
+          onClick={onReadPlayerJournal}
           preset="blue"
           size="lg"
           variant="toolbarLarge"

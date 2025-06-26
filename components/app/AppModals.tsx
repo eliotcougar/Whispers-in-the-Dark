@@ -164,7 +164,7 @@ function AppModals({
   );
 
   const inspectHandler = useCallback(() => {
-    if (pageItemId && pageItemId !== PLAYER_JOURNAL_ID) {
+    if (pageItemId) {
       onItemInspect(pageItemId);
     }
   }, [pageItemId, onItemInspect]);
