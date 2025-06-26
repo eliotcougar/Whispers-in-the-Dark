@@ -50,7 +50,7 @@ export const refineLore_Service = async (
 
   const extractPrompt = buildExtractFactsPrompt(themeName, turnContext);
   const newFacts = await retryAiCall<{ parsed: Array<string> | null; raw: string; thoughts: Array<string> } | null>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_extract.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: extractPrompt,
@@ -89,7 +89,7 @@ export const refineLore_Service = async (
 
   const integratePrompt = buildIntegrateFactsPrompt(themeName, existingFacts, newFacts.parsed ?? []);
   const integration = await retryAiCall<{ parsed: LoreRefinementResult; raw: string; thoughts: Array<string> } | null>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_write.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: integratePrompt,
@@ -173,7 +173,7 @@ export const collectRelevantFacts_Service = async (
   );
 
   const result = await retryAiCall<{ parsed: Array<string> | null; raw: string; thoughts: Array<string> } | null>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_collect.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
@@ -248,7 +248,7 @@ export const distillFacts_Service = async (
   );
 
   const result = await retryAiCall<{ parsed: LoreRefinementResult; raw: string; thoughts: Array<string> } | null>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_refine.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME],
       prompt,

@@ -145,7 +145,10 @@ export const LOADING_REASONS = [
   'visualize',
   'page',
   'journal',
-  'loremaster',
+  'loremaster_collect',
+  'loremaster_extract',
+  'loremaster_write',
+  'loremaster_refine',
   'book'
 ] as const;
 
@@ -163,7 +166,10 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   visualize: { text: 'Visualizing the scene...', icon: '░░' },
   page: { text: 'Reading...', icon: '░░' },
   journal: { text: 'Writing...', icon: '░░' },
-  loremaster: { text: 'Analyzing world facts...', icon: '░' },
+  loremaster_collect: { text: 'Loremaster picking lore...', icon: '░' },
+  loremaster_extract: { text: 'Loremaster extracting new lore...', icon: '░' },
+  loremaster_write: { text: 'Loremaster writing down lore...', icon: '░' },
+  loremaster_refine: { text: 'Loremaster refining lore...', icon: '░' },
   book: { text: 'Reading...', icon: '░░' }
 };
 

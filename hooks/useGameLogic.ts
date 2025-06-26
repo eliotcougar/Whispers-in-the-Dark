@@ -322,7 +322,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     const themeObj = currentFullState.currentThemeObject;
     if (!themeObj) return;
     setIsLoading(true);
-    setLoadingReason('loremaster');
+    setLoadingReason('loremaster_refine');
     setError(null);
     const currentThemeNodes = currentFullState.mapData.nodes.filter(
       n => n.themeName === themeObj.name,

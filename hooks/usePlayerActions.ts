@@ -166,7 +166,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
         .map(f => ({ text: f.text, tier: f.tier }));
 
-      setLoadingReason('loremaster');
+      setLoadingReason('loremaster_collect');
       const collectResult = await collectRelevantFacts_Service({
         themeName: currentThemeObj.name,
         facts: sortedFacts,
