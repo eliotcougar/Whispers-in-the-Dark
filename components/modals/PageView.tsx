@@ -458,7 +458,9 @@ function PageView({
             {applyBasicMarkup(displayedText)}
           </div>
         ) : item?.type === 'journal' && chapters.length === 0 ? (
-          <div className="whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 tag-handwritten" />
+          <div
+            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 min-h-[20rem] tag-${currentTheme.playerJournalStyle}`}
+          />
         ) : null}
       </div>
     </div>

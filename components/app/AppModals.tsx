@@ -170,8 +170,9 @@ function AppModals({
   const inspectHandler = useCallback(() => {
     if (pageItemId) {
       onItemInspect(pageItemId);
+      onClosePage();
     }
-  }, [pageItemId, onItemInspect]);
+  }, [pageItemId, onItemInspect, onClosePage]);
 
   const writeJournalHandler = useCallback(() => {
     if (pageItemId === PLAYER_JOURNAL_ID) {
