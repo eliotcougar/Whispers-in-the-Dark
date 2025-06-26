@@ -18,7 +18,12 @@ const itemTypeSynonyms = {
     "page": "page",
     "tome": "book",
     "volume": "book",
-    "journal": "journal",
+    "journal": "book",
+    "diary": "book",
+    "logbook": "book",
+    "notebook": "book",
+    "journal book": "book",
+    "field journal": "book",
     "book": "book"
   }
 };

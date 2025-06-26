@@ -73,7 +73,6 @@ export const VALID_ITEM_TYPES = [
   'vehicle',
   'status effect',
   'page',
-  'journal',
   'book',
 ] as const; // 'as const' makes it a tuple of string literals
 

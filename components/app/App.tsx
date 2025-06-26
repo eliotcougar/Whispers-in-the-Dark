@@ -344,7 +344,7 @@ function App() {
   const handleReadPage = useCallback(
     (item: Item) => {
       const index =
-        item.type === 'journal'
+        item.id === PLAYER_JOURNAL_ID
           ? Math.max(0, (item.chapters?.length ?? 0) - 1)
           : 0;
       openPageView(item.id, index);
@@ -483,7 +483,7 @@ function App() {
         const pseudoItem: Item = {
           id: PLAYER_JOURNAL_ID,
           name: 'Personal Journal',
-          type: 'journal',
+          type: 'book',
           description: 'Your own journal',
           holderId: PLAYER_HOLDER_ID,
           chapters: playerJournal,

@@ -21,7 +21,6 @@ export function ItemTypeDisplay({ type }: ItemTypeDisplayProps): React.ReactElem
     vehicle: 'text-indigo-400',
     'status effect': 'text-pink-400',
     page: 'text-green-400',
-    journal: 'text-green-400',
     book: 'text-green-400',
   };
 

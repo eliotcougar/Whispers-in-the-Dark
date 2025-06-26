@@ -46,7 +46,7 @@ export const useInventoryActions = ({
         }
 
         const shouldResetStashed =
-          item.type === 'page' || item.type === 'book' || item.type === 'journal';
+          item.type === 'page' || item.type === 'book';
 
         return {
           ...item,

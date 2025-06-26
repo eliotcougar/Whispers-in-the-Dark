@@ -3,7 +3,7 @@ import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from '../elements/Button';
-import { JOURNAL_WRITE_COOLDOWN, INSPECT_COOLDOWN } from '../../constants';
+import { JOURNAL_WRITE_COOLDOWN, INSPECT_COOLDOWN, PLAYER_JOURNAL_ID } from '../../constants';
 import { FilterMode } from '../../hooks/useInventoryDisplay';
 
 interface InventoryItemProps {
@@ -51,7 +51,7 @@ function InventoryItem({
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem =
-    item.type === 'page' || item.type === 'book' || item.type === 'journal';
+    item.type === 'page' || item.type === 'book';
   const canShowGenericUse =
     item.type !== 'status effect' && item.type !== 'vehicle';
   const canEverDrop =
@@ -92,7 +92,7 @@ function InventoryItem({
         disabled ||
         isConfirmingDiscard ||
         (isWrittenItem
-          ? item.type === 'journal'
+          ? item.id === PLAYER_JOURNAL_ID
             ? (item.chapters?.length ?? 0) === 0
             : (item.chapters?.some(ch => !ch.actualContent) ?? true)
           : false) ||
@@ -106,7 +106,7 @@ function InventoryItem({
     />
   );
 
-  if (item.type === 'page' || item.type === 'book' || item.type === 'journal') {
+  if (item.type === 'page' || item.type === 'book') {
     actionButtons.push(
       <Button
         ariaLabel={`Read ${item.name}`}
@@ -114,7 +114,7 @@ function InventoryItem({
         disabled={
           disabled ||
           isConfirmingDiscard ||
-          (item.type === 'journal' && (item.chapters?.length ?? 0) === 0)
+          (item.id === PLAYER_JOURNAL_ID && (item.chapters?.length ?? 0) === 0)
         }
         key={`${item.name}-read`}
         label="Read"
@@ -125,7 +125,7 @@ function InventoryItem({
     );
   }
 
-  if (item.type === 'journal') {
+  if (item.id === PLAYER_JOURNAL_ID) {
     actionButtons.push(
       <Button
         ariaLabel={`Write in ${item.name}`}
@@ -190,7 +190,7 @@ function InventoryItem({
     );
   }
 
-  if ((item.type === 'page' || item.type === 'book' || item.type === 'journal') && !isConfirmingDiscard) {
+  if ((item.type === 'page' || item.type === 'book') && !isConfirmingDiscard) {
     actionButtons.push(
       <Button
         ariaLabel={filterMode === 'stashed' ? `Retrieve ${item.name}` : `Stash ${item.name}`}
