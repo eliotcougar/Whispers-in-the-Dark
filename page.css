@@ -141,6 +141,9 @@
   background-position: right top, right bottom;
   background-repeat: repeat-x;
   background-size: 30px 32px;
+}
+
+.torn-divider.torn-bottom {
   transform: rotate(180deg);
 }
 
