@@ -156,6 +156,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleStashToggle,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   } = useGameTurn({
@@ -403,6 +405,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     mainQuest: currentFullState.mainQuest,
     currentObjective: currentFullState.currentObjective,
     inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+    playerJournal: currentFullState.playerJournal,
+    lastJournalWriteTurn: currentFullState.lastJournalWriteTurn,
     itemsHere: useMemo(() => {
       if (!currentFullState.currentMapNodeId) return [];
       const atCurrent = currentFullState.inventory.filter(
@@ -484,6 +488,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleUndoTurn,
     handleStashToggle,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
     commitGameState,
     handleDistillFacts,
     toggleDebugLore,

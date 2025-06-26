@@ -63,6 +63,8 @@ const baseState: FullGameState = {
   mainQuest: null,
   currentObjective: null,
   inventory: [],
+  playerJournal: [],
+  lastJournalWriteTurn: 0,
   gameLog: [],
   lastActionLog: null,
   themeHistory: {} as ThemeHistoryState,

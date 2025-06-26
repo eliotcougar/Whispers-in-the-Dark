@@ -14,6 +14,9 @@ interface HistoryDisplayProps {
   // mapData?: MapNode[]; // If we need to look up MapNode details by placeName from ThemeMemory
   readonly isVisible: boolean;
   readonly onClose: () => void;
+  readonly onReadJournal: () => void;
+  readonly onWriteJournal: () => void;
+  readonly canWriteJournal: boolean;
 }
 
 /**
@@ -24,6 +27,9 @@ function HistoryDisplay({
   gameLog,
   isVisible,
   onClose,
+  onReadJournal,
+  onWriteJournal,
+  canWriteJournal,
   // mapData // If needed in future
 }: HistoryDisplayProps) {
   const rememberedThemes = Object.entries(themeHistory);
@@ -46,6 +52,27 @@ function HistoryDisplay({
           size="sm"
           variant="close"
         />
+
+        <div className="flex justify-end gap-2 mb-2">
+          <Button
+            ariaLabel="Read journal"
+            icon={<Icon name="bookOpen" size={20} />}
+            onClick={onReadJournal}
+            preset="blue"
+            size="sm"
+            variant="toolbar"
+          />
+
+          <Button
+            ariaLabel="Write journal entry"
+            disabled={!canWriteJournal}
+            icon={<Icon name="log" size={20} />}
+            onClick={onWriteJournal}
+            preset="blue"
+            size="sm"
+            variant="toolbar"
+          />
+        </div>
 
         <div className="theme-memory-content-area">
           <TextBox

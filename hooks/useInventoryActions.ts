@@ -179,6 +179,31 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
+  const addPlayerJournalEntry = useCallback(
+    (chapter: ItemChapter) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.playerJournal = [...draftState.playerJournal, chapter];
+      draftState.lastJournalWriteTurn = currentFullState.globalTurnNumber;
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  const updatePlayerJournalContent = useCallback(
+    (actual: string, visible: string, chapterIndex?: number) => {
+      const currentFullState = getStateRef.current();
+      const idx = typeof chapterIndex === 'number' ? chapterIndex : 0;
+      if (idx < 0 || idx >= currentFullState.playerJournal.length) return;
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.playerJournal = draftState.playerJournal.map((ch, cIdx) =>
+        cIdx === idx ? { ...ch, actualContent: actual, visibleContent: visible } : ch
+      );
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
   const addTag = useCallback(
     (id: string, tag: ItemTag) => {
       const currentFullState = getStateRef.current();
@@ -234,6 +259,8 @@ export const useInventoryActions = ({
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
     addTag,
     recordInspect,
     handleStashToggle,

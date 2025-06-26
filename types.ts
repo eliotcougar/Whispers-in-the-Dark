@@ -542,7 +542,9 @@ export interface FullGameState {
   mainQuest: string | null;
   currentObjective: string | null;
   inventory: Array<Item>;
-  gameLog: Array<string>; 
+  playerJournal: Array<ItemChapter>;
+  lastJournalWriteTurn: number;
+  gameLog: Array<string>;
   lastActionLog: string | null;
   themeHistory: ThemeHistoryState;
   themeFacts: Array<ThemeFact>;
@@ -590,6 +592,8 @@ export type SavedGameDataShape = Pick<
   | 'mainQuest'
   | 'currentObjective'
   | 'inventory'
+  | 'playerJournal'
+  | 'lastJournalWriteTurn'
   | 'gameLog'
   | 'lastActionLog'
   | 'themeHistory'

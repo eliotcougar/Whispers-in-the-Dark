@@ -41,6 +41,7 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 import {
   FREE_FORM_ACTION_COST,
   RECENT_LOG_COUNT_FOR_PROMPT,
+  PLAYER_JOURNAL_ID,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
@@ -190,6 +191,10 @@ function App() {
     handleMapNodesPositionChange,
     commitGameState,
     updateItemContent,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    playerJournal,
+    lastJournalWriteTurn,
     handleDistillFacts,
     toggleDebugLore,
     debugLore,
@@ -393,6 +398,66 @@ function App() {
     lastDebugPacket,
     gameLog,
     globalTurnNumber,
+  ]);
+
+  const handleReadPlayerJournal = useCallback(() => {
+    const index = playerJournal.length > 0 ? playerJournal.length - 1 : 0;
+    openPageView(PLAYER_JOURNAL_ID, index);
+  }, [openPageView, playerJournal.length]);
+
+  const handleWritePlayerJournal = useCallback(() => {
+    if (lastJournalWriteTurn === globalTurnNumber) return;
+    openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
+    void (async () => {
+      if (!currentTheme) return;
+      const { name: themeName, systemInstructionModifier } = currentTheme;
+      const nodes = mapData.nodes.filter(
+        node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
+      );
+      const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
+      const npcs = allNPCs.filter(npc => npc.themeName === themeName);
+      const knownNPCs = npcs.length > 0
+        ? npcsToString(npcs, ' - ', false, false, false, true)
+        : 'None specifically known in this theme yet.';
+      const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
+      const entry = await generateJournalEntry(
+        'Personal Journal',
+        'Your own journal',
+        prev,
+        themeName,
+        systemInstructionModifier,
+        currentScene,
+        lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
+        knownPlaces,
+        knownNPCs,
+        gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
+        mainQuest
+      );
+      if (entry) {
+        const chapter = {
+          heading: entry.heading,
+          description: entry.heading,
+          contentLength: 50,
+          actualContent: entry.text,
+          visibleContent: entry.text,
+        } as ItemChapter;
+        addPlayerJournalEntry(chapter);
+        openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
+      }
+    })();
+  }, [
+    allNPCs,
+    currentTheme,
+    currentScene,
+    addPlayerJournalEntry,
+    mapData.nodes,
+    mainQuest,
+    openPageView,
+    playerJournal,
+    lastDebugPacket,
+    gameLog,
+    globalTurnNumber,
+    lastJournalWriteTurn,
   ]);
 
   const handleFreeFormActionChange = useCallback(
@@ -868,6 +933,10 @@ function App() {
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
         inventory={inventory}
+        playerJournal={playerJournal}
+        lastJournalWriteTurn={lastJournalWriteTurn}
+        globalTurnNumber={globalTurnNumber}
+        openPageView={openPageView}
         isCustomGameModeShift={isCustomGameMode}
         isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
@@ -898,6 +967,10 @@ function App() {
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
         themeHistory={themeHistory}
         updateItemContent={updateItemContent}
+        updatePlayerJournalContent={updatePlayerJournalContent}
+        onReadJournal={handleReadPlayerJournal}
+        onWriteJournal={handleWritePlayerJournal}
+        canWriteJournal={lastJournalWriteTurn !== globalTurnNumber}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
       /> : null}

@@ -94,6 +94,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
     recordInspect,
     handleStashToggle,
   } = useInventoryActions({
@@ -408,6 +410,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
     handleStashToggle,
     handleFreeFormActionSubmit,
     handleUndoTurn,

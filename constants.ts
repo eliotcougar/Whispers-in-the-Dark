@@ -46,6 +46,7 @@ export const DEFAULT_ENABLED_THEME_PACKS = ALL_THEME_PACK_NAMES_CONST.filter(
 );
 export const DEFAULT_PLAYER_GENDER = "Male";
 export const PLAYER_HOLDER_ID = "player";
+export const PLAYER_JOURNAL_ID = "player_journal";
 
 export const MAIN_TURN_OPTIONS_COUNT = 6; // Number of action choices shown each main turn
 
