@@ -24,7 +24,7 @@ import { applyInventoryHints_Service } from '../services/inventory';
 import { refineLore_Service } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
-import { rot13, toRunic } from '../utils/textTransforms';
+import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
 import { findItemByIdentifier } from '../utils/entityUtils';
 
 interface CorrectItemChangesParams {
@@ -498,8 +498,9 @@ export const useProcessAiResponse = ({
               prev
             );
             if (actual) {
+              const tags = target.tags ?? [];
               let visible = actual;
-              if (target.tags?.includes('foreign')) {
+              if (tags.includes('foreign')) {
                 const fake = await generatePageText(
                   chapter.heading,
                   chapter.description,
@@ -514,10 +515,13 @@ export const useProcessAiResponse = ({
                   `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
                 );
                 visible = fake ?? actual;
-              } else if (target.tags?.includes('encrypted')) {
+              } else if (tags.includes('encrypted')) {
                 visible = rot13(actual);
-              } else if (target.tags?.includes('runic')) {
+              } else if (tags.includes('runic')) {
                 visible = toRunic(actual);
+              }
+              if (tags.includes('torn') && !tags.includes('recovered')) {
+                visible = tornVisibleText(visible);
               }
               const updatedChapter = { ...chapter, actualContent: actual, visibleContent: visible };
               const idx = draftState.inventory.findIndex(i => i.id === target.id);
