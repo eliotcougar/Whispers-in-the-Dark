@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { DebugPacket } from '../../../types';
-import { filterObservationsAndRationale } from './tabUtils';
+import { filterObservationsAndRationale, decodeEscapedString } from './tabUtils';
 
 interface MapLocationAITabProps {
   readonly debugPacket: DebugPacket | null;
@@ -11,9 +11,12 @@ interface MapLocationAITabProps {
 function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
   const [showRaw, setShowRaw] = useState(true);
   const [showChainRaw, setShowChainRaw] = useState<Record<number, boolean>>({});
+  const [showExtras, setShowExtras] = useState(false);
 
   const handleShowRaw = useCallback(() => { setShowRaw(true); }, []);
   const handleShowParsed = useCallback(() => { setShowRaw(false); }, []);
+  const handleShowReqRes = useCallback(() => { setShowExtras(false); }, []);
+  const handleShowInsights = useCallback(() => { setShowExtras(true); }, []);
   const handleShowChainRaw = useCallback(
     (idx: number) => () => { setShowChainRaw(prev => ({ ...prev, [idx]: true })); },
     [],
@@ -34,22 +37,46 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
 
       {debugPacket?.mapUpdateDebugInfo ? (
         <>
-          <DebugSection
-            content={debugPacket.mapUpdateDebugInfo.prompt}
-            isJson={false}
-            title="Cartographer AI Request"
-          />
-
           <div className="my-2 flex flex-wrap gap-2">
             <Button
-              ariaLabel="Show raw map response"
-              label="Raw"
-              onClick={handleShowRaw}
-              preset={showRaw ? 'sky' : 'slate'}
-              pressed={showRaw}
+              ariaLabel="Show request and response"
+              label="Req/Res"
+              onClick={handleShowReqRes}
+              preset={!showExtras ? 'sky' : 'slate'}
+              pressed={!showExtras}
               size="sm"
               variant="toggle"
             />
+
+            <Button
+              ariaLabel="Show insights"
+              label="Insights"
+              onClick={handleShowInsights}
+              preset={showExtras ? 'sky' : 'slate'}
+              pressed={showExtras}
+              size="sm"
+              variant="toggle"
+            />
+          </div>
+
+          {!showExtras ? (
+            <>
+              <DebugSection
+                content={debugPacket.mapUpdateDebugInfo.prompt}
+                isJson={false}
+                title="Cartographer AI Request"
+              />
+
+              <div className="my-2 flex flex-wrap gap-2">
+              <Button
+                ariaLabel="Show raw map response"
+                label="Raw"
+                onClick={handleShowRaw}
+                preset={showRaw ? 'sky' : 'slate'}
+                pressed={showRaw}
+                size="sm"
+                variant="toggle"
+              />
 
             <Button
               ariaLabel="Show parsed map response"
@@ -62,34 +89,46 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
             />
           </div>
 
-          {showRaw ? (
-            <DebugSection
-              content={filterObservationsAndRationale(debugPacket.mapUpdateDebugInfo.rawResponse)}
-              isJson={false}
-              title="Cartographer AI Response Raw"
-            />
+              {showRaw ? (
+                <DebugSection
+                  content={filterObservationsAndRationale(debugPacket.mapUpdateDebugInfo.rawResponse)}
+                  isJson={false}
+                  title="Cartographer AI Response Raw"
+                />
+              ) : (
+                <DebugSection
+                  content={debugPacket.mapUpdateDebugInfo.parsedPayload}
+                  title="Cartographer AI Response Parsed"
+                />
+              )}
+            </>
           ) : (
-            <DebugSection
-              content={debugPacket.mapUpdateDebugInfo.parsedPayload}
-              title="Cartographer AI Response Parsed"
-            />
+            <>
+              {debugPacket.mapUpdateDebugInfo.thoughts && debugPacket.mapUpdateDebugInfo.thoughts.length > 0 ? (
+                <DebugSection
+                  content={debugPacket.mapUpdateDebugInfo.thoughts.map(decodeEscapedString).join('\n')}
+                  isJson={false}
+                  title="Cartographer Thoughts"
+                />
+              ) : null}
+
+              {debugPacket.mapUpdateDebugInfo.observations ? (
+                <DebugSection
+                  content={debugPacket.mapUpdateDebugInfo.observations}
+                  isJson={false}
+                  title="Cartographer Observations"
+                />
+              ) : null}
+
+              {debugPacket.mapUpdateDebugInfo.rationale ? (
+                <DebugSection
+                  content={debugPacket.mapUpdateDebugInfo.rationale}
+                  isJson={false}
+                  title="Cartographer Rationale"
+                />
+              ) : null}
+            </>
           )}
-
-          {debugPacket.mapUpdateDebugInfo.observations ? (
-            <DebugSection
-              content={debugPacket.mapUpdateDebugInfo.observations}
-              isJson={false}
-              title="Cartographer Observations"
-            />
-          ) : null}
-
-          {debugPacket.mapUpdateDebugInfo.rationale ? (
-            <DebugSection
-              content={debugPacket.mapUpdateDebugInfo.rationale}
-              isJson={false}
-              title="Cartographer Rationale"
-            />
-          ) : null}
 
           {debugPacket.mapUpdateDebugInfo.validationError ? (
             <DebugSection

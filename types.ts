@@ -331,6 +331,7 @@ export interface LoremasterModeDebugInfo {
   parsedPayload?: Array<string> | LoreRefinementResult;
   observations?: string;
   rationale?: string;
+  thoughts?: Array<string>;
 }
 
 export interface LoremasterRefineDebugInfo {
@@ -496,6 +497,7 @@ export interface DebugPacket {
     validationError?: string;
     observations?: string;
     rationale?: string;
+    thoughts?: Array<string>;
     minimalModelCalls?: Array<MinimalModelCallRecord>;
     connectorChainsDebugInfo?: Array<{
       round: number;
@@ -503,6 +505,7 @@ export interface DebugPacket {
       rawResponse?: string;
       parsedPayload?: AIMapUpdatePayload;
       validationError?: string;
+      thoughts?: Array<string>;
       observations?: string;
       rationale?: string;
     }> | null;
@@ -513,6 +516,7 @@ export interface DebugPacket {
     parsedItemChanges?: Array<ItemChange>;
     observations?: string;
     rationale?: string;
+    thoughts?: Array<string>;
   } | null;
   loremasterDebugInfo?: {
     collect?: LoremasterModeDebugInfo | null;

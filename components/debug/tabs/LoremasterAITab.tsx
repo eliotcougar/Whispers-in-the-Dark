@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { DebugPacket, LoremasterModeDebugInfo } from '../../../types';
-import { filterObservationsAndRationale } from './tabUtils';
+import { filterObservationsAndRationale, decodeEscapedString } from './tabUtils';
 
 interface LoremasterAITabProps {
   readonly debugPacket: DebugPacket | null;
@@ -11,6 +11,7 @@ interface LoremasterAITabProps {
 
 function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) {
   const [showRaw, setShowRaw] = useState<Record<string, boolean>>({});
+  const [showExtras, setShowExtras] = useState(false);
 
   const handleShowRaw = useCallback(
     (mode: string) => () => { setShowRaw(prev => ({ ...prev, [mode]: true })); },
@@ -20,6 +21,8 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
     (mode: string) => () => { setShowRaw(prev => ({ ...prev, [mode]: false })); },
     [],
   );
+  const handleShowReqRes = useCallback(() => { setShowExtras(false); }, []);
+  const handleShowInsights = useCallback(() => { setShowExtras(true); }, []);
 
   const renderMode = (
     modeLabel: string,
@@ -32,13 +35,15 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
         className="mb-4"
         key={modeLabel}
       >
-        <DebugSection
-          content={info.prompt}
-          isJson={false}
-          title={`${modeLabel} Request`}
-        />
+        {!showExtras ? (
+          <>
+            <DebugSection
+              content={info.prompt}
+              isJson={false}
+              title={`${modeLabel} Request`}
+            />
 
-        <div className="my-2 flex flex-wrap gap-2">
+            <div className="my-2 flex flex-wrap gap-2">
           <Button
             ariaLabel={`Show raw ${modeLabel} response`}
             label="Raw"
@@ -60,34 +65,46 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
           />
         </div>
 
-        {raw ? (
-          <DebugSection
-            content={filterObservationsAndRationale(info.rawResponse)}
-            isJson={false}
-            title={`${modeLabel} Response Raw`}
-          />
+            {raw ? (
+              <DebugSection
+                content={filterObservationsAndRationale(info.rawResponse)}
+                isJson={false}
+                title={`${modeLabel} Response Raw`}
+              />
+            ) : (
+              <DebugSection
+                content={info.parsedPayload}
+                title={`${modeLabel} Response Parsed`}
+              />
+            )}
+          </>
         ) : (
-          <DebugSection
-            content={info.parsedPayload}
-            title={`${modeLabel} Response Parsed`}
-          />
+          <>
+            {info.thoughts && info.thoughts.length > 0 ? (
+              <DebugSection
+                content={info.thoughts.map(decodeEscapedString).join('\n')}
+                isJson={false}
+                title={`${modeLabel} Thoughts`}
+              />
+            ) : null}
+
+            {info.observations ? (
+              <DebugSection
+                content={info.observations}
+                isJson={false}
+                title={`${modeLabel} Observations`}
+              />
+            ) : null}
+
+            {info.rationale ? (
+              <DebugSection
+                content={info.rationale}
+                isJson={false}
+                title={`${modeLabel} Rationale`}
+              />
+            ) : null}
+          </>
         )}
-
-        {info.observations ? (
-          <DebugSection
-            content={info.observations}
-            isJson={false}
-            title={`${modeLabel} Observations`}
-          />
-        ) : null}
-
-        {info.rationale ? (
-          <DebugSection
-            content={info.rationale}
-            isJson={false}
-            title={`${modeLabel} Rationale`}
-          />
-        ) : null}
       </div>
     );
   };
@@ -96,6 +113,28 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
 
   return (
     <>
+      <div className="my-2 flex flex-wrap gap-2">
+        <Button
+          ariaLabel="Show request and response"
+          label="Req/Res"
+          onClick={handleShowReqRes}
+          preset={!showExtras ? 'sky' : 'slate'}
+          pressed={!showExtras}
+          size="sm"
+          variant="toggle"
+        />
+
+        <Button
+          ariaLabel="Show insights"
+          label="Insights"
+          onClick={handleShowInsights}
+          preset={showExtras ? 'sky' : 'slate'}
+          pressed={showExtras}
+          size="sm"
+          variant="toggle"
+        />
+      </div>
+
       <Button
         ariaLabel="Trigger distill mode"
         label="Run Distill"

@@ -49,18 +49,23 @@ export const refineLore_Service = async (
   const { themeName, turnContext, existingFacts, onFactsExtracted } = params;
 
   const extractPrompt = buildExtractFactsPrompt(themeName, turnContext);
-  const newFacts = await retryAiCall<{ parsed: Array<string> | null; raw: string } | null>(async () => {
+  const newFacts = await retryAiCall<{ parsed: Array<string> | null; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: extractPrompt,
       systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
       thinkingBudget: 512,
+      includeThoughts: true,
       responseMimeType: 'application/json',
       temperature: 0.7,
       label: 'LoremasterExtract',
     });
-    return { result: { parsed: parseExtractFactsResponse(response.text ?? ''), raw: response.text ?? '' } };
+    const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+    const thoughtParts = parts
+      .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+      .map(p => p.text);
+    return { result: { parsed: parseExtractFactsResponse(response.text ?? ''), raw: response.text ?? '', thoughts: thoughtParts } };
   });
   if (!newFacts) return null;
 
@@ -74,6 +79,7 @@ export const refineLore_Service = async (
             prompt: extractPrompt,
             rawResponse: newFacts.raw,
             parsedPayload: newFacts.parsed ?? undefined,
+            thoughts: newFacts.thoughts,
           },
           integrate: null,
         },
@@ -82,18 +88,23 @@ export const refineLore_Service = async (
   }
 
   const integratePrompt = buildIntegrateFactsPrompt(themeName, existingFacts, newFacts.parsed ?? []);
-  const integration = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string } | null>(async () => {
+  const integration = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: integratePrompt,
       systemInstruction: INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
       thinkingBudget: 2048,
+      includeThoughts: true,
       responseMimeType: 'application/json',
       temperature: 0.7,
       label: 'LoremasterIntegrate',
     });
-    return { result: { parsed: parseIntegrationResponse(response.text ?? ''), raw: response.text ?? '' } };
+    const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+    const thoughtParts = parts
+      .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+      .map(p => p.text);
+    return { result: { parsed: parseIntegrationResponse(response.text ?? ''), raw: response.text ?? '', thoughts: thoughtParts } };
   });
   return {
     refinementResult: integration?.parsed ?? null,
@@ -102,6 +113,7 @@ export const refineLore_Service = async (
         prompt: extractPrompt,
         rawResponse: newFacts.raw,
         parsedPayload: newFacts.parsed ?? undefined,
+        thoughts: newFacts.thoughts,
       },
       integrate: {
         prompt: integratePrompt,
@@ -109,6 +121,7 @@ export const refineLore_Service = async (
         parsedPayload: integration?.parsed ?? undefined,
         observations: integration?.parsed?.observations,
         rationale: integration?.parsed?.rationale,
+        thoughts: integration?.thoughts,
       },
     },
   };
@@ -129,6 +142,7 @@ export interface CollectFactsServiceResult {
     prompt: string;
     rawResponse?: string;
     parsedPayload?: Array<string>;
+    thoughts?: Array<string>;
   } | null;
 }
 
@@ -157,18 +171,23 @@ export const collectRelevantFacts_Service = async (
     detailedContext,
   );
 
-  const result = await retryAiCall<{ parsed: Array<string> | null; raw: string } | null>(async () => {
+  const result = await retryAiCall<{ parsed: Array<string> | null; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: COLLECT_SYSTEM_INSTRUCTION,
       thinkingBudget: 1024,
+      includeThoughts: true,
       responseMimeType: 'application/json',
       temperature: 0.7,
       label: 'LoremasterCollect',
     });
-    return { result: { parsed: parseCollectFactsResponse(response.text ?? ''), raw: response.text ?? '' } };
+    const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+    const thoughtParts = parts
+      .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+      .map(p => p.text);
+    return { result: { parsed: parseCollectFactsResponse(response.text ?? ''), raw: response.text ?? '', thoughts: thoughtParts } };
   });
   return {
     facts: result?.parsed ?? [],
@@ -176,6 +195,7 @@ export const collectRelevantFacts_Service = async (
       prompt,
       rawResponse: result?.raw,
       parsedPayload: result?.parsed ?? undefined,
+      thoughts: result?.thoughts,
     },
   };
 };
@@ -197,6 +217,7 @@ export interface DistillFactsServiceResult {
     parsedPayload?: LoreRefinementResult;
     observations?: string;
     rationale?: string;
+    thoughts?: Array<string>;
   } | null;
 }
 
@@ -225,7 +246,7 @@ export const distillFacts_Service = async (
     mapNodeNames,
   );
 
-  const result = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string } | null>(async () => {
+  const result = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME],
@@ -237,7 +258,11 @@ export const distillFacts_Service = async (
       temperature: 0.7,
       label: 'LoremasterDistill',
     });
-    return { result: { parsed: parseIntegrationResponse(response.text ?? ''), raw: response.text ?? '' } };
+    const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+    const thoughtParts = parts
+      .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+      .map(p => p.text);
+    return { result: { parsed: parseIntegrationResponse(response.text ?? ''), raw: response.text ?? '', thoughts: thoughtParts } };
   });
 
   return {
@@ -248,6 +273,7 @@ export const distillFacts_Service = async (
       parsedPayload: result?.parsed ?? undefined,
       observations: result?.parsed?.observations,
       rationale: result?.parsed?.rationale,
+      thoughts: result?.thoughts,
     },
   };
 };

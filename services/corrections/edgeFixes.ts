@@ -104,6 +104,7 @@ export interface ConnectorChainsServiceResult {
     validationError?: string;
     observations?: string;
     rationale?: string;
+    thoughts?: Array<string>;
   } | null;
 }
 
@@ -240,10 +241,17 @@ Return ONLY a JSON object strictly matching this structure:
     modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction: systemInstruction,
+    thinkingBudget: 1024,
+    includeThoughts: true,
     responseMimeType: 'application/json',
     temperature: CORRECTION_TEMPERATURE,
     label: 'Corrections',
   });
+
+  const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+  const thoughtParts = parts
+    .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+    .map(p => p.text);
 
   const debugInfo: ConnectorChainsServiceResult['debugInfo'] = {
     prompt,
@@ -252,6 +260,7 @@ Return ONLY a JSON object strictly matching this structure:
     validationError: undefined,
     observations: undefined,
     rationale: undefined,
+    thoughts: thoughtParts.length > 0 ? thoughtParts : undefined,
   };
 
   const jsonStr = extractJsonFromFence(response.text ?? '');

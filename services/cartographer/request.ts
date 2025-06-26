@@ -34,23 +34,28 @@ import type { MapUpdateDebugInfo } from './types';
 export const executeMapUpdateRequest = async (
   prompt: string,
   systemInstruction: string,
-): Promise<GenerateContentResponse> => {
+): Promise<{ response: GenerateContentResponse; thoughts: Array<string> }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Map Update Service.');
     throw new Error('API Key not configured.');
   }
-  const result = await retryAiCall<GenerateContentResponse>(async () => {
+  const result = await retryAiCall<{ response: GenerateContentResponse; thoughts: Array<string> }>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
     const { response } = await dispatchAIRequest({
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction,
       thinkingBudget: 4096,
+      includeThoughts: true,
       responseMimeType: 'application/json',
       temperature: 0.75,
       label: 'Cartographer',
     });
-    return { result: response };
+    const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+    const thoughtParts = parts
+      .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+      .map(p => p.text);
+    return { result: { response, thoughts: thoughtParts } };
   });
   if (!result) {
     throw new Error('Failed to execute map update request.');
@@ -90,8 +95,9 @@ export const fetchMapUpdatePayload = async (
         prompt = basePrompt;
       }
       debugInfo.prompt = prompt;
-      const response = await executeMapUpdateRequest(prompt, systemInstruction);
+      const { response, thoughts } = await executeMapUpdateRequest(prompt, systemInstruction);
       debugInfo.rawResponse = response.text ?? '';
+      if (thoughts.length > 0) debugInfo.thoughts = thoughts;
       const { payload: parsedPayload, validationError: parseError } = parseAIMapUpdateResponse(response.text ?? '');
       if (parsedPayload) {
         debugInfo.observations = parsedPayload.observations ?? debugInfo.observations;

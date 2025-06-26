@@ -5,6 +5,7 @@ export interface MapUpdateDebugInfo {
   validationError?: string;
   observations?: string;
   rationale?: string;
+  thoughts?: Array<string>;
   minimalModelCalls?: Array<import('../../types').MinimalModelCallRecord>;
   connectorChainsDebugInfo?: Array<{
     round: number;
@@ -12,6 +13,7 @@ export interface MapUpdateDebugInfo {
     rawResponse?: string;
     parsedPayload?: import('../../types').AIMapUpdatePayload;
     validationError?: string;
+    thoughts?: Array<string>;
   }> | null;
 }
 
