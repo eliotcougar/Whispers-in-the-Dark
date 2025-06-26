@@ -108,6 +108,7 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                 <DebugSection
                   content={debugPacket.mapUpdateDebugInfo.thoughts.map(decodeEscapedString).join('\n')}
                   isJson={false}
+                  maxHeightClass="overflow-visible max-h-fit"
                   title="Cartographer Thoughts"
                 />
               ) : null}
@@ -116,6 +117,7 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                 <DebugSection
                   content={debugPacket.mapUpdateDebugInfo.observations}
                   isJson={false}
+                  maxHeightClass="overflow-visible max-h-fit"
                   title="Cartographer Observations"
                 />
               ) : null}
@@ -124,6 +126,7 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                 <DebugSection
                   content={debugPacket.mapUpdateDebugInfo.rationale}
                   isJson={false}
+                  maxHeightClass="overflow-visible max-h-fit"
                   title="Cartographer Rationale"
                 />
               ) : null}
@@ -201,6 +204,7 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                   <DebugSection
                     content={info.observations}
                     isJson={false}
+                    maxHeightClass="overflow-visible max-h-fit"
                     title={`Connector Chains Observations (Round ${String(info.round)})`}
                   />
                   ) : null}
@@ -209,6 +213,7 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                   <DebugSection
                     content={info.rationale}
                     isJson={false}
+                    maxHeightClass="overflow-visible max-h-fit"
                     title={`Connector Chains Rationale (Round ${String(info.round)})`}
                   />
                   ) : null}

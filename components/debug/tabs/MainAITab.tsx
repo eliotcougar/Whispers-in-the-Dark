@@ -96,6 +96,7 @@ function MainAITab({ debugPacket }: MainAITabProps) {
           <DebugSection
             content={debugPacket.storytellerThoughts.map(decodeEscapedString).join('\n')}
             isJson={false}
+            maxHeightClass="overflow-visible max-h-fit"
             title="Storyteller Thoughts"
           />
         ) : null

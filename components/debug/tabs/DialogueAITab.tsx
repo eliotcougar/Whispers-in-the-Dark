@@ -72,6 +72,7 @@ function DialogueAITab({ debugPacket }: DialogueAITabProps) {
             <DebugSection
               content={debugPacket.dialogueDebugInfo.summaryThoughts.map(decodeEscapedString).join('\n')}
               isJson={false}
+              maxHeightClass="overflow-visible max-h-fit"
               title="Dialogue Summary Thoughts"
             />
           ) : null}

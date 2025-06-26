@@ -84,6 +84,7 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
               <DebugSection
                 content={info.thoughts.map(decodeEscapedString).join('\n')}
                 isJson={false}
+                maxHeightClass="overflow-visible max-h-fit"
                 title={`${modeLabel} Thoughts`}
               />
             ) : null}
@@ -92,6 +93,7 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
               <DebugSection
                 content={info.observations}
                 isJson={false}
+                maxHeightClass="overflow-visible max-h-fit"
                 title={`${modeLabel} Observations`}
               />
             ) : null}
@@ -100,6 +102,7 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
               <DebugSection
                 content={info.rationale}
                 isJson={false}
+                maxHeightClass="overflow-visible max-h-fit"
                 title={`${modeLabel} Rationale`}
               />
             ) : null}

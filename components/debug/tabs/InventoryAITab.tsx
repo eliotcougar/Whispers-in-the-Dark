@@ -90,6 +90,7 @@ function InventoryAITab({ debugPacket }: InventoryAITabProps) {
             <DebugSection
               content={debugPacket.inventoryDebugInfo.thoughts.map(decodeEscapedString).join('\n')}
               isJson={false}
+              maxHeightClass="overflow-visible max-h-fit"
               title="Inventory Thoughts"
             />
           ) : null}
@@ -98,6 +99,7 @@ function InventoryAITab({ debugPacket }: InventoryAITabProps) {
             <DebugSection
               content={debugPacket.inventoryDebugInfo.observations}
               isJson={false}
+              maxHeightClass="overflow-visible max-h-fit"
               title="Inventory Observations"
             />
           ) : null}
@@ -106,6 +108,7 @@ function InventoryAITab({ debugPacket }: InventoryAITabProps) {
             <DebugSection
               content={debugPacket.inventoryDebugInfo.rationale}
               isJson={false}
+              maxHeightClass="overflow-visible max-h-fit"
               title="Inventory Rationale"
             />
           ) : null}
