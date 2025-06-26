@@ -270,6 +270,11 @@ export interface UseProcessAiResponseProps {
   setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
+  debugLore: boolean;
+  openDebugLoreModal: (
+    facts: Array<string>,
+    resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
+  ) => void;
 }
 
 export const useProcessAiResponse = ({
@@ -277,6 +282,8 @@ export const useProcessAiResponse = ({
   setLoadingReason,
   setError,
   setGameStateStack,
+  debugLore,
+  openDebugLoreModal,
 }: UseProcessAiResponseProps) => {
   const { processMapUpdates } = useMapUpdateProcessor({
     loadingReason,
@@ -545,6 +552,18 @@ export const useProcessAiResponse = ({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
           existingFacts: draftState.themeFacts,
+          onFactsExtracted: debugLore
+            ? async (facts) =>
+                new Promise<{ proceed: boolean }>(resolve => {
+                  openDebugLoreModal(facts, (good, bad, proceed) => {
+                    if (proceed) {
+                      draftState.debugGoodFacts.push(...good);
+                      draftState.debugBadFacts.push(...bad);
+                    }
+                    resolve({ proceed });
+                  });
+                })
+            : undefined,
         });
         setLoadingReason(original);
         if (draftState.lastDebugPacket.loremasterDebugInfo) {
@@ -565,7 +584,16 @@ export const useProcessAiResponse = ({
 
       draftState.lastTurnChanges = turnChanges;
     },
-    [loadingReason, setLoadingReason, setError, setGameStateStack, processMapUpdates, clearObjectiveAnimationTimer],
+    [
+      loadingReason,
+      setLoadingReason,
+      setError,
+      setGameStateStack,
+      processMapUpdates,
+      clearObjectiveAnimationTimer,
+      debugLore,
+      openDebugLoreModal,
+    ],
   );
 
   return { processAiResponse, clearObjectiveAnimationTimer };

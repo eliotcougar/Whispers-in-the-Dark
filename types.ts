@@ -564,6 +564,10 @@ export interface FullGameState {
   stabilityLevel: number;
   chaosLevel: number;
 
+  debugLore: boolean;
+  debugGoodFacts: Array<string>;
+  debugBadFacts: Array<string>;
+
   // Transient/Debug fields (not part of SavedGameDataShape)
   objectiveAnimationType: 'success' | 'neutral' | null;
   lastDebugPacket: DebugPacket | null; 

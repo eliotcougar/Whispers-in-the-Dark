@@ -27,6 +27,10 @@ export interface UseGameLogicProps {
   ) => void;
   initialSavedStateFromApp: GameStateStack | null;
   isAppReady: boolean;
+  openDebugLoreModal: (
+    facts: Array<string>,
+    resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
+  ) => void;
 }
 
 /** Manages overall game state and delegates to sub hooks. */
@@ -39,6 +43,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     onSettingsUpdateFromLoad,
     initialSavedStateFromApp,
     isAppReady,
+    openDebugLoreModal,
   } = props;
 
   const [gameStateStack, setGameStateStack] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
@@ -121,6 +126,23 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   triggerShiftRef.current = triggerRealityShift;
   manualShiftRef.current = executeManualRealityShift;
 
+  const currentSnapshot = getCurrentGameState();
+
+  const toggleDebugLore = useCallback(() => {
+    setGameStateStack(prev => [
+      { ...prev[0], debugLore: !prev[0].debugLore },
+      prev[1],
+    ]);
+  }, []);
+
+  const clearDebugFacts = useCallback(() => {
+    setGameStateStack(prev => [
+      { ...prev[0], debugGoodFacts: [], debugBadFacts: [] },
+      prev[1],
+    ]);
+  }, []);
+
+
   const {
     handleMapLayoutConfigChange,
     handleMapViewBoxChange,
@@ -154,6 +176,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     isLoading,
     hasGameBeenInitialized,
     loadingReason,
+    debugLore: currentSnapshot.debugLore,
+    openDebugLoreModal,
   });
 
   const {
@@ -351,6 +375,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setLoadingReason(null);
   }, [commitGameState, getCurrentGameState, setError, setIsLoading, setLoadingReason]);
 
+
   return {
     currentTheme: currentFullState.currentThemeObject,
     currentScene: currentFullState.currentScene,
@@ -441,5 +466,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     addJournalEntry,
     commitGameState,
     handleDistillFacts,
+    toggleDebugLore,
+    clearDebugFacts,
+    debugLore: currentFullState.debugLore,
+    debugGoodFacts: currentFullState.debugGoodFacts,
+    debugBadFacts: currentFullState.debugBadFacts,
   };
 };

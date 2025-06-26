@@ -78,6 +78,9 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     objectiveAnimationType,
     lastDebugPacket,
     lastTurnChanges,
+    debugLore,
+    debugGoodFacts,
+    debugBadFacts,
     isAwaitingManualShiftThemeSelection,
     ...restOfGameState
   } = gameState;
@@ -86,6 +89,9 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   void objectiveAnimationType;
   void lastDebugPacket;
   void lastTurnChanges;
+  void debugLore;
+  void debugGoodFacts;
+  void debugBadFacts;
   void isAwaitingManualShiftThemeSelection;
 
   const mapDataForSave: MapData = {
@@ -180,6 +186,9 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     isCustomGameMode: savedData.isCustomGameMode,
     globalTurnNumber: savedData.globalTurnNumber,
     themeFacts: savedData.themeFacts,
+    debugLore: false,
+    debugGoodFacts: [],
+    debugBadFacts: [],
     isAwaitingManualShiftThemeSelection: false,
     dialogueState: null,
     objectiveAnimationType: null,

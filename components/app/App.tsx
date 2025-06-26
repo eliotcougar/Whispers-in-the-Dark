@@ -22,6 +22,7 @@ import ItemChangeAnimator from '../inventory/ItemChangeAnimator';
 import CustomGameSetupScreen from '../modals/CustomGameSetupScreen';
 import SettingsDisplay from '../modals/SettingsDisplay';
 import InfoDisplay from '../modals/InfoDisplay';
+import DebugLoreModal from '../modals/DebugLoreModal';
 import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
@@ -42,6 +43,7 @@ import {
   RECENT_LOG_COUNT_FOR_PROMPT,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
+import { saveDebugLoreToLocalStorage } from '../../services/storage';
 
 
 function App() {
@@ -78,70 +80,6 @@ function App() {
     dialogueState: gameLogicRef.current?.dialogueState,
     hasGameBeenInitialized: gameLogicRef.current?.hasGameBeenInitialized,
   });
-
-
-  const gameLogic = useGameLogic({
-    playerGenderProp: playerGender,
-    enabledThemePacksProp: enabledThemePacks,
-    stabilityLevelProp: stabilityLevel,
-    chaosLevelProp: chaosLevel,
-    onSettingsUpdateFromLoad: updateSettingsFromLoad,
-    initialSavedStateFromApp: initialSavedState,
-    isAppReady: appReady,
-  });
-  gameLogicRef.current = gameLogic;
-
-  const {
-    currentTheme,
-    currentScene, mainQuest, currentObjective, actionOptions,
-    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
-    currentMapNodeId, mapLayoutConfig,
-    allNPCs,
-    score, freeFormActionText, setFreeFormActionText,
-    handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    handleItemInteraction, handleTakeLocationItem, handleRetry, executeManualRealityShift,
-    completeManualShiftWithSelectedTheme,
-    cancelManualShiftThemeSelection,
-    isAwaitingManualShiftThemeSelection,
-    startCustomGame,
-    gatherCurrentGameState: gatherGameStateStack, hasGameBeenInitialized, handleStartNewGameFromButton,
-    localTime, localEnvironment, localPlace,
-    dialogueState,
-    handleDialogueOptionSelect,
-    handleForceExitDialogue,
-    isDialogueExiting,
-    lastDebugPacket,
-    lastTurnChanges,
-    turnsSinceLastShift,
-    globalTurnNumber,
-    isCustomGameMode,
-    gameStateStack,
-    handleMapLayoutConfigChange,
-    loadingReason,
-    handleUndoTurn,
-    destinationNodeId,
-    handleSelectDestinationNode,
-    mapViewBox,
-    handleMapViewBoxChange,
-    handleMapNodesPositionChange,
-    commitGameState,
-    updateItemContent,
-    handleDistillFacts,
-  } = gameLogic;
-
-  const handleApplyGameState = useCallback(
-    (state: FullGameState) => { commitGameState(state); },
-    [commitGameState]
-  );
-
-  useEffect(() => {
-    if (!isLoading) {
-      clearProgress();
-    }
-  }, [isLoading, clearProgress]);
-
-  const prevGameLogLength = useRef(gameLog.length);
-  const prevSceneRef = useRef(currentScene);
 
   const {
     isVisualizerVisible,
@@ -197,7 +135,103 @@ function App() {
     isPageVisible,
     openPageView,
     closePageView,
+    isDebugLoreVisible,
+    debugLoreFacts,
+    openDebugLoreModal,
+    submitDebugLoreModal,
+    closeDebugLoreModal,
   } = useAppModals();
+
+
+  const gameLogic = useGameLogic({
+    playerGenderProp: playerGender,
+    enabledThemePacksProp: enabledThemePacks,
+    stabilityLevelProp: stabilityLevel,
+    chaosLevelProp: chaosLevel,
+    onSettingsUpdateFromLoad: updateSettingsFromLoad,
+    initialSavedStateFromApp: initialSavedState,
+    isAppReady: appReady,
+    openDebugLoreModal,
+  });
+  gameLogicRef.current = gameLogic;
+
+  const {
+    currentTheme,
+    currentScene, mainQuest, currentObjective, actionOptions,
+    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
+    currentMapNodeId, mapLayoutConfig,
+    allNPCs,
+    score, freeFormActionText, setFreeFormActionText,
+    handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
+    handleItemInteraction, handleTakeLocationItem, handleRetry, executeManualRealityShift,
+    completeManualShiftWithSelectedTheme,
+    cancelManualShiftThemeSelection,
+    isAwaitingManualShiftThemeSelection,
+    startCustomGame,
+    gatherCurrentGameState: gatherGameStateStack, hasGameBeenInitialized, handleStartNewGameFromButton,
+    localTime, localEnvironment, localPlace,
+    dialogueState,
+    handleDialogueOptionSelect,
+    handleForceExitDialogue,
+    isDialogueExiting,
+    lastDebugPacket,
+    lastTurnChanges,
+    turnsSinceLastShift,
+    globalTurnNumber,
+    isCustomGameMode,
+    gameStateStack,
+    handleMapLayoutConfigChange,
+    loadingReason,
+    handleUndoTurn,
+    destinationNodeId,
+    handleSelectDestinationNode,
+    mapViewBox,
+    handleMapViewBoxChange,
+    handleMapNodesPositionChange,
+    commitGameState,
+    updateItemContent,
+    handleDistillFacts,
+    toggleDebugLore,
+    debugLore,
+    debugGoodFacts,
+    debugBadFacts,
+  } = gameLogic;
+
+  const handleApplyGameState = useCallback(
+    (state: FullGameState) => { commitGameState(state); },
+    [commitGameState]
+  );
+
+  const handleSaveFacts = useCallback((data: string) => {
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DebugLoreFacts.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const handleClearFacts = useCallback(() => {
+    gameLogic.clearDebugFacts();
+    saveDebugLoreToLocalStorage({
+      debugLore: gameLogic.debugLore,
+      debugGoodFacts: [],
+      debugBadFacts: [],
+    });
+  }, [gameLogic]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      clearProgress();
+    }
+  }, [isLoading, clearProgress]);
+
+  const prevGameLogLength = useRef(gameLog.length);
+  const prevSceneRef = useRef(currentScene);
+
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
 
@@ -210,6 +244,7 @@ function App() {
     isHistoryVisible ||
     isDebugViewVisible ||
     isPageVisible ||
+    isDebugLoreVisible ||
     !!dialogueState ||
     effectiveIsTitleMenuOpen ||
     shiftConfirmOpen ||
@@ -264,6 +299,7 @@ function App() {
       mapLayoutConfig, allNPCs, score, localTime, localEnvironment, localPlace,
       playerGender, enabledThemePacks, stabilityLevel, chaosLevel, turnsSinceLastShift,
       isCustomGameMode, isAwaitingManualShiftThemeSelection,
+      debugLore, debugGoodFacts, debugBadFacts,
     ],
   });
 
@@ -749,6 +785,12 @@ function App() {
         onApplyGameState={handleApplyGameState}
         onClose={closeDebugView}
         onDistillFacts={handleDistillClick}
+        debugLore={debugLore}
+        goodFacts={debugGoodFacts}
+        badFacts={debugBadFacts}
+        onToggleDebugLore={toggleDebugLore}
+        onClearFacts={handleClearFacts}
+        onSaveFacts={handleSaveFacts}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
       />
@@ -797,6 +839,13 @@ function App() {
       <InfoDisplay
         isVisible={isInfoVisible}
         onClose={closeInfo}
+      />
+
+      <DebugLoreModal
+        facts={debugLoreFacts}
+        isVisible={isDebugLoreVisible}
+        onClose={closeDebugLoreModal}
+        onSubmit={submitDebugLoreModal}
       />
 
       {hasGameBeenInitialized && currentTheme ? <AppModals

@@ -24,6 +24,7 @@ import {
   MiscStateTab,
   ThemeHistoryTab,
   TravelPathTab,
+  SettingsTab,
 } from './tabs';
 
 interface DebugViewProps {
@@ -35,6 +36,12 @@ interface DebugViewProps {
   readonly onApplyGameState: (state: FullGameState) => void;
   readonly travelPath: Array<TravelStep> | null;
   readonly onDistillFacts: () => void;
+  readonly debugLore: boolean;
+  readonly onToggleDebugLore: () => void;
+  readonly goodFacts: Array<string>;
+  readonly badFacts: Array<string>;
+  readonly onSaveFacts: (data: string) => void;
+  readonly onClearFacts: () => void;
 }
 
 type DebugTab =
@@ -52,7 +59,8 @@ type DebugTab =
   | "GameLog"
   | "TravelPath"
   | "MiscState"
-  | "Playground";
+  | "Playground"
+  | "Settings";
 
 /**
  * Developer-only panel for inspecting and manipulating game state.
@@ -66,6 +74,12 @@ function DebugView({
   onApplyGameState,
   travelPath,
   onDistillFacts,
+  debugLore,
+  onToggleDebugLore,
+  goodFacts,
+  badFacts,
+  onSaveFacts,
+  onClearFacts,
 }: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
 
@@ -95,6 +109,7 @@ function DebugView({
     { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
     { name: "Playground", label: "Playground" },
+    { name: "Settings", label: "Settings" },
   ];
 
   /**
@@ -155,6 +170,17 @@ function DebugView({
         return <MiscStateTab currentState={currentState} />;
       case 'Playground':
         return <PlaygroundTab />;
+      case 'Settings':
+        return (
+          <SettingsTab
+            badFacts={badFacts}
+            debugLore={debugLore}
+            goodFacts={goodFacts}
+            onClearFacts={onClearFacts}
+            onSaveFacts={onSaveFacts}
+            onToggleDebugLore={onToggleDebugLore}
+          />
+        );
       default:
         return (
           <p>

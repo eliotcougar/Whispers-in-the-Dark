@@ -7,6 +7,7 @@ import { DebugPacket, GameStateStack } from '../types';
 import {
   LOCAL_STORAGE_SAVE_KEY,
   LOCAL_STORAGE_DEBUG_KEY,
+  LOCAL_STORAGE_DEBUG_LORE_KEY,
 } from '../constants';
 import {
   prepareGameStateStackForSaving,
@@ -102,6 +103,66 @@ export const loadDebugPacketFromLocalStorage = (): DebugPacket | null => {
     console.error('Error loading debug packet from localStorage:', error);
     localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
     return null;
+  }
+};
+
+export interface DebugLoreStorageData {
+  debugLore: boolean;
+  debugGoodFacts: Array<string>;
+  debugBadFacts: Array<string>;
+}
+
+export const saveDebugLoreToLocalStorage = (
+  data: DebugLoreStorageData,
+): void => {
+  try {
+    localStorage.setItem(
+      LOCAL_STORAGE_DEBUG_LORE_KEY,
+      JSON.stringify(data),
+    );
+  } catch (error: unknown) {
+    console.error('Error saving debug lore state to localStorage:', error);
+  }
+};
+
+export const loadDebugLoreFromLocalStorage = (): DebugLoreStorageData | null => {
+  try {
+    const savedDataString = localStorage.getItem(LOCAL_STORAGE_DEBUG_LORE_KEY);
+    if (!savedDataString) return null;
+    const parsed: unknown = safeParseJson(savedDataString);
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      typeof (parsed as { debugLore?: unknown }).debugLore !== 'boolean'
+    ) {
+      console.warn(
+        'Saved debug lore data found in localStorage could not be parsed.',
+      );
+      return null;
+    }
+    const good = Array.isArray((parsed as { debugGoodFacts?: unknown }).debugGoodFacts)
+      ? [...(parsed as { debugGoodFacts: Array<string> }).debugGoodFacts]
+      : [];
+    const bad = Array.isArray((parsed as { debugBadFacts?: unknown }).debugBadFacts)
+      ? [...(parsed as { debugBadFacts: Array<string> }).debugBadFacts]
+      : [];
+    return {
+      debugLore: (parsed as { debugLore: boolean }).debugLore,
+      debugGoodFacts: good,
+      debugBadFacts: bad,
+    };
+  } catch (error: unknown) {
+    console.error('Error loading debug lore state from localStorage:', error);
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_LORE_KEY);
+    return null;
+  }
+};
+
+export const clearDebugLoreFromLocalStorage = (): void => {
+  try {
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_LORE_KEY);
+  } catch (error: unknown) {
+    console.error('Error clearing debug lore from localStorage:', error);
   }
 };
 

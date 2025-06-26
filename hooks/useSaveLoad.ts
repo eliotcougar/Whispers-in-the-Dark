@@ -13,6 +13,8 @@ import {
   loadGameStateFromLocalStorage,
   saveDebugPacketToLocalStorage,
   loadDebugPacketFromLocalStorage,
+  saveDebugLoreToLocalStorage,
+  loadDebugLoreFromLocalStorage,
 } from '../services/storage';
 import {
   DEFAULT_PLAYER_GENDER,
@@ -52,8 +54,14 @@ export const useSaveLoad = ({
   useEffect(() => {
     const loadedState = loadGameStateFromLocalStorage();
     const loadedDebug = loadDebugPacketFromLocalStorage();
+    const loadedDebugLore = loadDebugLoreFromLocalStorage();
     if (loadedState) {
       if (loadedDebug) loadedState[0].lastDebugPacket = loadedDebug;
+      if (loadedDebugLore) {
+        loadedState[0].debugLore = loadedDebugLore.debugLore;
+        loadedState[0].debugGoodFacts = loadedDebugLore.debugGoodFacts;
+        loadedState[0].debugBadFacts = loadedDebugLore.debugBadFacts;
+      }
       const current = loadedState[0];
       setPlayerGender(current.playerGender);
       setEnabledThemePacks(current.enabledThemePacks);
@@ -88,6 +96,11 @@ export const useSaveLoad = ({
           setError ? (msg) => { setError(msg); } : undefined,
         );
         saveDebugPacketToLocalStorage(stack[0].lastDebugPacket);
+        saveDebugLoreToLocalStorage({
+          debugLore: stack[0].debugLore,
+          debugGoodFacts: stack[0].debugGoodFacts,
+          debugBadFacts: stack[0].debugBadFacts,
+        });
       }
     }, AUTOSAVE_DEBOUNCE_TIME);
 
@@ -135,6 +148,12 @@ export const useSaveLoad = ({
       setError?.(null);
       const loadedStack = await loadGameStateFromFile(file);
       if (loadedStack) {
+        const existingLore = loadDebugLoreFromLocalStorage();
+        if (existingLore) {
+          loadedStack[0].debugLore = existingLore.debugLore;
+          loadedStack[0].debugGoodFacts = existingLore.debugGoodFacts;
+          loadedStack[0].debugBadFacts = existingLore.debugBadFacts;
+        }
         if (applyLoadedGameState) {
           await applyLoadedGameState({ savedStateToLoad: loadedStack });
         }
@@ -143,6 +162,15 @@ export const useSaveLoad = ({
           setError ? (msg) => { setError(msg); } : undefined,
         );
         saveDebugPacketToLocalStorage(loadedStack[0].lastDebugPacket);
+        if (existingLore) {
+          saveDebugLoreToLocalStorage(existingLore);
+        } else {
+          saveDebugLoreToLocalStorage({
+            debugLore: loadedStack[0].debugLore,
+            debugGoodFacts: loadedStack[0].debugGoodFacts,
+            debugBadFacts: loadedStack[0].debugBadFacts,
+          });
+        }
       } else {
         setError?.('Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file.');
       }

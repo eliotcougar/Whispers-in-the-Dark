@@ -47,6 +47,11 @@ export interface UsePlayerActionsProps {
   isLoading: boolean;
   hasGameBeenInitialized: boolean;
   loadingReason: LoadingReason | null;
+  debugLore: boolean;
+  openDebugLoreModal: (
+    facts: Array<string>,
+    resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
+  ) => void;
 }
 
 /**
@@ -71,6 +76,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     isLoading,
     hasGameBeenInitialized,
     loadingReason,
+    debugLore,
+    openDebugLoreModal,
   } = props;
 
   const { processAiResponse, clearObjectiveAnimationTimer } = useProcessAiResponse({
@@ -78,6 +85,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setLoadingReason,
     setError,
     setGameStateStack,
+    debugLore,
+    openDebugLoreModal,
   });
 
   const {

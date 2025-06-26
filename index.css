@@ -57,6 +57,9 @@ body {
   transform: scale(1);
   pointer-events: auto;
 }
+.debug-lore-frame {
+  z-index: 110;
+}
 .animated-frame-content {
   background-color: #1f2937; /* gray-800 */
   padding: 1rem;

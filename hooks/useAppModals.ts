@@ -2,7 +2,7 @@
  * @file useAppModals.ts
  * @description Manages visibility state and helper handlers for app modals.
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { clearProgress } from '../utils/loadingProgress';
 
 export const useAppModals = () => {
@@ -26,6 +26,9 @@ export const useAppModals = () => {
   const [pageItemId, setPageItemId] = useState<string | null>(null);
   const [pageStartChapterIndex, setPageStartChapterIndex] = useState<number>(0);
   const [isPageVisible, setIsPageVisible] = useState(false);
+  const [isDebugLoreVisible, setIsDebugLoreVisible] = useState(false);
+  const [debugLoreFacts, setDebugLoreFacts] = useState<Array<string>>([]);
+  const debugLoreResolveRef = useRef<((good: Array<string>, bad: Array<string>, proceed: boolean) => void) | null>(null);
 
   const openVisualizer = useCallback(() => { setIsVisualizerVisible(true); }, []);
   const closeVisualizer = useCallback(() => { setIsVisualizerVisible(false); }, []);
@@ -64,6 +67,22 @@ export const useAppModals = () => {
     setPageItemId(null);
     setPageStartChapterIndex(0);
     clearProgress();
+  }, []);
+
+  const openDebugLoreModal = useCallback((facts: Array<string>, resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void) => {
+    setDebugLoreFacts(facts);
+    debugLoreResolveRef.current = resolve;
+    setIsDebugLoreVisible(true);
+  }, []);
+
+  const submitDebugLoreModal = useCallback((good: Array<string>, bad: Array<string>, proceed: boolean) => {
+    debugLoreResolveRef.current?.(good, bad, proceed);
+    setIsDebugLoreVisible(false);
+  }, []);
+
+  const closeDebugLoreModal = useCallback(() => {
+    debugLoreResolveRef.current?.([], [], false);
+    setIsDebugLoreVisible(false);
   }, []);
 
   return {
@@ -118,11 +137,16 @@ export const useAppModals = () => {
     openNewGameFromMenuConfirm,
     closeNewGameFromMenuConfirm,
     openLoadGameFromMenuConfirm,
-    closeLoadGameFromMenuConfirm,
+   closeLoadGameFromMenuConfirm,
    openNewCustomGameConfirm,
    closeNewCustomGameConfirm,
    openPageView,
    closePageView,
+   isDebugLoreVisible,
+   debugLoreFacts,
+   openDebugLoreModal,
+   submitDebugLoreModal,
+   closeDebugLoreModal,
   } as const;
 };
 

@@ -7,6 +7,7 @@ import { GameStateStack } from '../types';
 import {
   saveGameStateToLocalStorage,
   saveDebugPacketToLocalStorage,
+  saveDebugLoreToLocalStorage,
 } from '../services/storage';
 
 export const AUTOSAVE_DEBOUNCE_TIME = 1500;
@@ -48,6 +49,11 @@ export function useAutosave({
         setError ? (msg) => { setError(msg); } : undefined,
       );
       saveDebugPacketToLocalStorage(gameStateStack[0].lastDebugPacket);
+      saveDebugLoreToLocalStorage({
+        debugLore: gameStateStack[0].debugLore,
+        debugGoodFacts: gameStateStack[0].debugGoodFacts,
+        debugBadFacts: gameStateStack[0].debugBadFacts,
+      });
     }, AUTOSAVE_DEBOUNCE_TIME);
 
     return () => {

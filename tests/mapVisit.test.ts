@@ -94,6 +94,9 @@ const baseState: FullGameState = {
   enabledThemePacks: [],
   stabilityLevel: 0,
   chaosLevel: 0,
+  debugLore: false,
+  debugGoodFacts: [],
+  debugBadFacts: [],
   objectiveAnimationType: null,
   lastDebugPacket: null,
   lastTurnChanges: null
