@@ -7,6 +7,7 @@ import { ITEMS_GUIDE, LOCAL_CONDITIONS_GUIDE } from '../../prompts/helperPrompts
 import { VALID_PRESENCE_STATUS_VALUES_STRING, ALIAS_INSTRUCTION } from '../../constants';
 
 export const SYSTEM_INSTRUCTION = `You are the Dungeon Master for a text-based adventure game. Your role is to describe scenes, provide action/dialogue choices, manage inventory, player goals, track known NPCs (including their presence, general location, and precise location in scene), and maintain local time/environment/place.
+In your thinking focus less on the specific responses you will generate, and more on the overall detailed narrative flow, player engagement, and world consistency.
 
 Respond ONLY in JSON format with the following structure:
 {

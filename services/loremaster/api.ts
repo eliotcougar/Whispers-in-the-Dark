@@ -2,7 +2,7 @@
  * @file api.ts
  * @description High level functions for Loremaster AI.
  */
-import { AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
+import { AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME, MINIMAL_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
@@ -55,6 +55,7 @@ export const refineLore_Service = async (
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: extractPrompt,
       systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
+      thinkingBudget: 512,
       responseMimeType: 'application/json',
       temperature: 0.7,
       label: 'LoremasterExtract',
@@ -87,6 +88,7 @@ export const refineLore_Service = async (
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: integratePrompt,
       systemInstruction: INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
+      thinkingBudget: 2048,
       responseMimeType: 'application/json',
       temperature: 0.7,
       label: 'LoremasterIntegrate',
@@ -158,9 +160,10 @@ export const collectRelevantFacts_Service = async (
   const result = await retryAiCall<{ parsed: Array<string> | null; raw: string } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
     const { response } = await dispatchAIRequest({
-      modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+      modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: COLLECT_SYSTEM_INSTRUCTION,
+      thinkingBudget: 1024,
       responseMimeType: 'application/json',
       temperature: 0.7,
       label: 'LoremasterCollect',
@@ -225,9 +228,11 @@ export const distillFacts_Service = async (
   const result = await retryAiCall<{ parsed: LoreRefinementResult | null; raw: string } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster.icon);
     const { response } = await dispatchAIRequest({
-      modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+      modelNames: [GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME],
       prompt,
       systemInstruction: DISTILL_SYSTEM_INSTRUCTION,
+      thinkingBudget: 4096,
+      includeThoughts: true,
       responseMimeType: 'application/json',
       temperature: 0.7,
       label: 'LoremasterDistill',

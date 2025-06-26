@@ -45,6 +45,7 @@ export const executeMapUpdateRequest = async (
       modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction,
+      thinkingBudget: 4096,
       responseMimeType: 'application/json',
       temperature: 0.75,
       label: 'Cartographer',
