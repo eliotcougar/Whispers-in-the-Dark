@@ -351,18 +351,27 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (interactionType === 'inspect') {
         const updatedState = recordInspect(item.id, stateOverride);
 
-        const showActual = item.tags?.includes('recovered');
-        const contents = (item.chapters ?? [])
-          .map(
-            ch =>
-              `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}\n\n`,
-          )
-          .join('');
-        void executePlayerAction(
-          `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`,
-          false,
-          updatedState,
-        );
+        if (item.type === 'book' || item.type === 'page') {
+          const showActual = item.tags?.includes('recovered');
+          const contents = (item.chapters ?? [])
+            .map(
+              ch =>
+                `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}\n\n`,
+            )
+            .join('');
+
+          void executePlayerAction(
+            `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`,
+            false,
+            updatedState,
+          );
+        } else {
+          void executePlayerAction(
+            `Player investigates the ${item.name} - ${item.description}.`,
+            false,
+            updatedState,
+          );
+        }
       } else if (interactionType === 'specific' && knownUse) {
         void executePlayerAction(knownUse.promptEffect);
       } else if (interactionType === 'generic') {
