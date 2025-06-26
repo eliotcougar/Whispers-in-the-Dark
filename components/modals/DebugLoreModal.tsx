@@ -60,7 +60,7 @@ function DebugLoreModal({ isVisible, facts, onSubmit, onClose }: DebugLoreModalP
     <div
       aria-labelledby="debug-lore-title"
       aria-modal="true"
-      className={`animated-frame ${isVisible ? 'open' : ''}`}
+      className={`animated-frame debug-lore-frame ${isVisible ? 'open' : ''}`}
       role="dialog"
     >
       <div className="animated-frame-content">
