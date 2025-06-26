@@ -12,7 +12,7 @@ import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-import { PLAYER_HOLDER_ID } from '../constants';
+import { PLAYER_HOLDER_ID, DISTILL_LORE_INTERVAL } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
@@ -375,6 +375,26 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setLoadingReason(null);
   }, [commitGameState, getCurrentGameState, setError, setIsLoading, setLoadingReason]);
 
+  useEffect(() => {
+    if (
+      !hasGameBeenInitialized ||
+      isLoading ||
+      currentFullState.dialogueState !== null
+    )
+      return;
+    if (
+      currentFullState.globalTurnNumber > 0 &&
+      currentFullState.globalTurnNumber % DISTILL_LORE_INTERVAL === 0
+    ) {
+      void handleDistillFacts();
+    }
+  }, [
+    currentFullState.globalTurnNumber,
+    handleDistillFacts,
+    hasGameBeenInitialized,
+    isLoading,
+    currentFullState.dialogueState,
+  ]);
 
   return {
     currentTheme: currentFullState.currentThemeObject,

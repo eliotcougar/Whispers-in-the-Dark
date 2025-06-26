@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Item, ItemChapter, MapData, NPC, AdventureTheme } from '../../types';
 import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
-import { rot13, toRunic } from '../../utils/textTransforms';
+import { rot13, toRunic, tornVisibleText } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
@@ -152,8 +152,6 @@ function PageView({
     }
     if (tags.includes('gothic')) classes.push('tag-gothic');
     if (tags.includes('runic')) classes.push('tag-runic');
-    if (tags.includes('bloodstained')) classes.push('tag-bloodstained');
-    if (tags.includes('water-damaged')) classes.push('tag-water-damaged');
     if (tags.includes('recovered') && showDecoded) classes.push('tag-recovered');
 
     return classes.join(' ');
@@ -217,8 +215,9 @@ function PageView({
         item.type === 'book' && idx > 0 ? chapters[idx - 1].actualContent ?? '' : undefined
       );
       if (actual) {
+        const tags = item.tags ?? [];
         let visible = actual;
-        if (item.tags?.includes('foreign')) {
+        if (tags.includes('foreign')) {
           const fake = await generatePageText(
             chapter.heading,
             chapter.description,
@@ -233,10 +232,13 @@ function PageView({
             `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
           );
           visible = fake ?? actual;
-        } else if (item.tags?.includes('encrypted')) {
+        } else if (tags.includes('encrypted')) {
           visible = rot13(actual);
-        } else if (item.tags?.includes('runic')) {
+        } else if (tags.includes('runic')) {
           visible = toRunic(actual);
+        }
+        if (tags.includes('torn') && !tags.includes('recovered')) {
+          visible = tornVisibleText(visible);
         }
         updateItemContent(item.id, actual, visible, idx);
         setText(visible);
@@ -274,6 +276,20 @@ function PageView({
     () => isJournal && chapterIndex === chapters.length,
     [isJournal, chapterIndex, chapters.length]
   );
+
+  const tearOrientation = useMemo(() => {
+    if (
+      !item ||
+      !item.tags?.includes('torn') ||
+      item.tags.includes('recovered') ||
+      !displayedText
+    )
+      return null;
+    const trimmed = displayedText.trim();
+    if (trimmed.startsWith('--- torn ---')) return 'top';
+    if (trimmed.endsWith('--- torn ---')) return 'bottom';
+    return null;
+  }, [displayedText, item]);
 
   return (
     <div
@@ -394,7 +410,7 @@ function PageView({
             ))}
           </ul>
         ) : displayedText ? (
-          <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames}`}>
+          <div className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}>
             {applyBasicMarkup(displayedText)}
           </div>
         ) : null}

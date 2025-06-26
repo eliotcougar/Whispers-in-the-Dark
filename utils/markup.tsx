@@ -90,6 +90,18 @@ export const applyBasicMarkup = (text: string): Array<ReactNode> => {
 
   const bulletRegex = /^(\s*)\*\s+(.*)$/;
   lines.forEach(rawLine => {
+    if (rawLine.trim() === '--- torn ---') {
+      flushParagraph();
+      flushLists(-1);
+      result.push(
+        <hr
+          aria-hidden="true"
+          className="torn-divider"
+          key={`torn-${String(result.length)}`}
+        />,
+      );
+      return;
+    }
     const headingMatch = headingRegex.exec(rawLine);
     if (headingMatch) {
       flushParagraph();

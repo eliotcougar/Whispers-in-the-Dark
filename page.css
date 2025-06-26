@@ -114,8 +114,45 @@
   text-shadow: -6px 3px 3px rgba(75, 54, 33, 0.5), 6px 6px 3px rgba(99, 52, 25, 0.25);
 }
 
+
 .tag-torn {
-  border: 3px dashed #a0aec0;
+
+}
+
+.tag-torn.torn-top {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.tag-torn.torn-bottom {
+  border-bottom: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.torn-divider {
+  border: 0;
+  height: 30px;
+  margin: 0.5rem -1.25rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #1f2937 50%),
+    linear-gradient(-45deg, transparent 50%, #1f2937 50%);
+  background-position: right top, right bottom;
+  background-repeat: repeat-x;
+  background-size: 30px 32px;
+}
+
+.torn-divider.torn-bottom {
+  transform: rotate(180deg);
+}
+
+.tag-torn.torn-top .torn-divider:first-child {
+  margin-top: 0;
+}
+
+.tag-torn.torn-bottom .torn-divider:last-child {
+  margin-bottom: 0;
 }
 
 .tag-glitching {
@@ -156,15 +193,6 @@
   font-size: 1.5rem !important;
 }
 
-.tag-bloodstained {
-  background-color: #7f1d1d;
-  color: #fef2f2;
-}
-
-.tag-water-damaged {
-  background-color: #e0f2fe;
-  color: #1e3a8a;
-}
 
 .tag-recovered {
 

@@ -56,6 +56,8 @@ export const JOURNAL_WRITE_COOLDOWN = 5; // Turns before a journal can be writte
 
 export const INSPECT_COOLDOWN = 10; // Turns before the same item can be inspected again
 
+export const DISTILL_LORE_INTERVAL = 10; // Turns between automatic lore distillation
+
 export const MIN_BOOK_CHAPTERS = 4;
 export const MAX_BOOK_CHAPTERS = 10;
 
@@ -78,8 +80,6 @@ export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`)
 
 export const COMMON_TAGS = [
   'junk',
-  'bloodstained',
-  'water-damaged',
   'recovered',
   'stashed',
 ] as const;

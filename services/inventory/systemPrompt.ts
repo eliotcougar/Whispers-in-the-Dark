@@ -174,6 +174,7 @@ Structure for individual ItemChange objects within the array:
 
   - CRITICALLY IMPORTANT: holderId, toId, and fromId can only be 'node_*', 'npc_*' or 'player'. NEVER put an item inside another item!
   - If the Player successfully restores, decodes or translates a 'book' or a 'page', you MUST add 'recovered' tag to the item, in addition to existing tags.
+  - If a torn page or book is completed by reuniting its missing half, you MUST add 'recovered' tag to the item and keep existing tags.
   - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
   - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
   - Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.

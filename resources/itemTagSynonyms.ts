@@ -41,13 +41,7 @@ const itemTagSynonyms = {
     "runes": "runic",
     "futhark": "runic",
     "rune-inscribed": "runic",
-    "rune scribed": "runic",
-    "blood stained": "bloodstained",
-    "blood soaked": "bloodstained",
-    "bloodied": "bloodstained",
-    "water damaged": "water-damaged",
-    "waterlogged": "water-damaged",
-    "soaked": "water-damaged"
+    "rune scribed": "runic"
   }
 };
 
