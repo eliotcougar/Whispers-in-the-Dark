@@ -9,6 +9,7 @@ import { isApiConfigured } from './apiClient';
 import {
   isServerOrClientError,
   extractStatusFromError,
+  isTransientNetworkError,
 } from '../utils/aiErrorUtils';
 import { MinimalModelCallRecord } from '../types';
 import {
@@ -169,12 +170,15 @@ export const dispatchAIRequest = async (
         }
 
         lastError = err;
-        if (!isServerOrClientError(err)) {
+        if (!isServerOrClientError(err) && !isTransientNetworkError(err)) {
           throw err;
         }
 
+        const status = extractStatusFromError(err);
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const statusInfo = status !== null ? String(status) : errorMsg;
         console.warn(
-          `dispatchAIRequest: Model ${model} failed with status ${String(extractStatusFromError(err))}. Retry ${String(attempt)}/${String(MAX_RETRIES)}`
+          `dispatchAIRequest: Model ${model} failed with ${statusInfo}. Retry ${String(attempt)}/${String(MAX_RETRIES)}`
         );
         attempt += 1;
       }
