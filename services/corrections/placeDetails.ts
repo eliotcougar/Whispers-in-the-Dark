@@ -43,18 +43,18 @@ export const fetchCorrectedLocalPlace_Service = async (
         formatKnownPlacesForPrompt(knownMapNodes, true)
       : 'No specific map locations are currently known for this theme.';
 
-  const prompt = `
-Role: You are an AI assistant inferring a player's specific location, which is called "localPlace" in the game.
-Task: Determine the most logical "localPlace" based on the provided context. This "localPlace" should be a concise descriptive string.
+  const prompt = `You are an AI assistant inferring a player's specific location, which is called "localPlace" in the game.
+Determine the most logical "localPlace" based on the provided context. This "localPlace" should be a concise descriptive string.
 
-Context for Inference:
+## Context for Inference:
 - Current Scene Description (primary source for inference): "${currentSceneDescription}"
 - Current Theme: "${currentTheme.name}" (Theme Guidance: ${currentTheme.systemInstructionModifier})
 - Current Local Time: "${localTime ?? 'Unknown'}"
 - Current Local Environment: "${localEnvironment ?? 'Undetermined'}"
-- ${knownPlacesContextForPrompt}
 
-Guidance for "localPlace":
+${knownPlacesContextForPrompt}
+
+## Guidance for "localPlace":
 - It's a concise string describing the player's specific position within the scene, relative to one of the Known map locations.
 - If the location is truly unclear from the scene, use "Undetermined Location".
 
@@ -124,17 +124,16 @@ export const fetchCorrectedPlaceDetails_Service = async (
     /* ignore */
   }
 
-  const prompt = `
-Role: You are an AI assistant correcting or completing a JSON payload for a map location (MapNode) in a text adventure game. The Map AI was supposed to provide full details but might have failed.
-Task: Reconstruct the map location details ("name", "description", "aliases") based on narrative context and potentially incomplete/malformed data.
+  const prompt = `You are an AI assistant correcting or completing a JSON payload for a map location (MapNode) in a text adventure game. The Map AI was supposed to provide full details but might have failed.
+Reconstruct the map location details ("name", "description", "aliases") based on narrative context and potentially incomplete/malformed data.
 
-Malformed/Incomplete Map Location Payload (from Map AI):
+## Malformed/Incomplete Map Location Payload (from Map AI):
 \`\`\`json
 ${malformedMapNodePayloadString}
 \`\`\`
 (This might just be a name string like ${originalPlaceNameFromMalformed}, or an object missing required fields like 'description' or 'aliases'.)
 
-Narrative Context:
+## Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
 - Theme Guidance: "${currentTheme.systemInstructionModifier}"
@@ -205,13 +204,12 @@ export const fetchFullPlaceDetailsForNewMapNode_Service = async (
     return null;
   }
 
-  const prompt = `
-Role: You are an AI assistant that generates detailed information for a new game map location (a main MapNode) that has just been added to the game map. The Map AI should have provided these details, but this is a fallback.
-Task: Given the name of this new map location and the current narrative context, provide a suitable description and aliases for it. The provided 'Map Location Name to Detail' is fixed and MUST be used as the 'name' in your JSON response.
+  const prompt = `You are an AI assistant that generates detailed information for a new game map location (a main MapNode) that has just been added to the game map. The Map AI should have provided these details, but this is a fallback.
+Given the name of this new map location and the current narrative context, provide a suitable description and aliases for it. The provided 'Map Location Name to Detail' is fixed and MUST be used as the 'name' in your JSON response.
 
 Map Location Name to Detail: "${mapNodePlaceName}"
 
-Narrative Context:
+## Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
 - Theme Guidance: "${currentTheme.systemInstructionModifier}"
@@ -384,7 +382,7 @@ export const fetchLikelyParentNode_Service = async (
   });
 
   const nodeLines = context.themeNodes
-    .map(n => `- ${n.id} ("${n.placeName}")`)
+    .map(n => `- ${n.id} ("${n.placeName}")`) // TODO: list only nodes that are higher in the hierarchy that the proposed node
     .join('\n');
 
   const edgeLines = context.themeEdges
@@ -396,8 +394,13 @@ Map Node: "${proposedNode.placeName}" (${proposedNode.nodeType ?? 'feature'})
 Scene: "${context.sceneDescription}"
 Current location: ${context.localPlace}
 Current Map Node: ${currentNode ? currentNode.placeName : 'Unknown'}
-Possible Nodes:\n${nodeLines}
-Edges:\n${edgeLines}
+
+## Possible Nodes:
+${nodeLines}
+
+## Edges:
+${edgeLines}
+
 Respond ONLY with the name or id of the best parent node, or "Universe" if none.`;
 
   const systemInstruction = `Choose the most logical parent node name or id for the provided Map Node. If none is suitable use "Universe".`;

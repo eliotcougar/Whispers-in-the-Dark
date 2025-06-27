@@ -35,25 +35,25 @@ export const generateJournalEntry = async (
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
   const prompt = `You are writing a new entry in the player's personal journal.
-  **Context:**
-  Theme Name: "${themeName}";
-  Theme Description: "${themeDescription}";
-  Scene Description: "${sceneDescription}";
-  ${questLine};
+**Context:**
+Theme Name: "${themeName}";
+Theme Description: "${themeDescription}";
+Scene Description: "${sceneDescription}";
+${questLine};
 
-  Known Locations:
-  ${knownPlaces}
-  Known NPCs:
-  ${knownNPCs}
-  Previous Journal Entry:
-  ${previousEntry}
+## Known Locations:
+${knownPlaces}
+## Known NPCs:
+${knownNPCs}
+## Previous Journal Entry:
+${previousEntry}
 
-  Last events:
-  ${recentEventsContext}
-  
-  ------
+## Last events:
+${recentEventsContext}
 
-  Return a JSON object {"heading": "", "text": ""} describing a new short journal entry of about 100 words.`;
+------
+
+Return a JSON object {"heading": "", "text": ""} describing a new short journal entry of about 100 words.`;
   const systemInstruction = 'Provide only the JSON for the new journal entry.';
 
   return retryAiCall<GeneratedJournalEntry>(async attempt => {

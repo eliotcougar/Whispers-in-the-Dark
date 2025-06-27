@@ -9,8 +9,9 @@ export const buildExtractFactsPrompt = (
   turnContext: string,
 ): string => {
   return `Theme: ${themeName}
-  Context:
-  ${turnContext}
+
+  ## Context:
+${turnContext}
 
   List immutable facts according to your instructions.`;
 };
@@ -20,15 +21,15 @@ export const buildIntegrateFactsPrompt = (
   existingFacts: Array<ThemeFact>,
   newFacts: Array<string>,
 ): string => {
-  const existing = existingFacts.map(f => `- ${f.text}`).join('\n') || 'None.';
-  const proposed = newFacts.map(f => `- ${f}`).join('\n') || 'None.';
+  const existing = existingFacts.map(f => ` - ${f.text}`).join('\n') || 'None.';
+  const proposed = newFacts.map(f => ` - ${f}`).join('\n') || 'None.';
   return `Theme: ${themeName}
 
-  Known Facts:
-  ${existing}
+  ## Known Facts:
+${existing}
 
-  New Candidate Facts:
-  ${proposed}
+  ## New Candidate Facts:
+${proposed}
   
   Provide integration instructions acording to your instructions.`;
 };
@@ -51,20 +52,20 @@ export const buildCollectRelevantFactsPrompt = (
     .join('\n');
   const logLines = recentLog.map(l => `- ${l}`).join('\n');
   return `**Context for Fact Selection**
-  Theme: ${themeName}
-  Last Scene: "${lastScene}"
-  Recent Log:
-  ${logLines}
-  ${detailedContext}
+Theme: ${themeName}
+Last Scene: "${lastScene}"
+Recent Log:
+${logLines}
+${detailedContext}
 
-  Player Action: "${playerAction}"
+Player Action: "${playerAction}"
   
-  ------
+------
   
-  Select the 10 most relevant facts from the list of Known Facts:
-  ${factLines}
+Select the 10 most relevant facts from the list of Known Facts:
+${factLines}
 
-  Respond with a JSON array of strings.`;
+Respond with a JSON array of strings.`;
 };
 
 export const buildDistillFactsPrompt = (
@@ -83,16 +84,18 @@ export const buildDistillFactsPrompt = (
     .join('\n');
   const mapLines = mapNodeNames.map(name => `- ${name}`).join('\n');
   return `Theme: ${themeName}
-  Current Quest: ${currentQuest ?? 'None'}
-  Current Objective: ${currentObjective ?? 'None'}
-  Inventory Items:
-  ${inventoryLines || 'None'}
-  Known Places:
-  ${mapLines || 'None'}
+Current Quest: ${currentQuest ?? 'None'}
+Current Objective: ${currentObjective ?? 'None'}
 
-  Current Facts:
-  ${factLines}
+## Inventory Items:
+${inventoryLines || 'None'}
 
-  Identify pairs of facts that could be merged into a single, more specific statement.
-  Delete facts that reference obsolete quests, objectives, items or places. If merging or deleting, provide instructions.`;
+## Known Places:
+${mapLines || 'None'}
+
+## Current Facts:
+${factLines}
+
+Identify pairs of facts that could be merged into a single, more specific statement.
+Delete facts that reference obsolete quests, objectives, items or places. If merging or deleting, provide instructions.`;
 };

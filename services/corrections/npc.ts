@@ -48,8 +48,8 @@ export const fetchCorrectedNPCDetails_Service = async (
     : 'No specific map locations are currently known for this theme.';
 
   const prompt = `
-Role: You are an AI assistant generating detailed JSON objects for new NPCs.
-Task: Provide a suitable description, aliases, presenceStatus, lastKnownLocation, and preciseLocation for a character. Information MUST be derived *strictly* from the provided context.
+You are an AI assistant generating detailed JSON objects for new NPCs.
+Provide a suitable description, aliases, presenceStatus, lastKnownLocation, and preciseLocation for a character. Information MUST be derived *strictly* from the provided context.
 
 NPC Name: "${npcName}"
 
@@ -145,7 +145,7 @@ export const fetchCorrectedCompanionOrNPCLocation_Service = async (
     : 'No specific map locations are currently known for this theme.';
 
   const prompt = `
-Role: You are an AI assistant tasked with correcting or inferring a character's "preciseLocation".
+You are an AI assistant tasked with correcting or inferring a character's "preciseLocation".
 NPC Name: "${npcName}" (This NPC is currently present in the scene with the player).
 
 "preciseLocation" definition:

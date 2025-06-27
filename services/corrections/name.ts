@@ -38,7 +38,7 @@ export const fetchCorrectedName_Service = async (
   const validNamesContext = `The corrected ${entityTypeToCorrect} name MUST be one of these exact, case-sensitive full names: [${validNamesList.map(name => `"${name}"`).join(', ')}].`;
 
   const prompt = `
-Role: You are an AI assistant specialized in matching a potentially incorrect or partial entity name against a predefined list of valid names, using narrative context.
+You are an AI assistant specialized in matching a potentially incorrect or partial entity name against a predefined list of valid names, using narrative context.
 Entity Type: ${entityTypeToCorrect}
 Malformed/Partial Name Provided by another AI: "${malformedOrPartialName}"
 

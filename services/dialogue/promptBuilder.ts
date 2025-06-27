@@ -112,18 +112,18 @@ Scene Description (for environmental context): "${currentScene}";
 Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}";
 Player's Character Gender: ${playerGender};
 
-### Relevant Facts about the world:
+## Relevant Facts about the world:
 ${relevantFactsSection}
 
-### Player's Inventory:
+## Player's Inventory:
 ${inventoryString}
 
-### Known Locations:
+## Known Locations:
 ${knownPlacesString}
 
 ${npcContextString}
 
-### Dialogue Context:
+## Dialogue Context:
 - Current Dialogue Participants: ${dialogueParticipants.join(', ')};
 ${pastDialogueSummariesContext.trim() ? pastDialogueSummariesContext : '\n- No specific past dialogue summaries available for current participants.'}
 - Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):
@@ -189,7 +189,7 @@ ${knownPlacesString}
 - ${knownNPCsString}
 - Dialogue Participants: ${summaryContext.dialogueParticipants.join(', ')}
 
-Full Dialogue Transcript:
+## Full Dialogue Transcript:
 ${dialogueLogString}
 
 Based *only* on the Dialogue Transcript and the provided context, determine what concrete game state changes (items, NPCs, quest/objective updates, log message, map updates) resulted *directly* from this dialogue.
@@ -224,11 +224,12 @@ It should capture:
 Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any preamble like "Here is the summary:".`;
 
   const userPromptPart = `Generate a memory summary for the following conversation:
- - Conversation Participants: ${context.dialogueParticipants.join(', ')}
- - Theme: "${context.currentThemeObject?.name ?? context.themeName}" (System Modifier: ${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
+- Conversation Participants: ${context.dialogueParticipants.join(', ')}
+- Theme: "${context.currentThemeObject?.name ?? context.themeName}" (System Modifier: ${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
 - Scene at start of conversation: "${context.currentScene}"
-  - Context: Time: "${context.localTime ?? 'Unknown'}", Environment: "${context.localEnvironment ?? 'Undetermined'}", Place: "${context.localPlace ?? 'Undetermined'}"
-- Full Dialogue Transcript:
+- Context: Time: "${context.localTime ?? 'Unknown'}", Environment: "${context.localEnvironment ?? 'Undetermined'}", Place: "${context.localPlace ?? 'Undetermined'}"
+
+## Full Dialogue Transcript:
 ${dialogueLogString}
 
 Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any preamble like "Here is the summary:".`;

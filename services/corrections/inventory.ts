@@ -42,14 +42,14 @@ export const fetchCorrectedItemChangeArray_Service = async (
     return null;
   }
 
-  const prompt = `
-Role: You are an AI assistant fixing a malformed inventory update JSON payload for a text adventure game.
-Malformed Payload:
+  const prompt = `You are an AI assistant fixing a malformed inventory update JSON payload for a text adventure game.
+
+## Malformed Payload:
 \`\`\`json
 ${malformedResponseText}
 \`\`\`
 
-Narrative Context:
+## Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified'}"
 - Scene Description: "${sceneDescription ?? 'Not specified'}"
 - Player Items Hint: "${playerItemsHint}"

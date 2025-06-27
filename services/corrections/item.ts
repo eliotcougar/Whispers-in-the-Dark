@@ -116,16 +116,16 @@ Instructions for "update":
   }
 
   const prompt = `
-Role: You are an AI assistant tasked with correcting malformed JSON item payloads for a text adventure game.
-Task: Reconstruct the 'item' part of an ItemChange object based on the provided context and the malformed data.
+You are an AI assistant tasked with correcting malformed JSON item payloads for a text adventure game.
+Reconstruct the 'item' part of an ItemChange object based on the provided context and the malformed data.
 Action Type: "${actionType}" (this concerns ${itemContextDescription}).
 
-Malformed 'item' Payload:
+## Malformed 'item' Payload:
 \`\`\`json
 ${malformedPayloadString}
 \`\`\`
 
-Narrative Context:
+## Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
 - Theme Guidance: "${currentTheme.systemInstructionModifier}"
@@ -187,7 +187,7 @@ export const fetchCorrectedItemAction_Service = async (
     const parsed = safeParseJson<Record<string, unknown>>(malformedItemChangeString);
     if (parsed && typeof parsed === 'object') {
       const rawAction = parsed.action;
-      if (typeof rawAction === 'string' && ['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(rawAction)) {
+      if (typeof rawAction === 'string' && ['gain', 'destroy', 'update', "addChapter", 'put', 'give', 'take'].includes(rawAction)) {
         return rawAction as ItemChange['action'];
       }
     }
@@ -196,8 +196,8 @@ export const fetchCorrectedItemAction_Service = async (
   }
 
   const prompt = `
-Role: You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
-Valid 'action' types are: "gain", "destroy", "update", "put", "give", "take".
+You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
+Valid 'action' types are: "gain", "destroy", "update", "addChapter", "put", "give", "take".
 
 Malformed ItemChange Object:
 \`\`\`json
@@ -209,10 +209,11 @@ Narrative Context:
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
 - Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
-Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "destroy", "update", "put", "give", or "take") that was intended.
+Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "destroy", "update", "addChapter", "put", "give", or "take") that was intended.
 - "gain": Player acquired a new item.
 - "destroy": Player lost an item or it was consumed.
 - "update": An existing item's properties changed.
+- "addChapter": A new chapter was added to a book item.
 - "put": A new item appeared somewhere other than the player's inventory.
 - "give": An existing item changed holders.
 - "take": Same as "give" but may be phrased from the taker's perspective.
@@ -220,7 +221,7 @@ Task: Based on the Log Message, Scene Description, and the 'item' details in the
 Respond ONLY with the single corrected action string.
 If no action can be confidently determined, respond with an empty string.`;
 
-  const systemInstruction = `Determine the correct item 'action' ("gain", "destroy", "update", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
+  const systemInstruction = `Determine the correct item 'action' ("gain", "destroy", "update", "addChapter", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
 
   return retryAiCall<ItemChange['action']>(async attempt => {
     try {
@@ -235,7 +236,7 @@ If no action can be confidently determined, respond with an empty string.`;
       const aiResponse = response.text?.trim() ?? null;
       if (aiResponse !== null) {
         const candidateAction = aiResponse.trim().toLowerCase();
-        if (['gain', 'destroy', 'update', 'put', 'give', 'take'].includes(candidateAction)) {
+        if (['gain', 'destroy', 'update', "addChapter", 'put', 'give', 'take'].includes(candidateAction)) {
           console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, candidateAction, ".");
           return { result: candidateAction as ItemChange['action'] };
         }
@@ -338,7 +339,7 @@ export const fetchAdditionalBookChapters_Service = async (
 
   const list = existingHeadings.map(h => `- ${h}`).join('\n');
   const prompt = `
-Role: You are an AI assistant adding missing chapters to a book.
+You are an AI assistant adding missing chapters to a book.
 Book Title: "${bookTitle}"
 Description: "${bookDescription}"
 Existing Chapter Headings:\n${list}
