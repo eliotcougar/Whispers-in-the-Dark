@@ -352,58 +352,6 @@ function App() {
     [openPageView]
   );
 
-  const handleWriteJournal = useCallback((item: Item) => {
-    if (item.lastWriteTurn === globalTurnNumber) return;
-    openPageView(item.id, item.chapters?.length ?? 0);
-    void (async () => {
-      if (!currentTheme) return;
-      const { name: themeName, systemInstructionModifier } = currentTheme;
-      const nodes = mapData.nodes.filter(
-        node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
-      );
-      const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-      const npcs = allNPCs.filter(npc => npc.themeName === themeName);
-      const knownNPCs = npcs.length > 0
-        ? npcsToString(npcs, ' - ', false, false, false, true)
-        : 'None specifically known in this theme yet.';
-      const prev = item.chapters?.[item.chapters.length - 1]?.actualContent ?? '';
-      const entry = await generateJournalEntry(
-        item.name,
-        item.description,
-        prev,
-        themeName,
-        systemInstructionModifier,
-        currentScene,
-        lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
-        knownPlaces,
-        knownNPCs,
-        gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
-        mainQuest
-      );
-      if (entry) {
-        const chapter = {
-          heading: entry.heading,
-          description: entry.heading,
-          contentLength: 50,
-          actualContent: entry.text,
-          visibleContent: entry.text,
-        } as ItemChapter;
-        gameLogic.addJournalEntry(item.id, chapter);
-        openPageView(item.id, item.chapters?.length ?? 0);
-      }
-    })();
-  }, [
-    allNPCs,
-    currentTheme,
-    currentScene,
-    gameLogic,
-    mapData.nodes,
-    mainQuest,
-    openPageView,
-    lastDebugPacket,
-    gameLog,
-    globalTurnNumber,
-  ]);
 
   const [isPlayerJournalWriting, setIsPlayerJournalWriting] = useState(false);
 
@@ -435,7 +383,9 @@ function App() {
         ? npcsToString(npcs, ' - ', false, false, false, true)
         : 'None specifically known in this theme yet.';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
+      const entryLength = Math.floor(Math.random() * 50) + 100;
       const entry = await generateJournalEntry(
+        entryLength,
         'Personal Journal',
         'Your own journal',
         prev,
@@ -451,10 +401,9 @@ function App() {
       if (entry) {
         const chapter = {
           heading: entry.heading,
-          description: entry.heading,
-          contentLength: 50,
+          description: '',
+          contentLength: entryLength,
           actualContent: entry.text,
-          visibleContent: entry.text,
         } as ItemChapter;
         addPlayerJournalEntry(chapter);
         openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
@@ -510,15 +459,6 @@ function App() {
     ]
   );
 
-  const handleWriteJournalFromPage = useCallback(
-    (itemId: string) => {
-      const item = inventory.find(it => it.id === itemId);
-      if (item) {
-        handleWriteJournal(item);
-      }
-    },
-    [inventory, handleWriteJournal]
-  );
 
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -861,7 +801,6 @@ function App() {
                 onReadPlayerJournal={handleReadPlayerJournal}
                 onStashToggle={gameLogic.handleStashToggle}
                 onTakeItem={handleTakeLocationItem}
-                onWriteJournal={handleWriteJournal}
               />
             )}
           </div>
@@ -1017,11 +956,9 @@ function App() {
         onCloseMap={closeMap}
         onClosePage={closePageView}
         onCloseVisualizer={closeVisualizer}
-        onInventoryWriteJournal={handleWriteJournalFromPage}
         onItemInspect={handleInspectFromPage}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
-        onReadJournal={handleReadPlayerJournal}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
         onWriteJournal={handleWritePlayerJournal}

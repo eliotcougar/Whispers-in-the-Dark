@@ -200,13 +200,13 @@ export const useInventoryActions = ({
   );
 
   const updatePlayerJournalContent = useCallback(
-    (actual: string, visible: string, chapterIndex?: number) => {
+    (actual: string, chapterIndex?: number) => {
       const currentFullState = getStateRef.current();
       const idx = typeof chapterIndex === 'number' ? chapterIndex : 0;
       if (idx < 0 || idx >= currentFullState.playerJournal.length) return;
       const draftState = structuredCloneGameState(currentFullState);
       draftState.playerJournal = draftState.playerJournal.map((ch, cIdx) =>
-        cIdx === idx ? { ...ch, actualContent: actual, visibleContent: visible } : ch
+        cIdx === idx ? { ...ch, actualContent: actual } : ch
       );
       commitGameState(draftState);
     },

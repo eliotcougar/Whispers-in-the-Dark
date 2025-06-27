@@ -3,7 +3,7 @@ import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from '../elements/Button';
-import { JOURNAL_WRITE_COOLDOWN, INSPECT_COOLDOWN, PLAYER_JOURNAL_ID } from '../../constants';
+import { INSPECT_COOLDOWN, PLAYER_JOURNAL_ID } from '../../constants';
 import { FilterMode } from '../../hooks/useInventoryDisplay';
 
 interface InventoryItemProps {
@@ -22,7 +22,6 @@ interface InventoryItemProps {
   readonly onConfirmDrop: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onCancelDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  readonly onWrite: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onStashToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly filterMode: FilterMode;
   readonly registerRef?: (el: HTMLLIElement | null) => void;
@@ -44,7 +43,6 @@ function InventoryItem({
   onConfirmDrop,
   onCancelDiscard,
   onRead,
-  onWrite,
   onStashToggle,
   filterMode,
   registerRef,
@@ -125,24 +123,6 @@ function InventoryItem({
     );
   }
 
-  if (item.id === PLAYER_JOURNAL_ID) {
-    actionButtons.push(
-      <Button
-        ariaLabel={`Write in ${item.name}`}
-        data-item-name={item.name}
-        disabled={
-          disabled ||
-          isConfirmingDiscard ||
-          (item.lastWriteTurn !== undefined && currentTurn - item.lastWriteTurn < JOURNAL_WRITE_COOLDOWN)
-        }
-        key={`${item.name}-write`}
-        label="Write"
-        onClick={onWrite}
-        preset="teal"
-        size="sm"
-      />
-    );
-  }
 
   if (canShowGenericUse) {
     actionButtons.push(

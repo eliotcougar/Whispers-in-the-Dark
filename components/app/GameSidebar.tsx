@@ -31,7 +31,6 @@ interface GameSidebarProps {
     knownUse?: KnownUse,
   ) => void;
   readonly onReadPage: (item: Item) => void;
-  readonly onWriteJournal: (item: Item) => void;
   readonly onReadPlayerJournal: () => void;
   readonly onTakeItem: (itemName: string) => void;
   readonly globalTurnNumber: number;
@@ -53,7 +52,6 @@ function GameSidebar({
   onStashToggle,
   onItemInteract,
   onReadPage,
-  onWriteJournal,
   onReadPlayerJournal,
   onTakeItem,
   globalTurnNumber,
@@ -143,7 +141,6 @@ function GameSidebar({
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}
         onStashToggle={onStashToggle}
-        onWriteJournal={onWriteJournal}
       />
     </>
   );

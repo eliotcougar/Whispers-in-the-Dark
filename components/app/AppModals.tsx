@@ -77,14 +77,12 @@ interface AppModalsProps {
   readonly storytellerThoughts: string;
   readonly currentQuest: string | null;
   readonly updateItemContent: (id: string, actual: string, visible: string, chapterIndex?: number) => void;
-  readonly updatePlayerJournalContent: (actual: string, visible: string, chapterIndex?: number) => void;
-  readonly onReadJournal: () => void;
-  readonly onWriteJournal: () => void;
-  readonly onInventoryWriteJournal: (itemId: string) => void;
+  readonly updatePlayerJournalContent: (actual: string, chapterIndex?: number) => void;
   readonly onItemInspect: (itemId: string) => void;
-  readonly canWriteJournal: boolean;
   readonly canInspectJournal: boolean;
+  readonly onWriteJournal: () => void;
   readonly isWritingJournal: boolean;
+  readonly canWriteJournal: boolean;
 }
 
 function AppModals({
@@ -147,19 +145,17 @@ function AppModals({
   currentQuest,
   updateItemContent,
   updatePlayerJournalContent,
-  onReadJournal,
-  onWriteJournal,
-  onInventoryWriteJournal,
   onItemInspect,
-  canWriteJournal,
   canInspectJournal,
+  onWriteJournal,
+  canWriteJournal,
   isWritingJournal,
 }: AppModalsProps) {
 
   const updateContentHandler = useCallback(
     (itemId: string, a: string, v: string, idx?: number) => {
       if (pageItemId === PLAYER_JOURNAL_ID) {
-        updatePlayerJournalContent(a, v, idx);
+        updatePlayerJournalContent(a, idx);
       } else {
         updateItemContent(itemId, a, v, idx);
       }
@@ -177,10 +173,8 @@ function AppModals({
   const writeJournalHandler = useCallback(() => {
     if (pageItemId === PLAYER_JOURNAL_ID) {
       onWriteJournal();
-    } else if (pageItemId) {
-      onInventoryWriteJournal(pageItemId);
     }
-  }, [pageItemId, onWriteJournal, onInventoryWriteJournal]);
+  }, [pageItemId, onWriteJournal]);
 
 
   return (
@@ -208,13 +202,9 @@ function AppModals({
       />
 
       <HistoryDisplay
-        canWriteJournal={canWriteJournal}
         gameLog={gameLog}
         isVisible={isHistoryVisible}
-        isWritingJournal={isWritingJournal}
         onClose={onCloseHistory}
-        onReadJournal={onReadJournal}
-        onWriteJournal={onWriteJournal}
         themeHistory={themeHistory}
       />
 
