@@ -6,6 +6,8 @@ import { Item, AdventureTheme, ItemChange, ItemChapter, ItemTag } from '../../ty
 import {
   MAX_RETRIES,
   VALID_ITEM_TYPES_STRING,
+  VALID_ACTIONS,
+  VALID_ACTIONS_STRING,
   MINIMAL_MODEL_NAME,
   AUXILIARY_MODEL_NAME,
   GEMINI_MODEL_NAME,
@@ -187,7 +189,7 @@ export const fetchCorrectedItemAction_Service = async (
     const parsed = safeParseJson<Record<string, unknown>>(malformedItemChangeString);
     if (parsed && typeof parsed === 'object') {
       const rawAction = parsed.action;
-      if (typeof rawAction === 'string' && ['gain', 'destroy', 'update', "addChapter", 'put', 'give', 'take'].includes(rawAction)) {
+      if (typeof rawAction === 'string' && VALID_ACTIONS.includes(rawAction as ItemChange['action'])) {
         return rawAction as ItemChange['action'];
       }
     }
@@ -197,7 +199,7 @@ export const fetchCorrectedItemAction_Service = async (
 
   const prompt = `
 You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
-Valid 'action' types are: "gain", "destroy", "update", "addChapter", "put", "give", "take".
+Valid 'action' types are: ${VALID_ACTIONS_STRING}.
 
 Malformed ItemChange Object:
 \`\`\`json
@@ -221,7 +223,7 @@ Task: Based on the Log Message, Scene Description, and the 'item' details in the
 Respond ONLY with the single corrected action string.
 If no action can be confidently determined, respond with an empty string.`;
 
-  const systemInstruction = `Determine the correct item 'action' ("gain", "destroy", "update", "addChapter", "put", "give", "take") from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
+  const systemInstruction = `Determine the correct item 'action' (${VALID_ACTIONS_STRING}) from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
 
   return retryAiCall<ItemChange['action']>(async attempt => {
     try {
@@ -236,7 +238,7 @@ If no action can be confidently determined, respond with an empty string.`;
       const aiResponse = response.text?.trim() ?? null;
       if (aiResponse !== null) {
         const candidateAction = aiResponse.trim().toLowerCase();
-        if (['gain', 'destroy', 'update', "addChapter", 'put', 'give', 'take'].includes(candidateAction)) {
+        if (VALID_ACTIONS.includes(candidateAction as ItemChange['action'])) {
           console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, candidateAction, ".");
           return { result: candidateAction as ItemChange['action'] };
         }
