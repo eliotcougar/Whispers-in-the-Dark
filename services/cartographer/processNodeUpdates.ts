@@ -1,4 +1,5 @@
 import type { MapEdge } from '../../types';
+import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import type { ApplyUpdatesContext } from './updateContext';
 
 export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void> {
@@ -16,21 +17,35 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
           if (parentField === 'Universe') {
             resolvedParentIdOnUpdate = undefined;
           } else {
-            const parentNode = await ctx.resolveNodeReference(parentField);
-            if (parentNode) {
-              resolvedParentIdOnUpdate = parentNode.id;
-              const intendedType = nodeUpdateOp.newData.nodeType ?? node.data.nodeType;
-              if (parentNode.data.nodeType === intendedType) {
+          const parentNode = await ctx.resolveNodeReference(parentField);
+          if (parentNode) {
+            resolvedParentIdOnUpdate = parentNode.id;
+            let finalType = nodeUpdateOp.newData.nodeType ?? node.data.nodeType;
+            if (parentNode.data.nodeType === finalType) {
+              const downgraded = suggestNodeTypeDowngrade(
+                node,
+                parentNode.data.nodeType,
+                ctx.newMapData.nodes,
+              );
+              if (downgraded) {
+                finalType = downgraded;
+                resolvedParentIdOnUpdate = parentNode.id;
+              } else {
                 resolvedParentIdOnUpdate = parentNode.data.parentNodeId;
               }
-            } else {
-              console.warn(
-                `MapUpdate (nodesToUpdate): Feature node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.newData.parentNodeId}" which was not found.`
-              );
-              resolvedParentIdOnUpdate = undefined;
             }
+            node.data.nodeType = finalType;
+          } else {
+            console.warn(
+              `MapUpdate (nodesToUpdate): Feature node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.newData.parentNodeId}" which was not found.`
+            );
+            resolvedParentIdOnUpdate = undefined;
+          }
           }
         }
+      }
+      if (nodeUpdateOp.newData.parentNodeId === undefined && nodeUpdateOp.newData.nodeType !== undefined) {
+        node.data.nodeType = nodeUpdateOp.newData.nodeType;
       }
 
       if (nodeUpdateOp.newData.description !== undefined)
@@ -43,7 +58,6 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
         node.data.aliases.forEach(a => ctx.themeNodeAliasMap.set(a.toLowerCase(), node));
       }
       if (nodeUpdateOp.newData.status !== undefined) node.data.status = nodeUpdateOp.newData.status;
-      if (nodeUpdateOp.newData.nodeType !== undefined) node.data.nodeType = nodeUpdateOp.newData.nodeType;
       node.data.parentNodeId = resolvedParentIdOnUpdate;
       for (const key in nodeUpdateOp.newData) {
         if (!['description', 'aliases', 'status', 'parentNodeId', 'nodeType', 'placeName', 'visited'].includes(key)) {

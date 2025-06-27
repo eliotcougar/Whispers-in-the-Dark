@@ -116,3 +116,50 @@ Return JSON {"originalChildren": ["ids"], "newChildren": ["ids"]}`;
   return result ?? { originalChildren: [], newChildren: [] };
 };
 
+export const chooseHierarchyResolution_Service = async (
+  context: {
+    sceneDescription: string;
+    parent: MapNode;
+    child: MapNode;
+    options: Array<string>;
+  },
+  debugLog?: Array<MinimalModelCallRecord>,
+): Promise<number | null> => {
+  if (!isApiConfigured()) {
+    console.error('chooseHierarchyResolution_Service: API Key not configured.');
+    return null;
+  }
+
+  const optionsText = context.options
+    .map((opt, idx) => `${String(idx + 1)}. ${opt}`)
+    .join('\n');
+  const prompt = `Scene: ${context.sceneDescription}\nParent: "${context.parent.placeName}" (${context.parent.data.nodeType}) - ${context.parent.data.description}\nChild: "${context.child.placeName}" (${context.child.data.nodeType}) - ${context.child.data.description}\nChoose the most sensible resolution for their hierarchy conflict:\n${optionsText}\nRespond ONLY with the option number.`;
+
+  const systemInstruction = 'Answer with the single number of the best option.';
+
+  return retryAiCall<number>(async attempt => {
+    try {
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+        debugLog,
+      });
+      const resp = response.text?.trim();
+      if (resp) {
+        const num = parseInt(resp.trim(), 10);
+        if (Number.isInteger(num) && num >= 1 && num <= context.options.length) {
+          return { result: num };
+        }
+      }
+    } catch (error: unknown) {
+      console.error(`chooseHierarchyResolution_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
+      throw error;
+    }
+    return { result: null };
+  });
+};
+

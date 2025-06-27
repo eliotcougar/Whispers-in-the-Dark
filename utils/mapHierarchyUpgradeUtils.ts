@@ -5,10 +5,87 @@
  *              reroutes edges to conform to map layering rules.
  */
 
-import { MapData, MapNode, MapEdge, AdventureTheme } from '../types';
+import {
+  MapData,
+  MapNode,
+  MapEdge,
+  AdventureTheme,
+  MapNodeType,
+} from '../types';
+import { NODE_TYPE_LEVELS } from '../constants';
 import { structuredCloneGameState } from './cloneUtils';
 import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/hierarchyUpgrade';
 import { generateUniqueId } from './entityUtils';
+
+export const NODE_TYPE_DOWNGRADE_MAP: Record<MapNodeType, MapNodeType | undefined> = {
+  region: 'location',
+  location: 'settlement',
+  settlement: undefined,
+  district: undefined,
+  exterior: undefined,
+  interior: 'room',
+  room: 'feature',
+  feature: undefined,
+};
+
+export const NODE_TYPE_UPGRADE_MAP: Record<MapNodeType, MapNodeType | undefined> = {
+  feature: 'room',
+  room: 'interior',
+  interior: 'exterior',
+  exterior: 'district',
+  district: 'settlement',
+  settlement: 'location',
+  location: 'region',
+  region: undefined,
+};
+
+export const suggestNodeTypeDowngrade = (
+  node: MapNode,
+  parentType: MapNodeType,
+  allNodes: Array<MapNode>,
+): MapNodeType | null => {
+  const candidate = NODE_TYPE_DOWNGRADE_MAP[node.data.nodeType];
+  if (!candidate) return null;
+  if (NODE_TYPE_LEVELS[parentType] >= NODE_TYPE_LEVELS[candidate]) return null;
+  const candidateLevel = NODE_TYPE_LEVELS[candidate];
+  const children = allNodes.filter(n => n.data.parentNodeId === node.id);
+  if (children.every(c => NODE_TYPE_LEVELS[c.data.nodeType] > candidateLevel)) {
+    return candidate;
+  }
+  return null;
+};
+
+export const suggestNodeTypeUpgrade = (
+  node: MapNode,
+  allNodes: Array<MapNode>,
+): MapNodeType | null => {
+  const candidate = NODE_TYPE_UPGRADE_MAP[node.data.nodeType];
+  if (!candidate) return null;
+  const candidateLevel = NODE_TYPE_LEVELS[candidate];
+  if (node.data.parentNodeId) {
+    const parent = allNodes.find(n => n.id === node.data.parentNodeId);
+    if (parent && NODE_TYPE_LEVELS[parent.data.nodeType] >= candidateLevel) return null;
+  }
+  const children = allNodes.filter(n => n.data.parentNodeId === node.id);
+  if (children.some(c => NODE_TYPE_LEVELS[c.data.nodeType] <= candidateLevel)) {
+    return null;
+  }
+  return candidate;
+};
+
+export const mapHasHierarchyConflict = (nodes: Array<MapNode>): boolean => {
+  const lookup = new Map(nodes.map(n => [n.id, n]));
+  for (const node of nodes) {
+    const parentId = node.data.parentNodeId;
+    if (!parentId || parentId === 'Universe') continue;
+    const parent = lookup.get(parentId);
+    if (!parent) continue;
+    if (NODE_TYPE_LEVELS[parent.data.nodeType] >= NODE_TYPE_LEVELS[node.data.nodeType]) {
+      return true;
+    }
+  }
+  return false;
+};
 
 /**
  * Upgrades a feature node into a region and creates a new connector feature.

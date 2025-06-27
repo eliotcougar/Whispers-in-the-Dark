@@ -23,6 +23,8 @@ import { processNodeAdds } from './processNodeAdds';
 import { processNodeUpdates } from './processNodeUpdates';
 import { processEdgeUpdates } from './processEdgeUpdates';
 import { refineConnectorChains } from './refineConnectorChains';
+import { resolveHierarchyConflicts } from './hierarchyResolver';
+import { pruneInvalidEdges } from './edgeUtils';
 
 export interface ApplyMapUpdatesParams {
   payload: AIMapUpdatePayload;
@@ -243,7 +245,20 @@ export const applyMapUpdates = async ({
 
   await processNodeUpdates(ctx);
 
+  await resolveHierarchyConflicts(ctx);
+
   await processEdgeUpdates(ctx);
+
+  ctx.newMapData.edges = pruneInvalidEdges(ctx.newMapData.edges, ctx.themeNodeIdMap);
+  ctx.themeEdgesMap.clear();
+  ctx.newMapData.edges.forEach(e => {
+    if (!ctx.themeEdgesMap.has(e.sourceNodeId)) ctx.themeEdgesMap.set(e.sourceNodeId, []);
+    if (!ctx.themeEdgesMap.has(e.targetNodeId)) ctx.themeEdgesMap.set(e.targetNodeId, []);
+    const arr1 = ctx.themeEdgesMap.get(e.sourceNodeId);
+    if (arr1) arr1.push(e);
+    const arr2 = ctx.themeEdgesMap.get(e.targetNodeId);
+    if (arr2) arr2.push(e);
+  });
 
   await refineConnectorChains(ctx);
 
