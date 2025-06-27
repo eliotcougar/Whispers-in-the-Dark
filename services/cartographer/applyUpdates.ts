@@ -262,6 +262,79 @@ export const applyMapUpdates = async ({
 
   await refineConnectorChains(ctx);
 
+  const removeNode = (node: MapNode): void => {
+    const removedId = node.id;
+    const idx = ctx.newMapData.nodes.findIndex(n => n.id === removedId);
+    if (idx !== -1) ctx.newMapData.nodes.splice(idx, 1);
+    ctx.themeNodeNameMap.delete(node.placeName);
+    ctx.themeNodeIdMap.delete(removedId);
+    ctx.newMapData.edges = ctx.newMapData.edges.filter(
+      e => e.sourceNodeId !== removedId && e.targetNodeId !== removedId,
+    );
+    ctx.themeEdgesMap.forEach((arr, nid) => {
+      ctx.themeEdgesMap.set(
+        nid,
+        arr.filter(e => e.sourceNodeId !== removedId && e.targetNodeId !== removedId),
+      );
+    });
+    ctx.themeEdgesMap.delete(removedId);
+    for (const [k, v] of Array.from(ctx.themeNodeAliasMap.entries())) {
+      if (v.id === removedId) ctx.themeNodeAliasMap.delete(k);
+    }
+    const batchKey = Object.keys(ctx.newNodesInBatchIdNameMap).find(
+      k => ctx.newNodesInBatchIdNameMap[k].id === removedId || k === node.placeName,
+    );
+    if (batchKey) Reflect.deleteProperty(ctx.newNodesInBatchIdNameMap, batchKey);
+  };
+
+  const itemNameSet = new Map<string, Item>();
+  inventoryItems.forEach(item => {
+    if (item.type !== 'vehicle') itemNameSet.set(normalizeName(item.name), item);
+  });
+
+  const npcNameSet = new Set<string>();
+  knownNPCs.forEach(npc => {
+    npcNameSet.add(normalizeName(npc.name));
+    (npc.aliases ?? []).forEach(a => npcNameSet.add(normalizeName(a)));
+  });
+
+  ctx.newMapData.nodes
+    .filter(n => n.themeName === ctx.currentTheme.name)
+    .forEach(node => {
+      const norm = normalizeName(node.placeName);
+      if (itemNameSet.has(norm) || npcNameSet.has(norm)) {
+        removeNode(node);
+      }
+    });
+
+  const companionNames = new Set<string>();
+  knownNPCs
+    .filter(npc => npc.presenceStatus === 'companion')
+    .forEach(npc => {
+      companionNames.add(normalizeName(npc.name));
+      (npc.aliases ?? []).forEach(a => companionNames.add(normalizeName(a)));
+    });
+
+  const filteredInventory = inventoryItems.filter(item => {
+    const norm = normalizeName(item.name);
+    if (item.type !== 'vehicle' && companionNames.has(norm)) {
+      return false;
+    }
+    return true;
+  });
+  inventoryItems.splice(0, inventoryItems.length, ...filteredInventory);
+
+  ctx.newMapData.edges = pruneInvalidEdges(ctx.newMapData.edges, ctx.themeNodeIdMap);
+  ctx.themeEdgesMap.clear();
+  ctx.newMapData.edges.forEach(e => {
+    if (!ctx.themeEdgesMap.has(e.sourceNodeId)) ctx.themeEdgesMap.set(e.sourceNodeId, []);
+    if (!ctx.themeEdgesMap.has(e.targetNodeId)) ctx.themeEdgesMap.set(e.targetNodeId, []);
+    const arr1 = ctx.themeEdgesMap.get(e.sourceNodeId);
+    if (arr1) arr1.push(e);
+    const arr2 = ctx.themeEdgesMap.get(e.targetNodeId);
+    if (arr2) arr2.push(e);
+  });
+
 
   return {
     updatedMapData: newMapData,
