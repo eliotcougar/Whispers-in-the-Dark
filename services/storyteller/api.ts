@@ -16,7 +16,12 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 export const executeAIMainTurn = async (
     fullPrompt: string,
     themeSystemInstructionModifier: string | undefined // Retain as string for direct use
-): Promise<{ response: GenerateContentResponse; thoughts: Array<string> }> => {
+): Promise<{
+  response: GenerateContentResponse;
+  thoughts: Array<string>;
+  systemInstructionUsed: string;
+  jsonSchemaUsed?: unknown;
+}> => {
     addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
     if (!isApiConfigured()) {
       console.error("API Key not configured for Gemini Service.");
@@ -30,7 +35,7 @@ export const executeAIMainTurn = async (
 
     for (let attempt = 1; attempt <= MAX_RETRIES; ) {
         try {
-            const { response } = await dispatchAIRequest({
+            const { response, systemInstructionUsed, jsonSchemaUsed } = await dispatchAIRequest({
                 modelNames: [GEMINI_MODEL_NAME],
                 prompt: fullPrompt,
                 systemInstruction: systemInstructionForCall,
@@ -44,7 +49,7 @@ export const executeAIMainTurn = async (
             const thoughts = parts
               .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
               .map(p => p.text);
-            return { response, thoughts };
+            return { response, thoughts, systemInstructionUsed, jsonSchemaUsed };
         } catch (error: unknown) {
             console.error(`Error executing AI Main Turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
             if (!isServerOrClientError(error)) {

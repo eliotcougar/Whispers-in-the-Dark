@@ -42,6 +42,8 @@ describe('game start sequence', () => {
     mockedExecute.mockResolvedValue({
       response: { text: fakeAiJson } as unknown as GenerateContentResponse,
       thoughts: [],
+      systemInstructionUsed: 'test',
+      jsonSchemaUsed: undefined,
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
@@ -97,6 +99,8 @@ describe('game start sequence', () => {
     mockedExecute.mockResolvedValue({
       response: { text: fakeAiJson } as unknown as GenerateContentResponse,
       thoughts: [],
+      systemInstructionUsed: 'test',
+      jsonSchemaUsed: undefined,
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];

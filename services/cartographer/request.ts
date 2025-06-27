@@ -34,14 +34,24 @@ import type { MapUpdateDebugInfo } from './types';
 export const executeMapUpdateRequest = async (
   prompt: string,
   systemInstruction: string,
-): Promise<{ response: GenerateContentResponse; thoughts: Array<string> }> => {
+): Promise<{
+  response: GenerateContentResponse;
+  thoughts: Array<string>;
+  systemInstructionUsed: string;
+  jsonSchemaUsed?: unknown;
+}> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Map Update Service.');
     throw new Error('API Key not configured.');
   }
-  const result = await retryAiCall<{ response: GenerateContentResponse; thoughts: Array<string> }>(async () => {
+  const result = await retryAiCall<{
+    response: GenerateContentResponse;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+  }>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
-    const { response } = await dispatchAIRequest({
+    const { response, systemInstructionUsed, jsonSchemaUsed } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction,
@@ -55,7 +65,7 @@ export const executeMapUpdateRequest = async (
     const thoughtParts = parts
       .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
       .map(p => p.text);
-    return { result: { response, thoughts: thoughtParts } };
+    return { result: { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed } };
   });
   if (!result) {
     throw new Error('Failed to execute map update request.');
@@ -97,9 +107,16 @@ export const fetchMapUpdatePayload = async (
         prompt = basePrompt;
       }
       debugInfo.prompt = prompt;
-      const { response, thoughts } = await executeMapUpdateRequest(prompt, systemInstruction);
+      const {
+        response,
+        thoughts,
+        systemInstructionUsed,
+        jsonSchemaUsed,
+      } = await executeMapUpdateRequest(prompt, systemInstruction);
       debugInfo.rawResponse = response.text ?? '';
       if (thoughts.length > 0) debugInfo.thoughts = thoughts;
+      debugInfo.systemInstruction = systemInstructionUsed;
+      debugInfo.jsonSchema = jsonSchemaUsed;
       const { payload: parsedPayload, validationError: parseError } = parseAIMapUpdateResponse(response.text ?? '');
       if (parsedPayload) {
         debugInfo.observations = parsedPayload.observations ?? debugInfo.observations;
