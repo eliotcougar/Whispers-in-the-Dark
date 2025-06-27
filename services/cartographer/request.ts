@@ -39,6 +39,7 @@ export const executeMapUpdateRequest = async (
   thoughts: Array<string>;
   systemInstructionUsed: string;
   jsonSchemaUsed?: unknown;
+  promptUsed: string;
 }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Map Update Service.');
@@ -49,9 +50,10 @@ export const executeMapUpdateRequest = async (
     thoughts: Array<string>;
     systemInstructionUsed: string;
     jsonSchemaUsed?: unknown;
+    promptUsed: string;
   }>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
-    const { response, systemInstructionUsed, jsonSchemaUsed } = await dispatchAIRequest({
+    const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction,
@@ -65,7 +67,7 @@ export const executeMapUpdateRequest = async (
     const thoughtParts = parts
       .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
       .map(p => p.text);
-    return { result: { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed } };
+    return { result: { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed, promptUsed } };
   });
   if (!result) {
     throw new Error('Failed to execute map update request.');
@@ -112,11 +114,13 @@ export const fetchMapUpdatePayload = async (
         thoughts,
         systemInstructionUsed,
         jsonSchemaUsed,
+        promptUsed,
       } = await executeMapUpdateRequest(prompt, systemInstruction);
       debugInfo.rawResponse = response.text ?? '';
       if (thoughts.length > 0) debugInfo.thoughts = thoughts;
       debugInfo.systemInstruction = systemInstructionUsed;
       debugInfo.jsonSchema = jsonSchemaUsed;
+      debugInfo.prompt = promptUsed;
       const { payload: parsedPayload, validationError: parseError } = parseAIMapUpdateResponse(response.text ?? '');
       if (parsedPayload) {
         debugInfo.observations = parsedPayload.observations ?? debugInfo.observations;

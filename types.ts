@@ -478,6 +478,7 @@ export interface MinimalModelCallRecord {
   jsonSchema?: unknown;
   modelUsed: string;
   responseText: string;
+  promptUsed?: string;
 }
 
 export interface DialogueTurnDebugEntry {

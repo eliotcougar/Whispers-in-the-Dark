@@ -44,6 +44,7 @@ describe('game start sequence', () => {
       thoughts: [],
       systemInstructionUsed: 'test',
       jsonSchemaUsed: undefined,
+      promptUsed: 'req',
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
@@ -101,6 +102,7 @@ describe('game start sequence', () => {
       thoughts: [],
       systemInstructionUsed: 'test',
       jsonSchemaUsed: undefined,
+      promptUsed: 'req',
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];

@@ -40,13 +40,14 @@ export const executeInventoryRequest = async (
   thoughts: Array<string>;
   systemInstructionUsed: string;
   jsonSchemaUsed?: unknown;
+  promptUsed: string;
 }> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Inventory Service.');
     return Promise.reject(new Error('API Key not configured.'));
   }
   addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
-  const { response, systemInstructionUsed, jsonSchemaUsed } = await dispatchAIRequest({
+  const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
     modelNames: [MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction: SYSTEM_INSTRUCTION,
@@ -60,7 +61,7 @@ export const executeInventoryRequest = async (
   const thoughtParts = parts
     .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
     .map(p => p.text);
-  return { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed };
+  return { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed, promptUsed };
 };
 
 export interface InventoryUpdateResult {
@@ -162,6 +163,7 @@ export const applyInventoryHints_Service = async (
     thoughts,
     systemInstructionUsed,
     jsonSchemaUsed,
+    promptUsed,
   } = await executeInventoryRequest(prompt);
   let parsed = parseInventoryResponse(response.text ?? '');
   if (!parsed ||
@@ -204,7 +206,7 @@ export const applyInventoryHints_Service = async (
   return {
     itemChanges: parsed ? parsed.itemChanges : [],
     debugInfo: {
-      prompt,
+      prompt: promptUsed,
       systemInstruction: systemInstructionUsed,
       jsonSchema: jsonSchemaUsed,
       rawResponse: response.text ?? '',

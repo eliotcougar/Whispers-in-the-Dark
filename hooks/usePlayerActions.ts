@@ -233,6 +233,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           thoughts,
           systemInstructionUsed,
           jsonSchemaUsed,
+          promptUsed,
         } = await executeAIMainTurn(
           prompt,
           currentThemeObj.systemInstructionModifier,
@@ -243,6 +244,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           storytellerThoughts: thoughts,
           systemInstruction: systemInstructionUsed,
           jsonSchema: jsonSchemaUsed,
+          prompt: promptUsed,
         };
 
         const currentThemeMapDataForParse = {

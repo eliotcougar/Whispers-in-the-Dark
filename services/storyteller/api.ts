@@ -21,6 +21,7 @@ export const executeAIMainTurn = async (
   thoughts: Array<string>;
   systemInstructionUsed: string;
   jsonSchemaUsed?: unknown;
+  promptUsed: string;
 }> => {
     addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
     if (!isApiConfigured()) {
@@ -35,7 +36,7 @@ export const executeAIMainTurn = async (
 
     for (let attempt = 1; attempt <= MAX_RETRIES; ) {
         try {
-            const { response, systemInstructionUsed, jsonSchemaUsed } = await dispatchAIRequest({
+            const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
                 modelNames: [GEMINI_MODEL_NAME],
                 prompt: fullPrompt,
                 systemInstruction: systemInstructionForCall,
@@ -49,7 +50,7 @@ export const executeAIMainTurn = async (
             const thoughts = parts
               .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
               .map(p => p.text);
-            return { response, thoughts, systemInstructionUsed, jsonSchemaUsed };
+            return { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed };
         } catch (error: unknown) {
             console.error(`Error executing AI Main Turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
             if (!isServerOrClientError(error)) {
