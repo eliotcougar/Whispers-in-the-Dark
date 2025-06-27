@@ -26,6 +26,7 @@ import {
   TINY_MODEL_RPM,
   MAX_RETRIES,
 } from '../constants';
+import { jsonSchemaToPrompt, JsonSchema } from '../utils/schemaPrompt';
 
 export type ModelFeature = 'thinking' | 'system' | 'schema';
 
@@ -79,9 +80,17 @@ export const dispatchAIRequest = async (
     const supportsThinking = features.includes('thinking');
     const supportsSchema = features.includes('schema');
 
+    let systemInstruction = options.systemInstruction ?? '';
+    if (!supportsSchema && options.jsonSchema) {
+      const schemaPrompt = jsonSchemaToPrompt(options.jsonSchema as JsonSchema);
+      systemInstruction = systemInstruction
+        ? `${systemInstruction}\n\n${schemaPrompt}`
+        : schemaPrompt;
+    }
+
     const contents = supportsSystem
       ? options.prompt
-      : `${options.systemInstruction ? options.systemInstruction + '\n\n' : ''}${options.prompt}`;
+      : `${systemInstruction ? systemInstruction + '\n\n' : ''}${options.prompt}`;
 
     const cfg: Record<string, unknown> = {};
     if (options.temperature !== undefined) cfg.temperature = options.temperature;
@@ -96,8 +105,8 @@ export const dispatchAIRequest = async (
       }
       cfg.thinkingConfig = thinkingCfg;
     }
-    if (supportsSystem && options.systemInstruction) {
-      cfg.systemInstruction = options.systemInstruction;
+    if (supportsSystem && systemInstruction) {
+      cfg.systemInstruction = systemInstruction;
     }
     if (supportsSchema && options.jsonSchema) {
       cfg.responseJsonSchema = options.jsonSchema;
@@ -126,7 +135,8 @@ export const dispatchAIRequest = async (
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
-            systemInstruction: options.systemInstruction ?? '',
+            systemInstruction: systemInstruction,
+            jsonSchema: options.jsonSchema,
             modelUsed: model,
             responseText: response.text ?? '',
           });
@@ -137,7 +147,8 @@ export const dispatchAIRequest = async (
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
-            systemInstruction: options.systemInstruction ?? '',
+            systemInstruction: systemInstruction,
+            jsonSchema: options.jsonSchema,
             modelUsed: model,
             responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
           });

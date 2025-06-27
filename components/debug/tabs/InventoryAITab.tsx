@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { DebugPacket } from '../../../types';
+import { jsonSchemaToPrompt, JsonSchema } from '../../../utils/schemaPrompt';
 import { filterObservationsAndRationale, decodeEscapedString } from './tabUtils';
 
 interface InventoryAITabProps {
@@ -10,12 +11,13 @@ interface InventoryAITabProps {
 
 function InventoryAITab({ debugPacket }: InventoryAITabProps) {
   const [showRaw, setShowRaw] = useState(true);
-  const [showExtras, setShowExtras] = useState(false);
+  const [view, setView] = useState<'reqres' | 'insights' | 'prompt'>('reqres');
 
   const handleShowRaw = useCallback(() => { setShowRaw(true); }, []);
   const handleShowParsed = useCallback(() => { setShowRaw(false); }, []);
-  const handleShowReqRes = useCallback(() => { setShowExtras(false); }, []);
-  const handleShowInsights = useCallback(() => { setShowExtras(true); }, []);
+  const handleShowReqRes = useCallback(() => { setView('reqres'); }, []);
+  const handleShowInsights = useCallback(() => { setView('insights'); }, []);
+  const handleShowPrompt = useCallback(() => { setView('prompt'); }, []);
 
   return debugPacket?.inventoryDebugInfo ? (
     <>
@@ -24,8 +26,8 @@ function InventoryAITab({ debugPacket }: InventoryAITabProps) {
           ariaLabel="Show request and response"
           label="Req/Res"
           onClick={handleShowReqRes}
-          preset={!showExtras ? 'sky' : 'slate'}
-          pressed={!showExtras}
+          preset={view === 'reqres' ? 'sky' : 'slate'}
+          pressed={view === 'reqres'}
           size="sm"
           variant="toggle"
         />
@@ -34,14 +36,24 @@ function InventoryAITab({ debugPacket }: InventoryAITabProps) {
           ariaLabel="Show insights"
           label="Insights"
           onClick={handleShowInsights}
-          preset={showExtras ? 'sky' : 'slate'}
-          pressed={showExtras}
+          preset={view === 'insights' ? 'sky' : 'slate'}
+          pressed={view === 'insights'}
+          size="sm"
+          variant="toggle"
+        />
+
+        <Button
+          ariaLabel="Show system prompt"
+          label="Prompt"
+          onClick={handleShowPrompt}
+          preset={view === 'prompt' ? 'sky' : 'slate'}
+          pressed={view === 'prompt'}
           size="sm"
           variant="toggle"
         />
       </div>
 
-      {!showExtras ? (
+      {view === 'reqres' ? (
         <>
           <DebugSection
             content={debugPacket.inventoryDebugInfo.prompt}
@@ -84,7 +96,7 @@ function InventoryAITab({ debugPacket }: InventoryAITabProps) {
             />
           )}
         </>
-      ) : (
+      ) : view === 'insights' ? (
         <>
           {debugPacket.inventoryDebugInfo.thoughts && debugPacket.inventoryDebugInfo.thoughts.length > 0 ? (
             <DebugSection
@@ -111,6 +123,29 @@ function InventoryAITab({ debugPacket }: InventoryAITabProps) {
               maxHeightClass="overflow-visible max-h-fit"
               title="Inventory Rationale"
             />
+          ) : null}
+        </>
+      ) : (
+        <>
+          <DebugSection
+            content={debugPacket.inventoryDebugInfo.systemInstruction ?? 'N/A'}
+            isJson={false}
+            title="System Prompt"
+          />
+
+          {debugPacket.inventoryDebugInfo.jsonSchema ? (
+            <>
+              <DebugSection
+                content={debugPacket.inventoryDebugInfo.jsonSchema}
+                title="Raw Schema"
+              />
+
+              <DebugSection
+                content={jsonSchemaToPrompt(debugPacket.inventoryDebugInfo.jsonSchema as JsonSchema)}
+                isJson={false}
+                title="Schema as Prompt"
+              />
+            </>
           ) : null}
         </>
       )}

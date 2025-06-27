@@ -58,10 +58,10 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          action: { const: 'add' },
+          action: { enum: ['add'], description: 'Always equal to "add" exactly.' },
           fact: {
             type: 'object',
-            properties: { text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*' } },
+            properties: { text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*.' } },
             required: ['text'],
             additionalProperties: false,
           },
@@ -166,6 +166,8 @@ export const refineLore_Service = async (
         debugInfo: {
           extract: {
             prompt: extractPrompt,
+            systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
+            jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
             rawResponse: newFacts.raw,
             parsedPayload: newFacts.parsed ?? undefined,
             thoughts: newFacts.thoughts,
@@ -202,12 +204,16 @@ export const refineLore_Service = async (
     debugInfo: {
       extract: {
         prompt: extractPrompt,
+        systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
+        jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
         rawResponse: newFacts.raw,
         parsedPayload: newFacts.parsed ?? undefined,
         thoughts: newFacts.thoughts,
       },
       integrate: {
         prompt: integratePrompt,
+        systemInstruction: INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
+        jsonSchema: INTEGRATE_FACTS_JSON_SCHEMA,
         rawResponse: integration?.raw,
         parsedPayload: integration?.parsed,
         observations: integration?.parsed.observations,
@@ -231,6 +237,8 @@ export interface CollectFactsServiceResult {
   facts: Array<string>;
   debugInfo: {
     prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     rawResponse?: string;
     parsedPayload?: Array<string>;
     thoughts?: Array<string>;
@@ -285,6 +293,8 @@ export const collectRelevantFacts_Service = async (
     facts: result?.parsed ?? [],
     debugInfo: {
       prompt,
+      systemInstruction: COLLECT_SYSTEM_INSTRUCTION,
+      jsonSchema: COLLECT_FACTS_JSON_SCHEMA,
       rawResponse: result?.raw,
       parsedPayload: result?.parsed ?? undefined,
       thoughts: result?.thoughts,
@@ -305,6 +315,8 @@ export interface DistillFactsServiceResult {
   refinementResult: LoreRefinementResult | null;
   debugInfo: {
     prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     rawResponse?: string;
     parsedPayload?: LoreRefinementResult;
     observations?: string;
@@ -363,6 +375,8 @@ export const distillFacts_Service = async (
     refinementResult: result?.parsed ?? null,
     debugInfo: {
       prompt,
+      systemInstruction: DISTILL_SYSTEM_INSTRUCTION,
+      jsonSchema: DISTILL_FACTS_JSON_SCHEMA,
       rawResponse: result?.raw,
       parsedPayload: result?.parsed,
       observations: result?.parsed.observations,

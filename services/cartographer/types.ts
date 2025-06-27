@@ -1,5 +1,7 @@
 export interface MapUpdateDebugInfo {
   prompt: string;
+  systemInstruction?: string;
+  jsonSchema?: unknown;
   rawResponse?: string;
   parsedPayload?: import('../../types').AIMapUpdatePayload;
   validationError?: string;

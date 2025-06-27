@@ -14,6 +14,7 @@ import {
   executeAIMainTurn,
   parseAIResponse,
 } from '../services/storyteller';
+import { SYSTEM_INSTRUCTION } from '../services/storyteller/systemPrompt';
 import { getThemesFromPacks } from '../themes';
 import { PLAYER_HOLDER_ID } from '../constants';
 import { findThemeByName } from '../utils/themeUtils';
@@ -229,8 +230,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         mapDataForTheme: draftState.mapData,
         npcsForTheme: draftState.allNPCs.filter(npc => npc.themeName === themeObjToLoad.name),
       });
+      const systemInstructionForCall = themeObjToLoad.systemInstructionModifier
+        ? `${SYSTEM_INSTRUCTION}\n\nCURRENT THEME GUIDANCE:\n${themeObjToLoad.systemInstructionModifier}`
+        : SYSTEM_INSTRUCTION;
       draftState.lastDebugPacket = {
         prompt,
+        systemInstruction: systemInstructionForCall,
+        jsonSchema: undefined,
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),
@@ -432,8 +438,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
     const baseStateSnapshot = structuredCloneGameState(currentFullState);
     let draftState = structuredCloneGameState(currentFullState);
+    const systemInstructionForCall = currentThemeObj.systemInstructionModifier
+      ? `${SYSTEM_INSTRUCTION}\n\nCURRENT THEME GUIDANCE:\n${currentThemeObj.systemInstructionModifier}`
+      : SYSTEM_INSTRUCTION;
     const debugPacket = {
       prompt: lastPrompt,
+      systemInstruction: systemInstructionForCall,
+      jsonSchema: undefined,
       rawResponseText: null,
       parsedResponse: null,
       timestamp: new Date().toISOString(),
