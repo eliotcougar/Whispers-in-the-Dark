@@ -149,7 +149,7 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
     rationale: {
       type: "string",
       minLength: 500,
-      description: "Explain the reasoning behind your chain suggestions."
+      description: "Explain the reasoning behind your chain fixes and refinement suggestions."
     },
     nodesToAdd: {
       type: "array",
@@ -162,8 +162,12 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
           data: {
             type: "object",
             properties: {
-              description: { type: "string", description: "Short text describing the place" },
-              aliases: { type: "array", description: "Alternative names, shorthands", items: { type: "string" } },
+              description: { type: "string", minLength: 30, description: "Short text describing the place" },
+              aliases: {
+                type: "array",
+                description: "Alternative names, shorthands",
+                minItems: 2,
+                items: { type: "string" } },
               status: { enum: VALID_NODE_STATUS_VALUES },
               nodeType: { enum: ["feature"] },
               parentNodeId: { type: "string", description: "Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent" },
@@ -194,7 +198,7 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
             properties: {
               type: { enum: VALID_EDGE_TYPE_VALUES },
               status: { enum: VALID_EDGE_STATUS_VALUES },
-              description: { type: "string", description: "Short text describing the connection and travel conditions."},
+              description: { type: "string", minLength: 30, description: "Short text describing the connection and travel conditions."},
             },
             required: ["type", "status", "description"],
             additionalProperties: false,
