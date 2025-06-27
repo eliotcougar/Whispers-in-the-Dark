@@ -21,8 +21,8 @@ export const buildIntegrateFactsPrompt = (
   existingFacts: Array<ThemeFact>,
   newFacts: Array<string>,
 ): string => {
-  const existing = existingFacts.map(f => ` - ${f.text}`).join('\n') || 'None.';
-  const proposed = newFacts.map(f => ` - ${f}`).join('\n') || 'None.';
+  const existing = existingFacts.map(f => `- ${f.text}`).join('\n') || 'None.';
+  const proposed = newFacts.map(f => `- ${f}`).join('\n') || 'None.';
   return `Theme: ${themeName}
 
   ## Known Facts:
@@ -31,7 +31,7 @@ ${existing}
   ## New Candidate Facts:
 ${proposed}
   
-  Provide integration instructions acording to your instructions.`;
+Provide integration instructions acording to your instructions.`;
 };
 
 export interface FactForSelection {

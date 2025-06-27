@@ -27,6 +27,33 @@ import {
   DISTILL_SYSTEM_INSTRUCTION,
 } from './systemPrompt';
 
+export const INTEGRATE_FACTS_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    observations: { type: 'string', minLength: 500, description: 'Minimum 300 words. Observations about the lore state and the proposed new facts, e.g. There are 3 facts that can be merged. Some of the facts may be too vague or obsolete to be included...' },
+    rationale: { type: 'string', minLength: 500, description: 'Minimum 300 words. Rationale for and against including the proposed facts into the lore, e.g. Most facts are good enough to be included in the lore. However, the facts about the old tavern are no longer relevant. The fact about *a path* leading to the church is too vague - a more concrete named path should have been mentioned instead. I will omit these facts.' },
+    factsChange: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          action: { const: 'add' },
+          fact: {
+            type: 'object',
+            properties: { text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*' } },
+            required: ['text'],
+            additionalProperties: false,
+          },
+        },
+        required: ['action', 'fact'],
+        additionalProperties: false,
+      }
+    }
+  },
+  required: ['observations', 'rationale', 'factsChange'],
+  additionalProperties: false,
+} as const;
+
 export interface RefineLoreParams {
   themeName: string;
   turnContext: string;
@@ -94,9 +121,10 @@ export const refineLore_Service = async (
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: integratePrompt,
       systemInstruction: INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
-      thinkingBudget: 2048,
+      thinkingBudget: 1024,
       includeThoughts: true,
       responseMimeType: 'application/json',
+      jsonSchema: INTEGRATE_FACTS_JSON_SCHEMA,
       temperature: 0.7,
       label: 'LoremasterIntegrate',
     });

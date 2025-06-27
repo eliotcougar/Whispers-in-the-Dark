@@ -84,8 +84,8 @@ This layer abstracts external interactions and complex data processing.
         *   `systemPrompt.ts` holds `MAP_UPDATE_SYSTEM_INSTRUCTION`.
         *   `index.ts` re-exports these utilities.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
-        *   `dispatchAIRequest(modelNames, prompt, systemInstruction?, config?)` tries each model in order until one succeeds.  It returns the `GenerateContentResponse` from the first working model.
-        *   `dispatchAIRequestWithModelInfo` accepts the same parameters plus a `debugLog` array to capture which model was used and the raw response text for troubleshooting.
+        *   `dispatchAIRequest(options)` accepts a list of models. Each entry can be just the model name or `[name, ['thinking','system','schema']]` to indicate supported features. It tries each model in order until one succeeds and returns the `GenerateContentResponse` from the first working model.
+        *   `dispatchAIRequestWithModelInfo` accepts the same parameters plus a `debugLog` array to capture which model was used and the raw response text for troubleshooting. The dispatcher also supports an optional `jsonSchema` parameter that maps to `responseJsonSchema` from `@google/gen-ai`.
         *   Callers such as `storyteller/api.ts` log `response.usageMetadata` token counts (total, thoughts, prompt) when using this interface to help diagnose high token usage.
 *   **Data Processing & Validation:**
     *   `services/storyteller/responseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
