@@ -78,7 +78,6 @@ interface AppModalsProps {
   readonly currentQuest: string | null;
   readonly updateItemContent: (id: string, actual: string, visible: string, chapterIndex?: number) => void;
   readonly updatePlayerJournalContent: (actual: string, chapterIndex?: number) => void;
-  readonly onInventoryWriteJournal: (itemId: string) => void;
   readonly onItemInspect: (itemId: string) => void;
   readonly canInspectJournal: boolean;
   readonly onWriteJournal: () => void;
@@ -146,7 +145,6 @@ function AppModals({
   currentQuest,
   updateItemContent,
   updatePlayerJournalContent,
-  onInventoryWriteJournal,
   onItemInspect,
   canInspectJournal,
   onWriteJournal,
@@ -175,10 +173,8 @@ function AppModals({
   const writeJournalHandler = useCallback(() => {
     if (pageItemId === PLAYER_JOURNAL_ID) {
       onWriteJournal();
-    } else if (pageItemId) {
-      onInventoryWriteJournal(pageItemId);
     }
-  }, [pageItemId, onWriteJournal, onInventoryWriteJournal]);
+  }, [pageItemId, onWriteJournal]);
 
 
   return (

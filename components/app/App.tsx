@@ -352,62 +352,6 @@ function App() {
     [openPageView]
   );
 
-  // Generate and add a new chapter to the given journal item. This is only
-  // triggered when the player explicitly writes in a journal, never when pages
-  // or books are merely read or flipped.
-  const handleWriteJournal = useCallback((item: Item) => {
-    if (item.lastWriteTurn === globalTurnNumber) return;
-    openPageView(item.id, item.chapters?.length ?? 0);
-    void (async () => {
-      if (!currentTheme) return;
-      const { name: themeName, systemInstructionModifier } = currentTheme;
-      const nodes = mapData.nodes.filter(
-        node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
-      );
-      const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-      const npcs = allNPCs.filter(npc => npc.themeName === themeName);
-      const knownNPCs = npcs.length > 0
-        ? npcsToString(npcs, ' - ', false, false, false, true)
-        : 'None specifically known in this theme yet.';
-      const prev = item.chapters?.[item.chapters.length - 1]?.actualContent ?? '';
-      const entryLength = Math.floor(Math.random() * 50) + 100;
-      const entry = await generateJournalEntry(
-        entryLength,
-        item.name,
-        item.description,
-        prev,
-        themeName,
-        systemInstructionModifier,
-        currentScene,
-        lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
-        knownPlaces,
-        knownNPCs,
-        gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
-        mainQuest
-      );
-      if (entry) {
-        const chapter = {
-          heading: entry.heading,
-          description: '',
-          contentLength: entryLength,
-          actualContent: entry.text,
-        } as ItemChapter;
-        gameLogic.addJournalEntry(item.id, chapter);
-        openPageView(item.id, item.chapters?.length ?? 0);
-      }
-    })();
-  }, [
-    allNPCs,
-    currentTheme,
-    currentScene,
-    gameLogic,
-    mapData.nodes,
-    mainQuest,
-    openPageView,
-    lastDebugPacket,
-    gameLog,
-    globalTurnNumber,
-  ]);
 
   const [isPlayerJournalWriting, setIsPlayerJournalWriting] = useState(false);
 
@@ -515,15 +459,6 @@ function App() {
     ]
   );
 
-  const handleWriteJournalFromPage = useCallback(
-    (itemId: string) => {
-      const item = inventory.find(it => it.id === itemId);
-      if (item) {
-        handleWriteJournal(item);
-      }
-    },
-    [inventory, handleWriteJournal]
-  );
 
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -866,7 +801,6 @@ function App() {
                 onReadPlayerJournal={handleReadPlayerJournal}
                 onStashToggle={gameLogic.handleStashToggle}
                 onTakeItem={handleTakeLocationItem}
-                onWriteJournal={handleWriteJournal}
               />
             )}
           </div>
@@ -1022,7 +956,6 @@ function App() {
         onCloseMap={closeMap}
         onClosePage={closePageView}
         onCloseVisualizer={closeVisualizer}
-        onInventoryWriteJournal={handleWriteJournalFromPage}
         onItemInspect={handleInspectFromPage}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}

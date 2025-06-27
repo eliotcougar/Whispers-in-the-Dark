@@ -17,7 +17,6 @@ interface UseInventoryDisplayProps {
   readonly onDropItem: (itemName: string) => void;
   readonly onStashToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
-  readonly onWriteJournal: (item: Item) => void;
 }
 
 export type FilterMode = 'all' | 'stashed';
@@ -27,7 +26,6 @@ export const useInventoryDisplay = ({
   onDropItem,
   onStashToggle,
   onReadPage,
-  onWriteJournal,
 }: UseInventoryDisplayProps) => {
   const [newlyAddedItemNames, setNewlyAddedItemNames] = useState<Set<string>>(new Set());
   const prevItemsRef = useRef<Array<Item>>(items);
@@ -194,14 +192,6 @@ export const useInventoryDisplay = ({
     event.currentTarget.blur();
   }, [items, onReadPage]);
 
-  const handleWrite = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    const name = event.currentTarget.dataset.itemName;
-    if (!name) return;
-    const item = items.find(i => i.name === name);
-    if (!item) return;
-    onWriteJournal(item);
-    event.currentTarget.blur();
-  }, [items, onWriteJournal]);
 
   useEffect(() => {
     const currentItemNames = new Set(items.map(item => item.name));
@@ -303,7 +293,6 @@ export const useInventoryDisplay = ({
     handleVehicleToggle,
     handleStashToggleInternal,
     handleRead,
-    handleWrite,
     getApplicableKnownUses,
   } as const;
 };

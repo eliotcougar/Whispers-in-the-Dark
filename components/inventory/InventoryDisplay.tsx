@@ -20,12 +20,11 @@ interface InventoryDisplayProps {
   readonly onDropItem: (itemName: string) => void;
   readonly onStashToggle: (itemName: string) => void;
   readonly onReadPage: (item: Item) => void;
-  readonly onWriteJournal: (item: Item) => void;
   readonly currentTurn: number;
   readonly disabled: boolean;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, onReadPage, onWriteJournal, currentTurn, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, onReadPage, currentTurn, disabled }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemNames,
@@ -46,7 +45,6 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
     handleVehicleToggle,
     handleStashToggleInternal,
     handleRead,
-    handleWrite,
     getApplicableKnownUses,
   } = useInventoryDisplay({
     items,
@@ -54,7 +52,6 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
     onDropItem,
     onStashToggle,
     onReadPage,
-    onWriteJournal,
   });
 
   const itemElementMap = useRef(new Map<string, HTMLLIElement>());
@@ -170,7 +167,6 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
                 onStartConfirmDiscard={handleStartConfirmDiscard}
                 onStashToggle={handleStashToggleInternal}
                 onVehicleToggle={handleVehicleToggle}
-                onWrite={handleWrite}
                 registerRef={registerItemRef}
               />
             );
