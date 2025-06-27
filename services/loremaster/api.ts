@@ -58,10 +58,10 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          action: { const: 'add' },
+          action: { enum: ['add'], description: 'Always equal to "add" exactly.' },
           fact: {
             type: 'object',
-            properties: { text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*' } },
+            properties: { text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*.' } },
             required: ['text'],
             additionalProperties: false,
           },
