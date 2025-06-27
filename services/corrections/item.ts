@@ -51,8 +51,7 @@ export const fetchCorrectedItemPayload_Service = async (
     /* ignore parse error */
   }
 
-  const knownUseStructureGuide = `
-For "knownUses" (array of objects) or "addKnownUse" (single object): Each "Known Use" object REQUIRES:
+  const knownUseStructureGuide = `For "knownUses" (array of objects) or "addKnownUse" (single object): Each "Known Use" object REQUIRES:
 - "actionName": string
 - "promptEffect": string
 - "description": string
@@ -60,8 +59,7 @@ For "knownUses" (array of objects) or "addKnownUse" (single object): Each "Known
 - "appliesWhenInactive?": boolean
 `;
 
-  const baseItemStructureForPrompt = `
-{
+  const baseItemStructureForPrompt = `{
   "name": "string",
   "type": "(${VALID_ITEM_TYPES_STRING})",
   "description": "string",
@@ -117,8 +115,7 @@ Instructions for "update":
 4.  Ensure all present fields are valid.`;
   }
 
-  const prompt = `
-You are an AI assistant tasked with correcting malformed JSON item payloads for a text adventure game.
+  const prompt = `You are an AI assistant tasked with correcting malformed JSON item payloads for a text adventure game.
 Reconstruct the 'item' part of an ItemChange object based on the provided context and the malformed data.
 Action Type: "${actionType}" (this concerns ${itemContextDescription}).
 
@@ -197,8 +194,7 @@ export const fetchCorrectedItemAction_Service = async (
     /* ignore parse error */
   }
 
-  const prompt = `
-You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
+  const prompt = `You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
 Valid 'action' types are: ${VALID_ACTIONS_STRING}.
 
 Malformed ItemChange Object:
@@ -340,8 +336,7 @@ export const fetchAdditionalBookChapters_Service = async (
   if (countNeeded <= 0) return [];
 
   const list = existingHeadings.map(h => `- ${h}`).join('\n');
-  const prompt = `
-You are an AI assistant adding missing chapters to a book.
+  const prompt = `You are an AI assistant adding missing chapters to a book.
 Book Title: "${bookTitle}"
 Description: "${bookDescription}"
 Existing Chapter Headings:\n${list}
