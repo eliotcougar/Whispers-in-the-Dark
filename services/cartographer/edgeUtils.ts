@@ -76,3 +76,15 @@ export function addEdgeWithTracking(
   arrB.push(edge);
   return edge;
 }
+
+export function pruneInvalidEdges(
+  edges: Array<MapEdge>,
+  nodeLookup: Map<string, MapNode>,
+): Array<MapEdge> {
+  return edges.filter(e => {
+    const src = nodeLookup.get(e.sourceNodeId);
+    const tgt = nodeLookup.get(e.targetNodeId);
+    if (!src || !tgt) return false;
+    return isEdgeConnectionAllowed(src, tgt, e.data.type, nodeLookup);
+  });
+}

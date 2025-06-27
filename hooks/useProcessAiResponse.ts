@@ -51,6 +51,29 @@ const correctItemChanges = async ({
   const result: Array<ItemChange> = [];
   for (const change of aiItemChanges) {
     let currentChange: ItemChange = { ...change };
+
+    if ('item' in currentChange && (currentChange.item as { type?: string }).type === 'immovable') {
+      if (currentChange.action === 'gain') {
+        const itm = currentChange.item;
+        currentChange = {
+          action: 'put',
+          item: { ...itm, holderId: baseState.currentMapNodeId ?? 'unknown' },
+        };
+      } else if (currentChange.action === 'put') {
+        const item = currentChange.item;
+        if (!item.holderId.startsWith('node_')) {
+          item.holderId = baseState.currentMapNodeId ?? 'unknown';
+        }
+      } else if (currentChange.action === 'give' || currentChange.action === 'take') {
+        const payload = currentChange.item;
+        if (!payload.fromId.startsWith('node_')) {
+          payload.fromId = baseState.currentMapNodeId ?? 'unknown';
+        }
+        if (!payload.toId.startsWith('node_')) {
+          payload.toId = baseState.currentMapNodeId ?? 'unknown';
+        }
+      }
+    }
     if (currentChange.action === 'destroy') {
       const itemRef = currentChange.item;
       const itemNameFromAI = itemRef.name;

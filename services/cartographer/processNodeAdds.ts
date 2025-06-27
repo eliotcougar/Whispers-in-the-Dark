@@ -1,6 +1,7 @@
 import type { MapNode, MapNodeData, MapEdgeData } from '../../types';
 import { findMapNodeByIdentifier, buildNodeId } from '../../utils/entityUtils';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
+import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest } from './connectorChains';
 import { fetchLikelyParentNode_Service } from '../corrections/placeDetails';
@@ -96,18 +97,47 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
             nodeAddOp.data.parentNodeId,
             context.newMapData.nodes,
             context.newMapData,
-            context.referenceMapNodeId
+            context.referenceMapNodeId,
           ) as MapNode | undefined;
           if (parent) {
-            const childType = nodeAddOp.data.nodeType ?? 'feature';
+            let childType = nodeAddOp.data.nodeType ?? 'feature';
             if (parent.data.nodeType === childType) {
-              sameTypeParent = parent;
+              const downgraded = suggestNodeTypeDowngrade(
+                {
+                  id: 'temp',
+                  themeName: parent.themeName,
+                  placeName: nodeAddOp.placeName,
+                  position: { x: 0, y: 0 },
+                  data: {
+                    description: nodeAddOp.data.description ?? '',
+                    aliases: nodeAddOp.data.aliases ?? [],
+                    status: nodeAddOp.data.status,
+                    parentNodeId: parent.id,
+                    nodeType: childType,
+                  },
+                },
+                parent.data.nodeType,
+                context.newMapData.nodes,
+              );
+              if (downgraded) {
+                nodeAddOp.data.nodeType = downgraded;
+                childType = downgraded;
+                resolvedParentId = parent.id;
+              } else {
+                sameTypeParent = parent;
+                resolvedParentId = findClosestAllowedParent(
+                  parent,
+                  childType,
+                  context.themeNodeIdMap,
+                );
+              }
+            } else {
+              resolvedParentId = findClosestAllowedParent(
+                parent,
+                childType,
+                context.themeNodeIdMap,
+              );
             }
-            resolvedParentId = findClosestAllowedParent(
-              parent,
-              childType,
-              context.themeNodeIdMap
-            );
           } else {
             nextQueue.push(nodeAddOp);
             continue;
