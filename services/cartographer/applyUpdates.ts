@@ -103,6 +103,20 @@ export const applyMapUpdates = async ({
       referenceMapNodeId,
     ) as MapNode | undefined;
     if (!node) {
+      const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
+      const m = idPattern.exec(identifier);
+      if (m) {
+        const base = m[1].toLowerCase();
+        const candidates = Object.values(newNodesInBatchIdNameMap).filter(entry =>
+          entry.id.toLowerCase().startsWith(`${base}_`)
+        );
+        if (candidates.length === 1) {
+          node = newMapData.nodes.find(n => n.id === candidates[0].id);
+          if (!node) return undefined;
+        }
+      }
+    }
+    if (!node) {
       const corrected = await fetchCorrectedNodeIdentifier_Service(
         identifier,
         {
