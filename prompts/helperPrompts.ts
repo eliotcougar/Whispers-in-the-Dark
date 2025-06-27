@@ -181,6 +181,18 @@ export const MAP_EDGE_TYPE_GUIDE = `Map Edge Types:
 - boarding_hook: Grappling device to connect to a moving object.
 - shortcut: Any special connection that bypasses hierarchy rules.`;
 
+export const MAP_NODE_HIERARCHY_GUIDE = `Map Node Hierarchy:
+- A "region" can contain "locations".
+- A "location" can contain "settlements".
+- A "settlement" can contain "districts".
+- A "district" can contain "exteriors".
+- An "exterior" can contain "interiors".
+- An "interior" can contain "rooms".
+- A "room" can contain "features".
+- The "Universe" is the root node, it can contain any other nodes.
+- A "feature" can be placed anywhere in the hierarchy, but can never be a parent to any other node.
+- Only "feature" nodes can be connected to each other with edges.`;
+
 export const LOCAL_CONDITIONS_GUIDE = `- You MUST provide "localTime", "localEnvironment", "localPlace" in the response.
 - "localTime" should be a very short phrase (e.g., "Dawn", "Mid-morning", "Twilight", "Deep Night", "Temporal Flux").
 - "localEnvironment" should be a concise sentence describing immediate ambient conditions (e.g., "A gentle breeze rustles leaves.", "The air is stale and smells of decay.", "Rain lashes against the windows.", "A low hum pervades the metallic corridor.").

@@ -29,7 +29,7 @@ import {
   EDGE_TYPE_SYNONYMS,
   createHeuristicRegexes,
 } from "../../utils/mapSynonyms";
-import { MAP_EDGE_TYPE_GUIDE } from "../../prompts/helperPrompts";
+import { MAP_NODE_TYPE_GUIDE, MAP_EDGE_TYPE_GUIDE, MAP_NODE_HIERARCHY_GUIDE } from "../../prompts/helperPrompts";
 
 export const fetchCorrectedEdgeType_Service = async (edgeInfo: {
   type?: string;
@@ -143,25 +143,30 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
   properties: {
     observations: {
       type: "string",
-      minLength: 2000,
+      minLength: 500,
+      description: "Contextually relevant observations about the chains and map graph."
     },
     rationale: {
       type: "string",
+      minLength: 500,
+      description: "Explain the reasoning behind your chain suggestions."
     },
     nodesToAdd: {
       type: "array",
+      description: "List of nodes to add to the map.",
+      minItems: 1,
       items: {
         type: "object",
         properties: {
-          placeName: { type: "string" },
+          placeName: { type: "string", description: "A contextually relevant location name, based on Theme and Scene Description" },
           data: {
             type: "object",
             properties: {
-              description: { type: "string" },
-              aliases: { type: "array", items: { type: "string" } },
+              description: { type: "string", description: "Short text describing the place" },
+              aliases: { type: "array", description: "Alternative names, shorthands", items: { type: "string" } },
               status: { enum: VALID_NODE_STATUS_VALUES },
-              nodeType: { const: "feature" },
-              parentNodeId: { type: "string" },
+              nodeType: { enum: ["feature"] },
+              parentNodeId: { type: "string", description: "Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent" },
             },
             required: [
               "description",
@@ -182,14 +187,14 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
       items: {
         type: "object",
         properties: {
-          sourcePlaceName: { type: "string" },
-          targetPlaceName: { type: "string" },
+          sourcePlaceName: { type: "string", description: "Name of the source feature node. MUST be a feature type node." },
+          targetPlaceName: { type: "string", description: "Name of the target feature node. MUST be a feature type node." },
           data: {
             type: "object",
             properties: {
               type: { enum: VALID_EDGE_TYPE_VALUES },
               status: { enum: VALID_EDGE_STATUS_VALUES },
-              description: { type: "string" },
+              description: { type: "string", description: "Short text describing the connection and travel conditions."},
             },
             required: ["type", "status", "description"],
             additionalProperties: false,
@@ -216,12 +221,6 @@ export const fetchConnectorChains_Service = async (
   addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
   if (!isApiConfigured() || requests.length === 0)
     return { payload: null, debugInfo: null };
-
-  const formatValues = (arr: ReadonlyArray<string>) =>
-    `[${arr.map((v) => `'${v}'`).join(", ")}]`;
-  const NODE_STATUS_LIST = formatValues(VALID_NODE_STATUS_VALUES);
-  const EDGE_TYPE_LIST = formatValues(VALID_EDGE_TYPE_VALUES);
-  const EDGE_STATUS_LIST = formatValues(VALID_EDGE_STATUS_VALUES);
 
   const buildGraph = () => {
     const nodeMap = new Map<string, MapNode>();
@@ -302,7 +301,7 @@ Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionM
 
 ---
 
-Graph:
+## Graph:
 ${graphBlock}`;
 
   const systemInstruction = `Imagine a Player travelling along the provided chains. For each Parent Node in the graph imagine locations within them that may connect them to their neighbours.
@@ -316,36 +315,10 @@ New edges MUST inherit the original chain edge type and status.
 Every new node MUST have a unique placeName. Use only the valid node/edge status and type values.
 Edges MUST connect ALL feature nodes along each chain path using the shared feature nodes for common Parent Nodes.
 
+${MAP_NODE_TYPE_GUIDE}
 ${MAP_EDGE_TYPE_GUIDE}
-Return a single JSON object representing a single set of feature nodes and edges between them.
-Return ONLY a JSON object strictly matching this structure:
-{
-  "observations": "string", /* REQUIRED. Contextually relevant observations about the chains and map graph. Minimum 2000 chars. */
-  "rationale": "string", /* REQUIRED. Explain the reasoning behind your chain suggestions. */
-  "nodesToAdd": [
-    {
-      "placeName": "string", /* A contextually relevant location name, based on Theme and Scene Description */
-      "data": {
-        "description": "string", /* short text describing the node */
-        "aliases": ["string"], /* alternative names for the node */
-        "status": "string", /* ${NODE_STATUS_LIST} */
-        "nodeType": "feature", /* ONLY add 'feature' type nodes! */
-        "parentNodeId": "string" /* Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent */
-      }
-    }
-  ],
-  "edgesToAdd": [
-    {
-      "sourcePlaceName": "string", /* MUST ALWAYS reference a 'feature' type node! */
-      "targetPlaceName": "string", /* MUST ALWAYS reference a 'feature' type node! */
-      "data": {
-        "type": "string", /* ${EDGE_TYPE_LIST} */
-        "status": "string", /* ${EDGE_STATUS_LIST} */
-        "description": "string" /* short text describing the connection */
-      }
-    }
-  ]
-}`;
+${MAP_NODE_HIERARCHY_GUIDE}
+`;
 
   const { response } = await dispatchAIRequest({
     modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
