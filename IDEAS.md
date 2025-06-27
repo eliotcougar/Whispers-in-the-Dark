@@ -6,7 +6,7 @@ Using items is a mess, they have their own states.
 
 v1.4. Ink and Quill update
   + Notebook item type with real text notes inside.
-  - Notebook/Journal as a core feature of the game instead of an item that can be lost.
+  + Notebook/Journal as a core feature of the game instead of an item that can be lost.
   + Book item type with real chapters inside.
   + Page item type as a single page book subtype.
   + Fact list, storing random static facts. Loremaster AI that extracts small immutable facts.

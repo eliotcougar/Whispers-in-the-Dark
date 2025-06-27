@@ -146,12 +146,12 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
   properties: {
     observations: {
       type: "string",
-      minLength: 500,
+      minLength: 1500,
       description: "Contextually relevant observations about the chains and map graph."
     },
     rationale: {
       type: "string",
-      minLength: 500,
+      minLength: 1000,
       description: "Explain the reasoning behind your chain fixes and refinement suggestions."
     },
     nodesToAdd: {
@@ -331,7 +331,7 @@ ${MAP_NODE_HIERARCHY_GUIDE}
     modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction: systemInstruction,
-    thinkingBudget: 1024,
+    thinkingBudget: 2048,
     includeThoughts: true,
     responseMimeType: "application/json",
     jsonSchema: CONNECTOR_CHAINS_JSON_SCHEMA,
