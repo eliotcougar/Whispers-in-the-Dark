@@ -30,7 +30,6 @@ const buildComment = (schema: JsonSchema): string => {
 const renderValue = (
   schema: JsonSchema,
   indent = 0,
-  withinArray = false
 ): Array<string> => {
   const pad = '  '.repeat(indent);
 
@@ -41,7 +40,10 @@ const renderValue = (
     const keys = Object.keys(props);
     keys.forEach((key, index) => {
       const childLines = renderValue(props[key], indent + 1);
-      childLines[0] = `${pad}  "${key}"${req.has(key) ? '' : '?'}: ${childLines[0]}`;
+      const needsNewline = childLines[0].trim().startsWith('{') || childLines[0].trim().startsWith('[');
+      childLines[0] = needsNewline
+        ? `${pad}  "${key}"${req.has(key) ? '' : '?'}:\n${childLines[0]}`
+        : `${pad}  "${key}"${req.has(key) ? '' : '?'}: ${childLines[0]}`;
       const comma = index < keys.length - 1 ? ',' : '';
       childLines[childLines.length - 1] += comma;
       lines.push(...childLines);
@@ -52,7 +54,7 @@ const renderValue = (
 
   if (schema.type === 'array' || schema.items) {
     const lines: Array<string> = [`${pad}[`];
-    const itemLines = renderValue(schema.items ?? {}, indent + 1, true);
+    const itemLines = renderValue(schema.items ?? {}, indent + 1);
     lines.push(...itemLines);
     lines.push(`${pad}]${buildComment(schema)}`);
     return lines;
@@ -60,8 +62,7 @@ const renderValue = (
 
   if (schema.enum) {
     const enums = schema.enum.map(v => JSON.stringify(v)).join(' | ');
-    const val = withinArray ? `"${enums}"` : enums;
-    return [`${val}${buildComment(schema)}`];
+    return [`${enums}${buildComment(schema)}`];
   }
 
   if (schema.const !== undefined) {
@@ -70,8 +71,7 @@ const renderValue = (
 
   if (schema.type) {
     const base = schema.type === 'integer' ? 'number' : schema.type;
-    const val = withinArray ? `"${base}"` : base;
-    return [`${val}${buildComment(schema)}`];
+    return [`"${base}"${buildComment(schema)}`];
   }
 
   return [`unknown${buildComment(schema)}`];
