@@ -74,12 +74,6 @@ In your JSON response, 'action' field MUST always be 'add'.`;
 export const COLLECT_SYSTEM_INSTRUCTION = `You are the Loremaster selecting relevant known facts.
 Relevant facts are those that directly inform the next scene: details the NPCs might reference, rules that shape the environment, or recent events likely to influence decisions.
 Select the ten most important facts for the upcoming story turn.
-
-Respond ONLY with a JSON with the following schema:
-[
-  "The cathedral bells ward off spirits.",
-  "The mayor's daughter vanished last year."
-]
 `;
 
 export const DISTILL_SYSTEM_INSTRUCTION = `You are the Loremaster refining and pruning accumulated facts.
