@@ -49,6 +49,17 @@ const infoDisplayContent = {
   ],
   "changelog": [
     {
+      "title": "Version 1.4 (Ink and Quill Update)",
+      "items": [
+        "Major new features - Books and Notes. Player's Journal. Loremaster AI.",
+        "Removed \"Knowledge\" items from the game. They are now replaced with Lore database managed by Loremaster AI.",
+        "Updated the AI model to Gemini 2.5-flash.",
+        "The auxiliary model now uses Gemini 2.5-flash-lite. Auxiliary requests now use Thinking.",
+        "Updated Image Generation model to Imagen 4 preview.",
+        "Updated Google GenAI API to the latest version, allowing the game to request strict JSON responses from the AI. That means less malformed responses and less need for Corrections."
+      ]
+    },
+    {
       "title": "Version 1.3.2 (bugfix)",
       "items": [
         "Major refactor and cleanup of the codebase.",
