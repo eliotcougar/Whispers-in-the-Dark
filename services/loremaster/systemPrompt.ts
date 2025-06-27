@@ -69,30 +69,7 @@ CRITICALLY IMPORTANT: DO NOT include irrelevant and low quality facts. Examples 
 `;
 
 export const INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION = `You are the Loremaster integrating newly discovered facts with existing lore.
-First list your observations about overlaps or possible contradictions. Then explain your rationale for what facts to add, and what to ignore.
-Respond ONLY with a JSON object of the form:
-{
-  "observations": "string",
-  "rationale": "string",
-  "factsChange": [ /* Array of ThemeFactChange */
-    { "action": "add", "fact": { "text": "string" } }
-  ],
-  "loreRefinementOutcome": "string"
-}`;
-
-export const INTEGRATE_SYSTEM_INSTRUCTION = `You are the Loremaster integrating newly discovered facts with existing lore.
-First list your observations about conflicts, then state the rationale for resolving them. You may add, change or delete facts to keep the lore coherent.
-Respond ONLY with a JSON object of the form:
-{
-  "observations": "string",
-  "rationale": "string",
-  "factsChange": [ /* Array of ThemeFactChange */
-    { "action": "add", "fact": { "text": "string" } },
-    { "action": "change", "id": 2, "fact": { "text": "string", "tier": 2 } },
-    { "action": "delete", "id": 3 }
-  ],
-  "loreRefinementOutcome": "string"
-}`;
+First list your observations about overlaps or possible contradictions. Then explain your rationale for what facts to add, and what to ignore.}`;
 
 export const COLLECT_SYSTEM_INSTRUCTION = `You are the Loremaster selecting relevant known facts.
 Relevant facts are those that directly inform the next scene: details the NPCs might reference, rules that shape the environment, or recent events likely to influence decisions.
