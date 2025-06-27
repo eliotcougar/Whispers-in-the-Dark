@@ -8,6 +8,7 @@ export interface JsonSchema {
   properties?: Record<string, JsonSchema>;
   items?: JsonSchema;
   enum?: Array<string | number>;
+  const?: string | number;
   required?: Array<string>;
   description?: string;
   minLength?: number;
@@ -26,45 +27,58 @@ const buildComment = (schema: JsonSchema): string => {
   return parts.length ? ` /* ${parts.join('. ')} */` : '';
 };
 
-const render = (schema: JsonSchema, indent = 0): string => {
+const renderValue = (
+  schema: JsonSchema,
+  indent = 0,
+  withinArray = false
+): Array<string> => {
   const pad = '  '.repeat(indent);
-  if (schema.type === 'object') {
-    const lines: Array<string> = ['{'];
+
+  if (schema.type === 'object' || schema.properties) {
+    const lines: Array<string> = [`${pad}{`];
     const props = schema.properties ?? {};
-    const req = schema.required ?? [];
+    const req = new Set(schema.required ?? []);
     const keys = Object.keys(props);
     keys.forEach((key, index) => {
-      const child = props[key];
-      const inner = render(child, indent + 1);
-      const comment = buildComment(child);
+      const childLines = renderValue(props[key], indent + 1);
+      childLines[0] = `${pad}  "${key}"${req.has(key) ? '' : '?'}: ${childLines[0]}`;
       const comma = index < keys.length - 1 ? ',' : '';
-      lines.push(`${pad}  "${key}"${req.includes(key) ? '' : '?'}: ${inner}${comment}${comma}`);
+      childLines[childLines.length - 1] += comma;
+      lines.push(...childLines);
     });
-    lines.push(`${pad}}`);
-    return lines.join('\n');
+    lines.push(`${pad}}${buildComment(schema)}`);
+    return lines;
   }
 
-  if (schema.type === 'array') {
-    const inner = schema.items ? render(schema.items, indent + 1) : 'unknown';
-    const comment = buildComment(schema);
-    if (inner.startsWith('{') || inner.startsWith('[')) {
-      const lines = ['[', inner, `${pad}]${comment}`];
-      return lines.join('\n');
-    }
-    return `[${inner}]${comment}`;
+  if (schema.type === 'array' || schema.items) {
+    const lines: Array<string> = [`${pad}[`];
+    const itemLines = renderValue(schema.items ?? {}, indent + 1, true);
+    lines.push(...itemLines);
+    lines.push(`${pad}]${buildComment(schema)}`);
+    return lines;
   }
 
   if (schema.enum) {
-    return schema.enum.map(v => JSON.stringify(v)).join(' | ');
+    const enums = schema.enum.map(v => JSON.stringify(v)).join(' | ');
+    const val = withinArray ? `"${enums}"` : enums;
+    return [`${val}${buildComment(schema)}`];
+  }
+
+  if (schema.const !== undefined) {
+    return [`${JSON.stringify(schema.const)}${buildComment(schema)}`];
   }
 
   if (schema.type) {
-    let base = schema.type;
-    if (base === 'integer') base = 'number';
-    return base + buildComment(schema);
+    const base = schema.type === 'integer' ? 'number' : schema.type;
+    const val = withinArray ? `"${base}"` : base;
+    return [`${val}${buildComment(schema)}`];
   }
 
-  return 'unknown';
+  return [`unknown${buildComment(schema)}`];
+};
+
+const render = (schema: JsonSchema): string => {
+  return renderValue(schema).join('\n');
 };
 
 export const jsonSchemaToPrompt = (schema: JsonSchema): string => {
