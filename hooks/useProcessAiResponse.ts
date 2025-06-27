@@ -61,15 +61,15 @@ const correctItemChanges = async ({
         };
       } else if (currentChange.action === 'put') {
         const item = currentChange.item;
-        if (!item.holderId?.startsWith('node_')) {
+        if (!item.holderId.startsWith('node_')) {
           item.holderId = baseState.currentMapNodeId ?? 'unknown';
         }
       } else if (currentChange.action === 'give' || currentChange.action === 'take') {
         const payload = currentChange.item;
-        if (!payload.fromId?.startsWith('node_')) {
+        if (!payload.fromId.startsWith('node_')) {
           payload.fromId = baseState.currentMapNodeId ?? 'unknown';
         }
-        if (!payload.toId?.startsWith('node_')) {
+        if (!payload.toId.startsWith('node_')) {
           payload.toId = baseState.currentMapNodeId ?? 'unknown';
         }
       }

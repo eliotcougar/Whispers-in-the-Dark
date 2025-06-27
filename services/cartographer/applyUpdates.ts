@@ -239,6 +239,7 @@ export const applyMapUpdates = async ({
     logMsg,
     localPlace,
     debugInfo,
+    inventoryItems,
   };
 
   await processNodeAdds(ctx);
@@ -262,7 +263,18 @@ export const applyMapUpdates = async ({
 
   await refineConnectorChains(ctx);
 
+  const nodeHasNonJunkItems = (nodeId: string): boolean =>
+    inventoryItems.some(
+      item => item.holderId === nodeId && !item.tags?.includes('junk'),
+    );
+
   const removeNode = (node: MapNode): void => {
+    if (nodeHasNonJunkItems(node.id)) {
+      console.warn(
+        `Sanity check: skipping removal of "${node.placeName}" because it contains non-junk items.`,
+      );
+      return;
+    }
     const removedId = node.id;
     const idx = ctx.newMapData.nodes.findIndex(n => n.id === removedId);
     if (idx !== -1) ctx.newMapData.nodes.splice(idx, 1);

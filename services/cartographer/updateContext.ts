@@ -4,6 +4,7 @@ import type {
   MapData,
   MapNode,
   MapEdge,
+  Item,
   MinimalModelCallRecord,
 } from '../../types';
 import type { EdgeChainRequest } from '../corrections/edgeFixes';
@@ -35,4 +36,5 @@ export interface ApplyUpdatesContext {
   logMsg: string;
   localPlace: string;
   debugInfo: MapUpdateDebugInfo;
+  inventoryItems: Array<Item>;
 }

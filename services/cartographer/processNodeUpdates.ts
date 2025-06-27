@@ -1,4 +1,4 @@
-import type { MapEdge } from '../../types';
+import type { Item, MapEdge } from '../../types';
 import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import type { ApplyUpdatesContext } from './updateContext';
 
@@ -106,6 +106,15 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
         console.warn(
           `MapUpdate (nodesToRemove): nodeId "${nodeRemoveOp.nodeId}" resolves to "${node.placeName}" which mismatches provided nodeName "${nodeRemoveOp.nodeName}".`
         );
+      }
+      const hasNonTrashItems = ctx.inventoryItems.some(
+        (it: Item) => it.holderId === node.id && !it.tags?.includes('junk'),
+      );
+      if (hasNonTrashItems) {
+        console.warn(
+          `MapUpdate (nodesToRemove): Skipping removal of "${node.placeName}" because it contains non-junk items.`,
+        );
+        continue;
       }
       const removedNodeId = node.id;
       const index = ctx.newMapData.nodes.findIndex(n => n.id === removedNodeId);
