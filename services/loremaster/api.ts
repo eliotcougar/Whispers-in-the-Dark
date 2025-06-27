@@ -27,6 +27,16 @@ import {
   DISTILL_SYSTEM_INSTRUCTION,
 } from './systemPrompt';
 
+export const EXTRACT_FACTS_JSON_SCHEMA = {
+  type: 'array',
+  items: { type: 'string' },
+} as const;
+
+export const COLLECT_FACTS_JSON_SCHEMA = {
+  type: 'array',
+  items: { type: 'string' },
+} as const;
+
 export const INTEGRATE_FACTS_JSON_SCHEMA = {
   type: 'object',
   properties: {
@@ -51,6 +61,46 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
     }
   },
   required: ['observations', 'rationale', 'factsChange'],
+  additionalProperties: false,
+} as const;
+
+export const DISTILL_FACTS_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    observations: {
+      type: 'string',
+      minLength: 300,
+      description: 'Minimum 300 words. Observations about the lore state.',
+    },
+    rationale: {
+      type: 'string',
+      minLength: 300,
+      description: 'Minimum 300 words. Rationale for the proposed changes.',
+    },
+    factsChange: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          action: { enum: ['add', 'change', 'delete'] },
+          id: { type: 'number' },
+          fact: {
+            type: 'object',
+            properties: {
+              text: { type: 'string' },
+              tier: { type: 'number' },
+            },
+            required: ['text'],
+            additionalProperties: false,
+          },
+        },
+        required: ['action'],
+        additionalProperties: false,
+      },
+    },
+    loreRefinementOutcome: { type: 'string' },
+  },
+  required: ['observations', 'rationale', 'factsChange', 'loreRefinementOutcome'],
   additionalProperties: false,
 } as const;
 
@@ -85,6 +135,7 @@ export const refineLore_Service = async (
       thinkingBudget: 512,
       includeThoughts: true,
       responseMimeType: 'application/json',
+      jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
       temperature: 0.7,
       label: 'LoremasterExtract',
     });
@@ -209,6 +260,7 @@ export const collectRelevantFacts_Service = async (
       thinkingBudget: 1024,
       includeThoughts: true,
       responseMimeType: 'application/json',
+      jsonSchema: COLLECT_FACTS_JSON_SCHEMA,
       temperature: 0.7,
       label: 'LoremasterCollect',
     });
@@ -284,6 +336,7 @@ export const distillFacts_Service = async (
       thinkingBudget: 4096,
       includeThoughts: true,
       responseMimeType: 'application/json',
+      jsonSchema: DISTILL_FACTS_JSON_SCHEMA,
       temperature: 0.7,
       label: 'LoremasterDistill',
     });
