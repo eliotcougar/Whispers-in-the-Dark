@@ -3,7 +3,14 @@
  * @description Helpers for correcting or inferring map node details.
  */
 
-import { AdventureTheme, MapNode, MapNodeData, MapEdge, MinimalModelCallRecord } from '../../types';
+import {
+  AdventureTheme,
+  MapNode,
+  MapNodeData,
+  MapEdge,
+  MapNodeType,
+  MinimalModelCallRecord,
+} from '../../types';
 import {
   MAX_RETRIES,
   NODE_DESCRIPTION_INSTRUCTION,
@@ -18,6 +25,7 @@ import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
 import {
   VALID_NODE_TYPE_VALUES,
+  NODE_TYPE_LEVELS,
   MINIMAL_MODEL_NAME,
   AUXILIARY_MODEL_NAME,
   GEMINI_MODEL_NAME,
@@ -381,8 +389,12 @@ export const fetchLikelyParentNode_Service = async (
     if (setB) setB.add(e.sourceNodeId);
   });
 
+  const proposedNodeType = (proposedNode.nodeType ?? 'feature') as MapNodeType;
+  const proposedLevel = NODE_TYPE_LEVELS[proposedNodeType];
+
   const nodeLines = context.themeNodes
-    .map(n => `- ${n.id} ("${n.placeName}")`) // TODO: list only nodes that are higher in the hierarchy that the proposed node
+    .filter(n => NODE_TYPE_LEVELS[n.data.nodeType] < proposedLevel)
+    .map(n => `- ${n.id} ("${n.placeName}")`)
     .join('\n');
 
   const edgeLines = context.themeEdges

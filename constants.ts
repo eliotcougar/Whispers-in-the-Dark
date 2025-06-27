@@ -78,6 +78,9 @@ export const VALID_ITEM_TYPES = [
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
 
+export const VALID_ACTIONS = ['gain', 'destroy', 'update', 'addChapter', 'put', 'give', 'take'] as const;
+export const VALID_ACTIONS_STRING = VALID_ACTIONS.map(action => `"${action}"`).join(' | ');
+
 export const COMMON_TAGS = [
   'junk',
   'recovered',

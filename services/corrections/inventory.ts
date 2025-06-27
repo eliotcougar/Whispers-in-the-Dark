@@ -6,6 +6,7 @@ import { AdventureTheme, ItemChange } from '../../types';
 import {
   MAX_RETRIES,
   VALID_ITEM_TYPES_STRING,
+  VALID_ACTIONS_STRING,
   PLAYER_HOLDER_ID,
   AUXILIARY_MODEL_NAME,
   GEMINI_MODEL_NAME,
@@ -17,9 +18,6 @@ import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
 import { parseInventoryResponse } from '../inventory/responseParser';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-
-const VALID_ACTIONS = ['gain', 'destroy', 'update', 'put', 'give', 'take'] as const;
-const VALID_ACTIONS_STRING = VALID_ACTIONS.map(a => `"${a}"`).join(' | ');
 
 /**
  * Attempts to correct a malformed array of ItemChange objects returned by the
