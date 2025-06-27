@@ -63,6 +63,12 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
     );
   }
 
+  nodesToAddOps_mut.forEach(nAdd => {
+    const id = buildNodeId(nAdd.placeName);
+    (nAdd as unknown as Record<string, unknown>).__generatedId = id;
+    context.newNodesInBatchIdNameMap[nAdd.placeName] = { id, name: nAdd.placeName };
+  });
+
   (context.payload.nodesToUpdate ?? []).forEach(upd => {
     const updNames = [upd.placeName.toLowerCase()];
     if (upd.newData.placeName) updNames.push(upd.newData.placeName.toLowerCase());
@@ -140,10 +146,16 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
         ) {
           existing.data.description = nodeAddOp.data.description;
         }
+        Reflect.deleteProperty(
+          context.newNodesInBatchIdNameMap,
+          nodeAddOp.placeName,
+        );
         continue;
       }
 
-      const newNodeId = buildNodeId(nodeAddOp.placeName);
+      const preId = (nodeAddOp as unknown as Record<string, unknown>).__generatedId as
+        string | undefined;
+      const newNodeId = preId ?? buildNodeId(nodeAddOp.placeName);
 
       const { description, aliases, parentNodeId: _ignoredParent, status, nodeType, visited: _ignoredVisited, ...rest } =
         nodeAddOp.data;

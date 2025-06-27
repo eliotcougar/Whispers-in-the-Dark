@@ -89,7 +89,12 @@ export const findMapNodeByIdentifier = (
     if (m) {
       const baseStr = m[1];
       base = baseStr;
-      partialMatch = nodes.find(node => node.id.toLowerCase().includes(baseStr.toLowerCase()));
+      const baseCandidates = nodes.filter(n =>
+        n.id.toLowerCase().startsWith(`${baseStr.toLowerCase()}_`)
+      );
+      if (baseCandidates.length === 1) {
+        partialMatch = baseCandidates[0];
+      }
     }
   }
 
