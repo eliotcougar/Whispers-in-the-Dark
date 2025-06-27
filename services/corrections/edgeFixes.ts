@@ -3,7 +3,12 @@
  * @description Helpers for correcting edge information and building connector chains.
  */
 
-import { AdventureTheme, MapNode, MapEdgeData, AIMapUpdatePayload } from '../../types';
+import {
+  AdventureTheme,
+  MapNode,
+  MapEdgeData,
+  AIMapUpdatePayload,
+} from "../../types";
 import {
   MAX_RETRIES,
   VALID_EDGE_TYPE_VALUES,
@@ -12,69 +17,94 @@ import {
   GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
   MINIMAL_MODEL_NAME,
-} from '../../constants';
-import { dispatchAIRequest } from '../modelDispatcher';
-import { CORRECTION_TEMPERATURE } from '../../constants';
-import { addProgressSymbol } from '../../utils/loadingProgress';
-import { LOADING_REASON_UI_MAP } from '../../constants';
-import { retryAiCall } from '../../utils/retry';
-import { isApiConfigured } from '../apiClient';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { EDGE_TYPE_SYNONYMS, createHeuristicRegexes } from '../../utils/mapSynonyms';
-import { MAP_EDGE_TYPE_GUIDE } from '../../prompts/helperPrompts';
+} from "../../constants";
+import { dispatchAIRequest } from "../modelDispatcher";
+import { CORRECTION_TEMPERATURE } from "../../constants";
+import { addProgressSymbol } from "../../utils/loadingProgress";
+import { LOADING_REASON_UI_MAP } from "../../constants";
+import { retryAiCall } from "../../utils/retry";
+import { isApiConfigured } from "../apiClient";
+import { extractJsonFromFence, safeParseJson } from "../../utils/jsonUtils";
+import {
+  EDGE_TYPE_SYNONYMS,
+  createHeuristicRegexes,
+} from "../../utils/mapSynonyms";
+import { MAP_EDGE_TYPE_GUIDE } from "../../prompts/helperPrompts";
 
-export const fetchCorrectedEdgeType_Service = async (
-  edgeInfo: { type?: string; description?: string },
-): Promise<MapEdgeData['type'] | null> => {
-  const synonyms = EDGE_TYPE_SYNONYMS as Record<string, MapEdgeData['type'] | undefined>;
+export const fetchCorrectedEdgeType_Service = async (edgeInfo: {
+  type?: string;
+  description?: string;
+}): Promise<MapEdgeData["type"] | null> => {
+  const synonyms = EDGE_TYPE_SYNONYMS as Record<
+    string,
+    MapEdgeData["type"] | undefined
+  >;
 
   if (edgeInfo.type) {
-    const normalized = synonyms[edgeInfo.type.toLowerCase()] ?? edgeInfo.type.toLowerCase();
-    if ((VALID_EDGE_TYPE_VALUES as ReadonlyArray<string>).includes(normalized)) {
-      return normalized as MapEdgeData['type'];
+    const normalized =
+      synonyms[edgeInfo.type.toLowerCase()] ?? edgeInfo.type.toLowerCase();
+    if (
+      (VALID_EDGE_TYPE_VALUES as ReadonlyArray<string>).includes(normalized)
+    ) {
+      return normalized as MapEdgeData["type"];
     }
   }
 
-  const heuristics = createHeuristicRegexes(EDGE_TYPE_SYNONYMS, VALID_EDGE_TYPE_VALUES);
+  const heuristics = createHeuristicRegexes(
+    EDGE_TYPE_SYNONYMS,
+    VALID_EDGE_TYPE_VALUES,
+  );
 
   for (const [regex, type] of heuristics) {
-    if ((edgeInfo.type && regex.test(edgeInfo.type)) || (edgeInfo.description && regex.test(edgeInfo.description))) {
+    if (
+      (edgeInfo.type && regex.test(edgeInfo.type)) ||
+      (edgeInfo.description && regex.test(edgeInfo.description))
+    ) {
       return type;
     }
   }
 
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedEdgeType_Service: API Key not configured.');
+    console.error("fetchCorrectedEdgeType_Service: API Key not configured.");
     return null;
   }
 
   const prompt = `Determine the most appropriate edge type for a map connection in a text adventure game.
 ${MAP_EDGE_TYPE_GUIDE}
-Description: "${edgeInfo.description ?? 'No description provided.'}"
-Valid edge types: ${VALID_EDGE_TYPE_VALUES.join(', ')}
+Description: "${edgeInfo.description ?? "No description provided."}"
+Valid edge types: ${VALID_EDGE_TYPE_VALUES.join(", ")}
 Respond ONLY with the single edge type.`;
 
-  const systemInstruction = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(', ')}.`;
-  return retryAiCall<MapEdgeData['type']>(async attempt => {
+  const systemInstruction = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(", ")}.`;
+  return retryAiCall<MapEdgeData["type"]>(async (attempt) => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [
+          MINIMAL_MODEL_NAME,
+          GEMINI_LITE_MODEL_NAME,
+          GEMINI_MODEL_NAME,
+        ],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
-        label: 'Corrections',
+        label: "Corrections",
       });
       const aiResponse = response.text?.trim();
       if (aiResponse) {
         const cleaned = aiResponse.trim().toLowerCase();
         const mapped = synonyms[cleaned] ?? cleaned;
-        if ((VALID_EDGE_TYPE_VALUES as ReadonlyArray<string>).includes(mapped)) {
-          return { result: mapped as MapEdgeData['type'] };
+        if (
+          (VALID_EDGE_TYPE_VALUES as ReadonlyArray<string>).includes(mapped)
+        ) {
+          return { result: mapped as MapEdgeData["type"] };
         }
       }
     } catch (error: unknown) {
-      console.error(`fetchCorrectedEdgeType_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
+      console.error(
+        `fetchCorrectedEdgeType_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
+        error,
+      );
       throw error;
     }
     return { result: null };
@@ -108,6 +138,72 @@ export interface ConnectorChainsServiceResult {
   } | null;
 }
 
+export const CONNECTOR_CHAINS_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    observations: {
+      type: "string",
+      minLength: 2000,
+    },
+    rationale: {
+      type: "string",
+    },
+    nodesToAdd: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          placeName: { type: "string" },
+          data: {
+            type: "object",
+            properties: {
+              description: { type: "string" },
+              aliases: { type: "array", items: { type: "string" } },
+              status: { enum: VALID_NODE_STATUS_VALUES },
+              nodeType: { const: "feature" },
+              parentNodeId: { type: "string" },
+            },
+            required: [
+              "description",
+              "aliases",
+              "status",
+              "nodeType",
+              "parentNodeId",
+            ],
+            additionalProperties: false,
+          },
+        },
+        required: ["placeName", "data"],
+        additionalProperties: false,
+      },
+    },
+    edgesToAdd: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          sourcePlaceName: { type: "string" },
+          targetPlaceName: { type: "string" },
+          data: {
+            type: "object",
+            properties: {
+              type: { enum: VALID_EDGE_TYPE_VALUES },
+              status: { enum: VALID_EDGE_STATUS_VALUES },
+              description: { type: "string" },
+            },
+            required: ["type", "status", "description"],
+            additionalProperties: false,
+          },
+        },
+        required: ["sourcePlaceName", "targetPlaceName", "data"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["observations", "rationale", "nodesToAdd", "edgesToAdd"],
+  additionalProperties: false,
+} as const;
+
 export const fetchConnectorChains_Service = async (
   requests: Array<EdgeChainRequest>,
   context: {
@@ -121,21 +217,25 @@ export const fetchConnectorChains_Service = async (
   if (!isApiConfigured() || requests.length === 0)
     return { payload: null, debugInfo: null };
 
-  const formatValues = (arr: ReadonlyArray<string>) => `[${arr.map(v => `'${v}'`).join(', ')}]`;
+  const formatValues = (arr: ReadonlyArray<string>) =>
+    `[${arr.map((v) => `'${v}'`).join(", ")}]`;
   const NODE_STATUS_LIST = formatValues(VALID_NODE_STATUS_VALUES);
   const EDGE_TYPE_LIST = formatValues(VALID_EDGE_TYPE_VALUES);
   const EDGE_STATUS_LIST = formatValues(VALID_EDGE_STATUS_VALUES);
 
   const buildGraph = () => {
     const nodeMap = new Map<string, MapNode>();
-    const edgeMap = new Map<string, { source: MapNode; target: MapNode; data: MapEdgeData }>();
+    const edgeMap = new Map<
+      string,
+      { source: MapNode; target: MapNode; data: MapEdgeData }
+    >();
     const chainLines: Array<string> = [];
 
     requests.forEach((r, idx) => {
       const visited = new Set<string>();
       const orderedParents: Array<MapNode> = [];
-      [...r.sourceChain, ...r.targetChain.slice().reverse()].forEach(p => {
-        if (p.data.nodeType !== 'feature' && !visited.has(p.id)) {
+      [...r.sourceChain, ...r.targetChain.slice().reverse()].forEach((p) => {
+        if (p.data.nodeType !== "feature" && !visited.has(p.id)) {
           orderedParents.push(p);
           visited.add(p.id);
           nodeMap.set(p.id, p);
@@ -158,29 +258,39 @@ export const fetchConnectorChains_Service = async (
         const a = orderedParents[i];
         const b = orderedParents[i + 1];
         const key = a.id < b.id ? `${a.id}|${b.id}` : `${b.id}|${a.id}`;
-        if (!edgeMap.has(key)) edgeMap.set(key, { source: a, target: b, data: r.edgeData });
+        if (!edgeMap.has(key))
+          edgeMap.set(key, { source: a, target: b, data: r.edgeData });
       }
 
-      chainLines.push(`Chain ${String(idx + 1)}: ${orderedParents.map(p => `"${p.placeName}"`).join(' -> ')}`);
+      chainLines.push(
+        `Chain ${String(idx + 1)}: ${orderedParents.map((p) => `"${p.placeName}"`).join(" -> ")}`,
+      );
     });
 
     const nodeLines = Array.from(nodeMap.values())
       .map((p, i) => {
-        const features = context.themeNodes
-          .filter(n => n.data.parentNodeId === p.id && n.data.nodeType === 'feature')
-          .map(f => ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description})`)
-          .join('\n') || ' - None';
+        const features =
+          context.themeNodes
+            .filter(
+              (n) =>
+                n.data.parentNodeId === p.id && n.data.nodeType === "feature",
+            )
+            .map(
+              (f) =>
+                ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description})`,
+            )
+            .join("\n") || " - None";
         return `Node ${String(i + 1)}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description})\n${features}`;
       })
-      .join('\n');
+      .join("\n");
 
     const edgeLines = Array.from(edgeMap.values())
       .map((e, i) => {
-        return `Edge ${String(i + 1)}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${e.data.type ?? 'path'}, Status: ${e.data.status ?? 'open'}, Desc: ${e.data.description ?? 'None'})`;
+        return `Edge ${String(i + 1)}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${e.data.type ?? "path"}, Status: ${e.data.status ?? "open"}, Desc: ${e.data.description ?? "None"})`;
       })
-      .join('\n');
+      .join("\n");
 
-    return `Parent Nodes:\n${nodeLines}\n\nEdges:\n${edgeLines}\n\nChains:\n${chainLines.join('\n')}`;
+    return `Parent Nodes:\n${nodeLines}\n\nEdges:\n${edgeLines}\n\nChains:\n${chainLines.join("\n")}`;
   };
 
   const graphBlock = buildGraph();
@@ -243,19 +353,26 @@ Return ONLY a JSON object strictly matching this structure:
     systemInstruction: systemInstruction,
     thinkingBudget: 1024,
     includeThoughts: true,
-    responseMimeType: 'application/json',
+    responseMimeType: "application/json",
+    jsonSchema: CONNECTOR_CHAINS_JSON_SCHEMA,
     temperature: CORRECTION_TEMPERATURE,
-    label: 'Corrections',
+    label: "Corrections",
   });
 
-  const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+  const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
+    text?: string;
+    thought?: boolean;
+  }>;
   const thoughtParts = parts
-    .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
-    .map(p => p.text);
+    .filter(
+      (p): p is { text: string; thought?: boolean } =>
+        p.thought === true && typeof p.text === "string",
+    )
+    .map((p) => p.text);
 
-  const debugInfo: ConnectorChainsServiceResult['debugInfo'] = {
+  const debugInfo: ConnectorChainsServiceResult["debugInfo"] = {
     prompt,
-    rawResponse: response.text ?? '',
+    rawResponse: response.text ?? "",
     parsedPayload: undefined,
     validationError: undefined,
     observations: undefined,
@@ -263,16 +380,16 @@ Return ONLY a JSON object strictly matching this structure:
     thoughts: thoughtParts.length > 0 ? thoughtParts : undefined,
   };
 
-  const jsonStr = extractJsonFromFence(response.text ?? '');
+  const jsonStr = extractJsonFromFence(response.text ?? "");
   const parsed: unknown = safeParseJson(jsonStr);
   if (!parsed) {
-    debugInfo.validationError = 'Failed to parse JSON';
+    debugInfo.validationError = "Failed to parse JSON";
     return { payload: null, debugInfo };
   }
   let result: AIMapUpdatePayload | null = null;
   if (Array.isArray(parsed)) {
     result = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
-      if (entry && typeof entry === 'object') {
+      if (entry && typeof entry === "object") {
         const maybeObj = entry as Partial<AIMapUpdatePayload>;
         if (Array.isArray(maybeObj.nodesToAdd)) {
           acc.nodesToAdd = [...(acc.nodesToAdd ?? []), ...maybeObj.nodesToAdd];
@@ -289,18 +406,19 @@ Return ONLY a JSON object strictly matching this structure:
       }
       return acc;
     }, {});
-  } else if (typeof parsed === 'object') {
+  } else if (typeof parsed === "object") {
     result = parsed as AIMapUpdatePayload;
   }
   debugInfo.parsedPayload = result ?? undefined;
   if (result) {
-    if (result.observations && !debugInfo.observations) debugInfo.observations = result.observations;
-    if (result.rationale && !debugInfo.rationale) debugInfo.rationale = result.rationale;
+    if (result.observations && !debugInfo.observations)
+      debugInfo.observations = result.observations;
+    if (result.rationale && !debugInfo.rationale)
+      debugInfo.rationale = result.rationale;
   }
   if (result && (result.nodesToAdd || result.edgesToAdd)) {
     return { payload: result, debugInfo };
   }
-  debugInfo.validationError = 'Parsed JSON missing nodesToAdd or edgesToAdd';
+  debugInfo.validationError = "Parsed JSON missing nodesToAdd or edgesToAdd";
   return { payload: null, debugInfo };
 };
-
