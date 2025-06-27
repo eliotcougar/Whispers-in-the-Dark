@@ -27,11 +27,32 @@ import {
   DISTILL_SYSTEM_INSTRUCTION,
 } from './systemPrompt';
 
+export const EXTRACT_FACTS_JSON_SCHEMA = {
+  type: 'array',
+  items: { type: 'string', description: 'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact.' },
+} as const;
+
+export const COLLECT_FACTS_JSON_SCHEMA = {
+  type: 'array',
+  minItems: 10,
+  maxItems: 10,
+  description: 'From the provided facts list select 10 most important facts for the upcoming story turn.',
+  items: { type: 'string' },
+} as const;
+
 export const INTEGRATE_FACTS_JSON_SCHEMA = {
   type: 'object',
   properties: {
-    observations: { type: 'string', minLength: 500, description: 'Minimum 300 words. Observations about the lore state and the proposed new facts, e.g. There are 3 facts that can be merged. Some of the facts may be too vague or obsolete to be included...' },
-    rationale: { type: 'string', minLength: 500, description: 'Minimum 300 words. Rationale for and against including the proposed facts into the lore, e.g. Most facts are good enough to be included in the lore. However, the facts about the old tavern are no longer relevant. The fact about *a path* leading to the church is too vague - a more concrete named path should have been mentioned instead. I will omit these facts.' },
+    observations: {
+      type: 'string',
+      minLength: 500,
+      description: 'Minimum 300 words. Observations about the lore state and the proposed new facts, e.g. There are 3 facts that can be merged. Some of the facts may be too vague or obsolete to be included...'
+    },
+    rationale: {
+      type: 'string',
+      minLength: 500,
+      description: 'Minimum 300 words. Rationale for and against including the proposed facts into the lore, e.g. Most facts are good enough to be included in the lore. However, the facts about the old tavern are no longer relevant. The fact about *a path* leading to the church is too vague - a more concrete named path should have been mentioned instead. I will omit these facts.'
+    },
     factsChange: {
       type: 'array',
       items: {
@@ -46,6 +67,46 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
           },
         },
         required: ['action', 'fact'],
+        additionalProperties: false,
+      }
+    }
+  },
+  required: ['observations', 'rationale', 'factsChange'],
+  additionalProperties: false,
+} as const;
+
+export const DISTILL_FACTS_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    observations: {
+      type: 'string',
+      minLength: 500,
+      description: 'Minimum 300 words. Observations about the lore state, close duplicates, too vague facts.',
+    },
+    rationale: {
+      type: 'string',
+      minLength: 500,
+      description: 'Minimum 300 words. Rationale for the proposed mergers, splits, and deletions.',
+    },
+    factsChange: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          action: { enum: ['add', 'change', 'delete'] },
+          id: { type: 'integer', description: "Required for *change* and *delete* actions." },
+          fact: {
+            type: 'object',
+            description: 'REQUIRED for the *add* and *change* actions. Omitted for the *delete* action.',
+            properties: {
+              text: { type: 'string', description: 'REQUIRED for the *add* and *change* actions.' },
+              tier: { type: 'integer', description: 'Omit tier for *add* action. Increase tier by one for *change* action, when any number of other facts are merged into this one.', default: 1 },
+            },
+            required: ['text'],
+            additionalProperties: false,
+          },
+        },
+        required: ['action'],
         additionalProperties: false,
       }
     }
@@ -85,6 +146,7 @@ export const refineLore_Service = async (
       thinkingBudget: 512,
       includeThoughts: true,
       responseMimeType: 'application/json',
+      jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
       temperature: 0.7,
       label: 'LoremasterExtract',
     });
@@ -209,6 +271,7 @@ export const collectRelevantFacts_Service = async (
       thinkingBudget: 1024,
       includeThoughts: true,
       responseMimeType: 'application/json',
+      jsonSchema: COLLECT_FACTS_JSON_SCHEMA,
       temperature: 0.7,
       label: 'LoremasterCollect',
     });
@@ -284,6 +347,7 @@ export const distillFacts_Service = async (
       thinkingBudget: 4096,
       includeThoughts: true,
       responseMimeType: 'application/json',
+      jsonSchema: DISTILL_FACTS_JSON_SCHEMA,
       temperature: 0.7,
       label: 'LoremasterDistill',
     });
