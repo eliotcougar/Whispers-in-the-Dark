@@ -8,7 +8,7 @@ import {
   VALID_PRESENCE_STATUS_VALUES,
   VALID_PRESENCE_STATUS_VALUES_STRING,
   MINIMAL_MODEL_NAME,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
@@ -80,7 +80,7 @@ Constraints:
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         responseMimeType: 'application/json',
@@ -174,7 +174,7 @@ Example Response: If unclear from context, respond with a generic but plausible 
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,

@@ -6,7 +6,7 @@ import { AdventureTheme } from '../../types';
 import {
   MAX_RETRIES,
   MINIMAL_MODEL_NAME,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
@@ -59,7 +59,7 @@ If no suitable match can be confidently made, respond with an empty string.`;
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,

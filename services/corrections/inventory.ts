@@ -8,7 +8,7 @@ import {
   VALID_ITEM_TYPES_STRING,
   VALID_ACTIONS_STRING,
   PLAYER_HOLDER_ID,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
@@ -66,7 +66,7 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         responseMimeType: 'application/json',

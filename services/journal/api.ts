@@ -1,5 +1,5 @@
 import {
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
   LOADING_REASON_UI_MAP,
 } from '../../constants';
@@ -61,7 +61,7 @@ Return a JSON object {"heading": "", "text": ""} describing a new short journal 
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.journal.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: 1.0,

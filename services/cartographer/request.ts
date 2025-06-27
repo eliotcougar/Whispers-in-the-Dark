@@ -4,7 +4,7 @@
  */
 import { GenerateContentResponse } from '@google/genai';
 import {
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
   MAX_RETRIES,
   LOADING_REASON_UI_MAP,
@@ -42,7 +42,7 @@ export const executeMapUpdateRequest = async (
   const result = await retryAiCall<{ response: GenerateContentResponse; thoughts: Array<string> }>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
     const { response } = await dispatchAIRequest({
-      modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction,
       thinkingBudget: 4096,

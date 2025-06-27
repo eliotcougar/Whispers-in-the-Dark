@@ -27,7 +27,7 @@ import {
   VALID_NODE_TYPE_VALUES,
   NODE_TYPE_LEVELS,
   MINIMAL_MODEL_NAME,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { NODE_TYPE_SYNONYMS, createHeuristicRegexes } from '../../utils/mapSynonyms';
@@ -74,7 +74,7 @@ Respond ONLY with the inferred "localPlace" as a single string.`;
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
@@ -162,7 +162,7 @@ Respond ONLY with the single, complete, corrected JSON object.`;
       try {
         addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
         const { response } = await dispatchAIRequest({
-          modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+          modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt,
           systemInstruction,
           responseMimeType: 'application/json',
@@ -238,7 +238,7 @@ Respond ONLY with the single, complete JSON object.`;
       try {
         addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
         const { response } = await dispatchAIRequest({
-          modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+          modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt,
           systemInstruction,
           responseMimeType: 'application/json',
@@ -321,7 +321,7 @@ Respond ONLY with the single node type.`;
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
@@ -421,7 +421,7 @@ Respond ONLY with the name or id of the best parent node, or "Universe" if none.
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
@@ -467,7 +467,7 @@ Known map nodes in the current theme:\n${nodeList}\nChoose the most likely inten
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,

@@ -5,7 +5,7 @@
  */
 import { GenerateContentResponse } from "@google/genai";
 import { AdventureTheme } from '../../types';
-import { GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME, MAX_RETRIES, LOADING_REASON_UI_MAP } from '../../constants';
+import { GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME, MAX_RETRIES, LOADING_REASON_UI_MAP } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
@@ -98,7 +98,7 @@ Do not include any preamble. Just provide the summary text itself.
     try {
       console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(attempt)}/${String(MAX_RETRIES +1)})`);
       const { response } = await dispatchAIRequest({
-          modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+          modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt: summarizationPrompt,
           temperature: 0.8,
           label: 'Summarize',

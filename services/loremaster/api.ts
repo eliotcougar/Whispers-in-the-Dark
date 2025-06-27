@@ -2,7 +2,7 @@
  * @file api.ts
  * @description High level functions for Loremaster AI.
  */
-import { AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME, MINIMAL_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
+import { GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME, MINIMAL_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
@@ -52,7 +52,7 @@ export const refineLore_Service = async (
   const newFacts = await retryAiCall<{ parsed: Array<string> | null; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_extract.icon);
     const { response } = await dispatchAIRequest({
-      modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: extractPrompt,
       systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
       thinkingBudget: 512,
@@ -91,7 +91,7 @@ export const refineLore_Service = async (
   const integration = await retryAiCall<{ parsed: LoreRefinementResult; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_write.icon);
     const { response } = await dispatchAIRequest({
-      modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: integratePrompt,
       systemInstruction: INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
       thinkingBudget: 2048,
@@ -175,7 +175,7 @@ export const collectRelevantFacts_Service = async (
   const result = await retryAiCall<{ parsed: Array<string> | null; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_collect.icon);
     const { response } = await dispatchAIRequest({
-      modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+      modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: COLLECT_SYSTEM_INSTRUCTION,
       thinkingBudget: 1024,
@@ -250,7 +250,7 @@ export const distillFacts_Service = async (
   const result = await retryAiCall<{ parsed: LoreRefinementResult; raw: string; thoughts: Array<string> } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_refine.icon);
     const { response } = await dispatchAIRequest({
-      modelNames: [GEMINI_MODEL_NAME, AUXILIARY_MODEL_NAME],
+      modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
       prompt,
       systemInstruction: DISTILL_SYSTEM_INSTRUCTION,
       thinkingBudget: 4096,

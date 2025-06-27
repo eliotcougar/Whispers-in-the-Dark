@@ -9,7 +9,7 @@ import {
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
   VALID_NODE_STATUS_VALUES,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
   MINIMAL_MODEL_NAME,
 } from '../../constants';
@@ -59,7 +59,7 @@ Respond ONLY with the single edge type.`;
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
@@ -238,7 +238,7 @@ Return ONLY a JSON object strictly matching this structure:
 }`;
 
   const { response } = await dispatchAIRequest({
-    modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+    modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction: systemInstruction,
     thinkingBudget: 1024,
