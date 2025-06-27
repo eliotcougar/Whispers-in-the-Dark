@@ -190,68 +190,83 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                 className="my-2"
                 key={`chain-${String(info.round)}`}
               >
-                <DebugSection
-                  content={info.prompt}
-                  isJson={false}
-                  title={`Connector Chains Prompt (Round ${String(info.round)})`}
-                />
+                {view === 'reqres' ? (
+                  <>
+                    <DebugSection
+                      content={info.prompt}
+                      isJson={false}
+                      title={`Connector Chains Prompt (Round ${String(info.round)})`}
+                    />
 
-                <div className="my-2 flex flex-wrap gap-2">
-                  <Button
-                    ariaLabel="Show raw connector chain response"
-                    label="Raw"
-                    onClick={handleShowChainRaw(idx)}
-                    preset={showChainRaw[idx] ?? true ? 'sky' : 'slate'}
-                    pressed={showChainRaw[idx] ?? true}
-                    size="sm"
-                    variant="toggle"
-                  />
+                    <div className="my-2 flex flex-wrap gap-2">
+                      <Button
+                        ariaLabel="Show raw connector chain response"
+                        label="Raw"
+                        onClick={handleShowChainRaw(idx)}
+                        preset={showChainRaw[idx] ?? true ? 'sky' : 'slate'}
+                        pressed={showChainRaw[idx] ?? true}
+                        size="sm"
+                        variant="toggle"
+                      />
 
-                  <Button
-                    ariaLabel="Show parsed connector chain response"
-                    label="Parsed"
-                    onClick={handleShowChainParsed(idx)}
-                    preset={showChainRaw[idx] ?? true ? 'slate' : 'sky'}
-                    pressed={!(showChainRaw[idx] ?? true)}
-                    size="sm"
-                    variant="toggle"
-                  />
-                </div>
+                      <Button
+                        ariaLabel="Show parsed connector chain response"
+                        label="Parsed"
+                        onClick={handleShowChainParsed(idx)}
+                        preset={showChainRaw[idx] ?? true ? 'slate' : 'sky'}
+                        pressed={!(showChainRaw[idx] ?? true)}
+                        size="sm"
+                        variant="toggle"
+                      />
+                    </div>
 
-                {(showChainRaw[idx] ?? true) ? (
-                    info.rawResponse && (
+                    {(showChainRaw[idx] ?? true) ? (
+                        info.rawResponse && (
+                          <DebugSection
+                            content={filterObservationsAndRationale(info.rawResponse)}
+                            isJson={false}
+                            title={`Connector Chains Raw Response (Round ${String(info.round)})`}
+                          />
+                        )
+                      ) : (
+                        info.parsedPayload && (
+                          <DebugSection
+                            content={info.parsedPayload}
+                            title={`Connector Chains Parsed Payload (Round ${String(info.round)})`}
+                          />
+                        )
+                      )}
+                  </>
+                ) : view === 'insights' ? (
+                  <>
+                    {info.thoughts && info.thoughts.length > 0 ? (
                       <DebugSection
-                        content={filterObservationsAndRationale(info.rawResponse)}
+                        content={info.thoughts.map(decodeEscapedString).join('\n')}
                         isJson={false}
-                        title={`Connector Chains Raw Response (Round ${String(info.round)})`}
+                        maxHeightClass="overflow-visible max-h-fit"
+                        title={`Connector Chains Thoughts (Round ${String(info.round)})`}
                       />
-                    )
-                  ) : (
-                    info.parsedPayload && (
+                    ) : null}
+
+                    {info.observations ? (
                       <DebugSection
-                        content={info.parsedPayload}
-                        title={`Connector Chains Parsed Payload (Round ${String(info.round)})`}
+                        content={info.observations}
+                        isJson={false}
+                        maxHeightClass="overflow-visible max-h-fit"
+                        title={`Connector Chains Observations (Round ${String(info.round)})`}
                       />
-                    )
-                  )}
+                    ) : null}
 
-                {info.observations ? (
-                  <DebugSection
-                    content={info.observations}
-                    isJson={false}
-                    maxHeightClass="overflow-visible max-h-fit"
-                    title={`Connector Chains Observations (Round ${String(info.round)})`}
-                  />
-                  ) : null}
-
-                {info.rationale ? (
-                  <DebugSection
-                    content={info.rationale}
-                    isJson={false}
-                    maxHeightClass="overflow-visible max-h-fit"
-                    title={`Connector Chains Rationale (Round ${String(info.round)})`}
-                  />
-                  ) : null}
+                    {info.rationale ? (
+                      <DebugSection
+                        content={info.rationale}
+                        isJson={false}
+                        maxHeightClass="overflow-visible max-h-fit"
+                        title={`Connector Chains Rationale (Round ${String(info.round)})`}
+                      />
+                    ) : null}
+                  </>
+                ) : null}
 
                 {info.validationError ? (
                   <DebugSection
@@ -259,9 +274,9 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                     isJson={false}
                     title={`Connector Chains Validation Error (Round ${String(info.round)})`}
                   />
-                  ) : null}
+                ) : null}
               </div>
-              ))
+            ))
             : null}
         </>
       ) : (
