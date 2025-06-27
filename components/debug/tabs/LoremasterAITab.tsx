@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { DebugPacket, LoremasterModeDebugInfo } from '../../../types';
+import { jsonSchemaToPrompt, JsonSchema } from '../../../utils/schemaPrompt';
 import { filterObservationsAndRationale, decodeEscapedString } from './tabUtils';
 
 interface LoremasterAITabProps {
@@ -11,7 +12,7 @@ interface LoremasterAITabProps {
 
 function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) {
   const [showRaw, setShowRaw] = useState<Record<string, boolean>>({});
-  const [showExtras, setShowExtras] = useState(false);
+  const [view, setView] = useState<'reqres' | 'insights' | 'prompt'>('reqres');
 
   const handleShowRaw = useCallback(
     (mode: string) => () => { setShowRaw(prev => ({ ...prev, [mode]: true })); },
@@ -21,8 +22,9 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
     (mode: string) => () => { setShowRaw(prev => ({ ...prev, [mode]: false })); },
     [],
   );
-  const handleShowReqRes = useCallback(() => { setShowExtras(false); }, []);
-  const handleShowInsights = useCallback(() => { setShowExtras(true); }, []);
+  const handleShowReqRes = useCallback(() => { setView('reqres'); }, []);
+  const handleShowInsights = useCallback(() => { setView('insights'); }, []);
+  const handleShowPrompt = useCallback(() => { setView('prompt'); }, []);
 
   const renderMode = (
     modeLabel: string,
@@ -35,7 +37,7 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
         className="mb-4"
         key={modeLabel}
       >
-        {!showExtras ? (
+        {view === 'reqres' ? (
           <>
             <DebugSection
               content={info.prompt}
@@ -78,7 +80,7 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
               />
             )}
           </>
-        ) : (
+        ) : view === 'insights' ? (
           <>
             {info.thoughts && info.thoughts.length > 0 ? (
               <DebugSection
@@ -107,6 +109,26 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
               />
             ) : null}
           </>
+        ) : (
+          <>
+            <DebugSection
+              content={info.systemInstruction ?? 'N/A'}
+              isJson={false}
+              title={`${modeLabel} System Prompt`}
+            />
+
+            {info.jsonSchema ? (
+              <>
+                <DebugSection content={info.jsonSchema} title="Raw Schema" />
+
+                <DebugSection
+                  content={jsonSchemaToPrompt(info.jsonSchema as JsonSchema)}
+                  isJson={false}
+                  title="Schema as Prompt"
+                />
+              </>
+            ) : null}
+          </>
         )}
       </div>
     );
@@ -121,8 +143,8 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
           ariaLabel="Show request and response"
           label="Req/Res"
           onClick={handleShowReqRes}
-          preset={!showExtras ? 'sky' : 'slate'}
-          pressed={!showExtras}
+          preset={view === 'reqres' ? 'sky' : 'slate'}
+          pressed={view === 'reqres'}
           size="sm"
           variant="toggle"
         />
@@ -131,8 +153,18 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
           ariaLabel="Show insights"
           label="Insights"
           onClick={handleShowInsights}
-          preset={showExtras ? 'sky' : 'slate'}
-          pressed={showExtras}
+          preset={view === 'insights' ? 'sky' : 'slate'}
+          pressed={view === 'insights'}
+          size="sm"
+          variant="toggle"
+        />
+
+        <Button
+          ariaLabel="Show system prompt"
+          label="Prompt"
+          onClick={handleShowPrompt}
+          preset={view === 'prompt' ? 'sky' : 'slate'}
+          pressed={view === 'prompt'}
           size="sm"
           variant="toggle"
         />

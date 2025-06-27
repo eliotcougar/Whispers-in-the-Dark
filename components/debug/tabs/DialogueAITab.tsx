@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { DebugPacket } from '../../../types';
+import { jsonSchemaToPrompt, JsonSchema } from '../../../utils/schemaPrompt';
 import { decodeEscapedString } from './tabUtils';
 
 interface DialogueAITabProps {
@@ -9,10 +10,11 @@ interface DialogueAITabProps {
 }
 
 function DialogueAITab({ debugPacket }: DialogueAITabProps) {
-  const [showExtras, setShowExtras] = useState(false);
+  const [view, setView] = useState<'reqres' | 'insights' | 'prompt'>('reqres');
 
-  const handleShowReqRes = useCallback(() => { setShowExtras(false); }, []);
-  const handleShowInsights = useCallback(() => { setShowExtras(true); }, []);
+  const handleShowReqRes = useCallback(() => { setView('reqres'); }, []);
+  const handleShowInsights = useCallback(() => { setView('insights'); }, []);
+  const handleShowPrompt = useCallback(() => { setView('prompt'); }, []);
 
   return debugPacket?.dialogueDebugInfo ? (
     <>
@@ -21,8 +23,8 @@ function DialogueAITab({ debugPacket }: DialogueAITabProps) {
           ariaLabel="Show request and response"
           label="Req/Res"
           onClick={handleShowReqRes}
-          preset={!showExtras ? 'sky' : 'slate'}
-          pressed={!showExtras}
+          preset={view === 'reqres' ? 'sky' : 'slate'}
+          pressed={view === 'reqres'}
           size="sm"
           variant="toggle"
         />
@@ -31,14 +33,24 @@ function DialogueAITab({ debugPacket }: DialogueAITabProps) {
           ariaLabel="Show insights"
           label="Insights"
           onClick={handleShowInsights}
-          preset={showExtras ? 'sky' : 'slate'}
-          pressed={showExtras}
+          preset={view === 'insights' ? 'sky' : 'slate'}
+          pressed={view === 'insights'}
+          size="sm"
+          variant="toggle"
+        />
+
+        <Button
+          ariaLabel="Show system prompt"
+          label="Prompt"
+          onClick={handleShowPrompt}
+          preset={view === 'prompt' ? 'sky' : 'slate'}
+          pressed={view === 'prompt'}
           size="sm"
           variant="toggle"
         />
       </div>
 
-      {!showExtras ? (
+      {view === 'reqres' ? (
         <>
           {debugPacket.dialogueDebugInfo.turns.map((t, idx) => {
             const thoughtsText = t.thoughts && t.thoughts.length > 0
@@ -65,7 +77,7 @@ function DialogueAITab({ debugPacket }: DialogueAITabProps) {
             );
           })}
         </>
-      ) : (
+      ) : view === 'insights' ? (
         <>
           {debugPacket.dialogueDebugInfo.summaryThoughts &&
           debugPacket.dialogueDebugInfo.summaryThoughts.length > 0 ? (
@@ -91,6 +103,29 @@ function DialogueAITab({ debugPacket }: DialogueAITabProps) {
               isJson={false}
               title="Dialogue Summary Response"
             />
+          ) : null}
+        </>
+      ) : (
+        <>
+          <DebugSection
+            content={debugPacket.dialogueDebugInfo.systemInstruction ?? 'N/A'}
+            isJson={false}
+            title="System Prompt"
+          />
+
+          {debugPacket.dialogueDebugInfo.jsonSchema ? (
+            <>
+              <DebugSection
+                content={debugPacket.dialogueDebugInfo.jsonSchema}
+                title="Raw Schema"
+              />
+
+              <DebugSection
+                content={jsonSchemaToPrompt(debugPacket.dialogueDebugInfo.jsonSchema as JsonSchema)}
+                isJson={false}
+                title="Schema as Prompt"
+              />
+            </>
           ) : null}
         </>
       )}

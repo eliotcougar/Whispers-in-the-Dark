@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { DebugPacket } from '../../../types';
+import { jsonSchemaToPrompt, JsonSchema } from '../../../utils/schemaPrompt';
 import { filterObservationsAndRationale, decodeEscapedString } from './tabUtils';
 
 interface MapLocationAITabProps {
@@ -11,12 +12,13 @@ interface MapLocationAITabProps {
 function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
   const [showRaw, setShowRaw] = useState(true);
   const [showChainRaw, setShowChainRaw] = useState<Record<number, boolean>>({});
-  const [showExtras, setShowExtras] = useState(false);
+  const [view, setView] = useState<'reqres' | 'insights' | 'prompt'>('reqres');
 
   const handleShowRaw = useCallback(() => { setShowRaw(true); }, []);
   const handleShowParsed = useCallback(() => { setShowRaw(false); }, []);
-  const handleShowReqRes = useCallback(() => { setShowExtras(false); }, []);
-  const handleShowInsights = useCallback(() => { setShowExtras(true); }, []);
+  const handleShowReqRes = useCallback(() => { setView('reqres'); }, []);
+  const handleShowInsights = useCallback(() => { setView('insights'); }, []);
+  const handleShowPrompt = useCallback(() => { setView('prompt'); }, []);
   const handleShowChainRaw = useCallback(
     (idx: number) => () => { setShowChainRaw(prev => ({ ...prev, [idx]: true })); },
     [],
@@ -42,8 +44,8 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
               ariaLabel="Show request and response"
               label="Req/Res"
               onClick={handleShowReqRes}
-              preset={!showExtras ? 'sky' : 'slate'}
-              pressed={!showExtras}
+              preset={view === 'reqres' ? 'sky' : 'slate'}
+              pressed={view === 'reqres'}
               size="sm"
               variant="toggle"
             />
@@ -52,14 +54,24 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
               ariaLabel="Show insights"
               label="Insights"
               onClick={handleShowInsights}
-              preset={showExtras ? 'sky' : 'slate'}
-              pressed={showExtras}
+              preset={view === 'insights' ? 'sky' : 'slate'}
+              pressed={view === 'insights'}
+              size="sm"
+              variant="toggle"
+            />
+
+            <Button
+              ariaLabel="Show system prompt"
+              label="Prompt"
+              onClick={handleShowPrompt}
+              preset={view === 'prompt' ? 'sky' : 'slate'}
+              pressed={view === 'prompt'}
               size="sm"
               variant="toggle"
             />
           </div>
 
-          {!showExtras ? (
+          {view === 'reqres' ? (
             <>
               <DebugSection
                 content={debugPacket.mapUpdateDebugInfo.prompt}
@@ -102,7 +114,7 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                 />
               )}
             </>
-          ) : (
+          ) : view === 'insights' ? (
             <>
               {debugPacket.mapUpdateDebugInfo.thoughts && debugPacket.mapUpdateDebugInfo.thoughts.length > 0 ? (
                 <DebugSection
@@ -129,6 +141,29 @@ function MapLocationAITab({ debugPacket }: MapLocationAITabProps) {
                   maxHeightClass="overflow-visible max-h-fit"
                   title="Cartographer Rationale"
                 />
+              ) : null}
+            </>
+          ) : (
+            <>
+              <DebugSection
+                content={debugPacket.mapUpdateDebugInfo.systemInstruction ?? 'N/A'}
+                isJson={false}
+                title="System Prompt"
+              />
+
+              {debugPacket.mapUpdateDebugInfo.jsonSchema ? (
+                <>
+                  <DebugSection
+                    content={debugPacket.mapUpdateDebugInfo.jsonSchema}
+                    title="Raw Schema"
+                  />
+
+                  <DebugSection
+                    content={jsonSchemaToPrompt(debugPacket.mapUpdateDebugInfo.jsonSchema as JsonSchema)}
+                    isJson={false}
+                    title="Schema as Prompt"
+                  />
+                </>
               ) : null}
             </>
           )}

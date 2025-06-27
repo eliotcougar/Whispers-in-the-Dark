@@ -16,6 +16,7 @@ import {
   parseAIResponse,
   buildMainGameTurnPrompt
 } from '../services/storyteller';
+import { SYSTEM_INSTRUCTION } from '../services/storyteller/systemPrompt';
 import { collectRelevantFacts_Service } from '../services/loremaster';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
@@ -201,8 +202,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       );
 
       let draftState = structuredCloneGameState(currentFullState);
+      const systemInstructionForCall = currentThemeObj.systemInstructionModifier
+        ? `${SYSTEM_INSTRUCTION}\n\nCURRENT THEME GUIDANCE:\n${currentThemeObj.systemInstructionModifier}`
+        : SYSTEM_INSTRUCTION;
       const debugPacket = {
         prompt,
+        systemInstruction: systemInstructionForCall,
+        jsonSchema: undefined,
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),

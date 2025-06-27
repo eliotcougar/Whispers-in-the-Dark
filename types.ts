@@ -333,6 +333,8 @@ export interface LoremasterModeDebugInfo {
   observations?: string;
   rationale?: string;
   thoughts?: Array<string>;
+  systemInstruction?: string;
+  jsonSchema?: unknown;
 }
 
 export interface LoremasterRefineDebugInfo {
@@ -473,6 +475,7 @@ export interface AIMapUpdatePayload {
 export interface MinimalModelCallRecord {
   prompt: string;
   systemInstruction: string;
+  jsonSchema?: unknown;
   modelUsed: string;
   responseText: string;
 }
@@ -490,9 +493,13 @@ export interface DebugPacket {
   parsedResponse: GameStateFromAI | null;
   error?: string;
   timestamp: string;
+  systemInstruction?: string;
+  jsonSchema?: unknown;
   storytellerThoughts?: Array<string> | null;
   mapUpdateDebugInfo?: {
     prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
@@ -513,6 +520,8 @@ export interface DebugPacket {
   } | null;
   inventoryDebugInfo?: {
     prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     rawResponse?: string;
     parsedItemChanges?: Array<ItemChange>;
     observations?: string;
@@ -527,6 +536,8 @@ export interface DebugPacket {
   } | null;
   dialogueDebugInfo?: {
     turns: Array<DialogueTurnDebugEntry>;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     summaryPrompt?: string;
     summaryRawResponse?: string;
     summaryThoughts?: Array<string>;

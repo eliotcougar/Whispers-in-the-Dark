@@ -62,6 +62,8 @@ export interface InventoryUpdateResult {
   itemChanges: Array<ItemChange>;
   debugInfo: {
     prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     rawResponse?: string;
     parsedItemChanges?: Array<ItemChange>;
     observations?: string;
@@ -193,6 +195,8 @@ export const applyInventoryHints_Service = async (
     itemChanges: parsed ? parsed.itemChanges : [],
     debugInfo: {
       prompt,
+      systemInstruction: SYSTEM_INSTRUCTION,
+      jsonSchema: undefined,
       rawResponse: response.text ?? '',
       parsedItemChanges: parsed ? parsed.itemChanges : undefined,
       observations: parsed?.observations,

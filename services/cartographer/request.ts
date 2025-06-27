@@ -79,6 +79,8 @@ export const fetchMapUpdatePayload = async (
   let prompt = basePrompt;
   const debugInfo: MapUpdateDebugInfo = {
     prompt: basePrompt,
+    systemInstruction,
+    jsonSchema: undefined,
     observations: undefined,
     rationale: undefined,
     minimalModelCalls,
