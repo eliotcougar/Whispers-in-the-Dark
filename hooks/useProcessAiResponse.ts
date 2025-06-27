@@ -539,14 +539,14 @@ export const useProcessAiResponse = ({
       if (themeContextForResponse) {
         const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
         const contextParts = isFromDialogueSummary
-          ? [options.dialogueTranscript ?? '', thoughts ? `Thoughts:\n${thoughts}` : '']
+          ? [options.dialogueTranscript ?? '', thoughts ? `\n  ## Storyteller's Thoughts:\n${thoughts}\n------` : '']
               .filter(Boolean)
               .join('\n')
           : [
               playerActionText ? `Action: ${playerActionText}` : '',
               aiData.sceneDescription,
               aiData.logMessage ?? '',
-              thoughts ? `Thoughts:\n${thoughts}` : '',
+              thoughts ? `\n  ## Storyteller's Thoughts:\n\n${thoughts}\n------` : '',
             ]
               .filter(Boolean)
               .join('\n');

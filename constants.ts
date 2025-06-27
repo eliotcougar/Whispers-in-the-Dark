@@ -12,7 +12,7 @@ export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string 
 export const TINY_MODEL_NAME = "gemma-3n-e4b-it" // Fastest free model with 8000 input limit
 
 // Temperature used for correction helpers
-export const CORRECTION_TEMPERATURE = 0.75;
+export const CORRECTION_TEMPERATURE = 0.8;
 
 // Per-minute rate limits for each model
 export const GEMINI_MODEL_RPM = 10;
@@ -32,6 +32,7 @@ export const ALL_THEME_PACK_NAMES_CONST = [
 export type ThemePackNameConst = typeof ALL_THEME_PACK_NAMES_CONST[number];
 
 export const MAX_RETRIES = 3; // Max retries for most API calls
+export const MAX_CHAIN_REFINEMENT_ROUNDS = 3; // Max rounds for refining connector chains
 export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the game log
 
 export const DEVELOPER = "Eliot the Cougar"
