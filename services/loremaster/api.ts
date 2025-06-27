@@ -27,6 +27,34 @@ import {
   DISTILL_SYSTEM_INSTRUCTION,
 } from './systemPrompt';
 
+export const INTEGRATE_FACTS_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    observations: { type: 'string' },
+    rationale: { type: 'string' },
+    factsChange: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          action: { const: 'add' },
+          fact: {
+            type: 'object',
+            properties: { text: { type: 'string' } },
+            required: ['text'],
+            additionalProperties: false,
+          },
+        },
+        required: ['action', 'fact'],
+        additionalProperties: false,
+      },
+    },
+    loreRefinementOutcome: { type: 'string' },
+  },
+  required: ['observations', 'rationale', 'factsChange', 'loreRefinementOutcome'],
+  additionalProperties: false,
+} as const;
+
 export interface RefineLoreParams {
   themeName: string;
   turnContext: string;
@@ -97,6 +125,7 @@ export const refineLore_Service = async (
       thinkingBudget: 2048,
       includeThoughts: true,
       responseMimeType: 'application/json',
+      jsonSchema: INTEGRATE_FACTS_JSON_SCHEMA,
       temperature: 0.7,
       label: 'LoremasterIntegrate',
     });

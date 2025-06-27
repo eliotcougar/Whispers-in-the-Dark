@@ -19,24 +19,34 @@ import {
   MINIMAL_MODEL_NAME,
   GEMINI_MODEL_NAME,
   GEMINI_LITE_MODEL_NAME,
+  TINY_MODEL_NAME,
   MINIMAL_MODEL_RPM,
   GEMINI_MODEL_RPM,
   GEMINI_LITE_MODEL_RPM,
+  TINY_MODEL_RPM,
   MAX_RETRIES,
 } from '../constants';
 
-/** Determines if a model supports separate system instructions. */
-const supportsSystemInstruction = (model: string): boolean => !model.startsWith('gemma-');
+export type ModelFeature = 'thinking' | 'system' | 'schema';
+
+export type ModelEntry = string | [string, Array<ModelFeature>];
+
+const DEFAULT_FEATURES: Record<string, Array<ModelFeature>> = {
+  [GEMINI_MODEL_NAME]: ['thinking', 'system', 'schema'],
+  [GEMINI_LITE_MODEL_NAME]: ['thinking', 'system', 'schema'],
+  [MINIMAL_MODEL_NAME]: [],
+  [TINY_MODEL_NAME]: [],
+};
 
 export interface ModelDispatchOptions {
-  modelNames: Array<string>;
+  modelNames: Array<ModelEntry>;
   prompt: string;
   systemInstruction?: string;
   temperature?: number;
   responseMimeType?: string;
   thinkingBudget?: number;
   includeThoughts?: boolean;
-  responseSchema?: object;
+  jsonSchema?: unknown;
   label?: string;
   debugLog?: Array<MinimalModelCallRecord>;
 }
@@ -57,22 +67,26 @@ export const dispatchAIRequest = async (
     [GEMINI_MODEL_NAME]: GEMINI_MODEL_RPM,
     [GEMINI_LITE_MODEL_NAME]: GEMINI_LITE_MODEL_RPM,
     [MINIMAL_MODEL_NAME]: MINIMAL_MODEL_RPM,
+    [TINY_MODEL_NAME]: TINY_MODEL_RPM,
   };
 
   let lastError: unknown = null;
-  for (const model of options.modelNames) {
-    const modelSupportsSystem = supportsSystemInstruction(model);
-    const contents = modelSupportsSystem
+  for (const entry of options.modelNames) {
+    const [model, features] = Array.isArray(entry)
+      ? entry
+      : [entry, DEFAULT_FEATURES[entry] ?? []];
+    const supportsSystem = features.includes('system');
+    const supportsThinking = features.includes('thinking');
+    const supportsSchema = features.includes('schema');
+
+    const contents = supportsSystem
       ? options.prompt
       : `${options.systemInstruction ? options.systemInstruction + '\n\n' : ''}${options.prompt}`;
 
     const cfg: Record<string, unknown> = {};
     if (options.temperature !== undefined) cfg.temperature = options.temperature;
-    if (options.responseMimeType && model !== MINIMAL_MODEL_NAME) cfg.responseMimeType = options.responseMimeType;
-    if (
-      model !== MINIMAL_MODEL_NAME &&
-      (options.thinkingBudget !== undefined || options.includeThoughts)
-    ) {
+    if (options.responseMimeType && supportsSchema) cfg.responseMimeType = options.responseMimeType;
+    if (supportsThinking && (options.thinkingBudget !== undefined || options.includeThoughts)) {
       const thinkingCfg: { thinkingBudget?: number; includeThoughts?: boolean } = {};
       if (options.thinkingBudget !== undefined) {
         thinkingCfg.thinkingBudget = options.thinkingBudget;
@@ -82,11 +96,11 @@ export const dispatchAIRequest = async (
       }
       cfg.thinkingConfig = thinkingCfg;
     }
-    if (modelSupportsSystem && options.systemInstruction) {
+    if (supportsSystem && options.systemInstruction) {
       cfg.systemInstruction = options.systemInstruction;
     }
-    if (options.responseSchema && model !== MINIMAL_MODEL_NAME) {
-      cfg.responseSchema = options.responseSchema;
+    if (supportsSchema && options.jsonSchema) {
+      cfg.responseJsonSchema = options.jsonSchema;
     }
 
     for (let attempt = 1; attempt <= MAX_RETRIES; ) {
