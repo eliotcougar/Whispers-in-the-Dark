@@ -14,6 +14,8 @@ const mapNodeSynonyms = {
     "opened": "discovered",
     "open": "discovered",
     "accessible": "discovered",
+    "visited": "discovered",
+    "explored": "discovered",
     "available": "discovered",
     "functional": "discovered",
     "usable": "discovered",
