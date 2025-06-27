@@ -3,12 +3,10 @@ import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest, filterEdgeChainRequests } from './connectorChains';
 import { fetchConnectorChains_Service } from '../corrections/edgeFixes';
 import { resolveSplitFamilyOrphans_Service } from '../corrections/hierarchyUpgrade';
-import { MAX_RETRIES } from '../../constants';
+import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS } from '../../constants';
 import type { MapNode } from '../../types';
 import type { ConnectorChainsServiceResult, EdgeChainRequest } from '../corrections/edgeFixes';
 import type { ApplyUpdatesContext } from './updateContext';
-
-const MAX_CHAIN_REFINEMENT_ROUNDS = 2;
 
 export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<void> {
   let chainRequests: Array<EdgeChainRequest> = filterEdgeChainRequests(

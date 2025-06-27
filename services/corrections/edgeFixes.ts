@@ -14,6 +14,9 @@ import {
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
   VALID_NODE_STATUS_VALUES,
+  NODE_DESCRIPTION_INSTRUCTION,
+  EDGE_DESCRIPTION_INSTRUCTION,
+  ALIAS_INSTRUCTION,
   GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
   MINIMAL_MODEL_NAME,
@@ -162,10 +165,10 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
           data: {
             type: "object",
             properties: {
-              description: { type: "string", minLength: 30, description: "Short text describing the place" },
+              description: { type: "string", minLength: 30, description: NODE_DESCRIPTION_INSTRUCTION },
               aliases: {
                 type: "array",
-                description: "Alternative names, shorthands",
+                description: ALIAS_INSTRUCTION,
                 minItems: 2,
                 items: { type: "string" } },
               status: { enum: VALID_NODE_STATUS_VALUES },
@@ -198,7 +201,7 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
             properties: {
               type: { enum: VALID_EDGE_TYPE_VALUES },
               status: { enum: VALID_EDGE_STATUS_VALUES },
-              description: { type: "string", minLength: 30, description: "Short text describing the connection and travel conditions."},
+              description: { type: "string", minLength: 30, description: EDGE_DESCRIPTION_INSTRUCTION},
             },
             required: ["type", "status", "description"],
             additionalProperties: false,
