@@ -74,6 +74,7 @@ export const VALID_ITEM_TYPES = [
   'weapon',
   'ammunition',
   'vehicle',
+  'immovable',
   'status effect',
   'page',
   'book',

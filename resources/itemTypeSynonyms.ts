@@ -31,7 +31,12 @@ const itemTypeSynonyms = {
     "research journal": "book",
     "travelogue": "book",
     "ledger": "book",
-    "book": "book"
+    "book": "book",
+    "fixture": "immovable",
+    "built in": "immovable",
+    "built-in": "immovable",
+    "stationary": "immovable",
+    "immovable object": "immovable"
   }
 };
 

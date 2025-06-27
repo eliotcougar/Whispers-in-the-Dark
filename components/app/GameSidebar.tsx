@@ -130,6 +130,7 @@ function GameSidebar({
         disabled={disabled}
         items={itemsHere}
         mapNodes={mapNodes}
+        onItemInteract={onItemInteract}
         onTakeItem={onTakeItem}
       />
 
