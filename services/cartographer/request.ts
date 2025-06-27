@@ -48,7 +48,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       type: 'string',
       minLength: 1000,
       description:
-        'Explanation of the reasons for the changes. Feature nodes cannot be parents of other feature nodes.',
+        'Explanation of the reasons for the changes. Feature nodes can not be parents of other feature nodes.',
     },
     nodesToAdd: {
       type: 'array',
@@ -58,7 +58,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
           placeName: {
             type: 'string',
             description:
-              'Name of the node. For sub-locations this can be a descriptive feature name.',
+              'Name of the node. Should not contain a comma. For sub-locations this can be a descriptive feature name.',
           },
           data: {
             type: 'object',
@@ -70,6 +70,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
               },
               aliases: {
                 type: 'array',
+                minItems: 1,
                 items: { type: 'string' },
                 description: ALIAS_INSTRUCTION,
               },
@@ -77,7 +78,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
               nodeType: { enum: VALID_NODE_TYPE_VALUES },
               parentNodeId: {
                 type: 'string',
-                description: 'Parent Node ID, or "Universe" for the top-level node.',
+                description: 'Parent Node ID, or "Universe" for top-level nodes. Use placeName when referencing other nodes in this response.',
               },
             },
             required: ['description', 'aliases', 'status', 'nodeType', 'parentNodeId'],
@@ -93,7 +94,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          placeName: { type: 'string', description: 'Existing node name to identify it.' },
+          placeName: { type: 'string', description: 'Existing node ID or name to identify it.' },
           newData: {
             type: 'object',
             properties: {
@@ -102,13 +103,13 @@ export const MAP_UPDATE_JSON_SCHEMA = {
                 description: 'If provided, this will be the new name for the node.',
               },
               description: { type: 'string', description: NODE_DESCRIPTION_INSTRUCTION },
-              aliases: { type: 'array', items: { type: 'string' }, description: ALIAS_INSTRUCTION },
+              aliases: { type: 'array', items: { type: 'string' }, minItems: 1, description: ALIAS_INSTRUCTION },
               status: { enum: VALID_NODE_STATUS_VALUES },
               nodeType: { enum: VALID_NODE_TYPE_VALUES },
               parentNodeId: {
                 type: 'string',
                 description:
-                  'Parent Node ID, or "Universe" for the top-level node. Parent may not be a feature node.',
+                  'Parent Node ID, or "Universe" for top-level nodes. Parent can not be a feature node. Use placeName when referencing other nodes in this response.',
               },
             },
             additionalProperties: false,
@@ -135,8 +136,8 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          sourcePlaceName: { type: 'string' },
-          targetPlaceName: { type: 'string' },
+          sourcePlaceName: { type: 'string', description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.' },
+          targetPlaceName: { type: 'string', description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.' },
           data: {
             type: 'object',
             properties: {
@@ -158,15 +159,15 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          sourcePlaceName: { type: 'string' },
-          targetPlaceName: { type: 'string' },
+          sourcePlaceName: { type: 'string', description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.' },
+          targetPlaceName: { type: 'string', description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.' },
           newData: {
             type: 'object',
             properties: {
               description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
               type: { enum: VALID_EDGE_TYPE_VALUES },
               status: { enum: VALID_EDGE_STATUS_VALUES },
-              travelTime: { type: 'string' },
+              travelTime: { type: 'string', description: 'Approximate travel time for the route.' },
             },
             additionalProperties: false,
           },
@@ -211,7 +212,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
     suggestedCurrentMapNodeId: {
       type: 'string',
       description:
-        'If map updates together with the context imply a new player location, provide its ID or placeName.',
+        'If map updates and the context both imply a new player location, provide its node ID or placeName.',
     },
   },
   required: ['observations', 'rationale'],
