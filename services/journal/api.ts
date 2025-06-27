@@ -15,6 +15,7 @@ export interface GeneratedJournalEntry {
 }
 
 export const generateJournalEntry = async (
+  length: number,
   itemName: string,
   itemDescription: string,
   previousEntry: string,
@@ -34,7 +35,6 @@ export const generateJournalEntry = async (
 
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
-  const wordCount = Math.floor(Math.random() * 50) + 100;
   const prompt = `You are writing a new entry in the player's personal journal.
 **Context:**
 Theme Name: "${themeName}";
@@ -54,7 +54,7 @@ ${recentEventsContext}
 
 ------
 
-Return a JSON object {"heading": "", "text": ""} describing a new short journal entry of exactly ${String(wordCount)} words. Begin with a Markup-formatted heading.`;
+Return a JSON object {"heading": "", "text": ""} describing a new short journal entry of exactly ${String(length)} words. Begin with a Markup-formatted heading.`;
   const systemInstruction = 'Provide only the JSON for the new journal entry.';
 
   return retryAiCall<GeneratedJournalEntry>(async attempt => {

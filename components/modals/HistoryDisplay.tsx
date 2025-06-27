@@ -14,10 +14,6 @@ interface HistoryDisplayProps {
   // mapData?: MapNode[]; // If we need to look up MapNode details by placeName from ThemeMemory
   readonly isVisible: boolean;
   readonly onClose: () => void;
-  readonly onReadJournal: () => void;
-  readonly onWriteJournal: () => void;
-  readonly canWriteJournal: boolean;
-  readonly isWritingJournal: boolean;
 }
 
 /**
@@ -28,10 +24,6 @@ function HistoryDisplay({
   gameLog,
   isVisible,
   onClose,
-  onReadJournal,
-  onWriteJournal,
-  canWriteJournal,
-  isWritingJournal,
   // mapData // If needed in future
 }: HistoryDisplayProps) {
   const rememberedThemes = Object.entries(themeHistory);
@@ -90,8 +82,8 @@ function HistoryDisplay({
           {rememberedThemes.length > 0 && (
             <ul className="space-y-4">
               {rememberedThemes.map(([themeName, memory]) => (
-                <li 
-                  className="text-slate-300 bg-slate-700/80 p-4 rounded-lg shadow-lg border border-slate-600 transition-all hover:shadow-purple-500/40 hover:border-purple-500" 
+                <li
+                  className="text-slate-300 bg-slate-700/80 p-4 rounded-lg shadow-lg border border-slate-600 transition-all hover:shadow-purple-500/40 hover:border-purple-500"
                   key={themeName}
                 >
                   <h4 className="font-semibold text-xl text-purple-300 mb-2">
@@ -113,27 +105,6 @@ function HistoryDisplay({
               ))}
             </ul>
             )}
-
-          <div className="flex justify-center gap-2 mt-4">
-            <Button
-              ariaLabel="Read journal"
-              label="Read"
-              onClick={onReadJournal}
-              preset="blue"
-              size="sm"
-              variant="toolbar"
-            />
-
-            <Button
-              ariaLabel="Write journal entry"
-              disabled={!canWriteJournal || isWritingJournal}
-              label="Write"
-              onClick={onWriteJournal}
-              preset="blue"
-              size="sm"
-              variant="toolbar"
-            />
-          </div>
         </div>
       </div>
     </div>

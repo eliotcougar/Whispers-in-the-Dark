@@ -352,6 +352,9 @@ function App() {
     [openPageView]
   );
 
+  // Generate and add a new chapter to the given journal item. This is only
+  // triggered when the player explicitly writes in a journal, never when pages
+  // or books are merely read or flipped.
   const handleWriteJournal = useCallback((item: Item) => {
     if (item.lastWriteTurn === globalTurnNumber) return;
     openPageView(item.id, item.chapters?.length ?? 0);
@@ -367,7 +370,9 @@ function App() {
         ? npcsToString(npcs, ' - ', false, false, false, true)
         : 'None specifically known in this theme yet.';
       const prev = item.chapters?.[item.chapters.length - 1]?.actualContent ?? '';
+      const entryLength = Math.floor(Math.random() * 50) + 100;
       const entry = await generateJournalEntry(
+        entryLength,
         item.name,
         item.description,
         prev,
@@ -383,10 +388,9 @@ function App() {
       if (entry) {
         const chapter = {
           heading: entry.heading,
-          description: entry.heading,
-          contentLength: 50,
+          description: '',
+          contentLength: entryLength,
           actualContent: entry.text,
-          visibleContent: entry.text,
         } as ItemChapter;
         gameLogic.addJournalEntry(item.id, chapter);
         openPageView(item.id, item.chapters?.length ?? 0);
@@ -435,7 +439,9 @@ function App() {
         ? npcsToString(npcs, ' - ', false, false, false, true)
         : 'None specifically known in this theme yet.';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
+      const entryLength = Math.floor(Math.random() * 50) + 100;
       const entry = await generateJournalEntry(
+        entryLength,
         'Personal Journal',
         'Your own journal',
         prev,
@@ -451,10 +457,9 @@ function App() {
       if (entry) {
         const chapter = {
           heading: entry.heading,
-          description: entry.heading,
-          contentLength: 50,
+          description: '',
+          contentLength: entryLength,
           actualContent: entry.text,
-          visibleContent: entry.text,
         } as ItemChapter;
         addPlayerJournalEntry(chapter);
         openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
@@ -1021,7 +1026,6 @@ function App() {
         onItemInspect={handleInspectFromPage}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
-        onReadJournal={handleReadPlayerJournal}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
         onWriteJournal={handleWritePlayerJournal}

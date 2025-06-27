@@ -215,6 +215,10 @@ function PageView({
       setText(chapter.visibleContent);
       return;
     }
+    if (item.id === PLAYER_JOURNAL_ID && chapter.actualContent) {
+      setText(chapter.actualContent);
+      return;
+    }
 
     setIsLoading(true);
     void (async () => {
