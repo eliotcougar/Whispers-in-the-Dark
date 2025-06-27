@@ -11,7 +11,7 @@ import {
   NPC,
   MinimalModelCallRecord,
 } from '../../types';
-import { SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION } from './systemPrompt';
+import { CARTOGRAPHER_SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION } from './systemPrompt';
 import { buildMapUpdatePrompt } from './promptBuilder';
 import { fetchMapUpdatePayload } from './request';
 import { applyMapUpdates } from './applyUpdates';

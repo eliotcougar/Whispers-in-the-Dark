@@ -159,23 +159,23 @@ export const LOADING_REASONS = [
 ] as const;
 
 export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { text: string; icon: string }> = {
-  storyteller: { text: 'Dungeon Master is thinking...', icon: '░░' },
-  map: { text: 'Dungeon Master is drawing the map...', icon: '░░' },
+  storyteller: { text: 'Dungeon Master thinks...', icon: '░░' },
+  map: { text: 'Cartographer draws the map...', icon: '░░' },
   correction: { text: 'Dungeon Master is fixing mistakes...', icon: '▓' },
-  inventory: { text: 'Dungeon Master is handling items...', icon: '░░' },
-  dialogue_turn: { text: 'The conversation continues...', icon: '░░' },
-  dialogue_summary: { text: 'Concluding dialogue...', icon: '░░' },
-  dialogue_memory_creation: { text: 'Forming memories...', icon: '░░' },
+  inventory: { text: 'Dungeon Master handles items...', icon: '░░' },
+  dialogue_turn: { text: 'Conversation continues...', icon: '░░' },
+  dialogue_summary: { text: 'Dialogue concludes...', icon: '░░' },
+  dialogue_memory_creation: { text: 'Memories form...', icon: '░░' },
   dialogue_conclusion_summary: { text: 'Returning to the world...', icon: '░░' },
   initial_load: { text: 'Loading...', icon: '░░' },
-  reality_shift_load: { text: 'Reality is shifting...', icon: '░░' },
+  reality_shift_load: { text: 'Reality shifts...', icon: '░░' },
   visualize: { text: 'Visualizing the scene...', icon: '░░' },
   page: { text: 'Reading...', icon: '░░' },
   journal: { text: 'Writing...', icon: '░░' },
-  loremaster_collect: { text: 'Loremaster picking lore...', icon: '░' },
-  loremaster_extract: { text: 'Loremaster extracting new lore...', icon: '░' },
-  loremaster_write: { text: 'Loremaster writing down lore...', icon: '░' },
-  loremaster_refine: { text: 'Loremaster refining lore...', icon: '░' },
+  loremaster_collect: { text: 'Loremaster picks facts...', icon: '░' },
+  loremaster_extract: { text: 'Loremaster extracts new lore...', icon: '░' },
+  loremaster_write: { text: 'Loremaster writes down lore...', icon: '░' },
+  loremaster_refine: { text: 'Loremaster refines lore...', icon: '░' },
   book: { text: 'Reading...', icon: '░░' }
 };
 

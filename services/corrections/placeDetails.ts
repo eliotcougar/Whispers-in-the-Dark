@@ -401,8 +401,7 @@ export const fetchLikelyParentNode_Service = async (
     .map(e => `${e.id} ${e.sourceNodeId}->${e.targetNodeId}`)
     .join('\n');
 
-  const prompt = `Infer the best parent for a new map node in a text adventure game.
-Map Node: "${proposedNode.placeName}" (${proposedNode.nodeType ?? 'feature'})
+  const prompt = `Map Node: "${proposedNode.placeName}" (${proposedNode.nodeType ?? 'feature'})
 Scene: "${context.sceneDescription}"
 Current location: ${context.localPlace}
 Current Map Node: ${currentNode ? currentNode.placeName : 'Unknown'}
