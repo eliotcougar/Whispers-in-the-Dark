@@ -248,12 +248,21 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       };
 
       try {
-        const { response, thoughts } = await executeAIMainTurn(
+        const {
+          response,
+          thoughts,
+          systemInstructionUsed,
+          jsonSchemaUsed,
+          promptUsed,
+        } = await executeAIMainTurn(
           prompt,
           themeObjToLoad.systemInstructionModifier,
         );
         draftState.lastDebugPacket.rawResponseText = response.text ?? null;
         draftState.lastDebugPacket.storytellerThoughts = thoughts;
+        draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
+        draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
+        draftState.lastDebugPacket.prompt = promptUsed;
 
         const currentThemeMapDataForParse = {
           nodes: draftState.mapData.nodes.filter((n) => n.themeName === themeObjToLoad.name),
@@ -457,12 +466,21 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     draftState.lastDebugPacket = debugPacket;
 
     try {
-      const { response, thoughts } = await executeAIMainTurn(
+      const {
+        response,
+        thoughts,
+        systemInstructionUsed,
+        jsonSchemaUsed,
+        promptUsed,
+      } = await executeAIMainTurn(
         lastPrompt,
         currentThemeObj.systemInstructionModifier,
       );
       draftState.lastDebugPacket.rawResponseText = response.text ?? null;
       draftState.lastDebugPacket.storytellerThoughts = thoughts;
+      draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
+      draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
+      draftState.lastDebugPacket.prompt = promptUsed;
 
       const currentThemeNPCs = draftState.allNPCs.filter(
         (npc) => npc.themeName === currentThemeObj.name,

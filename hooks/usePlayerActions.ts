@@ -228,7 +228,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
       let encounteredError = false;
       try {
-        const { response, thoughts } = await executeAIMainTurn(
+        const {
+          response,
+          thoughts,
+          systemInstructionUsed,
+          jsonSchemaUsed,
+          promptUsed,
+        } = await executeAIMainTurn(
           prompt,
           currentThemeObj.systemInstructionModifier,
         );
@@ -236,6 +242,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           ...draftState.lastDebugPacket,
           rawResponseText: response.text ?? null,
           storytellerThoughts: thoughts,
+          systemInstruction: systemInstructionUsed,
+          jsonSchema: jsonSchemaUsed,
+          prompt: promptUsed,
         };
 
         const currentThemeMapDataForParse = {

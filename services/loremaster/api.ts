@@ -137,9 +137,21 @@ export const refineLore_Service = async (
   const { themeName, turnContext, existingFacts, onFactsExtracted } = params;
 
   const extractPrompt = buildExtractFactsPrompt(themeName, turnContext);
-  const newFacts = await retryAiCall<{ parsed: Array<string> | null; raw: string; thoughts: Array<string> } | null>(async () => {
+  const newFacts = await retryAiCall<{
+    parsed: Array<string> | null;
+    raw: string;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+    promptUsed: string;
+  } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_extract.icon);
-    const { response } = await dispatchAIRequest({
+    const {
+      response,
+      systemInstructionUsed,
+      jsonSchemaUsed,
+      promptUsed,
+    } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: extractPrompt,
       systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
@@ -154,7 +166,16 @@ export const refineLore_Service = async (
     const thoughtParts = parts
       .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
       .map(p => p.text);
-    return { result: { parsed: parseExtractFactsResponse(response.text ?? ''), raw: response.text ?? '', thoughts: thoughtParts } };
+    return {
+      result: {
+        parsed: parseExtractFactsResponse(response.text ?? ''),
+        raw: response.text ?? '',
+        thoughts: thoughtParts,
+        systemInstructionUsed,
+        jsonSchemaUsed,
+        promptUsed,
+      },
+    };
   });
   if (!newFacts) return null;
 
@@ -165,9 +186,9 @@ export const refineLore_Service = async (
         refinementResult: null,
         debugInfo: {
           extract: {
-            prompt: extractPrompt,
-            systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
-            jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
+            prompt: newFacts.promptUsed,
+            systemInstruction: newFacts.systemInstructionUsed,
+            jsonSchema: newFacts.jsonSchemaUsed,
             rawResponse: newFacts.raw,
             parsedPayload: newFacts.parsed ?? undefined,
             thoughts: newFacts.thoughts,
@@ -179,9 +200,21 @@ export const refineLore_Service = async (
   }
 
   const integratePrompt = buildIntegrateFactsPrompt(themeName, existingFacts, newFacts.parsed ?? []);
-  const integration = await retryAiCall<{ parsed: LoreRefinementResult; raw: string; thoughts: Array<string> } | null>(async () => {
+  const integration = await retryAiCall<{
+    parsed: LoreRefinementResult;
+    raw: string;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+    promptUsed: string;
+  } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_write.icon);
-    const { response } = await dispatchAIRequest({
+    const {
+      response,
+      systemInstructionUsed,
+      jsonSchemaUsed,
+      promptUsed,
+    } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: integratePrompt,
       systemInstruction: INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
@@ -197,23 +230,34 @@ export const refineLore_Service = async (
       .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
       .map(p => p.text);
     const parsed = parseIntegrationResponse(response.text ?? '', existingFacts);
-    return { result: parsed ? { parsed, raw: response.text ?? '', thoughts: thoughtParts } : null };
+    return {
+      result: parsed
+        ? {
+            parsed,
+            raw: response.text ?? '',
+            thoughts: thoughtParts,
+            systemInstructionUsed,
+            jsonSchemaUsed,
+            promptUsed,
+          }
+        : null,
+    };
   });
   return {
     refinementResult: integration?.parsed ?? null,
     debugInfo: {
       extract: {
-        prompt: extractPrompt,
-        systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
-        jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
+        prompt: newFacts.promptUsed,
+        systemInstruction: newFacts.systemInstructionUsed,
+        jsonSchema: newFacts.jsonSchemaUsed,
         rawResponse: newFacts.raw,
         parsedPayload: newFacts.parsed ?? undefined,
         thoughts: newFacts.thoughts,
       },
       integrate: {
-        prompt: integratePrompt,
-        systemInstruction: INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
-        jsonSchema: INTEGRATE_FACTS_JSON_SCHEMA,
+        prompt: integration?.promptUsed ?? integratePrompt,
+        systemInstruction: integration?.systemInstructionUsed ?? INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
+        jsonSchema: integration?.jsonSchemaUsed ?? INTEGRATE_FACTS_JSON_SCHEMA,
         rawResponse: integration?.raw,
         parsedPayload: integration?.parsed,
         observations: integration?.parsed.observations,
@@ -270,9 +314,21 @@ export const collectRelevantFacts_Service = async (
     detailedContext,
   );
 
-  const result = await retryAiCall<{ parsed: Array<string> | null; raw: string; thoughts: Array<string> } | null>(async () => {
+  const result = await retryAiCall<{
+    parsed: Array<string> | null;
+    raw: string;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+    promptUsed: string;
+  } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_collect.icon);
-    const { response } = await dispatchAIRequest({
+    const {
+      response,
+      systemInstructionUsed,
+      jsonSchemaUsed,
+      promptUsed,
+    } = await dispatchAIRequest({
       modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: COLLECT_SYSTEM_INSTRUCTION,
@@ -287,14 +343,23 @@ export const collectRelevantFacts_Service = async (
     const thoughtParts = parts
       .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
       .map(p => p.text);
-    return { result: { parsed: parseCollectFactsResponse(response.text ?? ''), raw: response.text ?? '', thoughts: thoughtParts } };
+    return {
+      result: {
+        parsed: parseCollectFactsResponse(response.text ?? ''),
+        raw: response.text ?? '',
+        thoughts: thoughtParts,
+        systemInstructionUsed,
+        jsonSchemaUsed,
+        promptUsed,
+      },
+    };
   });
   return {
     facts: result?.parsed ?? [],
     debugInfo: {
-      prompt,
-      systemInstruction: COLLECT_SYSTEM_INSTRUCTION,
-      jsonSchema: COLLECT_FACTS_JSON_SCHEMA,
+      prompt: result?.promptUsed ?? prompt,
+      systemInstruction: result?.systemInstructionUsed ?? COLLECT_SYSTEM_INSTRUCTION,
+      jsonSchema: result?.jsonSchemaUsed ?? COLLECT_FACTS_JSON_SCHEMA,
       rawResponse: result?.raw,
       parsedPayload: result?.parsed ?? undefined,
       thoughts: result?.thoughts,
@@ -350,9 +415,21 @@ export const distillFacts_Service = async (
     mapNodeNames,
   );
 
-  const result = await retryAiCall<{ parsed: LoreRefinementResult; raw: string; thoughts: Array<string> } | null>(async () => {
+  const result = await retryAiCall<{
+    parsed: LoreRefinementResult;
+    raw: string;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+    promptUsed: string;
+  } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_refine.icon);
-    const { response } = await dispatchAIRequest({
+    const {
+      response,
+      systemInstructionUsed,
+      jsonSchemaUsed,
+      promptUsed,
+    } = await dispatchAIRequest({
       modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
       prompt,
       systemInstruction: DISTILL_SYSTEM_INSTRUCTION,
@@ -368,15 +445,26 @@ export const distillFacts_Service = async (
       .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
       .map(p => p.text);
     const parsed = parseIntegrationResponse(response.text ?? '', facts);
-    return { result: parsed ? { parsed, raw: response.text ?? '', thoughts: thoughtParts } : null };
+    return {
+      result: parsed
+        ? {
+            parsed,
+            raw: response.text ?? '',
+            thoughts: thoughtParts,
+            systemInstructionUsed,
+            jsonSchemaUsed,
+            promptUsed,
+          }
+        : null,
+    };
   });
 
   return {
     refinementResult: result?.parsed ?? null,
     debugInfo: {
-      prompt,
-      systemInstruction: DISTILL_SYSTEM_INSTRUCTION,
-      jsonSchema: DISTILL_FACTS_JSON_SCHEMA,
+      prompt: result?.promptUsed ?? prompt,
+      systemInstruction: result?.systemInstructionUsed ?? DISTILL_SYSTEM_INSTRUCTION,
+      jsonSchema: result?.jsonSchemaUsed ?? DISTILL_FACTS_JSON_SCHEMA,
       rawResponse: result?.raw,
       parsedPayload: result?.parsed,
       observations: result?.parsed.observations,

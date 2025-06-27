@@ -35,13 +35,19 @@ import { normalizeTag } from '../../utils/tagSynonyms';
  */
 export const executeInventoryRequest = async (
   prompt: string,
-): Promise<{ response: GenerateContentResponse; thoughts: Array<string> }> => {
+): Promise<{
+  response: GenerateContentResponse;
+  thoughts: Array<string>;
+  systemInstructionUsed: string;
+  jsonSchemaUsed?: unknown;
+  promptUsed: string;
+}> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Inventory Service.');
     return Promise.reject(new Error('API Key not configured.'));
   }
   addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
-  const { response } = await dispatchAIRequest({
+  const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
     modelNames: [MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction: SYSTEM_INSTRUCTION,
@@ -55,7 +61,7 @@ export const executeInventoryRequest = async (
   const thoughtParts = parts
     .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
     .map(p => p.text);
-  return { response, thoughts: thoughtParts };
+  return { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed, promptUsed };
 };
 
 export interface InventoryUpdateResult {
@@ -152,7 +158,13 @@ export const applyInventoryHints_Service = async (
     nearbyNpcsInventory,
     limitedMapContext,
   );
-  const { response, thoughts } = await executeInventoryRequest(prompt);
+  const {
+    response,
+    thoughts,
+    systemInstructionUsed,
+    jsonSchemaUsed,
+    promptUsed,
+  } = await executeInventoryRequest(prompt);
   let parsed = parseInventoryResponse(response.text ?? '');
   if (!parsed ||
       (parsed.itemChanges.length === 0 && (response.text?.trim() ?? '') !== '[]')) {
@@ -194,9 +206,9 @@ export const applyInventoryHints_Service = async (
   return {
     itemChanges: parsed ? parsed.itemChanges : [],
     debugInfo: {
-      prompt,
-      systemInstruction: SYSTEM_INSTRUCTION,
-      jsonSchema: undefined,
+      prompt: promptUsed,
+      systemInstruction: systemInstructionUsed,
+      jsonSchema: jsonSchemaUsed,
       rawResponse: response.text ?? '',
       parsedItemChanges: parsed ? parsed.itemChanges : undefined,
       observations: parsed?.observations,

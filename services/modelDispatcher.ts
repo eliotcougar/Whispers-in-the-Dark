@@ -58,8 +58,14 @@ export interface ModelDispatchOptions {
  * is encountered.
  */
 export const dispatchAIRequest = async (
-  options: ModelDispatchOptions
-): Promise<{ response: GenerateContentResponse; modelUsed: string }> => {
+  options: ModelDispatchOptions,
+): Promise<{
+  response: GenerateContentResponse;
+  modelUsed: string;
+  systemInstructionUsed: string;
+  jsonSchemaUsed?: unknown;
+  promptUsed: string;
+}> => {
   if (!isApiConfigured() || !ai) {
     return Promise.reject(new Error('API Key not configured.'));
   }
@@ -139,10 +145,17 @@ export const dispatchAIRequest = async (
             jsonSchema: options.jsonSchema,
             modelUsed: model,
             responseText: response.text ?? '',
+            promptUsed: contents,
           });
         }
 
-        return { response, modelUsed: model };
+        return {
+          response,
+          modelUsed: model,
+          systemInstructionUsed: systemInstruction,
+          jsonSchemaUsed: supportsSchema ? options.jsonSchema : undefined,
+          promptUsed: contents,
+        };
       } catch (err: unknown) {
         if (options.debugLog) {
           options.debugLog.push({
@@ -151,6 +164,7 @@ export const dispatchAIRequest = async (
             jsonSchema: options.jsonSchema,
             modelUsed: model,
             responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
+            promptUsed: contents,
           });
         }
 

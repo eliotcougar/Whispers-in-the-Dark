@@ -13,7 +13,8 @@ export const buildExtractFactsPrompt = (
   ## Context:
 ${turnContext}
 
-  List immutable facts according to your instructions.`;
+List immutable facts according to your instructions.
+`;
 };
 
 export const buildIntegrateFactsPrompt = (
@@ -31,7 +32,8 @@ ${existing}
   ## New Candidate Facts:
 ${proposed}
   
-Provide integration instructions acording to your instructions.`;
+Provide integration instructions acording to your instructions.
+`;
 };
 
 export interface FactForSelection {
@@ -64,8 +66,7 @@ Player Action: "${playerAction}"
   
 Select the 10 most relevant facts from the list of Known Facts:
 ${factLines}
-
-Respond with a JSON array of strings.`;
+`;
 };
 
 export const buildDistillFactsPrompt = (
@@ -97,5 +98,6 @@ ${mapLines || 'None'}
 ${factLines}
 
 Identify pairs of facts that could be merged into a single, more specific statement.
-Delete facts that reference obsolete quests, objectives, items or places. If merging or deleting, provide instructions.`;
+Delete facts that reference obsolete quests, objectives, items or places. If merging or deleting, provide instructions.
+`;
 };
