@@ -104,7 +104,7 @@ function InventoryItem({
     />
   );
 
-  if (item.type === 'page' || item.type === 'book') {
+  if (item.type === 'page' || item.type === 'book' || item.type === 'picture' || item.type === 'map') {
     actionButtons.push(
       <Button
         ariaLabel={`Read ${item.name}`}
