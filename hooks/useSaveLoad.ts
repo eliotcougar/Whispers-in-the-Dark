@@ -114,18 +114,21 @@ export const useSaveLoad = ({
     setError,
   ]);
 
-  const handleSaveToFile = useCallback(() => {
+  const handleSaveToFile = useCallback((): boolean => {
     if (isLoading || !!dialogueState) {
       setError?.('Cannot save to file while loading or in dialogue.');
-      return;
+      return false;
     }
     if (gatherGameStateStack) {
       const gameState = gatherGameStateStack();
-      saveGameStateToFile(
+      return saveGameStateToFile(
         gameState,
-        setError ? (msg) => { setError(msg); } : undefined,
+        setError ? (msg) => {
+          setError(msg);
+        } : undefined,
       );
     }
+    return false;
   }, [gatherGameStateStack, isLoading, dialogueState, setError]);
 
   const handleLoadFromFileClick = () => {
