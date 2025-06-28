@@ -14,7 +14,7 @@ import {
   ValidNPCUpdatePayload
 } from '../types';
 import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/cartographer';
-import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/corrections';
+import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import { buildNPCChangeRecords, applyAllNPCChanges } from './gameLogicUtils';
 import {
@@ -23,6 +23,7 @@ import {
   isDescendantOf,
   buildNonRumoredAdjacencyMap,
 } from './mapGraphUtils';
+import { buildNodeId } from './entityUtils';
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
@@ -111,6 +112,36 @@ export const handleMapUpdates = async (
         }
       }
     }
+
+      const renameResults = await assignSpecificNamesToDuplicateNodes_Service(
+        draftState.mapData.nodes.filter(n => n.themeName === themeContextForResponse.name),
+        themeContextForResponse,
+        mapUpdateResult?.debugInfo?.minimalModelCalls,
+      );
+      if (renameResults.length > 0) {
+        for (const r of renameResults) {
+          const idx = draftState.mapData.nodes.findIndex(n => n.id === r.nodeId);
+          if (idx === -1) continue;
+          const node = draftState.mapData.nodes[idx];
+          const oldId = node.id;
+          const newId = buildNodeId(r.newName);
+          node.placeName = r.newName;
+          node.id = newId;
+          draftState.mapData.nodes.forEach(n => {
+            if (n.data.parentNodeId === oldId) n.data.parentNodeId = newId;
+          });
+          draftState.mapData.edges.forEach(e => {
+            if (e.sourceNodeId === oldId) e.sourceNodeId = newId;
+            if (e.targetNodeId === oldId) e.targetNodeId = newId;
+          });
+          draftState.inventory.forEach(item => {
+            if (item.holderId === oldId) item.holderId = newId;
+          });
+          if (draftState.currentMapNodeId === oldId) draftState.currentMapNodeId = newId;
+          if (draftState.destinationNodeId === oldId) draftState.destinationNodeId = newId;
+        }
+        turnChanges.mapDataChanged = true;
+      }
 
 
   const newlyAddedEdgeIds = new Set(
