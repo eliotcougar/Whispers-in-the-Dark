@@ -384,7 +384,7 @@ function App() {
         : 'None specifically known in this theme yet.';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;
-      const entry = await generateJournalEntry( /* TODO: Somewhere around here we need to sanitize Chapter heading to remove any HTML or Markup formatting */
+      const journalResult = await generateJournalEntry( /* TODO: Somewhere around here we need to sanitize Chapter heading to remove any HTML or Markup formatting */
         entryLength,
         'Personal Journal',
         'Your own journal',
@@ -398,14 +398,14 @@ function App() {
         gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
         mainQuest
       );
-      if (entry) {
+      if (journalResult?.entry) {
         const chapter = {
-          heading: entry.heading,
+          heading: journalResult.entry.heading,
           description: '',
           contentLength: entryLength,
-          actualContent: entry.text,
+          actualContent: journalResult.entry.text,
         } as ItemChapter;
-        addPlayerJournalEntry(chapter);
+        addPlayerJournalEntry(chapter, journalResult.debugInfo ?? undefined);
         openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
       }
       setIsPlayerJournalWriting(false);

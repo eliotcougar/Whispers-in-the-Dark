@@ -154,7 +154,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           storytellerThoughts: null,
           mapUpdateDebugInfo: null,
           inventoryDebugInfo: null,
-          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
           dialogueDebugInfo: null,
         };
         if (state.lastDebugPacket.loremasterDebugInfo) {
@@ -285,6 +285,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           extract: null,
           integrate: null,
           distill: null,
+          journal: null,
         },
         dialogueDebugInfo: null,
       };
