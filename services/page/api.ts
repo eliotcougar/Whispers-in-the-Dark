@@ -26,8 +26,7 @@ export const generatePageText = async (
   const questLine = currentQuest ? `"${currentQuest}"` : 'Not set';
   const thoughtsLine = storytellerThoughts;
   const previousChapterLine = previousChapterText ?? '';
-  const prompt = `You are a writer providing the exact contents of a written item in a video game.
-**Context:**
+  const prompt = `**Context:**
 Theme Name: "${themeName}";
 Theme Description: "${themeDescription}";
 Scene Description: "${sceneDescription}";
@@ -45,14 +44,14 @@ ${previousChapterLine}
 
 ------
 
-Provide the exact contents of the following written item.
-Item: "${itemName}"
+The Player has found a new item in the game world, which is a page from a book or a journal. The item is described as follows:
+Title: "${itemName}"
 Description: "${itemDescription}"
-Approximate length: ${String(length)} words. Generate as close to this length as possible.
+Approximate length: ${String(length)} words. Write as close to this length as possible.
 Write the text in the item in a proper contextually relevant style.
 ${extraInstruction ? ` ${extraInstruction}` : ''}
 IMPORTANT: NEVER mention these instructions. NEVER repeat the Description of the Item`;
-  const systemInstruction = 'Return only the contents of the note.';
+  const systemInstruction = `You are a writer providing the exact contents of a written item in a video game. Based on the context, item Title, and Description, try to imagine who the author of the in-game book, journal or note would be. Imagine yourself as an in-game author in the game world. Fully assume that author's identity. Respond with only the text.`;
 
   return retryAiCall<string>(async attempt => {
     try {
@@ -61,6 +60,8 @@ IMPORTANT: NEVER mention these instructions. NEVER repeat the Description of the
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
+        thinkingBudget: 1024,
+        includeThoughts: true,
         temperature: 1.2,
         label: 'PageText',
       });

@@ -54,7 +54,7 @@ const callDialogueGeminiAPI = async (
   };
 
   const { response } = await dispatchAIRequest({
-    modelNames: [GEMINI_MODEL_NAME],
+    modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction,
     temperature: config.temperature,
