@@ -19,6 +19,7 @@ import {
 import { SYSTEM_INSTRUCTION } from '../services/storyteller/systemPrompt';
 import { collectRelevantFacts_Service } from '../services/loremaster';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
+import { buildHighlightRegex } from '../utils/highlightHelper';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
   FREE_FORM_ACTION_COST,
@@ -400,6 +401,38 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   const handleActionSelect = useCallback(
     (action: string) => {
       const currentFullState = getCurrentGameState();
+      let finalAction = action;
+
+      const highlightMatcher = buildHighlightRegex(
+        currentFullState.inventory.map(item => ({
+          name: item.name,
+          type: 'item',
+          description: item.description,
+          item,
+        }))
+      );
+
+      if (highlightMatcher) {
+        const { regex, lookup } = highlightMatcher;
+        const matchedBooks = new Set<Item>();
+        let match;
+        while ((match = regex.exec(action)) !== null) {
+          const info = lookup.get(match[0].toLowerCase());
+          const matchedItem = info?.entityData.item;
+          if (matchedItem && (matchedItem.type === 'book' || matchedItem.type === 'page')) {
+            matchedBooks.add(matchedItem);
+          }
+        }
+
+        for (const item of matchedBooks) {
+          const showActual = item.tags?.includes('recovered');
+          const contents = (item.chapters ?? [])
+            .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
+            .join('\n\n');
+          finalAction += `\nThe contents of the ${item.name} follow:\n${contents}`;
+        }
+      }
+
       if (action === 'Try to force your way back to the previous reality.') {
         const previousThemeName = Object.keys(currentFullState.themeHistory).pop();
         if (previousThemeName) {
@@ -418,7 +451,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           setError('No previous reality to return to.');
         }
       } else {
-        void executePlayerAction(action);
+        void executePlayerAction(finalAction);
       }
     }, [getCurrentGameState, executePlayerAction, triggerRealityShift, setError, setGameStateStack, executeManualRealityShift]);
 

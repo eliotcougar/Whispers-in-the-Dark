@@ -44,6 +44,11 @@ export interface HighlightableEntity {
   type: 'item' | 'place' | 'npc';
   description: string;
   aliases?: Array<string>;
+  /**
+   * When the entity represents an item, include the full Item object so
+   * additional data like its type or chapters can be accessed by callers.
+   */
+  item?: Item;
 }
 
 interface HighlightRegex {
@@ -203,6 +208,7 @@ export const buildHighlightableEntities = (
     type: 'item',
     description:
       item.isActive && item.activeDescription ? item.activeDescription : item.description,
+    item,
   }));
 
   const places: Array<HighlightableEntity> = currentThemeName
