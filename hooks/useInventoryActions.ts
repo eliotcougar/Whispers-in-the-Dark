@@ -6,6 +6,7 @@ import {
   Item,
   ItemTag,
   ItemChapter,
+  LoremasterModeDebugInfo,
 } from '../types';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -185,7 +186,7 @@ export const useInventoryActions = ({
   );
 
   const addPlayerJournalEntry = useCallback(
-    (chapter: ItemChapter) => {
+    (chapter: ItemChapter, debugInfo?: LoremasterModeDebugInfo | null) => {
       const currentFullState = getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
       const newChapter = {
@@ -194,6 +195,22 @@ export const useInventoryActions = ({
       };
       draftState.playerJournal = [...draftState.playerJournal, newChapter];
       draftState.lastJournalWriteTurn = currentFullState.globalTurnNumber;
+      if (debugInfo) {
+        draftState.lastDebugPacket ??= {
+          prompt: '',
+          rawResponseText: null,
+          parsedResponse: null,
+          timestamp: new Date().toISOString(),
+          storytellerThoughts: null,
+          mapUpdateDebugInfo: null,
+          inventoryDebugInfo: null,
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
+          dialogueDebugInfo: null,
+        };
+        if (draftState.lastDebugPacket.loremasterDebugInfo) {
+          draftState.lastDebugPacket.loremasterDebugInfo.journal = debugInfo;
+        }
+      }
       commitGameState(draftState);
     },
     [commitGameState]

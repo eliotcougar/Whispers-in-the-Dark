@@ -233,7 +233,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
           storytellerThoughts: null,
           mapUpdateDebugInfo: null,
           inventoryDebugInfo: null,
-          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
           dialogueDebugInfo: null,
         };
         draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;
@@ -360,7 +360,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       storytellerThoughts: null,
       mapUpdateDebugInfo: null,
       inventoryDebugInfo: null,
-      loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
+      loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
       dialogueDebugInfo: null,
     };
     if (draftState.lastDebugPacket.loremasterDebugInfo) {
