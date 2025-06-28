@@ -568,10 +568,8 @@ function App() {
   }, [closeLoadGameFromMenuConfirm, handleLoadFromFileClick]);
 
   const handleSaveGameFromMenu = useCallback(() => {
-    const success = handleSaveToFile();
-    if (success) {
-      closeTitleMenu();
-    }
+    closeTitleMenu();
+    handleSaveToFile();
   }, [closeTitleMenu, handleSaveToFile]);
 
   const openSettingsFromMenu = useCallback(() => {
