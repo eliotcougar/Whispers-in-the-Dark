@@ -548,7 +548,7 @@ function PageView({
               <div className="mb-4 flex justify-center">
                 <img
                   alt={item.name}
-                  className="max-h-[24rem] object-contain border border-slate-700"
+                  className="max-h-[24rem] object-contain"
                   src={imageUrl}
                 />
               </div>

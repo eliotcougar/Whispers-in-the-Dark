@@ -33,7 +33,7 @@ const convertToJpeg = async (base64: string): Promise<string> =>
       }
       ctx.drawImage(img, 0, 0);
       const jpeg = canvas
-        .toDataURL('image/jpeg', 0.85)
+        .toDataURL('image/jpeg', 0.7)
         .replace('data:image/jpeg;base64,', '');
       resolve(jpeg);
     };
