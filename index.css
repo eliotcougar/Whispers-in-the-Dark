@@ -723,3 +723,8 @@ body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0px 4px rgba(0, 0, 0, 0.7);
 }
 
+/* Medium text shadow for overlays */
+.text-shadow-md {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.7);
+}
+
