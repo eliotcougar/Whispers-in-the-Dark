@@ -2,6 +2,7 @@ import {
   GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
   LOADING_REASON_UI_MAP,
+  MINIMAL_MODEL_NAME,
 } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
@@ -21,11 +22,12 @@ const buildJournalEntrySchema = (length: number) => ({
   properties: {
     heading: {
       type: 'string',
-      description: 'Markup-formatted heading for the journal entry.',
+      description: 'Short plain text heading for the journal entry.',
     },
     text: {
       type: 'string',
-      description: `Exactly ${String(length)} words describing the journal entry.`,
+      minLength: length - 10,
+      description: `Exactly ${String(length)} words describing the journal entry, starting with a Markup-formatted heading. Basic Markup syntax is allowed, such as **bold** and *italic*.`,
     },
   },
   required: ['heading', 'text'],
@@ -59,11 +61,9 @@ export const generateJournalEntry = async (
 
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
-  const prompt = `You are writing a new entry in the player's personal journal.
-**Context:**
+  const prompt = `**Context:**
 Theme Name: "${themeName}";
 Theme Description: "${themeDescription}";
-Scene Description: "${sceneDescription}";
 ${questLine};
 
 ## Known Locations:
@@ -76,10 +76,12 @@ ${previousEntry}
 ## Last events:
 ${recentEventsContext}
 
-------
+## Scene Description:
+${sceneDescription};
 
-Return a JSON object {"heading": "", "text": ""} describing a new short journal entry of exactly ${String(length)} words. Begin with a Markup-formatted heading.`;
-  const systemInstruction = 'Provide only the JSON for the new journal entry.';
+------
+`;
+  const systemInstruction = `You are the main protagonist writing a new entry in your personal journal, focusing primarily on Last events and Scene description, logically continuing from the Previous Journal Entry. Always write in-character. NEVER include any ID strings. Provide only the JSON for the new journal entry.`;
   const schema = buildJournalEntrySchema(length);
 
   return retryAiCall<GeneratedJournalEntryResult>(async attempt => {
@@ -91,10 +93,12 @@ Return a JSON object {"heading": "", "text": ""} describing a new short journal 
         jsonSchemaUsed,
         promptUsed,
       } = await dispatchAIRequest({
-        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: 1.0,
+        thinkingBudget: 1024,
+        includeThoughts: true,
         responseMimeType: 'application/json',
         jsonSchema: schema,
         label: 'Journal',
