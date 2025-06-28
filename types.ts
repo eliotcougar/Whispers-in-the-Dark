@@ -319,6 +319,11 @@ export interface ThemeFactChange {
   id?: number;
 }
 
+export interface GeneratedJournalEntry {
+  heading: string;
+  text: string;
+}
+
 export interface LoreRefinementResult {
   factsChange: Array<ThemeFactChange>;
   loreRefinementOutcome: string;
@@ -329,7 +334,7 @@ export interface LoreRefinementResult {
 export interface LoremasterModeDebugInfo {
   prompt: string;
   rawResponse?: string;
-  parsedPayload?: Array<string> | LoreRefinementResult;
+  parsedPayload?: Array<string> | LoreRefinementResult | GeneratedJournalEntry;
   observations?: string;
   rationale?: string;
   thoughts?: Array<string>;
@@ -534,6 +539,7 @@ export interface DebugPacket {
     extract?: LoremasterModeDebugInfo | null;
     integrate?: LoremasterModeDebugInfo | null;
     distill?: LoremasterModeDebugInfo | null;
+    journal?: LoremasterModeDebugInfo | null;
   } | null;
   dialogueDebugInfo?: {
     turns: Array<DialogueTurnDebugEntry>;

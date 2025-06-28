@@ -374,7 +374,7 @@ export const useProcessAiResponse = ({
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
-        loremasterDebugInfo: draftState.lastDebugPacket?.loremasterDebugInfo ?? { collect: null, extract: null, integrate: null, distill: null },
+        loremasterDebugInfo: draftState.lastDebugPacket?.loremasterDebugInfo ?? { collect: null, extract: null, integrate: null, distill: null, journal: null },
       };
 
       if (aiData.localTime !== undefined) {

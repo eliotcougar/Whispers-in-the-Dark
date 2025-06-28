@@ -191,6 +191,8 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
           {renderMode('Integrate', loremasterInfo.integrate)}
 
           {renderMode('Distill', loremasterInfo.distill)}
+
+          {renderMode('Journal', loremasterInfo.journal)}
         </>
       ) : (
         <p className="italic text-slate-300">
