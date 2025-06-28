@@ -65,6 +65,8 @@ export function isValidItemForSave(item: unknown): item is Item {
       typeof (maybe as { actualContent?: unknown }).actualContent === 'string') &&
     ((maybe as { visibleContent?: unknown }).visibleContent === undefined ||
       typeof (maybe as { visibleContent?: unknown }).visibleContent === 'string') &&
+    ((maybe as { imageData?: unknown }).imageData === undefined ||
+      typeof (maybe as { imageData?: unknown }).imageData === 'string') &&
     (maybe.knownUses === undefined ||
       (Array.isArray(maybe.knownUses) &&
         maybe.knownUses.every((ku: KnownUse) =>

@@ -28,6 +28,7 @@ const applyItemActionCore = (
       contentLength?: number;
       actualContent?: string;
       visibleContent?: string;
+      imageData?: string;
     };
     const existing = findItemByIdentifier(
       [itemData.id, itemData.name],
@@ -53,17 +54,20 @@ const applyItemActionCore = (
                 {
                   heading: itemData.name,
                   description: itemData.description,
-                  contentLength:
-                    (itemData as { contentLength?: number }).contentLength ??
-                    existing.chapters?.[0]?.contentLength ??
-                    30,
-                  actualContent:
-                    (itemData as { actualContent?: string }).actualContent ??
-                    existing.chapters?.[0]?.actualContent,
-                  visibleContent:
-                    (itemData as { visibleContent?: string }).visibleContent ??
-                    existing.chapters?.[0]?.visibleContent,
-                },
+                contentLength:
+                  (itemData as { contentLength?: number }).contentLength ??
+                  existing.chapters?.[0]?.contentLength ??
+                  30,
+                actualContent:
+                  (itemData as { actualContent?: string }).actualContent ??
+                  existing.chapters?.[0]?.actualContent,
+                visibleContent:
+                  (itemData as { visibleContent?: string }).visibleContent ??
+                  existing.chapters?.[0]?.visibleContent,
+                imageData:
+                  (itemData as { imageData?: string }).imageData ??
+                  existing.chapters?.[0]?.imageData,
+              },
               ]
             : existing.chapters),
         knownUses: itemData.knownUses ?? existing.knownUses ?? [],
@@ -88,7 +92,7 @@ const applyItemActionCore = (
         itemData.chapters ??
         (itemData.type === 'page'
           ? [
-              {
+              { 
                 heading: itemData.name,
                 description: itemData.description,
                 contentLength:
@@ -97,6 +101,7 @@ const applyItemActionCore = (
                   (itemData as { actualContent?: string }).actualContent,
                 visibleContent:
                   (itemData as { visibleContent?: string }).visibleContent,
+                imageData: (itemData as { imageData?: string }).imageData,
               },
             ]
           : undefined),
@@ -117,6 +122,7 @@ const applyItemActionCore = (
       contentLength?: number;
       actualContent?: string;
       visibleContent?: string;
+      imageData?: string;
     };
     const existing = findItemByIdentifier(
       [itemData.id, itemData.name],
@@ -148,6 +154,7 @@ const applyItemActionCore = (
                   (itemData as { actualContent?: string }).actualContent,
                 visibleContent:
                   (itemData as { visibleContent?: string }).visibleContent,
+                imageData: (itemData as { imageData?: string }).imageData,
               },
             ]
           : undefined),
@@ -182,6 +189,7 @@ const applyItemActionCore = (
       contentLength?: number;
       actualContent?: string;
       visibleContent?: string;
+      imageData?: string;
     };
     const existingItem = findItemByIdentifier(
       [updatePayload.id, updatePayload.name],
@@ -219,6 +227,10 @@ const applyItemActionCore = (
     if (updatePayload.visibleContent !== undefined && updated.chapters) {
       const ch = updated.chapters[0];
       updated.chapters[0] = { ...ch, visibleContent: updatePayload.visibleContent };
+    }
+    if (updatePayload.imageData !== undefined && updated.chapters) {
+      const ch = updated.chapters[0];
+      updated.chapters[0] = { ...ch, imageData: updatePayload.imageData };
     }
     if (updatePayload.knownUses !== undefined) updated.knownUses = updatePayload.knownUses;
     if (updatePayload.holderId !== undefined && updatePayload.holderId.trim() !== '') {
@@ -393,15 +405,16 @@ export const buildItemChangeRecords = (
             (gainedItemData.type === 'page'
               ? [
                   {
-                    heading: gainedItemData.name,
-                    description: gainedItemData.description,
-                    contentLength:
-                      (gainedItemData as { contentLength?: number }).contentLength ?? 30,
-                    actualContent:
-                      (gainedItemData as { actualContent?: string }).actualContent,
-                    visibleContent:
-                      (gainedItemData as { visibleContent?: string }).visibleContent,
-                  },
+                heading: gainedItemData.name,
+                description: gainedItemData.description,
+                contentLength:
+                  (gainedItemData as { contentLength?: number }).contentLength ?? 30,
+                actualContent:
+                  (gainedItemData as { actualContent?: string }).actualContent,
+                visibleContent:
+                  (gainedItemData as { visibleContent?: string }).visibleContent,
+                imageData: (gainedItemData as { imageData?: string }).imageData,
+              },
                 ]
               : undefined),
           knownUses: gainedItemData.knownUses ?? [],
@@ -436,6 +449,7 @@ export const buildItemChangeRecords = (
         contentLength?: number;
         actualContent?: string;
         visibleContent?: string;
+        imageData?: string;
       } = change.item;
       const oldItem = findItemByIdentifier(
         [updatePayload.id, updatePayload.name],
@@ -490,6 +504,9 @@ export const buildItemChangeRecords = (
                     visibleContent:
                       updatePayload.visibleContent ??
                       (oldItemCopy.chapters?.[0] as ItemChapter | undefined)?.visibleContent,
+                    imageData:
+                      updatePayload.imageData ??
+                      (oldItemCopy.chapters?.[0] as ItemChapter | undefined)?.imageData,
                   },
                 ]
               : undefined),
