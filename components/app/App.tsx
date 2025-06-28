@@ -43,6 +43,7 @@ import {
   RECENT_LOG_COUNT_FOR_PROMPT,
   PLAYER_HOLDER_ID,
   PLAYER_JOURNAL_ID,
+  JOURNAL_WRITE_COOLDOWN,
   INSPECT_COOLDOWN,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
@@ -356,7 +357,9 @@ function App() {
   const [isPlayerJournalWriting, setIsPlayerJournalWriting] = useState(false);
 
   const canWritePlayerJournal =
-    lastJournalWriteTurn !== globalTurnNumber && !isPlayerJournalWriting;
+    (lastJournalWriteTurn === 0 ||
+      globalTurnNumber - lastJournalWriteTurn >= JOURNAL_WRITE_COOLDOWN) &&
+    !isPlayerJournalWriting;
   const canInspectPlayerJournal =
     playerJournal.length > 0 &&
     (lastJournalInspectTurn === 0 ||
@@ -368,7 +371,10 @@ function App() {
   }, [openPageView, playerJournal.length]);
 
   const handleWritePlayerJournal = useCallback(() => {
-    if (lastJournalWriteTurn === globalTurnNumber || isPlayerJournalWriting) return;
+    const cooldownOver =
+      lastJournalWriteTurn === 0 ||
+      globalTurnNumber - lastJournalWriteTurn >= JOURNAL_WRITE_COOLDOWN;
+    if (!cooldownOver || isPlayerJournalWriting) return;
     setIsPlayerJournalWriting(true);
     openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
     void (async () => {
