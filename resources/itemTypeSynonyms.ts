@@ -36,7 +36,12 @@ const itemTypeSynonyms = {
     "built in": "immovable",
     "built-in": "immovable",
     "stationary": "immovable",
-    "immovable object": "immovable"
+    "immovable object": "immovable",
+    "picture": "picture",
+    "photograph": "picture",
+    "drawing": "picture",
+    "map": "map",
+    "chart": "map"
   }
 };
 
