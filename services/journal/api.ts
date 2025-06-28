@@ -101,8 +101,17 @@ ${sceneDescription};
         includeThoughts: true,
         responseMimeType: 'application/json',
         jsonSchema: schema,
+        includeThoughts: true,
         label: 'Journal',
       });
+      const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
+        text?: string;
+        thought?: boolean;
+      }>;
+      const thoughtParts = parts
+        .filter((p): p is { text: string; thought?: boolean } =>
+          p.thought === true && typeof p.text === 'string')
+        .map(p => p.text);
       const text = response.text?.trim() ?? '';
       const parsed = text ? parseJournalEntry(text) : null;
       return {
@@ -114,6 +123,7 @@ ${sceneDescription};
             jsonSchema: jsonSchemaUsed ?? schema,
             rawResponse: text,
             parsedPayload: parsed ?? undefined,
+            thoughts: thoughtParts,
           },
         },
       };
