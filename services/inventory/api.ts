@@ -7,6 +7,7 @@ import { GenerateContentResponse } from '@google/genai';
 import {
   MINIMAL_MODEL_NAME,
   GEMINI_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   LOADING_REASON_UI_MAP,
   MIN_BOOK_CHAPTERS,
 } from '../../constants';
@@ -48,7 +49,7 @@ export const executeInventoryRequest = async (
   }
   addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
   const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
-    modelNames: [MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
+    modelNames: [GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
     prompt,
     systemInstruction: SYSTEM_INSTRUCTION,
     thinkingBudget: 1024,

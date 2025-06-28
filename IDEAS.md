@@ -14,6 +14,7 @@ v1.4. Ink and Quill update
   + Inspect action on written materials to inject contents into Storyteller AI and Loremaster AI.
   + Inspecting your own journal is used to potentially inject new lore.
   - Calm and Action global states to define when the player can interact with Journal.
+  - Action points for inventory actions to append to playerAction. Buttons turn into Toggles.
 
 v1.5 Backstory update
   - Character Generation.

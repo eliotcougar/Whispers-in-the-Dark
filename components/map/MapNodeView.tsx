@@ -280,7 +280,7 @@ function MapNodeView({
 
           {destinationMarker}
 
-          {sortedNodes.map(node => {
+          {sortedNodes.map(node => { // TODO: A separate icon for immovable items.
           const presence = itemPresenceByNode[node.id] ?? { hasUseful: false, hasVehicle: false };
           if (!presence.hasUseful && !presence.hasVehicle) return null;
           const radius = getRadiusForNode(node);

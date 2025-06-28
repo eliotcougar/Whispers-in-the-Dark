@@ -384,7 +384,7 @@ function App() {
         : 'None specifically known in this theme yet.';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;
-      const entry = await generateJournalEntry(
+      const entry = await generateJournalEntry( /* TODO: Somewhere around here we need to sanitize Chapter heading to remove any HTML or Markup formatting */
         entryLength,
         'Personal Journal',
         'Your own journal',
