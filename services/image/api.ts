@@ -80,7 +80,7 @@ export const generateChapterImage = async (
       });
       const bytes = response.generatedImages?.[0]?.image?.imageBytes;
       if (bytes) {
-        return { result: `data:image/jpeg;base64,${bytes}` };
+        return { result: bytes };
       }
     } catch (err: unknown) {
       console.error(`generateChapterImage error (Attempt ${String(attempt + 1)}):`, err);
@@ -100,7 +100,7 @@ export const generateChapterImage = async (
             const inlinePart = candidate?.content?.parts?.find(isInlinePart);
             const inlineData = inlinePart?.inlineData;
             if (inlineData?.data) {
-              return { result: `data:${inlineData.mimeType ?? 'image/png'};base64,${inlineData.data}` };
+              return { result: inlineData.data };
             }
           }
         } catch (fallbackErr: unknown) {

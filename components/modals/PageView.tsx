@@ -317,7 +317,7 @@ function PageView({
     }
     const chapter = chapters[idx];
     if (chapter.imageData) {
-      setImageUrl(chapter.imageData);
+      setImageUrl(`data:image/jpeg;base64,${chapter.imageData}`);
       return;
     }
     setIsLoading(true);
@@ -325,7 +325,7 @@ function PageView({
       const img = await generateChapterImage(item, currentTheme, idx);
       if (img) {
         updateItemContent(item.id, undefined, undefined, idx, img);
-        setImageUrl(img);
+        setImageUrl(`data:image/jpeg;base64,${img}`);
       }
       setIsLoading(false);
     })();
@@ -350,13 +350,6 @@ function PageView({
     return text;
   }, [showDecoded, item, text, chapterIndex, chapters, isJournal]);
 
-  const currentChapter = useMemo(() => {
-    if (!item) return null;
-    const idx =
-      item.type === 'book' && !isJournal ? chapterIndex - 1 : chapterIndex;
-    if (idx < 0 || idx >= chapters.length) return null;
-    return chapters[idx];
-  }, [item, chapterIndex, chapters, isJournal]);
 
   const pendingWrite = useMemo(
     () => isJournal && isWritingJournal,
@@ -530,13 +523,6 @@ function PageView({
           </div>
         ) : null}
 
-        {currentChapter?.imageData && (item?.type === 'picture' || item?.type === 'map') ? (
-          <img
-            alt={currentChapter.description}
-            className="mb-4 self-center max-h-60"
-            src={`data:image/png;base64,${currentChapter.imageData}`}
-          />
-        ) : null}
 
         {pendingWrite ? (
           <LoadingSpinner loadingReason="journal" />
