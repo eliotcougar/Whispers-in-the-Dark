@@ -5,6 +5,7 @@
 import {
   SavedGameDataShape,
   Item,
+  ItemChapter,
   ThemeHistoryState,
   ThemeMemory,
   AdventureTheme,
@@ -43,6 +44,19 @@ export function isValidDialogueSummaryRecord(record: unknown): record is Dialogu
   );
 }
 
+export function isValidItemChapter(chapter: unknown): chapter is ItemChapter {
+  if (!chapter || typeof chapter !== 'object') return false;
+  const maybe = chapter as Partial<ItemChapter>;
+  return (
+    typeof maybe.heading === 'string' &&
+    typeof maybe.description === 'string' &&
+    typeof maybe.contentLength === 'number' &&
+    (maybe.actualContent === undefined || typeof maybe.actualContent === 'string') &&
+    (maybe.visibleContent === undefined || typeof maybe.visibleContent === 'string') &&
+    (maybe.imageData === undefined || typeof maybe.imageData === 'string')
+  );
+}
+
 export function isValidItemForSave(item: unknown): item is Item {
   if (!item || typeof item !== 'object') return false;
   const maybe = item as Partial<Item>;
@@ -67,6 +81,11 @@ export function isValidItemForSave(item: unknown): item is Item {
       typeof (maybe as { visibleContent?: unknown }).visibleContent === 'string') &&
     ((maybe as { imageData?: unknown }).imageData === undefined ||
       typeof (maybe as { imageData?: unknown }).imageData === 'string') &&
+    ((maybe as { chapters?: unknown }).chapters === undefined ||
+      (Array.isArray((maybe as { chapters?: unknown }).chapters) &&
+        ((maybe as { chapters?: unknown }).chapters as Array<unknown>).every(
+          isValidItemChapter,
+        ))) &&
     (maybe.knownUses === undefined ||
       (Array.isArray(maybe.knownUses) &&
         maybe.knownUses.every((ku: KnownUse) =>
@@ -289,7 +308,13 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (obj.mainQuest !== null && typeof obj.mainQuest !== 'string') { console.warn('Invalid save data (V3): mainQuest type.'); return false; }
   if (obj.currentObjective !== null && typeof obj.currentObjective !== 'string') { console.warn('Invalid save data (V3): currentObjective type.'); return false; }
   if (!Array.isArray(obj.inventory) || !obj.inventory.every(isValidItemForSave)) { console.warn('Invalid save data (V3): inventory.'); return false; }
-  if (!Array.isArray(obj.playerJournal)) { console.warn('Invalid save data (V3): playerJournal type.'); return false; }
+  if (
+    !Array.isArray(obj.playerJournal) ||
+    !obj.playerJournal.every(isValidItemChapter)
+  ) {
+    console.warn('Invalid save data (V3): playerJournal type.');
+    return false;
+  }
   if (typeof obj.lastJournalWriteTurn !== 'number') { console.warn('Invalid save data (V3): lastJournalWriteTurn type.'); return false; }
   if (typeof obj.lastJournalInspectTurn !== 'number') { console.warn('Invalid save data (V3): lastJournalInspectTurn type.'); return false; }
   if (typeof obj.lastLoreDistillTurn !== 'number') { console.warn('Invalid save data (V3): lastLoreDistillTurn type.'); return false; }
