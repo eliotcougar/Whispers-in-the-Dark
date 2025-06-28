@@ -51,6 +51,7 @@ function PageView({
   const [showDecoded, setShowDecoded] = useState(false);
   const [chapterIndex, setChapterIndex] = useState(startIndex);
   const isBook = item?.type === 'book';
+  const isPage = item?.type === 'page';
   const isJournal = item?.id === PLAYER_JOURNAL_ID;
 
   const chapters = useMemo(() => {
@@ -82,6 +83,11 @@ function PageView({
     }
     return Math.min(chapters.length, idx + 1);
   }, [chapters, item]);
+
+  const allChaptersGenerated = useMemo(
+    () => chapters.every(ch => Boolean(ch.actualContent)),
+    [chapters]
+  );
 
 
 
@@ -317,6 +323,13 @@ function PageView({
     return null;
   }, [displayedText, item]);
 
+  const canInspectItem = useMemo(() => {
+    if (!item) return false;
+    if (isJournal) return canInspectJournal;
+    if (isBook || isPage) return allChaptersGenerated;
+    return true;
+  }, [item, isJournal, isBook, isPage, canInspectJournal, allChaptersGenerated]);
+
   return (
     <div
       aria-labelledby="page-view-title"
@@ -346,12 +359,12 @@ function PageView({
           </h2>
         ) : null}
 
-        {item?.type === 'book' || isJournal ? (
+        {isBook || isJournal ? (
           <div className="flex justify-center items-center gap-2 mb-2">
             {onInspect ? (
               <Button
                 ariaLabel="Inspect"
-                disabled={!canInspectJournal}
+                disabled={!canInspectItem}
                 label="Inspect"
                 onClick={handleInspectClick}
                 preset="indigo"
@@ -426,6 +439,22 @@ function PageView({
                 label="Write"
                 onClick={handleWriteClick}
                 preset="blue"
+                size="sm"
+                variant="compact"
+              />
+            ) : null}
+          </div>
+        ) : null}
+
+        {isPage ? (
+          <div className="flex justify-center items-center gap-2 mb-2">
+            {onInspect ? (
+              <Button
+                ariaLabel="Inspect"
+                disabled={!canInspectItem}
+                label="Inspect"
+                onClick={handleInspectClick}
+                preset="indigo"
                 size="sm"
                 variant="compact"
               />
