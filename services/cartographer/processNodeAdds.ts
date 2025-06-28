@@ -125,11 +125,9 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
                 resolvedParentId = parent.id;
               } else {
                 sameTypeParent = parent;
-                resolvedParentId = findClosestAllowedParent(
-                  parent,
-                  childType,
-                  context.themeNodeIdMap,
-                );
+                // Temporarily allow the invalid hierarchy; it will be
+                // corrected during conflict resolution.
+                resolvedParentId = parent.id;
               }
             } else {
               resolvedParentId = findClosestAllowedParent(
