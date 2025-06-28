@@ -561,7 +561,7 @@ export const useProcessAiResponse = ({
 
       if (themeContextForResponse) {
         const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
-        const contextParts = isFromDialogueSummary
+        const baseContext = isFromDialogueSummary
           ? [options.dialogueTranscript ?? '', thoughts ? `\n  ## Storyteller's Thoughts:\n${thoughts}\n------` : '']
               .filter(Boolean)
               .join('\n')
@@ -573,6 +573,24 @@ export const useProcessAiResponse = ({
             ]
               .filter(Boolean)
               .join('\n');
+
+        const nodesForTheme = draftState.mapData.nodes.filter(
+          n => n.themeName === themeContextForResponse.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
+        );
+        const npcsForTheme = draftState.allNPCs.filter(npc => npc.themeName === themeContextForResponse.name);
+        const itemsForTheme = draftState.inventory.filter(
+          item =>
+            item.holderId === PLAYER_HOLDER_ID ||
+            nodesForTheme.some(n => n.id === item.holderId) ||
+            npcsForTheme.some(npc => npc.id === item.holderId),
+        );
+        const idsContext = [
+          `Node IDs: ${nodesForTheme.map(n => n.id).join(', ')}`,
+          `NPC IDs: ${npcsForTheme.map(n => n.id).join(', ')}`,
+          `Item IDs: ${itemsForTheme.map(i => i.id).join(', ')}`,
+        ].join('\n');
+
+        const contextParts = `${baseContext}\n${idsContext}`;
         const original = loadingReason;
         const refineResult = await refineLore_Service({
           themeName: themeContextForResponse.name,
@@ -581,13 +599,16 @@ export const useProcessAiResponse = ({
           onFactsExtracted: debugLore
             ? async (facts) =>
                 new Promise<{ proceed: boolean }>(resolve => {
-                  openDebugLoreModal(facts, (good, bad, proceed) => {
-                    if (proceed) {
-                      draftState.debugGoodFacts.push(...good);
-                      draftState.debugBadFacts.push(...bad);
-                    }
-                    resolve({ proceed });
-                  });
+                  openDebugLoreModal(
+                    facts.map(f => f.text),
+                    (good, bad, proceed) => {
+                      if (proceed) {
+                        draftState.debugGoodFacts.push(...good);
+                        draftState.debugBadFacts.push(...bad);
+                      }
+                      resolve({ proceed });
+                    },
+                  );
                 })
             : undefined,
           onSetLoadingReason: setLoadingReason,

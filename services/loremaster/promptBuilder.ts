@@ -2,7 +2,7 @@
  * @file promptBuilder.ts
  * @description Constructs prompts for the Loremaster service.
  */
-import { ThemeFact } from '../../types';
+import { ThemeFact, FactWithEntities } from '../../types';
 
 export const buildExtractFactsPrompt = (
   themeName: string,
@@ -13,17 +13,24 @@ export const buildExtractFactsPrompt = (
   ## Context:
 ${turnContext}
 
-List immutable facts according to your instructions.
+List immutable facts according to your instructions. Return JSON as:
+[{"text": "fact", "entities": ["id1", "id2"]}]
 `;
 };
 
 export const buildIntegrateFactsPrompt = (
   themeName: string,
   existingFacts: Array<ThemeFact>,
-  newFacts: Array<string>,
+  newFacts: Array<FactWithEntities>,
 ): string => {
-  const existing = existingFacts.map(f => `- ${f.text}`).join('\n') || 'None.';
-  const proposed = newFacts.map(f => `- ${f}`).join('\n') || 'None.';
+  const existing =
+    existingFacts
+      .map(f => `- ${f.text} [${f.entities.join(', ')}]`)
+      .join('\n') || 'None.';
+  const proposed =
+    newFacts
+      .map(f => `- ${f.text} [${f.entities.join(', ')}]`)
+      .join('\n') || 'None.';
   return `Theme: ${themeName}
 
   ## Known Facts:

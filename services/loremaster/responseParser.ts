@@ -2,25 +2,44 @@
  * @file responseParser.ts
  * @description Parses Loremaster AI responses.
  */
-import { LoreRefinementResult, ThemeFactChange } from '../../types';
+import { LoreRefinementResult, ThemeFactChange, FactWithEntities } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 
 const isThemeFactChange = (value: unknown): value is ThemeFactChange => {
-  return (
-    !!value &&
-    typeof value === 'object' &&
-    typeof (value as { action?: unknown }).action === 'string'
-  );
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Partial<ThemeFactChange>;
+  if (typeof obj.action !== 'string') return false;
+  if (obj.fact) {
+    const fact = obj.fact as Partial<ThemeFactChange['fact']> | undefined;
+    if (
+      fact?.entities !== undefined &&
+      (!Array.isArray(fact.entities) || !fact.entities.every(id => typeof id === 'string'))
+    ) {
+      return false;
+    }
+  }
+  return true;
 };
 
 export const parseExtractFactsResponse = (
   responseText: string,
-): Array<string> | null => {
+): Array<FactWithEntities> | null => {
   const jsonStr = extractJsonFromFence(responseText);
   const parsed = safeParseJson<unknown>(jsonStr);
   if (!parsed) return null;
-  if (Array.isArray(parsed) && parsed.every(f => typeof f === 'string')) {
-    return parsed;
+  if (
+    Array.isArray(parsed) &&
+    parsed.every(f => {
+      if (!f || typeof f !== 'object') return false;
+      const ent = (f as { entities?: unknown }).entities;
+      return (
+        typeof (f as { text?: unknown }).text === 'string' &&
+        Array.isArray(ent) &&
+        (ent as Array<unknown>).every((id: unknown): id is string => typeof id === 'string')
+      );
+    })
+  ) {
+    return parsed as Array<FactWithEntities>;
   }
   return null;
 };
@@ -38,6 +57,11 @@ export const parseIntegrationResponse = (
   if (Array.isArray(obj.factsChange)) {
     obj.factsChange.forEach(raw => {
       if (isThemeFactChange(raw)) {
+        if (raw.fact) {
+          raw.fact.entities = Array.isArray(raw.fact.entities)
+            ? raw.fact.entities.filter((id: unknown): id is string => typeof id === 'string')
+            : [];
+        }
         factsArr.push(raw);
       }
     });
