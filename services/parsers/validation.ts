@@ -150,7 +150,9 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
         typeof ch === 'object' &&
         typeof (ch as ItemChapter).heading === 'string' &&
         typeof (ch as ItemChapter).description === 'string' &&
-        typeof (ch as ItemChapter).contentLength === 'number'
+        typeof (ch as ItemChapter).contentLength === 'number' &&
+        ((ch as ItemChapter).imageData === undefined ||
+          typeof (ch as ItemChapter).imageData === 'string')
     );
 
   if (obj.type === 'page' || obj.type === 'book') {
@@ -231,7 +233,8 @@ export function isValidAddChapterPayload(obj: unknown): obj is AddChapterPayload
     return (
       typeof ch.heading === 'string' &&
       typeof ch.description === 'string' &&
-      typeof ch.contentLength === 'number'
+      typeof ch.contentLength === 'number' &&
+      (ch.imageData === undefined || typeof ch.imageData === 'string')
     );
   }
   return false;

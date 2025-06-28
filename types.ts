@@ -42,6 +42,7 @@ export interface ItemChapter {
   contentLength: number;
   actualContent?: string;
   visibleContent?: string;
+  imageData?: string;
 }
 
 export interface Item {
