@@ -11,6 +11,36 @@ import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';
 
+const inFlightGenerations: Record<string, Promise<string> | undefined> = {};
+
+const detectMimeType = (data: string): string => {
+  if (data.startsWith('/9j')) return 'image/jpeg';
+  if (data.startsWith('iVBORw0')) return 'image/png';
+  return 'image/png';
+};
+
+const convertToJpeg = async (base64: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('No canvas context'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      const jpeg = canvas
+        .toDataURL('image/jpeg', 0.85)
+        .replace('data:image/jpeg;base64,', '');
+      resolve(jpeg);
+    };
+    img.onerror = reject;
+    img.src = `data:${detectMimeType(base64)};base64,${base64}`;
+  });
+
 const THEME_STYLE_PROMPTS: Record<string, string> = {
   dungeon: 'a dark, gritty medieval fantasy style, dungeons and dragons concept art',
   cyberpunk: 'a neon-drenched, futuristic cyberpunk cityscape style, Blade Runner aesthetic',
@@ -40,6 +70,11 @@ export const generateChapterImage = async (
   theme: AdventureTheme,
   chapter: number,
 ): Promise<string> => {
+  const key = `${item.id}-${String(chapter)}`;
+  const existing = inFlightGenerations[key];
+  if (existing) {
+    return existing;
+  }
   if (!isApiConfigured() || !ai) {
     console.error('generateChapterImage: API key not configured.');
     return '';
@@ -70,48 +105,58 @@ export const generateChapterImage = async (
   }
 
   const client = ai;
-  const result = await retryAiCall<string>(async attempt => {
-    try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.visualize.icon);
-      const response = await client.models.generateImages({
-        model: 'imagen-4.0-generate-preview-06-06',
-        prompt: safePrompt,
-        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
-      });
-      const bytes = response.generatedImages?.[0]?.image?.imageBytes;
-      if (bytes) {
-        return { result: bytes };
-      }
-    } catch (err: unknown) {
-      console.error(`generateChapterImage error (Attempt ${String(attempt + 1)}):`, err);
-      const status = extractStatusFromError(err);
-      if (status === 400) {
-        try {
-          const fallbackResp = await client.models.generateContentStream({
-            model: 'gemini-2.0-flash-preview-image-generation',
-            contents: [
-              { role: 'user', parts: [{ text: safePrompt }] },
-            ],
-            config: { responseModalities: ['IMAGE', 'TEXT'], responseMimeType: 'text/plain' },
-          });
-          const isInlinePart = (part: unknown): part is Part => typeof part === 'object' && part !== null && 'inlineData' in part;
-          for await (const chunk of fallbackResp) {
-            const candidate = chunk.candidates?.[0];
-            const inlinePart = candidate?.content?.parts?.find(isInlinePart);
-            const inlineData = inlinePart?.inlineData;
-            if (inlineData?.data) {
-              return { result: inlineData.data };
-            }
-          }
-        } catch (fallbackErr: unknown) {
-          console.error('Fallback image generation failed:', fallbackErr);
+  const generationPromise = (async () => {
+    const result = await retryAiCall<string>(async attempt => {
+      try {
+        addProgressSymbol(LOADING_REASON_UI_MAP.visualize.icon);
+        const response = await client.models.generateImages({
+          model: 'imagen-4.0-generate-preview-06-06',
+          prompt: safePrompt,
+          config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
+        });
+        const bytes = response.generatedImages?.[0]?.image?.imageBytes;
+        if (bytes) {
+          return { result: bytes };
         }
+      } catch (err: unknown) {
+        console.error(`generateChapterImage error (Attempt ${String(attempt + 1)}):`, err);
+        const status = extractStatusFromError(err);
+        if (status === 400) {
+          try {
+            const fallbackResp = await client.models.generateContentStream({
+              model: 'gemini-2.0-flash-preview-image-generation',
+              contents: [
+                { role: 'user', parts: [{ text: safePrompt }] },
+              ],
+              config: { responseModalities: ['IMAGE', 'TEXT'], responseMimeType: 'text/plain' },
+            });
+            const isInlinePart = (part: unknown): part is Part => typeof part === 'object' && part !== null && 'inlineData' in part;
+            for await (const chunk of fallbackResp) {
+              const candidate = chunk.candidates?.[0];
+              const inlinePart = candidate?.content?.parts?.find(isInlinePart);
+              const inlineData = inlinePart?.inlineData;
+              if (inlineData?.data) {
+                return { result: inlineData.data };
+              }
+            }
+          } catch (fallbackErr: unknown) {
+            console.error('Fallback image generation failed:', fallbackErr);
+          }
+        }
+        throw err;
       }
-      throw err;
-    }
-    return { result: '' };
-  });
-  return result ?? '';
+      return { result: '' };
+    });
+    const raw = result ?? '';
+    return raw ? convertToJpeg(raw) : '';
+  })();
+
+  inFlightGenerations[key] = generationPromise;
+  try {
+    return await generationPromise;
+  } finally {
+    inFlightGenerations[key] = undefined;
+  }
 };
 
 export default generateChapterImage;
