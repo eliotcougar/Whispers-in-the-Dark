@@ -101,7 +101,6 @@ ${sceneDescription};
         includeThoughts: true,
         responseMimeType: 'application/json',
         jsonSchema: schema,
-        includeThoughts: true,
         label: 'Journal',
       });
       const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
