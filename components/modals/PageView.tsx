@@ -7,6 +7,7 @@ import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
 import { generatePageText } from '../../services/page';
+import { generateChapterImage } from '../../services/image';
 import { applyBasicMarkup } from '../../utils/markup';
 
 interface PageViewProps {
@@ -20,7 +21,13 @@ interface PageViewProps {
   readonly isVisible: boolean;
   readonly startIndex?: number;
   readonly onClose: () => void;
-  readonly updateItemContent: (itemId: string, actual: string, visible: string, chapterIndex?: number) => void;
+  readonly updateItemContent: (
+    itemId: string,
+    actual?: string,
+    visible?: string,
+    chapterIndex?: number,
+    imageData?: string,
+  ) => void;
   readonly onInspect?: () => void;
   readonly onWriteJournal?: () => void;
   readonly canWriteJournal?: boolean;
@@ -49,6 +56,7 @@ function PageView({
   const [text, setText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDecoded, setShowDecoded] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [chapterIndex, setChapterIndex] = useState(startIndex);
   const isBook = item?.type === 'book';
   const isPage = item?.type === 'page';
@@ -203,6 +211,7 @@ function PageView({
   useEffect(() => {
     if (!isVisible || !item) {
       setText(null);
+      setImageUrl(null);
       return;
     }
 
@@ -290,6 +299,43 @@ function PageView({
     currentQuest,
     updateItemContent,
     isJournal,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isVisible ||
+      !item ||
+      (item.type !== 'picture' && item.type !== 'map')
+    ) {
+      setImageUrl(null);
+      return;
+    }
+    const idx = chapterIndex;
+    if (idx < 0 || idx >= chapters.length) {
+      setImageUrl(null);
+      return;
+    }
+    const chapter = chapters[idx];
+    if (chapter.imageData) {
+      setImageUrl(chapter.imageData);
+      return;
+    }
+    setIsLoading(true);
+    void (async () => {
+      const img = await generateChapterImage(item, currentTheme, idx);
+      if (img) {
+        updateItemContent(item.id, undefined, undefined, idx, img);
+        setImageUrl(img);
+      }
+      setIsLoading(false);
+    })();
+  }, [
+    isVisible,
+    item,
+    chapterIndex,
+    chapters,
+    currentTheme,
+    updateItemContent,
   ]);
 
   const displayedText = useMemo(() => {
@@ -488,6 +534,14 @@ function PageView({
               </p>
             ))}
           </ul>
+        ) : (item?.type === 'picture' || item?.type === 'map') && imageUrl ? (
+          <div className="flex justify-center p-5 mt-4">
+            <img
+              alt={item.name}
+              className="max-h-[24rem] object-contain border border-slate-700"
+              src={imageUrl}
+            />
+          </div>
         ) : displayedText ? (
           <div
             className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}

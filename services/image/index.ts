@@ -1,0 +1,1 @@
+export { generateChapterImage } from './api';
