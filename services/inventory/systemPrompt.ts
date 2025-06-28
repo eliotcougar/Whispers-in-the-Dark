@@ -186,9 +186,6 @@ Structure for individual ItemChange objects within the array:
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
 IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park", "Read", "Write" known uses - there are dedicated buttons for those in the game.
 
-If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, use "itemChange" "update" (e.g., with "addKnownUse").
-If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, consider "itemChange" "update" for "addKnownUse" in addition to main outcome.
-
 ${ITEM_TYPES_GUIDE}
 
 IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "update", providing "newName" and optionally the new "type" and "description" if they change. Your "logMessage" must creatively explain this transformation. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand". The log message could be: "The strange metal device from another world shimmers and reshapes into a humming metal wand in your grasp!"
