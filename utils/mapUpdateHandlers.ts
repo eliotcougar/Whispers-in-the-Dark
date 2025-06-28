@@ -16,7 +16,11 @@ import {
 import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/cartographer';
 import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
-import { buildNPCChangeRecords, applyAllNPCChanges } from './gameLogicUtils';
+import {
+  buildNPCChangeRecords,
+  applyAllNPCChanges,
+  updateEntityIdsInFacts,
+} from './gameLogicUtils';
 import {
   existsNonRumoredPath,
   getAncestors,
@@ -119,12 +123,14 @@ export const handleMapUpdates = async (
         mapUpdateResult?.debugInfo?.minimalModelCalls,
       );
       if (renameResults.length > 0) {
+        const renameMap: Record<string, string> = {};
         for (const r of renameResults) {
           const idx = draftState.mapData.nodes.findIndex(n => n.id === r.nodeId);
           if (idx === -1) continue;
           const node = draftState.mapData.nodes[idx];
           const oldId = node.id;
           const newId = buildNodeId(r.newName);
+          renameMap[oldId] = newId;
           node.placeName = r.newName;
           node.id = newId;
           draftState.mapData.nodes.forEach(n => {
@@ -139,6 +145,9 @@ export const handleMapUpdates = async (
           });
           if (draftState.currentMapNodeId === oldId) draftState.currentMapNodeId = newId;
           if (draftState.destinationNodeId === oldId) draftState.destinationNodeId = newId;
+        }
+        if (Object.keys(renameMap).length > 0) {
+          updateEntityIdsInFacts(draftState.themeFacts, renameMap);
         }
         turnChanges.mapDataChanged = true;
       }

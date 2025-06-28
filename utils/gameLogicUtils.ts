@@ -101,3 +101,13 @@ export const applyThemeFactChanges = (
     }
   }
 };
+
+export const updateEntityIdsInFacts = (
+  facts: Array<ThemeFact>,
+  renameMap: Record<string, string>,
+): void => {
+  if (facts.length === 0 || Object.keys(renameMap).length === 0) return;
+  facts.forEach(fact => {
+    fact.entities = fact.entities.map(id => renameMap[id] ?? id);
+  });
+};
