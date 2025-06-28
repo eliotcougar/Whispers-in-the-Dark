@@ -9,5 +9,6 @@ export * from './placeDetails';
 export * from './edgeFixes';
 export * from './hierarchyUpgrade';
 export * from './name';
+export * from './duplicateNodeNames';
 export * from './dialogue';
 export * from './inventory';
