@@ -388,8 +388,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       return;
     if (
       currentFullState.globalTurnNumber > 0 &&
-      (currentFullState.globalTurnNumber - 1) % DISTILL_LORE_INTERVAL === 0 &&
-      currentFullState.lastLoreDistillTurn !== currentFullState.globalTurnNumber
+      currentFullState.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
+      currentFullState.lastLoreDistillTurn !==
+        currentFullState.globalTurnNumber
     ) {
       void handleDistillFacts();
     }
