@@ -27,7 +27,7 @@ const buildJournalEntrySchema = (length: number) => ({
     text: {
       type: 'string',
       minLength: length - 10,
-      description: `Exactly ${String(length)} words describing the journal entry, starting with a Markup-formatted heading. Basic Markup syntax is allowed, such as **bold** and *italic*.`,
+      description: `Approximately ${String(length)} words of the journal entry, starting with a Markup-formatted heading. Basic Markup syntax is allowed, such as **bold** and *italic*.`,
     },
   },
   required: ['heading', 'text'],
