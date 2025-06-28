@@ -304,6 +304,14 @@ function PageView({
     return text;
   }, [showDecoded, item, text, chapterIndex, chapters, isJournal]);
 
+  const currentChapter = useMemo(() => {
+    if (!item) return null;
+    const idx =
+      item.type === 'book' && !isJournal ? chapterIndex - 1 : chapterIndex;
+    if (idx < 0 || idx >= chapters.length) return null;
+    return chapters[idx];
+  }, [item, chapterIndex, chapters, isJournal]);
+
   const pendingWrite = useMemo(
     () => isJournal && isWritingJournal,
     [isJournal, isWritingJournal]
@@ -474,6 +482,14 @@ function PageView({
               variant="toggle"
             />
           </div>
+        ) : null}
+
+        {currentChapter?.imageData && (item?.type === 'picture' || item?.type === 'map') ? (
+          <img
+            alt={currentChapter.description}
+            className="mb-4 self-center max-h-60"
+            src={`data:image/png;base64,${currentChapter.imageData}`}
+          />
         ) : null}
 
         {pendingWrite ? (
