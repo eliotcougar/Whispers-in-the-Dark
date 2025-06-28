@@ -6,6 +6,7 @@ export interface RetryResult<T> {
 
 import { MAX_RETRIES } from '../constants';
 import { isServerOrClientError, isTransientNetworkError } from './aiErrorUtils';
+import { incrementRetryCount, clearRetryCount } from './loadingProgress';
 
 /**
  * Retries an async AI operation up to MAX_RETRIES times.
@@ -18,6 +19,7 @@ export const retryAiCall = async <T>(
   callback: (attempt: number) => Promise<RetryResult<T>>,
   delayMs = 500,
 ): Promise<T | null> => {
+  clearRetryCount();
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     let transient = false;
     try {
@@ -29,8 +31,10 @@ export const retryAiCall = async <T>(
       if (!isServerOrClientError(error) && !transient) throw error;
     }
     if (attempt === MAX_RETRIES) break;
+    incrementRetryCount();
     const wait = transient ? Math.max(delayMs, 5000) : delayMs;
     await new Promise(res => setTimeout(res, wait));
   }
+  clearRetryCount();
   return null;
 };
