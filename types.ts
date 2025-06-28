@@ -305,9 +305,15 @@ export interface ThemeMemory {
 
 export type ThemeHistoryState = Record<string, ThemeMemory>;
 
+export interface FactWithEntities {
+  text: string;
+  entities: Array<string>;
+}
+
 export interface ThemeFact {
   id: number;
   text: string;
+  entities: Array<string>;
   themeName: string;
   createdTurn: number;
   tier: number;
@@ -315,7 +321,9 @@ export interface ThemeFact {
 
 export interface ThemeFactChange {
   action: 'add' | 'change' | 'delete';
-  fact?: Partial<Omit<ThemeFact, 'id' | 'createdTurn'>> & { createdTurn?: number };
+  fact?: Partial<Omit<ThemeFact, 'id' | 'createdTurn'>> & {
+    createdTurn?: number;
+  };
   id?: number;
 }
 
@@ -334,7 +342,11 @@ export interface LoreRefinementResult {
 export interface LoremasterModeDebugInfo {
   prompt: string;
   rawResponse?: string;
-  parsedPayload?: Array<string> | LoreRefinementResult | GeneratedJournalEntry;
+  parsedPayload?:
+    | Array<string>
+    | Array<FactWithEntities>
+    | LoreRefinementResult
+    | GeneratedJournalEntry;
   observations?: string;
   rationale?: string;
   thoughts?: Array<string>;

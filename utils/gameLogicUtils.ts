@@ -71,6 +71,7 @@ export const applyThemeFactChanges = (
           const newFact: ThemeFact = {
             id: nextId++,
             text: change.fact.text,
+            entities: change.fact.entities ?? [],
             themeName: defaultThemeName,
             createdTurn: change.fact.createdTurn ?? currentTurn,
             tier: change.fact.tier ?? 1,

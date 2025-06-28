@@ -21,6 +21,7 @@ import {
 } from './responseParser';
 import {
   ThemeFact,
+  FactWithEntities,
   LoreRefinementResult,
   LoremasterRefineDebugInfo,
   LoadingReason,
@@ -34,7 +35,17 @@ import {
 
 export const EXTRACT_FACTS_JSON_SCHEMA = {
   type: 'array',
-  items: { type: 'string', description: 'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact.' },
+  items: {
+    type: 'object',
+    properties: {
+      text: { type: 'string' },
+      entities: { type: 'array', items: { type: 'string' } },
+    },
+    required: ['text', 'entities'],
+    additionalProperties: false,
+    description:
+      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact.',
+  },
 } as const;
 
 export const COLLECT_FACTS_JSON_SCHEMA = {
@@ -66,8 +77,11 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
           action: { enum: ['add'], description: 'Always equal to "add" exactly.' },
           fact: {
             type: 'object',
-            properties: { text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*.' } },
-            required: ['text'],
+            properties: {
+              text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*.' },
+              entities: { type: 'array', items: { type: 'string' } },
+            },
+            required: ['text', 'entities'],
             additionalProperties: false,
           },
         },
@@ -105,9 +119,10 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
             description: 'REQUIRED for the *add* and *change* actions. Omitted for the *delete* action.',
             properties: {
               text: { type: 'string', description: 'REQUIRED for the *add* and *change* actions.' },
+              entities: { type: 'array', items: { type: 'string' } },
               tier: { type: 'integer', description: 'Omit tier for *add* action. Increase tier by one for *change* action, when any number of other facts are merged into this one.', default: 1 },
             },
-            required: ['text'],
+            required: ['text', 'entities'],
             additionalProperties: false,
           },
         },
@@ -124,7 +139,7 @@ export interface RefineLoreParams {
   themeName: string;
   turnContext: string;
   existingFacts: Array<ThemeFact>;
-  onFactsExtracted?: (facts: Array<string>) => Promise<{ proceed: boolean }>;
+  onFactsExtracted?: (facts: Array<FactWithEntities>) => Promise<{ proceed: boolean }>;
   onSetLoadingReason?: (reason: LoadingReason) => void;
 }
 
@@ -144,7 +159,7 @@ export const refineLore_Service = async (
 
   const extractPrompt = buildExtractFactsPrompt(themeName, turnContext);
   const newFacts = await retryAiCall<{
-    parsed: Array<string> | null;
+    parsed: Array<FactWithEntities> | null;
     raw: string;
     thoughts: Array<string>;
     systemInstructionUsed: string;

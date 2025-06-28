@@ -106,6 +106,8 @@ export function isValidThemeFact(fact: unknown): fact is ThemeFact {
   return (
     typeof maybe.id === 'number' &&
     typeof maybe.text === 'string' &&
+    Array.isArray(maybe.entities) &&
+    maybe.entities.every(id => typeof id === 'string') &&
     typeof maybe.themeName === 'string' &&
     typeof maybe.createdTurn === 'number' &&
     typeof maybe.tier === 'number'
