@@ -19,8 +19,7 @@ import {
   executeDialogueSummary,
   executeMemorySummary,
 } from '../services/dialogue';
-import { MAX_LOG_MESSAGES, MAX_DIALOGUE_SUMMARIES_PER_NPC, PLAYER_HOLDER_ID } from '../constants';
-import { addLogMessageToList } from '../utils/gameLogicUtils';
+import { MAX_DIALOGUE_SUMMARIES_PER_NPC, PLAYER_HOLDER_ID } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
 const DIALOGUE_EXIT_READ_DELAY_MS = 5000;
@@ -160,11 +159,8 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       thoughts: summaryThoughts,
     } = await executeDialogueSummary(summaryContextForUpdates);
 
-    const participantsForLog = [...finalParticipants];
-    const dialogueBlock =
-      `Conversation transcript with ${participantsForLog.join(', ')}:\n` +
-      finalHistory.map((entry) => `  ${entry.speaker}: ${entry.line}`).join('\n');
-    workingGameState.gameLog = addLogMessageToList(workingGameState.gameLog, dialogueBlock, MAX_LOG_MESSAGES);
+    // Dialogue transcript previously logged to the game history is now omitted
+    // since the Loremaster maintains summaries of key exchanges.
 
     workingGameState.dialogueState = null;
 
