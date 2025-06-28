@@ -12,8 +12,20 @@ v1.4. Ink and Quill update
   + Fact list, storing random static facts. Loremaster AI that extracts small immutable facts.
   + Librarian AI: Selects relevant facts from the fact list before each turn.
   + Inspect action on written materials to inject contents into Storyteller AI and Loremaster AI.
+  + Inspecting your own journal is used to potentially inject new lore.
+  - Calm and Action global states to define when the player can interact with Journal.
 
-v1.5? On the Road update
+v1.5 Backstory update
+  - Character Generation.
+  - Backstory generation: 5 years, 3 years, 1 year, 6 months, 1 month, 1 week, yesterday.
+  - Extraction of extra lore from backstory that should not change.
+  - Interactive backstory generation for the custom mode, random generation, based on old choices durin shifts.
+  - Character sheet (per Theme)
+  - Conversion of Character Sheet from Theme to Theme.
+  - Flag about whether an NPC knows player's name.
+  - NPCs attitude towards the Player.
+
+v future? On the Road update
   - Mobile Locations, large multi-crew vehicles (Ships, Airships, Spaseships, ...)
   - Separate sub-graphs, dynamically connected to main map.
   - Vehicle Builder AI: constructs all the necessary parts of a vehicle. Vehicle are immutable afterwards.
