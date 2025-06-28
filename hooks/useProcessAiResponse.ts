@@ -574,7 +574,6 @@ export const useProcessAiResponse = ({
               .filter(Boolean)
               .join('\n');
         const original = loadingReason;
-        setLoadingReason('loremaster_extract');
         const refineResult = await refineLore_Service({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
@@ -591,8 +590,8 @@ export const useProcessAiResponse = ({
                   });
                 })
             : undefined,
+          onSetLoadingReason: setLoadingReason,
         });
-        setLoadingReason('loremaster_write');
         if (draftState.lastDebugPacket.loremasterDebugInfo) {
           draftState.lastDebugPacket.loremasterDebugInfo.extract = refineResult?.debugInfo?.extract ?? null;
           draftState.lastDebugPacket.loremasterDebugInfo.integrate = refineResult?.debugInfo?.integrate ?? null;

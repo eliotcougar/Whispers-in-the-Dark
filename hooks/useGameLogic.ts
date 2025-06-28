@@ -322,7 +322,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     const themeObj = currentFullState.currentThemeObject;
     if (!themeObj) return;
     setIsLoading(true);
-    setLoadingReason('loremaster_refine');
     setError(null);
     const currentThemeNodes = currentFullState.mapData.nodes.filter(
       n => n.themeName === themeObj.name,
@@ -342,6 +341,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       ),
     );
     const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+    setLoadingReason('loremaster_refine');
     const result = await distillFacts_Service({
       themeName: themeObj.name,
       facts: currentFullState.themeFacts,

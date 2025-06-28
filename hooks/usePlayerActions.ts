@@ -24,11 +24,14 @@ import {
   FREE_FORM_ACTION_COST,
   RECENT_LOG_COUNT_FOR_PROMPT,
   PLAYER_HOLDER_ID,
+  DISTILL_LORE_INTERVAL,
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
+import { distillFacts_Service } from '../services/loremaster';
+import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 
 export interface UsePlayerActionsProps {
   getCurrentGameState: () => FullGameState;
@@ -106,6 +109,70 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     isLoading,
   });
 
+  const runDistillIfNeeded = useCallback(
+    async (state: FullGameState) => {
+      const themeObj = state.currentThemeObject;
+      if (!themeObj) return;
+      if (
+        state.globalTurnNumber > 0 &&
+        state.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
+        state.lastLoreDistillTurn !== state.globalTurnNumber
+      ) {
+        const currentThemeNodes = state.mapData.nodes.filter(
+          n => n.themeName === themeObj.name,
+        );
+        const inventoryItemNames = Array.from(
+          new Set(
+            state.inventory
+              .filter(item => {
+                if (item.holderId === PLAYER_HOLDER_ID) return true;
+                if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
+                const holderNpc = state.allNPCs.find(
+                  npc => npc.id === item.holderId && npc.themeName === themeObj.name,
+                );
+                return Boolean(holderNpc);
+              })
+              .map(item => item.name),
+          ),
+        );
+        const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+        setLoadingReason('loremaster_refine');
+        const result = await distillFacts_Service({
+          themeName: themeObj.name,
+          facts: state.themeFacts,
+          currentQuest: state.mainQuest,
+          currentObjective: state.currentObjective,
+          inventoryItemNames,
+          mapNodeNames,
+        });
+        state.lastLoreDistillTurn = state.globalTurnNumber;
+        state.lastDebugPacket ??= {
+          prompt: '',
+          rawResponseText: null,
+          parsedResponse: null,
+          timestamp: new Date().toISOString(),
+          storytellerThoughts: null,
+          mapUpdateDebugInfo: null,
+          inventoryDebugInfo: null,
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
+          dialogueDebugInfo: null,
+        };
+        if (state.lastDebugPacket.loremasterDebugInfo) {
+          state.lastDebugPacket.loremasterDebugInfo.distill = result?.debugInfo ?? null;
+        }
+        if (result?.refinementResult) {
+          applyThemeFactChanges(
+            state,
+            result.refinementResult.factsChange,
+            state.globalTurnNumber,
+            themeObj.name,
+          );
+        }
+      }
+    },
+    [setLoadingReason],
+  );
+
   /**
    * Executes a player's chosen action by querying the AI storyteller.
    * On failure, the draft state is rolled back to the base snapshot so no
@@ -121,7 +188,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (isLoading || currentFullState.dialogueState) return;
 
       setIsLoading(true);
-      setLoadingReason('storyteller');
       setError(null);
       setParseErrorCounter(0);
       setFreeFormActionText('');
@@ -176,7 +242,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         recentLogEntries: recentLogs,
         detailedContext: detailedContextForFacts,
       });
-      setLoadingReason('storyteller');
       const relevantFacts = collectResult?.facts ?? [];
 
       const prompt = buildMainGameTurnPrompt(
@@ -228,6 +293,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
       let encounteredError = false;
       try {
+        setLoadingReason('storyteller');
         const {
           response,
           thoughts,
@@ -295,6 +361,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         if (!encounteredError) {
           draftState.turnsSinceLastShift += 1;
           draftState.globalTurnNumber += 1;
+          await runDistillIfNeeded(draftState);
         }
         commitGameState(draftState);
         setIsLoading(false);
@@ -322,6 +389,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       setParseErrorCounter,
       setFreeFormActionText,
       processAiResponse,
+      runDistillIfNeeded,
     ]);
 
   /**
