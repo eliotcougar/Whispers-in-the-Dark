@@ -233,7 +233,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
           storytellerThoughts: null,
           mapUpdateDebugInfo: null,
           inventoryDebugInfo: null,
-          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
           dialogueDebugInfo: null,
         };
         draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;
@@ -360,7 +360,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       storytellerThoughts: null,
       mapUpdateDebugInfo: null,
       inventoryDebugInfo: null,
-      loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
+      loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
       dialogueDebugInfo: null,
     };
     if (draftState.lastDebugPacket.loremasterDebugInfo) {
@@ -388,7 +388,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       return;
     if (
       currentFullState.globalTurnNumber > 0 &&
-      currentFullState.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
+      (currentFullState.globalTurnNumber - 1) % DISTILL_LORE_INTERVAL === 0 &&
       currentFullState.lastLoreDistillTurn !== currentFullState.globalTurnNumber
     ) {
       void handleDistillFacts();
