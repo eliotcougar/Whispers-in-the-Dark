@@ -76,7 +76,13 @@ interface AppModalsProps {
   readonly onClosePage: () => void;
   readonly storytellerThoughts: string;
   readonly currentQuest: string | null;
-  readonly updateItemContent: (id: string, actual: string, visible: string, chapterIndex?: number) => void;
+  readonly updateItemContent: (
+    id: string,
+    actual?: string,
+    visible?: string,
+    chapterIndex?: number,
+    imageData?: string,
+  ) => void;
   readonly updatePlayerJournalContent: (actual: string, chapterIndex?: number) => void;
   readonly onItemInspect: (itemId: string) => void;
   readonly canInspectJournal: boolean;
@@ -153,11 +159,17 @@ function AppModals({
 }: AppModalsProps) {
 
   const updateContentHandler = useCallback(
-    (itemId: string, a: string, v: string, idx?: number) => {
+    (
+      itemId: string,
+      a?: string,
+      v?: string,
+      idx?: number,
+      img?: string,
+    ) => {
       if (pageItemId === PLAYER_JOURNAL_ID) {
-        updatePlayerJournalContent(a, idx);
+        updatePlayerJournalContent(a ?? '', idx);
       } else {
-        updateItemContent(itemId, a, v, idx);
+        updateItemContent(itemId, a, v, idx, img);
       }
     },
     [pageItemId, updateItemContent, updatePlayerJournalContent]
