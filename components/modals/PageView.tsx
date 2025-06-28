@@ -540,19 +540,21 @@ function PageView({
               </p>
             ))}
           </ul>
-        ) : (item?.type === 'picture' || item?.type === 'map') && imageUrl ? (
-          <div className="flex justify-center p-5 mt-4">
-            <img
-              alt={item.name}
-              className="max-h-[24rem] object-contain border border-slate-700"
-              src={imageUrl}
-            />
-          </div>
-        ) : displayedText ? (
+        ) : displayedText || ((item?.type === 'picture' || item?.type === 'map') && imageUrl) ? (
           <div
             className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}
           >
-            {applyBasicMarkup(displayedText)}
+            {(item?.type === 'picture' || item?.type === 'map') && imageUrl ? (
+              <div className="mb-4 flex justify-center">
+                <img
+                  alt={item.name}
+                  className="max-h-[24rem] object-contain border border-slate-700"
+                  src={imageUrl}
+                />
+              </div>
+            ) : null}
+
+            {displayedText ? applyBasicMarkup(displayedText) : null}
           </div>
         ) : isJournal && chapters.length === 0 ? (
           <div
