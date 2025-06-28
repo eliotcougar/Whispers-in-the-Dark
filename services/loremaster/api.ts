@@ -19,7 +19,12 @@ import {
   parseIntegrationResponse,
   parseCollectFactsResponse,
 } from './responseParser';
-import { ThemeFact, LoreRefinementResult, LoremasterRefineDebugInfo } from '../../types';
+import {
+  ThemeFact,
+  LoreRefinementResult,
+  LoremasterRefineDebugInfo,
+  LoadingReason,
+} from '../../types';
 import {
   EXTRACT_SYSTEM_INSTRUCTION,
   INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
@@ -120,6 +125,7 @@ export interface RefineLoreParams {
   turnContext: string;
   existingFacts: Array<ThemeFact>;
   onFactsExtracted?: (facts: Array<string>) => Promise<{ proceed: boolean }>;
+  onSetLoadingReason?: (reason: LoadingReason) => void;
 }
 
 export interface RefineLoreServiceResult {
@@ -145,6 +151,7 @@ export const refineLore_Service = async (
     jsonSchemaUsed?: unknown;
     promptUsed: string;
   } | null>(async () => {
+    params.onSetLoadingReason?.('loremaster_extract');
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_extract.icon);
     const {
       response,
@@ -208,6 +215,7 @@ export const refineLore_Service = async (
     jsonSchemaUsed?: unknown;
     promptUsed: string;
   } | null>(async () => {
+    params.onSetLoadingReason?.('loremaster_write');
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_write.icon);
     const {
       response,
