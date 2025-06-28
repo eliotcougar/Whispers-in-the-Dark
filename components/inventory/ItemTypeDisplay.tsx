@@ -23,6 +23,8 @@ export function ItemTypeDisplay({ type }: ItemTypeDisplayProps): React.ReactElem
     'status effect': 'text-pink-400',
     page: 'text-green-400',
     book: 'text-green-400',
+    picture: 'text-fuchsia-400',
+    map: 'text-teal-400',
   };
 
   const color = colorMap[type];

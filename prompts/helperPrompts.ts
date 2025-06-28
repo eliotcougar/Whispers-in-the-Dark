@@ -24,7 +24,9 @@ export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPE
  - "immovable": Built-in or heavy feature at a location (e.g., control panel or machinery). Cannot be moved or stored. Interact using known uses or generic attempts.
   - "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
   - "book": Multi-page text with "chapters". Journals are blank books that start with no chapters and gain new entries when the player writes. Each chapter MUST have {"heading", "description", "contentLength"}.
-- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
+  - "picture": Single image such as a photograph, drawing, or painting. Use one chapter to describe what the image portrays in detail.
+  - "map": Hand-drawn or printed diagram showing terrain or directions. Use one chapter to describe the layout and any notable markings.
+  - "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
 `;
 
 export const ITEMS_GUIDE = `Generate inventory hints using these fields:
