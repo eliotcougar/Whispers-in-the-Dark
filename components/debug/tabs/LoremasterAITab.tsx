@@ -119,7 +119,10 @@ function LoremasterAITab({ debugPacket, onDistillFacts }: LoremasterAITabProps) 
 
             {info.jsonSchema ? (
               <>
-                <DebugSection content={info.jsonSchema} title="Raw Schema" />
+                <DebugSection
+                  content={info.jsonSchema}
+                  title="Raw Schema"
+                />
 
                 <DebugSection
                   content={jsonSchemaToPrompt(info.jsonSchema as JsonSchema)}
