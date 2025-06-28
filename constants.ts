@@ -78,6 +78,8 @@ export const VALID_ITEM_TYPES = [
   'status effect',
   'page',
   'book',
+  'picture',
+  'map',
 ] as const; // 'as const' makes it a tuple of string literals
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');

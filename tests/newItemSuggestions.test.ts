@@ -36,6 +36,8 @@ describe('trimDialogueHints', () => {
         { name: 'Bow', type: 'Weapon', description: 'Range' } as unknown as NewItemSuggestion,
         { name: 'Rock', type: 'rubbish', description: 'Junk' } as unknown as NewItemSuggestion,
         { name: 'Toolkit', type: 'tool', description: 'fix' } as unknown as NewItemSuggestion,
+        { name: 'Portrait', type: 'photograph', description: 'Old' } as unknown as NewItemSuggestion,
+        { name: 'Treasure Map', type: 'chart', description: 'X marks' } as unknown as NewItemSuggestion,
       ],
     };
 
@@ -44,6 +46,8 @@ describe('trimDialogueHints', () => {
       { name: 'Potion', type: 'single-use', description: 'Heal' },
       { name: 'Bow', type: 'weapon', description: 'Range' },
       { name: 'Toolkit', type: 'equipment', description: 'fix' },
+      { name: 'Portrait', type: 'picture', description: 'Old' },
+      { name: 'Treasure Map', type: 'map', description: 'X marks' },
     ]);
   });
 });
