@@ -21,6 +21,7 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
 
   useEffect(() => {
     const sanitized = cloneGameStateWithoutImages(currentState);
+    delete (sanitized as Partial<FullGameState>).lastDebugPacket;
     setEditableText(JSON.stringify(sanitized, null, 2));
   }, [currentState]);
 
@@ -114,7 +115,7 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
 
       {previousState ? (
         <DebugSection
-          content={cloneGameStateWithoutImages(previousState)}
+          content={(() => { const tmp = cloneGameStateWithoutImages(previousState); delete (tmp as Partial<FullGameState>).lastDebugPacket; return tmp; })()}
           maxHeightClass="max-h-[30vh]"
           title="Previous Game State (Stack[1] - Bottom)"
         />
