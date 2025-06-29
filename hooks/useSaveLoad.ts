@@ -8,6 +8,7 @@ import {
   saveGameStateToFile,
   loadGameStateFromFile,
 } from '../services/saveLoad';
+import { clearAllImages } from '../services/imageDb';
 import {
   saveGameStateToLocalStorage,
   loadGameStateFromLocalStorage,
@@ -156,6 +157,7 @@ export const useSaveLoad = ({
     if (file) {
       setIsLoading?.(true);
       setError?.(null);
+      await clearAllImages();
       const loaded = await loadGameStateFromFile(file);
       if (loaded) {
         const { gameStateStack: loadedStack, debugPacketStack: loadedDebug } = loaded;
@@ -166,10 +168,7 @@ export const useSaveLoad = ({
           loadedStack[0].debugBadFacts = existingLore.debugBadFacts;
         }
         if (applyLoadedGameState) {
-          await applyLoadedGameState({
-            savedStateToLoad: loadedStack,
-            clearImages: true,
-          });
+          await applyLoadedGameState({ savedStateToLoad: loadedStack });
         }
         saveGameStateToLocalStorage(
           loadedStack,
