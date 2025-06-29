@@ -101,7 +101,7 @@
 }
 
 .tag-faded:not(.tag-recovered) {
-  color: #c0a87b;
+  color: #a5906a;
 }
 
 .tag-faded.tag-gothic:not(.tag-recovered) {

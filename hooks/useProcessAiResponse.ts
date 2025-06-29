@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import * as React from 'react';
 import {
   AdventureTheme,
   FullGameState,
@@ -289,7 +290,7 @@ export type ProcessAiResponseFn = (
 ) => Promise<void>;
 
 export interface UseProcessAiResponseProps {
-  loadingReason: LoadingReason | null;
+  loadingReasonRef: React.RefObject<LoadingReason | null>;
   setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
@@ -301,7 +302,7 @@ export interface UseProcessAiResponseProps {
 }
 
 export const useProcessAiResponse = ({
-  loadingReason,
+  loadingReasonRef,
   setLoadingReason,
   setError,
   setGameStateStack,
@@ -309,7 +310,7 @@ export const useProcessAiResponse = ({
   openDebugLoreModal,
 }: UseProcessAiResponseProps) => {
   const { processMapUpdates } = useMapUpdateProcessor({
-    loadingReason,
+    loadingReasonRef,
     setLoadingReason,
     setError,
   });
@@ -445,7 +446,7 @@ export const useProcessAiResponse = ({
         theme: themeContextForResponse,
         baseState: baseStateSnapshot,
         playerActionText,
-        loadingReason,
+        loadingReason: loadingReasonRef.current,
         setLoadingReason,
       });
 
@@ -466,7 +467,7 @@ export const useProcessAiResponse = ({
           baseState: baseStateSnapshot,
           correctedItemChanges: correctedAndVerifiedItemChanges,
           playerActionText,
-          loadingReason,
+          loadingReason: loadingReasonRef.current,
           setLoadingReason,
         });
 
@@ -591,7 +592,7 @@ export const useProcessAiResponse = ({
         ].join('\n');
 
         const contextParts = `${baseContext}\n${idsContext}`;
-        const original = loadingReason;
+        const original = loadingReasonRef.current;
         const refineResult = await refineLore_Service({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
@@ -633,7 +634,7 @@ export const useProcessAiResponse = ({
       draftState.lastTurnChanges = turnChanges;
     },
     [
-      loadingReason,
+      loadingReasonRef,
       setLoadingReason,
       setError,
       setGameStateStack,

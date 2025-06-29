@@ -6,10 +6,10 @@
 
 import {
   VALID_ITEM_TYPES_STRING,
-  VALID_TAGS_STRING,
   WRITING_TAGS_STRING,
   MIN_BOOK_CHAPTERS,
   MAX_BOOK_CHAPTERS,
+  DEDICATED_BUTTON_USES_STRING
 } from '../constants';
 
 export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
@@ -20,13 +20,14 @@ export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPE
 - "key": Unlocks specific doors, chests, portals, or similar. Description should hint at its purpose, e.g., "Ornate Silver Key (for a large chest)". Can be 'lost' or 'updated' (e.g., to "Bent Key") after use.
 - "weapon": Melee and ranged weapons, distinct from "equipment" Items that can be explicitly used in a fight when wielded. Ranged weapon consume ammunition or charges.
 - "ammunition": For reloading specific ranged weapons, e.g., Arrows for Longbow, Rounds for firearms, Charges for energy weapons. Using weapon consumes ammo (handled by log/update).
- - "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
- - "immovable": Built-in or heavy feature at a location (e.g., control panel or machinery). Cannot be moved or stored. Interact using known uses or generic attempts.
-  - "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
-  - "book": Multi-page text with "chapters". Journals are blank books that start with no chapters and gain new entries when the player writes. Each chapter MUST have {"heading", "description", "contentLength"}.
-  - "picture": Single image such as a photograph, drawing, or painting. Use one chapter to describe what the image portrays in detail.
-  - "map": Hand-drawn or printed diagram showing terrain or directions. Use one chapter to describe the layout and any notable markings.
-  - "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
+- "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
+- "immovable": Built-in or heavy feature at a location (e.g., control panel or machinery). Cannot be moved or stored. Interact using known uses or generic attempts.
+- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
+Written items:
+- "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
+- "book": Multi-page text with "chapters". Journals are blank books that start with no chapters and gain new entries when the player writes. Each chapter MUST have {"heading", "description", "contentLength"}.
+- "picture": Single image such as a photograph, drawing, or painting. Use one chapter to describe what the image portrays in detail.
+- "map": Hand-drawn or printed diagram showing terrain, directions, floor plan, or schematic. Use one chapter to describe the layout and any notable markings.
 `;
 
 export const ITEMS_GUIDE = `Generate inventory hints using these fields:
@@ -34,25 +35,6 @@ export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "worldItemsHint": short summary of items dropped or discovered in the environment.
 - "npcItemsHint": short summary of items held or used by NPCs.
 - "newItems": array of brand new items introduced this turn, or [] if none.
-
-Each object in "newItems" should include:
-  {
-    "name": "Item Name",
-    "type": "one of ${VALID_ITEM_TYPES_STRING}",
-    "description": "Short description",
-    "activeDescription"?: "When active",
-    "isActive"?: false,
-    "tags"?: ["junk"], /* Valid tags: ${VALID_TAGS_STRING}. */
-    "knownUses"?: [
-      {
-        "actionName": "Action text",
-        "promptEffect": "Prompt sent to the AI",
-        "description": "Player hint",
-        "appliesWhenActive"?: false,
-        "appliesWhenInactive"?: false
-      }
-    ]
-  }
 
 Examples illustrating the hint style:
 - Example for gaining a new item:
@@ -152,10 +134,8 @@ Examples illustrating the hint style:
 IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
-IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park", "Read", "Write" known uses - there are dedicated buttons for those in the game.
-
-If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, mention it in "playerItemsHint".
-If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, mention it in "playerItemsHint".
+  - ALWAYS provide these actions in pairs, e.g. turn on/turn off, wield/put away, wear/take off, light/extinguish, activate/deactivate, start/stop, etc.
+IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedicated buttons for those in the game.
 
 ${ITEM_TYPES_GUIDE}
 

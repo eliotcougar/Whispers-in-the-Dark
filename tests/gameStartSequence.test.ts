@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import 'fake-indexeddb/auto';
 import {
   buildNewGameFirstTurnPrompt,
   parseAIResponse,
@@ -50,7 +51,7 @@ describe('game start sequence', () => {
     const theme = FANTASY_AND_MYTH_THEMES[0];
     const prompt = buildNewGameFirstTurnPrompt(theme, 'Male');
 
-    const { response } = await executeAIMainTurn(prompt, theme.systemInstructionModifier);
+    const { response } = await executeAIMainTurn(prompt);
     const parsed = await parseAIResponse(
       response.text ?? '',
       'Male',
@@ -107,7 +108,7 @@ describe('game start sequence', () => {
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
     const prompt = buildNewGameFirstTurnPrompt(theme, 'Male');
-    const { response } = await executeAIMainTurn(prompt, theme.systemInstructionModifier);
+    const { response } = await executeAIMainTurn(prompt);
     const parsed = await parseAIResponse(
       response.text ?? '',
       'Male',

@@ -4,6 +4,7 @@
  */
 
 import { useCallback } from 'react';
+import * as React from 'react';
 import {
   KnownUse,
   Item,
@@ -43,6 +44,7 @@ export interface UsePlayerActionsProps {
   chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
+  loadingReasonRef: React.RefObject<LoadingReason | null>;
   setError: (err: string | null) => void;
   setParseErrorCounter: (val: number) => void;
   triggerRealityShift: (isChaosShift?: boolean) => void;
@@ -51,7 +53,6 @@ export interface UsePlayerActionsProps {
   setFreeFormActionText: (text: string) => void;
   isLoading: boolean;
   hasGameBeenInitialized: boolean;
-  loadingReason: LoadingReason | null;
   debugLore: boolean;
   openDebugLoreModal: (
     facts: Array<string>,
@@ -80,13 +81,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setFreeFormActionText,
     isLoading,
     hasGameBeenInitialized,
-    loadingReason,
+    loadingReasonRef,
     debugLore,
     openDebugLoreModal,
   } = props;
 
   const { processAiResponse, clearObjectiveAnimationTimer } = useProcessAiResponse({
-    loadingReason,
+    loadingReasonRef,
     setLoadingReason,
     setError,
     setGameStateStack,
@@ -268,12 +269,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       );
 
       let draftState = structuredCloneGameState(currentFullState);
-      const systemInstructionForCall = currentThemeObj.systemInstructionModifier
-        ? `${SYSTEM_INSTRUCTION}\n\nCURRENT THEME GUIDANCE:\n${currentThemeObj.systemInstructionModifier}`
-        : SYSTEM_INSTRUCTION;
       const debugPacket = {
         prompt,
-        systemInstruction: systemInstructionForCall,
+        systemInstruction: SYSTEM_INSTRUCTION,
         jsonSchema: undefined,
         rawResponseText: null,
         parsedResponse: null,
@@ -302,10 +300,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           systemInstructionUsed,
           jsonSchemaUsed,
           promptUsed,
-        } = await executeAIMainTurn(
-          prompt,
-          currentThemeObj.systemInstructionModifier,
-        );
+        } = await executeAIMainTurn(prompt);
         draftState.lastDebugPacket = {
           ...draftState.lastDebugPacket,
           rawResponseText: response.text ?? null,
