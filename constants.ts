@@ -193,8 +193,6 @@ export const VALID_NODE_STATUS_VALUES = [
   'blocked',
 ] as const;
 
-expo
-
 export const VALID_NODE_TYPE_VALUES = [
   'region',
   'location',
