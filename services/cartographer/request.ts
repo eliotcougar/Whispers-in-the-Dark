@@ -12,6 +12,10 @@ import {
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
+  VALID_NODE_STATUS_STRING,
+  VALID_NODE_TYPE_STRING,
+  VALID_EDGE_TYPE_STRING,
+  VALID_EDGE_STATUS_STRING,
   NODE_DESCRIPTION_INSTRUCTION,
   EDGE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
@@ -74,8 +78,8 @@ export const MAP_UPDATE_JSON_SCHEMA = {
                 items: { type: 'string' },
                 description: ALIAS_INSTRUCTION,
               },
-              status: { enum: VALID_NODE_STATUS_VALUES },
-              nodeType: { enum: VALID_NODE_TYPE_VALUES },
+              status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
+              nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
               parentNodeId: {
                 type: 'string',
                 description: 'Parent Node ID, or "Universe" for top-level nodes. Use placeName when referencing other nodes in this response.',
@@ -104,8 +108,8 @@ export const MAP_UPDATE_JSON_SCHEMA = {
               },
               description: { type: 'string', description: NODE_DESCRIPTION_INSTRUCTION },
               aliases: { type: 'array', items: { type: 'string' }, minItems: 1, description: ALIAS_INSTRUCTION },
-              status: { enum: VALID_NODE_STATUS_VALUES },
-              nodeType: { enum: VALID_NODE_TYPE_VALUES },
+              status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
+              nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
               parentNodeId: {
                 type: 'string',
                 description:
@@ -142,8 +146,8 @@ export const MAP_UPDATE_JSON_SCHEMA = {
             type: 'object',
             properties: {
               description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
-              type: { enum: VALID_EDGE_TYPE_VALUES },
-              status: { enum: VALID_EDGE_STATUS_VALUES },
+              type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
+              status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
               travelTime: { type: 'string' },
             },
             required: ['type', 'status'],
@@ -165,8 +169,8 @@ export const MAP_UPDATE_JSON_SCHEMA = {
             type: 'object',
             properties: {
               description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
-              type: { enum: VALID_EDGE_TYPE_VALUES },
-              status: { enum: VALID_EDGE_STATUS_VALUES },
+              type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
+              status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
               travelTime: { type: 'string', description: 'Approximate travel time for the route.' },
             },
             additionalProperties: false,
@@ -192,12 +196,12 @@ export const MAP_UPDATE_JSON_SCHEMA = {
     splitFamily: {
       type: 'object',
       properties: {
-        originalNodeId: { type: 'string' },
-        newNodeId: { type: 'string' },
-        newNodeType: { enum: VALID_NODE_TYPE_VALUES },
-        newConnectorNodeId: { type: 'string' },
-        originalChildren: { type: 'array', items: { type: 'string' } },
-        newChildren: { type: 'array', items: { type: 'string' } },
+        originalNodeId: { type: 'string', description: `The nodeId to be split into two nodes.` },
+        newNodeName: { type: 'string', description: `The new node Name` },
+        newNodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
+        newConnectorNodeId: { type: 'string', description: `The nodeId of the node that will recieve the old external edge.`},
+        originalChildren: { type: 'array', items: { type: 'string' }, minItems: 1, description: `nodeIds of the nodes that remain with the old parent node.` },
+        newChildren: { type: 'array', items: { type: 'string' }, minItems: 1, description: `nodeIds of the nodes that migrate to the new parent node.` },
       },
       required: [
         'originalNodeId',

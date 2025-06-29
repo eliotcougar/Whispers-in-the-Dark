@@ -193,6 +193,8 @@ export const VALID_NODE_STATUS_VALUES = [
   'blocked',
 ] as const;
 
+export const VALID_NODE_STATUS_STRING = VALID_NODE_STATUS_VALUES.map(s => `"${s}"`).join(' | ');
+
 export const VALID_NODE_TYPE_VALUES = [
   'region',
   'location',
@@ -203,6 +205,8 @@ export const VALID_NODE_TYPE_VALUES = [
   'room',
   'feature',
 ] as const;
+
+export const VALID_NODE_TYPE_STRING = VALID_NODE_TYPE_VALUES.map(s => `"${s}"`).join(' | ');
 
 // Hierarchy levels for node types (lower index = higher level)
 export const NODE_TYPE_LEVELS: Record<(typeof VALID_NODE_TYPE_VALUES)[number], number> =
@@ -224,6 +228,8 @@ export const VALID_EDGE_TYPE_VALUES = [
   'shortcut',
 ] as const;
 
+export const VALID_EDGE_TYPE_STRING = VALID_EDGE_TYPE_VALUES.map(s => `"${s}"`).join(' | ');
+
 export const VALID_EDGE_STATUS_VALUES = [
   'open',
   'accessible',
@@ -238,6 +244,8 @@ export const VALID_EDGE_STATUS_VALUES = [
   'active',
   'inactive',
 ] as const;
+
+export const VALID_EDGE_STATUS_STRING = VALID_EDGE_STATUS_VALUES.map(s => `"${s}"`).join(' | ');
 
 export const NON_DISPLAYABLE_EDGE_STATUSES = [
   'collapsed',
