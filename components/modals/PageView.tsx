@@ -543,9 +543,9 @@ function PageView({
 
 
         {pendingWrite ? (
-          <LoadingSpinner loadingReason="journal" />
+          <LoadingSpinner />
         ) : isLoading ? (
-          <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
+          <LoadingSpinner />
         ) : item?.type === 'book' && !isJournal && chapterIndex === 0 ? (
           <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
