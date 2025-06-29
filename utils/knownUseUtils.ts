@@ -27,8 +27,7 @@ export function isBlockedKnownUseText(text: string): boolean {
 }
 
 export function isBlockedKnownUse(ku: KnownUse): boolean {
-  const combined = `${ku.actionName} ${ku.description} ${ku.promptEffect}`;
-  return isBlockedKnownUseText(combined);
+  return isBlockedKnownUseText(ku.actionName);
 }
 
 export function filterBlockedKnownUses(
