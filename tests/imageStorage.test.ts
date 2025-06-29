@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import 'fake-indexeddb/auto';
 import { LOCAL_STORAGE_SAVE_KEY } from '../constants';
-import { saveGameStateToLocalStorage } from '../services/storage';
+import { saveGameStateToLocalStorage, loadGameStateFromLocalStorageWithImages } from '../services/storage';
 import { saveChapterImage, loadChapterImage } from '../services/imageDb';
 import { getInitialGameStates } from '../utils/initialStates';
 import type { FullGameState } from '../types';
@@ -66,5 +66,23 @@ describe('image storage', () => {
     await saveChapterImage('itemX', 0, 'imgdata');
     const data = await loadChapterImage('itemX', 0);
     expect(data).toBe('imgdata');
+  });
+
+  it('restores image refs when loading from localStorage', async () => {
+    const state: FullGameState = getInitialGameStates();
+    state.inventory.push({
+      id: 'pic1',
+      name: 'Picture',
+      type: 'picture',
+      description: 'd',
+      holderId: 'player',
+      chapters: [
+        { heading: 'h', description: 'd', contentLength: 1 },
+      ],
+    });
+    await saveChapterImage('pic1', 0, 'imgdata');
+    saveGameStateToLocalStorage([state, undefined]);
+    const loaded = await loadGameStateFromLocalStorageWithImages();
+    expect(loaded?.[0].inventory[0].chapters?.[0].imageData).toBe('idb:pic1_0');
   });
 });

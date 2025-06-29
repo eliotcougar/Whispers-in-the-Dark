@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import 'fake-indexeddb/auto';
 import {
   buildNewGameFirstTurnPrompt,
   parseAIResponse,
