@@ -48,8 +48,8 @@ function InventoryItem({
   registerRef,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
-  const isWrittenItem =
-    item.type === 'page' || item.type === 'book';
+  const isWrittenItem = item.type === 'page' || item.type === 'book';
+  const isImageItem = item.type === 'picture' || item.type === 'map';
   const canShowGenericUse =
     item.type !== 'status effect' && item.type !== 'vehicle';
   const canEverDrop =
@@ -82,20 +82,24 @@ function InventoryItem({
     );
   });
 
+  const inspectDisabled =
+    disabled ||
+    isConfirmingDiscard ||
+    (isWrittenItem
+      ? item.id === PLAYER_JOURNAL_ID
+        ? (item.chapters?.length ?? 0) === 0
+        : (item.chapters?.some(ch => !ch.actualContent) ?? true)
+      : isImageItem
+        ? (item.chapters?.some(ch => !ch.imageData) ?? true)
+        : false) ||
+    (item.lastInspectTurn !== undefined &&
+      currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN);
+
   actionButtons.push(
     <Button
       ariaLabel={`Inspect ${item.name}`}
       data-item-name={item.name}
-      disabled={
-        disabled ||
-        isConfirmingDiscard ||
-        (isWrittenItem
-          ? item.id === PLAYER_JOURNAL_ID
-            ? (item.chapters?.length ?? 0) === 0
-            : (item.chapters?.some(ch => !ch.actualContent) ?? true)
-          : false) ||
-        (item.lastInspectTurn !== undefined && currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN)
-      }
+      disabled={inspectDisabled}
       key={`${item.name}-inspect`}
       label="Inspect"
       onClick={onInspect}

@@ -440,7 +440,7 @@ function PageView({
 
         {isBook || isJournal ? (
           <div className="flex justify-center items-center gap-2 mb-2">
-            {onInspect ? (
+            {isJournal && onInspect ? (
               <Button
                 ariaLabel="Inspect"
                 disabled={!canInspectItem}
@@ -525,21 +525,7 @@ function PageView({
           </div>
         ) : null}
 
-        {isPage ? (
-          <div className="flex justify-center items-center gap-2 mb-2">
-            {onInspect ? (
-              <Button
-                ariaLabel="Inspect"
-                disabled={!canInspectItem}
-                label="Inspect"
-                onClick={handleInspectClick}
-                preset="indigo"
-                size="sm"
-                variant="compact"
-              />
-            ) : null}
-          </div>
-        ) : null}
+
 
         {item?.tags?.includes('recovered') ? (
           <div className="flex justify-center">
