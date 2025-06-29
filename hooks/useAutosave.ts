@@ -3,10 +3,10 @@
  * @description Provides debounced autosave functionality for App.
  */
 import { useEffect, useRef } from 'react';
-import { GameStateStack } from '../types';
+import { GameStateStack, DebugPacketStack } from '../types';
 import {
   saveGameStateToLocalStorage,
-  saveDebugPacketToLocalStorage,
+  saveDebugPacketStackToLocalStorage,
   saveDebugLoreToLocalStorage,
 } from '../services/storage';
 
@@ -14,6 +14,7 @@ export const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 export interface UseAutosaveOptions {
   readonly gatherGameStateStack: () => GameStateStack;
+  readonly gatherDebugPacketStack: () => DebugPacketStack;
   readonly isLoading: boolean;
   readonly hasGameBeenInitialized: boolean;
   readonly appReady: boolean;
@@ -24,6 +25,7 @@ export interface UseAutosaveOptions {
 
 export function useAutosave({
   gatherGameStateStack,
+  gatherDebugPacketStack,
   isLoading,
   hasGameBeenInitialized,
   appReady,
@@ -44,11 +46,12 @@ export function useAutosave({
     }
     autosaveTimeoutRef.current = window.setTimeout(() => {
       const gameStateStack = gatherGameStateStack();
+      const debugStack = gatherDebugPacketStack();
       saveGameStateToLocalStorage(
         gameStateStack,
         setError ? (msg) => { setError(msg); } : undefined,
       );
-      saveDebugPacketToLocalStorage(gameStateStack[0].lastDebugPacket);
+      saveDebugPacketStackToLocalStorage(debugStack);
       saveDebugLoreToLocalStorage({
         debugLore: gameStateStack[0].debugLore,
         debugGoodFacts: gameStateStack[0].debugGoodFacts,
@@ -63,6 +66,7 @@ export function useAutosave({
     };
   }, [
     gatherGameStateStack,
+    gatherDebugPacketStack,
     isLoading,
     hasGameBeenInitialized,
     appReady,

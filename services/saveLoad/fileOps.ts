@@ -2,7 +2,7 @@
  * @file fileOps.ts
  * @description Helpers for saving to and loading from external files.
  */
-import { GameStateStack } from '../../types';
+import { GameStateStack, DebugPacketStack, DebugPacket } from '../../types';
 import { CURRENT_SAVE_GAME_VERSION } from '../../constants';
 import { safeParseJson } from '../../utils/jsonUtils';
 import {
@@ -29,13 +29,14 @@ const triggerDownload = (data: string, filename: string, type: string): void => 
 
 export const saveGameStateToFile = async (
   stack: GameStateStack,
+  debugStack: DebugPacketStack,
   onError?: (message: string) => void,
 ): Promise<boolean> => {
   try {
     const current = await expandRefsToImages(stack[0]);
     const previous = stack[1] ? await expandRefsToImages(stack[1]) : undefined;
     const dataToSave = prepareGameStateStackForSaving([current, previous]);
-    const jsonString = JSON.stringify(dataToSave, null, 2);
+    const jsonString = JSON.stringify({ game: dataToSave, debug: debugStack }, null, 2);
     triggerDownload(
       jsonString,
       `WhispersInTheDark_Save_V${CURRENT_SAVE_GAME_VERSION}_${new Date().toISOString().slice(0, 10)}.json`,
@@ -49,7 +50,9 @@ export const saveGameStateToFile = async (
   }
 };
 
-export const loadGameStateFromFile = async (file: File): Promise<GameStateStack | null> => {
+export const loadGameStateFromFile = async (
+  file: File,
+): Promise<{ gameStateStack: GameStateStack; debugPacketStack: DebugPacketStack } | null> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -60,8 +63,10 @@ export const loadGameStateFromFile = async (file: File): Promise<GameStateStack 
             resolve(null);
             return;
           }
+          const gameData = (parsedData as { game?: unknown; debug?: unknown }).game ?? parsedData;
+          const debugData = (parsedData as { game?: unknown; debug?: unknown }).debug;
           const processed = normalizeLoadedSaveDataStack(
-            parsedData as Record<string, unknown>,
+            gameData as Record<string, unknown>,
             'file',
           );
           if (processed) {
@@ -72,7 +77,10 @@ export const loadGameStateFromFile = async (file: File): Promise<GameStateStack 
                 const previous = loadedStack[1]
                   ? await storeImagesAndReturnRefs(loadedStack[1])
                   : undefined;
-                resolve([current, previous]);
+                const debugStack: DebugPacketStack = Array.isArray(debugData)
+                  ? [debugData[0] ?? null, debugData[1] ?? null]
+                  : [debugData as DebugPacket | null ?? null, null];
+                resolve({ gameStateStack: [current, previous], debugPacketStack: debugStack });
               } catch {
                 resolve(null);
               }

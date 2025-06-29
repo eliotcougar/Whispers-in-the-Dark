@@ -69,6 +69,7 @@ function App() {
     chaosLevel,
     setChaosLevel,
     initialSavedState,
+    initialDebugStack,
     appReady,
     fileInputRef,
     handleSaveToFile,
@@ -77,6 +78,7 @@ function App() {
     updateSettingsFromLoad,
   } = useSaveLoad({
     gatherGameStateStack: () => getGameLogic().gatherCurrentGameState(),
+    gatherDebugPacketStack: () => getGameLogic().gatherDebugPacketStack(),
     applyLoadedGameState: (args) => getGameLogic().applyLoadedGameState(args),
     setError: (msg) => { getGameLogic().setError(msg); },
     setIsLoading: (val) => { getGameLogic().setIsLoading(val); },
@@ -154,6 +156,7 @@ function App() {
     chaosLevelProp: chaosLevel,
     onSettingsUpdateFromLoad: updateSettingsFromLoad,
     initialSavedStateFromApp: initialSavedState,
+    initialDebugStackFromApp: initialDebugStack,
     isAppReady: appReady,
     openDebugLoreModal,
   });
@@ -172,7 +175,10 @@ function App() {
     cancelManualShiftThemeSelection,
     isAwaitingManualShiftThemeSelection,
     startCustomGame,
-    gatherCurrentGameState: gatherGameStateStack, hasGameBeenInitialized, handleStartNewGameFromButton,
+    gatherCurrentGameState: gatherGameStateStack,
+    gatherDebugPacketStack,
+    hasGameBeenInitialized,
+    handleStartNewGameFromButton,
     localTime, localEnvironment, localPlace,
     dialogueState,
     handleDialogueOptionSelect,
@@ -184,6 +190,7 @@ function App() {
     globalTurnNumber,
     isCustomGameMode,
     gameStateStack,
+    debugPacketStack,
     handleMapLayoutConfigChange,
     loadingReason,
     handleUndoTurn,
@@ -299,6 +306,7 @@ function App() {
 
   useAutosave({
     gatherGameStateStack,
+    gatherDebugPacketStack,
     isLoading,
     hasGameBeenInitialized,
     appReady,
@@ -852,7 +860,7 @@ function App() {
       <DebugView
         badFacts={debugBadFacts}
         debugLore={debugLore}
-        debugPacket={lastDebugPacket}
+        debugPacket={debugPacketStack[0]}
         gameStateStack={gameStateStack}
         goodFacts={debugGoodFacts}
         isVisible={isDebugViewVisible}

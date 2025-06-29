@@ -3,7 +3,7 @@
  * @description Hook managing save/load operations and related state for App.
  */
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
-import { FullGameState, ThemePackName, GameStateStack } from '../types';
+import { FullGameState, ThemePackName, GameStateStack, DebugPacketStack } from '../types';
 import {
   saveGameStateToFile,
   loadGameStateFromFile,
@@ -11,8 +11,8 @@ import {
 import {
   saveGameStateToLocalStorage,
   loadGameStateFromLocalStorage,
-  saveDebugPacketToLocalStorage,
-  loadDebugPacketFromLocalStorage,
+  saveDebugPacketStackToLocalStorage,
+  loadDebugPacketStackFromLocalStorage,
   saveDebugLoreToLocalStorage,
   loadDebugLoreFromLocalStorage,
 } from '../services/storage';
@@ -25,6 +25,7 @@ import {
 
 export interface UseSaveLoadOptions {
   gatherGameStateStack?: () => GameStateStack;
+  gatherDebugPacketStack?: () => DebugPacketStack;
   applyLoadedGameState?: (opts: {
     savedStateToLoad: GameStateStack;
     clearImages?: boolean;
@@ -40,6 +41,7 @@ const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 export const useSaveLoad = ({
   gatherGameStateStack,
+  gatherDebugPacketStack,
   applyLoadedGameState,
   setError,
   setIsLoading,
@@ -52,14 +54,15 @@ export const useSaveLoad = ({
   const [stabilityLevel, setStabilityLevel] = useState<number>(DEFAULT_STABILITY_LEVEL);
   const [chaosLevel, setChaosLevel] = useState<number>(DEFAULT_CHAOS_LEVEL);
   const [initialSavedState, setInitialSavedState] = useState<GameStateStack | null>(null);
+  const [initialDebugStack, setInitialDebugStack] = useState<DebugPacketStack | null>(null);
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
     const loadedState = loadGameStateFromLocalStorage();
-    const loadedDebug = loadDebugPacketFromLocalStorage();
+    const loadedDebug = loadDebugPacketStackFromLocalStorage();
     const loadedDebugLore = loadDebugLoreFromLocalStorage();
     if (loadedState) {
-      if (loadedDebug) loadedState[0].lastDebugPacket = loadedDebug;
+      if (loadedDebug) setInitialDebugStack(loadedDebug);
       if (loadedDebugLore) {
         loadedState[0].debugLore = loadedDebugLore.debugLore;
         loadedState[0].debugGoodFacts = loadedDebugLore.debugGoodFacts;
@@ -92,13 +95,14 @@ export const useSaveLoad = ({
     if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current);
 
     autosaveTimeoutRef.current = window.setTimeout(() => {
-      if (gatherGameStateStack) {
+      if (gatherGameStateStack && gatherDebugPacketStack) {
         const stack = gatherGameStateStack();
+        const debugStack = gatherDebugPacketStack();
         saveGameStateToLocalStorage(
           stack,
           setError ? (msg) => { setError(msg); } : undefined,
         );
-        saveDebugPacketToLocalStorage(stack[0].lastDebugPacket);
+        saveDebugPacketStackToLocalStorage(debugStack);
         saveDebugLoreToLocalStorage({
           debugLore: stack[0].debugLore,
           debugGoodFacts: stack[0].debugGoodFacts,
@@ -110,6 +114,7 @@ export const useSaveLoad = ({
     return () => { if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current); };
   }, [
     gatherGameStateStack,
+    gatherDebugPacketStack,
     isLoading,
     hasGameBeenInitialized,
     appReady,
@@ -122,14 +127,16 @@ export const useSaveLoad = ({
       setError?.('Cannot save to file while loading or in dialogue.');
       return;
     }
-    if (gatherGameStateStack) {
+    if (gatherGameStateStack && gatherDebugPacketStack) {
       const gameState = gatherGameStateStack();
+      const debugStack = gatherDebugPacketStack();
       await saveGameStateToFile(
         gameState,
+        debugStack,
         setError ? msg => { setError(msg); } : undefined,
       );
     }
-  }, [gatherGameStateStack, isLoading, dialogueState, setError]);
+  }, [gatherGameStateStack, gatherDebugPacketStack, isLoading, dialogueState, setError]);
 
   const handleLoadFromFileClick = () => {
     if (isLoading || !!dialogueState) {
@@ -149,8 +156,9 @@ export const useSaveLoad = ({
     if (file) {
       setIsLoading?.(true);
       setError?.(null);
-      const loadedStack = await loadGameStateFromFile(file);
-      if (loadedStack) {
+      const loaded = await loadGameStateFromFile(file);
+      if (loaded) {
+        const { gameStateStack: loadedStack, debugPacketStack: loadedDebug } = loaded;
         const existingLore = loadDebugLoreFromLocalStorage();
         if (existingLore) {
           loadedStack[0].debugLore = existingLore.debugLore;
@@ -167,7 +175,7 @@ export const useSaveLoad = ({
           loadedStack,
           setError ? (msg) => { setError(msg); } : undefined,
         );
-        saveDebugPacketToLocalStorage(loadedStack[0].lastDebugPacket);
+        saveDebugPacketStackToLocalStorage(loadedDebug);
         if (existingLore) {
           saveDebugLoreToLocalStorage(existingLore);
         } else {
@@ -199,6 +207,7 @@ export const useSaveLoad = ({
     chaosLevel,
     setChaosLevel,
     initialSavedState,
+    initialDebugStack,
     appReady,
     fileInputRef,
     handleSaveToFile,
