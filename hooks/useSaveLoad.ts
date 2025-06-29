@@ -11,7 +11,7 @@ import {
 import { clearAllImages } from '../services/imageDb';
 import {
   saveGameStateToLocalStorage,
-  loadGameStateFromLocalStorage,
+  loadGameStateFromLocalStorageWithImages,
   saveDebugPacketStackToLocalStorage,
   loadDebugPacketStackFromLocalStorage,
   saveDebugLoreToLocalStorage,
@@ -59,26 +59,28 @@ export const useSaveLoad = ({
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    const loadedState = loadGameStateFromLocalStorage();
-    const loadedDebug = loadDebugPacketStackFromLocalStorage();
-    const loadedDebugLore = loadDebugLoreFromLocalStorage();
-    if (loadedState) {
-      if (loadedDebug) setInitialDebugStack(loadedDebug);
-      if (loadedDebugLore) {
-        loadedState[0].debugLore = loadedDebugLore.debugLore;
-        loadedState[0].debugGoodFacts = loadedDebugLore.debugGoodFacts;
-        loadedState[0].debugBadFacts = loadedDebugLore.debugBadFacts;
+    void (async () => {
+      const loadedState = await loadGameStateFromLocalStorageWithImages();
+      const loadedDebug = loadDebugPacketStackFromLocalStorage();
+      const loadedDebugLore = loadDebugLoreFromLocalStorage();
+      if (loadedState) {
+        if (loadedDebug) setInitialDebugStack(loadedDebug);
+        if (loadedDebugLore) {
+          loadedState[0].debugLore = loadedDebugLore.debugLore;
+          loadedState[0].debugGoodFacts = loadedDebugLore.debugGoodFacts;
+          loadedState[0].debugBadFacts = loadedDebugLore.debugBadFacts;
+        }
+        const current = loadedState[0];
+        setPlayerGender(current.playerGender);
+        setEnabledThemePacks(current.enabledThemePacks);
+        setStabilityLevel(current.stabilityLevel);
+        setChaosLevel(current.chaosLevel);
+        setInitialSavedState(loadedState);
+      } else {
+        setInitialSavedState(null);
       }
-      const current = loadedState[0];
-      setPlayerGender(current.playerGender);
-      setEnabledThemePacks(current.enabledThemePacks);
-      setStabilityLevel(current.stabilityLevel);
-      setChaosLevel(current.chaosLevel);
-      setInitialSavedState(loadedState);
-    } else {
-      setInitialSavedState(null);
-    }
-    setAppReady(true);
+      setAppReady(true);
+    })();
   }, []);
 
   const updateSettingsFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>) => {

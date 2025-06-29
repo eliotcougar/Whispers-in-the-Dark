@@ -72,6 +72,16 @@ export const loadGameStateFromLocalStorage = (): GameStateStack | null => {
   }
 };
 
+export const loadGameStateFromLocalStorageWithImages = async (): Promise<GameStateStack | null> => {
+  const loaded = loadGameStateFromLocalStorage();
+  if (!loaded) return null;
+  const [current, previous] = loaded;
+  const { attachImageRefsFromDb } = await import('./imageDb');
+  const withImagesCurrent = await attachImageRefsFromDb(current);
+  const withImagesPrevious = previous ? await attachImageRefsFromDb(previous) : undefined;
+  return [withImagesCurrent, withImagesPrevious];
+};
+
 export const saveDebugPacketStackToLocalStorage = (
   stack: DebugPacketStack,
 ): void => {

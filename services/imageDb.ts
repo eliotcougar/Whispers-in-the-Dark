@@ -110,3 +110,34 @@ export const expandRefsToImages = async (
   );
   return cloned;
 };
+
+export const attachImageRefsFromDb = async (
+  state: FullGameState,
+): Promise<FullGameState> => {
+  const cloned = structuredCloneGameState(state);
+  await Promise.all(
+    cloned.inventory.map(async item => {
+      await Promise.all(
+        item.chapters?.map(async (ch, idx) => {
+          if (!ch.imageData) {
+            const existing = await loadChapterImage(item.id, idx);
+            if (existing) {
+              ch.imageData = makeImageRef(item.id, idx);
+            }
+          }
+        }) ?? [],
+      );
+    }),
+  );
+  await Promise.all(
+    cloned.playerJournal.map(async (ch, idx) => {
+      if (!ch.imageData) {
+        const existing = await loadChapterImage(PLAYER_JOURNAL_ID, idx);
+        if (existing) {
+          ch.imageData = makeImageRef(PLAYER_JOURNAL_ID, idx);
+        }
+      }
+    }),
+  );
+  return cloned;
+};
