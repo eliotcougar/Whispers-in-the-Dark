@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.7.0",
+    "idb": "^8.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
@@ -29,10 +30,10 @@
     "eslint": "^9.28.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "ts-prune": "^0.10.3",
     "typescript": "~5.8.3",
     "vite": "^6.2.0",
-    "vitest": "^3.2.3",
-    "ts-prune": "^0.10.3",
-    "vite-plugin-svgr": "^4.3.0"
+    "vite-plugin-svgr": "^4.3.0",
+    "vitest": "^3.2.3"
   }
 }
