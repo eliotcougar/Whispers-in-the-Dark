@@ -29,6 +29,7 @@ import { buildInitialGamePrompt } from './initPromptHelpers';
 import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
 import { repairFeatureHierarchy } from '../utils/mapHierarchyUpgradeUtils';
+import { clearAllImages } from '../services/imageDb';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
@@ -36,6 +37,7 @@ export interface LoadInitialGameOptions {
   isTransitioningFromShift?: boolean;
   customGameFlag?: boolean;
   savedStateToLoad?: GameStateStack | null;
+  clearImages?: boolean;
 }
 
 export interface UseGameInitializationProps {
@@ -92,12 +94,17 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         isTransitioningFromShift = false,
         customGameFlag = false,
         savedStateToLoad = null,
+        clearImages = false,
       } = options;
 
       setIsLoading(true);
       setLoadingReason(isTransitioningFromShift ? 'reality_shift_load' : 'initial_load');
       setError(null);
       setParseErrorCounter(0);
+
+      if (isRestart || clearImages) {
+        await clearAllImages();
+      }
 
       if (savedStateToLoad) {
         const [currentSaved, previousSaved] = savedStateToLoad;

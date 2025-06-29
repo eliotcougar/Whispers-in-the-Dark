@@ -3,6 +3,10 @@ import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { FullGameState } from '../../../types';
 import { safeParseJson } from '../../../utils/jsonUtils';
+import {
+  cloneGameStateWithoutImages,
+  structuredCloneGameState,
+} from '../../../utils/cloneUtils';
 
 interface GameStateTabProps {
   readonly currentState: FullGameState;
@@ -16,7 +20,8 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
   const [parseError, setParseError] = useState<string | null>(null);
 
   useEffect(() => {
-    setEditableText(JSON.stringify(currentState, null, 2));
+    const sanitized = cloneGameStateWithoutImages(currentState);
+    setEditableText(JSON.stringify(sanitized, null, 2));
   }, [currentState]);
 
   const handleChange = useCallback(
@@ -30,12 +35,33 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
   const handleApply = useCallback(() => {
     const parsed = safeParseJson<FullGameState>(editableText);
     if (parsed) {
-      onApplyGameState(parsed);
+      const merged = structuredCloneGameState(parsed);
+
+      merged.inventory = merged.inventory.map(item => {
+        const orig = currentState.inventory.find(i => i.id === item.id);
+        if (orig) {
+          return {
+            ...item,
+            chapters: item.chapters?.map((ch, i) => ({
+              ...ch,
+              imageData: orig.chapters?.[i]?.imageData,
+            })),
+          };
+        }
+        return item;
+      });
+
+      merged.playerJournal = merged.playerJournal.map((ch, i) => ({
+        ...ch,
+        imageData: currentState.playerJournal[i]?.imageData,
+      }));
+
+      onApplyGameState(merged);
       setParseError(null);
     } else {
       setParseError('Invalid JSON');
     }
-  }, [editableText, onApplyGameState]);
+  }, [editableText, onApplyGameState, currentState]);
 
   return (
     <>
@@ -81,14 +107,14 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
       </div>
 
       <DebugSection
-        content={currentState}
+        content={cloneGameStateWithoutImages(currentState)}
         maxHeightClass="max-h-[30vh]"
         title="Current Game State (Stack[0] - Top)"
       />
 
       {previousState ? (
         <DebugSection
-          content={previousState}
+          content={cloneGameStateWithoutImages(previousState)}
           maxHeightClass="max-h-[30vh]"
           title="Previous Game State (Stack[1] - Bottom)"
         />

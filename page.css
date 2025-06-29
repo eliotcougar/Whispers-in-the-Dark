@@ -153,6 +153,7 @@
 
 .tag-torn.torn-bottom .torn-divider:last-child {
   margin-bottom: 0;
+  transform: rotate(180deg);
 }
 
 .tag-glitching {

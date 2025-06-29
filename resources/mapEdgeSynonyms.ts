@@ -50,6 +50,8 @@ const mapEdgeSynonyms = {
   "status": {
     "opened": "open",
     "active": "open",
+    "normal": "open",
+    "accessible": "open",
     "functional": "open",
     "discovered": "accessible",
     "usable": "accessible",
@@ -84,7 +86,7 @@ const mapEdgeSynonyms = {
     "disconnected",
     "obliterated",
     "terminated",
-  "dismantled"
+    "dismantled"
   ]
 };
 

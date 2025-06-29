@@ -15,6 +15,8 @@ v1.4. Ink and Quill update
   + Inspecting your own journal is used to potentially inject new lore.
   - Calm and Action global states to define when the player can interact with Journal.
   - Action points for inventory actions to append to playerAction. Buttons turn into Toggles.
+  - Picture and Map items with image support.
+  - Saving images in the IndexedDB and save file.
 
 v1.5 Backstory update
   - Character Generation.

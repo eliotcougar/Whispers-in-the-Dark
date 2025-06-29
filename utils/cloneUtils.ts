@@ -2,7 +2,8 @@
  * @file cloneUtils.ts
  * @description Utility for deep cloning game state objects using `structuredClone`
  *              when available, with a fallback custom deep copy implementation.
- */
+*/
+import type { FullGameState } from '../types';
 
 /**
  * Performs a deep clone of the provided object.
@@ -18,6 +19,29 @@ export function structuredCloneGameState<T>(state: T): T {
     return globalObj.structuredClone(state) as T;
   }
   return deepCopy(state) as T;
+}
+
+/**
+ * Returns a deep cloned copy of the game state with any embedded image data
+ * removed. The imageData fields are omitted to keep debug output concise while
+ * preserving the rest of the state structure.
+ */
+export function cloneGameStateWithoutImages(
+  state: FullGameState,
+): FullGameState {
+  const cloned = structuredCloneGameState(state);
+
+  cloned.inventory = cloned.inventory.map(item => ({
+    ...item,
+    chapters: item.chapters?.map(ch => ({ ...ch, imageData: undefined })),
+  }));
+
+  cloned.playerJournal = cloned.playerJournal.map(ch => ({
+    ...ch,
+    imageData: undefined,
+  }));
+
+  return cloned;
 }
 
 /**
