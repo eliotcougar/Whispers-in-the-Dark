@@ -193,26 +193,6 @@ export const MAP_UPDATE_JSON_SCHEMA = {
         additionalProperties: false,
       },
     },
-    splitFamily: {
-      type: 'object',
-      properties: {
-        originalNodeId: { type: 'string', description: `The nodeId to be split into two nodes.` },
-        newNodeId: { type: 'string', description: `The new node ID` },
-        newNodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
-        newConnectorNodeId: { type: 'string', description: `The nodeId of the node that will recieve the old external edge.`},
-        originalChildren: { type: 'array', items: { type: 'string' }, minItems: 1, description: `nodeIds of the nodes that remain with the old parent node.` },
-        newChildren: { type: 'array', items: { type: 'string' }, minItems: 1, description: `nodeIds of the nodes that migrate to the new parent node.` },
-      },
-      required: [
-        'originalNodeId',
-        'newNodeId',
-        'newNodeType',
-        'newConnectorNodeId',
-        'originalChildren',
-        'newChildren',
-      ],
-      additionalProperties: false,
-    },
     suggestedCurrentMapNodeId: {
       type: 'string',
       description:

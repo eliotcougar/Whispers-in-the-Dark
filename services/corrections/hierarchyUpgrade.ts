@@ -13,7 +13,7 @@ import {
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+
 import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
 
@@ -60,61 +60,6 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
   });
 };
 
-export const resolveSplitFamilyOrphans_Service = async (
-  context: {
-    sceneDescription: string;
-    logMessage: string | undefined;
-    originalParent: MapNode;
-    newParent: MapNode;
-    orphanNodes: Array<MapNode>;
-    currentTheme: AdventureTheme;
-  },
-): Promise<{ originalChildren: Array<string>; newChildren: Array<string> }> => {
-  if (!isApiConfigured() || context.orphanNodes.length === 0)
-    return { originalChildren: [], newChildren: [] };
-
-  const orphanList = context.orphanNodes
-    .map(o => `{"name":"${o.placeName}","id":"${o.id}"},"description":"${o.data.description || 'No description'}"}`)
-    .join(', \n');
-
-  const prompt = `Resolve orphan child nodes after splitting a parent location into two.
-Original Parent: "${context.originalParent.placeName}" (ID:${context.originalParent.id})
-New Parent: "${context.newParent.placeName}" (ID:${context.newParent.id})
-Orphan Children: [${orphanList}]
-Return JSON {"originalChildren": ["ids"], "newChildren": ["ids"]}`;
-
-  const systemInstruction = 'Assign orphan nodes to either the original or new parent. Respond only with JSON.';
-
-  const result = await retryAiCall<{ originalChildren: Array<string>; newChildren: Array<string> }>(async () => {
-    try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
-      const { response } = await dispatchAIRequest({
-        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
-        systemInstruction,
-        responseMimeType: 'application/json',
-        temperature: CORRECTION_TEMPERATURE,
-        label: 'Corrections',
-      });
-      const payload = safeParseJson<{ originalChildren: Array<string>; newChildren: Array<string> }>(extractJsonFromFence(response.text ?? ''));
-      if (
-        payload &&
-        Array.isArray(payload.originalChildren) &&
-        payload.originalChildren.every(id => typeof id === 'string') &&
-        Array.isArray(payload.newChildren) &&
-        payload.newChildren.every(id => typeof id === 'string')
-      ) {
-        return { result: payload };
-      }
-    } catch (e: unknown) {
-      console.error('resolveSplitFamilyOrphans_Service error:', e);
-      throw e;
-    }
-    return { result: null };
-  });
-
-  return result ?? { originalChildren: [], newChildren: [] };
-};
 
 export const chooseHierarchyResolution_Service = async (
   context: {
