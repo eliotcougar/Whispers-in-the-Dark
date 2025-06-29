@@ -193,6 +193,8 @@ export const VALID_NODE_STATUS_VALUES = [
   'blocked',
 ] as const;
 
+export const VALID_NODE_STATUS_STRING = VALID_NODE_STATUS_VALUES.map(s => `"${s}"`).join(' | ');
+
 export const VALID_NODE_TYPE_VALUES = [
   'region',
   'location',
@@ -203,6 +205,8 @@ export const VALID_NODE_TYPE_VALUES = [
   'room',
   'feature',
 ] as const;
+
+export const VALID_NODE_TYPE_STRING = VALID_NODE_TYPE_VALUES.map(s => `"${s}"`).join(' | ');
 
 // Hierarchy levels for node types (lower index = higher level)
 export const NODE_TYPE_LEVELS: Record<(typeof VALID_NODE_TYPE_VALUES)[number], number> =
@@ -224,6 +228,8 @@ export const VALID_EDGE_TYPE_VALUES = [
   'shortcut',
 ] as const;
 
+export const VALID_EDGE_TYPE_STRING = VALID_EDGE_TYPE_VALUES.map(s => `"${s}"`).join(' | ');
+
 export const VALID_EDGE_STATUS_VALUES = [
   'open',
   'accessible',
@@ -238,6 +244,8 @@ export const VALID_EDGE_STATUS_VALUES = [
   'active',
   'inactive',
 ] as const;
+
+export const VALID_EDGE_STATUS_STRING = VALID_EDGE_STATUS_VALUES.map(s => `"${s}"`).join(' | ');
 
 export const NON_DISPLAYABLE_EDGE_STATUSES = [
   'collapsed',
@@ -260,6 +268,8 @@ export const DEFAULT_ITEM_ICON_SCALE = 0.3;
 
 export const MAX_DIALOGUE_SUMMARIES_PER_NPC = 5; // Max summaries to store per NPC
 export const MAX_DIALOGUE_SUMMARIES_IN_PROMPT = 3;   // Max summaries to include in AI prompt
+export const MIN_DIALOGUE_TURN_OPTIONS = 4; // Minimum dialogue options per turn
+export const MAX_DIALOGUE_TURN_OPTIONS = 8; // Maximum dialogue options per turn
 export const RECENT_LOG_COUNT_FOR_PROMPT = 10; // Number of log messages to include in AI prompts
 
 // Standard instructions for AI-generated text fields

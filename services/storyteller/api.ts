@@ -25,7 +25,7 @@ import {
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
-import { isServerOrClientError } from '../../utils/aiErrorUtils';
+import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 
 const STORYTELLER_VALID_TAGS = (VALID_TAGS).filter(
@@ -320,8 +320,7 @@ export const STORYTELLER_JSON_SCHEMA = {
 
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
-    fullPrompt: string,
-    themeSystemInstructionModifier: string | undefined // Retain as string for direct use
+  fullPrompt: string,
 ): Promise<{
   response: GenerateContentResponse;
   thoughts: Array<string>;
@@ -329,56 +328,63 @@ export const executeAIMainTurn = async (
   jsonSchemaUsed?: unknown;
   promptUsed: string;
 }> => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
-    if (!isApiConfigured()) {
-      console.error("API Key not configured for Gemini Service.");
-      return Promise.reject(new Error("API Key not configured."));
-    }
+  if (!isApiConfigured()) {
+    console.error('API Key not configured for Gemini Service.');
+    return Promise.reject(new Error('API Key not configured.'));
+  }
 
-    let systemInstructionForCall = SYSTEM_INSTRUCTION;
-    if (themeSystemInstructionModifier) {
-        systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${themeSystemInstructionModifier}`;
+  const result = await retryAiCall<{
+    response: GenerateContentResponse;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+    promptUsed: string;
+  }>(async attempt => {
+    try {
+      console.log(
+        `Executing storyteller turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
+      );
+      addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
+      const {
+        response,
+        systemInstructionUsed,
+        jsonSchemaUsed,
+        promptUsed,
+      } = await dispatchAIRequest({
+        modelNames: [GEMINI_MODEL_NAME],
+        prompt: fullPrompt,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 1.0,
+        thinkingBudget: 4096,
+        includeThoughts: true,
+        responseMimeType: 'application/json',
+        jsonSchema: STORYTELLER_JSON_SCHEMA,
+        label: 'Storyteller',
+      });
+      const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
+        text?: string;
+        thought?: boolean;
+      }>;
+      const thoughts = parts
+        .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+        .map(p => p.text);
+      return {
+        result: { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed },
+      };
+    } catch (error: unknown) {
+      console.error(
+        `Error executing AI Main Turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        error,
+      );
+      throw error;
     }
+  });
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; ) {
-        try {
-            const {
-              response,
-              systemInstructionUsed,
-              jsonSchemaUsed,
-              promptUsed,
-            } = await dispatchAIRequest({
-              modelNames: [GEMINI_MODEL_NAME],
-              prompt: fullPrompt,
-              systemInstruction: systemInstructionForCall,
-              temperature: 1.0,
-              thinkingBudget: 4096,
-              includeThoughts: true,
-              responseMimeType: 'application/json',
-              jsonSchema: STORYTELLER_JSON_SCHEMA,
-              label: 'Storyteller',
-            });
-            const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
-            const thoughts = parts
-              .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
-              .map(p => p.text);
-            return { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed };
-        } catch (error: unknown) {
-            console.error(`Error executing AI Main Turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
-            if (!isServerOrClientError(error)) {
-                throw error;
-            }
-            if (attempt === MAX_RETRIES) {
-                return Promise.reject(new Error(`Failed to execute AI Main Turn after maximum retries: ${error instanceof Error ? error.message : String(error)}`));
-            }
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue; // retry same attempt
-        }
-        attempt++;
-    }
-    // Should not be reached if MAX_RETRIES > 0, as the loop will either return or throw.
-    // Added for type safety / exhaustive paths.
-    return Promise.reject(new Error("Failed to execute AI Main Turn: Max retries exhausted (unexpectedly)."));
+  if (result) {
+    return result;
+  }
+
+  throw new Error('Failed to execute AI Main Turn after maximum retries.');
 };
 
 
@@ -412,33 +418,40 @@ The summary should be written in a narrative style, from a perspective that desc
 Do not include any preamble. Just provide the summary text itself.
 `;
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) { // Extra retry for summarization
+  const result = await retryAiCall<string>(async attempt => {
     try {
-      console.log(`Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(attempt)}/${String(MAX_RETRIES +1)})`);
+      console.log(
+        `Summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(
+          attempt + 1,
+        )}/${String(MAX_RETRIES + 1)})`,
+      );
+      addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
       const { response } = await dispatchAIRequest({
-          modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-          prompt: summarizationPrompt,
-          temperature: 0.8,
-          label: 'Summarize',
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt: summarizationPrompt,
+        temperature: 0.8,
+        label: 'Summarize',
       });
       const text = (response.text ?? '').trim();
-      if (text && text.length > 0) {
-        return text;
+      if (text) {
+        return { result: text };
       }
-        console.warn(`Attempt ${String(attempt)} failed to yield non-empty summary for theme "${themeToSummarize.name}". Text was: '${String(response.text)}'`);
-      if (attempt === MAX_RETRIES +1 && (!text || text.length === 0)) return null;
+      console.warn(
+        `executeAdventureSummary (Attempt ${String(attempt + 1)}/${String(
+          MAX_RETRIES + 1,
+        )}): empty response`,
+      );
     } catch (error: unknown) {
-      console.error(`Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(attempt)}/${String(MAX_RETRIES +1)}):`, error);
-      if (!isServerOrClientError(error)) {
-        throw error;
-      }
-      if (attempt === MAX_RETRIES +1) {
-        return null;
-      }
-      await new Promise(resolve => setTimeout(resolve, 500));
-      continue;
+      console.error(
+        `Error summarizing adventure for theme "${themeToSummarize.name}" (Attempt ${String(
+          attempt + 1,
+        )}/${String(MAX_RETRIES + 1)}):`,
+        error,
+      );
+      throw error;
     }
-    attempt++;
-  }
-  return null;
+    return { result: null };
+  });
+
+  return result;
 };

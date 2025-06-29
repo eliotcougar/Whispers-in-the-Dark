@@ -10,6 +10,7 @@ import {
   GEMINI_LITE_MODEL_NAME,
   LOADING_REASON_UI_MAP,
   MIN_BOOK_CHAPTERS,
+  MAX_RETRIES,
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -30,6 +31,7 @@ import {
 } from '../corrections';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { normalizeTag } from '../../utils/tagSynonyms';
+import { retryAiCall } from '../../utils/retry';
 
 /**
  * Executes the inventory AI call using model fallback.
@@ -47,22 +49,55 @@ export const executeInventoryRequest = async (
     console.error('API Key not configured for Inventory Service.');
     return Promise.reject(new Error('API Key not configured.'));
   }
-  addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
-  const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
-    modelNames: [GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
-    prompt,
-    systemInstruction: SYSTEM_INSTRUCTION,
-    thinkingBudget: 1024,
-    includeThoughts: true,
-    responseMimeType: 'application/json',
-    temperature: 0.7,
-    label: 'Inventory',
+  const result = await retryAiCall<{
+    response: GenerateContentResponse;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+    promptUsed: string;
+  }>(async (attempt: number) => {
+    try {
+      console.log(
+        `Executing inventory request (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
+      );
+      addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
+      const {
+        response,
+        systemInstructionUsed,
+        jsonSchemaUsed,
+        promptUsed,
+      } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        thinkingBudget: 1024,
+        includeThoughts: true,
+        responseMimeType: 'application/json',
+        temperature: 0.7,
+        label: 'Inventory',
+      });
+      const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
+        text?: string;
+        thought?: boolean;
+      }>;
+      const thoughtParts = parts
+        .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+        .map(p => p.text);
+      return {
+        result: { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed, promptUsed },
+      };
+    } catch (err: unknown) {
+      console.error(
+        `Error executing inventory request (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        err,
+      );
+      throw err;
+    }
   });
-  const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
-  const thoughtParts = parts
-    .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
-    .map(p => p.text);
-  return { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed, promptUsed };
+  if (!result) {
+    throw new Error('Failed to execute inventory request.');
+  }
+  return result;
 };
 
 export interface InventoryUpdateResult {

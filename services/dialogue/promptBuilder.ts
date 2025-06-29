@@ -7,7 +7,10 @@ import {
   DialogueMemorySummaryContext,
   DialogueTurnContext,
 } from '../../types';
-import { MAX_DIALOGUE_SUMMARIES_IN_PROMPT } from '../../constants';
+import {
+  MAX_DIALOGUE_SUMMARIES_IN_PROMPT,
+  MAIN_TURN_OPTIONS_COUNT,
+} from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 
 /**
@@ -194,11 +197,11 @@ ${dialogueLogString}
 
 Based *only* on the Dialogue Transcript and the provided context, determine what concrete game state changes (items, NPCs, quest/objective updates, log message, map updates) resulted *directly* from this dialogue.
 The "logMessage" field in your response should be a concise summary suitable for the main game log.
-Provide the next scene description and SIX action options for the player as you would for a normal game turn.
+Provide the next scene description and ${String(MAIN_TURN_OPTIONS_COUNT)} action options for the player as you would for a normal game turn.
 If the dialogue revealed a new alias for an existing NPC, use "npcsUpdated" with "addAlias".
 If the dialogue changed some NPC's general whereabouts, use "newLastKnownLocation" in "npcsUpdated".
 If the dialogue revealed new map information (new locations, changed accessibility, etc.), or if Player's own location changed over the course of the dialogue, then set "mapUpdated": true.
-Respond using the SAME JSON structure defined in the SYSTEM_INSTRUCTION for regular turns.
+Respond using the JSON schema for main storyteller turns.
 `;
 };
 

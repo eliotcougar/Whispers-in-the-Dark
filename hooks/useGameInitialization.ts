@@ -237,12 +237,9 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         mapDataForTheme: draftState.mapData,
         npcsForTheme: draftState.allNPCs.filter(npc => npc.themeName === themeObjToLoad.name),
       });
-      const systemInstructionForCall = themeObjToLoad.systemInstructionModifier
-        ? `${SYSTEM_INSTRUCTION}\n\nCURRENT THEME GUIDANCE:\n${themeObjToLoad.systemInstructionModifier}`
-        : SYSTEM_INSTRUCTION;
       draftState.lastDebugPacket = {
         prompt,
-        systemInstruction: systemInstructionForCall,
+        systemInstruction: SYSTEM_INSTRUCTION,
         jsonSchema: undefined,
         rawResponseText: null,
         parsedResponse: null,
@@ -261,10 +258,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           systemInstructionUsed,
           jsonSchemaUsed,
           promptUsed,
-        } = await executeAIMainTurn(
-          prompt,
-          themeObjToLoad.systemInstructionModifier,
-        );
+        } = await executeAIMainTurn(prompt);
         draftState.lastDebugPacket.rawResponseText = response.text ?? null;
         draftState.lastDebugPacket.storytellerThoughts = thoughts;
         draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
@@ -454,12 +448,9 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
     const baseStateSnapshot = structuredCloneGameState(currentFullState);
     let draftState = structuredCloneGameState(currentFullState);
-    const systemInstructionForCall = currentThemeObj.systemInstructionModifier
-      ? `${SYSTEM_INSTRUCTION}\n\nCURRENT THEME GUIDANCE:\n${currentThemeObj.systemInstructionModifier}`
-      : SYSTEM_INSTRUCTION;
     const debugPacket = {
       prompt: lastPrompt,
-      systemInstruction: systemInstructionForCall,
+      systemInstruction: SYSTEM_INSTRUCTION,
       jsonSchema: undefined,
       rawResponseText: null,
       parsedResponse: null,
@@ -479,10 +470,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         systemInstructionUsed,
         jsonSchemaUsed,
         promptUsed,
-      } = await executeAIMainTurn(
-        lastPrompt,
-        currentThemeObj.systemInstructionModifier,
-      );
+      } = await executeAIMainTurn(lastPrompt);
       draftState.lastDebugPacket.rawResponseText = response.text ?? null;
       draftState.lastDebugPacket.storytellerThoughts = thoughts;
       draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
