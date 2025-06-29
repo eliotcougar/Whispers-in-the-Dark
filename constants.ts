@@ -260,6 +260,8 @@ export const DEFAULT_ITEM_ICON_SCALE = 0.3;
 
 export const MAX_DIALOGUE_SUMMARIES_PER_NPC = 5; // Max summaries to store per NPC
 export const MAX_DIALOGUE_SUMMARIES_IN_PROMPT = 3;   // Max summaries to include in AI prompt
+export const MIN_DIALOGUE_TURN_OPTIONS = 4; // Minimum dialogue options per turn
+export const MAX_DIALOGUE_TURN_OPTIONS = 8; // Maximum dialogue options per turn
 export const RECENT_LOG_COUNT_FOR_PROMPT = 10; // Number of log messages to include in AI prompts
 
 // Standard instructions for AI-generated text fields

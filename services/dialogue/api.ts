@@ -2,7 +2,6 @@
  * @file api.ts
  * @description Wrapper functions for dialogue-related AI interactions.
  */
-import { GenerateContentResponse } from '@google/genai';
 import {
   DialogueAIResponse,
   DialogueHistoryEntry,
@@ -14,10 +13,17 @@ import {
   DialogueMemorySummaryContext,
   AdventureTheme,
 } from '../../types';
-import { GEMINI_MODEL_NAME, MAX_RETRIES } from '../../constants';
+import {
+  GEMINI_MODEL_NAME,
+  MAX_RETRIES,
+  MIN_DIALOGUE_TURN_OPTIONS,
+  MAX_DIALOGUE_TURN_OPTIONS,
+} from '../../constants';
 import { DIALOGUE_SYSTEM_INSTRUCTION } from './systemPrompt';
 import { SYSTEM_INSTRUCTION } from '../storyteller/systemPrompt';
+import { STORYTELLER_JSON_SCHEMA } from '../storyteller/api';
 import { dispatchAIRequest } from '../modelDispatcher';
+import { retryAiCall } from '../../utils/retry';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
 import { fetchCorrectedDialogueTurn_Service } from '../corrections';
 import { CORRECTION_TEMPERATURE } from '../../constants';
@@ -30,41 +36,49 @@ import {
 } from './responseParser';
 import { parseAIResponse } from '../storyteller/responseParser';
 
-interface GeminiRequestConfig {
-  systemInstruction: string;
-  responseMimeType: string;
-  temperature: number;
-  thinkingConfig?: { thinkingBudget: number; includeThoughts: boolean };
-}
+export const DIALOGUE_TURN_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    npcResponses: {
+      type: 'array',
+      minItems: 1,
+      description:
+        'NPC lines for this turn. Each speaker must be an active participant and lines must be non-empty.',
+      items: {
+        type: 'object',
+        properties: {
+          speaker: { type: 'string' },
+          line: { type: 'string' },
+        },
+        required: ['speaker', 'line'],
+        additionalProperties: false,
+      },
+    },
+    playerOptions: {
+      type: 'array',
+      minItems: MIN_DIALOGUE_TURN_OPTIONS,
+      maxItems: MAX_DIALOGUE_TURN_OPTIONS,
+      description:
+        'Possible player replies. The last option must politely or firmly end the conversation.',
+      items: { type: 'string' },
+    },
+    dialogueEnds: {
+      type: 'boolean',
+      description:
+        'Set true when the NPCs indicate the conversation is over or naturally concludes.',
+    },
+    updatedParticipants: {
+      type: 'array',
+      minItems: 1,
+      description:
+        "Provide the new full list of participants if it changes. Don't include the player.",
+      items: { type: 'string' },
+    },
+  },
+  required: ['npcResponses', 'playerOptions'],
+  additionalProperties: false,
+} as const;
 
-/**
- * Executes a Gemini API call for dialogue related prompts.
- * Allows optional disabling of model "thinking" for faster responses.
- */
-const callDialogueGeminiAPI = async (
-  prompt: string,
-  systemInstruction: string,
-  thinkingBudgetLimit = 0 // Default to 0 (disabled thinking)
-): Promise<GenerateContentResponse> => {
-  const config: GeminiRequestConfig = {
-    systemInstruction,
-    responseMimeType: 'application/json',
-    temperature: 0.8,
-    thinkingConfig: { thinkingBudget: thinkingBudgetLimit, includeThoughts: true }
-  };
-
-  const { response } = await dispatchAIRequest({
-    modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-    prompt,
-    systemInstruction,
-    temperature: config.temperature,
-    responseMimeType: config.responseMimeType,
-    thinkingBudget: config.thinkingConfig?.thinkingBudget,
-    includeThoughts: true,
-    label: 'Dialogue',
-  });
-  return response;
-};
 
 /**
  * Fetches the next dialogue turn from the AI based on the current game state.
@@ -109,15 +123,33 @@ export const executeDialogueTurn = async (
     relevantFacts,
   });
 
-  for (let attempt = 1; attempt <= MAX_RETRIES; ) {
+  const result = await retryAiCall<{
+    parsed: DialogueAIResponse;
+    rawResponse: string;
+    thoughts: Array<string>;
+  }>(async attempt => {
     try {
-      console.log(`Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES)})`);
-      const response = await callDialogueGeminiAPI(prompt, DIALOGUE_SYSTEM_INSTRUCTION, 512);
-      const parts =
-        (response.candidates?.[0]?.content?.parts ?? []) as Array<{
-          text?: string;
-          thought?: boolean;
-        }>;
+      console.log(
+        `Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${String(
+          attempt + 1,
+        )}/${String(MAX_RETRIES + 1)})`,
+      );
+      addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_turn.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: DIALOGUE_SYSTEM_INSTRUCTION,
+        temperature: 0.8,
+        responseMimeType: 'application/json',
+        thinkingBudget: 512,
+        includeThoughts: true,
+        jsonSchema: DIALOGUE_TURN_JSON_SCHEMA,
+        label: 'Dialogue',
+      });
+      const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
+        text?: string;
+        thought?: boolean;
+      }>;
       const thoughtParts = parts
         .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
         .map(p => p.text);
@@ -128,17 +160,26 @@ export const executeDialogueTurn = async (
         currentTheme,
         thoughtParts,
       );
-      if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
-      console.warn(`Attempt ${String(attempt)} failed to yield valid dialogue JSON even after correction.`);
-      attempt++;
+      if (parsed) {
+        return { result: { parsed, rawResponse: response.text ?? '', thoughts: thoughtParts } };
+      }
+      console.warn(
+        `executeDialogueTurn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): invalid response even after correction`,
+      );
     } catch (error: unknown) {
-      console.error(`Error fetching dialogue turn (Attempt ${String(attempt)}/${String(MAX_RETRIES)}):`, error);
-      if (!isServerOrClientError(error)) throw error;
-      if (attempt === MAX_RETRIES) throw error;
-      await new Promise(resolve => setTimeout(resolve, 500));
-      continue;
+      console.error(
+        `Error fetching dialogue turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        error,
+      );
+      throw error;
     }
+    return { result: null };
+  });
+
+  if (result) {
+    return { parsed: result.parsed, prompt, rawResponse: result.rawResponse, thoughts: result.thoughts };
   }
+
   throw new Error('Failed to fetch dialogue turn after maximum retries.');
 };
 
@@ -158,15 +199,26 @@ export const executeDialogueSummary = async (
     return Promise.reject(new Error('DialogueSummaryContext missing currentThemeObject.'));
   }
 
+  const themeObject = summaryContext.currentThemeObject;
+
   const prompt = buildDialogueSummaryPrompt(summaryContext);
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 2; ) {
+  const summaryResult = await retryAiCall<{
+    parsed: GameStateFromAI;
+    rawResponse: string;
+    thoughts: Array<string>;
+  }>(async attempt => {
     try {
-      console.log(`Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES + 2)})`);
+      console.log(
+        `Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${String(
+          attempt + 1,
+        )}/${String(MAX_RETRIES + 1)})`,
+      );
       let systemInstructionForCall = SYSTEM_INSTRUCTION;
-      if (summaryContext.currentThemeObject.systemInstructionModifier) {
-        systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${summaryContext.currentThemeObject.systemInstructionModifier}`;
+      if (themeObject.systemInstructionModifier) {
+        systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${themeObject.systemInstructionModifier}`;
       }
+      addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_summary.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_MODEL_NAME],
         prompt,
@@ -175,6 +227,7 @@ export const executeDialogueSummary = async (
         responseMimeType: 'application/json',
         thinkingBudget: 4096,
         includeThoughts: true,
+        jsonSchema: STORYTELLER_JSON_SCHEMA,
         label: 'Storyteller',
       });
       const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
@@ -184,7 +237,7 @@ export const executeDialogueSummary = async (
       const parsed = await parseAIResponse(
         response.text ?? '',
         summaryContext.playerGender,
-        summaryContext.currentThemeObject,
+        themeObject,
         undefined,
         undefined,
         undefined,
@@ -192,17 +245,26 @@ export const executeDialogueSummary = async (
         summaryContext.mapDataForTheme,
         summaryContext.inventory,
       );
-      if (parsed) return { parsed, prompt, rawResponse: response.text ?? '', thoughts: thoughtParts };
-      console.warn(`Attempt ${String(attempt)} failed to yield valid JSON for dialogue summary. Retrying if attempts remain.`);
-      attempt++;
+      if (parsed) {
+        return { result: { parsed, rawResponse: response.text ?? '', thoughts: thoughtParts } };
+      }
+      console.warn(
+        `executeDialogueSummary (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): invalid JSON, retrying`,
+      );
     } catch (error: unknown) {
-      console.error(`Error summarizing dialogue (Attempt ${String(attempt)}/${String(MAX_RETRIES + 2)}):`, error);
-      if (!isServerOrClientError(error)) throw error;
-      if (attempt === MAX_RETRIES + 2) throw error;
-      await new Promise(resolve => setTimeout(resolve, 500));
-      continue;
+      console.error(
+        `Error summarizing dialogue (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        error,
+      );
+      throw error;
     }
+    return { result: null };
+  });
+
+  if (summaryResult) {
+    return { parsed: summaryResult.parsed, prompt, rawResponse: summaryResult.rawResponse, thoughts: summaryResult.thoughts };
   }
+
   return { parsed: null, prompt, rawResponse: '', thoughts: [] };
 };
 
@@ -223,9 +285,13 @@ export const executeMemorySummary = async (
 
   const { systemInstructionPart, userPromptPart } = buildDialogueMemorySummaryPrompts(context);
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; ) {
+  const memoryResult = await retryAiCall<string>(async attempt => {
     try {
-      console.log(`Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${String(attempt)}/${String(MAX_RETRIES + 1)})`);
+      console.log(
+        `Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${String(
+          attempt + 1,
+        )}/${String(MAX_RETRIES + 1)})`,
+      );
       addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_memory_creation.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
@@ -236,19 +302,26 @@ export const executeMemorySummary = async (
       });
       const memoryText = response.text?.trim() ?? null;
       if (memoryText && memoryText.length > 0) {
-        console.log(`summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`);
-        return memoryText;
+        console.log(
+          `summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`,
+        );
+        return { result: memoryText };
       }
-        console.warn(`Attempt ${String(attempt)} for memory summary yielded empty text after trim: '${String(memoryText)}'`);
-      if (attempt === MAX_RETRIES + 1) return null;
-      attempt++;
+      console.warn(
+        `executeMemorySummary (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): empty memory text`,
+      );
     } catch (error: unknown) {
-      console.error(`Error generating memory summary (Attempt ${String(attempt)}/${String(MAX_RETRIES + 1)}):`, error);
-      if (!isServerOrClientError(error)) return null;
-      if (attempt === MAX_RETRIES + 1) return null;
-      await new Promise(resolve => setTimeout(resolve, 500));
-      continue;
+      console.error(
+        `Error generating memory summary (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        error,
+      );
+      if (!isServerOrClientError(error)) {
+        return { result: null, retry: false };
+      }
+      throw error;
     }
-  }
-  return null;
+    return { result: null };
+  });
+
+  return memoryResult ?? null;
 };
