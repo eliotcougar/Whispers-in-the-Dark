@@ -15,7 +15,6 @@ import { handleMapUpdates } from '../utils/mapUpdateHandlers';
 
 export interface UseMapUpdateProcessorProps {
   loadingReasonRef: React.RefObject<LoadingReason | null>;
-  setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
 }
 
@@ -24,7 +23,6 @@ export interface UseMapUpdateProcessorProps {
  */
 export const useMapUpdateProcessor = ({
   loadingReasonRef,
-  setLoadingReason,
   setError,
 }: UseMapUpdateProcessorProps) => {
 
@@ -43,7 +41,6 @@ export const useMapUpdateProcessor = ({
           baseStateSnapshot,
           themeContext,
           loadingReasonRef.current,
-          setLoadingReason,
           turnChanges,
         );
       } catch (err: unknown) {
@@ -51,7 +48,7 @@ export const useMapUpdateProcessor = ({
         throw err;
       }
     },
-    [loadingReasonRef, setLoadingReason, setError],
+    [loadingReasonRef, setError],
   );
 
   return { processMapUpdates };

@@ -4,12 +4,12 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
+import { setLoadingReason } from '../utils/loadingState';
 import {
   DialogueHistoryEntry,
   GameStateFromAI,
   FullGameState,
   DialogueSummaryContext,
-  LoadingReason,
   MapData,
   DialogueSummaryRecord,
   DialogueMemorySummaryContext,
@@ -30,7 +30,6 @@ export interface UseDialogueSummaryProps {
   playerGenderProp: string;
   setError: (error: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
-  setLoadingReason: (reason: LoadingReason | null) => void;
   onDialogueConcluded: (
     summaryPayload: GameStateFromAI | null,
     preparedGameState: FullGameState,
@@ -55,7 +54,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     playerGenderProp,
     setError,
     setIsLoading,
-    setLoadingReason,
     onDialogueConcluded,
     getDialogueDebugLogs,
     clearDialogueDebugLogs,
@@ -173,7 +171,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     onDialogueConcluded(summaryUpdatePayload, workingGameState, debugInfo);
     clearDialogueDebugLogs();
     setDialogueNextSceneAttempted(true);
-  }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
+  }, [playerGenderProp, setError, setIsLoading, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
 
   useEffect(() => {
     if (isDialogueExiting && dialogueNextSceneAttempted && Date.now() >= dialogueUiCloseDelayTargetMs) {

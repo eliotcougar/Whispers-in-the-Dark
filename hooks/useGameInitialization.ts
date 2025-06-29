@@ -7,7 +7,6 @@ import { useCallback } from 'react';
 import {
   FullGameState,
   ThemePackName,
-  LoadingReason,
   GameStateStack,
 } from '../types';
 import {
@@ -30,6 +29,7 @@ import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
 import { repairFeatureHierarchy } from '../utils/mapHierarchyUpgradeUtils';
 import { clearAllImages } from '../services/imageDb';
+import { setLoadingReason } from '../utils/loadingState';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
@@ -46,7 +46,6 @@ export interface UseGameInitializationProps {
   stabilityLevelProp: number;
   chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
-  setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
   setParseErrorCounter: (val: number) => void;
   setHasGameBeenInitialized: (val: boolean) => void;
@@ -70,7 +69,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setIsLoading,
-    setLoadingReason,
     setError,
     setParseErrorCounter,
     setHasGameBeenInitialized,
@@ -321,7 +319,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       stabilityLevelProp,
       chaosLevelProp,
       setIsLoading,
-      setLoadingReason,
       setError,
       setParseErrorCounter,
       setHasGameBeenInitialized,
@@ -546,7 +543,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     commitGameState,
     setError,
     setIsLoading,
-    setLoadingReason,
     setParseErrorCounter,
     processAiResponse,
     playerGenderProp,

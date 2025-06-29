@@ -14,6 +14,7 @@ import {
   ValidNPCUpdatePayload
 } from '../types';
 import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/cartographer';
+import { setLoadingReason } from './loadingState';
 import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import {
@@ -38,7 +39,6 @@ export const handleMapUpdates = async (
   baseStateSnapshot: FullGameState,
   themeContextForResponse: AdventureTheme,
   loadingReason: LoadingReason | null,
-  setLoadingReason: (reason: LoadingReason | null) => void,
   turnChanges: TurnChanges
 ): Promise<string | null | undefined> => {
   let mapAISuggestedNodeIdentifier: string | null | undefined = undefined;

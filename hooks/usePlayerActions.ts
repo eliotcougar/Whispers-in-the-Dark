@@ -34,6 +34,7 @@ import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import { setLoadingReason } from '../utils/loadingState';
 
 export interface UsePlayerActionsProps {
   getCurrentGameState: () => FullGameState;
@@ -43,7 +44,6 @@ export interface UsePlayerActionsProps {
   stabilityLevelProp: number;
   chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
-  setLoadingReason: (reason: LoadingReason | null) => void;
   loadingReasonRef: React.RefObject<LoadingReason | null>;
   setError: (err: string | null) => void;
   setParseErrorCounter: (val: number) => void;
@@ -72,7 +72,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setIsLoading,
-    setLoadingReason,
     setError,
     setParseErrorCounter,
     triggerRealityShift,
@@ -88,7 +87,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
   const { processAiResponse, clearObjectiveAnimationTimer } = useProcessAiResponse({
     loadingReasonRef,
-    setLoadingReason,
     setError,
     setGameStateStack,
     debugLore,
@@ -172,7 +170,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
       }
     },
-    [setLoadingReason],
+    [],
   );
 
   /**
@@ -381,7 +379,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       chaosLevelProp,
       triggerRealityShift,
       setIsLoading,
-      setLoadingReason,
       setError,
       setParseErrorCounter,
       setFreeFormActionText,

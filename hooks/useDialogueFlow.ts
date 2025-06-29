@@ -7,7 +7,6 @@ import { useRef } from 'react';
 import {
   GameStateFromAI,
   FullGameState,
-  LoadingReason,
   DialogueTurnDebugEntry,
 } from '../types';
 import { useDialogueTurn } from './useDialogueTurn';
@@ -19,7 +18,6 @@ export interface UseDialogueFlowProps {
   playerGenderProp: string;
   setError: (error: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
-  setLoadingReason: (reason: LoadingReason | null) => void;
   onDialogueConcluded: (
     summaryPayload: GameStateFromAI | null,
     preparedGameState: FullGameState,
@@ -42,7 +40,6 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     playerGenderProp,
     setError,
     setIsLoading,
-    setLoadingReason,
     onDialogueConcluded,
   } = props;
 
@@ -67,7 +64,6 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     playerGenderProp,
     setError,
     setIsLoading,
-    setLoadingReason,
     onDialogueConcluded,
     getDialogueDebugLogs,
     clearDialogueDebugLogs,
@@ -79,7 +75,6 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
     playerGenderProp,
     setError,
     setIsLoading,
-    setLoadingReason,
     initiateDialogueExit,
     isDialogueExiting,
     addDebugEntry,

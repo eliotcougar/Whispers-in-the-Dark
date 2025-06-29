@@ -13,6 +13,7 @@ import { useGameInitialization, LoadInitialGameOptions } from './useGameInitiali
 import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { PLAYER_HOLDER_ID, DISTILL_LORE_INTERVAL } from '../constants';
+import { setLoadingReason, getLoadingReason } from '../utils/loadingState';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
@@ -53,8 +54,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     () => initialDebugStackFromApp ?? [null, null],
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [loadingReason, setLoadingReason] = useState<LoadingReason>(null);
-  const loadingReasonRef = useRef<LoadingReason | null>(loadingReason);
+  const loadingReasonRef = useRef<LoadingReason | null>(getLoadingReason());
   const setLoadingReasonRef = useCallback((reason: LoadingReason | null) => {
     loadingReasonRef.current = reason;
     setLoadingReason(reason);
@@ -136,7 +136,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setError,
-    setLoadingReason: setLoadingReasonRef,
     isLoading,
   });
 
@@ -186,7 +185,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setIsLoading,
-    setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     triggerRealityShift,
@@ -212,7 +210,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setIsLoading,
-    setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     setHasGameBeenInitialized,
@@ -232,7 +229,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     playerGenderProp,
     setError,
     setIsLoading,
-    setLoadingReason: setLoadingReasonRef,
     onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
       processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
@@ -468,7 +464,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,
     isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),
-    loadingReason,
     error,
     themeHistory: currentFullState.themeHistory,
     allNPCs: currentFullState.allNPCs,

@@ -9,13 +9,13 @@ import {
   ThemePackName,
   FullGameState,
   GameStateStack,
-  LoadingReason,
   ThemeMemory
 } from '../types';
 import { getThemesFromPacks } from '../themes';
 import { summarizeThemeAdventure_Service } from '../services/storyteller';
 import { selectNextThemeName } from '../utils/gameLogicUtils';
 import { getInitialGameStates } from '../utils/initialStates';
+import { setLoadingReason } from '../utils/loadingState';
 
 export interface UseRealityShiftProps {
   getCurrentGameState: () => FullGameState;
@@ -33,7 +33,6 @@ export interface UseRealityShiftProps {
   stabilityLevelProp: number;
   chaosLevelProp: number;
   setError: (err: string | null) => void;
-  setLoadingReason: (reason: LoadingReason | null) => void;
   isLoading: boolean;
 }
 
@@ -47,7 +46,6 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setError,
-    setLoadingReason,
     isLoading
   } = props;
 
@@ -178,7 +176,6 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
     summarizeAndStoreThemeHistory,
     loadInitialGame,
     setError,
-    setLoadingReason,
     setGameStateStack,
     playerGenderProp,
     stabilityLevelProp,
@@ -221,14 +218,14 @@ export const useRealityShift = (props: UseRealityShiftProps) => {
       isTransitioningFromShift: true,
       customGameFlag: true
     });
-  }, [getCurrentGameState, setGameStateStack, loadInitialGame, setLoadingReason]);
+  }, [getCurrentGameState, setGameStateStack, loadInitialGame]);
 
   /** Cancels the manual shift selection process. */
   const cancelManualShiftThemeSelection = useCallback(() => {
     setGameStateStack((prev: GameStateStack) => [{ ...prev[0], isAwaitingManualShiftThemeSelection: false, lastActionLog: 'You decide against manually shifting reality for now.' }, prev[1]]);
     setError(null);
     setLoadingReason(null);
-  }, [setGameStateStack, setError, setLoadingReason]);
+  }, [setGameStateStack, setError]);
 
   return {
     triggerRealityShift,

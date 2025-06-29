@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { fetchCorrectedName_Service } from '../services/corrections';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
+import { setLoadingReason } from '../utils/loadingState';
 import {
   addLogMessageToList,
   buildItemChangeRecords,
@@ -35,7 +36,6 @@ interface CorrectItemChangesParams {
   baseState: FullGameState;
   playerActionText?: string;
   loadingReason: LoadingReason | null;
-  setLoadingReason: (reason: LoadingReason | null) => void;
 }
 
 const correctItemChanges = async ({
@@ -45,7 +45,6 @@ const correctItemChanges = async ({
   baseState,
   playerActionText,
   loadingReason,
-  setLoadingReason,
 }: CorrectItemChangesParams): Promise<Array<ItemChange>> => {
   if (!theme) return [...aiItemChanges];
 
@@ -179,7 +178,6 @@ interface HandleInventoryHintsParams {
   correctedItemChanges: Array<ItemChange>;
   playerActionText?: string;
   loadingReason: LoadingReason | null;
-  setLoadingReason: (reason: LoadingReason | null) => void;
 }
 
 const handleInventoryHints = async ({
@@ -190,7 +188,6 @@ const handleInventoryHints = async ({
   correctedItemChanges,
   playerActionText,
   loadingReason,
-  setLoadingReason,
 }: HandleInventoryHintsParams): Promise<{
   combinedItemChanges: Array<ItemChange>;
   baseInventoryForPlayer: Array<Item>;
@@ -291,7 +288,6 @@ export type ProcessAiResponseFn = (
 
 export interface UseProcessAiResponseProps {
   loadingReasonRef: React.RefObject<LoadingReason | null>;
-  setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
   debugLore: boolean;
@@ -303,7 +299,6 @@ export interface UseProcessAiResponseProps {
 
 export const useProcessAiResponse = ({
   loadingReasonRef,
-  setLoadingReason,
   setError,
   setGameStateStack,
   debugLore,
@@ -311,7 +306,6 @@ export const useProcessAiResponse = ({
 }: UseProcessAiResponseProps) => {
   const { processMapUpdates } = useMapUpdateProcessor({
     loadingReasonRef,
-    setLoadingReason,
     setError,
   });
 
@@ -447,7 +441,6 @@ export const useProcessAiResponse = ({
         baseState: baseStateSnapshot,
         playerActionText,
         loadingReason: loadingReasonRef.current,
-        setLoadingReason,
       });
 
       await applyMapUpdatesFromAi({
@@ -468,7 +461,6 @@ export const useProcessAiResponse = ({
           correctedItemChanges: correctedAndVerifiedItemChanges,
           playerActionText,
           loadingReason: loadingReasonRef.current,
-          setLoadingReason,
         });
 
       turnChanges.itemChanges = buildItemChangeRecords(
@@ -635,7 +627,6 @@ export const useProcessAiResponse = ({
     },
     [
       loadingReasonRef,
-      setLoadingReason,
       setError,
       setGameStateStack,
       processMapUpdates,

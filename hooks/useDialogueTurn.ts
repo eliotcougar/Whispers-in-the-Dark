@@ -8,13 +8,13 @@ import {
   DialogueHistoryEntry,
   FullGameState,
   DialogueData,
-  LoadingReason,
 } from '../types';
 import { executeDialogueTurn } from '../services/dialogue';
 import { collectRelevantFacts_Service } from '../services/loremaster';
 import { PLAYER_HOLDER_ID, RECENT_LOG_COUNT_FOR_PROMPT } from '../constants';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { DialogueTurnDebugEntry } from '../types';
+import { setLoadingReason } from '../utils/loadingState';
 
 export interface UseDialogueTurnProps {
   getCurrentGameState: () => FullGameState;
@@ -22,7 +22,6 @@ export interface UseDialogueTurnProps {
   playerGenderProp: string;
   setError: (error: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
-  setLoadingReason: (reason: LoadingReason | null) => void;
   initiateDialogueExit: (preparedState: FullGameState) => Promise<void>;
   isDialogueExiting: boolean;
   addDebugEntry: (entry: DialogueTurnDebugEntry) => void;
@@ -38,7 +37,6 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
     playerGenderProp,
     setError,
     setIsLoading,
-    setLoadingReason,
     initiateDialogueExit,
     isDialogueExiting,
     addDebugEntry,
@@ -185,7 +183,6 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
     isDialogueExiting,
     setError,
     setIsLoading,
-    setLoadingReason,
     initiateDialogueExit,
     addDebugEntry,
   ]);
