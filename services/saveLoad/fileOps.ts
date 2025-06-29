@@ -3,17 +3,21 @@
  * @description Helpers for saving to and loading from external files.
  */
 import { GameStateStack, DebugPacketStack, DebugPacket } from '../../types';
-import { CURRENT_SAVE_GAME_VERSION } from '../../constants';
+import { CURRENT_SAVE_GAME_VERSION, PLAYER_JOURNAL_ID } from '../../constants';
 import { safeParseJson } from '../../utils/jsonUtils';
 import {
-  prepareGameStateStackForSaving,
+  prepareGameStateStackForSavingWithoutImages,
   expandSavedStackToFullStates,
   normalizeLoadedSaveDataStack,
 } from './migrations';
 import {
   expandRefsToImages,
   storeImagesAndReturnRefs,
+  getChapterImageKey,
+  saveChapterImage,
+  makeImageRef,
 } from '../imageDb';
+import { structuredCloneGameState } from '../../utils/cloneUtils';
 
 const triggerDownload = (data: string, filename: string, type: string): void => {
   const blob = new Blob([data], { type });
@@ -33,10 +37,32 @@ export const saveGameStateToFile = async (
   onError?: (message: string) => void,
 ): Promise<boolean> => {
   try {
-    const current = await expandRefsToImages(stack[0]);
-    const previous = stack[1] ? await expandRefsToImages(stack[1]) : undefined;
-    const dataToSave = prepareGameStateStackForSaving([current, previous]);
-    const jsonString = JSON.stringify({ game: dataToSave, debug: debugStack }, null, 2);
+    const currentExpanded = await expandRefsToImages(stack[0]);
+    const previousExpanded = stack[1] ? await expandRefsToImages(stack[1]) : undefined;
+    const images: Record<string, string> = {};
+    const collectImages = (state: typeof currentExpanded): void => {
+      state.inventory.forEach(item => {
+        item.chapters?.forEach((ch, idx) => {
+          if (ch.imageData) {
+            images[getChapterImageKey(item.id, idx)] = ch.imageData;
+          }
+        });
+      });
+      state.playerJournal.forEach((ch, idx) => {
+        if (ch.imageData) {
+          images[getChapterImageKey(PLAYER_JOURNAL_ID, idx)] = ch.imageData;
+        }
+      });
+    };
+    collectImages(currentExpanded);
+    if (previousExpanded) collectImages(previousExpanded);
+
+    const dataToSave = prepareGameStateStackForSavingWithoutImages(stack);
+    const jsonString = JSON.stringify(
+      { game: dataToSave, debug: debugStack, images },
+      null,
+      2,
+    );
     triggerDownload(
       jsonString,
       `WhispersInTheDark_Save_V${CURRENT_SAVE_GAME_VERSION}_${new Date().toISOString().slice(0, 10)}.json`,
@@ -63,20 +89,55 @@ export const loadGameStateFromFile = async (
             resolve(null);
             return;
           }
-          const gameData = (parsedData as { game?: unknown; debug?: unknown }).game ?? parsedData;
-          const debugData = (parsedData as { game?: unknown; debug?: unknown }).debug;
+          const { game: gameRaw = parsedData, debug: debugData, images } = parsedData as {
+            game?: unknown;
+            debug?: unknown;
+            images?: Record<string, string>;
+          };
           const processed = normalizeLoadedSaveDataStack(
-            gameData as Record<string, unknown>,
+            gameRaw as Record<string, unknown>,
             'file',
           );
           if (processed) {
             void (async () => {
               try {
                 const loadedStack = expandSavedStackToFullStates(processed);
-                const current = await storeImagesAndReturnRefs(loadedStack[0]);
-                const previous = loadedStack[1]
-                  ? await storeImagesAndReturnRefs(loadedStack[1])
-                  : undefined;
+
+                const applyImages = async (
+                  state: typeof loadedStack[0],
+                ): Promise<typeof loadedStack[0]> => {
+                  const cloned = structuredCloneGameState(state);
+                  if (images) {
+                    await Promise.all(
+                      cloned.inventory.map(async item => {
+                        await Promise.all(
+                          item.chapters?.map(async (ch, idx) => {
+                            const key = getChapterImageKey(item.id, idx);
+                            const data = images[key];
+                            if (data) {
+                              await saveChapterImage(item.id, idx, data);
+                              ch.imageData = makeImageRef(item.id, idx);
+                            }
+                          }) ?? [],
+                        );
+                      }),
+                    );
+                    await Promise.all(
+                      cloned.playerJournal.map(async (ch, idx) => {
+                        const key = getChapterImageKey(PLAYER_JOURNAL_ID, idx);
+                        const data = images[key];
+                        if (data) {
+                          await saveChapterImage(PLAYER_JOURNAL_ID, idx, data);
+                          ch.imageData = makeImageRef(PLAYER_JOURNAL_ID, idx);
+                        }
+                      }),
+                    );
+                  }
+                  return storeImagesAndReturnRefs(cloned);
+                };
+
+                const current = await applyImages(loadedStack[0]);
+                const previous = loadedStack[1] ? await applyImages(loadedStack[1]) : undefined;
                 const debugStack: DebugPacketStack = Array.isArray(debugData)
                   ? [debugData[0] ?? null, debugData[1] ?? null]
                   : [debugData as DebugPacket | null ?? null, null];
