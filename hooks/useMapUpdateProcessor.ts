@@ -3,6 +3,7 @@
  * @description Hook that processes map updates from AI responses.
  */
 import { useCallback } from 'react';
+import * as React from 'react';
 import {
   GameStateFromAI,
   AdventureTheme,
@@ -13,7 +14,7 @@ import {
 import { handleMapUpdates } from '../utils/mapUpdateHandlers';
 
 export interface UseMapUpdateProcessorProps {
-  loadingReason: LoadingReason | null;
+  loadingReasonRef: React.RefObject<LoadingReason | null>;
   setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
 }
@@ -22,10 +23,11 @@ export interface UseMapUpdateProcessorProps {
  * Provides a helper for applying map updates while managing error state.
  */
 export const useMapUpdateProcessor = ({
-  loadingReason,
+  loadingReasonRef,
   setLoadingReason,
   setError,
 }: UseMapUpdateProcessorProps) => {
+
   const processMapUpdates = useCallback(
     async (
       aiData: GameStateFromAI,
@@ -40,7 +42,7 @@ export const useMapUpdateProcessor = ({
           draftState,
           baseStateSnapshot,
           themeContext,
-          loadingReason,
+          loadingReasonRef.current,
           setLoadingReason,
           turnChanges,
         );
@@ -49,7 +51,7 @@ export const useMapUpdateProcessor = ({
         throw err;
       }
     },
-    [loadingReason, setLoadingReason, setError],
+    [loadingReasonRef, setLoadingReason, setError],
   );
 
   return { processMapUpdates };

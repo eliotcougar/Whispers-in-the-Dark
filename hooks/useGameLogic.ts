@@ -54,6 +54,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingReason, setLoadingReason] = useState<LoadingReason>(null);
+  const loadingReasonRef = useRef<LoadingReason | null>(loadingReason);
+  const setLoadingReasonRef = useCallback((reason: LoadingReason | null) => {
+    loadingReasonRef.current = reason;
+    setLoadingReason(reason);
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [parseErrorCounter, setParseErrorCounter] = useState<number>(0);
   void parseErrorCounter;
@@ -131,7 +136,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setError,
-    setLoadingReason,
+    setLoadingReason: setLoadingReasonRef,
     isLoading,
   });
 
@@ -181,7 +186,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setIsLoading,
-    setLoadingReason,
+    setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     triggerRealityShift,
@@ -190,7 +195,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setFreeFormActionText,
     isLoading,
     hasGameBeenInitialized,
-    loadingReason,
+    loadingReasonRef,
     debugLore: currentSnapshot.debugLore,
     openDebugLoreModal,
   });
@@ -207,7 +212,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setIsLoading,
-    setLoadingReason,
+    setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     setHasGameBeenInitialized,
@@ -227,7 +232,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     playerGenderProp,
     setError,
     setIsLoading,
-    setLoadingReason,
+    setLoadingReason: setLoadingReasonRef,
     onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
       processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
@@ -255,13 +260,13 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
         commitGameState(draftState);
         setIsLoading(false);
-        setLoadingReason(null);
+        setLoadingReasonRef(null);
       }).catch((e: unknown) => {
         console.error('Error in post-dialogue processAiResponse:', e);
         setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
         commitGameState(preparedGameState);
         setIsLoading(false);
-        setLoadingReason(null);
+        setLoadingReasonRef(null);
       });
     },
   });
@@ -364,7 +369,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       ),
     );
     const mapNodeNames = currentThemeNodes.map(n => n.placeName);
-    setLoadingReason('loremaster_refine');
+    setLoadingReasonRef('loremaster_refine');
     const result = await distillFacts_Service({
       themeName: themeObj.name,
       facts: currentFullState.themeFacts,
@@ -399,8 +404,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     }
     commitGameState(draftState);
     setIsLoading(false);
-    setLoadingReason(null);
-  }, [commitGameState, getCurrentGameState, setError, setIsLoading, setLoadingReason]);
+    setLoadingReasonRef(null);
+  }, [commitGameState, getCurrentGameState, setError, setIsLoading, setLoadingReasonRef]);
 
   useEffect(() => {
     if (

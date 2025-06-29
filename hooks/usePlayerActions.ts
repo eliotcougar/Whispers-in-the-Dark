@@ -4,6 +4,7 @@
  */
 
 import { useCallback } from 'react';
+import * as React from 'react';
 import {
   KnownUse,
   Item,
@@ -43,6 +44,7 @@ export interface UsePlayerActionsProps {
   chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
+  loadingReasonRef: React.RefObject<LoadingReason | null>;
   setError: (err: string | null) => void;
   setParseErrorCounter: (val: number) => void;
   triggerRealityShift: (isChaosShift?: boolean) => void;
@@ -51,7 +53,6 @@ export interface UsePlayerActionsProps {
   setFreeFormActionText: (text: string) => void;
   isLoading: boolean;
   hasGameBeenInitialized: boolean;
-  loadingReason: LoadingReason | null;
   debugLore: boolean;
   openDebugLoreModal: (
     facts: Array<string>,
@@ -80,13 +81,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setFreeFormActionText,
     isLoading,
     hasGameBeenInitialized,
-    loadingReason,
+    loadingReasonRef,
     debugLore,
     openDebugLoreModal,
   } = props;
 
   const { processAiResponse, clearObjectiveAnimationTimer } = useProcessAiResponse({
-    loadingReason,
+    loadingReasonRef,
     setLoadingReason,
     setError,
     setGameStateStack,
