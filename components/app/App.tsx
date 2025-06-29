@@ -567,9 +567,9 @@ function App() {
     handleLoadFromFileClick();
   }, [closeLoadGameFromMenuConfirm, handleLoadFromFileClick]);
 
-  const handleSaveGameFromMenu = useCallback(() => {
+  const handleSaveGameFromMenu = useCallback(async () => {
     closeTitleMenu();
-    handleSaveToFile();
+    await handleSaveToFile();
   }, [closeTitleMenu, handleSaveToFile]);
 
   const openSettingsFromMenu = useCallback(() => {

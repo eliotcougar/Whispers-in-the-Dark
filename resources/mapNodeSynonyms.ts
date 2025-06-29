@@ -2,6 +2,7 @@ const mapNodeSynonyms = {
   "status": {
     "unknown": "undiscovered",
     "unrevealed": "undiscovered",
+    "normal": "undiscovered",
     "not found": "undiscovered",
     "not discovered": "undiscovered",
     "unexplored": "undiscovered",

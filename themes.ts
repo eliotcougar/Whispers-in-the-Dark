@@ -259,7 +259,7 @@ export const TESTING_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Uncover the secret purpose of the Secluded Library and the identity of its original curator.",
     initialCurrentObjective: "Examine the scattered notes and books in the reading alcove for your first clue.",
     initialSceneDescriptionSeed: "You stand in a candlelit alcove surrounded by towering shelves. Books and single-page notes are strewn across tables and the floor. A faint rustling suggests the presence of something—or someone—moving among the stacks. The only exit is blocked by a pile of ancient tomes.",
-    initialItems: "a cryptic handwritten note ('The answer is in the margins.'), a battered field journal with pressed flowers, a slim reading tablet flickering with half-erased texts, and a heavy leather-bound book titled 'The Index of Lost Beginnings.'",
+    initialItems: "a cryptic handwritten note ('The answer is in the margins.'), a battered field journal with pressed flowers, a slim reading tablet flickering with half-erased texts, and a heavy leather-bound book titled 'The Index of Lost Beginnings.', a crude map of the Library, and a picture of a cat.",
     playerJournalStyle: 'printed'
   }
 ]
