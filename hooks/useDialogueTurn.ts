@@ -170,12 +170,27 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           });
         }
       } finally {
+        /* eslint-disable @typescript-eslint/no-unnecessary-condition */
         const latestState = getCurrentGameState();
         const { dialogueState } = latestState;
-        if (!(dialogueState && dialogueState.options.length === 0 && dialogueState.history.length > 0)) {
+        const shouldSkipClear = isDialogueExiting;
+        let shouldClear = true;
+        if (shouldSkipClear) {
+          shouldClear = false;
+        } else if (
+          !dialogueState ||
+          dialogueState.options.length !== 0 ||
+          dialogueState.history.length === 0
+        ) {
+          shouldClear = true;
+        } else {
+          shouldClear = false;
+        }
+        if (shouldClear) {
           setIsLoading(false);
           setLoadingReason(null);
         }
+        /* eslint-enable @typescript-eslint/no-unnecessary-condition */
       }
     }
   }, [
