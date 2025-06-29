@@ -225,7 +225,6 @@ export const fetchConnectorChains_Service = async (
     themeNodes: Array<MapNode>;
   },
 ): Promise<ConnectorChainsServiceResult> => {
-  addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
   if (!isApiConfigured() || requests.length === 0)
     return { payload: null, debugInfo: null };
 
@@ -326,79 +325,95 @@ ${MAP_NODE_TYPE_GUIDE}
 ${MAP_EDGE_TYPE_GUIDE}
 ${MAP_NODE_HIERARCHY_GUIDE}
 `;
+  const result = await retryAiCall<ConnectorChainsServiceResult>(async attempt => {
+    try {
+      console.log(
+        `fetchConnectorChains_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
+      );
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: systemInstruction,
+        thinkingBudget: 2048,
+        includeThoughts: true,
+        responseMimeType: "application/json",
+        jsonSchema: CONNECTOR_CHAINS_JSON_SCHEMA,
+        temperature: CORRECTION_TEMPERATURE,
+        label: "Corrections",
+      });
+      const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
+        text?: string;
+        thought?: boolean;
+      }>;
+      const thoughtParts = parts
+        .filter(
+          (p): p is { text: string; thought?: boolean } =>
+            p.thought === true && typeof p.text === "string",
+        )
+        .map(p => p.text);
 
-  const { response } = await dispatchAIRequest({
-    modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-    prompt,
-    systemInstruction: systemInstruction,
-    thinkingBudget: 2048,
-    includeThoughts: true,
-    responseMimeType: "application/json",
-    jsonSchema: CONNECTOR_CHAINS_JSON_SCHEMA,
-    temperature: CORRECTION_TEMPERATURE,
-    label: "Corrections",
-  });
+      const debugInfo: ConnectorChainsServiceResult["debugInfo"] = {
+        prompt,
+        rawResponse: response.text ?? "",
+        parsedPayload: undefined,
+        validationError: undefined,
+        observations: undefined,
+        rationale: undefined,
+        thoughts: thoughtParts.length > 0 ? thoughtParts : undefined,
+      };
 
-  const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
-    text?: string;
-    thought?: boolean;
-  }>;
-  const thoughtParts = parts
-    .filter(
-      (p): p is { text: string; thought?: boolean } =>
-        p.thought === true && typeof p.text === "string",
-    )
-    .map((p) => p.text);
-
-  const debugInfo: ConnectorChainsServiceResult["debugInfo"] = {
-    prompt,
-    rawResponse: response.text ?? "",
-    parsedPayload: undefined,
-    validationError: undefined,
-    observations: undefined,
-    rationale: undefined,
-    thoughts: thoughtParts.length > 0 ? thoughtParts : undefined,
-  };
-
-  const jsonStr = extractJsonFromFence(response.text ?? "");
-  const parsed: unknown = safeParseJson(jsonStr);
-  if (!parsed) {
-    debugInfo.validationError = "Failed to parse JSON";
-    return { payload: null, debugInfo };
-  }
-  let result: AIMapUpdatePayload | null = null;
-  if (Array.isArray(parsed)) {
-    result = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
-      if (entry && typeof entry === "object") {
-        const maybeObj = entry as Partial<AIMapUpdatePayload>;
-        if (Array.isArray(maybeObj.nodesToAdd)) {
-          acc.nodesToAdd = [...(acc.nodesToAdd ?? []), ...maybeObj.nodesToAdd];
+      const jsonStr = extractJsonFromFence(response.text ?? "");
+      const parsed: unknown = safeParseJson(jsonStr);
+      if (!parsed) {
+        debugInfo.validationError = "Failed to parse JSON";
+        return { result: { payload: null, debugInfo } };
+      }
+      let parsedPayload: AIMapUpdatePayload | null = null;
+      if (Array.isArray(parsed)) {
+        parsedPayload = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
+          if (entry && typeof entry === "object") {
+            const maybeObj = entry as Partial<AIMapUpdatePayload>;
+            if (Array.isArray(maybeObj.nodesToAdd)) {
+              acc.nodesToAdd = [...(acc.nodesToAdd ?? []), ...maybeObj.nodesToAdd];
+            }
+            if (Array.isArray(maybeObj.edgesToAdd)) {
+              acc.edgesToAdd = [...(acc.edgesToAdd ?? []), ...maybeObj.edgesToAdd];
+            }
+            if (maybeObj.observations && !acc.observations) {
+              acc.observations = maybeObj.observations;
+            }
+            if (maybeObj.rationale && !acc.rationale) {
+              acc.rationale = maybeObj.rationale;
+            }
+          }
+          return acc;
+        }, {});
+      } else if (typeof parsed === "object") {
+        parsedPayload = parsed as AIMapUpdatePayload;
+      }
+      debugInfo.parsedPayload = parsedPayload ?? undefined;
+      if (parsedPayload) {
+        if (parsedPayload.observations && !debugInfo.observations) {
+          debugInfo.observations = parsedPayload.observations;
         }
-        if (Array.isArray(maybeObj.edgesToAdd)) {
-          acc.edgesToAdd = [...(acc.edgesToAdd ?? []), ...maybeObj.edgesToAdd];
-        }
-        if (maybeObj.observations && !acc.observations) {
-          acc.observations = maybeObj.observations;
-        }
-        if (maybeObj.rationale && !acc.rationale) {
-          acc.rationale = maybeObj.rationale;
+        if (parsedPayload.rationale && !debugInfo.rationale) {
+          debugInfo.rationale = parsedPayload.rationale;
         }
       }
-      return acc;
-    }, {});
-  } else if (typeof parsed === "object") {
-    result = parsed as AIMapUpdatePayload;
-  }
-  debugInfo.parsedPayload = result ?? undefined;
-  if (result) {
-    if (result.observations && !debugInfo.observations)
-      debugInfo.observations = result.observations;
-    if (result.rationale && !debugInfo.rationale)
-      debugInfo.rationale = result.rationale;
-  }
-  if (result && (result.nodesToAdd || result.edgesToAdd)) {
-    return { payload: result, debugInfo };
-  }
-  debugInfo.validationError = "Parsed JSON missing nodesToAdd or edgesToAdd";
-  return { payload: null, debugInfo };
+      if (parsedPayload && (parsedPayload.nodesToAdd || parsedPayload.edgesToAdd)) {
+        return { result: { payload: parsedPayload, debugInfo } };
+      }
+      debugInfo.validationError = "Parsed JSON missing nodesToAdd or edgesToAdd";
+      return { result: { payload: null, debugInfo } };
+    } catch (error: unknown) {
+      console.error(
+        `fetchConnectorChains_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        error,
+      );
+      throw error;
+    }
+  });
+
+  return result ?? { payload: null, debugInfo: null };
 };
