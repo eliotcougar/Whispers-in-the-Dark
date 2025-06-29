@@ -2,7 +2,7 @@
  * @file useMapUpdateProcessor.ts
  * @description Hook that processes map updates from AI responses.
  */
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import {
   GameStateFromAI,
   AdventureTheme,
@@ -26,12 +26,6 @@ export const useMapUpdateProcessor = ({
   setLoadingReason,
   setError,
 }: UseMapUpdateProcessorProps) => {
-  const loadingReasonRef = useRef<LoadingReason | null>(loadingReason);
-
-  useEffect(() => {
-    loadingReasonRef.current = loadingReason;
-  }, [loadingReason]);
-
   const processMapUpdates = useCallback(
     async (
       aiData: GameStateFromAI,
@@ -46,7 +40,7 @@ export const useMapUpdateProcessor = ({
           draftState,
           baseStateSnapshot,
           themeContext,
-          loadingReasonRef.current,
+          loadingReason,
           setLoadingReason,
           turnChanges,
         );
@@ -55,7 +49,7 @@ export const useMapUpdateProcessor = ({
         throw err;
       }
     },
-    [setLoadingReason, setError],
+    [loadingReason, setLoadingReason, setError],
   );
 
   return { processMapUpdates };

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   AdventureTheme,
   FullGameState,
@@ -315,11 +315,6 @@ export const useProcessAiResponse = ({
   });
 
   const objectiveAnimationClearTimerRef = useRef<number | null>(null);
-  const loadingReasonRef = useRef<LoadingReason | null>(loadingReason);
-
-  useEffect(() => {
-    loadingReasonRef.current = loadingReason;
-  }, [loadingReason]);
 
   const clearObjectiveAnimationTimer = useCallback(() => {
     if (objectiveAnimationClearTimerRef.current) {
@@ -450,7 +445,7 @@ export const useProcessAiResponse = ({
         theme: themeContextForResponse,
         baseState: baseStateSnapshot,
         playerActionText,
-        loadingReason: loadingReasonRef.current,
+        loadingReason,
         setLoadingReason,
       });
 
@@ -471,7 +466,7 @@ export const useProcessAiResponse = ({
           baseState: baseStateSnapshot,
           correctedItemChanges: correctedAndVerifiedItemChanges,
           playerActionText,
-          loadingReason: loadingReasonRef.current,
+          loadingReason,
           setLoadingReason,
         });
 
@@ -596,7 +591,7 @@ export const useProcessAiResponse = ({
         ].join('\n');
 
         const contextParts = `${baseContext}\n${idsContext}`;
-        const original = loadingReasonRef.current;
+        const original = loadingReason;
         const refineResult = await refineLore_Service({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
@@ -638,6 +633,7 @@ export const useProcessAiResponse = ({
       draftState.lastTurnChanges = turnChanges;
     },
     [
+      loadingReason,
       setLoadingReason,
       setError,
       setGameStateStack,
