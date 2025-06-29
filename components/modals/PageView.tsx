@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Item, ItemChapter, MapData, NPC, AdventureTheme } from '../../types';
 import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
 import { PLAYER_JOURNAL_ID } from '../../constants';
@@ -58,6 +58,7 @@ function PageView({
   const [showDecoded, setShowDecoded] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [chapterIndex, setChapterIndex] = useState(startIndex);
+  const isGeneratingImageRef = useRef(false);
   const isBook = item?.type === 'book';
   const isPage = item?.type === 'page';
   const isJournal = item?.id === PLAYER_JOURNAL_ID;
@@ -320,6 +321,8 @@ function PageView({
       setImageUrl(`data:image/jpeg;base64,${chapter.imageData}`);
       return;
     }
+    if (isGeneratingImageRef.current) return;
+    isGeneratingImageRef.current = true;
     setIsLoading(true);
     void (async () => {
       const img = await generateChapterImage(item, currentTheme, idx);
@@ -328,6 +331,7 @@ function PageView({
         setImageUrl(`data:image/jpeg;base64,${img}`);
       }
       setIsLoading(false);
+      isGeneratingImageRef.current = false;
     })();
   }, [
     isVisible,
@@ -536,19 +540,21 @@ function PageView({
               </p>
             ))}
           </ul>
-        ) : (item?.type === 'picture' || item?.type === 'map') && imageUrl ? (
-          <div className="flex justify-center p-5 mt-4">
-            <img
-              alt={item.name}
-              className="max-h-[24rem] object-contain border border-slate-700"
-              src={imageUrl}
-            />
-          </div>
-        ) : displayedText ? (
+        ) : displayedText || ((item?.type === 'picture' || item?.type === 'map') && imageUrl) ? (
           <div
             className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}
           >
-            {applyBasicMarkup(displayedText)}
+            {(item?.type === 'picture' || item?.type === 'map') && imageUrl ? (
+              <div className="mb-4 flex justify-center">
+                <img
+                  alt={item.name}
+                  className="max-h-[24rem] object-contain"
+                  src={imageUrl}
+                />
+              </div>
+            ) : null}
+
+            {displayedText ? applyBasicMarkup(displayedText) : null}
           </div>
         ) : isJournal && chapters.length === 0 ? (
           <div
