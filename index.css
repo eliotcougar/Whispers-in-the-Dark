@@ -727,4 +727,14 @@ body {
 .text-shadow-md {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.7);
 }
+.mask-gradient-edges {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0px, black 5px, black calc(100% - 5px), transparent 100%),
+    linear-gradient(to bottom, transparent 0px, black 5px, black calc(100% - 5px), transparent 100%);
+  mask-image:
+    linear-gradient(to right, transparent 0px, black 5px, black calc(100% - 5px), transparent 100%),
+    linear-gradient(to bottom, transparent 0px, black 5px, black calc(100% - 5px), transparent 100%);
+  -webkit-mask-composite: intersect;
+  mask-composite: intersect;
+}
 
