@@ -10,7 +10,7 @@ import {
   LOCAL_STORAGE_DEBUG_LORE_KEY,
 } from '../constants';
 import {
-  prepareGameStateStackForSaving,
+  prepareGameStateStackForSavingWithoutImages,
   expandSavedStackToFullStates,
   normalizeLoadedSaveDataStack,
 } from './saveLoad';
@@ -22,7 +22,7 @@ export const saveGameStateToLocalStorage = (
   onError?: (message: string) => void,
 ): boolean => {
   try {
-    const dataToSave = prepareGameStateStackForSaving(stack);
+    const dataToSave = prepareGameStateStackForSavingWithoutImages(stack);
     localStorage.setItem(LOCAL_STORAGE_SAVE_KEY, JSON.stringify(dataToSave));
     return true;
   } catch (error: unknown) {

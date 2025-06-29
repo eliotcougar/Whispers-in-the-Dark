@@ -204,6 +204,31 @@ export const prepareGameStateStackForSaving = (
   previous: stack[1] ? prepareGameStateForSaving(stack[1]) : null,
 });
 
+export const prepareGameStateForSavingWithoutImages = (
+  gameState: FullGameState,
+): SavedGameDataShape => {
+  const data = prepareGameStateForSaving(gameState);
+  data.inventory = data.inventory.map(item => ({
+    ...item,
+    chapters: item.chapters?.map(ch => ({
+      ...ch,
+      imageData: undefined,
+    })),
+  }));
+  data.playerJournal = data.playerJournal.map(ch => ({
+    ...ch,
+    imageData: undefined,
+  }));
+  return data;
+};
+
+export const prepareGameStateStackForSavingWithoutImages = (
+  stack: GameStateStack,
+): SavedGameStack => ({
+  current: prepareGameStateForSavingWithoutImages(stack[0]),
+  previous: stack[1] ? prepareGameStateForSavingWithoutImages(stack[1]) : null,
+});
+
 export const expandSavedStackToFullStates = (
   savedStack: SavedGameStack,
 ): GameStateStack => [
