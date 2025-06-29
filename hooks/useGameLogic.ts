@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { ThemePackName, FullGameState, GameStateStack, LoadingReason } from '../types';
+import { ThemePackName, FullGameState, GameStateStack, DebugPacketStack, LoadingReason } from '../types';
 import { getInitialGameStates } from '../utils/initialStates';
 import { useDialogueManagement } from './useDialogueManagement';
 import { useRealityShift } from './useRealityShift';
@@ -26,6 +26,7 @@ export interface UseGameLogicProps {
     loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>
   ) => void;
   initialSavedStateFromApp: GameStateStack | null;
+  initialDebugStackFromApp: DebugPacketStack | null;
   isAppReady: boolean;
   openDebugLoreModal: (
     facts: Array<string>,
@@ -42,11 +43,15 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     chaosLevelProp,
     onSettingsUpdateFromLoad,
     initialSavedStateFromApp,
+    initialDebugStackFromApp,
     isAppReady,
     openDebugLoreModal,
   } = props;
 
   const [gameStateStack, setGameStateStack] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
+  const [debugPacketStack, setDebugPacketStack] = useState<DebugPacketStack>(
+    () => initialDebugStackFromApp ?? [null, null],
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingReason, setLoadingReason] = useState<LoadingReason>(null);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +73,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
   const commitGameState = useCallback((newGameState: FullGameState) => {
     setGameStateStack(prev => [newGameState, prev[0]]);
+    setDebugPacketStack(prev => [newGameState.lastDebugPacket ?? null, prev[0]]);
   }, []);
 
   /**
@@ -75,6 +81,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
    */
   const resetGameStateStack = useCallback((newState: FullGameState) => {
     setGameStateStack([newState, newState]);
+    setDebugPacketStack([newState.lastDebugPacket ?? null, newState.lastDebugPacket ?? null]);
   }, []);
 
   const gatherGameStateStackForSave = useCallback((): GameStateStack => {
@@ -104,6 +111,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
   ]);
+
+  const gatherDebugPacketStackForSave = useCallback((): DebugPacketStack => debugPacketStack, [debugPacketStack]);
 
   const {
     triggerRealityShift,
@@ -467,9 +476,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleDialogueOptionSelect,
     handleForceExitDialogue,
 
-    lastDebugPacket: currentFullState.lastDebugPacket,
+    lastDebugPacket: debugPacketStack[0],
     lastTurnChanges: currentFullState.lastTurnChanges,
     gameStateStack,
+    debugPacketStack,
 
     handleActionSelect,
     handleItemInteraction,
@@ -483,6 +493,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     cancelManualShiftThemeSelection,
     startCustomGame,
     gatherCurrentGameState: gatherGameStateStackForSave,
+    gatherDebugPacketStack: gatherDebugPacketStackForSave,
     applyLoadedGameState: loadInitialGame,
     setError,
     setIsLoading,

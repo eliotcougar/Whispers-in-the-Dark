@@ -3,7 +3,7 @@
  * @description Helper functions for persisting game state to browser localStorage.
  */
 
-import { DebugPacket, GameStateStack } from '../types';
+import { DebugPacket, GameStateStack, DebugPacketStack } from '../types';
 import {
   LOCAL_STORAGE_SAVE_KEY,
   LOCAL_STORAGE_DEBUG_KEY,
@@ -72,35 +72,35 @@ export const loadGameStateFromLocalStorage = (): GameStateStack | null => {
   }
 };
 
-export const saveDebugPacketToLocalStorage = (packet: DebugPacket | null): void => {
+export const saveDebugPacketStackToLocalStorage = (
+  stack: DebugPacketStack,
+): void => {
   try {
-    if (packet) {
-      localStorage.setItem(
-        LOCAL_STORAGE_DEBUG_KEY,
-        JSON.stringify(packet),
-      );
-    } else {
-      localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
-    }
+    localStorage.setItem(
+      LOCAL_STORAGE_DEBUG_KEY,
+      JSON.stringify(stack),
+    );
   } catch (error: unknown) {
-    console.error('Error saving debug packet to localStorage:', error);
+    console.error('Error saving debug packet stack to localStorage:', error);
   }
 };
 
-export const loadDebugPacketFromLocalStorage = (): DebugPacket | null => {
+export const loadDebugPacketStackFromLocalStorage = (): DebugPacketStack | null => {
   try {
     const savedDataString = localStorage.getItem(LOCAL_STORAGE_DEBUG_KEY);
     if (!savedDataString) return null;
     const parsedData: unknown = safeParseJson(savedDataString);
-    if (parsedData === null || typeof parsedData !== 'object') {
-      console.warn(
-        'Saved debug packet found in localStorage could not be parsed.',
-      );
-      return null;
+    if (Array.isArray(parsedData)) {
+      const [current, previous] = parsedData as Array<DebugPacket | null>;
+      return [current ?? null, previous ?? null];
     }
-    return parsedData as DebugPacket;
+    if (parsedData && typeof parsedData === 'object') {
+      return [parsedData as DebugPacket, null];
+    }
+    console.warn('Saved debug stack found in localStorage could not be parsed.');
+    return null;
   } catch (error: unknown) {
-    console.error('Error loading debug packet from localStorage:', error);
+    console.error('Error loading debug packet stack from localStorage:', error);
     localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
     return null;
   }

@@ -656,6 +656,8 @@ export type SavedGameDataShape = Pick<
 
 export type GameStateStack = [FullGameState, FullGameState?];
 
+export type DebugPacketStack = [DebugPacket | null, (DebugPacket | null)?];
+
 export interface SavedGameStack {
   current: SavedGameDataShape;
   previous: SavedGameDataShape | null;
