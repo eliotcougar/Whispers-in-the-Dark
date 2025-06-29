@@ -12,6 +12,13 @@ const itemTypeSynonyms = {
     "ammo": "ammunition",
     "ammunition": "ammunition",
     "projectiles": "ammunition",
+    "affliction": "status effect",
+    "hungry": "status effect",
+    "thirsty": "status effect",
+    "tired": "status effect",
+    "sleepy": "status effect",
+    "wounded": "status effect",
+    "poisoned": "status effect",
     "note": "page",
     "scrap of paper": "page",
     "sheet": "page",
@@ -40,8 +47,10 @@ const itemTypeSynonyms = {
     "picture": "picture",
     "photograph": "picture",
     "drawing": "picture",
-    "map": "map",
-    "chart": "map"
+    "chart": "map",
+    "guide": "map",
+    "schematic": "map",
+    "road map": "map"
   }
 };
 

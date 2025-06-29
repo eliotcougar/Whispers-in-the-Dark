@@ -1,6 +1,7 @@
 const mapNodeSynonyms = {
   "status": {
     "unknown": "undiscovered",
+    "default": "undiscovered",
     "unrevealed": "undiscovered",
     "normal": "undiscovered",
     "not found": "undiscovered",
@@ -154,7 +155,8 @@ const mapNodeSynonyms = {
     "console": "feature",
     "terminal": "feature",
     "airlock": "feature",
-    "hatch": "feature"
+    "hatch": "feature",
+    "default": "feature"
   },
   "remove": [
     "removed",

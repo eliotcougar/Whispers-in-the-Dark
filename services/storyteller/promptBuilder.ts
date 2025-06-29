@@ -30,21 +30,22 @@ export const buildNewGameFirstTurnPrompt = (
   theme: AdventureTheme,
   playerGender: string
 ): string => {
-  const prompt = `Start a new adventure in the theme "${theme.name}".
+  const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.systemInstructionModifier}
 Player's Character Gender: "${playerGender}"
 Suggested Initial Scene: "${theme.initialSceneDescriptionSeed}" (adjust for variety)
 Suggested Initial Main Quest: "${theme.initialMainQuest}" (adjust for variety)
 Suggested Initial Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
-Suggested Initial Inventory to be granted: "${theme.initialItems}" (adjust names and descriptions for variety)
+Suggested Initial New Items for the player: "${theme.initialItems}" (adjust names and descriptions for variety)
 
 The player's last action was unremarkable—something common anyone would do in this situation.
 
 Creatively generate variations of the main quest and current objective based on the suggestions, but make them noticeably different.
-Creatively generate the initial scene description, action options, and items (variations based on 'Initial Inventory to be granted'), along with a logMessage.
+Creatively generate the initial scene description, action options, and items (variations based on 'New Items for the player'), along with a logMessage.
 Creatively add any important quest item(s), if any, based on your generated quest and objective.
+
 ALWAYS SET "mapUpdated": true.
-Of all the optional variables, your response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
+ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
+`;
   return prompt;
 };
 
@@ -64,16 +65,16 @@ Initial Scene: "${theme.initialSceneDescriptionSeed}" (adapt to an arrival scene
 Main Quest: "${theme.initialMainQuest}" (adjust for variety)
 Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
 
-Player's Current Inventory (brought from previous reality or last visit):\n - ${inventoryStrings}
-IMPORTANT:
-  - EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
-  - If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName" and optionally updated "type" and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
-- If no items are anachronistic, no transformation is needed.
+Player's Current Inventory (brought from previous reality or last visit):
+${inventoryStrings}
 
 Generate the scene description for a disoriented arrival, and provide appropriate initial action options for the player to orient themselves.
-The response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-Set "mapUpdated": true if your generated Scene, Quest or Objective mention specific locations that should be on a map.
-Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
+
+List anachronistic Player's Items in playerItemsHint.
+
+ALWAYS SET "mapUpdated": true.
+ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
+`;
   return prompt;
 };
 
@@ -125,10 +126,7 @@ Current Objective: "${themeMemory.currentObjective}"
 ## Player's Current Inventory (brought from previous reality or last visit):
 ${inventoryPrompt}
 
-**IMPORTANT**
-  - EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
-  - If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName" and optionally updated "type" and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
-  - CRITICALLY IMPORTANT: ALWAYS transform some items into important quest items you must have already had in this reality, based on Main Quest, Current Objective, or the Adventure Summary even if they are NOT anachronistic, using an "itemChange" "update" action with "newName" and optional "type" and "description". Creatively explain this transformation in the "logMessage".
+List anachronistic Player's Items in playerItemsHint.
 
 ## Known Locations:
 ${placesContext}
@@ -144,9 +142,10 @@ ${nearbyStrings}
 
 Describe the scene as they re-enter, potentially in a state of confusion from the shift, making it feel like a continuation or a new starting point consistent with the Adventure Summary and current quest/objective.
 Provide appropriate action options for the player to orient themselves.
-The response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-Set "mapUpdated": true if your generated Scene, Quest or Objective mention specific locations that should be on a map or if existing map information needs updating based on the re-entry context.
-Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
+
+ALWAYS SET "mapUpdated": true.
+ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
+`;
   return prompt;
 };
 

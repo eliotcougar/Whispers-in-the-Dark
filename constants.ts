@@ -115,6 +115,7 @@ export const WRITING_TAGS = [
 export const VALID_TAGS = [...COMMON_TAGS, ...WRITING_TAGS] as const;
 
 export const COMMON_TAGS_STRING = COMMON_TAGS.map(t => `"${t}"`).join(' | ');
+export const TEXT_STYLE_TAGS_STRING = TEXT_STYLE_TAGS.map(t => `"${t}"`).join(' | ');
 export const WRITING_TAGS_STRING = WRITING_TAGS.map(t => `"${t}"`).join(' | ');
 export const VALID_TAGS_STRING = VALID_TAGS.map(t => `"${t}"`).join(' | ');
 
