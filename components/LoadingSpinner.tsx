@@ -18,8 +18,7 @@ function LoadingSpinner() {
   const textColor = "text-sky-400";
 
   const entry = loadingReason ? LOADING_REASON_UI_MAP[loadingReason] : undefined;
-  const textMessage =
-    entry?.text ?? (loadingReason === null ? 'Hmmmmmm...' : 'Loading...');
+  const textMessage = entry?.text ?? 'Loading...';
 
   const progressDisplay = progress
     ? progress + progress.split('').reverse().join('')
