@@ -25,7 +25,10 @@ import {
 
 export interface UseSaveLoadOptions {
   gatherGameStateStack?: () => GameStateStack;
-  applyLoadedGameState?: (opts: { savedStateToLoad: GameStateStack }) => Promise<void>;
+  applyLoadedGameState?: (opts: {
+    savedStateToLoad: GameStateStack;
+    clearImages?: boolean;
+  }) => Promise<void>;
   setError?: Dispatch<SetStateAction<string | null>>;
   setIsLoading?: Dispatch<SetStateAction<boolean>>;
   isLoading?: boolean;
@@ -155,7 +158,10 @@ export const useSaveLoad = ({
           loadedStack[0].debugBadFacts = existingLore.debugBadFacts;
         }
         if (applyLoadedGameState) {
-          await applyLoadedGameState({ savedStateToLoad: loadedStack });
+          await applyLoadedGameState({
+            savedStateToLoad: loadedStack,
+            clearImages: true,
+          });
         }
         saveGameStateToLocalStorage(
           loadedStack,

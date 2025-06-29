@@ -31,6 +31,13 @@ const dbPromise = openDB<ImageDB>('whispers-images', 1, {
   },
 });
 
+export const clearAllImages = async (): Promise<void> => {
+  const db = await dbPromise;
+  const tx = db.transaction('chapterImages', 'readwrite');
+  await tx.store.clear();
+  await tx.done;
+};
+
 export const saveChapterImage = async (
   itemId: string,
   chapterIndex: number,
