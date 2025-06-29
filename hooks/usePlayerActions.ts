@@ -268,12 +268,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       );
 
       let draftState = structuredCloneGameState(currentFullState);
-      const systemInstructionForCall = currentThemeObj.systemInstructionModifier
-        ? `${SYSTEM_INSTRUCTION}\n\nCURRENT THEME GUIDANCE:\n${currentThemeObj.systemInstructionModifier}`
-        : SYSTEM_INSTRUCTION;
       const debugPacket = {
         prompt,
-        systemInstruction: systemInstructionForCall,
+        systemInstruction: SYSTEM_INSTRUCTION,
         jsonSchema: undefined,
         rawResponseText: null,
         parsedResponse: null,
@@ -302,10 +299,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           systemInstructionUsed,
           jsonSchemaUsed,
           promptUsed,
-        } = await executeAIMainTurn(
-          prompt,
-          currentThemeObj.systemInstructionModifier,
-        );
+        } = await executeAIMainTurn(prompt);
         draftState.lastDebugPacket = {
           ...draftState.lastDebugPacket,
           rawResponseText: response.text ?? null,

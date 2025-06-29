@@ -214,15 +214,11 @@ export const executeDialogueSummary = async (
           attempt + 1,
         )}/${String(MAX_RETRIES + 1)})`,
       );
-      let systemInstructionForCall = SYSTEM_INSTRUCTION;
-      if (themeObject.systemInstructionModifier) {
-        systemInstructionForCall += `\n\nCURRENT THEME GUIDANCE:\n${themeObject.systemInstructionModifier}`;
-      }
       addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_summary.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_MODEL_NAME],
         prompt,
-        systemInstruction: systemInstructionForCall,
+        systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 1.0,
         responseMimeType: 'application/json',
         thinkingBudget: 4096,
