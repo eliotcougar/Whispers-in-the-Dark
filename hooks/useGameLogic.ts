@@ -5,6 +5,8 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ThemePackName, FullGameState, GameStateStack, DebugPacketStack, LoadingReason } from '../types';
+import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingState';
+import { useLoadingReason } from './useLoadingReason';
 import { getInitialGameStates } from '../utils/initialStates';
 import { useDialogueManagement } from './useDialogueManagement';
 import { useRealityShift } from './useRealityShift';
@@ -53,11 +55,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     () => initialDebugStackFromApp ?? [null, null],
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [loadingReason, setLoadingReason] = useState<LoadingReason>(null);
+  const loadingReason = useLoadingReason();
   const loadingReasonRef = useRef<LoadingReason | null>(loadingReason);
   const setLoadingReasonRef = useCallback((reason: LoadingReason | null) => {
     loadingReasonRef.current = reason;
-    setLoadingReason(reason);
+    setGlobalLoadingReason(reason);
   }, []);
   const [error, setError] = useState<string | null>(null);
   const [parseErrorCounter, setParseErrorCounter] = useState<number>(0);

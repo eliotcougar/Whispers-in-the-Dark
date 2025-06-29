@@ -342,7 +342,7 @@ function ImageVisualizer({
         />
         
         {isLoading ? <div className="visualizer-spinner-container">
-          <LoadingSpinner loadingReason="visualize" />
+          <LoadingSpinner />
 
         </div> : null}
 

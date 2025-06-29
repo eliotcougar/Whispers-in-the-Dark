@@ -6,7 +6,7 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 
 import * as React from 'react';
-import { DialogueHistoryEntry, Item, NPC, MapNode, LoadingReason } from '../types';
+import { DialogueHistoryEntry, Item, NPC, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 import LoadingSpinner from './LoadingSpinner';
 import ModelUsageIndicators from './ModelUsageIndicators';
@@ -26,7 +26,6 @@ interface DialogueDisplayProps {
   readonly mapData: Array<MapNode>; 
   readonly allNPCs: Array<NPC>;
   readonly currentThemeName: string | null;
-  readonly loadingReason: LoadingReason | null; // Added prop
 }
 
 /**
@@ -45,7 +44,6 @@ function DialogueDisplay({
   mapData,
   allNPCs: allNPCs,
   currentThemeName,
-  loadingReason, // Destructure prop
 }: DialogueDisplayProps) {
   const dialogueFrameRef = useRef<HTMLDivElement | null>(null); 
   const lastHistoryEntryRef = useRef<HTMLDivElement | null>(null);
@@ -95,7 +93,7 @@ function DialogueDisplay({
 
   const renderOptionsArea = () => {
     if (isDialogueExiting || isLoading) {
-      return <LoadingSpinner loadingReason={loadingReason} />;
+      return <LoadingSpinner />;
     }
 
     if (options.length > 0) {
