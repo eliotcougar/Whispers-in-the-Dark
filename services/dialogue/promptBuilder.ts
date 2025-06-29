@@ -68,7 +68,11 @@ export const buildDialogueTurnPrompt = (
       inventory.length > 0
         ? inventory.map(item => `${item.name} (Type: ${item.type}, Active: ${String(!!item.isActive)})`).join(', ')
         : 'Empty';
-  const knownPlacesString = formatKnownPlacesForPrompt(knownMainMapNodesInTheme, true);
+  const knownPlacesString = formatKnownPlacesForPrompt(
+    knownMainMapNodesInTheme,
+    true,
+    false,
+  );
 
   let npcContextString = '### Known NPCs: ';
   if (knownNPCsInTheme.length > 0) {
@@ -152,8 +156,11 @@ export const buildDialogueSummaryPrompt = (
       ? summaryContext.inventory.map(item => `${item.name} (Type: ${item.type})`).join(', ')
       : 'Empty';
   const knownPlacesString = formatKnownPlacesForPrompt(
-    summaryContext.mapDataForTheme.nodes.filter(n => n.data.nodeType !== 'feature'),
+    summaryContext.mapDataForTheme.nodes.filter(
+      n => n.data.nodeType !== 'feature',
+    ),
     true,
+    false,
   );
 
   let knownNPCsString = 'Known NPCs: ';

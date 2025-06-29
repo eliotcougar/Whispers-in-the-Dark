@@ -189,7 +189,8 @@ export const formatObservationsForPrompt = (observations?: string): string => {
  */
 export const formatKnownPlacesForPrompt = (
   mapNodes: Array<MapNode>,
-  detailed = false
+  detailed = false,
+  includeIds = true
 ): string => {
   const mainNodes = mapNodes.filter(
     node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
@@ -201,7 +202,11 @@ export const formatKnownPlacesForPrompt = (
     return (
       mainNodes
         .map(node => {
-          let detailStr = ` - ${node.id} - "${node.placeName}"`;
+          let detailStr = ' - ';
+          if (includeIds) {
+            detailStr += `${node.id} - `;
+          }
+          detailStr += `"${node.placeName}"`;
           if (node.data.aliases && node.data.aliases.length > 0) {
             detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
           }
@@ -215,7 +220,11 @@ export const formatKnownPlacesForPrompt = (
   return (
     mainNodes
       .map(node => {
-        let detailStr = `${node.id} - "${node.placeName}"`;
+        let detailStr = '';
+        if (includeIds) {
+          detailStr += `${node.id} - `;
+        }
+        detailStr += `"${node.placeName}"`;
         if (node.data.aliases && node.data.aliases.length > 0) {
           detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
         }
