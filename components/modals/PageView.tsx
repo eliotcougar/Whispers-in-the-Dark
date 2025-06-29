@@ -8,6 +8,7 @@ import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
 import { generatePageText } from '../../services/page';
 import { generateChapterImage } from '../../services/image';
+import { loadChapterImage, saveChapterImage } from '../../services/imageDb';
 import { applyBasicMarkup } from '../../utils/markup';
 
 interface PageViewProps {
@@ -317,16 +318,26 @@ function PageView({
       return;
     }
     const chapter = chapters[idx];
-    if (chapter.imageData) {
-      setImageUrl(`data:image/jpeg;base64,${chapter.imageData}`);
-      return;
-    }
-    if (isGeneratingImageRef.current) return;
-    isGeneratingImageRef.current = true;
-    setIsLoading(true);
     void (async () => {
+      const cached = await loadChapterImage(item.id, idx);
+      if (cached) {
+        if (!chapter.imageData) {
+          updateItemContent(item.id, undefined, undefined, idx, cached);
+        }
+        setImageUrl(`data:image/jpeg;base64,${cached}`);
+        return;
+      }
+      if (chapter.imageData) {
+        await saveChapterImage(item.id, idx, chapter.imageData);
+        setImageUrl(`data:image/jpeg;base64,${chapter.imageData}`);
+        return;
+      }
+      if (isGeneratingImageRef.current) return;
+      isGeneratingImageRef.current = true;
+      setIsLoading(true);
       const img = await generateChapterImage(item, currentTheme, idx);
       if (img) {
+        await saveChapterImage(item.id, idx, img);
         updateItemContent(item.id, undefined, undefined, idx, img);
         setImageUrl(`data:image/jpeg;base64,${img}`);
       }
