@@ -1,7 +1,5 @@
-import type { AIMapUpdatePayload, MapNodeData } from '../../types';
-import { VALID_NODE_TYPE_VALUES } from '../../constants';
+import type { AIMapUpdatePayload } from '../../types';
 import {
-  NODE_TYPE_SYNONYMS,
   NODE_REMOVAL_SYNONYMS,
   EDGE_REMOVAL_SYNONYMS,
 } from '../../utils/mapSynonyms';
@@ -101,15 +99,6 @@ export function normalizeStatusAndTypeSynonyms(payload: AIMapUpdatePayload): Arr
   (payload.edgesToAdd ?? []).forEach((e, idx) => { applyEdgeDataFix(e.data, errors, `edgesToAdd[${String(idx)}]`); });
   (payload.edgesToUpdate ?? []).forEach((e, idx) => { applyEdgeDataFix(e.newData, errors, `edgesToUpdate[${String(idx)}].newData`); });
 
-  if (payload.splitFamily) {
-    const mapped = (NODE_TYPE_SYNONYMS as Record<string, MapNodeData['nodeType'] | undefined>)[
-      payload.splitFamily.newNodeType.toLowerCase()
-    ];
-    if (mapped) payload.splitFamily.newNodeType = mapped;
-    if (!VALID_NODE_TYPE_VALUES.includes(payload.splitFamily.newNodeType)) {
-      errors.push(`splitFamily.newNodeType invalid "${payload.splitFamily.newNodeType}"`);
-    }
-  }
 
   return errors;
 }

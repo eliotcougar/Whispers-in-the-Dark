@@ -81,9 +81,6 @@ export const parseAIMapUpdateResponse = (
           ) {
             acc.suggestedCurrentMapNodeId = maybeObj.suggestedCurrentMapNodeId;
           }
-          if (maybeObj.splitFamily && !acc.splitFamily) {
-            acc.splitFamily = maybeObj.splitFamily;
-          }
           if (maybeObj.observations && !acc.observations) {
             acc.observations = maybeObj.observations;
           }
