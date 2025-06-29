@@ -63,6 +63,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   // Tracks whether a saved game from app initialization has already been
   // applied to prevent re-loading it when starting a new game.
   const hasLoadedInitialSave = useRef<boolean>(false);
+  // Tracks whether the debug packet stack from app initialization has been
+  // applied so it doesn't overwrite new data on subsequent renders.
+  const hasLoadedInitialDebugStack = useRef<boolean>(false);
 
   const triggerShiftRef = useRef<(c?: boolean) => void>(() => undefined);
   const manualShiftRef = useRef<() => void>(() => undefined);
@@ -274,6 +277,17 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       hasLoadedInitialSave.current = true;
     }
   }, [isAppReady, hasGameBeenInitialized, initialSavedStateFromApp, loadInitialGame]);
+
+  useEffect(() => {
+    if (
+      isAppReady &&
+      initialDebugStackFromApp &&
+      !hasLoadedInitialDebugStack.current
+    ) {
+      setDebugPacketStack(initialDebugStackFromApp);
+      hasLoadedInitialDebugStack.current = true;
+    }
+  }, [isAppReady, initialDebugStackFromApp]);
 
   const currentFullState = getCurrentGameState();
 
