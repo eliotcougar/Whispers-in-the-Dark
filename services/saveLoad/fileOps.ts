@@ -10,6 +10,10 @@ import {
   expandSavedStackToFullStates,
   normalizeLoadedSaveDataStack,
 } from './migrations';
+import {
+  expandRefsToImages,
+  storeImagesAndReturnRefs,
+} from '../imageDb';
 
 const triggerDownload = (data: string, filename: string, type: string): void => {
   const blob = new Blob([data], { type });
@@ -23,14 +27,20 @@ const triggerDownload = (data: string, filename: string, type: string): void => 
   URL.revokeObjectURL(url);
 };
 
-export const saveGameStateToFile = (
+export const saveGameStateToFile = async (
   stack: GameStateStack,
   onError?: (message: string) => void,
-): boolean => {
+): Promise<boolean> => {
   try {
-    const dataToSave = prepareGameStateStackForSaving(stack);
+    const current = await expandRefsToImages(stack[0]);
+    const previous = stack[1] ? await expandRefsToImages(stack[1]) : undefined;
+    const dataToSave = prepareGameStateStackForSaving([current, previous]);
     const jsonString = JSON.stringify(dataToSave, null, 2);
-    triggerDownload(jsonString, `WhispersInTheDark_Save_V${CURRENT_SAVE_GAME_VERSION}_${new Date().toISOString().slice(0,10)}.json`, 'application/json');
+    triggerDownload(
+      jsonString,
+      `WhispersInTheDark_Save_V${CURRENT_SAVE_GAME_VERSION}_${new Date().toISOString().slice(0, 10)}.json`,
+      'application/json',
+    );
     return true;
   } catch (error: unknown) {
     console.error('Error saving game state to file:', error);
@@ -50,9 +60,23 @@ export const loadGameStateFromFile = async (file: File): Promise<GameStateStack 
             resolve(null);
             return;
           }
-          const processed = normalizeLoadedSaveDataStack(parsedData as Record<string, unknown>, 'file');
+          const processed = normalizeLoadedSaveDataStack(
+            parsedData as Record<string, unknown>,
+            'file',
+          );
           if (processed) {
-            resolve(expandSavedStackToFullStates(processed));
+            void (async () => {
+              try {
+                const loadedStack = expandSavedStackToFullStates(processed);
+                const current = await storeImagesAndReturnRefs(loadedStack[0]);
+                const previous = loadedStack[1]
+                  ? await storeImagesAndReturnRefs(loadedStack[1])
+                  : undefined;
+                resolve([current, previous]);
+              } catch {
+                resolve(null);
+              }
+            })();
             return;
           }
         }
