@@ -197,7 +197,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       type: 'object',
       properties: {
         originalNodeId: { type: 'string', description: `The nodeId to be split into two nodes.` },
-        newNodeName: { type: 'string', description: `The new node Name` },
+        newNodeId: { type: 'string', description: `The new node ID` },
         newNodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
         newConnectorNodeId: { type: 'string', description: `The nodeId of the node that will recieve the old external edge.`},
         originalChildren: { type: 'array', items: { type: 'string' }, minItems: 1, description: `nodeIds of the nodes that remain with the old parent node.` },
