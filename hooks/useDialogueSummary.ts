@@ -91,7 +91,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setLoadingReason('dialogue_summary');
     setIsDialogueExiting(true);
     setDialogueNextSceneAttempted(false);
-    setDialogueUiCloseDelayTargetMs(Date.now() + DIALOGUE_EXIT_READ_DELAY_MS);
     setError(null);
 
     const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
@@ -172,6 +171,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     };
     onDialogueConcluded(summaryUpdatePayload, workingGameState, debugInfo);
     clearDialogueDebugLogs();
+    setDialogueUiCloseDelayTargetMs(Date.now() + DIALOGUE_EXIT_READ_DELAY_MS);
     setDialogueNextSceneAttempted(true);
   }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
 
