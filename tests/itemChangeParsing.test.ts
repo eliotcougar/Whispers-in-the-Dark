@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { ItemChange } from '../types';
 import { parseInventoryResponse } from '../services/inventory/responseParser';
 
 const PLAYER = 'player';
@@ -87,5 +88,21 @@ describe('parseInventoryResponse', () => {
 
     const item = res.itemChanges[0].item as { tags?: Array<string> };
     expect(item.tags).toEqual(['printed']);
+  });
+
+  it('preserves malformed addDetails with invalidPayload', () => {
+    const payload = {
+      addDetails: [
+        { id: 'b1', name: 'Book of Fog', tags: ['mystic'] },
+      ],
+    };
+    const text = '```json\n' + JSON.stringify(payload) + '\n```';
+    const maybeRes = parseInventoryResponse(text);
+    if (!maybeRes) throw new Error('Failed to parse inventory response');
+    const res = maybeRes;
+    expect(res.itemChanges).toHaveLength(1);
+    const change = res.itemChanges[0] as ItemChange & { invalidPayload?: unknown };
+    expect(change.action).toBe('addDetails');
+    expect(change.invalidPayload).toBeDefined();
   });
 });

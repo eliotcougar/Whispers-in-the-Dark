@@ -2,7 +2,7 @@
  * @file services/corrections/item.ts
  * @description Correction helpers for item related data.
  */
-import { Item, AdventureTheme, ItemChange, ItemChapter, ItemTag } from '../../types';
+import { Item, AdventureTheme, ItemChange, ItemChapter, ItemTag, AddDetailsPayload } from '../../types';
 import {
   MAX_RETRIES,
   VALID_ITEM_TYPES_STRING,
@@ -25,6 +25,7 @@ import {
   normalizeTag,
 } from '../../utils/tagSynonyms';
 import { VALID_TAGS_STRING, VALID_TAGS } from '../../constants';
+import { isValidAddDetailsPayload } from '../parsers/validation';
 
 /**
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
@@ -368,6 +369,70 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
     } catch (error: unknown) {
       console.error(
         `fetchAdditionalBookChapters_Service error (Attempt ${String(attempt + 1)}/${String(
+          MAX_RETRIES + 1,
+        )}):`,
+        error,
+      );
+      throw error;
+    }
+    return { result: null };
+  });
+};
+
+/**
+ * Attempts to correct an addDetails payload when inventory AI returns a malformed object.
+ */
+export const fetchCorrectedAddDetailsPayload_Service = async (
+  malformedPayloadString: string,
+  logMessage: string | undefined,
+  sceneDescription: string | undefined,
+  currentTheme: AdventureTheme,
+): Promise<AddDetailsPayload | null> => {
+  if (!isApiConfigured()) {
+    console.error('fetchCorrectedAddDetailsPayload_Service: API Key not configured.');
+    return null;
+  }
+
+  const prompt = `You are an AI assistant fixing a malformed addDetails JSON object for a text adventure game.
+
+Malformed Payload:
+\`\`\`json
+${malformedPayloadString}
+\`\`\`
+
+Log Message: "${logMessage ?? 'Not specified'}"
+Scene Description: "${sceneDescription ?? 'Not specified'}"
+Theme Guidance: "${currentTheme.systemInstructionModifier}"
+
+Task: Provide ONLY the corrected JSON object with fields { "id": string, "name": string, "type": (${VALID_ITEM_TYPES_STRING}), "knownUses"?, "tags"?, "chapters"? }.`;
+
+  const systemInstruction = 'Return only the corrected addDetails JSON object.';
+
+  return retryAiCall<AddDetailsPayload>(async attempt => {
+    try {
+      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction,
+        responseMimeType: 'application/json',
+        temperature: CORRECTION_TEMPERATURE,
+        label: 'Corrections',
+      });
+      const jsonStr = response.text ?? '';
+      const parsed = safeParseJson<AddDetailsPayload>(extractJsonFromFence(jsonStr));
+      if (parsed && isValidAddDetailsPayload(parsed)) {
+        return { result: parsed };
+      }
+      console.warn(
+        `fetchCorrectedAddDetailsPayload_Service (Attempt ${String(attempt + 1)}/${String(
+          MAX_RETRIES + 1,
+        )}): invalid response`,
+        parsed,
+      );
+    } catch (error: unknown) {
+      console.error(
+        `fetchCorrectedAddDetailsPayload_Service error (Attempt ${String(attempt + 1)}/${String(
           MAX_RETRIES + 1,
         )}):`,
         error,

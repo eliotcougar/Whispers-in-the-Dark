@@ -71,7 +71,11 @@ const parseItemChange = (
       if (isValidAddDetailsPayload(raw)) {
         return { action: 'addDetails', item: raw as AddDetailsPayload };
       }
-      return null;
+      return {
+        action: 'addDetails',
+        item: raw as unknown as AddDetailsPayload,
+        invalidPayload: raw,
+      };
     }
     case 'destroy':
       return isValidItemReference(raw) ? { action: 'destroy', item: raw } : null;
@@ -114,6 +118,21 @@ export const parseInventoryResponse = (
     return validated;
   };
 
+  const validateMixedArray = (arr: Array<unknown>): Array<ItemChange> => {
+    const validated: Array<ItemChange> = [];
+    for (const raw of arr) {
+      if (!raw || typeof raw !== 'object') continue;
+      const maybe = raw as { action?: unknown; item?: unknown };
+      const act = typeof maybe.action === 'string' ? maybe.action : undefined;
+      const itm = maybe.item && typeof maybe.item === 'object' ? maybe.item : undefined;
+      if (act && itm) {
+        const parsedChange = parseItemChange(itm as Record<string, unknown>, act as ItemChange['action']);
+        if (parsedChange) validated.push(parsedChange);
+      }
+    }
+    return validated;
+  };
+
   if (Array.isArray(parsed)) {
     payload = { itemChanges: validateArray(parsed, 'create') };
   } else if (typeof parsed === 'object') {
@@ -133,6 +152,9 @@ export const parseInventoryResponse = (
     }
     if (Array.isArray(obj.addDetails)) {
       allChanges.push(...validateArray(obj.addDetails as Array<unknown>, 'addDetails'));
+    }
+    if (Array.isArray(obj.itemChanges)) {
+      allChanges.push(...validateMixedArray(obj.itemChanges as Array<unknown>));
     }
     payload = {
       itemChanges: allChanges,

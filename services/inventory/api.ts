@@ -33,6 +33,7 @@ import { buildInventoryPrompt } from './promptBuilder';
 import { parseInventoryResponse, InventoryAIPayload } from './responseParser';
 import {
   fetchCorrectedItemChangeArray_Service,
+  fetchCorrectedAddDetailsPayload_Service,
   fetchAdditionalBookChapters_Service,
 } from '../corrections';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -390,6 +391,21 @@ export const applyInventoryHints_Service = async (
   if (parsed) {
     mergeBookChaptersFromSuggestions(parsed.itemChanges, newItems);
     for (const change of parsed.itemChanges) {
+      if (
+        change.action === 'addDetails' &&
+        (change as { invalidPayload?: unknown }).invalidPayload
+      ) {
+        const corrected = await fetchCorrectedAddDetailsPayload_Service(
+          JSON.stringify((change as { invalidPayload: unknown }).invalidPayload),
+          logMessage,
+          sceneDescription,
+          currentTheme,
+        );
+        if (corrected) {
+          change.item = corrected;
+          delete (change as { invalidPayload?: unknown }).invalidPayload;
+        }
+      }
       if (change.action === 'create' && change.item.type === 'book') {
         const chapters = change.item.chapters ?? [];
         if (chapters.length < MIN_BOOK_CHAPTERS) {

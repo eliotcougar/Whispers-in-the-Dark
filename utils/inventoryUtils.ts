@@ -124,7 +124,16 @@ export const buildItemChangeRecords = (
     if (change.action === 'create') {
       const item = change.item;
       if (!item.id) item.id = buildItemId(item.name);
-      record = { type: 'gain', gainedItem: { ...item, knownUses: item.knownUses ?? [], tags: item.tags ?? [] } };
+      record = {
+        type: 'gain',
+        gainedItem: {
+          ...item,
+          activeDescription: item.activeDescription ?? undefined,
+          isActive: item.isActive ?? false,
+          knownUses: item.knownUses ?? [],
+          tags: item.tags ?? [],
+        },
+      };
     } else if (change.action === 'destroy') {
       const ref = change.item;
       const found = findItemByIdentifier([ref.id, ref.name], currentInventory, false, true);
