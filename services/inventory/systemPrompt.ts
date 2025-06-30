@@ -124,7 +124,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
   }
 }
 
-- Example for simple update that only changes "isActive" state (Lighting the Plasma Torch), all other properties are inherited from the *existing* item item_plasma_torch_7fr4:
+- Example for a simple change that only alters "isActive" state (lighting the Plasma Torch). All other properties are inherited from the *existing* item item_plasma_torch_7fr4:
 {
   "action": "change",
   item:
@@ -194,8 +194,8 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 - If a torn page or book is completed by reuniting its missing half, you MUST add 'recovered' tag to the item and keep existing tags.
 - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
 - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
-- Use "update" to change the remaining number of uses for multi-use items in their name (in brackets) or in description.
-- Use "addChapter" to reveal new chapters, or when missing pages of a book are found and incorporated into the rest of the book.
+- Use "change" to update the remaining number of uses for multi-use items in their name (in brackets) or in description.
+- Use "addDetails" to reveal new chapters, or when missing pages of a book are found and incorporated into the rest of the book.
 IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
