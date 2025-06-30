@@ -79,7 +79,7 @@ export const INVENTORY_JSON_SCHEMA = {
               properties: {
                 heading: { type: 'string', description: 'Short heading for the chapter.' },
                 description: { type: 'string', description: 'Detailed abstract of the chapter contents.' },
-                contentLength: { type: 'number', minValue: 50, maxValue: 500, description: 'Approximate length in words.' },
+                contentLength: { type: 'number', minimum: 50, maximum: 500, description: 'Approximate length in words.' },
               },
               required: ['heading', 'description', 'contentLength'],
               additionalProperties: false,
@@ -179,7 +179,7 @@ export const INVENTORY_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'string', description: 'Identifier of the item.' },
+          id: { type: 'string', description: 'ID of the item like item_* .' },
           name: { type: 'string', description: 'Name of the item.' },
           tags: {
             type: 'array',
@@ -208,7 +208,7 @@ export const INVENTORY_JSON_SCHEMA = {
               properties: {
                 heading: { type: 'string' },
                 description: { type: 'string' },
-                contentLength: { type: 'number' },
+                contentLength: { type: 'number', minimum: 50, maximum: 500 },
               },
               required: ['heading', 'description', 'contentLength'],
               additionalProperties: false,
