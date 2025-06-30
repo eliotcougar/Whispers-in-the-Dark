@@ -86,7 +86,6 @@ export const INVENTORY_ITEM_SCHEMA = {
       items: INVENTORY_CHAPTER_SCHEMA,
       description: `For 'page' use one chapter. For 'book' between ${String(MIN_BOOK_CHAPTERS)} chapters.`,
     },
-    chapter: INVENTORY_CHAPTER_SCHEMA,
     knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
     addKnownUse: INVENTORY_KNOWN_USE_SCHEMA,
   },

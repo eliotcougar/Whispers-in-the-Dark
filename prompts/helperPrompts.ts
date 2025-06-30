@@ -6,9 +6,6 @@
 
 import {
   VALID_ITEM_TYPES_STRING,
-  WRITING_TAGS_STRING,
-  MIN_BOOK_CHAPTERS,
-  MAX_BOOK_CHAPTERS,
   DEDICATED_BUTTON_USES_STRING
 } from '../constants';
 
@@ -37,100 +34,123 @@ export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "newItems": array of brand new items introduced this turn, or [] if none.
 
 Examples illustrating the hint style:
-- Example for gaining a new item:
-  playerItemsHint: "Picked up Old Lantern."
-  newItems: [{
+- Example of creating a *new* item "Old Lantern" and placing it in player's inventory. Because "Old Lantern" is included in newItems, it means the item is not already present in the scene:
+playerItemsHint: "Picked up Old Lantern."
+newItems:
+[
+  {
     "name": "Old Lantern",
     "type": "equipment",
     "description": "A dusty old lantern that still flickers faintly.",
     "activeDescription": "The lantern is lit and casts a warm glow.",
     "isActive": false,
-    "tags": [],
-    "knownUses": [
+    "knownUses":
+    [
       {
         "actionName": "Light the Lantern",
         "promptEffect": "Light the lantern to illuminate the area.",
         "description": "Use this to light your way in dark places.",
-        "appliesWhenActive": true,
-        "appliesWhenInactive": false
+        "appliesWhenInactive": true
+      },
+      {
+        "actionName": "Extinguish the Lantern",
+        "promptEffect": "Extinguish the lantern.",
+        "description": "Extinguish the lantern and conserve fuel.",
+        "appliesWhenActive": true
+      }
+    ]
+  }
+]
+
+- Example for creating a *new* item "Rusty Key" inside npc_guard_4f3a inventory:
+npcItemsHint: "Guard now carries a Rusty Key."
+newItems:
+[
+  {
+    "name": "Rusty Key",
+    "type": "key",
+    "description": "A key for the armory door.",
+    "holderId": "npc_guard_4f3a"
+  }
+]
+
+- Example of creating a *new* 'page' written item and placing it in player's inventory (same structure for the 'map' and 'picture' types):
+playerItemsHint: "Found Smudged Note."
+newItems:
+[
+  {
+    "name": "Smudged Note",
+    "type": "page",
+    "description": "A hastily scribbled message with a big smudge over it.",
+    "tags": ["typed", "smudged"],
+    "holderId": "player",
+    "chapters":
+    [ /* Only one chapter, because the type is 'page' */
+      {
+        "heading": "string",
+        "description": "A hastily scribbled message about the dangers of the sunken tunnel.",
+        "contentLength": 50
+      }
+    ]
+  }
+]
+
+- Example of creating a *new* 'book' written item and placing it in player's inventory:
+playerItemsHint: "Obtained the Explorer's Adventures."
+newItems:
+[
+  {
+    "name": "Explorer's Adventures",
+    "type": "book",
+    "description": "Weathered log of travels.",
+    "holderId": "player",
+    "tags": ["handwritten", "faded"],
+    "chapters":
+    [ /* Multiple chapters because the type it 'book' */
+      {
+        "heading": "Preface",
+        "description": "Introduction. Written by the author, explaining his decisions to start his travels.",
+        "contentLength": 53
+      },
+      {
+        "heading": "Journey One",
+        "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",
+        "contentLength": 246 
+      },
+      {
+        "heading": "Journey Two",
+        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
+        "contentLength": 312 
+      },
+      {
+        "heading": "Final Thoughts",
+        "description": "The author's contemplation about whether the journeys were worth it", 
+        "contentLength": 98 
       }
     ]
   }]
 
-- Example for putting a new item into another inventory or location:
-  npcItemsHint: "Guard now carries Rusty Key."
-  newItems: [{
-    "name": "Rusty Key",
-    "type": "key",
-    "description": "Opens an old door.",
-    "tags": [],
-    "holderId": "npc_guard_4f3a"
-  }]
-
-- Example for a short page item:
-  playerItemsHint: "Found Smudged Note."
-  newItems: [{
-    "name": "Smudged Note",
-    "type": "page",
-    "description": "A hastily scribbled message with a big smudge over it.", /* REQUIRED. Moderatly detailed description of the note and its contents. Should NEVER include direct quotes of the contents. */
-    "tags": ["typed", "smudged"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
-    "chapters": [ /* REQUIRED. Always a single chapter. */
-      { "heading": "string", /* REQUIRED. Can be anything*/
-        "description": "A hastily scribbled message about the dangers of the sunken tunnel.", /* REQUIRED. Moderately detailed abstract of the contents. */
-        "contentLength": 50 /* REQUIRED. Length of the content in words. */
-      }
-    "holderId": "player"
-  }]
-
-- Example for a simple book:
-  playerItemsHint: "Obtained the Explorer's Adventures."
-  newItems: [{
-    "name": "Explorer's Adventures",
-    "type": "book",
-    "description": "Weathered log of travels.", /* Should NEVER include any direct quotes from the book contents. */
-    "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
-    "chapters": [ /* Anywhere from ${String(MIN_BOOK_CHAPTERS)} to ${String(MAX_BOOK_CHAPTERS)} chapters. */
-      { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
-        "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
-        "contentLength": 50 /* REQUIRED. Length of the content in words. Range: 50-500 */
-      },
-      { "heading": "Journey One",
-        "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",
-        "contentLength": 250 
-      },
-      { "heading": "Journey Two",
-        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
-        "contentLength": 300 
-      },
-      { "heading": "Final Thoughts",
-        "description": "The author's contemplation about whether the journeys were worth it", 
-        "contentLength": 100 
-      }
-    ],
-    "holderId": "player"
-  }]
-
 - Example for losing, destroying, completely removing the item:
-  playerItemsHint: "Lost Old Lantern (flickering)."
+playerItemsHint: "Lost Old Lantern (flickering)."
 
-- Example for giving an existing item from one holder to another:
-  npcItemsHint: "Gave Iron Sword to Guard."
+- Example for giving an *existing* item from one holder to another:
+npcItemsHint: "Gave Iron Sword to Guard."
 
 - "take" is an alias for "give". Example:
-  playerItemsHint: "Took Coin Pouch from Bandit."
+playerItemsHint: "Took Coin Pouch from Bandit."
 
-- Example for simple update (only changing "isActive"):
-  playerItemsHint: "Plasma Torch is now active."
+- Example for simple update of *existing* item (only changing "isActive"):
+playerItemsHint: "Plasma Torch is now active."
 
 - Example for transformation or crafting:
-  playerItemsHint: "Scrap Metal transformed into Makeshift Shiv."
+playerItemsHint: "Scrap Metal transformed into Makeshift Shiv."
 
-- Example for adding a known use (type/description etc. inherited):
-  playerItemsHint: "Mystic Orb can now 'Peer into the Orb'."
+- Example for adding a known use to an item without changing anything else:
+playerItemsHint: "Mystic Orb can now 'Peer into the Orb'."
 
-  - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
-  - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effects".
-  - Mention remaining uses for multi-use items when they change.
+- ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
+- Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effects".
+- Mention remaining uses for multi-use items when they change.
 IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
