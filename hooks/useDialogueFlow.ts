@@ -29,7 +29,7 @@ export interface UseDialogueFlowProps {
       summaryRawResponse?: string;
       summaryThoughts?: Array<string>;
     }
-  ) => void;
+  ) => Promise<void>;
 }
 
 /**
