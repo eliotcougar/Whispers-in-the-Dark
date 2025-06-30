@@ -11,6 +11,13 @@ import {
   LOADING_REASON_UI_MAP,
   MIN_BOOK_CHAPTERS,
   MAX_RETRIES,
+  PLAYER_HOLDER_ID,
+  VALID_ACTIONS,
+  VALID_ACTIONS_STRING,
+  VALID_ITEM_TYPES,
+  VALID_ITEM_TYPES_STRING,
+  VALID_TAGS,
+  VALID_TAGS_STRING,
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -32,6 +39,85 @@ import {
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { normalizeTag } from '../../utils/tagSynonyms';
 import { retryAiCall } from '../../utils/retry';
+
+export const INVENTORY_KNOWN_USE_SCHEMA = {
+  type: 'object',
+  properties: {
+    actionName: { type: 'string', description: 'User-facing text for the action button.' },
+    promptEffect: { type: 'string', description: 'Non-empty text sent to the game AI when chosen.' },
+    description: { type: 'string', description: 'Tooltip hint for the player.' },
+    appliesWhenActive: { type: 'boolean', description: 'Shown when item is active.' },
+    appliesWhenInactive: { type: 'boolean', description: 'Shown when item is inactive.' },
+  },
+  required: ['actionName', 'promptEffect', 'description'],
+  additionalProperties: false,
+} as const;
+
+export const INVENTORY_CHAPTER_SCHEMA = {
+  type: 'object',
+  properties: {
+    heading: { type: 'string', description: 'Short title of the chapter.' },
+    description: { type: 'string', description: 'Detailed abstract of the chapter.' },
+    contentLength: { type: 'number', description: 'Length in words (50-500).' },
+  },
+  required: ['heading', 'description', 'contentLength'],
+  additionalProperties: false,
+} as const;
+
+export const INVENTORY_ITEM_SCHEMA = {
+  type: 'object',
+  properties: {
+    id: { type: 'string', description: 'Unique identifier for existing items.' },
+    name: { type: 'string', description: 'Full name of the item.' },
+    newName: { type: 'string', description: 'New name for transformed items.' },
+    type: { enum: VALID_ITEM_TYPES, description: `Item type. One of ${VALID_ITEM_TYPES_STRING}` },
+    description: { type: 'string', description: 'Short description of the item.' },
+    activeDescription: { type: 'string', description: 'Description when item is active.' },
+    isActive: { type: 'boolean', description: 'True if the item is active.' },
+    holderId: {
+      type: 'string',
+      description: `ID of the holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
+    },
+    fromId: { type: 'string', description: 'Source holder when giving or taking.' },
+    toId: { type: 'string', description: 'Destination holder when giving or taking.' },
+    tags: { type: 'array', items: { enum: VALID_TAGS }, description: `Valid tags: ${VALID_TAGS_STRING}.` },
+    chapters: {
+      type: 'array',
+      items: INVENTORY_CHAPTER_SCHEMA,
+      description: `For 'page' use one chapter. For 'book' between ${String(MIN_BOOK_CHAPTERS)} chapters.`,
+    },
+    knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
+    addKnownUse: INVENTORY_KNOWN_USE_SCHEMA,
+  },
+  additionalProperties: false,
+} as const;
+
+export const INVENTORY_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    observations: {
+      type: 'string',
+      minLength: 500,
+      description: 'Contextually relevant observations about the items.',
+    },
+    rationale: { type: 'string', description: 'Reasoning behind the inventory changes.' },
+    itemChanges: {
+      type: 'array',
+      description: 'List of inventory modifications.',
+      items: {
+        type: 'object',
+        properties: {
+          action: { enum: VALID_ACTIONS, description: `One of ${VALID_ACTIONS_STRING}` },
+          item: INVENTORY_ITEM_SCHEMA,
+        },
+        required: ['action', 'item'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['observations', 'rationale', 'itemChanges'],
+  additionalProperties: false,
+} as const;
 
 /**
  * Executes the inventory AI call using model fallback.
@@ -70,6 +156,7 @@ export const executeInventoryRequest = async (
         modelNames: [GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction: SYSTEM_INSTRUCTION,
+        jsonSchema: INVENTORY_JSON_SCHEMA,
         thinkingBudget: 1024,
         includeThoughts: true,
         responseMimeType: 'application/json',
