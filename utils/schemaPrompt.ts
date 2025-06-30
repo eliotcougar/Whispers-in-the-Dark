@@ -3,6 +3,8 @@
  * @description Helper to convert a JSON schema into a textual schema description for system prompts.
  */
 
+import { safeParseJson } from './jsonUtils';
+
 export interface JsonSchema {
   type?: string;
   properties?: Record<string, JsonSchema>;
@@ -81,6 +83,8 @@ const render = (schema: JsonSchema): string => {
   return renderValue(schema).join('\n');
 };
 
-export const jsonSchemaToPrompt = (schema: JsonSchema): string => {
-  return `Respond ONLY with a JSON with the following schema:\n${render(schema)}`;
+export const jsonSchemaToPrompt = (schema: JsonSchema | string): string => {
+  const parsed = typeof schema === 'string' ? safeParseJson<JsonSchema>(schema) : schema;
+  const obj = parsed ?? {};
+  return `Respond ONLY with a JSON with the following schema:\n${render(obj)}`;
 };
