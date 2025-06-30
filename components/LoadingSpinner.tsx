@@ -42,7 +42,9 @@ function LoadingSpinner() {
       </p>
 
       {retryDisplay ? (
-        <p className={`text-sm ${textColor} text-shadow-md mt-1`}>{retryDisplay}</p>
+        <p className={`text-sm ${textColor} text-shadow-md mt-1`}>
+          {retryDisplay}
+        </p>
       ) : null}
 
       {progressDisplay ? (
