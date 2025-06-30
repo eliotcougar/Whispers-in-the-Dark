@@ -3,9 +3,9 @@
  * @description Parses inventory AI responses.
  */
 
-import { ItemChange, GiveItemPayload, ItemReference, KnownUse } from '../../types';
+import { ItemChange, MoveItemPayload, ItemReference, KnownUse } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isValidItem, isValidItemReference, isValidAddChapterPayload } from '../parsers/validation';
+import { isValidItem, isValidItemReference, isValidAddDetailsPayload } from '../parsers/validation';
 import {
   filterBlockedKnownUses,
   isBlockedKnownUse,
@@ -26,22 +26,21 @@ const parseItemChange = (raw: Record<string, unknown>): ItemChange | null => {
   const action = typeof raw.action === 'string' ? raw.action : null;
   if (!action) return null;
   switch (action) {
-    case 'gain':
-    case 'put': {
+    case 'create': {
       if (raw.item && typeof raw.item === 'object') {
         const item = raw.item as Record<string, unknown>;
         if (typeof item.holderId !== 'string' || item.holderId.trim() === '') {
           item.holderId = PLAYER_HOLDER_ID;
         }
       }
-      if (isValidItem(raw.item, 'gain')) {
+      if (isValidItem(raw.item, 'create')) {
         const itm = raw.item as { knownUses?: Array<KnownUse> };
         itm.knownUses = filterBlockedKnownUses(itm.knownUses);
         return { action, item: raw.item };
       }
       return null;
     }
-    case 'update': {
+    case 'change': {
       if (raw.item && typeof raw.item === 'object') {
         const rawItem = raw.item as Record<string, unknown>;
         const t = typeof rawItem.type === 'string' ? rawItem.type : undefined;
@@ -61,7 +60,7 @@ const parseItemChange = (raw: Record<string, unknown>): ItemChange | null => {
           return isValidItemReference(itemRef) ? { action: 'destroy', item: itemRef } : null;
         }
       }
-      if (isValidItem(raw.item, 'update')) {
+      if (isValidItem(raw.item, 'change')) {
         const itm = raw.item as {
           knownUses?: Array<KnownUse>;
           addKnownUse?: KnownUse;
@@ -70,30 +69,29 @@ const parseItemChange = (raw: Record<string, unknown>): ItemChange | null => {
         if (itm.addKnownUse && isBlockedKnownUse(itm.addKnownUse)) {
           delete itm.addKnownUse;
         }
-        return { action: 'update', item: raw.item };
+        return { action: 'change', item: raw.item };
       }
       return null;
     }
-    case 'addChapter': {
+    case 'addDetails': {
       if (
         raw.item &&
         typeof raw.item === 'object' &&
-        isValidAddChapterPayload(raw.item)
+        isValidAddDetailsPayload(raw.item)
       ) {
-        return { action: 'addChapter', item: raw.item };
+        return { action: 'addDetails', item: raw.item };
       }
       return null;
     }
     case 'destroy':
       return isValidItemReference(raw.item) ? { action: 'destroy', item: raw.item } : null;
-    case 'give':
-    case 'take':
+    case 'move':
       return raw.item &&
         typeof raw.item === 'object' &&
-        typeof (raw.item as GiveItemPayload).id === 'string' &&
-        typeof (raw.item as GiveItemPayload).fromId === 'string' &&
-        typeof (raw.item as GiveItemPayload).toId === 'string'
-        ? { action, item: raw.item as GiveItemPayload }
+        typeof (raw.item as MoveItemPayload).id === 'string' &&
+        typeof (raw.item as MoveItemPayload).fromId === 'string' &&
+        typeof (raw.item as MoveItemPayload).toId === 'string'
+        ? { action, item: raw.item as MoveItemPayload }
         : null;
     default:
       return null;

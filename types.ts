@@ -65,7 +65,7 @@ export interface Item {
   chapters?: Array<ItemChapter>;
   lastWriteTurn?: number;
   lastInspectTurn?: number;
-  // --- Fields for "update" action payloads ---
+  // --- Fields for "change" action payloads ---
   newName?: string;
   addKnownUse?: KnownUse;
 }
@@ -76,7 +76,7 @@ export interface ItemReference {
   name?: string;
 }
 
-export interface GiveItemPayload {
+export interface MoveItemPayload {
   id?: string;
   name?: string;
   fromId: string;
@@ -85,7 +85,7 @@ export interface GiveItemPayload {
   toName?: string;
 }
 
-export type ItemUpdatePayload =
+export type ItemChangePayload =
   Partial<Omit<Item, 'activeDescription'>> & { activeDescription?: string | null };
 
 export interface NewItemSuggestion {
@@ -100,7 +100,7 @@ export interface NewItemSuggestion {
   knownUses?: Array<KnownUse>;
 }
 
-export interface AddChapterPayload {
+export interface AddDetailsPayload {
   id?: string;
   name?: string;
   chapter: ItemChapter;
@@ -108,12 +108,7 @@ export interface AddChapterPayload {
 
 export type ItemChange =
   | {
-      action: 'gain';
-      item: Item;
-      invalidPayload?: unknown;
-    }
-  | {
-      action: 'put';
+      action: 'create';
       item: Item;
       invalidPayload?: unknown;
     }
@@ -123,23 +118,18 @@ export type ItemChange =
       invalidPayload?: unknown;
     }
   | {
-      action: 'update';
-      item: ItemUpdatePayload;
+      action: 'change';
+      item: ItemChangePayload;
       invalidPayload?: unknown;
     }
   | {
-      action: 'addChapter';
-      item: AddChapterPayload;
+      action: 'addDetails';
+      item: AddDetailsPayload;
       invalidPayload?: unknown;
     }
   | {
-      action: 'give';
-      item: GiveItemPayload;
-      invalidPayload?: unknown;
-    }
-  | {
-      action: 'take';
-      item: GiveItemPayload;
+      action: 'move';
+      item: MoveItemPayload;
       invalidPayload?: unknown;
     };
 

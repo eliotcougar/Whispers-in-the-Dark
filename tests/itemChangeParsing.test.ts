@@ -7,17 +7,17 @@ describe('parseInventoryResponse', () => {
   it('filters invalid ItemChange entries', () => {
     const rawPayload = {
       itemChanges: [
-        { action: 'gain', item: { name: 'Lantern', type: 'equipment', description: 'Bright', holderId: PLAYER } },
-        { action: 'gain', item: { name: 'BadItem', type: 'invalid', description: 'oops', holderId: PLAYER } },
-        { action: 'update', item: { name: 'Lantern', newName: 'Bright Lantern', holderId: PLAYER } },
-        { action: 'update', item: { newName: 'No Name' } },
+        { action: 'create', item: { name: 'Lantern', type: 'equipment', description: 'Bright', holderId: PLAYER } },
+        { action: 'create', item: { name: 'BadItem', type: 'invalid', description: 'oops', holderId: PLAYER } },
+        { action: 'change', item: { name: 'Lantern', newName: 'Bright Lantern', holderId: PLAYER } },
+        { action: 'change', item: { newName: 'No Name' } },
         { action: 'destroy', item: { id: 'old1', name: 'Old Lantern' } },
         { action: 'destroy', item: null },
-        { action: 'give', item: { id: 'gift1', fromId: PLAYER, toId: 'npc1' } },
-        { action: 'take', item: { id: 'gift2', fromId: 'npc2', toId: PLAYER } },
-        { action: 'give', item: { id: 5, fromId: PLAYER } },
+        { action: 'move', item: { id: 'gift1', fromId: PLAYER, toId: 'npc1' } },
+        { action: 'move', item: { id: 'gift2', fromId: 'npc2', toId: PLAYER } },
+        { action: 'move', item: { id: 5, fromId: PLAYER } },
         { action: 123, item: { name: 'Bad', type: 'equipment', description: 'x', holderId: PLAYER } },
-        { action: 'gain', item: 'not object' },
+        { action: 'create', item: 'not object' },
       ],
       observations: 'obs',
       rationale: 'why',
@@ -43,11 +43,11 @@ describe('parseInventoryResponse', () => {
   it('handles update rename and destroy heuristics with put action', () => {
     const payload = {
       itemChanges: [
-        { action: 'update', item: { id: 'i1', name: 'Old Sword', newName: 'Shiny Sword' } },
-        { action: 'update', item: { id: 'i2', name: 'Old Shield' } },
-        { action: 'update', item: { id: 'i3', name: 'Broken Torch', type: 'destroyed' } },
-        { action: 'update', item: { id: 'i4', name: 'Lost Ring', status: 'gone' } },
-        { action: 'put', item: { name: 'Lantern', type: 'Equipment', description: 'Bright', holderId: 'node1' } },
+        { action: 'change', item: { id: 'i1', name: 'Old Sword', newName: 'Shiny Sword' } },
+        { action: 'change', item: { id: 'i2', name: 'Old Shield' } },
+        { action: 'change', item: { id: 'i3', name: 'Broken Torch', type: 'destroyed' } },
+        { action: 'change', item: { id: 'i4', name: 'Lost Ring', status: 'gone' } },
+        { action: 'create', item: { name: 'Lantern', type: 'Equipment', description: 'Bright', holderId: 'node1' } },
       ],
     };
 
@@ -61,15 +61,15 @@ describe('parseInventoryResponse', () => {
       payload.itemChanges[1],
       { action: 'destroy', item: { id: 'i3', name: 'Broken Torch' } },
       { action: 'destroy', item: { id: 'i4', name: 'Lost Ring' } },
-      { action: 'put', item: { name: 'Lantern', type: 'equipment', description: 'Bright', holderId: 'node1' } },
+      { action: 'create', item: { name: 'Lantern', type: 'equipment', description: 'Bright', holderId: 'node1' } },
     ]);
   });
 
   it('adds printed tag when page item lacks style tags', () => {
     const payload = {
       itemChanges: [
-        {
-          action: 'gain',
+          {
+            action: 'create',
           item: {
             name: 'Mysterious Note',
             type: 'page',

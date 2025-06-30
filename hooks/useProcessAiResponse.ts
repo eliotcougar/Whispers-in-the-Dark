@@ -54,18 +54,12 @@ const correctItemChanges = async ({
     let currentChange: ItemChange = { ...change };
 
     if ('item' in currentChange && (currentChange.item as { type?: string }).type === 'immovable') {
-      if (currentChange.action === 'gain') {
+      if (currentChange.action === 'create') {
         const itm = currentChange.item;
-        currentChange = {
-          action: 'put',
-          item: { ...itm, holderId: baseState.currentMapNodeId ?? 'unknown' },
-        };
-      } else if (currentChange.action === 'put') {
-        const item = currentChange.item;
-        if (!item.holderId.startsWith('node_')) {
-          item.holderId = baseState.currentMapNodeId ?? 'unknown';
+        if (!itm.holderId.startsWith('node_')) {
+          itm.holderId = baseState.currentMapNodeId ?? 'unknown';
         }
-      } else if (currentChange.action === 'give' || currentChange.action === 'take') {
+      } else if (currentChange.action === 'move') {
         const payload = currentChange.item;
         if (!payload.fromId.startsWith('node_')) {
           payload.fromId = baseState.currentMapNodeId ?? 'unknown';
@@ -129,7 +123,7 @@ const correctItemChanges = async ({
         );
         if (invItem) {
           currentChange = {
-            action: 'put',
+            action: 'create',
             item: {
               ...invItem,
               holderId: baseState.currentMapNodeId ?? 'unknown',
@@ -489,7 +483,7 @@ export const useProcessAiResponse = ({
 
       if (themeContextForResponse) {
         for (const change of combinedItemChanges) {
-          if (change.action === 'addChapter') {
+          if (change.action === 'addDetails') {
             const target = findItemByIdentifier([
               change.item.id,
               change.item.name,
