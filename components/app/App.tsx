@@ -192,7 +192,6 @@ function App() {
     gameStateStack,
     debugPacketStack,
     handleMapLayoutConfigChange,
-    loadingReason,
     handleUndoTurn,
     destinationNodeId,
     handleSelectDestinationNode,
@@ -696,7 +695,7 @@ function App() {
   if (!appReady) {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-200 flex flex-col items-center justify-center p-4">
-        <LoadingSpinner loadingReason="initial_load" />
+        <LoadingSpinner />
 
         <p className="mt-4 text-xl text-sky-400">
           Initializing application...
@@ -747,7 +746,7 @@ function App() {
               
             <ModelUsageIndicators />
 
-            {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
+            {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner /> : null}
 
             {!hasGameBeenInitialized ? (
               <div className="bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
@@ -768,7 +767,7 @@ function App() {
 
                     {isLoading && !dialogueState && !isDialogueExiting && Boolean(hasGameBeenInitialized) ? (
                       <div className="absolute inset-0 flex items-center justify-center bg-slate-900/75 rounded-lg">
-                        <LoadingSpinner loadingReason={loadingReason} />
+                        <LoadingSpinner />
                       </div>
                     ) : null}
                   </div>
@@ -849,7 +848,6 @@ function App() {
         isDialogueExiting={isDialogueExiting}
         isLoading={isLoading}
         isVisible={!!dialogueState}
-        loadingReason={loadingReason}
         mapData={mapData.nodes}
         onClose={handleForceExitDialogue}
         onOptionSelect={handleDialogueOptionSelectSafe}

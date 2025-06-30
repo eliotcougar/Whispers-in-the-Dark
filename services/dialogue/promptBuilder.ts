@@ -74,12 +74,12 @@ export const buildDialogueTurnPrompt = (
     false,
   );
 
-  let npcContextString = '### Known NPCs: ';
+  let npcContextString = '## Known NPCs: ';
   if (knownNPCsInTheme.length > 0) {
     npcContextString +=
       knownNPCsInTheme
         .map(npc => {
-          let npcStr = `"${npc.name}" (Description: ${npc.description.substring(0, 70)}...; Presence: ${npc.presenceStatus}`;
+          let npcStr = `"${npc.name}" (Description: ${npc.description}; Presence: ${npc.presenceStatus}`;
           if (npc.presenceStatus === 'nearby' || npc.presenceStatus === 'companion') {
             npcStr += ` at ${npc.preciseLocation ?? 'around'}`;
           } else {
@@ -133,6 +133,7 @@ ${npcContextString}
 ## Dialogue Context:
 - Current Dialogue Participants: ${dialogueParticipants.join(', ')};
 ${pastDialogueSummariesContext.trim() ? pastDialogueSummariesContext : '\n- No specific past dialogue summaries available for current participants.'}
+
 - Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):
 ${historyString}
 
@@ -202,13 +203,12 @@ ${knownPlacesString}
 ## Full Dialogue Transcript:
 ${dialogueLogString}
 
-Based *only* on the Dialogue Transcript and the provided context, determine what concrete game state changes (items, NPCs, quest/objective updates, log message, map updates) resulted *directly* from this dialogue.
+Based *only* on the Dialogue Transcript and the provided context, determine what specific game state changes (items, NPCs, quest/objective updates, log message, map updates) resulted *directly* from this dialogue.
 The "logMessage" field in your response should be a concise summary suitable for the main game log.
 Provide the next scene description and ${String(MAIN_TURN_OPTIONS_COUNT)} action options for the player as you would for a normal game turn.
 If the dialogue revealed a new alias for an existing NPC, use "npcsUpdated" with "addAlias".
 If the dialogue changed some NPC's general whereabouts, use "newLastKnownLocation" in "npcsUpdated".
 If the dialogue revealed new map information (new locations, changed accessibility, etc.), or if Player's own location changed over the course of the dialogue, then set "mapUpdated": true.
-Respond using the JSON schema for main storyteller turns.
 `;
 };
 
@@ -235,8 +235,8 @@ Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any 
 
   const userPromptPart = `Generate a memory summary for the following conversation:
 - Conversation Participants: ${context.dialogueParticipants.join(', ')}
-- Theme: "${context.currentThemeObject?.name ?? context.themeName}" (System Modifier: ${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
-- Scene at start of conversation: "${context.currentScene}"
+- Theme: "${context.currentThemeObject?.name ?? context.themeName}" (${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
+- Scene at the start of conversation: "${context.currentScene}"
 - Context: Time: "${context.localTime ?? 'Unknown'}", Environment: "${context.localEnvironment ?? 'Undetermined'}", Place: "${context.localPlace ?? 'Undetermined'}"
 
 ## Full Dialogue Transcript:

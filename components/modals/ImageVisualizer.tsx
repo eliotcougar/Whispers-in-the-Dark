@@ -13,6 +13,7 @@ import LoadingSpinner from '../LoadingSpinner';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';
 import { dispatchAIRequest } from '../../services/modelDispatcher';
 import { MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME } from '../../constants';
+import { setLoadingReason } from '../../utils/loadingState';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 
@@ -169,10 +170,12 @@ function ImageVisualizer({
     if (!ai || !currentTheme) {
       setError("Image generation service or theme is not available.");
       setIsLoading(false);
+      setLoadingReason(null);
       return;
     }
 
     setIsLoading(true);
+    setLoadingReason('visualize');
     setError(null);
     setInternalImageUrl(null);
 
@@ -303,6 +306,7 @@ function ImageVisualizer({
       }
     } finally {
       setIsLoading(false);
+      setLoadingReason(null);
     }
   }, [currentSceneDescription, currentTheme, mapData, allNPCs, localTime, localEnvironment, localPlace, setGeneratedImage]);
 
@@ -342,7 +346,7 @@ function ImageVisualizer({
         />
         
         {isLoading ? <div className="visualizer-spinner-container">
-          <LoadingSpinner loadingReason="visualize" />
+          <LoadingSpinner />
 
         </div> : null}
 

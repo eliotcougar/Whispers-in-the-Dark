@@ -3,7 +3,7 @@
  * @description Hook for concluding a dialogue and summarizing its results.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   DialogueHistoryEntry,
   GameStateFromAI,
@@ -22,7 +22,6 @@ import {
 import { MAX_DIALOGUE_SUMMARIES_PER_NPC, PLAYER_HOLDER_ID } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
-const DIALOGUE_EXIT_READ_DELAY_MS = 5000;
 
 export interface UseDialogueSummaryProps {
   getCurrentGameState: () => FullGameState;
@@ -40,7 +39,7 @@ export interface UseDialogueSummaryProps {
       summaryRawResponse?: string;
       summaryThoughts?: Array<string>;
     }
-  ) => void;
+  ) => Promise<void>;
   getDialogueDebugLogs: () => Array<DialogueTurnDebugEntry>;
   clearDialogueDebugLogs: () => void;
 }
@@ -62,8 +61,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
   } = props;
 
   const [isDialogueExiting, setIsDialogueExiting] = useState<boolean>(false);
-  const [dialogueUiCloseDelayTargetMs, setDialogueUiCloseDelayTargetMs] = useState<number>(0);
-  const [dialogueNextSceneAttempted, setDialogueNextSceneAttempted] = useState<boolean>(false);
 
   /**
    * Finalizes a dialogue session and gathers summary updates.
@@ -75,10 +72,10 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
 
     if (!currentThemeObj || !stateAtDialogueConclusionStart.dialogueState) {
       console.error('Cannot exit dialogue: current theme is null or not in dialogue state.', stateAtDialogueConclusionStart);
-      onDialogueConcluded(
+      await onDialogueConcluded(
         null,
         stateAtDialogueConclusionStart,
-        { turns: getDialogueDebugLogs() }
+        { turns: getDialogueDebugLogs() },
       );
       clearDialogueDebugLogs();
       setIsDialogueExiting(false);
@@ -90,8 +87,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setIsLoading(true);
     setLoadingReason('dialogue_summary');
     setIsDialogueExiting(true);
-    setDialogueNextSceneAttempted(false);
-    setDialogueUiCloseDelayTargetMs(Date.now() + DIALOGUE_EXIT_READ_DELAY_MS);
     setError(null);
 
     const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
@@ -170,16 +165,15 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       summaryRawResponse,
       summaryThoughts,
     };
-    onDialogueConcluded(summaryUpdatePayload, workingGameState, debugInfo);
+    await onDialogueConcluded(
+      summaryUpdatePayload,
+      workingGameState,
+      debugInfo,
+    );
     clearDialogueDebugLogs();
-    setDialogueNextSceneAttempted(true);
+    setIsDialogueExiting(false);
   }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
 
-  useEffect(() => {
-    if (isDialogueExiting && dialogueNextSceneAttempted && Date.now() >= dialogueUiCloseDelayTargetMs) {
-      setIsDialogueExiting(false);
-    }
-  }, [isDialogueExiting, dialogueNextSceneAttempted, dialogueUiCloseDelayTargetMs]);
 
   /**
    * Immediately aborts the dialogue and triggers the summary workflow.

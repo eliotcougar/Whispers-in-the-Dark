@@ -8,6 +8,7 @@ import { Icon } from '../elements/icons';
 import LoadingSpinner from '../LoadingSpinner';
 import { generatePageText } from '../../services/page';
 import { generateChapterImage } from '../../services/image';
+import { setLoadingReason } from '../../utils/loadingState';
 import {
   loadChapterImage,
   saveChapterImage,
@@ -243,6 +244,7 @@ function PageView({
     }
 
     setIsLoading(true);
+    setLoadingReason(item.type === 'book' ? 'book' : 'page');
     void (async () => {
       const length = chapter.contentLength;
       const actual = await generatePageText(
@@ -291,6 +293,7 @@ function PageView({
         setText(visible);
       }
       setIsLoading(false);
+      setLoadingReason(null);
     })();
   }, [
     isVisible,
@@ -346,6 +349,7 @@ function PageView({
       if (isGeneratingImageRef.current) return;
       isGeneratingImageRef.current = true;
       setIsLoading(true);
+      setLoadingReason(item.type === 'book' ? 'book' : 'page');
       const img = await generateChapterImage(item, currentTheme, idx);
       if (img) {
         await saveChapterImage(item.id, idx, img);
@@ -359,6 +363,7 @@ function PageView({
         setImageUrl(`data:image/jpeg;base64,${img}`);
       }
       setIsLoading(false);
+      setLoadingReason(null);
       isGeneratingImageRef.current = false;
     })();
   }, [
@@ -387,6 +392,14 @@ function PageView({
     () => isJournal && isWritingJournal,
     [isJournal, isWritingJournal]
   );
+
+  useEffect(() => {
+    if (!pendingWrite) return undefined;
+    setLoadingReason('journal');
+    return () => {
+      setLoadingReason(null);
+    };
+  }, [pendingWrite]);
 
   const tearOrientation = useMemo(() => {
     if (
@@ -543,9 +556,9 @@ function PageView({
 
 
         {pendingWrite ? (
-          <LoadingSpinner loadingReason="journal" />
+          <LoadingSpinner />
         ) : isLoading ? (
-          <LoadingSpinner loadingReason={item?.type === 'book' ? 'book' : 'page'} />
+          <LoadingSpinner />
         ) : item?.type === 'book' && !isJournal && chapterIndex === 0 ? (
           <ul className={`p-5 mt-4 list-disc list-inside overflow-y-auto text-left ${textClassNames}`}>
             {chapters.map((ch, idx) => (
