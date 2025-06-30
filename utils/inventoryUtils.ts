@@ -526,7 +526,7 @@ export const buildItemChangeRecords = (
         }
         record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };
       }
-    } else if (change.action === 'addDetails') {
+    } else {
       const { item } = change;
       const oldItem = findItemByIdentifier(
         [item.id, item.name],
