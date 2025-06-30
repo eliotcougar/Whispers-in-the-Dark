@@ -6,7 +6,7 @@ import type { ItemChange, Item } from '../types';
 describe('inventoryUtils', () => {
   it('applyItemChangeAction adds gained item', () => {
     const change: ItemChange = {
-      action: 'gain',
+      action: 'create',
       item: { id: 'it1', name: 'Torch', type: 'equipment', description: 'Bright', holderId: PLAYER_HOLDER_ID },
     };
     const result = applyItemChangeAction([], change);
@@ -16,7 +16,7 @@ describe('inventoryUtils', () => {
 
   it('gain page item preserves contentLength', () => {
     const change: ItemChange = {
-      action: 'gain',
+      action: 'create',
       item: {
         id: 'pg1',
         name: 'Torn Note',
@@ -38,7 +38,7 @@ describe('inventoryUtils', () => {
 
   it('buildItemChangeRecords returns gain record', () => {
     const change: ItemChange = {
-      action: 'gain',
+      action: 'create',
       item: { id: 'it1', name: 'Torch', type: 'equipment', description: 'Bright', holderId: PLAYER_HOLDER_ID },
     };
     const records = buildItemChangeRecords([change], []);
@@ -63,11 +63,11 @@ describe('inventoryUtils', () => {
   it('applyAllItemChanges applies multiple changes', () => {
     const changes: Array<ItemChange> = [
       {
-        action: 'gain',
+        action: 'create',
         item: { id: 'it1', name: 'Torch', type: 'equipment', description: 'Bright', holderId: PLAYER_HOLDER_ID },
       },
       {
-        action: 'update',
+        action: 'change',
         item: { id: 'it1', name: 'Torch', isActive: true, holderId: PLAYER_HOLDER_ID },
       },
     ];
@@ -75,7 +75,7 @@ describe('inventoryUtils', () => {
     expect(result[0].isActive).toBe(true);
   });
 
-  it('addChapter action appends chapter and resets inspect turn', () => {
+  it('addDetails action appends chapter and resets inspect turn', () => {
     const initial: Array<Item> = [
       {
         id: 'book1',
@@ -90,7 +90,7 @@ describe('inventoryUtils', () => {
       },
     ];
     const change: ItemChange = {
-      action: 'addChapter',
+      action: 'addDetails',
       item: {
         id: 'book1',
         name: 'Mysteries',

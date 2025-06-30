@@ -6,7 +6,7 @@ import {
   Item,
   ItemReference,
   ItemChapter,
-  AddChapterPayload,
+  AddDetailsPayload,
   KnownUse,
   NewItemSuggestion,
   ValidNPCUpdatePayload,
@@ -43,7 +43,7 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
   return true;
 }
 
-export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
+export function isValidItem(item: unknown, context?: 'create' | 'change'): item is Item {
   if (!item || typeof item !== 'object') return false;
   const obj = item as Partial<Item> & {
     contentLength?: number;
@@ -62,8 +62,8 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     return false;
   }
 
-  // Fields required for 'gain' or if it's not an 'update' context
-  if (context === 'gain' || !context) {
+  // Fields required for 'create' or if it's not a 'change' context
+  if (context === 'create' || !context) {
     if (typeof obj.type !== 'string' || !VALID_ITEM_TYPES.includes(obj.type)) {
         console.warn(`isValidItem (context: ${context ?? 'default'}): 'type' is missing or invalid.`, item);
         return false;
@@ -78,10 +78,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     }
   }
 
-  // Fields required for 'update' if it's a transformation (newName is present)
-  if (context === 'update' && obj.newName != null) {
+  // Fields required for 'change' if it's a transformation (newName is present)
+  if (context === 'change' && obj.newName != null) {
     if (typeof obj.newName !== 'string' || obj.newName.trim() === '') {
-        console.warn("isValidItem (context: update, with newName): 'newName' is invalid.", item);
+        console.warn("isValidItem (context: change, with newName): 'newName' is invalid.", item);
         return false;
     }
     // 'type' and 'description' can be omitted and inherited from the existing item.
@@ -98,10 +98,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     obj.type = normalized;
   }
   if (obj.description !== undefined && (typeof obj.description !== 'string' || obj.description.trim() === '')) {
-      // Allow empty description if it's an update payload and not a transformation,
-      // as it might be intentionally cleared, but an empty description for a gain/new item is bad.
-      if ((context === 'gain' || (context === 'update' && obj.newName)) && obj.description.trim() === '') {
-        console.warn(`isValidItem: 'description' is present but empty, which is invalid for a gain or transformation.`, item);
+      // Allow empty description if it's a change payload and not a transformation,
+      // as it might be intentionally cleared, but an empty description for a create/new item is bad.
+      if ((context === 'create' || (context === 'change' && obj.newName)) && obj.description.trim() === '') {
+        console.warn(`isValidItem: 'description' is present but empty, which is invalid for a create or transformation.`, item);
         return false;
       }
   }
@@ -220,9 +220,9 @@ export function isValidItemReference(obj: unknown): obj is ItemReference {
   );
 }
 
-export function isValidAddChapterPayload(obj: unknown): obj is AddChapterPayload {
+export function isValidAddDetailsPayload(obj: unknown): obj is AddDetailsPayload {
   if (!obj || typeof obj !== 'object') return false;
-  const maybe = obj as Partial<AddChapterPayload> & { chapter?: unknown };
+  const maybe = obj as Partial<AddDetailsPayload> & { chapter?: unknown };
   if (
     (!maybe.id || typeof maybe.id === 'string') &&
     (!maybe.name || typeof maybe.name === 'string') &&

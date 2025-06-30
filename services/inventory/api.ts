@@ -209,9 +209,9 @@ const mergeBookChaptersFromSuggestions = (
     const suggChapters = suggestion.chapters;
     if (!suggChapters || suggChapters.length === 0) continue;
     const match = itemChanges.find(
-      ch => (ch.action === 'gain' || ch.action === 'put') && ch.item.name === suggestion.name,
+      ch => ch.action === 'create' && ch.item.name === suggestion.name,
     );
-    if (match && (match.action === 'gain' || match.action === 'put')) {
+    if (match && match.action === 'create') {
       const item = match.item;
       if (!item.chapters || item.chapters.length !== suggChapters.length) {
         item.chapters = suggChapters;
@@ -309,7 +309,7 @@ export const applyInventoryHints_Service = async (
   if (parsed) {
     mergeBookChaptersFromSuggestions(parsed.itemChanges, newItems);
     for (const change of parsed.itemChanges) {
-      if ((change.action === 'gain' || change.action === 'put') && change.item.type === 'book') {
+      if (change.action === 'create' && change.item.type === 'book') {
         const chapters = change.item.chapters ?? [];
         if (chapters.length < MIN_BOOK_CHAPTERS) {
           const additional = await fetchAdditionalBookChapters_Service(

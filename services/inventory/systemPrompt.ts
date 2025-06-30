@@ -15,19 +15,19 @@ Analyze the hints and optional new items JSON provided in the prompt.
 
 Define any operations on existing items in the Player's Inventory, based on Player's Action and the Player Items Hint.
 Define any operations on existing items at Locations, or in NPCs' inventories, according to Location Items Hint and NPCs Items Hint.
-Define any transfers of existing items between NPCs' and Player's Inventories using 'give' or 'take' actions.
-Items described in the "World Items Hint" must be placed at their appropriate map node holderId using the 'put' action.
+Define any transfers of existing items between NPCs' and Player's Inventories using the 'move' action.
+Items described in the "World Items Hint" must be placed at their appropriate map node holderId using the 'create' action.
 
 Available actions are: ${VALID_ACTIONS_STRING}.
-CRITICALLY IMPORTANT: Use 'put' or 'gain' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory. You MUST 'gain' or 'put' *all* items in the New Items JSON and *only* the items in the New Items JSON. NEVER gain or put items that are part of the Player's Inventory.
-CRITICALLY IMPORTANT: Use 'give' or 'take' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
+CRITICALLY IMPORTANT: Use 'create' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory. You MUST 'create' *all* items in the New Items JSON and *only* the items in the New Items JSON. NEVER create items that are part of the Player's Inventory.
+CRITICALLY IMPORTANT: Use 'move' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
 CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world.
 
 ## Examples:
 
 - Example for gaining a *new* item from the provided New Items JSON:
 { 
-  "action": "gain",
+  "action": "create",
   item: {
     "name": "Old Lantern",
     "type": "equipment",
@@ -54,7 +54,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 - Example of gaining a new book item with chapters:
 {
-  "action": "gain",
+  "action": "create",
   item: { 
     "name": "Adventurer's Path",
     "type": "book",
@@ -93,7 +93,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 - Example for giving an *existing* item item_iron_sword_ab12 from player to npc_guard_4f3a, or for placing it in the current location:
 {
-  "action": "give",
+  "action": "move",
   item: {
     "id": "item_iron_sword_ab12",
     "name": "Iron Sword",
@@ -104,7 +104,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 - Example of taking an *existing* item item_coin_pouch_8f2c from npc_bandit_1wrc and putting it in player's inventory:
 {
-  "action": "take",
+  "action": "move",
   item: {
     "id": "item_coin_pouch_8f2c",
     "name": "Coin Pouch",
@@ -115,7 +115,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 - Example of picking up an *existing* item item_crowbar_55nf from node_rubble_pile_f4s3 and putting it in player's inventory:
 {
-  "action": "take",
+  "action": "move",
   item: {
     "id": "item_crowbar_55nf",
     "name": "Crowbar",
@@ -126,7 +126,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 - Example for simple update that only changes "isActive" state (Lighting the Plasma Torch), all other properties are inherited from the *existing* item item_plasma_torch_7fr4:
 {
-  "action": "update",
+  "action": "change",
   item:
   {
     "id": "item_plasma_torch_7fr4",
@@ -137,7 +137,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 - Example for transformation or crafting (new item details can be partial and will inherit old properties):
 {
-  "action": "update",
+  "action": "change",
   "item":
   {
     "id": "item_scrap_metal_7fr4",
@@ -158,7 +158,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 - Example for adding a known use to *existing* item (existing properties and known uses are inherited): 
 {
-  "action": "update",
+  "action": "change",
   "item":
   {
     "id": "item_mystic_orb_7fr4",
@@ -175,7 +175,7 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 
 - Example for adding a new chapter to an existing written item:
 {
-  "action": "addChapter",
+  "action": "addDetails",
   "item":
   {
     "id": "item_codex_8g3c",
@@ -204,5 +204,5 @@ IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedi
 
 ${ITEM_TYPES_GUIDE}
 
-IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "update", providing "newName" and optionally the new "type" and "description" if they change. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand"."
+IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "change", providing "newName" and optionally the new "type" and "description" if they change. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand"."
 `;

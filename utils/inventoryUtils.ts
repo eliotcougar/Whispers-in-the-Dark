@@ -8,8 +8,8 @@ import {
   ItemChapter,
   ItemChange,
   ItemReference,
-  GiveItemPayload,
-  ItemUpdatePayload,
+  MoveItemPayload,
+  ItemChangePayload,
   ItemChangeRecord,
 } from '../types';
 import { buildItemId, findItemByIdentifier } from './entityUtils';
@@ -19,7 +19,7 @@ const applyItemActionCore = (
   currentInventory: Array<Item>,
   fromId: string | null,
   toId: string | null,
-  payload: Item | ItemReference | GiveItemPayload | ItemUpdatePayload,
+  payload: Item | ItemReference | MoveItemPayload | ItemChangePayload,
 ): Array<Item> => {
   let newInventory = [...currentInventory];
 
@@ -258,7 +258,7 @@ const applyItemActionCore = (
   }
 
   if (fromId && toId && fromId !== toId) {
-    const givePayload = payload as GiveItemPayload;
+  const givePayload = payload as MoveItemPayload;
     if (!givePayload.toId || !givePayload.fromId) {
       console.warn('applyItemActionCore ("give"): Missing fromId or toId.', givePayload);
       return newInventory;
@@ -298,14 +298,14 @@ export const loseItem = (inv: Array<Item>, ref: ItemReference): Array<Item> =>
 
 export const updateItem = (
   inv: Array<Item>,
-  item: ItemUpdatePayload,
+  item: ItemChangePayload,
 ): Array<Item> =>
   applyItemActionCore(inv, item.holderId ?? null, item.holderId ?? null, item);
 
-export const giveItem = (inv: Array<Item>, payload: GiveItemPayload): Array<Item> =>
+export const giveItem = (inv: Array<Item>, payload: MoveItemPayload): Array<Item> =>
   applyItemActionCore(inv, payload.fromId, payload.toId, payload);
 
-export const takeItem = (inv: Array<Item>, payload: GiveItemPayload): Array<Item> =>
+export const takeItem = (inv: Array<Item>, payload: MoveItemPayload): Array<Item> =>
   applyItemActionCore(inv, payload.fromId, payload.toId, payload);
 
 export const applyItemChangeAction = (
@@ -313,19 +313,17 @@ export const applyItemChangeAction = (
   itemChange: ItemChange,
 ): Array<Item> => {
   switch (itemChange.action) {
-    case 'gain':
-      return gainItem(currentInventory, itemChange.item);
-    case 'put':
-      return putItem(currentInventory, itemChange.item);
-    case 'give':
+    case 'create':
+      return itemChange.item.holderId === PLAYER_HOLDER_ID
+        ? gainItem(currentInventory, itemChange.item)
+        : putItem(currentInventory, itemChange.item);
+    case 'move':
       return giveItem(currentInventory, itemChange.item);
-    case 'take':
-      return takeItem(currentInventory, itemChange.item);
     case 'destroy':
       return loseItem(currentInventory, itemChange.item);
-    case 'update':
+    case 'change':
       return updateItem(currentInventory, itemChange.item);
-    case 'addChapter': {
+    case 'addDetails': {
       const { item } = itemChange;
       const ref: ItemReference = { id: item.id, name: item.name };
       const target = findItemByIdentifier(
@@ -335,7 +333,7 @@ export const applyItemChangeAction = (
         true,
       ) as Item | null;
       if (!target) {
-        console.warn(`applyItemChangeAction ('addChapter'): Item not found.`);
+        console.warn(`applyItemChangeAction ('addDetails'): Item not found.`);
         return currentInventory;
       }
       const idx = currentInventory.findIndex(i => i.id === target.id);
@@ -363,7 +361,7 @@ export const buildItemChangeRecords = (
     const change = itemChanges[idx];
     let record: ItemChangeRecord | null = null;
 
-    if (change.action === 'gain') {
+    if (change.action === 'create') {
       const gainedItemData = change.item;
       if (!gainedItemData.id) {
         gainedItemData.id = buildItemId(gainedItemData.name);
@@ -379,7 +377,7 @@ export const buildItemChangeRecords = (
         const newItemData: Item = { ...oldItemCopy, holderId: PLAYER_HOLDER_ID };
         // Rewrite invalid "gain" to a transfer from the current holder
         const newChange: ItemChange = {
-          action: 'give',
+          action: 'move',
           item: {
             id: existing.id,
             name: existing.name,
@@ -391,7 +389,7 @@ export const buildItemChangeRecords = (
         record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };
       } else {
         // Normalize to ensure gained item has complete data
-        itemChanges[idx] = { action: 'gain', item: gainedItemData };
+        itemChanges[idx] = { action: 'create', item: gainedItemData };
         const cleanGainedItem: Item = {
           id: gainedItemData.id,
           name: gainedItemData.name,
@@ -422,7 +420,7 @@ export const buildItemChangeRecords = (
         };
         record = { type: 'gain', gainedItem: cleanGainedItem };
       }
-    } else if (change.action === 'give' || change.action === 'take') {
+    } else if (change.action === 'move') {
       const givePayload = change.item;
       const oldItem = findItemByIdentifier(
         [givePayload.id, givePayload.name],
@@ -444,8 +442,8 @@ export const buildItemChangeRecords = (
         true,
       ) as Item | null;
       if (lostItem) record = { type: 'loss', lostItem: { ...lostItem } };
-    } else if (change.action === 'update') {
-      const updatePayload: ItemUpdatePayload & {
+    } else if (change.action === 'change') {
+      const updatePayload: ItemChangePayload & {
         contentLength?: number;
         actualContent?: string;
         visibleContent?: string;
@@ -528,7 +526,7 @@ export const buildItemChangeRecords = (
         }
         record = { type: 'update', oldItem: oldItemCopy, newItem: newItemData };
       }
-    } else if (change.action === 'addChapter') {
+    } else if (change.action === 'addDetails') {
       const { item } = change;
       const oldItem = findItemByIdentifier(
         [item.id, item.name],

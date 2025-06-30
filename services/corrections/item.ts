@@ -30,7 +30,7 @@ import { VALID_TAGS_STRING, VALID_TAGS } from '../../constants';
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
  */
 export const fetchCorrectedItemPayload_Service = async (
-  actionType: 'gain' | 'update',
+  actionType: 'create' | 'change',
   logMessage: string | undefined,
   sceneDescription: string | undefined,
   malformedPayloadString: string,
@@ -82,22 +82,22 @@ export const fetchCorrectedItemPayload_Service = async (
   let itemContextDescription = '';
   let specificActionInstructions = '';
 
-  if (actionType === 'gain') {
+  if (actionType === 'create') {
     itemContextDescription = 'a new item acquisition';
   specificActionInstructions = `Based *strictly* on Log/Scene and malformed payload:
-  - Provide "name", "type", "description" for the gained item. These MUST be non-empty.
+  - Provide "name", "type", "description" for the created item. These MUST be non-empty.
   - Choose "type" from: ${VALID_ITEM_TYPES_STRING}. The 'type' CANNOT be 'junk'. If the item is junk, add "junk" to its "tags" array and pick a suitable type.
   - Provide "holderId" referencing the correct location or NPC. Use 'player' only if the item goes to the Player's inventory.
   - "isActive" defaults to false. The "tags" array defaults to []. "status effect" items can never have the "junk" tag.
   - For items with type "page", provide a numeric "contentLength" (up to 250 words).
   - "knownUses" is optional.
-  - The "newName" and "addKnownUse" fields should NOT be used for "gain".
+  - The "newName" and "addKnownUse" fields should NOT be used for "create".
   ${knownUseStructureGuide}`;
   } else {
     itemContextDescription = 'an item update or transformation';
-    specificActionInstructions = `Your goal is to correct the 'Malformed Payload' for an "update" action.
+    specificActionInstructions = `Your goal is to correct the 'Malformed Payload' for a "change" action.
 The "name" field in the corrected JSON **MUST** be the *original name* of item being updated. If this original name is unclear from malformed payload, infer it from Log/Scene, ideally referencing "${originalItemNameFromMalformed}".
-Instructions for "update":
+Instructions for "change":
 1.  **Simple Update (No Transformation):** If the malformed payload does NOT contain a "newName" AND the Log/Scene context does NOT clearly indicate the item is transforming into something else:
     -   Only include fields ("type", "description", "isActive", "tags", "contentLength", "knownUses", "addKnownUse") if they are being explicitly changed or were present in the original payload.
     -   If "type" or "description" are not provided, the item's existing values will be retained.
@@ -152,7 +152,7 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
       });
       const jsonStr = response.text ?? '';
       const aiResponse = safeParseJson<Item>(extractJsonFromFence(jsonStr));
-      if (aiResponse && isValidItem(aiResponse, actionType === 'gain' ? 'gain' : 'update')) {
+      if (aiResponse && isValidItem(aiResponse, actionType === 'create' ? 'create' : 'change')) {
         return { result: aiResponse };
       }
       console.warn(
@@ -207,14 +207,12 @@ Narrative Context:
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
 - Theme Guidance: "${currentTheme.systemInstructionModifier}"
 
-Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("gain", "destroy", "update", "addChapter", "put", "give", or "take") that was intended.
-- "gain": Player acquired a new item.
+Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("create", "destroy", "change", "addDetails", or "move") that was intended.
+- "create": A new item appeared.
 - "destroy": Player lost an item or it was consumed.
-- "update": An existing item's properties changed.
-- "addChapter": A new chapter was added to a book item.
-- "put": A new item appeared somewhere other than the player's inventory.
-- "give": An existing item changed holders.
-- "take": Same as "give" but may be phrased from the taker's perspective.
+- "change": An existing item's properties changed.
+- "addDetails": A new chapter was added to a book item.
+- "move": An existing item changed holders or location.
 
 Respond ONLY with the single corrected action string.
 If no action can be confidently determined, respond with an empty string.`;
