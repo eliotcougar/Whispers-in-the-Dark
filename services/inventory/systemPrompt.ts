@@ -26,30 +26,31 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 ## Examples:
 
 - Example for gaining a *new* item from the provided New Items JSON:
-{ 
-  "action": "create",
-  item: {
-    "name": "Old Lantern",
-    "type": "equipment",
-    "description": "A dusty old lantern that still flickers faintly.",
-    "holderId": "player",
-    "activeDescription": "The lantern is lit and casts a warm glow.",
-    "isActive": false,
-    "knownUses": [
-      { 
-        "actionName": "Light the Lantern",
-        "promptEffect": "Light the lantern to illuminate the area.",
-        "description": "Use this to light your way in dark places.",
-        "appliesWhenInactive": true
-      },
-      { 
-        "actionName": "Extinguish the Lantern",
-        "promptEffect": "Extinguish the lantern.",
-        "description": "Extinguish and conserve the fuel",
-        "appliesWhenActive": true
-      }
-    ]
-  }
+{
+  "create": [
+    {
+      "name": "Old Lantern",
+      "type": "equipment",
+      "description": "A dusty old lantern that still flickers faintly.",
+      "holderId": "player",
+      "activeDescription": "The lantern is lit and casts a warm glow.",
+      "isActive": false,
+      "knownUses": [
+        {
+          "actionName": "Light the Lantern",
+          "promptEffect": "Light the lantern to illuminate the area.",
+          "description": "Use this to light your way in dark places.",
+          "appliesWhenInactive": true
+        },
+        {
+          "actionName": "Extinguish the Lantern",
+          "promptEffect": "Extinguish the lantern.",
+          "description": "Extinguish and conserve the fuel",
+          "appliesWhenActive": true
+        }
+      ]
+    }
+  ]
 }
 
 - Example of gaining a new book item with chapters:
@@ -92,106 +93,106 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 }
 
 - Example for giving an *existing* item item_iron_sword_ab12 from player to npc_guard_4f3a, or for placing it in the current location:
-{
-  "action": "move",
-  item: {
-    "id": "item_iron_sword_ab12",
-    "name": "Iron Sword",
-    "fromId": "player",
-    "toId": "npc_guard_4f3a"
-  }
+{ 
+  "move": [
+    {
+      "id": "item_iron_sword_ab12",
+      "name": "Iron Sword",
+      "newHolderId": "npc_guard_4f3a"
+    }
+  ]
 }
 
 - Example of taking an *existing* item item_coin_pouch_8f2c from npc_bandit_1wrc and putting it in player's inventory:
-{
-  "action": "move",
-  item: {
-    "id": "item_coin_pouch_8f2c",
-    "name": "Coin Pouch",
-    "fromId": "npc_bandit_1wrc",
-    "toId": "player"
-  }
+{ 
+  "move": [
+    {
+      "id": "item_coin_pouch_8f2c",
+      "name": "Coin Pouch",
+      "newHolderId": "player"
+    }
+  ]
 }
 
 - Example of picking up an *existing* item item_crowbar_55nf from node_rubble_pile_f4s3 and putting it in player's inventory:
-{
-  "action": "move",
-  item: {
-    "id": "item_crowbar_55nf",
-    "name": "Crowbar",
-    "fromId": "node_rubble_pile_f4s3",
-    "toId": "player"
-  }
+{ 
+  "move": [
+    {
+      "id": "item_crowbar_55nf",
+      "name": "Crowbar",
+      "newHolderId": "player"
+    }
+  ]
 }
 
 - Example for a simple change that only alters "isActive" state (lighting the Plasma Torch). All other properties are inherited from the *existing* item item_plasma_torch_7fr4:
-{
-  "action": "change",
-  item:
-  {
-    "id": "item_plasma_torch_7fr4",
-    "name": "Plasma Torch",
-    "isActive": true
-  }
+{ 
+  "change": [
+    {
+      "id": "item_plasma_torch_7fr4",
+      "name": "Plasma Torch",
+      "isActive": true
+    }
+  ]
 }
 
 - Example for transformation or crafting (new item details can be partial and will inherit old properties):
-{
-  "action": "change",
-  "item":
-  {
-    "id": "item_scrap_metal_7fr4",
-    "name": "Scrap Metal",
-    "newName": "Makeshift Shiv",
-    "type": "weapon",
-    "description": "A sharp piece of metal.",
-    "tags": [], /* empty array to remove the 'junk' tag from scrap metal */
-    "knownUses": [
-      { 
-        "actionName": "Cut",
-        "promptEffect": "Cut something with the shiv.",
-        "description": "Use this to cut things."
-      }
-    ]
-  }
+{ 
+  "change": [
+    {
+      "id": "item_scrap_metal_7fr4",
+      "name": "Scrap Metal",
+      "newName": "Makeshift Shiv",
+      "type": "weapon",
+      "description": "A sharp piece of metal.",
+      "tags": [], /* empty array to remove the 'junk' tag from scrap metal */
+      "knownUses": [
+        {
+          "actionName": "Cut",
+          "promptEffect": "Cut something with the shiv.",
+          "description": "Use this to cut things."
+        }
+      ]
+    }
+  ]
 }
 
-- Example for adding a known use to *existing* item (existing properties and known uses are inherited): 
-{
-  "action": "change",
-  "item":
-  {
-    "id": "item_mystic_orb_7fr4",
-    "name": "Mystic Orb",
-    "addKnownUse":
+- Example for adding a known use to *existing* item (existing properties and known uses are inherited):
+{ 
+  "change": [
     {
-      "actionName": "Peer into the Orb",
-      "promptEffect": "Peer into the Mystic Orb, trying to glimpse the future.",
-      "description": "Try to see the beyond",
-      "AppliesWhenActive": true
+      "id": "item_mystic_orb_7fr4",
+      "name": "Mystic Orb",
+      "addKnownUse": {
+        "actionName": "Peer into the Orb",
+        "promptEffect": "Peer into the Mystic Orb, trying to glimpse the future.",
+        "description": "Try to see the beyond",
+        "AppliesWhenActive": true
+      }
     }
-  }
+  ]
 }
 
 - Example for adding a new chapter to an existing written item:
+- Example for adding a new chapter to an existing written item:
 {
-  "action": "addDetails",
-  "item":
-  {
-    "id": "item_codex_8g3c",
-    "name": "The Codex of Whispering Echoes",
-    "chapter":
+  "addDetails": [
     {
-      "heading": "The Sacrifice of Silence",
-      "description": "A grim tale about the price of forbidden knowledge.",
-      "contentLength": 120
+      "id": "item_codex_8g3c",
+      "name": "The Codex of Whispering Echoes",
+      "type": "book",
+      "chapters": [
+        {
+          "heading": "The Sacrifice of Silence",
+          "description": "A grim tale about the price of forbidden knowledge.",
+          "contentLength": 120
+        }
+      ]
     }
-  }
+  ]
 }
 
-- CRITICALLY IMPORTANT: holderId, toId, and fromId can only be 'node_*', 'npc_*' or 'player'. NEVER put an item inside another item!
-- If the Player successfully restores, decodes or translates a 'book' or a 'page', you MUST add 'recovered' tag to the item, in addition to existing tags.
-- If a torn page or book is completed by reuniting its missing half, you MUST add 'recovered' tag to the item and keep existing tags.
+- CRITICALLY IMPORTANT: holderId and newHolderId can only be 'node_*', 'npc_*' or 'player'. NEVER put an item inside another item!
 - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
 - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
 - Use "change" to update the remaining number of uses for multi-use items in their name (in brackets) or in description.

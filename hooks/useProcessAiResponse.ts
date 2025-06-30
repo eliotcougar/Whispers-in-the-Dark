@@ -61,11 +61,8 @@ const correctItemChanges = async ({
         }
       } else if (currentChange.action === 'move') {
         const payload = currentChange.item;
-        if (!payload.fromId.startsWith('node_')) {
-          payload.fromId = baseState.currentMapNodeId ?? 'unknown';
-        }
-        if (!payload.toId.startsWith('node_')) {
-          payload.toId = baseState.currentMapNodeId ?? 'unknown';
+        if (!payload.newHolderId.startsWith('node_')) {
+          payload.newHolderId = baseState.currentMapNodeId ?? 'unknown';
         }
       }
     }
@@ -489,7 +486,8 @@ export const useProcessAiResponse = ({
               change.item.name,
             ], draftState.inventory, false, true) as Item | null;
             if (!target) continue;
-            const { chapter } = change.item;
+            const chapter = change.item.chapters?.[0];
+            if (!chapter) continue;
             const { name: themeName, systemInstructionModifier } = themeContextForResponse;
             const nodes = draftState.mapData.nodes.filter(
               n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'

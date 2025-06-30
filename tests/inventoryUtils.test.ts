@@ -94,7 +94,8 @@ describe('inventoryUtils', () => {
       item: {
         id: 'book1',
         name: 'Mysteries',
-        chapter: { heading: 'New', description: 'More', contentLength: 60 },
+        type: 'book',
+        chapters: [{ heading: 'New', description: 'More', contentLength: 60 }],
       },
     };
     const result = applyItemChangeAction(initial, change);

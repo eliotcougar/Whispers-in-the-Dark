@@ -94,10 +94,11 @@ export const VALID_ACTIONS = [
 export const VALID_ACTIONS_STRING = VALID_ACTIONS.map(action => `"${action}"`).join(' | ');
 
 export const COMMON_TAGS = [
+  'default',
   'junk',
-  'recovered',
-  'stashed',
 ] as const;
+
+export const INTERNAL_TAGS = ['stashed'] as const;
 
 export const TEXT_STYLE_TAGS = [
   'printed',
@@ -106,8 +107,7 @@ export const TEXT_STYLE_TAGS = [
   'digital',
 ] as const;
 
-export const WRITING_TAGS = [
-  ...TEXT_STYLE_TAGS,
+export const TEXT_MOD_TAGS = [
   'faded',
   'smudged',
   'torn',
@@ -116,9 +116,12 @@ export const WRITING_TAGS = [
   'foreign',
   'gothic',
   'runic',
+  'recovered',
 ] as const;
 
-export const VALID_TAGS = [...COMMON_TAGS, ...WRITING_TAGS] as const;
+export const WRITING_TAGS = [...TEXT_STYLE_TAGS, ...TEXT_MOD_TAGS] as const;
+
+export const VALID_TAGS = [...COMMON_TAGS, ...INTERNAL_TAGS, ...WRITING_TAGS] as const;
 
 export const COMMON_TAGS_STRING = COMMON_TAGS.map(t => `"${t}"`).join(' | ');
 export const TEXT_STYLE_TAGS_STRING = TEXT_STYLE_TAGS.map(t => `"${t}"`).join(' | ');
