@@ -237,39 +237,41 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setLoadingReason: setLoadingReasonRef,
     onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
-      processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
+      return processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
         playerActionText: undefined,
         dialogueTranscript:
           preparedGameState.gameLog[preparedGameState.gameLog.length - 1] ?? '',
-      }).then(() => {
-        draftState.lastDebugPacket ??= {
-          prompt: '',
-          rawResponseText: null,
-          parsedResponse: null,
-          timestamp: new Date().toISOString(),
-          storytellerThoughts: null,
-          mapUpdateDebugInfo: null,
-          inventoryDebugInfo: null,
-          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
-          dialogueDebugInfo: null,
-        };
-        draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;
-        draftState.lastDebugPacket.rawResponseText = debugInfo.summaryRawResponse ?? null;
-        draftState.lastDebugPacket.storytellerThoughts = debugInfo.summaryThoughts ?? null;
-        draftState.lastDebugPacket.parsedResponse = summaryPayload;
-        draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
-        commitGameState(draftState);
-        setIsLoading(false);
-        setLoadingReasonRef(null);
-      }).catch((e: unknown) => {
-        console.error('Error in post-dialogue processAiResponse:', e);
-        setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
-        commitGameState(preparedGameState);
-        setIsLoading(false);
-        setLoadingReasonRef(null);
-      });
+      })
+        .then(() => {
+          draftState.lastDebugPacket ??= {
+            prompt: '',
+            rawResponseText: null,
+            parsedResponse: null,
+            timestamp: new Date().toISOString(),
+            storytellerThoughts: null,
+            mapUpdateDebugInfo: null,
+            inventoryDebugInfo: null,
+            loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
+            dialogueDebugInfo: null,
+          };
+          draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;
+          draftState.lastDebugPacket.rawResponseText = debugInfo.summaryRawResponse ?? null;
+          draftState.lastDebugPacket.storytellerThoughts = debugInfo.summaryThoughts ?? null;
+          draftState.lastDebugPacket.parsedResponse = summaryPayload;
+          draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
+          commitGameState(draftState);
+          setIsLoading(false);
+          setLoadingReasonRef(null);
+        })
+        .catch((e: unknown) => {
+          console.error('Error in post-dialogue processAiResponse:', e);
+          setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
+          commitGameState(preparedGameState);
+          setIsLoading(false);
+          setLoadingReasonRef(null);
+        });
     },
   });
 

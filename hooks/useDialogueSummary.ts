@@ -39,7 +39,7 @@ export interface UseDialogueSummaryProps {
       summaryRawResponse?: string;
       summaryThoughts?: Array<string>;
     }
-  ) => void;
+  ) => Promise<void>;
   getDialogueDebugLogs: () => Array<DialogueTurnDebugEntry>;
   clearDialogueDebugLogs: () => void;
 }
@@ -72,10 +72,10 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
 
     if (!currentThemeObj || !stateAtDialogueConclusionStart.dialogueState) {
       console.error('Cannot exit dialogue: current theme is null or not in dialogue state.', stateAtDialogueConclusionStart);
-      onDialogueConcluded(
+      await onDialogueConcluded(
         null,
         stateAtDialogueConclusionStart,
-        { turns: getDialogueDebugLogs() }
+        { turns: getDialogueDebugLogs() },
       );
       clearDialogueDebugLogs();
       setIsDialogueExiting(false);
@@ -165,7 +165,11 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       summaryRawResponse,
       summaryThoughts,
     };
-    onDialogueConcluded(summaryUpdatePayload, workingGameState, debugInfo);
+    await onDialogueConcluded(
+      summaryUpdatePayload,
+      workingGameState,
+      debugInfo,
+    );
     clearDialogueDebugLogs();
     setIsDialogueExiting(false);
   }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
