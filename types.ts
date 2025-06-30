@@ -67,7 +67,6 @@ export interface Item {
   lastInspectTurn?: number;
   // --- Fields for "change" action payloads ---
   newName?: string;
-  addKnownUse?: KnownUse;
 }
 
 // This ItemChange is from the AI's perspective, and will be processed into ItemChangeRecord
@@ -79,10 +78,7 @@ export interface ItemReference {
 export interface MoveItemPayload {
   id?: string;
   name?: string;
-  fromId: string;
-  fromName?: string;
-  toId: string;
-  toName?: string;
+  newHolderId: string;
 }
 
 export type ItemChangePayload =
@@ -101,9 +97,12 @@ export interface NewItemSuggestion {
 }
 
 export interface AddDetailsPayload {
-  id?: string;
-  name?: string;
-  chapter: ItemChapter;
+  id: string;
+  name: string;
+  type: ItemType;
+  knownUses?: Array<KnownUse>;
+  tags?: Array<ItemTag>;
+  chapters?: Array<ItemChapter>;
 }
 
 export type ItemChange =

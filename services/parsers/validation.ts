@@ -18,6 +18,8 @@ import {
   VALID_PRESENCE_STATUS_VALUES,
   VALID_TAGS,
   TEXT_STYLE_TAGS,
+  COMMON_TAGS,
+  WRITING_TAGS,
 } from '../../constants';
 import { normalizeItemType } from '../../utils/itemSynonyms';
 import { normalizeTags } from '../../utils/tagSynonyms';
@@ -125,6 +127,12 @@ export function isValidItem(item: unknown, context?: 'create' | 'change'): item 
     const normalized = normalizeTags(obj.tags);
     if (normalized) obj.tags = normalized;
     else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
+
+    const writtenTypes = ['page', 'book', 'map', 'picture'];
+    const allowed = writtenTypes.includes(obj.type ?? '')
+      ? [...COMMON_TAGS, ...WRITING_TAGS]
+      : COMMON_TAGS;
+    obj.tags = obj.tags.filter(t => (allowed as ReadonlyArray<string>).includes(t));
   }
   if (obj.type === 'page') {
     obj.tags = obj.tags ?? [];
@@ -203,10 +211,6 @@ export function isValidItem(item: unknown, context?: 'create' | 'change'): item 
     console.warn("isValidItem: 'knownUses' is present but invalid.", item);
     return false;
   }
-  if (obj.addKnownUse !== undefined && !isValidKnownUse(obj.addKnownUse)) {
-    console.warn("isValidItem: 'addKnownUse' is present but invalid.", item);
-    return false;
-  }
   
   return true;
 }
@@ -222,22 +226,63 @@ export function isValidItemReference(obj: unknown): obj is ItemReference {
 
 export function isValidAddDetailsPayload(obj: unknown): obj is AddDetailsPayload {
   if (!obj || typeof obj !== 'object') return false;
-  const maybe = obj as Partial<AddDetailsPayload> & { chapter?: unknown };
+  const maybe = obj as Partial<AddDetailsPayload> & {
+    chapters?: unknown;
+    knownUses?: unknown;
+    tags?: unknown;
+  };
   if (
-    (!maybe.id || typeof maybe.id === 'string') &&
-    (!maybe.name || typeof maybe.name === 'string') &&
-    maybe.chapter &&
-    typeof maybe.chapter === 'object'
+    typeof maybe.id !== 'string' ||
+    maybe.id.trim() === '' ||
+    typeof maybe.name !== 'string' ||
+    maybe.name.trim() === '' ||
+    typeof maybe.type !== 'string' ||
+    !VALID_ITEM_TYPES.includes(maybe.type)
   ) {
-    const ch = maybe.chapter as Partial<ItemChapter>;
-    return (
-      typeof ch.heading === 'string' &&
-      typeof ch.description === 'string' &&
-      typeof ch.contentLength === 'number' &&
-      (ch.imageData === undefined || typeof ch.imageData === 'string')
-    );
+    return false;
   }
-  return false;
+  const isWritten = ['page', 'book', 'map', 'picture'].includes(maybe.type);
+
+  if (
+    maybe.knownUses === undefined &&
+    maybe.tags === undefined &&
+    maybe.chapters === undefined
+  ) {
+    return false;
+  }
+
+  if (
+    maybe.knownUses !== undefined &&
+    !(Array.isArray(maybe.knownUses) && maybe.knownUses.every(isValidKnownUse))
+  ) {
+    return false;
+  }
+
+  const allowedTags = isWritten ? [...COMMON_TAGS, ...WRITING_TAGS] : COMMON_TAGS;
+  const tagsValid =
+    Array.isArray(maybe.tags) &&
+    maybe.tags.every(t => (allowedTags as ReadonlyArray<string>).includes(t));
+
+  const chaptersValid =
+    Array.isArray(maybe.chapters) &&
+    maybe.chapters.every(ch => {
+      const chapter = ch as Partial<ItemChapter>;
+      return (
+        typeof chapter.heading === 'string' &&
+        typeof chapter.description === 'string' &&
+        typeof chapter.contentLength === 'number'
+      );
+    });
+
+  if (isWritten) {
+    if (!tagsValid || !chaptersValid) {
+      return false;
+    }
+  } else {
+    if (maybe.tags !== undefined && !tagsValid) return false;
+    if (maybe.chapters !== undefined && !chaptersValid) return false;
+  }
+  return true;
 }
 
 export function isValidNewItemSuggestion(obj: unknown): obj is NewItemSuggestion {
