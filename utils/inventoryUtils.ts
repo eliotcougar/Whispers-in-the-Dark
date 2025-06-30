@@ -125,8 +125,8 @@ export const buildItemChangeRecords = (
       const item = change.item;
       if (!item.id) item.id = buildItemId(item.name);
       record = {
-        type: 'gain',
-        gainedItem: {
+        type: 'acquire',
+        acquiredItem: {
           ...item,
           activeDescription: item.activeDescription ?? undefined,
           isActive: item.isActive ?? false,

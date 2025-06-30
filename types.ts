@@ -351,8 +351,8 @@ export interface LoremasterRefineDebugInfo {
 
 // --- TurnChanges Data Structures ---
 export interface ItemChangeRecord {
-  type: 'gain' | 'loss' | 'update';
-  gainedItem?: Item;     // For 'gain'
+  type: 'acquire' | 'loss' | 'update';
+  acquiredItem?: Item;   // For 'acquire'
   lostItem?: Item;       // For 'loss' (the full item object before it was lost)
   oldItem?: Item;        // For 'update' (item state before update)
   newItem?: Item;        // For 'update' (item state after update, including transformations)
