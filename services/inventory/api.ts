@@ -17,8 +17,7 @@ import {
   VALID_ITEM_TYPES_STRING,
   VALID_TAGS,
   VALID_TAGS_STRING,
-  COMMON_TAGS,
-  WRITING_TAGS,
+  TEXT_STYLE_TAGS_STRING,
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -41,235 +40,184 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 import { normalizeTag } from '../../utils/tagSynonyms';
 import { retryAiCall } from '../../utils/retry';
 
-export const INVENTORY_KNOWN_USE_SCHEMA = {
-  type: 'object',
-  properties: {
-    actionName: { type: 'string', description: 'User-facing text for the action button.' },
-    promptEffect: { type: 'string', description: 'Non-empty text sent to the game AI when chosen.' },
-    description: { type: 'string', description: 'Tooltip hint for the player.' },
-    appliesWhenActive: { type: 'boolean', description: 'Shown when item is active.' },
-    appliesWhenInactive: { type: 'boolean', description: 'Shown when item is inactive.' },
-  },
-  required: ['actionName', 'promptEffect', 'description'],
-  additionalProperties: false,
-} as const;
-
-export const INVENTORY_CHAPTER_SCHEMA = {
-  type: 'object',
-  properties: {
-    heading: { type: 'string', description: 'Short title of the chapter.' },
-    description: { type: 'string', description: 'Detailed abstract of the chapter.' },
-    contentLength: { type: 'number', description: 'Length in words (50-500).' },
-  },
-  required: ['heading', 'description', 'contentLength'],
-  additionalProperties: false,
-} as const;
-
-export const INVENTORY_ITEM_SCHEMA = {
-  type: 'object',
-  properties: {
-    id: { type: 'string', description: 'Unique identifier for existing items.' },
-    name: { type: 'string', description: 'Full name of the item.' },
-    newName: { type: 'string', description: 'New name for transformed items.' },
-    type: { enum: VALID_ITEM_TYPES, description: `Item type. One of ${VALID_ITEM_TYPES_STRING}` },
-    description: { type: 'string', description: 'Short description of the item.' },
-    activeDescription: { type: 'string', description: 'Description when item is active.' },
-    isActive: { type: 'boolean', description: 'True if the item is active.' },
-    holderId: {
-      type: 'string',
-      description: `ID of the holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
+export const INVENTORY_JSON_SCHEMA = `{
+  "type": "object",
+  "properties": {
+    "observations": {
+      "type": "string",
+      "minLength": 500,
+      "description": "Contextually relevant observations about the items."
     },
-    tags: { type: 'array', items: { enum: VALID_TAGS }, description: `Valid tags: ${VALID_TAGS_STRING}.` },
-    chapters: {
-      type: 'array',
-      items: INVENTORY_CHAPTER_SCHEMA,
-      description: `For 'page' use one chapter. For 'book' between ${String(MIN_BOOK_CHAPTERS)} chapters.`,
-    },
-    knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
-  },
-  additionalProperties: false,
-} as const;
-
-const BASE_WRITTEN_PROPERTIES = {
-  name: { type: 'string' },
-  description: { type: 'string' },
-  activeDescription: { type: 'string' },
-  isActive: { type: 'boolean' },
-  holderId: {
-    type: 'string',
-    description: `ID of the holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
-  },
-  tags: { type: 'array', items: { enum: [...COMMON_TAGS, ...WRITING_TAGS] } },
-  chapters: { type: 'array', items: INVENTORY_CHAPTER_SCHEMA },
-  knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
-} as const;
-
-const INVENTORY_CREATE_WRITTEN_SCHEMA = {
-  anyOf: [
-    {
-      type: 'object',
-      properties: {
-        ...BASE_WRITTEN_PROPERTIES,
-        type: { const: 'book' },
-        chapters: {
-          type: 'array',
-          items: INVENTORY_CHAPTER_SCHEMA,
-          minItems: MIN_BOOK_CHAPTERS,
-          maxItems: MAX_BOOK_CHAPTERS,
+    "rationale": { "type": "string", "description": "Reasoning behind the inventory changes." },
+    "create": {
+      "type": "array",
+      "description": "New items to create. Item types may include values such as ${VALID_ITEM_TYPES_STRING}. Tags can contain ${VALID_TAGS_STRING}. Written items must include one of ${TEXT_STYLE_TAGS_STRING} to describe their style. Books usually contain between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters; other written items use exactly one chapter.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Full name of the item." },
+          "type": { "enum": [${VALID_ITEM_TYPES.map(t => `"${t}"`).join(', ')}], "description": "One of ${VALID_ITEM_TYPES_STRING}." },
+          "description": { "type": "string", "description": "Short description of the item." },
+          "activeDescription": { "type": "string", "description": "Description when item is active." },
+          "isActive": { "type": "boolean", "description": "True if the item is active." },
+          "holderId": { "type": "string", "description": "ID of the holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'." },
+          "tags": { "type": "array", "items": { "enum": [${VALID_TAGS.map(t => `"${t}"`).join(', ')}] }, "description": "Example tags: ${VALID_TAGS_STRING}. Written items require one of ${TEXT_STYLE_TAGS_STRING}." },
+          "chapters": {
+            "type": "array",
+            "description": "Chapters for written items. Books need ${String(MIN_BOOK_CHAPTERS)}-${String(MAX_BOOK_CHAPTERS)} chapters. Other written types have exactly one chapter. Each chapter includes heading, description and contentLength.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "heading": { "type": "string", "description": "Chapter title." },
+                "description": { "type": "string", "description": "Chapter summary." },
+                "contentLength": { "type": "number", "description": "Length in words (50-500)." }
+              },
+              "required": ["heading", "description", "contentLength"],
+              "additionalProperties": false
+            }
+          },
+          "knownUses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "actionName": { "type": "string", "description": "User-facing action text." },
+                "promptEffect": { "type": "string", "description": "Text sent to the game AI when chosen." },
+                "description": { "type": "string", "description": "Tooltip hint for the player." },
+                "appliesWhenActive": { "type": "boolean", "description": "Shown when item is active." },
+                "appliesWhenInactive": { "type": "boolean", "description": "Shown when item is inactive." }
+              },
+              "required": ["actionName", "promptEffect", "description"],
+              "additionalProperties": false
+            }
+          }
         },
-      },
-      required: ['name', 'type', 'description', 'holderId', 'tags', 'chapters'],
-      additionalProperties: false,
+        "required": ["name", "type", "description", "holderId", "tags"],
+        "additionalProperties": false
+      }
     },
-    {
-      type: 'object',
-      properties: {
-        ...BASE_WRITTEN_PROPERTIES,
-        type: { enum: ['page', 'map', 'picture'] },
-        chapters: {
-          type: 'array',
-          items: INVENTORY_CHAPTER_SCHEMA,
-          minItems: 1,
-          maxItems: 1,
+    "change": {
+      "type": "array",
+      "description": "Updates to existing items.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "Identifier of the item to change." },
+          "name": { "type": "string", "description": "Current item name." },
+          "newName": { "type": "string", "description": "Updated name if changed." },
+          "type": { "enum": [${VALID_ITEM_TYPES.map(t => `"${t}"`).join(', ')}], "description": "Updated type if changed. One of ${VALID_ITEM_TYPES_STRING}." },
+          "description": { "type": "string", "description": "Updated description if changed." },
+          "activeDescription": { "type": "string", "description": "Updated active description." },
+          "isActive": { "type": "boolean", "description": "Updated active state." },
+          "tags": { "type": "array", "items": { "enum": [${VALID_TAGS.map(t => `"${t}"`).join(', ')}] }, "description": "Updated tags. Written items should include one of ${TEXT_STYLE_TAGS_STRING}." },
+          "knownUses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "actionName": { "type": "string" },
+                "promptEffect": { "type": "string" },
+                "description": { "type": "string" },
+                "appliesWhenActive": { "type": "boolean" },
+                "appliesWhenInactive": { "type": "boolean" }
+              },
+              "required": ["actionName", "promptEffect", "description"],
+              "additionalProperties": false
+            }
+          },
+          "chapters": {
+            "type": "array",
+            "description": "Chapters for written items. Books need ${String(MIN_BOOK_CHAPTERS)}-${String(MAX_BOOK_CHAPTERS)} chapters while other written types use one.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "heading": { "type": "string" },
+                "description": { "type": "string" },
+                "contentLength": { "type": "number" }
+              },
+              "required": ["heading", "description", "contentLength"],
+              "additionalProperties": false
+            }
+          }
         },
-      },
-      required: ['name', 'type', 'description', 'holderId', 'tags', 'chapters'],
-      additionalProperties: false,
+        "required": ["id", "name"],
+        "additionalProperties": false
+      }
     },
-  ],
-} as const;
-
-const INVENTORY_CREATE_REGULAR_SCHEMA = {
-  type: 'object',
-  properties: {
-    name: { type: 'string' },
-    type: { enum: VALID_ITEM_TYPES.filter(t => !['page', 'book', 'map', 'picture'].includes(t)) },
-    description: { type: 'string' },
-    activeDescription: { type: 'string' },
-    isActive: { type: 'boolean' },
-    holderId: {
-      type: 'string',
-      description: `ID of the holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
+    "move": {
+      "type": "array",
+      "description": "Move an existing item to a new holder.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "newHolderId": { "type": "string", "description": "Target holder ID. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'." }
+        },
+        "required": ["id", "name", "newHolderId"],
+        "additionalProperties": false
+      }
     },
-    tags: { type: 'array', items: { enum: COMMON_TAGS } },
-    knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
-  },
-  required: ['name', 'type', 'description', 'holderId'],
-  additionalProperties: false,
-} as const;
-
-const INVENTORY_CHANGE_WRITTEN_SCHEMA = {
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    newName: { type: 'string' },
-    type: { enum: ['page', 'book', 'map', 'picture'] },
-    description: { type: 'string' },
-    activeDescription: { type: 'string' },
-    isActive: { type: 'boolean' },
-    tags: { type: 'array', items: { enum: [...COMMON_TAGS, ...WRITING_TAGS] } },
-    knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
-    chapters: { type: 'array', items: INVENTORY_CHAPTER_SCHEMA },
-  },
-  required: ['id', 'name', 'type'],
-  additionalProperties: false,
-} as const;
-
-const INVENTORY_CHANGE_REGULAR_SCHEMA = {
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    newName: { type: 'string' },
-    type: {
-      enum: VALID_ITEM_TYPES.filter(t => !['page', 'book', 'map', 'picture'].includes(t)),
+    "destroy": {
+      "type": "array",
+      "description": "Remove items from the world.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "required": ["id", "name"],
+        "additionalProperties": false
+      }
     },
-    description: { type: 'string' },
-    activeDescription: { type: 'string' },
-    isActive: { type: 'boolean' },
-    tags: { type: 'array', items: { enum: COMMON_TAGS } },
-    knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
+    "addDetails": {
+      "type": "array",
+      "description": "Add new chapters or tags to an existing item.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "Identifier of the item." },
+          "name": { "type": "string", "description": "Name of the item." },
+          "type": { "enum": [${VALID_ITEM_TYPES.map(t => `"${t}"`).join(', ')}], "description": "One of ${VALID_ITEM_TYPES_STRING}." },
+          "tags": { "type": "array", "items": { "enum": [${VALID_TAGS.map(t => `"${t}"`).join(', ')}] }, "description": "Updated tags. Written items should include one of ${TEXT_STYLE_TAGS_STRING}." },
+          "knownUses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "actionName": { "type": "string" },
+                "promptEffect": { "type": "string" },
+                "description": { "type": "string" },
+                "appliesWhenActive": { "type": "boolean" },
+                "appliesWhenInactive": { "type": "boolean" }
+              },
+              "required": ["actionName", "promptEffect", "description"],
+              "additionalProperties": false
+            }
+          },
+          "chapters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "heading": { "type": "string" },
+                "description": { "type": "string" },
+                "contentLength": { "type": "number" }
+              },
+              "required": ["heading", "description", "contentLength"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["id", "name", "type"],
+        "additionalProperties": false
+      }
+    }
   },
-  required: ['id', 'name'],
-  additionalProperties: false,
-} as const;
-
-const INVENTORY_MOVE_SCHEMA = {
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    newHolderId: { type: 'string' },
-  },
-  required: ['id', 'name', 'newHolderId'],
-  additionalProperties: false,
-} as const;
-
-const INVENTORY_DESTROY_SCHEMA = {
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-  },
-  required: ['id', 'name'],
-  additionalProperties: false,
-} as const;
-
-const INVENTORY_ADD_DETAILS_WRITTEN_SCHEMA = {
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    type: { enum: ['page', 'book', 'map', 'picture'] },
-    knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
-    tags: { type: 'array', items: { enum: [...COMMON_TAGS, ...WRITING_TAGS] } },
-    chapters: { type: 'array', items: INVENTORY_CHAPTER_SCHEMA },
-  },
-  required: ['id', 'name', 'type', 'tags', 'chapters'],
-  additionalProperties: false,
-} as const;
-
-const INVENTORY_ADD_DETAILS_REGULAR_SCHEMA = {
-  type: 'object',
-  properties: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    type: { enum: VALID_ITEM_TYPES.filter(t => !['page', 'book', 'map', 'picture'].includes(t)) },
-    knownUses: { type: 'array', items: INVENTORY_KNOWN_USE_SCHEMA },
-    tags: { type: 'array', items: { enum: COMMON_TAGS } },
-  },
-  required: ['id', 'name', 'type'],
-  additionalProperties: false,
-} as const;
-
-export const INVENTORY_JSON_SCHEMA = {
-  type: 'object',
-  properties: {
-    observations: {
-      type: 'string',
-      minLength: 500,
-      description: 'Contextually relevant observations about the items.',
-    },
-    rationale: { type: 'string', description: 'Reasoning behind the inventory changes.' },
-    create: {
-      type: 'array',
-      items: { anyOf: [INVENTORY_CREATE_REGULAR_SCHEMA, INVENTORY_CREATE_WRITTEN_SCHEMA] },
-    },
-    change: {
-      type: 'array',
-      items: { anyOf: [INVENTORY_CHANGE_REGULAR_SCHEMA, INVENTORY_CHANGE_WRITTEN_SCHEMA] },
-    },
-    move: { type: 'array', items: INVENTORY_MOVE_SCHEMA },
-    destroy: { type: 'array', items: INVENTORY_DESTROY_SCHEMA },
-    addDetails: {
-      type: 'array',
-      items: { anyOf: [INVENTORY_ADD_DETAILS_REGULAR_SCHEMA, INVENTORY_ADD_DETAILS_WRITTEN_SCHEMA] },
-    },
-  },
-  required: ['observations', 'rationale'],
-  additionalProperties: false,
-} as const;
+    "required": ["observations", "rationale"],
+    "additionalProperties": false
+  }` as const;
 
 /**
  * Executes the inventory AI call using model fallback.
