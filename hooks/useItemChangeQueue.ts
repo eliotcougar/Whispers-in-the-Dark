@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import * as React from 'react';
 import { Item, TurnChanges, KnownUse } from '../types';
 
-export type AnimationType = 'gain' | 'loss' | 'change';
+export type AnimationType = 'acquire' | 'loss' | 'change';
 export interface AnimationQueueItem {
   type: AnimationType;
   item?: Item;
@@ -15,7 +15,7 @@ export interface AnimationQueueItem {
 }
 
 export type AnimationStep = 'idle' | 'appearing' | 'visible' | 'disappearing';
-export type ActiveGlowType = 'gain' | 'loss' | 'change-new' | null;
+export type ActiveGlowType = 'acquire' | 'loss' | 'change-new' | null;
 
 export interface DisplayableItems {
   item?: Item;
@@ -142,8 +142,8 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
 
     const newAnimationQueue: Array<AnimationQueueItem> = [];
     for (const change of lastTurnChanges.itemChanges) {
-      if (change.type === 'gain' && change.gainedItem) {
-        newAnimationQueue.push({ type: 'gain', item: change.gainedItem });
+      if (change.type === 'acquire' && change.acquiredItem) {
+        newAnimationQueue.push({ type: 'acquire', item: change.acquiredItem });
       } else if (change.type === 'loss' && change.lostItem) {
         newAnimationQueue.push({ type: 'loss', item: change.lostItem });
       } else if (change.type === 'update' && change.oldItem && change.newItem) {
@@ -153,7 +153,7 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
       }
     }
     newAnimationQueue.sort((a, b) => {
-      const priority = { loss: 0, gain: 1, change: 2 } as const;
+      const priority = { loss: 0, acquire: 1, change: 2 } as const;
       return priority[a.type] - priority[b.type];
     });
 
@@ -225,7 +225,7 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
       }
 
       case 'visible': {
-        if (currentAnimatingItem.type === 'gain') setActiveGlowType('gain');
+        if (currentAnimatingItem.type === 'acquire') setActiveGlowType('acquire');
         else if (currentAnimatingItem.type === 'loss') setActiveGlowType('loss');
         else setActiveGlowType('change-new');
 

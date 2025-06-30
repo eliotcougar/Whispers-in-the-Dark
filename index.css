@@ -686,7 +686,7 @@ body {
   transform: scale(1); /* Normal visible state */
 }
 
-/* Target state for gain/change disappearance */
+/* Target state for acquire/change disappearance */
 .animating-item-card.disappear-to-small {
   opacity: 0;
   transform: scale(0.1); /* Shrink to small */

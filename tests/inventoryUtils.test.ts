@@ -4,7 +4,7 @@ import { PLAYER_HOLDER_ID } from '../constants';
 import type { ItemChange, Item } from '../types';
 
 describe('inventoryUtils', () => {
-  it('applyItemChangeAction adds gained item', () => {
+  it('applyItemChangeAction adds acquired item', () => {
     const change: ItemChange = {
       action: 'create',
       item: { id: 'it1', name: 'Torch', type: 'equipment', description: 'Bright', holderId: PLAYER_HOLDER_ID },
@@ -14,7 +14,7 @@ describe('inventoryUtils', () => {
     expect(result[0].name).toBe('Torch');
   });
 
-  it('gain page item preserves contentLength', () => {
+  it('acquire page item preserves contentLength', () => {
     const change: ItemChange = {
       action: 'create',
       item: {
@@ -36,7 +36,7 @@ describe('inventoryUtils', () => {
     expect(result[0].chapters?.[0].contentLength).toBe(25);
   });
 
-  it('buildItemChangeRecords returns gain record', () => {
+  it('buildItemChangeRecords returns acquire record', () => {
     const change: ItemChange = {
       action: 'create',
       item: { id: 'it1', name: 'Torch', type: 'equipment', description: 'Bright', holderId: PLAYER_HOLDER_ID },
@@ -44,8 +44,8 @@ describe('inventoryUtils', () => {
     const records = buildItemChangeRecords([change], []);
     expect(records).toEqual([
       {
-        type: 'gain',
-        gainedItem: {
+        type: 'acquire',
+        acquiredItem: {
           id: 'it1',
           name: 'Torch',
           type: 'equipment',
