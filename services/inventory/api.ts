@@ -15,9 +15,11 @@ import {
   PLAYER_HOLDER_ID,
   VALID_ITEM_TYPES,
   VALID_ITEM_TYPES_STRING,
-  VALID_TAGS,
-  VALID_TAGS_STRING,
+  COMMON_TAGS,
+  COMMON_TAGS_STRING,
   TEXT_STYLE_TAGS_STRING,
+  WRITING_TAGS,
+  TEXT_MOD_TAGS_STRING
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -50,37 +52,38 @@ export const INVENTORY_JSON_SCHEMA = {
     },
     rationale: {
       type: 'string',
+      minLength: 500,
       description: 'Reasoning behind the inventory changes.',
     },
     create: {
       type: 'array',
-      description: `New items to create. Item types may include values such as ${VALID_ITEM_TYPES_STRING}. Tags can contain ${VALID_TAGS_STRING}. Written items must include one of ${TEXT_STYLE_TAGS_STRING} to describe their style. Books usually contain between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters; other written items use exactly one chapter.`,
+      description: `New items to create, taken exactly from the provided New Items JSON`,
       items: {
         type: 'object',
         properties: {
-          name: { type: 'string', description: 'Full name of the item.' },
-          type: { enum: VALID_ITEM_TYPES, description: `One of ${VALID_ITEM_TYPES_STRING}.` },
-          description: { type: 'string', description: 'Short description of the item.' },
+          name: { type: 'string', description: 'Item name as it will appear to the player.' },
+          type: { enum: VALID_ITEM_TYPES, description: `Item type. One of ${VALID_ITEM_TYPES_STRING}` },
+          description: { type: 'string', description: 'Concise explanation of what the item is.' },
           activeDescription: { type: 'string', description: 'Description when item is active.' },
           isActive: { type: 'boolean', description: 'True if the item is active.' },
           holderId: {
             type: 'string',
-            description: `ID of the holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
+            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*', depending on Item Hints.`,
           },
           tags: {
             type: 'array',
-            items: { enum: VALID_TAGS },
-            description: `Example tags: ${VALID_TAGS_STRING}. Written items require one of ${TEXT_STYLE_TAGS_STRING}.`,
+            items: { enum: [...COMMON_TAGS,...WRITING_TAGS] },
+            description: `Example tags: ${COMMON_TAGS_STRING}, 'book', 'page', 'map', and 'picture' type items require one of ${TEXT_STYLE_TAGS_STRING} and optionally ${TEXT_MOD_TAGS_STRING}.`,
           },
           chapters: {
             type: 'array',
-            description: `Chapters for written items. Books need ${String(MIN_BOOK_CHAPTERS)}-${String(MAX_BOOK_CHAPTERS)} chapters. Other written types have exactly one chapter. Each chapter includes heading, description and contentLength.`,
+            description: `For type page, map, or picture - exactly one chapter. For type book - between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.`,
             items: {
               type: 'object',
               properties: {
-                heading: { type: 'string', description: 'Chapter title.' },
-                description: { type: 'string', description: 'Chapter summary.' },
-                contentLength: { type: 'number', description: 'Length in words (50-500).' },
+                heading: { type: 'string', description: 'Short heading for the chapter.' },
+                description: { type: 'string', description: 'Detailed abstract of the chapter contents.' },
+                contentLength: { type: 'number', minValue: 50, maxValue: 500, description: 'Approximate length in words.' },
               },
               required: ['heading', 'description', 'contentLength'],
               additionalProperties: false,
@@ -91,11 +94,11 @@ export const INVENTORY_JSON_SCHEMA = {
             items: {
               type: 'object',
               properties: {
-                actionName: { type: 'string', description: 'User-facing action text.' },
-                promptEffect: { type: 'string', description: 'Text sent to the game AI when chosen.' },
-                description: { type: 'string', description: 'Tooltip hint for the player.' },
-                appliesWhenActive: { type: 'boolean', description: 'Shown when item is active.' },
-                appliesWhenInactive: { type: 'boolean', description: 'Shown when item is inactive.' },
+                actionName: { type: 'string', description: 'Name of the use action.' },
+                promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
+                description: { type: 'string', description: 'Tooltip hint for this use.' },
+                appliesWhenActive: { type: 'boolean', description: 'Use is available when item is active.' },
+                appliesWhenInactive: { type: 'boolean', description: 'Use is available when item is inactive.' },
               },
               required: ['actionName', 'promptEffect', 'description'],
               additionalProperties: false,
@@ -121,8 +124,8 @@ export const INVENTORY_JSON_SCHEMA = {
           isActive: { type: 'boolean', description: 'Updated active state.' },
           tags: {
             type: 'array',
-            items: { enum: VALID_TAGS },
-            description: `Updated tags. Written items should include one of ${TEXT_STYLE_TAGS_STRING}.`,
+            items: { enum: COMMON_TAGS },
+            description: `Updated tags.`,
           },
           knownUses: {
             type: 'array',
@@ -138,21 +141,7 @@ export const INVENTORY_JSON_SCHEMA = {
               required: ['actionName', 'promptEffect', 'description'],
               additionalProperties: false,
             },
-          },
-          chapters: {
-            type: 'array',
-            description: `Chapters for written items. Books need ${String(MIN_BOOK_CHAPTERS)}-${String(MAX_BOOK_CHAPTERS)} chapters while other written types use one.`,
-            items: {
-              type: 'object',
-              properties: {
-                heading: { type: 'string' },
-                description: { type: 'string' },
-                contentLength: { type: 'number' },
-              },
-              required: ['heading', 'description', 'contentLength'],
-              additionalProperties: false,
-            },
-          },
+          }
         },
         required: ['id', 'name'],
         additionalProperties: false,
@@ -168,7 +157,7 @@ export const INVENTORY_JSON_SCHEMA = {
           name: { type: 'string' },
           newHolderId: {
             type: 'string',
-            description: `Target holder ID. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
+            description: `ID of the new location or holder of the Item. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
           },
         },
         required: ['id', 'name', 'newHolderId'],
@@ -190,17 +179,16 @@ export const INVENTORY_JSON_SCHEMA = {
     },
     addDetails: {
       type: 'array',
-      description: 'Add new chapters or tags to an existing item.',
+      description: 'Add new knownUses, chapters, or tags to an existing item.',
       items: {
         type: 'object',
         properties: {
           id: { type: 'string', description: 'Identifier of the item.' },
           name: { type: 'string', description: 'Name of the item.' },
-          type: { enum: VALID_ITEM_TYPES, description: `One of ${VALID_ITEM_TYPES_STRING}.` },
           tags: {
             type: 'array',
-            items: { enum: VALID_TAGS },
-            description: `Updated tags. Written items should include one of ${TEXT_STYLE_TAGS_STRING}.`,
+            items: { enum: [...COMMON_TAGS, 'restored'] },
+            description: `Updated tags. Written items can receive 'recovered' tag if translated, decoded, or restored.`,
           },
           knownUses: {
             type: 'array',
@@ -231,7 +219,7 @@ export const INVENTORY_JSON_SCHEMA = {
             },
           },
         },
-        required: ['id', 'name', 'type'],
+        required: ['id', 'name'],
         additionalProperties: false,
       },
     },
