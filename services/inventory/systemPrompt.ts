@@ -7,6 +7,7 @@ import {
   VALID_ITEM_TYPES_STRING,
   VALID_TAGS_STRING,
   WRITING_TAGS_STRING,
+  VALID_ACTIONS_STRING,
 } from '../../constants';
 import { ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
 
@@ -18,15 +19,9 @@ Define any operations on existing items in the Player's Inventory, based on Play
 Define any operations on existing items at Locations, or in NPCs' inventories, according to Location Items Hint and NPCs Items Hint.
 Items described in the "World Items Hint" must be placed at their appropriate map node holderId from this context using the 'put' action.
 
-Respond ONLY with a JSON object containing these fields:
-{
-  "observations": "string", /* REQUIRED. Contextually relevant observations about the items. Minimum 500 chars. */
-  "rationale": "string", /* REQUIRED. Explain the reasoning behind the inventory changes. */
-  "itemChanges": [] /* REQUIRED. Array of ItemChange objects as described below. */
-}
-
-"itemChanges" is ALWAYS an array. If no items change this turn, send an empty array: "itemChanges": [].
-Valid actions are 'gain', 'destroy', 'update', 'addChapter, 'put', 'give', and 'take'.
+Provide your response as a JSON object matching the Inventory JSON schema. The
+object must contain \`observations\`, \`rationale\`, and an array of
+\`itemChanges\`. Valid actions are ${VALID_ACTIONS_STRING}.
 CRITICALLY IMPORTANT: Use 'put' or 'gain' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory.
 CRITICALLY IMPORTANT: Use 'give' or 'take' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
 CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from play.
