@@ -13,8 +13,6 @@ v1.4. Ink and Quill update
   + Librarian AI: Selects relevant facts from the fact list before each turn.
   + Inspect action on written materials to inject contents into Storyteller AI and Loremaster AI.
   + Inspecting your own journal is used to potentially inject new lore.
-  - Calm and Action global states to define when the player can interact with Journal.
-  - Action points for inventory actions to append to playerAction. Buttons turn into Toggles.
   + Picture and Map items with image support.
   + Saving images in the IndexedDB and save file.
   + Move Debug Packet out of Game State.
@@ -28,6 +26,8 @@ v1.5 Backstory update
   - Conversion of Character Sheet from Theme to Theme.
   - Flag about whether an NPC knows player's name.
   - NPCs attitude towards the Player.
+  - Calm and Action global states to define when the player can interact with Journal.
+  - Action points for inventory actions to append to playerAction. Buttons turn into Toggles.
 
 v future? On the Road update
   - Mobile Locations, large multi-crew vehicles (Ships, Airships, Spaseships, ...)
