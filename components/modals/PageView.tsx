@@ -61,7 +61,9 @@ function PageView({
   isWritingJournal = false,
 }: PageViewProps) {
   const [text, setText] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isTextLoading, setIsTextLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
+  const isLoading = isTextLoading || isImageLoading;
   const [showDecoded, setShowDecoded] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [chapterIndex, setChapterIndex] = useState(startIndex);
@@ -220,30 +222,35 @@ function PageView({
     if (!isVisible || !item) {
       setText(null);
       setImageUrl(null);
+      setIsTextLoading(false);
       return;
     }
 
     if (item.type === 'book' && !isJournal && chapterIndex === 0) {
       setText(null);
+      setIsTextLoading(false);
       return;
     }
 
     const idx = item.type === 'book' && !isJournal ? chapterIndex - 1 : chapterIndex;
     if (idx < 0 || idx >= chapters.length) {
       setText(null);
+      setIsTextLoading(false);
       return;
     }
     const chapter = chapters[idx];
     if (chapter.visibleContent) {
       setText(chapter.visibleContent);
+      setIsTextLoading(false);
       return;
     }
     if (item.id === PLAYER_JOURNAL_ID && chapter.actualContent) {
       setText(chapter.actualContent);
+      setIsTextLoading(false);
       return;
     }
 
-    setIsLoading(true);
+    setIsTextLoading(true);
     setLoadingReason(item.type === 'book' ? 'book' : 'page');
     void (async () => {
       const length = chapter.contentLength;
@@ -292,7 +299,7 @@ function PageView({
         updateItemContent(item.id, actual, visible, idx);
         setText(visible);
       }
-      setIsLoading(false);
+      setIsTextLoading(false);
       setLoadingReason(null);
     })();
   }, [
@@ -312,17 +319,20 @@ function PageView({
   ]);
 
   useEffect(() => {
+    setIsImageLoading(false);
     if (
       !isVisible ||
       !item ||
       (item.type !== 'picture' && item.type !== 'map')
     ) {
       setImageUrl(null);
+      setIsImageLoading(false);
       return;
     }
     const idx = chapterIndex;
     if (idx < 0 || idx >= chapters.length) {
       setImageUrl(null);
+      setIsImageLoading(false);
       return;
     }
     const chapter = chapters[idx];
@@ -331,24 +341,27 @@ function PageView({
         const data = await loadChapterImage(item.id, idx);
         if (data) {
           setImageUrl(`data:image/jpeg;base64,${data}`);
+          setIsImageLoading(false);
           return;
         }
       } else if (chapter.imageData) {
         await saveChapterImage(item.id, idx, chapter.imageData);
         updateItemContent(item.id, undefined, undefined, idx, makeImageRef(item.id, idx));
         setImageUrl(`data:image/jpeg;base64,${chapter.imageData}`);
+        setIsImageLoading(false);
         return;
       } else {
         const cached = await loadChapterImage(item.id, idx);
         if (cached) {
           updateItemContent(item.id, undefined, undefined, idx, makeImageRef(item.id, idx));
           setImageUrl(`data:image/jpeg;base64,${cached}`);
+          setIsImageLoading(false);
           return;
         }
       }
       if (isGeneratingImageRef.current) return;
       isGeneratingImageRef.current = true;
-      setIsLoading(true);
+      setIsImageLoading(true);
       setLoadingReason(item.type === 'book' ? 'book' : 'page');
       const img = await generateChapterImage(item, currentTheme, idx);
       if (img) {
@@ -362,7 +375,7 @@ function PageView({
         );
         setImageUrl(`data:image/jpeg;base64,${img}`);
       }
-      setIsLoading(false);
+      setIsImageLoading(false);
       setLoadingReason(null);
       isGeneratingImageRef.current = false;
     })();
