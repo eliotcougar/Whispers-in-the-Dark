@@ -1,6 +1,6 @@
 /**
  * @file ItemChangeAnimator.tsx
- * @description Animates item gain, loss, and changes.
+ * @description Animates item acquisition, loss, and changes.
  */
 import { Item, TurnChanges } from '../../types';
 import ItemTypeDisplay from './ItemTypeDisplay';
@@ -108,7 +108,7 @@ function ItemChangeAnimator({ lastTurnChanges, isGameBusy }: ItemChangeAnimatorP
 
   const getGlowClass = (cardType?: 'old' | 'new' | 'single'): string => {
     if (!activeGlowType) return '';
-    if (activeGlowType === 'gain' && cardType === 'single') return 'apply-green-glow-effect';
+    if (activeGlowType === 'acquire' && cardType === 'single') return 'apply-green-glow-effect';
     if (activeGlowType === 'loss' && cardType === 'single') return 'apply-red-glow-effect';
     if (activeGlowType === 'change-new' && cardType === 'new') return 'apply-neutral-glow-effect';
     return '';

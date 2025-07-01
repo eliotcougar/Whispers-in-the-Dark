@@ -117,8 +117,8 @@ export const useInventoryActions = ({
       );
 
       const itemChangeRecord: ItemChangeRecord = {
-        type: 'gain',
-        gainedItem: { ...itemToTake, holderId: PLAYER_HOLDER_ID },
+        type: 'acquire',
+        acquiredItem: { ...itemToTake, holderId: PLAYER_HOLDER_ID },
       };
       const turnChangesForTake: TurnChanges = {
         itemChanges: [itemChangeRecord],
