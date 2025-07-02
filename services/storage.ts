@@ -14,6 +14,7 @@ import {
   expandSavedStackToFullStates,
   normalizeLoadedSaveDataStack,
 } from './saveLoad';
+import { attachImageRefsFromDb } from './imageDb';
 import { safeParseJson } from '../utils/jsonUtils';
 
 /** Saves the current game state to localStorage. */
@@ -76,7 +77,6 @@ export const loadGameStateFromLocalStorageWithImages = async (): Promise<GameSta
   const loaded = loadGameStateFromLocalStorage();
   if (!loaded) return null;
   const [current, previous] = loaded;
-  const { attachImageRefsFromDb } = await import('./imageDb');
   const withImagesCurrent = await attachImageRefsFromDb(current);
   const withImagesPrevious = previous ? await attachImageRefsFromDb(previous) : undefined;
   return [withImagesCurrent, withImagesPrevious];
