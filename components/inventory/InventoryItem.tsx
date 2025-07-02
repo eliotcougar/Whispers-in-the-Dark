@@ -180,7 +180,13 @@ function InventoryItem({
     );
   }
 
-  if ((item.type === 'page' || item.type === 'book') && !isConfirmingDiscard) {
+  if (
+    (item.type === 'page' ||
+      item.type === 'book' ||
+      item.type === 'picture' ||
+      item.type === 'map') &&
+    !isConfirmingDiscard
+  ) {
     actionButtons.push(
       <Button
         ariaLabel={filterMode === 'stashed' ? `Retrieve ${item.name}` : `Stash ${item.name}`}
