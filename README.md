@@ -9,8 +9,8 @@ An AI-powered text adventure built with React and TypeScript. The game uses Goog
 3. *(Optional)* Provide a Google OAuth client ID to enable "Login with Google".
    You can set the `GOOGLE_CLIENT_ID` environment variable or assign
    `window.GOOGLE_CLIENT_ID` in `index.html` before loading the application.
-   The app uses **google-auth-library** to sign you in and automatically fetch
-   your personal API key from Google AI Studio.
+   The app can sign you in via Google's OAuth endpoints and will automatically
+   fetch your personal API key from Google AI Studio.
 4. Install dependencies and launch the dev server:
    ```bash
    npm install
