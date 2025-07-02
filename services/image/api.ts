@@ -109,7 +109,8 @@ export const generateChapterImage = async (
     return '';
   }
 
-  const baseDescription = `${chapterData.description} ${chapterData.actualContent ?? ''}`.trim();
+  const chapterDetails = `${chapterData.description} ${chapterData.actualContent ?? ''}`.trim();
+  const baseDescription = `${item.name}: ${item.description}. ${chapterDetails}`.trim();
   const prefix = `A detailed, ${item.type} in ${getThemeStylePrompt(theme)} without ANY text on it.`;
   const rawPrompt = `${prefix} ${baseDescription}`;
 
@@ -117,7 +118,7 @@ export const generateChapterImage = async (
   try {
     const { response: safeResp } = await dispatchAIRequest({
       modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
-      prompt: `Rewrite the following description into a safe visual depiction suitable for highly censored image generation. Avoid any unsafe elements.\n\nDescription:\n${rawPrompt}`,
+      prompt: `Rewrite the following item depiction so it prioritizes the item's name and description while including any chapter details. Ensure the result is safe for a highly censored image generation system.\n\nDescription:\n${rawPrompt}`,
       systemInstruction: 'Respond ONLY with the visual description.',
       temperature: 1,
       label: 'ImagePromptSanitizer',
