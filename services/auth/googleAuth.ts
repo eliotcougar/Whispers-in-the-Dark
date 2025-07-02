@@ -20,6 +20,9 @@ declare global {
 
 let scriptPromise: Promise<void> | null = null;
 
+/** Returns true when a Google OAuth client ID is provided. */
+export const isGoogleAuthAvailable = (): boolean => GOOGLE_CLIENT_ID.trim().length > 0;
+
 const loadGoogleScript = (): Promise<void> => {
   if (scriptPromise) return scriptPromise;
   scriptPromise = new Promise((resolve, reject) => {
@@ -47,6 +50,10 @@ const loadGoogleScript = (): Promise<void> => {
  * Prompts the user to sign in with Google and fetches their Gemini API key.
  */
 export const loginWithGoogle = async (): Promise<void> => {
+  if (!isGoogleAuthAvailable()) {
+    console.error('GOOGLE_CLIENT_ID is not configured; cannot use Google login.');
+    return;
+  }
   await loadGoogleScript();
   if (!window.google?.accounts?.id) {
     console.error('Google Identity Services failed to initialize.');

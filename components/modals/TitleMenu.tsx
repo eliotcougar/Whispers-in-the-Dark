@@ -5,6 +5,7 @@
  */
 import { useCallback } from 'react';
 import { CURRENT_GAME_VERSION } from '../../constants';
+import { isGoogleAuthAvailable } from '../../services/auth/googleAuth';
 import AppHeader from '../app/AppHeader';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
@@ -113,7 +114,7 @@ function TitleMenu({
               size="lg"
             />
 
-            {!isApiConfigured && onLoginWithGoogle ? (
+            {!isApiConfigured && onLoginWithGoogle && isGoogleAuthAvailable() ? (
               <Button
                 ariaLabel="Login with Google to fetch your API key"
                 label="Login with Google"
