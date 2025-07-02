@@ -1,85 +1,32 @@
 /**
  * @file services/auth/googleAuth.ts
- * @description Minimal Google OAuth helpers implemented without external libraries.
+ * @description Google OAuth helpers using the Google Identity Services library.
  */
-import { GOOGLE_CLIENT_ID } from '../../constants';
+import {
+  getGoogleClientId,
+  setGoogleClientId,
+} from '../../constants';
 import { setApiKey } from '../apiClient';
 
-const CODE_VERIFIER_KEY = 'whispersInTheDark_codeVerifier';
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+let tokenClient: { requestAccessToken: () => void } | null = null;
 
 /** Returns true when a Google OAuth client ID is provided. */
-export const isGoogleAuthAvailable = (): boolean => GOOGLE_CLIENT_ID.trim().length > 0;
+export const isGoogleAuthAvailable = (): boolean => getGoogleClientId().trim().length > 0;
 
-const generateRandomString = (length: number): string => {
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);
-  return Array.from(array, (b) => ALPHABET[b % ALPHABET.length]).join('');
-};
-
-const base64UrlEncode = (data: ArrayBuffer): string =>
-  btoa(String.fromCharCode(...new Uint8Array(data)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-
-const sha256 = async (text: string): Promise<string> => {
-  const encoded = new TextEncoder().encode(text);
-  const hash = await crypto.subtle.digest('SHA-256', encoded);
-  return base64UrlEncode(hash);
-};
-
-const getRedirectUri = (): string => `${window.location.origin}${window.location.pathname}`;
-
-/** Starts the OAuth flow by redirecting the browser to the consent page. */
-export const loginWithGoogle = async (): Promise<void> => {
-  if (!isGoogleAuthAvailable()) {
-    console.error('GOOGLE_CLIENT_ID is not configured; cannot use Google login.');
-    return;
-  }
-  const codeVerifier = generateRandomString(64);
-  const codeChallenge = await sha256(codeVerifier);
-  try {
-    sessionStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
-  } catch {
-    // ignore storage errors
-  }
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: getRedirectUri(),
-    response_type: 'code',
-    scope: 'https://www.googleapis.com/auth/cloud-platform',
-    prompt: 'consent',
-    access_type: 'online',
-    code_challenge: codeChallenge,
-    code_challenge_method: 'S256',
+const loadGoogleScript = async (): Promise<void> => {
+  if (window.google?.accounts?.oauth2) return;
+  await new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = () => { resolve(); };
+    script.onerror = () => { reject(new Error('Failed to load Google Identity Services')); };
+    document.head.append(script);
   });
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 };
 
-/** Handles a redirect from Google OAuth and fetches the user's API key. */
-export const maybeCompleteOAuth = async (): Promise<void> => {
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  const codeVerifier = sessionStorage.getItem(CODE_VERIFIER_KEY);
-  if (!code || !codeVerifier) return;
-
+const fetchApiKey = async (token: string): Promise<void> => {
   try {
-    const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: GOOGLE_CLIENT_ID,
-        code,
-        code_verifier: codeVerifier,
-        redirect_uri: getRedirectUri(),
-        grant_type: 'authorization_code',
-      }),
-    });
-    const tokenData: unknown = await tokenResp.json();
-    const token = (tokenData as { access_token?: unknown }).access_token;
-    if (typeof token !== 'string') return;
-
     const resp = await fetch('https://aistudio.googleapis.com/v1alpha/userAPIKey', {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -95,12 +42,58 @@ export const maybeCompleteOAuth = async (): Promise<void> => {
       console.error('Failed to fetch API key from Google AI Studio.');
     }
   } catch (err: unknown) {
-    console.error('Error completing Google OAuth:', err);
-  } finally {
-    sessionStorage.removeItem(CODE_VERIFIER_KEY);
-    params.delete('code');
-    params.delete('scope');
-    const query = params.toString();
-    window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    console.error('Error fetching API key from Google AI Studio:', err);
   }
+};
+
+/** Initiates OAuth flow using Google Identity Services. */
+export const loginWithGoogle = async (): Promise<void> => {
+  let clientId = getGoogleClientId();
+  if (!clientId.trim()) {
+    clientId = window.prompt('Enter your Google OAuth Client ID') ?? '';
+    if (!clientId.trim()) {
+      console.error('GOOGLE_CLIENT_ID is not configured; cannot use Google login.');
+      return;
+    }
+    setGoogleClientId(clientId.trim());
+  }
+  await loadGoogleScript();
+  const googleObj = window.google as
+    | {
+        accounts?: {
+          oauth2?: {
+            initTokenClient: (config: {
+              client_id: string;
+              scope: string;
+              callback: (resp: { access_token?: string; error?: string }) => void;
+            }) => GoogleTokenClient;
+          };
+        };
+      }
+    | undefined;
+  if (!googleObj?.accounts?.oauth2?.initTokenClient) {
+    console.error('Google Identity Services not available.');
+    return;
+  }
+  const client = tokenClient ??
+    googleObj.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: 'https://www.googleapis.com/auth/cloud-platform',
+      callback: (resp: { access_token?: string; error?: string }) => {
+        void (async () => {
+          if (resp.error || typeof resp.access_token !== 'string') {
+            console.error('Google login failed.');
+            return;
+          }
+          await fetchApiKey(resp.access_token);
+        })();
+      },
+    });
+  tokenClient = client;
+  client.requestAccessToken();
+};
+
+/** Placeholder retained for compatibility; no-op with token flow. */
+export const maybeCompleteOAuth = async (): Promise<void> => {
+  /* no-op */
 };

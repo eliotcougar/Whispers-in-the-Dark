@@ -42,10 +42,36 @@ export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 export const LOCAL_STORAGE_DEBUG_KEY = "whispersInTheDark_debugPacket";
 export const LOCAL_STORAGE_DEBUG_LORE_KEY = "whispersInTheDark_debugLore";
 export const LOCAL_STORAGE_API_KEY = "whispersInTheDark_geminiApiKey";
-export const GOOGLE_CLIENT_ID =
-  (typeof window !== 'undefined'
-    ? (window as { GOOGLE_CLIENT_ID?: string }).GOOGLE_CLIENT_ID
-    : undefined) ?? process.env.GOOGLE_CLIENT_ID ?? '';
+export const LOCAL_STORAGE_GOOGLE_CLIENT_ID = "whispersInTheDark_googleClientId";
+
+/**
+ * Returns the Google OAuth client ID from localStorage, window or env vars.
+ */
+export const getGoogleClientId = (): string => {
+  const winId =
+    typeof window !== 'undefined'
+      ? (window as { GOOGLE_CLIENT_ID?: string }).GOOGLE_CLIENT_ID
+      : undefined;
+  try {
+    return (
+      winId ?? localStorage.getItem(LOCAL_STORAGE_GOOGLE_CLIENT_ID) ?? process.env.GOOGLE_CLIENT_ID ?? ''
+    );
+  } catch {
+    return winId ?? process.env.GOOGLE_CLIENT_ID ?? '';
+  }
+};
+
+/** Persists the given Google OAuth client ID to localStorage. */
+export const setGoogleClientId = (id: string): void => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_GOOGLE_CLIENT_ID, id);
+  } catch {
+    // ignore storage errors
+  }
+  if (typeof window !== 'undefined') {
+    (window as { GOOGLE_CLIENT_ID?: string }).GOOGLE_CLIENT_ID = id;
+  }
+};
 
 export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
 export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift
