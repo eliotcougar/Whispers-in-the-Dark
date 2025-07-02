@@ -1,6 +1,6 @@
 import { geminiClient as ai, isApiConfigured } from '../apiClient';
 import type { Part } from '@google/genai';
-import { AdventureTheme, Item } from '../../types';
+import { AdventureTheme, Item, ItemChapter } from '../../types';
 import {
   GEMINI_LITE_MODEL_NAME,
   LOADING_REASON_UI_MAP,
@@ -12,6 +12,29 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';
 
 const inFlightGenerations: Record<string, Promise<string> | undefined> = {};
+
+const getChapterData = (
+  item: Item,
+  index: number,
+): ItemChapter | null => {
+  const chapter = item.chapters?.[index];
+  if (chapter) return chapter;
+  if (index === 0) {
+    const legacy = item as Item & {
+      contentLength?: number;
+      actualContent?: string;
+      visibleContent?: string;
+    };
+    return {
+      heading: item.name,
+      description: item.description,
+      contentLength: legacy.contentLength ?? 30,
+      actualContent: legacy.actualContent,
+      visibleContent: legacy.visibleContent,
+    };
+  }
+  return null;
+};
 
 const detectMimeType = (data: string): string => {
   if (data.startsWith('/9j')) return 'image/jpeg';
@@ -80,7 +103,7 @@ export const generateChapterImage = async (
     return '';
   }
 
-  const chapterData = item.chapters?.[chapter];
+  const chapterData = getChapterData(item, chapter);
   if (!chapterData) {
     console.warn(`generateChapterImage: invalid chapter index ${String(chapter)}`);
     return '';
