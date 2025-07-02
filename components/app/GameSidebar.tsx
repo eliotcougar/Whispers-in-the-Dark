@@ -81,7 +81,7 @@ function GameSidebar({
           onClick={onReadPlayerJournal}
           preset="blue"
           size="lg"
-          title="Write a journal entry"
+          title="Open Journal"
           variant="toolbarLarge"
         />
       </div>
