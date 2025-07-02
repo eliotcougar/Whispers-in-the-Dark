@@ -545,6 +545,7 @@ function PageView({
                 onClick={handleWriteClick}
                 preset="blue"
                 size="sm"
+                title="Write a new journal entry"
                 variant="compact"
               />
             ) : null}
