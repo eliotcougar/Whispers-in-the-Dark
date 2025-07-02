@@ -163,11 +163,22 @@ export function isValidItem(item: unknown, context?: 'create' | 'change'): item 
           typeof (ch as ItemChapter).imageData === 'string')
     );
 
-  if (obj.type === 'page' || obj.type === 'book') {
+  if (
+    obj.type === 'page' ||
+    obj.type === 'book' ||
+    obj.type === 'map' ||
+    obj.type === 'picture'
+  ) {
     if (obj.chapters !== undefined) {
       if (!chaptersValid(obj.chapters)) {
         console.warn("isValidItem: 'chapters' is present but invalid.", item);
         return false;
+      }
+      if (
+        (obj.type === 'page' || obj.type === 'map' || obj.type === 'picture') &&
+        obj.chapters.length > 1
+      ) {
+        obj.chapters = [obj.chapters[0]];
       }
     } else {
       const len =
