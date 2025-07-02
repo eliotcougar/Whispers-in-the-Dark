@@ -48,7 +48,11 @@ function InventoryItem({
   registerRef,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
-  const isWrittenItem = item.type === 'page' || item.type === 'book';
+  const isWrittenItem =
+    item.type === 'page' ||
+    item.type === 'book' ||
+    item.type === 'picture' ||
+    item.type === 'map';
   const isImageItem = item.type === 'picture' || item.type === 'map';
   const canShowGenericUse =
     item.type !== 'status effect' && item.type !== 'vehicle';
