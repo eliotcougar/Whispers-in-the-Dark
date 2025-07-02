@@ -6,17 +6,22 @@ An AI-powered text adventure built with React and TypeScript. The game uses Goog
 
 1. **Install Node.js 18 or newer**.
 2. **Set the environment variable `GEMINI_API_KEY`** with your API key so the app can talk to the Gemini service.
-3. Install dependencies and launch the dev server:
+3. *(Optional)* Provide a Google OAuth client ID to enable "Login with Google".
+   You can set the `GOOGLE_CLIENT_ID` environment variable or assign
+   `window.GOOGLE_CLIENT_ID` in `index.html` before loading the application.
+   The app uses **google-auth-library** to sign you in and automatically fetch
+   your personal API key from Google AI Studio.
+4. Install dependencies and launch the dev server:
    ```bash
    npm install
    npm run dev
    ```
    The game will be available at `http://localhost:5173`.
-4. To verify TypeScript compilation and bundling run:
+5. To verify TypeScript compilation and bundling run:
    ```bash
    npm run build
    ```
-5. To lint the project run the test script:
+6. To lint the project run the test script:
    ```bash
    npm test
    ```

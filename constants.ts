@@ -41,6 +41,11 @@ export const CURRENT_SAVE_GAME_VERSION = "7";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 export const LOCAL_STORAGE_DEBUG_KEY = "whispersInTheDark_debugPacket";
 export const LOCAL_STORAGE_DEBUG_LORE_KEY = "whispersInTheDark_debugLore";
+export const LOCAL_STORAGE_API_KEY = "whispersInTheDark_geminiApiKey";
+export const GOOGLE_CLIENT_ID =
+  (typeof window !== 'undefined'
+    ? (window as { GOOGLE_CLIENT_ID?: string }).GOOGLE_CLIENT_ID
+    : undefined) ?? process.env.GOOGLE_CLIENT_ID ?? '';
 
 export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
 export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift
