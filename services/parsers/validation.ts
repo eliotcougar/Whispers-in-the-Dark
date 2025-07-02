@@ -25,6 +25,8 @@ import { normalizeItemType } from '../../utils/itemSynonyms';
 import { normalizeTags } from '../../utils/tagSynonyms';
 
 const TEXT_STYLE_TAG_SET = new Set<string>(TEXT_STYLE_TAGS);
+const WRITTEN_TYPES = ['page', 'book', 'map', 'picture'] as const;
+const WRITTEN_TYPE_SET = new Set<string>(WRITTEN_TYPES);
 
 function guessTextStyle(name: string, description: string): typeof TEXT_STYLE_TAGS[number] {
   const text = `${name} ${description}`.toLowerCase();
@@ -128,21 +130,20 @@ export function isValidItem(item: unknown, context?: 'create' | 'change'): item 
     if (normalized) obj.tags = normalized;
     else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
 
-    const writtenTypes = ['page', 'book', 'map', 'picture'];
-    const allowed = writtenTypes.includes(obj.type ?? '')
+    const allowed = WRITTEN_TYPE_SET.has(obj.type ?? '')
       ? [...COMMON_TAGS, ...WRITING_TAGS]
       : COMMON_TAGS;
     obj.tags = obj.tags.filter(t => (allowed as ReadonlyArray<string>).includes(t));
   }
-  if (obj.type === 'page') {
+  if (WRITTEN_TYPE_SET.has(obj.type ?? '')) {
     obj.tags = obj.tags ?? [];
     const styleTags = obj.tags.filter(t => TEXT_STYLE_TAG_SET.has(t));
     if (styleTags.length === 0) {
       const guessed = guessTextStyle(obj.name, obj.description ?? '');
-      obj.tags.push(guessed);
+      obj.tags.unshift(guessed);
     } else if (styleTags.length > 1) {
-      const keep = styleTags[0];
-      obj.tags = [keep];
+      const [keep] = styleTags;
+      obj.tags = [keep, ...obj.tags.filter(t => !TEXT_STYLE_TAG_SET.has(t))];
     }
   }
   if (obj.holderId !== undefined && (typeof obj.holderId !== 'string' || obj.holderId.trim() === '')) {
