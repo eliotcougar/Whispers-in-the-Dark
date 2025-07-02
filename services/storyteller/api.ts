@@ -57,15 +57,15 @@ export const STORYTELLER_JSON_SCHEMA = {
     },
     localTime: {
       type: 'string',
-      description: 'Concise description of current time. e.g. "Midday", "Early morning" "12:30".',
+      description: `Concise description of current time. e.g. 'Midday', 'Early morning', '12:30'.`,
     },
     localEnvironment: {
       type: 'string',
-      description: 'Brief sentence describing the current environment or weather. e.g. "Clear skies, warm sun".',
+      description: `Brief sentence describing the current environment or weather. e.g. 'Clear skies, warm sun'.`,
     },
     localPlace: {
       type: 'string',
-      description: `Player's specific location in the scene, including the Place Name. e.g. "Inside the Old Mill, near the quern".`,
+      description: `Player's specific location in the scene, including the Place Name. e.g. 'Inside the Old Mill, near the quern'.`,
     },
     mainQuest: {
       type: 'string',
@@ -187,7 +187,7 @@ export const STORYTELLER_JSON_SCHEMA = {
           },
           holderId: {
             type: 'string',
-            description: `ID or Name of the item holder. CAN be NPC, Location, or ${PLAYER_HOLDER_ID}. CAN NOT be an Item. Use "${PLAYER_HOLDER_ID}" only if it is obvious from the context that the player actually acquired the item.`,
+            description: `ID or Name of the item holder. CAN be NPC, Location, or '${PLAYER_HOLDER_ID}'. CAN NOT be an Item. Use '${PLAYER_HOLDER_ID}' only if it is obvious from the context that the player actually acquired the item.`,
           },
           tags: {
             type: 'array',
@@ -196,9 +196,9 @@ export const STORYTELLER_JSON_SCHEMA = {
           },
           chapters: {
             type: 'array',
-            description: `For type page, map, or picture - exactly one chapter. For type book - between ${String(
+            description: `For the item types 'page', 'map', or 'picture' - exactly one chapter REQUIRED. For the item type 'book' - between ${String(
               MIN_BOOK_CHAPTERS,
-            )} and ${String(MAX_BOOK_CHAPTERS)} chapters.`,
+            )} and ${String(MAX_BOOK_CHAPTERS)} chapters REQUIRED.`,
             items: {
               type: 'object',
               properties: {

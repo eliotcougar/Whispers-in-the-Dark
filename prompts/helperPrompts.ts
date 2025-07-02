@@ -6,7 +6,10 @@
 
 import {
   VALID_ITEM_TYPES_STRING,
-  DEDICATED_BUTTON_USES_STRING
+  DEDICATED_BUTTON_USES_STRING,
+  MIN_BOOK_CHAPTERS,
+  MAX_BOOK_CHAPTERS,
+  TEXT_STYLE_TAGS_STRING
 } from '../constants';
 
 export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
@@ -84,7 +87,7 @@ newItems:
     "description": "A hastily scribbled message with a big smudge over it.",
     "tags": ["typed", "smudged"],
     "holderId": "player",
-    "chapters":
+    "chapters": /* REQUIRED, because the type is 'page' */
     [ /* Only one chapter, because the type is 'page' */
       {
         "heading": "string",
@@ -105,7 +108,7 @@ newItems:
     "description": "Weathered log of travels.",
     "holderId": "player",
     "tags": ["handwritten", "faded"],
-    "chapters":
+    "chapters": /* REQUIRED, because the type is 'book' */
     [ /* Multiple chapters because the type it 'book' */
       {
         "heading": "Preface",
@@ -149,6 +152,9 @@ playerItemsHint: "Scrap Metal transformed into Makeshift Shiv."
 playerItemsHint: "Mystic Orb can now 'Peer into the Orb'."
 
 - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
+- Make sure that 'page', 'map' and 'picture' type items have exactly ONE chapter.
+- Make sure that 'book' type items have between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.
+- Make sure 'page', 'book', 'map' and 'picture' type items have one of the required tags: ${TEXT_STYLE_TAGS_STRING}.
 - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effects".
 - Mention remaining uses for multi-use items when they change.
 IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:

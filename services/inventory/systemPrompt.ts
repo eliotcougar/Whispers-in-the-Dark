@@ -6,6 +6,9 @@
 import {
   VALID_ACTIONS_STRING,
   DEDICATED_BUTTON_USES_STRING,
+  MAX_BOOK_CHAPTERS,
+  MIN_BOOK_CHAPTERS,
+  TEXT_STYLE_TAGS_STRING,
 } from '../../constants';
 import { ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
 
@@ -197,6 +200,9 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
 - Use "change" to update the remaining number of uses for multi-use items in their name (in brackets) or in description.
 - Use "addDetails" to reveal new chapters, or when missing pages of a book are found and incorporated into the rest of the book.
+- Make sure that 'page', 'map' and 'picture' type items have exactly ONE chapter.
+- Make sure that 'book' type items have between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.
+- Make sure 'page', 'book', 'map' and 'picture' type items have one of the required tags: ${TEXT_STYLE_TAGS_STRING}.
 IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
