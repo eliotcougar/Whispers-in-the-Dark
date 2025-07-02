@@ -17,6 +17,10 @@ v1.4. Ink and Quill update
   + Saving images in the IndexedDB and save file.
   + Move Debug Packet out of Game State.
 
+1.4.1. Bugfix
+  - Storyteller should not generate Items JSONs. Let it generate free-form descriptions/hints for items and books separately.
+  - Split Inventory AI and Librarian AI as the JSON structure is too different.
+
 v1.5 Backstory update
   - Character Generation.
   - Backstory generation: 5 years, 3 years, 1 year, 6 months, 1 month, 1 week, yesterday.

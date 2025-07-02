@@ -82,7 +82,7 @@ export const VALID_ITEM_TYPES = [
   'map',
 ] as const; // 'as const' makes it a tuple of string literals
 
-export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => `"${type}"`).join(' | ');
+export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => type).join(', ');
 
 export const VALID_ACTIONS = [
   'create',
@@ -91,7 +91,7 @@ export const VALID_ACTIONS = [
   'destroy',
   'addDetails',
 ] as const;
-export const VALID_ACTIONS_STRING = VALID_ACTIONS.map(action => `"${action}"`).join(' | ');
+export const VALID_ACTIONS_STRING = VALID_ACTIONS.map(action => action).join(', ');
 
 export const COMMON_TAGS = [
   'default',
@@ -123,11 +123,11 @@ export const WRITING_TAGS = [...TEXT_STYLE_TAGS, ...TEXT_MOD_TAGS] as const;
 
 export const VALID_TAGS = [...COMMON_TAGS, ...INTERNAL_TAGS, ...WRITING_TAGS] as const;
 
-export const COMMON_TAGS_STRING = COMMON_TAGS.map(t => `"${t}"`).join(' | ');
-export const TEXT_STYLE_TAGS_STRING = TEXT_STYLE_TAGS.map(t => `"${t}"`).join(' | ');
-export const TEXT_MOD_TAGS_STRING = TEXT_MOD_TAGS.map(t => `"${t}"`).join(' | ');
-export const WRITING_TAGS_STRING = WRITING_TAGS.map(t => `"${t}"`).join(' | ');
-export const VALID_TAGS_STRING = VALID_TAGS.map(t => `"${t}"`).join(' | ');
+export const COMMON_TAGS_STRING = COMMON_TAGS.map(t => t).join(', ');
+export const TEXT_STYLE_TAGS_STRING = TEXT_STYLE_TAGS.map(t => t).join(', ');
+export const TEXT_MOD_TAGS_STRING = TEXT_MOD_TAGS.map(t => t).join(', ');
+export const WRITING_TAGS_STRING = WRITING_TAGS.map(t => t).join(', ');
+export const VALID_TAGS_STRING = VALID_TAGS.map(t => t).join(', ');
 
 export const DEDICATED_BUTTON_USES = [
   'inspect',
@@ -140,7 +140,7 @@ export const DEDICATED_BUTTON_USES = [
   'write',
 ] as const;
 
-export const DEDICATED_BUTTON_USES_STRING = DEDICATED_BUTTON_USES.map(u => `"${u}"`).join(' | ');
+export const DEDICATED_BUTTON_USES_STRING = DEDICATED_BUTTON_USES.map(u => u).join(', ');
 
 export const VALID_PRESENCE_STATUS_VALUES = [
   'distant',
@@ -149,7 +149,7 @@ export const VALID_PRESENCE_STATUS_VALUES = [
   'unknown',
 ] as const;
 
-export const VALID_PRESENCE_STATUS_VALUES_STRING = VALID_PRESENCE_STATUS_VALUES.map(s => `"${s}"`).join(' | ');
+export const VALID_PRESENCE_STATUS_VALUES_STRING = VALID_PRESENCE_STATUS_VALUES.map(s => s).join(', ');
 
 export const LOADING_REASONS = [
   'storyteller',
@@ -203,7 +203,7 @@ export const VALID_NODE_STATUS_VALUES = [
   'blocked',
 ] as const;
 
-export const VALID_NODE_STATUS_STRING = VALID_NODE_STATUS_VALUES.map(s => `"${s}"`).join(' | ');
+export const VALID_NODE_STATUS_STRING = VALID_NODE_STATUS_VALUES.map(s => s).join(', ');
 
 export const VALID_NODE_TYPE_VALUES = [
   'region',
@@ -216,7 +216,7 @@ export const VALID_NODE_TYPE_VALUES = [
   'feature',
 ] as const;
 
-export const VALID_NODE_TYPE_STRING = VALID_NODE_TYPE_VALUES.map(s => `"${s}"`).join(' | ');
+export const VALID_NODE_TYPE_STRING = VALID_NODE_TYPE_VALUES.map(s => s).join(', ');
 
 // Hierarchy levels for node types (lower index = higher level)
 export const NODE_TYPE_LEVELS: Record<(typeof VALID_NODE_TYPE_VALUES)[number], number> =
@@ -238,7 +238,7 @@ export const VALID_EDGE_TYPE_VALUES = [
   'shortcut',
 ] as const;
 
-export const VALID_EDGE_TYPE_STRING = VALID_EDGE_TYPE_VALUES.map(s => `"${s}"`).join(' | ');
+export const VALID_EDGE_TYPE_STRING = VALID_EDGE_TYPE_VALUES.map(s => s).join(', ');
 
 export const VALID_EDGE_STATUS_VALUES = [
   'open',
@@ -255,7 +255,7 @@ export const VALID_EDGE_STATUS_VALUES = [
   'inactive',
 ] as const;
 
-export const VALID_EDGE_STATUS_STRING = VALID_EDGE_STATUS_VALUES.map(s => `"${s}"`).join(' | ');
+export const VALID_EDGE_STATUS_STRING = VALID_EDGE_STATUS_VALUES.map(s => s).join(', ');
 
 export const NON_DISPLAYABLE_EDGE_STATUSES = [
   'collapsed',
