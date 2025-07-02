@@ -1,49 +1,50 @@
 import type { MapNode, MapNodeData, MapEdgeData } from '../../types';
 import { findMapNodeByIdentifier, buildNodeId } from '../../utils/entityUtils';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
+import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest } from './connectorChains';
 import { fetchLikelyParentNode_Service } from '../corrections/placeDetails';
 import type { ApplyUpdatesContext } from './updateContext';
 
-export async function processNodeAdds(ctx: ApplyUpdatesContext): Promise<void> {
-  let nodesToAddOps_mut: typeof ctx.payload.nodesToAdd = [
-    ...(ctx.payload.nodesToAdd ?? [])
+export async function processNodeAdds(context: ApplyUpdatesContext): Promise<void> {
+  let nodesToAddOps_mut: typeof context.payload.nodesToAdd = [
+    ...(context.payload.nodesToAdd ?? [])
   ];
-  ctx.nodesToRemove_mut = [...(ctx.payload.nodesToRemove ?? [])];
-  ctx.edgesToAdd_mut = [...(ctx.payload.edgesToAdd ?? [])];
-  ctx.edgesToRemove_mut = [...(ctx.payload.edgesToRemove ?? [])];
+  context.nodesToRemove_mut = [...(context.payload.nodesToRemove ?? [])];
+  context.edgesToAdd_mut = [...(context.payload.edgesToAdd ?? [])];
+  context.edgesToRemove_mut = [...(context.payload.edgesToRemove ?? [])];
 
   const finalNodesToAddOps: typeof nodesToAddOps_mut = [];
   const ignoredNodeNames = new Set<string>();
   for (const nodeAdd of nodesToAddOps_mut) {
-    if (ctx.nameMatchesItemOrChar(nodeAdd.placeName)) {
+    if (context.nameMatchesItemOrNPC(nodeAdd.placeName)) {
       console.warn(
-        `MapUpdate: Skipping node add "${nodeAdd.placeName}" that resembles an item or character.`
+        `MapUpdate: Skipping node add "${nodeAdd.placeName}" that resembles an item or NPC.`
       );
       ignoredNodeNames.add(nodeAdd.placeName);
       continue;
     }
-    const removeIndex = ctx.nodesToRemove_mut.findIndex(
+    const removeIndex = context.nodesToRemove_mut.findIndex(
       nr => nr.nodeName && nr.nodeName.toLowerCase() === nodeAdd.placeName.toLowerCase()
     );
     if (removeIndex !== -1) {
-      ctx.nodesToRemove_mut.splice(removeIndex, 1);
+      context.nodesToRemove_mut.splice(removeIndex, 1);
     } else {
       finalNodesToAddOps.push(nodeAdd);
     }
   }
   nodesToAddOps_mut = finalNodesToAddOps;
 
-  const finalEdgesToAdd: typeof ctx.edgesToAdd_mut = [];
-  for (const edgeAdd of ctx.edgesToAdd_mut) {
+  const finalEdgesToAdd: typeof context.edgesToAdd_mut = [];
+  for (const edgeAdd of context.edgesToAdd_mut) {
     finalEdgesToAdd.push(edgeAdd);
   }
-  ctx.edgesToAdd_mut = finalEdgesToAdd;
+  context.edgesToAdd_mut = finalEdgesToAdd;
 
-  const dedupedEdges: typeof ctx.edgesToAdd_mut = [];
+  const dedupedEdges: typeof context.edgesToAdd_mut = [];
   const edgeKeySet = new Set<string>();
-  for (const e of ctx.edgesToAdd_mut) {
+  for (const e of context.edgesToAdd_mut) {
     const src = e.sourcePlaceName.toLowerCase();
     const tgt = e.targetPlaceName.toLowerCase();
     const type = e.data.type ?? 'path';
@@ -53,24 +54,30 @@ export async function processNodeAdds(ctx: ApplyUpdatesContext): Promise<void> {
       dedupedEdges.push(e);
     }
   }
-  ctx.edgesToAdd_mut = dedupedEdges;
+  context.edgesToAdd_mut = dedupedEdges;
 
   if (ignoredNodeNames.size > 0) {
-    ctx.edgesToAdd_mut = ctx.edgesToAdd_mut.filter(
+    context.edgesToAdd_mut = context.edgesToAdd_mut.filter(
       e =>
         !ignoredNodeNames.has(e.sourcePlaceName) &&
         !ignoredNodeNames.has(e.targetPlaceName)
     );
   }
 
-  (ctx.payload.nodesToUpdate ?? []).forEach(upd => {
+  nodesToAddOps_mut.forEach(nAdd => {
+    const id = buildNodeId(nAdd.placeName);
+    (nAdd as unknown as Record<string, unknown>).__generatedId = id;
+    context.newNodesInBatchIdNameMap[nAdd.placeName] = { id, name: nAdd.placeName };
+  });
+
+  (context.payload.nodesToUpdate ?? []).forEach(upd => {
     const updNames = [upd.placeName.toLowerCase()];
     if (upd.newData.placeName) updNames.push(upd.newData.placeName.toLowerCase());
     for (const name of updNames) {
-      const idx = ctx.nodesToRemove_mut.findIndex(
+      const idx = context.nodesToRemove_mut.findIndex(
         r => r.nodeName && r.nodeName.toLowerCase() === name
       );
-      if (idx !== -1) ctx.nodesToRemove_mut.splice(idx, 1);
+      if (idx !== -1) context.nodesToRemove_mut.splice(idx, 1);
     }
   });
 
@@ -88,20 +95,47 @@ export async function processNodeAdds(ctx: ApplyUpdatesContext): Promise<void> {
         } else {
           const parent = findMapNodeByIdentifier(
             nodeAddOp.data.parentNodeId,
-            ctx.newMapData.nodes,
-            ctx.newMapData,
-            ctx.referenceMapNodeId
+            context.newMapData.nodes,
+            context.newMapData,
+            context.referenceMapNodeId,
           ) as MapNode | undefined;
           if (parent) {
-            const childType = nodeAddOp.data.nodeType ?? 'feature';
+            let childType = nodeAddOp.data.nodeType ?? 'feature';
             if (parent.data.nodeType === childType) {
-              sameTypeParent = parent;
+              const downgraded = suggestNodeTypeDowngrade(
+                {
+                  id: 'temp',
+                  themeName: parent.themeName,
+                  placeName: nodeAddOp.placeName,
+                  position: { x: 0, y: 0 },
+                  data: {
+                    description: nodeAddOp.data.description ?? '',
+                    aliases: nodeAddOp.data.aliases ?? [],
+                    status: nodeAddOp.data.status,
+                    parentNodeId: parent.id,
+                    nodeType: childType,
+                  },
+                },
+                parent.data.nodeType,
+                context.newMapData.nodes,
+              );
+              if (downgraded) {
+                nodeAddOp.data.nodeType = downgraded;
+                childType = downgraded;
+                resolvedParentId = parent.id;
+              } else {
+                sameTypeParent = parent;
+                // Temporarily allow the invalid hierarchy; it will be
+                // corrected during conflict resolution.
+                resolvedParentId = parent.id;
+              }
+            } else {
+              resolvedParentId = findClosestAllowedParent(
+                parent,
+                childType,
+                context.themeNodeIdMap,
+              );
             }
-            resolvedParentId = findClosestAllowedParent(
-              parent,
-              childType,
-              ctx.themeNodeIdMap
-            );
           } else {
             nextQueue.push(nodeAddOp);
             continue;
@@ -111,14 +145,14 @@ export async function processNodeAdds(ctx: ApplyUpdatesContext): Promise<void> {
 
       const existingNode = findMapNodeByIdentifier(
         nodeAddOp.placeName,
-        ctx.newMapData.nodes,
-        ctx.newMapData,
-        ctx.referenceMapNodeId
+        context.newMapData.nodes,
+        context.newMapData,
+        context.referenceMapNodeId
       ) as MapNode | undefined;
 
       const canReuseExisting =
         existingNode !== undefined &&
-        existingNode.themeName === ctx.currentTheme.name &&
+        existingNode.themeName === context.currentTheme.name &&
         ((resolvedParentId === undefined && !existingNode.data.parentNodeId) ||
           existingNode.data.parentNodeId === resolvedParentId) &&
         (existingNode.placeName.toLowerCase() === nodeAddOp.placeName.toLowerCase() ||
@@ -140,10 +174,16 @@ export async function processNodeAdds(ctx: ApplyUpdatesContext): Promise<void> {
         ) {
           existing.data.description = nodeAddOp.data.description;
         }
+        Reflect.deleteProperty(
+          context.newNodesInBatchIdNameMap,
+          nodeAddOp.placeName,
+        );
         continue;
       }
 
-      const newNodeId = buildNodeId(nodeAddOp.placeName);
+      const preId = (nodeAddOp as unknown as Record<string, unknown>).__generatedId as
+        string | undefined;
+      const newNodeId = preId ?? buildNodeId(nodeAddOp.placeName);
 
       const { description, aliases, parentNodeId: _ignoredParent, status, nodeType, visited: _ignoredVisited, ...rest } =
         nodeAddOp.data;
@@ -161,20 +201,20 @@ export async function processNodeAdds(ctx: ApplyUpdatesContext): Promise<void> {
 
       const newNode: MapNode = {
         id: newNodeId,
-        themeName: ctx.currentTheme.name,
+        themeName: context.currentTheme.name,
         placeName: nodeAddOp.placeName,
         position: nodeAddOp.initialPosition ?? { x: 0, y: 0 },
         data: newNodeData,
       };
 
-      ctx.newMapData.nodes.push(newNode);
-      ctx.newlyAddedNodes.push(newNode);
-      ctx.themeNodeIdMap.set(newNodeId, newNode);
-      ctx.themeNodeNameMap.set(nodeAddOp.placeName, newNode);
+      context.newMapData.nodes.push(newNode);
+      context.newlyAddedNodes.push(newNode);
+      context.themeNodeIdMap.set(newNodeId, newNode);
+      context.themeNodeNameMap.set(nodeAddOp.placeName, newNode);
       if (newNode.data.aliases) {
-        newNode.data.aliases.forEach(a => ctx.themeNodeAliasMap.set(a.toLowerCase(), newNode));
+        newNode.data.aliases.forEach(a => context.themeNodeAliasMap.set(a.toLowerCase(), newNode));
       }
-      ctx.newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
+      context.newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
 
       if (sameTypeParent) {
         const edgeData: MapEdgeData = {
@@ -185,10 +225,10 @@ export async function processNodeAdds(ctx: ApplyUpdatesContext): Promise<void> {
               : 'open',
           description: `Path between ${nodeAddOp.placeName} and ${sameTypeParent.placeName}`,
         };
-        if (isEdgeConnectionAllowed(newNode, sameTypeParent, 'path', ctx.themeNodeIdMap)) {
-          addEdgeWithTracking(newNode, sameTypeParent, edgeData, ctx.newMapData.edges, ctx.themeEdgesMap);
+        if (isEdgeConnectionAllowed(newNode, sameTypeParent, 'path', context.themeNodeIdMap)) {
+          addEdgeWithTracking(newNode, sameTypeParent, edgeData, context.newMapData.edges, context.themeEdgesMap);
         } else {
-          ctx.pendingChainRequests.push(buildChainRequest(newNode, sameTypeParent, edgeData, ctx.themeNodeIdMap));
+          context.pendingChainRequests.push(buildChainRequest(newNode, sameTypeParent, edgeData, context.themeNodeIdMap));
         }
       }
     }
@@ -205,15 +245,15 @@ export async function processNodeAdds(ctx: ApplyUpdatesContext): Promise<void> {
               aliases: unresolved.data.aliases,
             },
             {
-              sceneDescription: ctx.sceneDesc,
-              logMessage: ctx.logMsg,
-              localPlace: ctx.localPlace,
-              currentTheme: ctx.currentTheme,
-              currentMapNodeId: ctx.referenceMapNodeId,
-              themeNodes: ctx.currentThemeNodesFromMapData,
-              themeEdges: ctx.currentThemeEdgesFromMapData,
+              sceneDescription: context.sceneDesc,
+              logMessage: context.logMsg,
+              localPlace: context.localPlace,
+              currentTheme: context.currentTheme,
+              currentMapNodeId: context.referenceMapNodeId,
+              themeNodes: context.currentThemeNodesFromMapData,
+              themeEdges: context.currentThemeEdgesFromMapData,
             },
-            ctx.minimalModelCalls
+            context.minimalModelCalls
           );
           unresolved.data.parentNodeId = guessed ?? 'Universe';
         }

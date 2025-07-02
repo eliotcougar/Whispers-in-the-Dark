@@ -4,6 +4,7 @@
  */
 
 import { useCallback } from 'react';
+import * as React from 'react';
 import {
   KnownUse,
   Item,
@@ -16,16 +17,23 @@ import {
   parseAIResponse,
   buildMainGameTurnPrompt
 } from '../services/storyteller';
+import { SYSTEM_INSTRUCTION } from '../services/storyteller/systemPrompt';
+import { collectRelevantFacts_Service } from '../services/loremaster';
+import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
+import { buildHighlightRegex } from '../utils/highlightHelper';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
   FREE_FORM_ACTION_COST,
   RECENT_LOG_COUNT_FOR_PROMPT,
   PLAYER_HOLDER_ID,
+  DISTILL_LORE_INTERVAL,
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
+import { distillFacts_Service } from '../services/loremaster';
+import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 
 export interface UsePlayerActionsProps {
   getCurrentGameState: () => FullGameState;
@@ -36,6 +44,7 @@ export interface UsePlayerActionsProps {
   chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
+  loadingReasonRef: React.RefObject<LoadingReason | null>;
   setError: (err: string | null) => void;
   setParseErrorCounter: (val: number) => void;
   triggerRealityShift: (isChaosShift?: boolean) => void;
@@ -44,7 +53,11 @@ export interface UsePlayerActionsProps {
   setFreeFormActionText: (text: string) => void;
   isLoading: boolean;
   hasGameBeenInitialized: boolean;
-  loadingReason: LoadingReason | null;
+  debugLore: boolean;
+  openDebugLoreModal: (
+    facts: Array<string>,
+    resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
+  ) => void;
 }
 
 /**
@@ -68,21 +81,99 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setFreeFormActionText,
     isLoading,
     hasGameBeenInitialized,
-    loadingReason,
+    loadingReasonRef,
+    debugLore,
+    openDebugLoreModal,
   } = props;
 
   const { processAiResponse, clearObjectiveAnimationTimer } = useProcessAiResponse({
-    loadingReason,
+    loadingReasonRef,
     setLoadingReason,
     setError,
     setGameStateStack,
+    debugLore,
+    openDebugLoreModal,
   });
 
-  const { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, recordInspect } = useInventoryActions({
+  const {
+    handleDropItem,
+    handleTakeLocationItem,
+    updateItemContent,
+    addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    recordPlayerJournalInspect,
+    recordInspect,
+    handleStashToggle,
+  } = useInventoryActions({
     getCurrentGameState,
     commitGameState,
     isLoading,
   });
+
+  const runDistillIfNeeded = useCallback(
+    async (state: FullGameState) => {
+      const themeObj = state.currentThemeObject;
+      if (!themeObj) return;
+      if (
+        state.globalTurnNumber > 0 &&
+        state.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
+        state.lastLoreDistillTurn !== state.globalTurnNumber
+      ) {
+        const currentThemeNodes = state.mapData.nodes.filter(
+          n => n.themeName === themeObj.name,
+        );
+        const inventoryItemNames = Array.from(
+          new Set(
+            state.inventory
+              .filter(item => {
+                if (item.holderId === PLAYER_HOLDER_ID) return true;
+                if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
+                const holderNpc = state.allNPCs.find(
+                  npc => npc.id === item.holderId && npc.themeName === themeObj.name,
+                );
+                return Boolean(holderNpc);
+              })
+              .map(item => item.name),
+          ),
+        );
+        const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+        setLoadingReason('loremaster_refine');
+        const result = await distillFacts_Service({
+          themeName: themeObj.name,
+          facts: state.themeFacts,
+          currentQuest: state.mainQuest,
+          currentObjective: state.currentObjective,
+          inventoryItemNames,
+          mapNodeNames,
+        });
+        state.lastLoreDistillTurn = state.globalTurnNumber;
+        state.lastDebugPacket ??= {
+          prompt: '',
+          rawResponseText: null,
+          parsedResponse: null,
+          timestamp: new Date().toISOString(),
+          storytellerThoughts: null,
+          mapUpdateDebugInfo: null,
+          inventoryDebugInfo: null,
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
+          dialogueDebugInfo: null,
+        };
+        if (state.lastDebugPacket.loremasterDebugInfo) {
+          state.lastDebugPacket.loremasterDebugInfo.distill = result?.debugInfo ?? null;
+        }
+        if (result?.refinementResult) {
+          applyThemeFactChanges(
+            state,
+            result.refinementResult.factsChange,
+            state.globalTurnNumber,
+            themeObj.name,
+          );
+        }
+      }
+    },
+    [setLoadingReason],
+  );
 
   /**
    * Executes a player's chosen action by querying the AI storyteller.
@@ -99,7 +190,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (isLoading || currentFullState.dialogueState) return;
 
       setIsLoading(true);
-      setLoadingReason('storyteller');
       setError(null);
       setParseErrorCounter(0);
       setFreeFormActionText('');
@@ -122,7 +212,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
             n.data.nodeType !== 'feature' &&
             n.data.nodeType !== 'room'
         );
-      const currentThemeCharacters = currentFullState.allCharacters.filter((c) => c.themeName === currentThemeObj.name);
+      const currentThemeNPCs = currentFullState.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name);
       const currentMapNodeDetails = currentFullState.currentMapNodeId
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
         : null;
@@ -132,6 +222,30 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           i.holderId !== PLAYER_HOLDER_ID &&
           i.holderId === currentFullState.currentMapNodeId
       );
+
+      const detailedContextForFacts = formatDetailedContextForMentionedEntities(
+        currentThemeMainMapNodes,
+        currentThemeNPCs,
+        `${currentFullState.currentScene} ${action}`,
+        'Locations mentioned:',
+        'NPCs mentioned:'
+      );
+
+      const sortedFacts = [...currentFullState.themeFacts]
+        .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
+        .map(f => ({ text: f.text, tier: f.tier }));
+
+      setLoadingReason('loremaster_collect');
+      const collectResult = await collectRelevantFacts_Service({
+        themeName: currentThemeObj.name,
+        facts: sortedFacts,
+        lastScene: currentFullState.currentScene,
+        playerAction: action,
+        recentLogEntries: recentLogs,
+        detailedContext: detailedContextForFacts,
+      });
+      const relevantFacts = collectResult?.facts ?? [];
+
       const prompt = buildMainGameTurnPrompt(
         currentFullState.currentScene,
         action,
@@ -142,7 +256,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentThemeObj,
         recentLogs,
         currentThemeMainMapNodes,
-        currentThemeCharacters,
+        currentThemeNPCs,
+        relevantFacts,
         currentFullState.localTime,
         currentFullState.localEnvironment,
         currentFullState.localPlace,
@@ -156,12 +271,21 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       let draftState = structuredCloneGameState(currentFullState);
       const debugPacket = {
         prompt,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        jsonSchema: undefined,
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),
         storytellerThoughts: null,
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        loremasterDebugInfo: {
+          collect: collectResult?.debugInfo ?? null,
+          extract: null,
+          integrate: null,
+          distill: null,
+          journal: null,
+        },
         dialogueDebugInfo: null,
       };
       draftState.lastDebugPacket = debugPacket;
@@ -169,14 +293,21 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
       let encounteredError = false;
       try {
-        const { response, thoughts } = await executeAIMainTurn(
-          prompt,
-          currentThemeObj.systemInstructionModifier,
-        );
+        setLoadingReason('storyteller');
+        const {
+          response,
+          thoughts,
+          systemInstructionUsed,
+          jsonSchemaUsed,
+          promptUsed,
+        } = await executeAIMainTurn(prompt);
         draftState.lastDebugPacket = {
           ...draftState.lastDebugPacket,
           rawResponseText: response.text ?? null,
           storytellerThoughts: thoughts,
+          systemInstruction: systemInstructionUsed,
+          jsonSchema: jsonSchemaUsed,
+          prompt: promptUsed,
         };
 
         const currentThemeMapDataForParse = {
@@ -195,7 +326,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           () => { setParseErrorCounter(1); },
           currentFullState.lastActionLog ?? undefined,
           currentFullState.currentScene,
-          currentThemeCharacters,
+          currentThemeNPCs,
           currentThemeMapDataForParse,
           currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
@@ -227,6 +358,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         if (!encounteredError) {
           draftState.turnsSinceLastShift += 1;
           draftState.globalTurnNumber += 1;
+          await runDistillIfNeeded(draftState);
         }
         commitGameState(draftState);
         setIsLoading(false);
@@ -254,6 +386,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       setParseErrorCounter,
       setFreeFormActionText,
       processAiResponse,
+      runDistillIfNeeded,
     ]);
 
   /**
@@ -263,6 +396,38 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   const handleActionSelect = useCallback(
     (action: string) => {
       const currentFullState = getCurrentGameState();
+      let finalAction = action;
+
+      const highlightMatcher = buildHighlightRegex(
+        currentFullState.inventory.map(item => ({
+          name: item.name,
+          type: 'item',
+          description: item.description,
+          item,
+        }))
+      );
+
+      if (highlightMatcher) {
+        const { regex, lookup } = highlightMatcher;
+        const matchedBooks = new Set<Item>();
+        let match;
+        while ((match = regex.exec(action)) !== null) {
+          const info = lookup.get(match[0].toLowerCase());
+          const matchedItem = info?.entityData.item;
+          if (matchedItem && (matchedItem.type === 'book' || matchedItem.type === 'page')) {
+            matchedBooks.add(matchedItem);
+          }
+        }
+
+        for (const item of matchedBooks) {
+          const showActual = item.tags?.includes('recovered');
+          const contents = (item.chapters ?? [])
+            .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
+            .join('\n\n');
+          finalAction += `\nThe contents of the ${item.name} follow:\n${contents}`;
+        }
+      }
+
       if (action === 'Try to force your way back to the previous reality.') {
         const previousThemeName = Object.keys(currentFullState.themeHistory).pop();
         if (previousThemeName) {
@@ -281,7 +446,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           setError('No previous reality to return to.');
         }
       } else {
-        void executePlayerAction(action);
+        void executePlayerAction(finalAction);
       }
     }, [getCurrentGameState, executePlayerAction, triggerRealityShift, setError, setGameStateStack, executeManualRealityShift]);
 
@@ -293,22 +458,32 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       item: Item,
       interactionType: 'generic' | 'specific' | 'inspect',
       knownUse?: KnownUse,
+      stateOverride?: FullGameState,
     ) => {
       if (interactionType === 'inspect') {
-        const updatedState = recordInspect(item.id);
+        const updatedState = recordInspect(item.id, stateOverride);
 
-        const showActual = item.tags?.includes('recovered');
-        const contents = (item.chapters ?? [])
-          .map(
-            ch =>
-              `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}\n\n`,
-          )
-          .join('');
-        void executePlayerAction(
-          `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`,
-          false,
-          updatedState,
-        );
+        if (item.type === 'book' || item.type === 'page') {
+          const showActual = item.tags?.includes('recovered');
+          const contents = (item.chapters ?? [])
+            .map(
+              ch =>
+                `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}\n\n`,
+            )
+            .join('');
+
+          void executePlayerAction(
+            `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`,
+            false,
+            updatedState,
+          );
+        } else {
+          void executePlayerAction(
+            `Player investigates the ${item.name} - ${item.description}.`,
+            false,
+            updatedState,
+          );
+        }
       } else if (interactionType === 'specific' && knownUse) {
         void executePlayerAction(knownUse.promptEffect);
       } else if (interactionType === 'generic') {
@@ -358,6 +533,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    handleStashToggle,
+    recordPlayerJournalInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   };

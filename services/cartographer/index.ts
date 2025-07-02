@@ -15,5 +15,6 @@ export * from './processNodeAdds';
 export * from './processNodeUpdates';
 export * from './processEdgeUpdates';
 export * from './refineConnectorChains';
+export * from './hierarchyResolver';
 export * from './updateContext';
 export * from './types';

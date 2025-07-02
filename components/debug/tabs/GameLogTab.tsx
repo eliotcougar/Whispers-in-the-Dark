@@ -5,11 +5,13 @@ interface GameLogTabProps {
 }
 
 function GameLogTab({ gameLog }: GameLogTabProps) {
-  return (<DebugSection
-    content={gameLog}
-    maxHeightClass="max-h-[70vh]"
-    title="Current Game Log"
-  />)
+  return (
+    <DebugSection
+      content={gameLog}
+      maxHeightClass="max-h-[70vh]"
+      title="Current Game Log"
+    />
+  );
 }
 
 export default GameLogTab;

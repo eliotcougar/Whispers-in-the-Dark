@@ -6,8 +6,9 @@ interface MiscStateTabProps {
 }
 
 function MiscStateTab({ currentState }: MiscStateTabProps) {
-  return (<DebugSection
-    content={{
+  return (
+    <DebugSection
+      content={{
       currentMapNodeId: currentState.currentMapNodeId,
       currentObjective: currentState.currentObjective,
       currentThemeName: currentState.currentThemeName,
@@ -15,7 +16,7 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
       isAwaitingManualShiftThemeSelection: currentState.isAwaitingManualShiftThemeSelection,
       isCustomGameMode: currentState.isCustomGameMode,
       lastTurnChangesBrief: currentState.lastTurnChanges ? {
-        chars: currentState.lastTurnChanges.characterChanges.length,
+        npcs: currentState.lastTurnChanges.npcChanges.length,
         items: currentState.lastTurnChanges.itemChanges.length,
         mapChanged: currentState.lastTurnChanges.mapDataChanged,
         objAchieved: currentState.lastTurnChanges.objectiveAchieved,
@@ -29,9 +30,10 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
       score: currentState.score,
       turnsSinceLastShift: currentState.turnsSinceLastShift,
     }}
-    maxHeightClass="max-h-[70vh]"
-    title="Miscellaneous State Values"
-  />)
+      maxHeightClass="max-h-[70vh]"
+      title="Miscellaneous State Values"
+    />
+  );
 }
 
 export default MiscStateTab;

@@ -33,6 +33,7 @@ export const applyBasicMarkup = (text: string): Array<ReactNode> => {
   const result: Array<ReactNode> = [];
   const listStack: Array<{ level: number; items: Array<ReactNode> }> = [];
   let paragraphLines: Array<string> = [];
+  const headingRegex = /^(#+)\s+(.*)$/;
 
   const flushParagraph = () => {
     if (paragraphLines.length === 0) {
@@ -89,6 +90,34 @@ export const applyBasicMarkup = (text: string): Array<ReactNode> => {
 
   const bulletRegex = /^(\s*)\*\s+(.*)$/;
   lines.forEach(rawLine => {
+    if (rawLine.trim() === '--- torn ---') {
+      flushParagraph();
+      flushLists(-1);
+      result.push(
+        <hr
+          aria-hidden="true"
+          className="torn-divider"
+          key={`torn-${String(result.length)}`}
+        />,
+      );
+      return;
+    }
+    const headingMatch = headingRegex.exec(rawLine);
+    if (headingMatch) {
+      flushParagraph();
+      flushLists(-1);
+      const content = headingMatch[2];
+      const key = `h-${String(result.length)}`;
+      const inline = parseInline(content, key);
+      result.push(
+        <p key={key}>
+          <strong>
+            {inline}
+          </strong>
+        </p>,
+      );
+      return;
+    }
     const bulletMatch = bulletRegex.exec(rawLine);
     if (bulletMatch) {
       flushParagraph();

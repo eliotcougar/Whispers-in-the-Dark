@@ -25,7 +25,7 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   `MapDisplay.tsx`: Visualizes the `MapData` for the current theme. Includes pan/zoom interactions and exposes layout tuning via `MapControls`.
     *   `MapNodeView.tsx`: Renders individual nodes within the map SVG.
     *   `ItemChangeAnimator.tsx`: Animates inventory changes using `useItemChangeQueue`.
-    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `HistoryDisplay.tsx`, `PageView.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on characters, with location details coming from the map.
+    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `HistoryDisplay.tsx`, `PageView.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on NPCs currently.
     *   `LoadingSpinner.tsx`, `ErrorDisplay.tsx`: Provide feedback during loading or error states.
     *   `MainToolbar.tsx`: Contains buttons for primary game actions and information display, including opening the map.
 
@@ -84,8 +84,8 @@ This layer abstracts external interactions and complex data processing.
         *   `systemPrompt.ts` holds `MAP_UPDATE_SYSTEM_INSTRUCTION`.
         *   `index.ts` re-exports these utilities.
     *   `services/modelDispatcher.ts`: Provides AI model fallback when dispatching requests.
-        *   `dispatchAIRequest(modelNames, prompt, systemInstruction?, config?)` tries each model in order until one succeeds.  It returns the `GenerateContentResponse` from the first working model.
-        *   `dispatchAIRequestWithModelInfo` accepts the same parameters plus a `debugLog` array to capture which model was used and the raw response text for troubleshooting.
+        *   `dispatchAIRequest(options)` accepts a list of models. Each entry can be just the model name or `[name, ['thinking','system','schema']]` to indicate supported features. It tries each model in order until one succeeds and returns the `GenerateContentResponse` from the first working model.
+        *   `dispatchAIRequestWithModelInfo` accepts the same parameters plus a `debugLog` array to capture which model was used and the raw response text for troubleshooting. The dispatcher also supports an optional `jsonSchema` parameter that maps to `responseJsonSchema` from `@google/gen-ai`.
         *   Callers such as `storyteller/api.ts` log `response.usageMetadata` token counts (total, thoughts, prompt) when using this interface to help diagnose high token usage.
 *   **Data Processing & Validation:**
     *   `services/storyteller/responseParser.ts`: Parses the storyteller AI's JSON, validates, and attempts corrections.
@@ -98,8 +98,8 @@ This layer abstracts external interactions and complex data processing.
    *   `utils/promptFormatters.ts` and the files under `utils/promptFormatters/`: format inventory, map context, and main turn.
    *   `utils/aiErrorUtils.ts`: Interprets errors from the Gemini API.
    *   `utils/cloneUtils.ts`: Deep clone helpers for game state objects.
-  *   `utils/entityUtils.ts`: Entity lookup helpers plus `generateUniqueId`, `buildNodeId`, `buildEdgeId`, `buildCharacterId`, and `buildItemId` for deterministic IDs. `generateUniqueId` sanitizes the base string before appending a random suffix.
-   *   `utils/gameLogicUtils.ts`: Applies item and character changes, manages logs, and selects the next theme.
+  *   `utils/entityUtils.ts`: Entity lookup helpers plus `generateUniqueId`, `buildNodeId`, `buildEdgeId`, `buildNPCId`, and `buildItemId` for deterministic IDs. `generateUniqueId` sanitizes the base string before appending a random suffix.
+   *   `utils/gameLogicUtils.ts`: Applies item and NPC changes, manages logs, and selects the next theme.
    *   `utils/highlightHelper.tsx`: Builds highlight information for entity names in text.
    *   `utils/initialStates.ts`: Produces the default `FullGameState` objects.
    *   `utils/jsonUtils.ts`: Extracts JSON from AI responses and provides safe parsing.
@@ -120,10 +120,10 @@ This layer abstracts external interactions and complex data processing.
 ### 1.4. Data Layer
 
 *   **Type Definitions:**
-    *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`, `globalTurnNumber: number`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. Items include a `holderId` for their owner and `Character` objects have a unique `id` similar to `MapNode.id`.
-    *   `ItemChapter` and the `chapters` array store text for `page`, `journal`, and `book` items, which also record `lastWriteTurn` to throttle writing.
+    *   `types.ts`: Defines `FullGameState` (with `mapData: MapData`, `currentMapNodeId: string | null`, `mapLayoutConfig: MapLayoutConfig`, `globalTurnNumber: number`), `MapData`, `MapNode`, `MapEdge`, `AIMapUpdatePayload`, etc. Items include a `holderId` for their owner and `NPC` objects have a unique `id` similar to `MapNode.id`.
+   *   `ItemChapter` and the `chapters` array store text for `page` and `book` items. Journals use the `book` type and start empty. Each item records `lastWriteTurn` to throttle writing.
 *   **Constants & Configuration:**
-    *   `constants.ts`: Global constants and model names. `PLAYER_HOLDER_ID` marks items belonging to the player. Includes `JOURNAL_WRITE_COOLDOWN`, lists of valid item types (`page`, `journal`, `book`, etc.) and text style tags used for written items.
+   *   `constants.ts`: Global constants and model names. `PLAYER_HOLDER_ID` marks items belonging to the player. Includes `JOURNAL_WRITE_COOLDOWN`, lists of valid item types (`page`, `book`, etc.) and text style tags used for written items.
     *   `services/cartographer/systemPrompt.ts`: Defines `MAP_UPDATE_SYSTEM_INSTRUCTION` (exported as `SYSTEM_INSTRUCTION`).
 *   **Theme Definitions:**
     *   `themes.ts`: Defines adventure themes.
@@ -164,7 +164,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   Applies these changes, creating/updating/deleting `MapNode`s and `MapEdge`s within `MapData`.
     *   If a node is renamed via `nodesToUpdate`, any `nodesToRemove` entry with that old or new name is ignored.
 *   **Map Data (`FullGameState.mapData`)**: Becomes the single source of truth for all map-related information (nodes, their descriptions, aliases, statuses, connections).
-*   **Knowledge Base**: Focuses on characters currently.
+*   **Knowledge Base**: Focuses on NPCs currently.
 
 ### 2.3. Hierarchical Map System
 
@@ -182,6 +182,6 @@ The `MapDisplay` component visualizes nodes and edges stored in `MapData`. A nes
 
 ### 2.5. Written Item Flow
 
-*   **Page & Book Generation:** The `PageView` modal displays pages, books and journals. When a chapter lacks text it calls the Page service to generate the content using current scene context and map/character knowledge. The result is stored in `item.chapters[idx].actualContent` with optional encoded or foreign variants in `visibleContent`.
-*   **Journal Entries:** Selecting "Write" on a journal item invokes the Journal service. The service summarizes recent log entries along with known places and characters to produce a short entry appended as a new chapter. Journals obey `JOURNAL_WRITE_COOLDOWN` tracked via `lastWriteTurn`.
+*   **Page & Book Generation:** The `PageView` modal displays pages, books and journals. When a chapter lacks text it calls the Page service to generate the content using current scene context and map/NPC knowledge. The result is stored in `item.chapters[idx].actualContent` with optional encoded or foreign variants in `visibleContent`.
+*   **Journal Entries:** Selecting "Write" on a journal item invokes the Journal service. The service summarizes recent log entries along with known places and NPCs to produce a short entry appended as a new chapter. Journals obey `JOURNAL_WRITE_COOLDOWN` tracked via `lastWriteTurn`.
 *   **Markup & Transforms:** Generated text may include simple Markdown-style formatting which is converted to React elements via `applyBasicMarkup`. Tags like `foreign`, `encrypted`, or `runic` use helpers in `textTransforms.ts` to display encoded text until the player reveals it. Gothic text is styled purely with CSS.

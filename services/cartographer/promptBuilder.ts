@@ -32,17 +32,25 @@ export const buildMapUpdatePrompt = (
   previousMapNodeContext: string,
   existingMapContext: string,
   allKnownMainPlaces: string,
+  itemNames: Array<string>,
+  npcNames: Array<string>,
 ): string => `## Narrative Context for Map Update:
-- Current Theme: "${currentTheme.name}";
-- System Modifier for Theme: "${currentTheme.systemInstructionModifier}";
-- Scene Description: "${sceneDesc}";
-- Log Message (outcome of last action): "${logMsg}";
-- Player's Current Location Description (localPlace): "${localPlace}".
+  - Current Theme: "${currentTheme.name}";
+  - System Modifier for Theme: "${currentTheme.systemInstructionModifier}";
+  - Scene Description: "${sceneDesc}";
+  - Log Message (outcome of last action): "${logMsg}";
+  - Player's Current Location Description (localPlace): "${localPlace}".
 
 ## Map Context:
-- All Known Main Locations: ${allKnownMainPlaces};
-- Player's Previous Location was: ${previousMapNodeContext};
-- Map Hint from Storyteller: "${mapHint}".
+  - All Known Main Locations: ${allKnownMainPlaces};
+  - Player's Previous Location was: ${previousMapNodeContext};
+  - Map Hint from Storyteller: "${mapHint}".
+  - Item Names to avoid as nodes: ${
+    itemNames.length > 0 ? itemNames.map(n => `"${n}"`).join(', ') : 'None'
+  };
+  - NPC Names to avoid as nodes: ${
+    npcNames.length > 0 ? npcNames.map(n => `"${n}"`).join(', ') : 'None'
+  }.
 
 ${existingMapContext}
 ---

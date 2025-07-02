@@ -6,10 +6,11 @@ import {
   Item,
   ItemReference,
   ItemChapter,
+  AddDetailsPayload,
   KnownUse,
   NewItemSuggestion,
-  ValidCharacterUpdatePayload,
-  ValidNewCharacterPayload,
+  ValidNPCUpdatePayload,
+  ValidNewNPCPayload,
   DialogueSetupPayload,
 } from '../../types';
 import {
@@ -17,11 +18,15 @@ import {
   VALID_PRESENCE_STATUS_VALUES,
   VALID_TAGS,
   TEXT_STYLE_TAGS,
+  COMMON_TAGS,
+  WRITING_TAGS,
 } from '../../constants';
 import { normalizeItemType } from '../../utils/itemSynonyms';
 import { normalizeTags } from '../../utils/tagSynonyms';
 
 const TEXT_STYLE_TAG_SET = new Set<string>(TEXT_STYLE_TAGS);
+const WRITTEN_TYPES = ['page', 'book', 'map', 'picture'] as const;
+const WRITTEN_TYPE_SET = new Set<string>(WRITTEN_TYPES);
 
 function guessTextStyle(name: string, description: string): typeof TEXT_STYLE_TAGS[number] {
   const text = `${name} ${description}`.toLowerCase();
@@ -38,11 +43,11 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
   if (typeof obj.promptEffect !== 'string' || obj.promptEffect.trim() === '') return false;
   if (obj.appliesWhenActive !== undefined && typeof obj.appliesWhenActive !== 'boolean') return false;
   if (obj.appliesWhenInactive !== undefined && typeof obj.appliesWhenInactive !== 'boolean') return false;
-  if (obj.description !== undefined && typeof obj.description !== 'string') return false;
+  if (typeof obj.description !== 'string' || obj.description.trim() === '') return false;
   return true;
 }
 
-export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is Item {
+export function isValidItem(item: unknown, context?: 'create' | 'change'): item is Item {
   if (!item || typeof item !== 'object') return false;
   const obj = item as Partial<Item> & {
     contentLength?: number;
@@ -61,8 +66,8 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     return false;
   }
 
-  // Fields required for 'gain' or if it's not an 'update' context
-  if (context === 'gain' || !context) {
+  // Fields required for 'create' or if it's not a 'change' context
+  if (context === 'create' || !context) {
     if (typeof obj.type !== 'string' || !VALID_ITEM_TYPES.includes(obj.type)) {
         console.warn(`isValidItem (context: ${context ?? 'default'}): 'type' is missing or invalid.`, item);
         return false;
@@ -77,10 +82,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     }
   }
 
-  // Fields required for 'update' if it's a transformation (newName is present)
-  if (context === 'update' && obj.newName != null) {
+  // Fields required for 'change' if it's a transformation (newName is present)
+  if (context === 'change' && obj.newName != null) {
     if (typeof obj.newName !== 'string' || obj.newName.trim() === '') {
-        console.warn("isValidItem (context: update, with newName): 'newName' is invalid.", item);
+        console.warn("isValidItem (context: change, with newName): 'newName' is invalid.", item);
         return false;
     }
     // 'type' and 'description' can be omitted and inherited from the existing item.
@@ -97,10 +102,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     obj.type = normalized;
   }
   if (obj.description !== undefined && (typeof obj.description !== 'string' || obj.description.trim() === '')) {
-      // Allow empty description if it's an update payload and not a transformation,
-      // as it might be intentionally cleared, but an empty description for a gain/new item is bad.
-      if ((context === 'gain' || (context === 'update' && obj.newName)) && obj.description.trim() === '') {
-        console.warn(`isValidItem: 'description' is present but empty, which is invalid for a gain or transformation.`, item);
+      // Allow empty description if it's a change payload and not a transformation,
+      // as it might be intentionally cleared, but an empty description for a create/new item is bad.
+      if ((context === 'create' || (context === 'change' && obj.newName)) && obj.description.trim() === '') {
+        console.warn(`isValidItem: 'description' is present but empty, which is invalid for a create or transformation.`, item);
         return false;
       }
   }
@@ -112,6 +117,10 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     console.warn("isValidItem: 'isActive' is present but invalid.", item);
     return false;
   }
+  if (obj.stashed !== undefined && typeof obj.stashed !== 'boolean') {
+    console.warn("isValidItem: 'stashed' is present but invalid.", item);
+    return false;
+  }
   if (obj.tags !== undefined) {
     if (!Array.isArray(obj.tags) || !obj.tags.every(t => typeof t === 'string')) {
       console.warn("isValidItem: 'tags' is present but invalid.", item);
@@ -120,19 +129,21 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     const normalized = normalizeTags(obj.tags);
     if (normalized) obj.tags = normalized;
     else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
+
+    const allowed = WRITTEN_TYPE_SET.has(obj.type ?? '')
+      ? [...COMMON_TAGS, ...WRITING_TAGS]
+      : COMMON_TAGS;
+    obj.tags = obj.tags.filter(t => (allowed as ReadonlyArray<string>).includes(t));
   }
-  if (obj.type === 'page' || obj.type === 'journal') {
+  if (WRITTEN_TYPE_SET.has(obj.type ?? '')) {
     obj.tags = obj.tags ?? [];
     const styleTags = obj.tags.filter(t => TEXT_STYLE_TAG_SET.has(t));
     if (styleTags.length === 0) {
       const guessed = guessTextStyle(obj.name, obj.description ?? '');
-      obj.tags.push(obj.type === 'journal' ? 'handwritten' : guessed);
+      obj.tags.unshift(guessed);
     } else if (styleTags.length > 1) {
-      const keep = styleTags[0];
-      obj.tags = [keep];
-    }
-    if (obj.type === 'journal') {
-      obj.tags = obj.tags.filter(t => TEXT_STYLE_TAG_SET.has(t));
+      const [keep] = styleTags;
+      obj.tags = [keep, ...obj.tags.filter(t => !TEXT_STYLE_TAG_SET.has(t))];
     }
   }
   if (obj.holderId !== undefined && (typeof obj.holderId !== 'string' || obj.holderId.trim() === '')) {
@@ -148,19 +159,32 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
         typeof ch === 'object' &&
         typeof (ch as ItemChapter).heading === 'string' &&
         typeof (ch as ItemChapter).description === 'string' &&
-        typeof (ch as ItemChapter).contentLength === 'number'
+        typeof (ch as ItemChapter).contentLength === 'number' &&
+        ((ch as ItemChapter).imageData === undefined ||
+          typeof (ch as ItemChapter).imageData === 'string')
     );
 
-  if (obj.type === 'page' || obj.type === 'book' || obj.type === 'journal') {
+  if (
+    obj.type === 'page' ||
+    obj.type === 'book' ||
+    obj.type === 'map' ||
+    obj.type === 'picture'
+  ) {
     if (obj.chapters !== undefined) {
       if (!chaptersValid(obj.chapters)) {
         console.warn("isValidItem: 'chapters' is present but invalid.", item);
         return false;
       }
+      if (
+        (obj.type === 'page' || obj.type === 'map' || obj.type === 'picture') &&
+        obj.chapters.length > 1
+      ) {
+        obj.chapters = [obj.chapters[0]];
+      }
     } else {
       const len =
         typeof obj.contentLength === 'number' ? obj.contentLength : 30;
-      obj.chapters = obj.type === 'journal' ? [] : [
+      obj.chapters = [
         {
           heading: obj.name,
           description: obj.description ?? '',
@@ -182,9 +206,6 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     return false;
   }
 
-  if (obj.type === 'journal' && obj.chapters && obj.chapters.length > 0) {
-    obj.type = 'book';
-  }
 
   if (obj.contentLength !== undefined && typeof obj.contentLength !== 'number') {
     console.warn("isValidItem: 'contentLength' is present but invalid.", item);
@@ -202,10 +223,6 @@ export function isValidItem(item: unknown, context?: 'gain' | 'update'): item is
     console.warn("isValidItem: 'knownUses' is present but invalid.", item);
     return false;
   }
-  if (obj.addKnownUse !== undefined && !isValidKnownUse(obj.addKnownUse)) {
-    console.warn("isValidItem: 'addKnownUse' is present but invalid.", item);
-    return false;
-  }
   
   return true;
 }
@@ -217,6 +234,67 @@ export function isValidItemReference(obj: unknown): obj is ItemReference {
     typeof maybe.id === 'string' && maybe.id.trim() !== '' &&
     typeof maybe.name === 'string' && maybe.name.trim() !== ''
   );
+}
+
+export function isValidAddDetailsPayload(obj: unknown): obj is AddDetailsPayload {
+  if (!obj || typeof obj !== 'object') return false;
+  const maybe = obj as Partial<AddDetailsPayload> & {
+    chapters?: unknown;
+    knownUses?: unknown;
+    tags?: unknown;
+  };
+  if (
+    typeof maybe.id !== 'string' ||
+    maybe.id.trim() === '' ||
+    typeof maybe.name !== 'string' ||
+    maybe.name.trim() === '' ||
+    typeof maybe.type !== 'string' ||
+    !VALID_ITEM_TYPES.includes(maybe.type)
+  ) {
+    return false;
+  }
+  const isWritten = ['page', 'book', 'map', 'picture'].includes(maybe.type);
+
+  if (
+    maybe.knownUses === undefined &&
+    maybe.tags === undefined &&
+    maybe.chapters === undefined
+  ) {
+    return false;
+  }
+
+  if (
+    maybe.knownUses !== undefined &&
+    !(Array.isArray(maybe.knownUses) && maybe.knownUses.every(isValidKnownUse))
+  ) {
+    return false;
+  }
+
+  const allowedTags = isWritten ? [...COMMON_TAGS, ...WRITING_TAGS] : COMMON_TAGS;
+  const tagsValid =
+    Array.isArray(maybe.tags) &&
+    maybe.tags.every(t => (allowedTags as ReadonlyArray<string>).includes(t));
+
+  const chaptersValid =
+    Array.isArray(maybe.chapters) &&
+    maybe.chapters.every(ch => {
+      const chapter = ch as Partial<ItemChapter>;
+      return (
+        typeof chapter.heading === 'string' &&
+        typeof chapter.description === 'string' &&
+        typeof chapter.contentLength === 'number'
+      );
+    });
+
+  if (isWritten) {
+    if (!tagsValid || !chaptersValid) {
+      return false;
+    }
+  } else {
+    if (maybe.tags !== undefined && !tagsValid) return false;
+    if (maybe.chapters !== undefined && !chaptersValid) return false;
+  }
+  return true;
 }
 
 export function isValidNewItemSuggestion(obj: unknown): obj is NewItemSuggestion {
@@ -257,10 +335,10 @@ export function isValidNameDescAliasesPair(
   );
 }
 
-// Specific validator for CharacterUpdate payload elements from AI
-export function isValidCharacterUpdate(obj: unknown): obj is ValidCharacterUpdatePayload {
+// Specific validator for NPCUpdate payload elements from AI
+export function isValidNPCUpdate(obj: unknown): obj is ValidNPCUpdatePayload {
     if (!obj || typeof obj !== 'object') return false;
-    const maybe = obj as Partial<ValidCharacterUpdatePayload>;
+    const maybe = obj as Partial<ValidNPCUpdatePayload>;
     if (typeof maybe.name !== 'string' || maybe.name.trim() === '') return false;
     if (maybe.newDescription !== undefined && typeof maybe.newDescription !== 'string') return false;
     if (maybe.newAliases !== undefined && !(Array.isArray(maybe.newAliases) && maybe.newAliases.every((alias: unknown) => typeof alias === 'string'))) return false;
@@ -273,15 +351,15 @@ export function isValidCharacterUpdate(obj: unknown): obj is ValidCharacterUpdat
       // This could be problematic if AI intends to set a location but omits the field.
     }
     if ((maybe.newPresenceStatus === 'distant' || maybe.newPresenceStatus === 'unknown') && maybe.newPreciseLocation != null) {
-      // console.warn("Character update: preciseLocation provided for a non-present character. This will be ignored or nulled by game logic.");
+      // console.warn("NPC update: preciseLocation provided for a non-present NPC. This will be ignored or nulled by game logic.");
     }
     return true;
 }
 
-// Validator for Character object from AI charactersAdded
-export function isValidNewCharacterPayload(obj: unknown): obj is ValidNewCharacterPayload {
+// Validator for NPC object from AI npcsAdded
+export function isValidNewNPCPayload(obj: unknown): obj is ValidNewNPCPayload {
     if (!obj || typeof obj !== 'object') return false;
-    const maybe = obj as Partial<ValidNewCharacterPayload>;
+    const maybe = obj as Partial<ValidNewNPCPayload>;
     if (typeof maybe.name !== 'string' || maybe.name.trim() === '') return false;
     if (typeof maybe.description !== 'string' || maybe.description.trim() === '') return false;
     if (maybe.aliases !== undefined && !(Array.isArray(maybe.aliases) && maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) return false;
@@ -290,10 +368,10 @@ export function isValidNewCharacterPayload(obj: unknown): obj is ValidNewCharact
     if (maybe.preciseLocation !== undefined && maybe.preciseLocation != null && typeof maybe.preciseLocation !== 'string') return false;
 
     if ((maybe.presenceStatus === 'nearby' || maybe.presenceStatus === 'companion') && maybe.preciseLocation === undefined) {
-      // console.warn("New character: preciseLocation undefined for a present character.");
+      // console.warn("New NPC: preciseLocation undefined for a present NPC.");
     }
     if ((maybe.presenceStatus === 'distant' || maybe.presenceStatus === 'unknown') && maybe.preciseLocation != null) {
-      // console.warn("New character: preciseLocation provided for a non-present character.");
+      // console.warn("New NPC: preciseLocation provided for a non-present NPC.");
     }
     return true;
 }

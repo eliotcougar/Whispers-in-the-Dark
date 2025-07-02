@@ -71,7 +71,12 @@ function PlaygroundTab() {
                   return (
                     <Button
                       ariaLabel={id}
-                      icon={isClose ? <Icon name="x" size={16} /> : undefined}
+                      icon={isClose ? (
+                        <Icon
+                          name="x"
+                          size={16}
+                        />
+                      ) : undefined}
                       key={id}
                       label={isClose ? undefined : preset}
                       onClick={isToggle ? handleToggle(id) : noop}

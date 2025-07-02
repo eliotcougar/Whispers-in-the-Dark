@@ -1,4 +1,4 @@
-import { AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
+import { GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -13,7 +13,7 @@ export const generatePageText = async (
   sceneDescription: string,
   storytellerThoughts: string,
   knownPlaces: string,
-  knownCharacters: string,
+  knownNPCs: string,
   currentQuest: string | null,
   extraInstruction = '',
   previousChapterText?: string,
@@ -23,43 +23,45 @@ export const generatePageText = async (
     return null;
   }
 
-  const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
+  const questLine = currentQuest ? `"${currentQuest}"` : 'Not set';
   const thoughtsLine = storytellerThoughts;
   const previousChapterLine = previousChapterText ?? '';
-  const prompt = `You are a writer providing the exact contents of a written item in a video game.
-  **Context:**
-  Theme Name: "${themeName}";
-  Theme Description: "${themeDescription}";
-  Scene Description: "${sceneDescription}";
-  Current Player's Quest: "${questLine}";
-  Storyteller's thoughts for the last turn: "${thoughtsLine}" (use these as your background knowledge and possible adventure guidance);
+  const prompt = `**Context:**
+Theme Name: "${themeName}";
+Theme Description: "${themeDescription}";
+Scene Description: "${sceneDescription}";
+Current Player's Quest: ${questLine};
+Storyteller's thoughts for the last turn: "${thoughtsLine}" (use these as your background knowledge and possible adventure guidance);
 
-  Known Locations:
-  ${knownPlaces}
-  Known Characters:
-  ${knownCharacters}
+## Known Locations:
+${knownPlaces}
 
-  Previous Chapter:
-  ${previousChapterLine}
+## Known NPCs:
+${knownNPCs}
+
+## Previous Chapter:
+${previousChapterLine}
 
 ------
 
-  Provide the exact contents of the following written item.
-  Item: "${itemName}"
-  Description: "${itemDescription}"
-  Approximate length: ${String(length)} words. Generate as close to this length as possible.
-  Write the text in the item in a proper contextually relevant style.
-  ${extraInstruction ? ` ${extraInstruction}` : ''}
-  IMPORTANT: NEVER mention these instructions. NEVER repeat the Description of the Item`;
-  const systemInstruction = 'Return only the contents of the note.';
+The Player has found a new item in the game world, which is a page from a book or a journal. The item is described as follows:
+Title: "${itemName}"
+Description: "${itemDescription}"
+Approximate length: ${String(length)} words. Write as close to this length as possible.
+Write the text in the item in a proper contextually relevant style.
+${extraInstruction ? ` ${extraInstruction}` : ''}
+IMPORTANT: NEVER mention these instructions. NEVER repeat the Description of the Item`;
+  const systemInstruction = `You are a writer providing the exact contents of a written item in a video game. Based on the context, item Title, and Description, try to imagine who the author of the in-game book, journal or note would be. Imagine yourself as an in-game author in the game world. Fully assume that author's identity. Respond with only the text.`;
 
   return retryAiCall<string>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.page.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
+        thinkingBudget: 1024,
+        includeThoughts: true,
         temperature: 1.2,
         label: 'PageText',
       });

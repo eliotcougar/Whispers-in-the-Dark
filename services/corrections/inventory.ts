@@ -6,8 +6,9 @@ import { AdventureTheme, ItemChange } from '../../types';
 import {
   MAX_RETRIES,
   VALID_ITEM_TYPES_STRING,
+  VALID_ACTIONS_STRING,
   PLAYER_HOLDER_ID,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
@@ -17,9 +18,6 @@ import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
 import { parseInventoryResponse } from '../inventory/responseParser';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-
-const VALID_ACTIONS = ['gain', 'destroy', 'update', 'put', 'give', 'take'] as const;
-const VALID_ACTIONS_STRING = VALID_ACTIONS.map(a => `"${a}"`).join(' | ');
 
 /**
  * Attempts to correct a malformed array of ItemChange objects returned by the
@@ -42,14 +40,14 @@ export const fetchCorrectedItemChangeArray_Service = async (
     return null;
   }
 
-  const prompt = `
-Role: You are an AI assistant fixing a malformed inventory update JSON payload for a text adventure game.
-Malformed Payload:
+  const prompt = `You are an AI assistant fixing a malformed inventory update JSON payload for a text adventure game.
+
+## Malformed Payload:
 \`\`\`json
 ${malformedResponseText}
 \`\`\`
 
-Narrative Context:
+## Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified'}"
 - Scene Description: "${sceneDescription ?? 'Not specified'}"
 - Player Items Hint: "${playerItemsHint}"
@@ -68,7 +66,7 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         responseMimeType: 'application/json',

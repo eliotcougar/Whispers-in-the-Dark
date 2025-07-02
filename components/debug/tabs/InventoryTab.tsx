@@ -6,11 +6,13 @@ interface InventoryTabProps {
 }
 
 function InventoryTab({ inventory }: InventoryTabProps) {
-  return (<DebugSection
-    content={inventory}
-    maxHeightClass="max-h-[70vh]"
-    title="Current Inventory"
-  />)
+  return (
+    <DebugSection
+      content={inventory}
+      maxHeightClass="max-h-[70vh]"
+      title="Current Inventory"
+    />
+  );
 }
 
 export default InventoryTab;

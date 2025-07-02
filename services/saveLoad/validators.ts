@@ -5,10 +5,11 @@
 import {
   SavedGameDataShape,
   Item,
+  ItemChapter,
   ThemeHistoryState,
   ThemeMemory,
   AdventureTheme,
-  Character,
+  NPC,
   ThemePackName,
   KnownUse,
   MapData,
@@ -17,6 +18,7 @@ import {
   MapLayoutConfig,
   MapNodeData,
   DialogueSummaryRecord,
+  ThemeFact,
 } from '../../types';
 import {
   CURRENT_SAVE_GAME_VERSION,
@@ -27,7 +29,7 @@ import {
 import { ALL_THEME_PACK_NAMES } from '../../themes';
 import { getDefaultMapLayoutConfig } from '../../hooks/useMapUpdates';
 import { DEFAULT_VIEWBOX } from '../../constants';
-import { buildCharacterId, buildItemId } from '../../utils/entityUtils';
+import { buildNPCId, buildItemId } from '../../utils/entityUtils';
 
 // --- Validation Helpers for SavedGameDataShape (V3) ---
 export function isValidDialogueSummaryRecord(record: unknown): record is DialogueSummaryRecord {
@@ -39,6 +41,19 @@ export function isValidDialogueSummaryRecord(record: unknown): record is Dialogu
     maybe.participants.every((p: unknown) => typeof p === 'string') &&
     typeof maybe.timestamp === 'string' &&
     typeof maybe.location === 'string'
+  );
+}
+
+export function isValidItemChapter(chapter: unknown): chapter is ItemChapter {
+  if (!chapter || typeof chapter !== 'object') return false;
+  const maybe = chapter as Partial<ItemChapter>;
+  return (
+    typeof maybe.heading === 'string' &&
+    typeof maybe.description === 'string' &&
+    typeof maybe.contentLength === 'number' &&
+    (maybe.actualContent === undefined || typeof maybe.actualContent === 'string') &&
+    (maybe.visibleContent === undefined || typeof maybe.visibleContent === 'string') &&
+    (maybe.imageData === undefined || typeof maybe.imageData === 'string')
   );
 }
 
@@ -54,6 +69,7 @@ export function isValidItemForSave(item: unknown): item is Item {
     typeof maybe.holderId === 'string' &&
     (maybe.activeDescription === undefined || typeof maybe.activeDescription === 'string') &&
     (maybe.isActive === undefined || typeof maybe.isActive === 'boolean') &&
+    (maybe.stashed === undefined || typeof maybe.stashed === 'boolean') &&
     (maybe.tags === undefined || (Array.isArray(maybe.tags) && maybe.tags.every(t => typeof t === 'string'))) &&
     (maybe.lastWriteTurn === undefined || typeof maybe.lastWriteTurn === 'number') &&
     (maybe.lastInspectTurn === undefined || typeof maybe.lastInspectTurn === 'number') &&
@@ -63,12 +79,20 @@ export function isValidItemForSave(item: unknown): item is Item {
       typeof (maybe as { actualContent?: unknown }).actualContent === 'string') &&
     ((maybe as { visibleContent?: unknown }).visibleContent === undefined ||
       typeof (maybe as { visibleContent?: unknown }).visibleContent === 'string') &&
+    ((maybe as { imageData?: unknown }).imageData === undefined ||
+      typeof (maybe as { imageData?: unknown }).imageData === 'string') &&
+    ((maybe as { chapters?: unknown }).chapters === undefined ||
+      (Array.isArray((maybe as { chapters?: unknown }).chapters) &&
+        ((maybe as { chapters?: unknown }).chapters as Array<unknown>).every(
+          isValidItemChapter,
+        ))) &&
     (maybe.knownUses === undefined ||
       (Array.isArray(maybe.knownUses) &&
         maybe.knownUses.every((ku: KnownUse) =>
           typeof ku.actionName === 'string' &&
           typeof ku.promptEffect === 'string' &&
-          (ku.description === undefined || typeof ku.description === 'string') &&
+          ((ku as { description?: unknown }).description === undefined ||
+            typeof (ku as { description?: unknown }).description === 'string') &&
           (ku.appliesWhenActive === undefined || typeof ku.appliesWhenActive === 'boolean') &&
           (ku.appliesWhenInactive === undefined || typeof ku.appliesWhenInactive === 'boolean')
         )))
@@ -88,8 +112,8 @@ export function isValidThemeHistory(history: unknown): history is ThemeHistorySt
         typeof entry.currentObjective !== 'string' ||
         !Array.isArray(entry.placeNames) ||
         !entry.placeNames.every((name: unknown) => typeof name === 'string') ||
-        !Array.isArray(entry.characterNames) ||
-        !entry.characterNames.every((name: unknown) => typeof name === 'string')
+        !Array.isArray(entry.npcNames) ||
+        !entry.npcNames.every((name: unknown) => typeof name === 'string')
       )
         return false;
     }
@@ -97,9 +121,23 @@ export function isValidThemeHistory(history: unknown): history is ThemeHistorySt
   return true;
 }
 
-export function isValidCharacterForSave(character: unknown): character is Character {
-  if (!character || typeof character !== 'object') return false;
-  const maybe = character as Partial<Character>;
+export function isValidThemeFact(fact: unknown): fact is ThemeFact {
+  if (!fact || typeof fact !== 'object') return false;
+  const maybe = fact as Partial<ThemeFact>;
+  return (
+    typeof maybe.id === 'number' &&
+    typeof maybe.text === 'string' &&
+    Array.isArray(maybe.entities) &&
+    maybe.entities.every(id => typeof id === 'string') &&
+    typeof maybe.themeName === 'string' &&
+    typeof maybe.createdTurn === 'number' &&
+    typeof maybe.tier === 'number'
+  );
+}
+
+export function isValidNPCForSave(npc: unknown): npc is NPC {
+  if (!npc || typeof npc !== 'object') return false;
+  const maybe = npc as Partial<NPC>;
   return (
     typeof maybe.id === 'string' &&
     maybe.id.trim() !== '' &&
@@ -230,9 +268,9 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
 
   const fields: Array<keyof SavedGameDataShape> = [
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
-    'inventory', 'gameLog', 'lastActionLog', 'themeHistory',
+    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeHistory', 'themeFacts',
     'pendingNewThemeNameAfterShift',
-    'allCharacters', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
+    'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
     'turnsSinceLastShift', 'globalTurnNumber', 'isCustomGameMode'
   ];
@@ -250,11 +288,13 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
         'localPlace',
         'currentMapNodeId',
         'destinationNodeId',
+        'themeFacts',
       ];
       if (
         !(nullableFields.includes(field) && obj[field] === null) &&
         field !== 'isCustomGameMode' &&
-        field !== 'globalTurnNumber'
+        field !== 'globalTurnNumber' &&
+        field !== 'themeFacts'
       ) {
         console.warn(`Invalid save data (V3): Missing field '${field}'.`); return false;
       }
@@ -268,11 +308,29 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (obj.mainQuest !== null && typeof obj.mainQuest !== 'string') { console.warn('Invalid save data (V3): mainQuest type.'); return false; }
   if (obj.currentObjective !== null && typeof obj.currentObjective !== 'string') { console.warn('Invalid save data (V3): currentObjective type.'); return false; }
   if (!Array.isArray(obj.inventory) || !obj.inventory.every(isValidItemForSave)) { console.warn('Invalid save data (V3): inventory.'); return false; }
+  if (
+    !Array.isArray(obj.playerJournal) ||
+    !obj.playerJournal.every(isValidItemChapter)
+  ) {
+    console.warn('Invalid save data (V3): playerJournal type.');
+    return false;
+  }
+  if (typeof obj.lastJournalWriteTurn !== 'number') { console.warn('Invalid save data (V3): lastJournalWriteTurn type.'); return false; }
+  if (typeof obj.lastJournalInspectTurn !== 'number') { console.warn('Invalid save data (V3): lastJournalInspectTurn type.'); return false; }
+  if (typeof obj.lastLoreDistillTurn !== 'number') { console.warn('Invalid save data (V3): lastLoreDistillTurn type.'); return false; }
   if (!Array.isArray(obj.gameLog) || !obj.gameLog.every((msg: unknown) => typeof msg === 'string')) { console.warn('Invalid save data (V3): gameLog.'); return false; }
   if (obj.lastActionLog !== null && typeof obj.lastActionLog !== 'string') { console.warn('Invalid save data (V3): lastActionLog type.'); return false; }
   if (!isValidThemeHistory(obj.themeHistory)) { console.warn('Invalid save data (V3): themeHistory.'); return false; }
+  if (obj.themeFacts !== undefined && !Array.isArray(obj.themeFacts)) {
+    console.warn('Invalid save data (V5): themeFacts type.');
+    return false;
+  }
+  if (Array.isArray(obj.themeFacts) && !obj.themeFacts.every(isValidThemeFact)) {
+    console.warn('Invalid save data (V5): themeFacts structure.');
+    return false;
+  }
   if (obj.pendingNewThemeNameAfterShift !== null && typeof obj.pendingNewThemeNameAfterShift !== 'string') { console.warn('Invalid save data (V3): pendingNewThemeNameAfterShift type.'); return false; }
-  if (!Array.isArray(obj.allCharacters) || !obj.allCharacters.every(isValidCharacterForSave)) { console.warn('Invalid save data (V3): allCharacters.'); return false; }
+  if (!Array.isArray(obj.allNPCs) || !obj.allNPCs.every(isValidNPCForSave)) { console.warn('Invalid save data (V3): allNPCs.'); return false; }
   if (!isValidMapData(obj.mapData)) { console.warn('Invalid save data (V3): mapData.'); return false; }
   if (obj.currentMapNodeId !== null && typeof obj.currentMapNodeId !== 'string') { console.warn('Invalid save data (V3): currentMapNodeId type.'); return false; }
   if (obj.destinationNodeId !== null && typeof obj.destinationNodeId !== 'string') { console.warn('Invalid save data (V3): destinationNodeId type.'); return false; }
@@ -353,21 +411,34 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     ...item,
     id: item.id || buildItemId(item.name),
     tags: item.tags ?? [],
+    stashed: item.stashed ?? false,
     holderId: item.holderId || PLAYER_HOLDER_ID,
   }));
   // Numeric fields and nullable strings are guaranteed by validation
-  data.allCharacters = data.allCharacters.map((c: unknown) => {
-    const char = c as Partial<Character>;
+  data.allNPCs = data.allNPCs.map((npc: unknown) => {
+    const oneNpc = npc as Partial<NPC>;
     return {
-      ...char,
-      id: char.id ?? buildCharacterId(char.name ?? ''),
-      aliases: char.aliases ?? [],
-      presenceStatus: char.presenceStatus ?? 'unknown',
-      lastKnownLocation: char.lastKnownLocation ?? null,
-      preciseLocation: char.preciseLocation ?? null,
-      dialogueSummaries: char.dialogueSummaries ?? [],
-    } as Character;
+      ...oneNpc,
+      id: oneNpc.id ?? buildNPCId(oneNpc.name ?? ''),
+      aliases: oneNpc.aliases ?? [],
+      presenceStatus: oneNpc.presenceStatus ?? 'unknown',
+      lastKnownLocation: oneNpc.lastKnownLocation ?? null,
+      preciseLocation: oneNpc.preciseLocation ?? null,
+      dialogueSummaries: oneNpc.dialogueSummaries ?? [],
+    } as NPC;
   });
   data.mapViewBox = typeof data.mapViewBox === 'string' ? data.mapViewBox : DEFAULT_VIEWBOX;
+  if (!Array.isArray(data.themeFacts)) {
+    data.themeFacts = [];
+  }
+  if (!Array.isArray(data.playerJournal)) {
+    data.playerJournal = [];
+  }
+  if (typeof data.lastJournalInspectTurn !== 'number') {
+    data.lastJournalInspectTurn = 0;
+  }
+  if (typeof data.lastLoreDistillTurn !== 'number') {
+    data.lastLoreDistillTurn = 0;
+  }
   return data;
 }

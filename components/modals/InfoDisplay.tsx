@@ -3,6 +3,7 @@
  * @file InfoDisplay.tsx
  * @description Modal summarizing version and build info.
  */
+import React from 'react';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import TextBox from '../elements/TextBox';
@@ -37,6 +38,23 @@ function replacePlaceholders(text: string): string {
     .replace(/\{\{CURRENT_SAVE_GAME_VERSION\}\}/g, CURRENT_SAVE_GAME_VERSION)
     .replace(/\{\{GEMINI_MODEL_NAME\}\}/g, GEMINI_MODEL_NAME);
 }
+
+const infoSections = infoContent.sections.map(section => (
+  <TextBox
+    contentFontClass="leading-relaxed space-y-3"
+    header={section.header}
+    key={section.header}
+    text={section.text.map(t => replacePlaceholders(t)).join('\n')}
+  />
+));
+
+const changelogEntries = infoContent.changelog.map(entry => (
+  <ChangelogVersion
+    items={entry.items}
+    key={entry.title}
+    title={entry.title}
+  />
+));
 
 interface InfoDisplayProps {
   readonly isVisible: boolean;
@@ -79,26 +97,13 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
             headerWrapperClassName="text-center"
           />
 
-          {infoContent.sections.map(section => (
-            <TextBox
-              contentFontClass="leading-relaxed space-y-3"
-              header={section.header}
-              key={section.header}
-              text={section.text.map(t => replacePlaceholders(t)).join('\n')}
-            />
-          ))}
+          {infoSections}
 
           <TextBox
             contentFontClass="leading-relaxed space-y-4"
             header="Changelog"
           >
-            {infoContent.changelog.map(entry => (
-              <ChangelogVersion
-                items={entry.items}
-                key={entry.title}
-                title={entry.title}
-              />
-            ))}
+            {changelogEntries}
           </TextBox>
 
           <TextBox
@@ -114,4 +119,4 @@ function InfoDisplay({ isVisible, onClose }: InfoDisplayProps) {
   );
 }
 
-export default InfoDisplay;
+export default React.memo(InfoDisplay);

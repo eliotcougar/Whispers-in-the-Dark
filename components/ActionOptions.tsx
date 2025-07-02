@@ -8,7 +8,7 @@
 import { useMemo, useCallback } from 'react';
 
 import * as React from 'react';
-import { Item, Character, MapNode } from '../types';
+import { Item, NPC, MapNode } from '../types';
 import { highlightEntitiesInText, buildHighlightableEntities } from '../utils/highlightHelper';
 import Button from './elements/Button';
 
@@ -18,7 +18,7 @@ interface ActionOptionsProps {
   readonly disabled: boolean;
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly currentThemeName: string | null;
 }
 
@@ -32,13 +32,13 @@ function ActionOptions({
   disabled,
   inventory,
   mapData,
-  allCharacters,
+  allNPCs,
   currentThemeName
 }: ActionOptionsProps) {
 
   const entitiesForHighlighting = useMemo(
-    () => buildHighlightableEntities(inventory, mapData, allCharacters, currentThemeName),
-    [inventory, mapData, allCharacters, currentThemeName]
+    () => buildHighlightableEntities(inventory, mapData, allNPCs, currentThemeName),
+    [inventory, mapData, allNPCs, currentThemeName]
   );
 
 

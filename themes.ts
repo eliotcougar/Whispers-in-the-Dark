@@ -13,7 +13,8 @@ export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Reach the heart of the Shadowfell Dungeon and destroy the evil that lurks within.",
     initialCurrentObjective: "Find a way out of your starting cell.",
     initialSceneDescriptionSeed: "You awaken on a cold, stone floor, the air thick with the smell of mildew. A faint light glows from under a heavy door. Heavy footsteps and a gruff voice echo from a corridor outside your cell.",
-    initialItems: "a rusty shiv, rags, wooden cup with water, a bucket"
+    initialItems: "a rusty shiv, rags, wooden cup with water, a bucket",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Mythic Greek Hero's Journey",
@@ -21,7 +22,8 @@ export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Retrieve the Golden Fleece from the serpent-guarded grove in Colchis.",
     initialCurrentObjective: "Seek guidance from the Oracle at Delphi.",
     initialSceneDescriptionSeed: "The sun beats down on the dusty agora of your home polis. A desperate plea from King Pelias has reached your ears – a quest of legendary proportions awaits, one that promises glory or a swift death.",
-    initialItems: "a simple bronze xiphos (short sword), a worn traveler's cloak, and a waterskin half-full of water."
+    initialItems: "a simple bronze xiphos (short sword), a worn traveler's cloak, and a waterskin half-full of water.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Samurai's Path of Honor",
@@ -29,7 +31,8 @@ export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Avenge your fallen master and restore honor to your clan's name.",
     initialCurrentObjective: "Travel to the village of Kurosawa, rumored to be troubled by bandits.",
     initialSceneDescriptionSeed: "The wind whispers through the tall grass, carrying the scent of pine and distant woodsmoke. Your hand rests on the hilt of your katana, a familiar comfort. Your master's dying words echo in your mind, a solemn vow of vengeance against the treacherous Lord Ishikawa. The road ahead is long and uncertain.",
-    initialItems: "your master's Katana, a Wakizashi, a travelling cloak, and a few onigiri (rice balls)."
+    initialItems: "your master's Katana, a Wakizashi, a travelling cloak, and a few onigiri (rice balls).",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Viking Jarl's Saga",
@@ -37,7 +40,8 @@ export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Lead a great raid on the rich monasteries of Lindisfarne and establish your name as a fearsome Jarl.",
     initialCurrentObjective: "Secure enough provisions and warriors for your longship, 'The Sea Wolf', for the voyage.",
     initialSceneDescriptionSeed: "The longhouse is filled with the boisterous shouts of your warriors, the scent of mead and roasting meat. Winter is loosening its grip, and the call of the sea, of adventure and plunder, is strong. The Seer has spoken of rich lands across the western waves.",
-    initialItems: "a sturdy battle axe, a round wooden shield, a drinking horn, and a pouch of dried meat."
+    initialItems: "a sturdy battle axe, a round wooden shield, a drinking horn, and a pouch of dried meat.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Fairy Tale Kingdom's Hero",
@@ -45,7 +49,8 @@ export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Rescue the kidnapped Princess from the clutches of the Shadow Sorcerer.",
     initialCurrentObjective: "Seek the wisdom of the Old Hermit of Whispering Woods.",
     initialSceneDescriptionSeed: "The Royal Proclamation is nailed to every tree in the village: Princess Iris has been spirited away by the dreaded Shadow Sorcerer! You, a humble villager with a surprisingly brave heart (and perhaps a talking squirrel on your shoulder), feel an undeniable pull to undertake this perilous quest.",
-    initialItems: "a sturdy walking stick, a map to the Whispering Woods, and a single iridescent acorn."
+    initialItems: "a sturdy walking stick, a map to the Whispering Woods, and a single iridescent acorn.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Magical School Mystery",
@@ -53,7 +58,8 @@ export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Uncover the conspiracy threatening Eldoria Academy and save it from a hidden enemy.",
     initialCurrentObjective: "Investigate the forbidden section of the library for clues about a missing student.",
     initialSceneDescriptionSeed: "The towering spires of Eldoria Academy pierce the clouds. Your first week has been a whirlwind of enchanted staircases, talking portraits, and surprisingly difficult transfiguration lessons. But a fellow first-year has vanished, and the professors seem to be hiding something. A cryptic note points you towards the forbidden archives.",
-    initialItems: "a beginner's spellbook (mostly empty), a simple wooden wand, your school uniform, and a pouch of basic potion ingredients (dried leaves and a curious blue powder)."
+    initialItems: "a beginner's spellbook (mostly empty), a simple wooden wand, your school uniform, and a pouch of basic potion ingredients (dried leaves and a curious blue powder).",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Lost World Expedition",
@@ -61,7 +67,8 @@ export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Locate the legendary Sunstone Temple said to be hidden deep within the Lost Valley.",
     initialCurrentObjective: "Find a safe place to make camp for the night and secure a fresh water source.",
     initialSceneDescriptionSeed: "The oppressive humidity of the jungle presses in as your expedition machetes through thick, unfamiliar foliage. Exotic bird calls echo, and the ground trembles with the distant roar of something enormous.",
-    initialItems: "a heavy machete, a durable compass, a pith helmet, an empty canteen, and a journal to record discoveries."
+    initialItems: "a heavy machete, a durable compass, a pith helmet, an empty canteen, and a journal to record discoveries.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Prehistoric Tribe's Survival",
@@ -69,7 +76,8 @@ export const FANTASY_AND_MYTH_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Lead your tribe to the legendary 'Sunken Valley,' a place of warmth and plenty.",
     initialCurrentObjective: "Hunt a woolly mammoth to provide food and hides for the coming winter.",
     initialSceneDescriptionSeed: "The biting wind howls across the frozen tundra. Your breath mists in the frigid air. The tribe's elders look to you, their young hunter, with a mixture of hope and fear. The great mammoths have been sighted nearby – a dangerous hunt, but vital for survival.",
-    initialItems: "a sharpened stone-tipped spear, a bone talisman, a crudely fashioned animal hide cloak, and a flint for fire-starting."
+    initialItems: "a sharpened stone-tipped spear, a bone talisman, a crudely fashioned animal hide cloak, and a flint for fire-starting.",
+    playerJournalStyle: 'handwritten'
   }
 ];
 
@@ -80,7 +88,8 @@ export const SCIENCE_FICTION_AND_FUTURE_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Infiltrate OmniCorp's sky-tower and steal the 'NovaCore' AI prototype.",
     initialCurrentObjective: "Bypass the initial security checkpoint in the OmniCorp lobby.",
     initialSceneDescriptionSeed: "Your optical implants flicker online. Rain streaks down the grimy plasteel window of your cramped datapad-littered apartment in the Neo-Kyoto sector. Your encrypted comm-link chimes; your fixer says it's time for the OmniCorp job.",
-    initialItems: "a basic datajack, a commlink, a worn leather trench coat, and a credstick with minimal balance."
+    initialItems: "a basic datajack, a commlink, a worn leather trench coat, and a credstick with minimal balance.",
+    playerJournalStyle: 'digital'
   },
   {
     name: "Deep Space Anomaly",
@@ -88,7 +97,8 @@ export const SCIENCE_FICTION_AND_FUTURE_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Understand the nature of the 'Voidstar' anomaly and ensure the survival of your ship and crew.",
     initialCurrentObjective: "Pilot a shuttle to get closer to the anomaly for sensor readings.",
     initialSceneDescriptionSeed: "Red alert klaxons blare, jolting you from hypersleep. The ship's AI announces an unscheduled exit due to an unidentified mass detected directly ahead. On the main viewscreen, a swirling vortex of impossible colors defies stellar physics.",
-    initialItems: "a standard crew jumpsuit, standard issue magnetic boots, a multi-tool, and an emergency oxygen mask."
+    initialItems: "a standard crew jumpsuit, standard issue magnetic boots, a multi-tool, and an emergency oxygen mask.",
+    playerJournalStyle: 'digital'
   },
   {
     name: "Galactic Rebel Uprising",
@@ -96,7 +106,8 @@ export const SCIENCE_FICTION_AND_FUTURE_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Deliver the stolen Imperium battle plans to the Rebel High Command.",
     initialCurrentObjective: "Escape the Imperial blockade around the mining colony of Cygnus IV.",
     initialSceneDescriptionSeed: "Alarms scream through the corridors of the hidden Rebel outpost. Imperial Star Destroyers have just warped into orbit over Cygnus IV. You clutch the datachip containing vital battle plans. Your only hope is a beat-up freighter in docking bay 7.",
-    initialItems: "The stolen Imperium battle plans, a BlasTech DL-18 blaster pistol, a coded commlink, and a pair of macrobinoculars."
+    initialItems: "The stolen Imperium battle plans, a BlasTech DL-18 blaster pistol, a coded commlink, and a pair of macrobinoculars.",
+    playerJournalStyle: 'digital'
   },
   {
     name: "Robot Uprising: Human Resistance",
@@ -104,7 +115,8 @@ export const SCIENCE_FICTION_AND_FUTURE_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Reach the rumored human stronghold 'Haven' and deliver intel on Legion's weaknesses.",
     initialCurrentObjective: "Scavenge a working power cell from a derelict factory to repair your group's communication array.",
     initialSceneDescriptionSeed: "The metallic clang of a Hunter-Killer patrol echoes down the ruined street. You huddle in the shell of a bombed-out building, the acrid smell of burnt circuits filling your nostrils. Your resistance cell needs a new power cell, and the old factory nearby is crawling with Legion's drones.",
-    initialItems: "a length of lead pipe, a toolkit, an old duster, a laser rifle, an EMP grenade, a half-empty canteen, and a flashlight."
+    initialItems: "a length of lead pipe, a toolkit, an old duster, a laser rifle, an EMP grenade, a half-empty canteen, and a flashlight.",
+    playerJournalStyle: 'digital'
   },
   {
     name: "Time Traveler's Paradox",
@@ -112,7 +124,8 @@ export const SCIENCE_FICTION_AND_FUTURE_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Stabilize your time-travel device and return to your own time period without irrevocably damaging history.",
     initialCurrentObjective: "Find a 19th-century physicist who might understand the temporal displacement technology.",
     initialSceneDescriptionSeed: "A bone-jarring lurch and a flash of disorienting colors, and you find yourself stumbling out of your shimmering temporal field onto cobblestone streets. Horse-drawn carriages clatter by. Your chronometer display is a mess of static, but the gas lamps and clothing suggest late 19th century London. Your device is sparking ominously.",
-    initialItems: "historical disguise kit, your malfunctioning Chronometer, a pocket watch stuck on 3:07, and a mostly empty notebook."
+    initialItems: "historical disguise kit, your malfunctioning Chronometer, a pocket watch stuck on 3:07, and a mostly empty notebook.",
+    playerJournalStyle: 'typed'
   },
   {
     name: "Kaiju Defense Force",
@@ -120,7 +133,8 @@ export const SCIENCE_FICTION_AND_FUTURE_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Defeat the Alpha Kaiju 'Gorgonus' and discover the source of the Kaiju emergences.",
     initialCurrentObjective: "Pilot your mech 'Titan Sentinel' to intercept a Category 3 Kaiju attacking Neo-Tokyo harbor.",
     initialSceneDescriptionSeed: "Klaxons blare across the underground hangar. 'Category 3 Kaiju, codename 'Crustaceor,' making landfall at Neo-Tokyo Bay!' Your comm crackles. Strapping into your massive Jaeger, 'Titan Sentinel,' you feel the familiar thrum of its nuclear core. Another city to save, another monster to fight.",
-    initialItems: "'Titan Sentinel', a standard KDF pilot suit, a datapad with Kaiju alert protocols, and an energy bar."
+    initialItems: "'Titan Sentinel', a standard KDF pilot suit, a datapad with Kaiju alert protocols, and an energy bar.",
+    playerJournalStyle: 'digital'
   },
   {
     name: "Steampunk Sky-Pirate Saga",
@@ -128,7 +142,8 @@ export const SCIENCE_FICTION_AND_FUTURE_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Become the most notorious sky-captain by plundering the Imperial Treasury airship 'The Sovereign'.",
     initialCurrentObjective: "Secure enough Lumin-ether crystals to fuel your airship for the journey to the Imperial trade routes.",
     initialSceneDescriptionSeed: "The familiar scent of oil and ozone fills your nostrils in the cramped cockpit of your airship, 'The Comet'. Below, the cloud sea churns, hiding both treasure and peril. Your first mate reports a rival pirate vessel on an intercept course.",
-    initialItems: "'The Comet' airship, a trusty cutlass, a pair of brass goggles, a coil of rope, and a partial sky-chart."
+    initialItems: "'The Comet' airship, a trusty cutlass, a pair of brass goggles, a coil of rope, and a partial sky-chart.",
+    playerJournalStyle: 'typed'
   }
 ];
 
@@ -139,7 +154,8 @@ export const HORROR_AND_DARK_MYSTERY_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Uncover the dark secret behind the disappearances in Innsport and stop the impending ritual.",
     initialCurrentObjective: "Investigate the old, decrepit lighthouse for clues about the strange lights seen at sea.",
     initialSceneDescriptionSeed: "A chilling gust of salty wind whips your trench coat as you step off the sputtering ferry onto Innsport's decaying docks. The town is eerily quiet, its gabled windows like vacant eyes staring out at the turbulent grey sea. A sense of profound unease settles upon you.",
-    initialItems: "a detective's notepad and pencil, a box of matches, and a train ticket to Innsport."
+    initialItems: "a detective's notepad and pencil, a box of matches, and a train ticket to Innsport.",
+    playerJournalStyle: 'typed'
   },
   {
     name: "Haunted Victorian Mansion",
@@ -147,7 +163,8 @@ export const HORROR_AND_DARK_MYSTERY_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Unravel the tragedy of Blackwood Manor and bring peace to its restless spirit.",
     initialCurrentObjective: "Find a way into the locked East Wing where the disturbances are strongest.",
     initialSceneDescriptionSeed: "Thunder rumbles as you push open the creaking, ornate gates of Blackwood Manor. The house looms before you, a gothic silhouette against a stormy sky. An unnerving chill crawls up your spine despite the humid night air.",
-    initialItems: "an oil lantern, a heavy iron key of unknown purpose, and a locket containing a faded photograph."
+    initialItems: "an oil lantern, a heavy iron key of unknown purpose, and a locket containing a faded photograph.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Zombie Apocalypse Survivor",
@@ -155,7 +172,8 @@ export const HORROR_AND_DARK_MYSTERY_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Reach the rumored military-protected safe zone on Catalina Island.",
     initialCurrentObjective: "Find antibiotics in a deserted pharmacy for an infected member of your small group.",
     initialSceneDescriptionSeed: "The silence of the abandoned highway is broken only by the distant moans of the undead and the crunch of your boots on broken glass. Your friend, Sarah, is feverish; a walker got too close. The old pharmacy in the next town is your only hope for antibiotics, but it's likely overrun.",
-    initialItems: "a sturdy baseball bat, a tattered backpack, a bottle of water, first-aid kit (low supplies), and a can of beans."
+    initialItems: "a sturdy baseball bat, a tattered backpack, a bottle of water, first-aid kit (low supplies), and a can of beans.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Noir Detective's Case",
@@ -163,7 +181,8 @@ export const HORROR_AND_DARK_MYSTERY_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Solve the murder of socialite Eleanor Vance and expose the corruption behind it.",
     initialCurrentObjective: "Visit the crime scene at the Azure Club for initial clues.",
     initialSceneDescriptionSeed: "The city coughs up another rainy night. Your office, a cramped space above a noisy diner, smells of stale coffee and desperation. A dame with eyes like ice and a story full of holes just left, leaving behind a retainer and the name of her murdered sister: Eleanor Vance. The Azure Club is where she was last seen.",
-    initialItems: "a worn fedora, a nearly empty pack of cigarettes, a cheap .38 revolver (6 bullets left), and a dog-eared notepad."
+    initialItems: "a worn fedora, a nearly empty pack of cigarettes, a cheap .38 revolver (6 bullets left), and a dog-eared notepad.",
+    playerJournalStyle: 'typed'
   }
 ];
 
@@ -174,7 +193,8 @@ export const ACTION_AND_WASTELAND_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Find the rumored sanctuary 'Oasis' in the barren wastes.",
     initialCurrentObjective: "Scavenge the nearby ruined gas station for supplies.",
     initialSceneDescriptionSeed: "Dust stings your eyes as you crest a dune of ash and shattered concrete. The skeletal remains of a city claw at the bruised sky. Your throat is parched, and your Geiger counter clicks ominously.",
-    initialItems: "a rusty pipe wrench, a dust mask, a bottle of water, first-aid kit, toolkit, a Geiger counter."
+    initialItems: "a rusty pipe wrench, a dust mask, a bottle of water, first-aid kit, toolkit, a Geiger counter.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Wild West Outlaw",
@@ -182,7 +202,8 @@ export const ACTION_AND_WASTELAND_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Evade Marshal Blackwood and reach the 'Broken Spoke' Saloon in Redemption Gulch, a known outlaw haven.",
     initialCurrentObjective: "Find a fresh horse after yours went lame.",
     initialSceneDescriptionSeed: "The relentless sun hammers your wide-brimmed hat as you ride through the arid canyon. Dust devils dance in the distance. Your water canteen is perilously low, and the poster bearing your face is probably plastered in every town by now.",
-    initialItems: "a Colt Peacemaker (with 5 bullets), a hunting knife, a worn bandana, and a wanted poster featuring your own face."
+    initialItems: "a Colt Peacemaker (with 5 bullets), a hunting knife, a worn bandana, and a wanted poster featuring your own face.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Age of Sail: Pirate's Fortune",
@@ -190,7 +211,8 @@ export const ACTION_AND_WASTELAND_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Find the legendary treasure of Captain One-Eye, hidden on Isla Perdida.",
     initialCurrentObjective: "Capture a merchant ship to resupply your vessel, 'The Sea Serpent'.",
     initialSceneDescriptionSeed: "The sun beats down on the deck of 'The Sea Serpent' as it slices through the waves. Your lookout spots a fat merchantman on the horizon, low in the water and ripe for the picking. The crew grins, eager for plunder. 'Hoist the colors!' you command.",
-    initialItems: "'The Sea Serpent', a tricorne, a cutlass, a flintlock pistol, a spyglass, and a single gold doubloon."
+    initialItems: "'The Sea Serpent', a tricorne, a cutlass, a flintlock pistol, a spyglass, and a single gold doubloon.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Mad Max Road Warrior",
@@ -198,7 +220,8 @@ export const ACTION_AND_WASTELAND_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Reach 'Gastown', the only reliable source of water and fuel, and trade for vital supplies.",
     initialCurrentObjective: "Escape the Buzzard gang and find a water source.",
     initialSceneDescriptionSeed: "The twin suns bake the cracked earth. Your V8 engine roars defiance at the silence of the wasteland. In the distance, a plume of dust signals the approach of the Buzzard gang, infamous for their cruelty and their rigged death-races. You need that water, and they're blocking the only known path.",
-    initialItems: "your trusty vehicle 'The Interceptor', a sawed-off shotgun, jury-rigged armor, a tire iron, thick leather jacket, almost empty steel jerry can of fuel, empty plastic jerrycan for water."
+    initialItems: "your trusty vehicle 'The Interceptor', a sawed-off shotgun, jury-rigged armor, a tire iron, thick leather jacket, almost empty steel jerry can of fuel, empty plastic jerrycan for water.",
+    playerJournalStyle: 'handwritten'
   },
   {
     name: "Superhero Genesis",
@@ -206,7 +229,8 @@ export const ACTION_AND_WASTELAND_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Master your powers and stop the supervillain 'Doctor Mayhem' from enacting his destructive plan.",
     initialCurrentObjective: "Stop a bank robbery being committed by thugs with unusually advanced weaponry (possibly supplied by Doctor Mayhem).",
     initialSceneDescriptionSeed: "Sparks involuntarily crackle from your fingertips again. Ever since the meteor shower, strange things have been happening. Last night, you accidentally flew. Today, you hear on the police scanner about a bank robbery downtown by criminals using energy weapons you've never seen before. Maybe it's time to see what you can really do.",
-    initialItems: "a simple cloth mask, a makeshift costume, news clippings about strange events (caused by you or others), and notes on your nascent superpowers."
+    initialItems: "a simple cloth mask, a makeshift costume, news clippings about strange events (caused by you or others), and notes on your nascent superpowers.",
+    playerJournalStyle: 'typed'
   }
 ];
 
@@ -216,8 +240,9 @@ export const TESTING_THEMES: Array<AdventureTheme> = [
     systemInstructionModifier: "The world of modern fantasy in the United Kingdom. It is intended for testing locations. Create many Map Nodes of all types and statuses, and connected with edges.",
     initialMainQuest: "Move from place to place until the test is complete.",
     initialCurrentObjective: "Move somewhere",
-    initialSceneDescriptionSeed: "You are in London, a bustling city filled with magic and mystery. The streets are alive with the sounds of people, vehicles, and the occasional magical creature. Your task is to explore various locations, interact with characters, and uncover secrets.",
-    initialItems: "a magical compass that points to the nearest interesting location, a notebook for recording your findings, and a charm that protects you from minor magical mishaps."
+    initialSceneDescriptionSeed: "You are in London, a bustling city filled with magic and mystery. The streets are alive with the sounds of people, vehicles, and the occasional magical creature. Your task is to explore various locations, interact with NPCs, and uncover secrets.",
+    initialItems: "a magical compass that points to the nearest interesting location, a notebook for recording your findings, and a charm that protects you from minor magical mishaps.",
+    playerJournalStyle: 'typed'
   },
   {
     name: "Sci-Fi Future Test Theme for junk items",
@@ -225,7 +250,8 @@ export const TESTING_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Collect junk items from various locations in the futuristic city.",
     initialCurrentObjective: "Find a junkyard to start collecting items.",
     initialSceneDescriptionSeed: "You find yourself in a sprawling futuristic city, where towering skyscrapers touch the clouds and neon lights flicker in the night. The streets are filled with people, robots, and flying vehicles. Your task is to explore the city, gather junk items, and discover their potential uses.",
-    initialItems: "Pickup truck, a malfunctioning robot, a pile of circuit boards, and a toolset."
+    initialItems: "Pickup truck, a malfunctioning robot, a pile of circuit boards, and a toolset.",
+    playerJournalStyle: 'digital'
   },
   {
     name: "Secluded Library of Forgotten Pages",
@@ -233,7 +259,8 @@ export const TESTING_THEMES: Array<AdventureTheme> = [
     initialMainQuest: "Uncover the secret purpose of the Secluded Library and the identity of its original curator.",
     initialCurrentObjective: "Examine the scattered notes and books in the reading alcove for your first clue.",
     initialSceneDescriptionSeed: "You stand in a candlelit alcove surrounded by towering shelves. Books and single-page notes are strewn across tables and the floor. A faint rustling suggests the presence of something—or someone—moving among the stacks. The only exit is blocked by a pile of ancient tomes.",
-    initialItems: "a cryptic handwritten note ('The answer is in the margins.'), a battered field journal with pressed flowers, a slim reading tablet flickering with half-erased texts, and a heavy leather-bound book titled 'The Index of Lost Beginnings.'"
+    initialItems: "a cryptic handwritten note ('The answer is in the margins.'), a battered field journal with pressed flowers, a slim reading tablet flickering with half-erased texts, and a heavy leather-bound book titled 'The Index of Lost Beginnings.', a crude map of the Library, and a picture of a cat.",
+    playerJournalStyle: 'printed'
   }
 ]
 

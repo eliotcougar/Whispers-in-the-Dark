@@ -22,11 +22,12 @@ import ItemChangeAnimator from '../inventory/ItemChangeAnimator';
 import CustomGameSetupScreen from '../modals/CustomGameSetupScreen';
 import SettingsDisplay from '../modals/SettingsDisplay';
 import InfoDisplay from '../modals/InfoDisplay';
+import DebugLoreModal from '../modals/DebugLoreModal';
 import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
 import FreeActionInput from './FreeActionInput';
-import { formatKnownPlacesForPrompt, charactersToString } from '../../utils/promptFormatters';
+import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
 import { generateJournalEntry } from '../../services/journal';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
@@ -40,8 +41,13 @@ import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
 import {
   FREE_FORM_ACTION_COST,
   RECENT_LOG_COUNT_FOR_PROMPT,
+  PLAYER_HOLDER_ID,
+  PLAYER_JOURNAL_ID,
+  JOURNAL_WRITE_COOLDOWN,
+  INSPECT_COOLDOWN,
 } from '../../constants';
 import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
+import { saveDebugLoreToLocalStorage } from '../../services/storage';
 
 
 function App() {
@@ -63,6 +69,7 @@ function App() {
     chaosLevel,
     setChaosLevel,
     initialSavedState,
+    initialDebugStack,
     appReady,
     fileInputRef,
     handleSaveToFile,
@@ -70,7 +77,8 @@ function App() {
     handleFileInputChange,
     updateSettingsFromLoad,
   } = useSaveLoad({
-    gatherCurrentGameState: () => getGameLogic().gatherCurrentGameState(),
+    gatherGameStateStack: () => getGameLogic().gatherCurrentGameState(),
+    gatherDebugPacketStack: () => getGameLogic().gatherDebugPacketStack(),
     applyLoadedGameState: (args) => getGameLogic().applyLoadedGameState(args),
     setError: (msg) => { getGameLogic().setError(msg); },
     setIsLoading: (val) => { getGameLogic().setIsLoading(val); },
@@ -78,69 +86,6 @@ function App() {
     dialogueState: gameLogicRef.current?.dialogueState,
     hasGameBeenInitialized: gameLogicRef.current?.hasGameBeenInitialized,
   });
-
-
-  const gameLogic = useGameLogic({
-    playerGenderProp: playerGender,
-    enabledThemePacksProp: enabledThemePacks,
-    stabilityLevelProp: stabilityLevel,
-    chaosLevelProp: chaosLevel,
-    onSettingsUpdateFromLoad: updateSettingsFromLoad,
-    initialSavedStateFromApp: initialSavedState,
-    isAppReady: appReady,
-  });
-  gameLogicRef.current = gameLogic;
-
-  const {
-    currentTheme,
-    currentScene, mainQuest, currentObjective, actionOptions,
-    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
-    currentMapNodeId, mapLayoutConfig,
-    allCharacters,
-    score, freeFormActionText, setFreeFormActionText,
-    handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    handleItemInteraction, handleTakeLocationItem, handleRetry, executeManualRealityShift,
-    completeManualShiftWithSelectedTheme,
-    cancelManualShiftThemeSelection,
-    isAwaitingManualShiftThemeSelection,
-    startCustomGame,
-    gatherCurrentGameState, hasGameBeenInitialized, handleStartNewGameFromButton,
-    localTime, localEnvironment, localPlace,
-    dialogueState,
-    handleDialogueOptionSelect,
-    handleForceExitDialogue,
-    isDialogueExiting,
-    lastDebugPacket,
-    lastTurnChanges,
-    turnsSinceLastShift,
-    globalTurnNumber,
-    isCustomGameMode,
-    gameStateStack,
-    handleMapLayoutConfigChange,
-    loadingReason,
-    handleUndoTurn,
-    destinationNodeId,
-    handleSelectDestinationNode,
-    mapViewBox,
-    handleMapViewBoxChange,
-    handleMapNodesPositionChange,
-    commitGameState,
-    updateItemContent,
-  } = gameLogic;
-
-  const handleApplyGameState = useCallback(
-    (state: FullGameState) => { commitGameState(state); },
-    [commitGameState]
-  );
-
-  useEffect(() => {
-    if (!isLoading) {
-      clearProgress();
-    }
-  }, [isLoading, clearProgress]);
-
-  const prevGameLogLength = useRef(gameLog.length);
-  const prevSceneRef = useRef(currentScene);
 
   const {
     isVisualizerVisible,
@@ -196,7 +141,114 @@ function App() {
     isPageVisible,
     openPageView,
     closePageView,
+    isDebugLoreVisible,
+    debugLoreFacts,
+    openDebugLoreModal,
+    submitDebugLoreModal,
+    closeDebugLoreModal,
   } = useAppModals();
+
+
+  const gameLogic = useGameLogic({
+    playerGenderProp: playerGender,
+    enabledThemePacksProp: enabledThemePacks,
+    stabilityLevelProp: stabilityLevel,
+    chaosLevelProp: chaosLevel,
+    onSettingsUpdateFromLoad: updateSettingsFromLoad,
+    initialSavedStateFromApp: initialSavedState,
+    initialDebugStackFromApp: initialDebugStack,
+    isAppReady: appReady,
+    openDebugLoreModal,
+  });
+  gameLogicRef.current = gameLogic;
+
+  const {
+    currentTheme,
+    currentScene, mainQuest, currentObjective, actionOptions,
+    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
+    currentMapNodeId, mapLayoutConfig,
+    allNPCs,
+    score, freeFormActionText, setFreeFormActionText,
+    handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
+    handleItemInteraction, handleTakeLocationItem, handleRetry, executeManualRealityShift,
+    completeManualShiftWithSelectedTheme,
+    cancelManualShiftThemeSelection,
+    isAwaitingManualShiftThemeSelection,
+    startCustomGame,
+    gatherCurrentGameState: gatherGameStateStack,
+    gatherDebugPacketStack,
+    hasGameBeenInitialized,
+    handleStartNewGameFromButton,
+    localTime, localEnvironment, localPlace,
+    dialogueState,
+    handleDialogueOptionSelect,
+    handleForceExitDialogue,
+    isDialogueExiting,
+    lastDebugPacket,
+    lastTurnChanges,
+    turnsSinceLastShift,
+    globalTurnNumber,
+    isCustomGameMode,
+    gameStateStack,
+    debugPacketStack,
+    handleMapLayoutConfigChange,
+    handleUndoTurn,
+    destinationNodeId,
+    handleSelectDestinationNode,
+    mapViewBox,
+    handleMapViewBoxChange,
+    handleMapNodesPositionChange,
+    commitGameState,
+    updateItemContent,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    recordPlayerJournalInspect,
+    playerJournal,
+    lastJournalWriteTurn,
+    lastJournalInspectTurn,
+    handleDistillFacts,
+    toggleDebugLore,
+    debugLore,
+    debugGoodFacts,
+    debugBadFacts,
+  } = gameLogic;
+
+
+  const handleApplyGameState = useCallback(
+    (state: FullGameState) => { commitGameState(state); },
+    [commitGameState]
+  );
+
+  const handleSaveFacts = useCallback((data: string) => {
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DebugLoreFacts.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const handleClearFacts = useCallback(() => {
+    gameLogic.clearDebugFacts();
+    saveDebugLoreToLocalStorage({
+      debugLore: gameLogic.debugLore,
+      debugGoodFacts: [],
+      debugBadFacts: [],
+    });
+  }, [gameLogic]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      clearProgress();
+    }
+  }, [isLoading, clearProgress]);
+
+  const prevGameLogLength = useRef(gameLog.length);
+  const prevSceneRef = useRef(currentScene);
+
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
 
@@ -209,6 +261,7 @@ function App() {
     isHistoryVisible ||
     isDebugViewVisible ||
     isPageVisible ||
+    isDebugLoreVisible ||
     !!dialogueState ||
     effectiveIsTitleMenuOpen ||
     shiftConfirmOpen ||
@@ -220,13 +273,20 @@ function App() {
 
 
   useEffect(() => {
+    const body = document.body;
     if (isAnyModalOrDialogueActive) {
-      document.body.style.overflow = 'hidden';
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      body.style.overflow = 'hidden';
+      if (scrollBarWidth > 0) {
+        body.style.paddingRight = `${String(scrollBarWidth)}px`;
+      }
     } else {
-      document.body.style.overflow = '';
+      body.style.overflow = '';
+      body.style.paddingRight = '';
     }
     return () => {
-      document.body.style.overflow = '';
+      body.style.overflow = '';
+      body.style.paddingRight = '';
     };
   }, [isAnyModalOrDialogueActive]);
 
@@ -244,7 +304,8 @@ function App() {
   }, [currentScene, setVisualizerImageUrl, setVisualizerImageScene]);
 
   useAutosave({
-    gatherCurrentGameState,
+    gatherGameStateStack,
+    gatherDebugPacketStack,
     isLoading,
     hasGameBeenInitialized,
     appReady,
@@ -253,9 +314,10 @@ function App() {
     dependencies: [
       currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
       inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId,
-      mapLayoutConfig, allCharacters, score, localTime, localEnvironment, localPlace,
+      mapLayoutConfig, allNPCs, score, localTime, localEnvironment, localPlace,
       playerGender, enabledThemePacks, stabilityLevel, chaosLevel, turnsSinceLastShift,
       isCustomGameMode, isAwaitingManualShiftThemeSelection,
+      debugLore, debugGoodFacts, debugBadFacts,
     ],
   });
 
@@ -283,10 +345,14 @@ function App() {
     void handleRetry();
   }, [handleRetry]);
 
+  const handleDistillClick = useCallback(() => {
+    void handleDistillFacts();
+  }, [handleDistillFacts]);
+
   const handleReadPage = useCallback(
     (item: Item) => {
       const index =
-        item.type === 'journal'
+        item.id === PLAYER_JOURNAL_ID
           ? Math.max(0, (item.chapters?.length ?? 0) - 1)
           : 0;
       openPageView(item.id, index);
@@ -294,58 +360,118 @@ function App() {
     [openPageView]
   );
 
-  const handleWriteJournal = useCallback((item: Item) => {
-    if (item.lastWriteTurn === globalTurnNumber) return;
-    openPageView(item.id, item.chapters?.length ?? 0);
+
+  const [isPlayerJournalWriting, setIsPlayerJournalWriting] = useState(false);
+
+  const canWritePlayerJournal =
+    (lastJournalWriteTurn === 0 ||
+      globalTurnNumber - lastJournalWriteTurn >= JOURNAL_WRITE_COOLDOWN) &&
+    !isPlayerJournalWriting;
+  const canInspectPlayerJournal =
+    playerJournal.length > 0 &&
+    (lastJournalInspectTurn === 0 ||
+      globalTurnNumber - lastJournalInspectTurn >= INSPECT_COOLDOWN);
+
+  const handleReadPlayerJournal = useCallback(() => {
+    const index = playerJournal.length > 0 ? playerJournal.length - 1 : 0;
+    openPageView(PLAYER_JOURNAL_ID, index);
+  }, [openPageView, playerJournal.length]);
+
+  const handleWritePlayerJournal = useCallback(() => {
+    const cooldownOver =
+      lastJournalWriteTurn === 0 ||
+      globalTurnNumber - lastJournalWriteTurn >= JOURNAL_WRITE_COOLDOWN;
+    if (!cooldownOver || isPlayerJournalWriting) return;
+    setIsPlayerJournalWriting(true);
+    openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
     void (async () => {
-      if (!currentTheme) return;
+      if (!currentTheme) { setIsPlayerJournalWriting(false); return; }
       const { name: themeName, systemInstructionModifier } = currentTheme;
       const nodes = mapData.nodes.filter(
-        n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+        node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
       );
       const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-      const chars = allCharacters.filter(c => c.themeName === themeName);
-      const knownCharacters = chars.length > 0
-        ? charactersToString(chars, ' - ', false, false, false, true)
+      const npcs = allNPCs.filter(npc => npc.themeName === themeName);
+      const knownNPCs = npcs.length > 0
+        ? npcsToString(npcs, ' - ', false, false, false, true)
         : 'None specifically known in this theme yet.';
-      const prev = item.chapters?.[item.chapters.length - 1]?.actualContent ?? '';
-      const entry = await generateJournalEntry(
-        item.name,
-        item.description,
+      const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
+      const entryLength = Math.floor(Math.random() * 50) + 100;
+      const journalResult = await generateJournalEntry( /* TODO: Somewhere around here we need to sanitize Chapter heading to remove any HTML or Markup formatting */
+        entryLength,
+        'Personal Journal',
+        'Your own journal',
         prev,
         themeName,
         systemInstructionModifier,
         currentScene,
         lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
         knownPlaces,
-        knownCharacters,
+        knownNPCs,
         gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
         mainQuest
       );
-      if (entry) {
+      if (journalResult?.entry) {
         const chapter = {
-          heading: entry.heading,
-          description: entry.heading,
-          contentLength: 50,
-          actualContent: entry.text,
-          visibleContent: entry.text,
+          heading: journalResult.entry.heading,
+          description: '',
+          contentLength: entryLength,
+          actualContent: journalResult.entry.text,
         } as ItemChapter;
-        gameLogic.addJournalEntry(item.id, chapter);
-        openPageView(item.id, item.chapters?.length ?? 0);
+        addPlayerJournalEntry(chapter, journalResult.debugInfo ?? undefined);
+        openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
       }
+      setIsPlayerJournalWriting(false);
     })();
   }, [
-    allCharacters,
+    allNPCs,
     currentTheme,
     currentScene,
-    gameLogic,
+    addPlayerJournalEntry,
     mapData.nodes,
     mainQuest,
     openPageView,
+    playerJournal,
     lastDebugPacket,
     gameLog,
     globalTurnNumber,
+    lastJournalWriteTurn,
+    isPlayerJournalWriting,
   ]);
+
+  const handleInspectFromPage = useCallback(
+    (itemId: string) => {
+      if (itemId === PLAYER_JOURNAL_ID) {
+        const pseudoItem: Item = {
+          id: PLAYER_JOURNAL_ID,
+          name: 'Personal Journal',
+          type: 'book',
+          description: 'Your own journal',
+          holderId: PLAYER_HOLDER_ID,
+          chapters: playerJournal,
+          lastWriteTurn: lastJournalWriteTurn,
+          tags: [currentTheme?.playerJournalStyle ?? 'handwritten'],
+        };
+        const updatedState = recordPlayerJournalInspect();
+        handleItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
+        return;
+      }
+
+      const item = inventory.find(it => it.id === itemId);
+      if (item) {
+        handleItemInteraction(item, 'inspect');
+      }
+    },
+    [
+      inventory,
+      handleItemInteraction,
+      playerJournal,
+      lastJournalWriteTurn,
+      recordPlayerJournalInspect,
+      currentTheme,
+    ]
+  );
+
 
   const handleFreeFormActionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -448,9 +574,9 @@ function App() {
     handleLoadFromFileClick();
   }, [closeLoadGameFromMenuConfirm, handleLoadFromFileClick]);
 
-  const handleSaveGameFromMenu = useCallback(() => {
+  const handleSaveGameFromMenu = useCallback(async () => {
     closeTitleMenu();
-    handleSaveToFile();
+    await handleSaveToFile();
   }, [closeTitleMenu, handleSaveToFile]);
 
   const openSettingsFromMenu = useCallback(() => {
@@ -569,7 +695,7 @@ function App() {
   if (!appReady) {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-200 flex flex-col items-center justify-center p-4">
-        <LoadingSpinner loadingReason="initial_load" />
+        <LoadingSpinner />
 
         <p className="mt-4 text-xl text-sky-400">
           Initializing application...
@@ -620,45 +746,49 @@ function App() {
               
             <ModelUsageIndicators />
 
-            {isLoading && !dialogueState && !isDialogueExiting && hasGameBeenInitialized ? <div className="my-4 flex justify-center">
-              <LoadingSpinner loadingReason={loadingReason} />
-            </div> : null}
-
-            {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner loadingReason={loadingReason} /> : null}
+            {isLoading && !hasGameBeenInitialized ? !error && <LoadingSpinner /> : null}
 
             {!hasGameBeenInitialized ? (
               <div className="bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
-            ) : (
-              <>
-                <SceneDisplay
-                  allCharacters={allCharacters}
-                  currentThemeName={currentTheme ? currentTheme.name : null}
-                  description={currentScene}
-                  inventory={inventory}
-                  lastActionLog={lastActionLog}
-                  localEnvironment={localEnvironment}
-                  localPlace={localPlace}
-                  localTime={localTime}
-                  mapData={mapData.nodes}
-                />
+              ) : (
+                <>
+                  <div className="relative">
+                    <SceneDisplay
+                      allNPCs={allNPCs}
+                      currentThemeName={currentTheme ? currentTheme.name : null}
+                      description={currentScene}
+                      inventory={inventory}
+                      lastActionLog={lastActionLog}
+                      localEnvironment={localEnvironment}
+                      localPlace={localPlace}
+                      localTime={localTime}
+                      mapData={mapData.nodes}
+                    />
 
-                <ActionOptions
-                  allCharacters={allCharacters}
-                  currentThemeName={currentTheme ? currentTheme.name : null}
-                  disabled={isLoading || !!dialogueState}
-                  inventory={inventory}
-                  mapData={mapData.nodes}
-                  onActionSelect={handleActionSelect}
-                  options={actionOptions}
-                />
+                    {isLoading && !dialogueState && !isDialogueExiting && Boolean(hasGameBeenInitialized) ? (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-900/75 rounded-lg">
+                        <LoadingSpinner />
+                      </div>
+                    ) : null}
+                  </div>
 
-                <FreeActionInput
-                  canPerformFreeAction={canPerformFreeAction}
-                  freeFormActionText={freeFormActionText}
-                  onChange={handleFreeFormActionChange}
-                  onSubmit={handleFreeFormActionSubmit}
-                />
-              </>)}
+                  <ActionOptions
+                    allNPCs={allNPCs}
+                    currentThemeName={currentTheme ? currentTheme.name : null}
+                    disabled={isLoading || !!dialogueState}
+                    inventory={inventory}
+                    mapData={mapData.nodes}
+                    onActionSelect={handleActionSelect}
+                    options={actionOptions}
+                  />
+
+                  <FreeActionInput
+                    canPerformFreeAction={canPerformFreeAction}
+                    freeFormActionText={freeFormActionText}
+                    onChange={handleFreeFormActionChange}
+                    onSubmit={handleFreeFormActionSubmit}
+                  />
+                </>)}
           </div>
 
           <div className="lg:col-span-2 space-y-2 flex flex-col">
@@ -666,17 +796,11 @@ function App() {
               <div className="hidden lg:block bg-slate-800/50 border border-slate-700 rounded-lg flex-grow min-h-48" />
             ) : (
               <GameSidebar
-                allCharacters={allCharacters}
+                allNPCs={allNPCs}
                 currentMapNodeId={currentMapNodeId}
                 currentObjective={currentObjective}
                 currentThemeName={currentTheme ? currentTheme.name : null}
-                disabled={
-                  isLoading ||
-                  !!dialogueState ||
-                  effectiveIsTitleMenuOpen ||
-                  isCustomGameSetupVisible ||
-                  isManualShiftThemeSelectionVisible
-                }
+                disabled={isLoading || isAnyModalOrDialogueActive}
                 enableMobileTap={enableMobileTap}
                 globalTurnNumber={globalTurnNumber}
                 inventory={inventory}
@@ -687,8 +811,9 @@ function App() {
                 onDropItem={gameLogic.handleDropItem}
                 onItemInteract={handleItemInteraction}
                 onReadPage={handleReadPage}
+                onReadPlayerJournal={handleReadPlayerJournal}
+                onStashToggle={gameLogic.handleStashToggle}
                 onTakeItem={handleTakeLocationItem}
-                onWriteJournal={handleWriteJournal}
               />
             )}
           </div>
@@ -716,14 +841,13 @@ function App() {
       />
 
       <DialogueDisplay
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
         currentThemeName={currentTheme ? currentTheme.name : null}
         history={dialogueState?.history ?? []}
         inventory={inventory}
         isDialogueExiting={isDialogueExiting}
         isLoading={isLoading}
         isVisible={!!dialogueState}
-        loadingReason={loadingReason}
         mapData={mapData.nodes}
         onClose={handleForceExitDialogue}
         onOptionSelect={handleDialogueOptionSelectSafe}
@@ -732,11 +856,18 @@ function App() {
       />
 
       <DebugView
-        debugPacket={lastDebugPacket}
+        badFacts={debugBadFacts}
+        debugLore={debugLore}
+        debugPacket={debugPacketStack[0]}
         gameStateStack={gameStateStack}
+        goodFacts={debugGoodFacts}
         isVisible={isDebugViewVisible}
         onApplyGameState={handleApplyGameState}
+        onClearFacts={handleClearFacts}
         onClose={closeDebugView}
+        onDistillFacts={handleDistillClick}
+        onSaveFacts={handleSaveFacts}
+        onToggleDebugLore={toggleDebugLore}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
       />
@@ -787,8 +918,17 @@ function App() {
         onClose={closeInfo}
       />
 
+      <DebugLoreModal
+        facts={debugLoreFacts}
+        isVisible={isDebugLoreVisible}
+        onClose={closeDebugLoreModal}
+        onSubmit={submitDebugLoreModal}
+      />
+
       {hasGameBeenInitialized && currentTheme ? <AppModals
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
+        canInspectJournal={canInspectPlayerJournal}
+        canWriteJournal={canWritePlayerJournal}
         currentMapNodeId={currentMapNodeId}
         currentQuest={mainQuest}
         currentScene={currentScene}
@@ -813,7 +953,9 @@ function App() {
         isMapVisible={isMapVisible}
         isPageVisible={isPageVisible}
         isVisualizerVisible={isVisualizerVisible}
+        isWritingJournal={isPlayerJournalWriting}
         itemPresenceByNode={itemPresenceByNode}
+        lastJournalWriteTurn={lastJournalWriteTurn}
         loadGameFromMenuConfirmOpen={loadGameFromMenuConfirmOpen}
         localEnvironment={localEnvironment}
         localPlace={localPlace}
@@ -826,17 +968,21 @@ function App() {
         onCloseMap={closeMap}
         onClosePage={closePageView}
         onCloseVisualizer={closeVisualizer}
+        onItemInspect={handleInspectFromPage}
         onLayoutConfigChange={handleMapLayoutConfigChange}
         onNodesPositioned={handleMapNodesPositionChange}
         onSelectDestination={handleSelectDestinationNode}
         onViewBoxChange={handleMapViewBoxChange}
+        onWriteJournal={handleWritePlayerJournal}
         pageItemId={pageItemId}
         pageStartChapterIndex={pageStartChapterIndex}
+        playerJournal={playerJournal}
         setGeneratedImage={setGeneratedImageCache}
         shiftConfirmOpen={shiftConfirmOpen}
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
         themeHistory={themeHistory}
         updateItemContent={updateItemContent}
+        updatePlayerJournalContent={updatePlayerJournalContent}
         visualizerImageScene={visualizerImageScene}
         visualizerImageUrl={visualizerImageUrl}
       /> : null}

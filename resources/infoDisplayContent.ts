@@ -11,7 +11,7 @@ const infoDisplayContent = {
       "header": "Game Mechanics",
       "text": [
         "Core Gameplay Loop: Read the scene description, then choose one of the provided action options, or use any of your items. Your actions determine the story's progression.",
-        "Inventory: You'll acquire items throughout your adventure. Items can be gained, lost, or used. Some items have specific \"Known Uses\" that unlock as you interact with them or the environment. You can \"Inspect\" items for more details or \"Attempt to Use\" them in a generic way if no specific use is known or applicable. Item types include single-use, multi-use, equipment, containers, keys, weapons, ammunition, vehicles, knowledge, and status effects.",
+        "Inventory: You'll acquire items throughout your adventure. Items can be gained, lost, or used. Some items have specific \"Known Uses\" that unlock as you interact with them or the environment. You can \"Inspect\" items for more details or \"Attempt to Use\" them in a generic way if no specific use is known or applicable. Item types include single-use, multi-use, equipment, containers, keys, weapons, ammunition, vehicles, immovable features, and status effects.",
         "Quests & Objectives: Each theme typically has an \"Overarching Quest\" (a long-term goal) and a \"Current Objective\" (a short-term task). Completing objectives grants Score points and advances the story. The win/lose conditions are not implemented yet, and completing the main quest does not do much.",
         "Local Context: The game tracks \"Local Time,\" \"Local Environment,\" and \"Local Place.\" These details are influenced by your actions and the AI's narrative, providing a more immersive experience. The AI uses this context to generate scenes and the Image Visualizer uses it to create more accurate pictures.",
         "Score & Custom Actions: You earn Score points primarily by completing objectives. These points can be spent to perform \"Custom Actions\" by typing your desired action into the input field. Custom actions cost points and have a character limit.",
@@ -23,7 +23,7 @@ const infoDisplayContent = {
       "header": "Notable Features",
       "text": [
         "Image Visualizer: Click the \"eye\" icon to generate an AI-powered image representing the current scene. It uses Imagen 3, and the daily quota is not very big. If you use it up, it will fall back to Gemini 2.0 Image Generation Preview",
-        "Knowledge Base: Click the \"book\" icon to view details about all Places and Characters you've discovered across different themes.",
+        "Knowledge Base: Click the \"book\" icon to view details about all Places and NPCs you've discovered across different themes.",
         "History: This panel shows your Game Log and a summary of themes you've previously experienced.",
         "Map Display: Use the map icon to view a dynamic graph of locations within the current theme, showing connections and your current position."
       ]
@@ -48,6 +48,17 @@ const infoDisplayContent = {
     }
   ],
   "changelog": [
+    {
+      "title": "Version 1.4 (Ink and Quill Update)",
+      "items": [
+        "Major new features - Books and Notes. Player's Journal. Loremaster AI.",
+        "Removed \"Knowledge\" items from the game. They are now replaced with Lore database managed by Loremaster AI.",
+        "Updated the AI model to Gemini 2.5-flash.",
+        "The auxiliary model now uses Gemini 2.5-flash-lite. Auxiliary requests now use Thinking.",
+        "Updated Image Generation model to Imagen 4 preview.",
+        "Updated Google GenAI API to the latest version, allowing the game to request strict JSON responses from the AI. That means less malformed responses and less need for Corrections."
+      ]
+    },
     {
       "title": "Version 1.3.2 (bugfix)",
       "items": [
@@ -75,7 +86,7 @@ const infoDisplayContent = {
         "Biggest feature - Map.",
         "Known Places moved from Knowledge Base to the new Map.",
         "Game Log moved to the History screen where Past Realities are.",
-        "Characters now remember past conversations with the player.",
+        "NPCs now remember past conversations with the player.",
         "Added \"Custom Game\" option to the Main Menu: You can now choose a specific theme to start in, and random reality shifts will be disabled for that playthrough.",
         "Manual shifts in Custom Game give you full control over your destination.",
         "Removed error-triggered reality shifts entirely.",
@@ -96,7 +107,7 @@ const infoDisplayContent = {
         "You are guaranteed to get theme-relevant items at the start of a new game.",
         "Fixed some UI elements not updating with the game state.",
         "Added an animated overlay for gaining, losing, and changing items. You can cancel it by clicking if too many items transform after shift. (it took me way too long to debug, the AI couldn't find the source of the visual bugs)",
-        "Implemented more triage procedures for malformed AI output when it tried to trigger an action with nonexistent item/place/character.",
+        "Implemented more triage procedures for malformed AI output when it tried to trigger an action with nonexistent item/place/NPC.",
         "Operations with items are now more reliable, primarily as the rusult of the previous fix.",
         "Items now track their specific functions better and don't inexplicably lose them as often.",
         "Items now recieve their whenActive/whenInactive actions more reliably. Torches, flashlights, powered equipment, wielded weapons, worn clothing/armor.",
@@ -123,7 +134,7 @@ const infoDisplayContent = {
       "title": "Version 1.2 (Companions update)",
       "items": [
         "Implemented tracking of Companions and nearby NPCs in the scene context for better cohesion.",
-        "Biggest feature - Conversations with characters.",
+        "Biggest feature - Conversations with NPCs.",
         "Moved New Game, Save Game, Load Game, and Settings to the Main Menu.",
         "Moved History to a dedicated screen next to Knowledge Base.",
         "Inventory Items can now be arranged in multiple columns on bigger screens.",
@@ -146,7 +157,7 @@ const infoDisplayContent = {
         "Initial screen now offers \"Start a New Adventure\" or \"Load a Save File\" before gameplay begins.",
         "Simplified History display to show only theme name and summary for a cleaner look.",
         "Standardized font sizes across various UI boxes (Quest, Objective, Last Action, Options) for consistency.",
-        "Added Knowledge Base where you can see all the Places and Characters encountered.",
+        "Added Knowledge Base where you can see all the Places and NPCs encountered.",
         "Added Visualizer that uses Imagen 3 to show the current scene.",
         "Integrated \"Local Time\" and \"Local Environment\" as dynamic context for the AI, influencing scene generation and displayed in the UI.",
         "Incorporated \"Local Time\" and \"Local Environment\" into the Image Visualizer prompt for more contextually accurate images.",

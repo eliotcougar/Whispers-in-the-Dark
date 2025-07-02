@@ -1,11 +1,11 @@
 
 /**
  * @file utils/promptFormatters/dialogue.ts
- * @description Prompt formatting helpers focused on characters and dialogue.
+ * @description Prompt formatting helpers focused on NPCs and dialogue.
  */
 
 import {
-  Character,
+  NPC,
   MapData,
   MapNode,
 } from '../../types';
@@ -13,39 +13,39 @@ import { formatKnownPlacesForPrompt } from './map';
 import { findTravelPath, buildTravelAdjacency } from '../mapPathfinding';
 
 /**
- * Formats a list of known characters for AI prompts.
+ * Formats a list of known NPCs for AI prompts.
  */
-export const charactersToString = (
-  characters: Character | Array<Character>,
+export const npcsToString = (
+  npcs: NPC | Array<NPC>,
   prefix = '',
   addAliases = true,
   addStatus = true,
   addDescription = true,
   singleLine = false,
 ): string => {
-  const charList = Array.isArray(characters) ? characters : [characters];
-  if (charList.length === 0) {
+  const npcList = Array.isArray(npcs) ? npcs : [npcs];
+  if (npcList.length === 0) {
     return '';
   }
   const delimiter = singleLine ? '; ' : ';\n';
 
-  const result = charList
-    .map(c => {
-      let str = `${prefix}${c.id} - "${c.name}"`;
-      if (addAliases && c.aliases && c.aliases.length > 0) {
-        str += ` (aka ${c.aliases.map(a => `"${a}"`).join(', ')})`;
+  const result = npcList
+    .map(npc => {
+      let str = `${prefix}${npc.id} - "${npc.name}"`;
+      if (addAliases && npc.aliases && npc.aliases.length > 0) {
+        str += ` (aka ${npc.aliases.map(a => `"${a}"`).join(', ')})`;
       }
       if (addStatus) {
-        str += ` (${c.presenceStatus}`;
-        if (c.presenceStatus === 'companion' || c.presenceStatus === 'nearby') {
-          str += `, ${c.preciseLocation ?? (c.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
+        str += ` (${npc.presenceStatus}`;
+        if (npc.presenceStatus === 'companion' || npc.presenceStatus === 'nearby') {
+          str += `, ${npc.preciseLocation ?? (npc.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
         } else {
-          str += `, Last Location: ${c.lastKnownLocation ?? 'Unknown'}`;
+          str += `, Last Location: ${npc.lastKnownLocation ?? 'Unknown'}`;
         }
         str += ')';
       }
       if (addDescription) {
-        str += `, "${c.description}"`;
+        str += `, "${npc.description}"`;
       }
       return str;
     })
@@ -66,14 +66,14 @@ export const formatRecentEventsForPrompt = (logMessages: Array<string>): string 
 };
 
 /**
- * Provides detailed context for places or characters mentioned in a string.
+ * Provides detailed context for places or NPCs mentioned in a string.
  */
 export const formatDetailedContextForMentionedEntities = (
   allKnownMainMapNodes: Array<MapNode>,
-  allKnownCharacters: Array<Character>,
+  allknownNPCs: Array<NPC>,
   contextString: string,
   placesPrefixIfAny: string,
-  charactersPrefixIfAny: string
+  npcsPrefixIfAny: string
 ): string => {
   const mentionedPlaces: Array<MapNode> = [];
   allKnownMainMapNodes.forEach(node => {
@@ -84,12 +84,12 @@ export const formatDetailedContextForMentionedEntities = (
     }
   });
 
-  const mentionedCharacters: Array<Character> = [];
-  allKnownCharacters.forEach(c => {
-    const allNames = [c.name, ...(c.aliases ?? [])];
+  const mentionedNPCs: Array<NPC> = [];
+  allknownNPCs.forEach(npc => {
+    const allNames = [npc.name, ...(npc.aliases ?? [])];
     const nameRegex = new RegExp(allNames.map(name => `\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`).join('|'), 'i');
     if (nameRegex.test(contextString)) {
-      mentionedCharacters.push(c);
+      mentionedNPCs.push(npc);
     }
   });
 
@@ -98,9 +98,9 @@ export const formatDetailedContextForMentionedEntities = (
   if (formattedMentionedPlaces && formattedMentionedPlaces !== 'None specifically known in this theme yet.') {
     detailedContext += `${placesPrefixIfAny}\n${formattedMentionedPlaces}\n`;
   }
-  const mentionedCharactersString = charactersToString(mentionedCharacters, ' - ');
-  if (mentionedCharactersString) {
-    detailedContext += `${charactersPrefixIfAny}\n${mentionedCharactersString}`;
+  const mentionedNPCsString = npcsToString(mentionedNPCs, ' - ');
+  if (mentionedNPCsString) {
+    detailedContext += `${npcsPrefixIfAny}\n${mentionedNPCsString}`;
   }
   return detailedContext.trimStart();
 };

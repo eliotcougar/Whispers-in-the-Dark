@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import {
   GEMINI_MODEL_NAME,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   MINIMAL_MODEL_NAME,
-  GEMINI_RATE_LIMIT_PER_MINUTE,
-  AUXILIARY_RATE_LIMIT_PER_MINUTE,
-  MINIMAL_RATE_LIMIT_PER_MINUTE,
+  GEMINI_MODEL_RPM,
+  GEMINI_LITE_MODEL_RPM,
+  MINIMAL_MODEL_RPM,
 } from '../constants';
 import {
   getModelUsageCount,
@@ -22,17 +22,17 @@ const buildUsageMap = (): Record<string, ModelUsageInfo> => ({
   [GEMINI_MODEL_NAME]: {
     model: GEMINI_MODEL_NAME,
     count: getModelUsageCount(GEMINI_MODEL_NAME),
-    limit: GEMINI_RATE_LIMIT_PER_MINUTE,
+    limit: GEMINI_MODEL_RPM,
   },
-  [AUXILIARY_MODEL_NAME]: {
-    model: AUXILIARY_MODEL_NAME,
-    count: getModelUsageCount(AUXILIARY_MODEL_NAME),
-    limit: AUXILIARY_RATE_LIMIT_PER_MINUTE,
+  [GEMINI_LITE_MODEL_NAME]: {
+    model: GEMINI_LITE_MODEL_NAME,
+    count: getModelUsageCount(GEMINI_LITE_MODEL_NAME),
+    limit: GEMINI_LITE_MODEL_RPM,
   },
   [MINIMAL_MODEL_NAME]: {
     model: MINIMAL_MODEL_NAME,
     count: getModelUsageCount(MINIMAL_MODEL_NAME),
-    limit: MINIMAL_RATE_LIMIT_PER_MINUTE,
+    limit: MINIMAL_MODEL_RPM,
   },
 });
 

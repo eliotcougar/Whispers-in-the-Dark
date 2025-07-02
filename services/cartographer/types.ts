@@ -1,10 +1,13 @@
 export interface MapUpdateDebugInfo {
   prompt: string;
+  systemInstruction?: string;
+  jsonSchema?: unknown;
   rawResponse?: string;
   parsedPayload?: import('../../types').AIMapUpdatePayload;
   validationError?: string;
   observations?: string;
   rationale?: string;
+  thoughts?: Array<string>;
   minimalModelCalls?: Array<import('../../types').MinimalModelCallRecord>;
   connectorChainsDebugInfo?: Array<{
     round: number;
@@ -12,6 +15,7 @@ export interface MapUpdateDebugInfo {
     rawResponse?: string;
     parsedPayload?: import('../../types').AIMapUpdatePayload;
     validationError?: string;
+    thoughts?: Array<string>;
   }> | null;
 }
 

@@ -6,7 +6,7 @@
 import {
   AdventureTheme,
   Item,
-  Character,
+  NPC,
   MapData,
   MapNode,
   ThemeMemory,
@@ -16,7 +16,7 @@ import {
   itemsToString,
   formatKnownPlacesForPrompt,
   formatMapContextForPrompt,
-  charactersToString,
+  npcsToString,
   formatRecentEventsForPrompt,
   formatDetailedContextForMentionedEntities,
   formatTravelPlanLine,
@@ -30,21 +30,22 @@ export const buildNewGameFirstTurnPrompt = (
   theme: AdventureTheme,
   playerGender: string
 ): string => {
-  const prompt = `Start a new adventure in the theme "${theme.name}".
+  const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.systemInstructionModifier}
 Player's Character Gender: "${playerGender}"
 Suggested Initial Scene: "${theme.initialSceneDescriptionSeed}" (adjust for variety)
 Suggested Initial Main Quest: "${theme.initialMainQuest}" (adjust for variety)
 Suggested Initial Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
-Suggested Initial Inventory to be granted: "${theme.initialItems}" (adjust names and descriptions for variety)
+Suggested Initial New Items for the player: "${theme.initialItems}" (adjust names and descriptions for variety)
 
 The player's last action was unremarkable—something common anyone would do in this situation.
 
 Creatively generate variations of the main quest and current objective based on the suggestions, but make them noticeably different.
-Creatively generate the initial scene description, action options, and items (variations based on 'Initial Inventory to be granted'), along with a logMessage.
+Creatively generate the initial scene description, action options, and items (variations based on 'New Items for the player'), along with a logMessage.
 Creatively add any important quest item(s), if any, based on your generated quest and objective.
+
 ALWAYS SET "mapUpdated": true.
-Of all the optional variables, your response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
+ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
+`;
   return prompt;
 };
 
@@ -57,23 +58,23 @@ export const buildNewThemePostShiftPrompt = (
   inventory: Array<Item>,
   playerGender: string
 ): string => {
-  const inventoryStrings = itemsToString(inventory, ' - ');
+  const inventoryStrings = itemsToString(inventory, ' - ', true, true, false, false, true);
   const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
 Initial Scene: "${theme.initialSceneDescriptionSeed}" (adapt to an arrival scene describing the disorienting transition).
 Main Quest: "${theme.initialMainQuest}" (adjust for variety)
 Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
 
-Player's Current Inventory (brought from previous reality or last visit):\n - ${inventoryStrings}
-IMPORTANT:
-  - EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
-  - If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName" and optionally updated "type" and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
-- If no items are anachronistic, no transformation is needed.
+Player's Current Inventory (brought from previous reality or last visit):
+${inventoryStrings}
 
 Generate the scene description for a disoriented arrival, and provide appropriate initial action options for the player to orient themselves.
-The response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-Set "mapUpdated": true if your generated Scene, Quest or Objective mention specific locations that should be on a map.
-Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
+
+List anachronistic Player's Items in playerItemsHint.
+
+ALWAYS SET "mapUpdated": true.
+ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
+`;
   return prompt;
 };
 
@@ -87,26 +88,34 @@ export const buildReturnToThemePostShiftPrompt = (
   playerGender: string,
   themeMemory: ThemeMemory,
   mapDataForTheme: MapData,
-  currentThemeCharacters: Array<Character>
+  currentThemeNPCs: Array<NPC>
 ): string => {
-  const inventoryPrompt = itemsToString(inventory, ' - ');
+  const inventoryPrompt = itemsToString(
+    inventory,
+    ' - ',
+    true,
+    true,
+    false,
+    false,
+    true,
+  );
   const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
-    n => n.themeName === theme.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+    node => node.themeName === theme.name && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
   );
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
 
-    // Filter characters that are companions, as they are traveling with the player
-  const companions = currentThemeCharacters.filter(c => c.presenceStatus === 'companion');
+    // Filter NPCs that are companions, as they are traveling with the player
+  const companions = currentThemeNPCs.filter(npc => npc.presenceStatus === 'companion');
   const companionStrings =
-    companions.length > 0 ? charactersToString(companions, ' - ', false, false, false, true) : 'None';
-  // Filter characters that are nearby, as they are currently present and can be interacted with
-  const nearbyChars = currentThemeCharacters.filter(c => c.presenceStatus === 'nearby');
+    companions.length > 0 ? npcsToString(companions, ' - ', false, false, false, true) : 'None';
+  // Filter NPCs that are nearby, as they are currently present and can be interacted with
+  const nearbyNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'nearby');
   const nearbyStrings =
-    nearbyChars.length > 0 ? charactersToString(nearbyChars, ' - ', false, false, false, true) : 'None';
-  // Filter characters that are distant or unknown, as they are not currently present but may be relevant
-  const knownChars = currentThemeCharacters.filter(c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown');
-  const charactersStrings =
-    knownChars.length > 0 ? charactersToString(knownChars, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
+    nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, false, false, true) : 'None';
+  // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
+  const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
+  const npcsStrings =
+    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
 
   const prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
 Player's Character Gender: "${playerGender}"
@@ -117,28 +126,26 @@ Current Objective: "${themeMemory.currentObjective}"
 ## Player's Current Inventory (brought from previous reality or last visit):
 ${inventoryPrompt}
 
-**IMPORTANT**
-  - EXAMINE the player's Current Inventory for any items that are CLEARLY ANACHRONISTIC for the theme "${theme.name}".
-  - If anachronistic items are found, TRANSFORM them into thematically appropriate equivalents using an "itemChange" "update" action with "newName" and optionally updated "type" and "description". Creatively explain this transformation in the "logMessage". Refer to ITEMS_GUIDE for anachronistic item handling.
-  - CRITICALLY IMPORTANT: ALWAYS transform some items into important quest items you must have already had in this reality, based on Main Quest, Current Objective, or the Adventure Summary even if they are NOT anachronistic, using an "itemChange" "update" action with "newName" and optional "type" and "description". Creatively explain this transformation in the "logMessage".
+List anachronistic Player's Items in playerItemsHint.
 
 ## Known Locations:
 ${placesContext}
 
-## Known Characters (including presence):
-${charactersStrings}
+## Known NPCs (including presence):
+${npcsStrings}
 
 ## Companions traveling with the Player:
 ${companionStrings}
 
-## Characters Player can interact with (nearby):
+## NPCs Player can interact with (nearby):
 ${nearbyStrings}
 
 Describe the scene as they re-enter, potentially in a state of confusion from the shift, making it feel like a continuation or a new starting point consistent with the Adventure Summary and current quest/objective.
 Provide appropriate action options for the player to orient themselves.
-The response MUST include at least the "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-Set "mapUpdated": true if your generated Scene, Quest or Objective mention specific locations that should be on a map or if existing map information needs updating based on the re-entry context.
-Ensure the response adheres to the JSON structure specified in the SYSTEM_INSTRUCTION.`;
+
+ALWAYS SET "mapUpdated": true.
+ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
+`;
   return prompt;
 };
 
@@ -155,7 +162,8 @@ export const buildMainGameTurnPrompt = (
   currentTheme: AdventureTheme,
   recentLogEntries: Array<string>,
   currentThemeMainMapNodes: Array<MapNode>,
-  currentThemeCharacters: Array<Character>,
+  currentThemeNPCs: Array<NPC>,
+  relevantFacts: Array<string>,
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
@@ -165,24 +173,39 @@ export const buildMainGameTurnPrompt = (
   fullMapData: MapData,
   destinationNodeId: string | null
 ): string => {
-  const inventoryStrings = 
-    inventory.length > 0 ? itemsToString(inventory, ' - ') : `There are no items in player's inventory.`;
+  const inventoryStrings =
+    inventory.length > 0
+      ? itemsToString(inventory, ' - ', true, true, false, false, true)
+      : `There are no items in player's inventory.`;
   const locationItemsStrings =
-    locationItems.length > 0 ? `There are items at this location: \n${itemsToString(locationItems, ' - ')}` : `There are no visible items at this location.`;
+    locationItems.length > 0
+      ? `There are items at this location: \n${itemsToString(
+          locationItems,
+          ' - ',
+          true,
+          true,
+          false,
+          false,
+          true,
+        )}`
+      : `There are no visible items at this location.`;
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
-  // Filter characters that are companions, as they are traveling with the player
-  const companions = currentThemeCharacters.filter(c => c.presenceStatus === 'companion');
+  // Filter NPCs that are companions, as they are traveling with the player
+  const companions = currentThemeNPCs.filter(npc => npc.presenceStatus === 'companion');
   const companionStrings =
-    companions.length > 0 ? charactersToString(companions, ' - ', false, false, false, true) : 'None';
-  // Filter characters that are nearby, as they are currently present and can be interacted with
-  const nearbyChars = currentThemeCharacters.filter(c => c.presenceStatus === 'nearby');
+    companions.length > 0 ? npcsToString(companions, ' - ', false, false, false, true) : 'None';
+  // Filter NPCs that are nearby, as they are currently present and can be interacted with
+  const nearbyNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'nearby');
   const nearbyStrings =
-    nearbyChars.length > 0 ? charactersToString(nearbyChars, ' - ', false, false, false, true) : 'None';
-  // Filter characters that are distant or unknown, as they are not currently present but may be relevant
-  const knownChars = currentThemeCharacters.filter(c => c.presenceStatus === 'distant' || c.presenceStatus === 'unknown');
-  const charactersStrings =
-    knownChars.length > 0 ? charactersToString(knownChars, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
-  
+    nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, false, false, true) : 'None';
+  // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
+  const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
+  const NPCsStrings =
+    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
+
+  const relevantFactsSection =
+    relevantFacts.length > 0 ? relevantFacts.map(f => `- ${f}`).join('\n') : 'None';
+
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
 
   const allNodesForCurrentTheme = fullMapData.nodes.filter(node => node.themeName === currentTheme.name);
@@ -222,10 +245,10 @@ export const buildMainGameTurnPrompt = (
 
   const detailedEntityContext = formatDetailedContextForMentionedEntities(
     currentThemeMainMapNodes,
-    currentThemeCharacters,
+    currentThemeNPCs,
     `${currentScene} ${playerAction}`,
     '### Details on relevant locations mentioned in current scene or action:',
-    '### Details on relevant characters mentioned in current scene or action:'
+    '### Details on relevant NPCs mentioned in current scene or action:'
   );
 
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
@@ -247,19 +270,22 @@ ${locationItemsStrings}
 ### Known Locations:
 ${placesContext}
 
-### Known Characters:
-${charactersStrings}
+### Known NPCs:
+${NPCsStrings}
 
 ### Companions traveling with the Player:
 ${companionStrings}
 
-### Characters Player can interact with (nearby):
+### NPCs Player can interact with (nearby):
 ${nearbyStrings}
 
 ### Current Map Context (including your location, possible exits, nearby paths, and other nearby locations):
 ${mapContext}
 
 ${detailedEntityContext}
+
+### Relevant Facts about the world:
+${relevantFactsSection}
 
 ### Recent Events to keep in mind (for context and continuity):
 ${recentEventsContext}

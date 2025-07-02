@@ -6,8 +6,10 @@
 
 import {
   VALID_ITEM_TYPES_STRING,
-  VALID_TAGS_STRING,
-  WRITING_TAGS_STRING,
+  DEDICATED_BUTTON_USES_STRING,
+  MIN_BOOK_CHAPTERS,
+  MAX_BOOK_CHAPTERS,
+  TEXT_STYLE_TAGS_STRING
 } from '../constants';
 
 export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
@@ -19,11 +21,13 @@ export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPE
 - "weapon": Melee and ranged weapons, distinct from "equipment" Items that can be explicitly used in a fight when wielded. Ranged weapon consume ammunition or charges.
 - "ammunition": For reloading specific ranged weapons, e.g., Arrows for Longbow, Rounds for firearms, Charges for energy weapons. Using weapon consumes ammo (handled by log/update).
 - "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
-- "knowledge": Immaterial. Represents learned info, skills, spells, passwords. 'knownUses' define how to apply it. Can be 'lost' if used up or no longer relevant. E.g., "Spell: Fireball", "Recipe: Health Potion", "Clue: Thief Name".
-- "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
-- "journal": Blank notebook for the player to fill in. Starts with no chapters. Use the chapter structure when the player writes.
-- "book": Multi-page text with "chapters". Each chapter MUST have {"heading", "description", "contentLength"}.
+- "immovable": Built-in or heavy feature at a location (e.g., control panel or machinery). Cannot be moved or stored. Interact using known uses or generic attempts.
 - "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
+Written items:
+- "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
+- "book": Multi-page text with "chapters". Journals are blank books that start with no chapters and gain new entries when the player writes. Each chapter MUST have {"heading", "description", "contentLength"}.
+- "picture": Single image such as a photograph, drawing, or painting. Use one chapter to describe what the image portrays in detail.
+- "map": Hand-drawn or printed diagram showing terrain, directions, floor plan, or schematic. Use one chapter to describe the layout and any notable markings.
 `;
 
 export const ITEMS_GUIDE = `Generate inventory hints using these fields:
@@ -32,137 +36,132 @@ export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "npcItemsHint": short summary of items held or used by NPCs.
 - "newItems": array of brand new items introduced this turn, or [] if none.
 
-Each object in "newItems" should include:
-  {
-    "name": "Item Name",
-    "type": "one of ${VALID_ITEM_TYPES_STRING}",
-    "description": "Short description",
-    "activeDescription"?: "When active",
-    "isActive"?: false,
-    "tags"?: ["junk"], /* Valid tags: ${VALID_TAGS_STRING}. */
-    "knownUses"?: [
-      {
-        "actionName": "Action text",
-        "promptEffect": "Prompt sent to the AI",
-        "description": "Player hint",
-        "appliesWhenActive"?: false,
-        "appliesWhenInactive"?: false
-      }
-    ]
-  }
-
 Examples illustrating the hint style:
-- Example for gaining a new item:
-  playerItemsHint: "Picked up Old Lantern."
-  newItems: [{
+- Example of creating a *new* item "Old Lantern" and placing it in player's inventory. Because "Old Lantern" is included in newItems, it means the item is not already present in the scene:
+playerItemsHint: "Picked up Old Lantern."
+newItems:
+[
+  {
     "name": "Old Lantern",
     "type": "equipment",
     "description": "A dusty old lantern that still flickers faintly.",
     "activeDescription": "The lantern is lit and casts a warm glow.",
     "isActive": false,
-    "tags": [],
-    "knownUses": [
+    "knownUses":
+    [
       {
         "actionName": "Light the Lantern",
         "promptEffect": "Light the lantern to illuminate the area.",
         "description": "Use this to light your way in dark places.",
-        "appliesWhenActive": true,
-        "appliesWhenInactive": false
+        "appliesWhenInactive": true
+      },
+      {
+        "actionName": "Extinguish the Lantern",
+        "promptEffect": "Extinguish the lantern.",
+        "description": "Extinguish the lantern and conserve fuel.",
+        "appliesWhenActive": true
       }
     ]
-  }]
+  }
+]
 
-- Example for putting a new item into another inventory or location:
-  npcItemsHint: "Guard now carries Rusty Key."
-  newItems: [{
+- Example for creating a *new* item "Rusty Key" inside npc_guard_4f3a inventory:
+npcItemsHint: "Guard now carries a Rusty Key."
+newItems:
+[
+  {
     "name": "Rusty Key",
     "type": "key",
-    "description": "Opens an old door.",
-    "holderId": "char_guard_4f3a"
-  }]
+    "description": "A key for the armory door.",
+    "holderId": "npc_guard_4f3a"
+  }
+]
 
-- Example for a short page item:
-  playerItemsHint: "Found Torn Note."
-  newItems: [{
-    "name": "Torn Note",
+- Example of creating a *new* 'page' written item and placing it in player's inventory (same structure for the 'map' and 'picture' types):
+playerItemsHint: "Found Smudged Note."
+newItems:
+[
+  {
+    "name": "Smudged Note",
     "type": "page",
-    "description": "A hastily scribbled message.", /* REQUIRED. Moderatly detailed description of the note and its contents. */
-    "tags": ["typed", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
-    "chapters": [ /* REQUIRED. Always a single chapter. */
-      { "heading": "string", /* REQUIRED. Can be anything*/
-        "description": "A hastily scribbled message about the dangers of the sunken tunnel.", /* REQUIRED. Moderately detailed abstract of the contents. */
-        "contentLength": 50 /* REQUIRED. Length of the content in words. */
+    "description": "A hastily scribbled message with a big smudge over it.",
+    "tags": ["typed", "smudged"],
+    "holderId": "player",
+    "chapters": /* REQUIRED, because the type is 'page' */
+    [ /* Only one chapter, because the type is 'page' */
+      {
+        "heading": "string",
+        "description": "A hastily scribbled message about the dangers of the sunken tunnel.",
+        "contentLength": 50
       }
-    "holderId": "player"
-  }]
+    ]
+  }
+]
 
-- Example for a simple book:
-  playerItemsHint: "Obtained the Explorer's Adventures."
-  newItems: [{
+- Example of creating a *new* 'book' written item and placing it in player's inventory:
+playerItemsHint: "Obtained the Explorer's Adventures."
+newItems:
+[
+  {
     "name": "Explorer's Adventures",
     "type": "book",
     "description": "Weathered log of travels.",
-    "tags": ["handwritten", "faded"], /* Tags describing the page. Use one or two from: ${WRITING_TAGS_STRING}. */
-    "chapters": [ /* Anywhere from 3 to 10 chapters. */
-      { "heading": "Preface", /* REQUIRED. Short Title of the chapter*/
-        "description": "Introduction. Written by the author, explaining his decisions to start his travels.", /* REQUIRED. Short, but detailed abstract of the contents of the chapter. */
-        "contentLength": 50 /* REQUIRED. Length of the content in words. Range: 50-500 */
-      },
-      { "heading": "Journey One",
-        "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",
-        "contentLength": 250 
-      },
-      { "heading": "Journey Two",
-        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
-        "contentLength": 300 
-      }
-    ],
-    "holderId": "player"
-  }]
-
-- Example for losing, destroying, completely removing the item:
-  playerItemsHint: "Lost Old Lantern (flickering)."
-
-- Example for giving an existing item from one holder to another:
-  npcItemsHint: "Gave Iron Sword to Guard."
-
-- "take" is an alias for "give". Example:
-  playerItemsHint: "Took Coin Pouch from Bandit."
-
-- Example for simple update (only changing "isActive"):
-  playerItemsHint: "Plasma Torch is now active."
-
-- Example for transformation or crafting:
-  playerItemsHint: "Scrap Metal transformed into Makeshift Shiv."
-  newItems: [{
-    "name": "Makeshift Shiv",
-    "type": "weapon",
-    "description": "A sharp piece of metal.",
-    "tags": [],
-    "knownUses": [
+    "holderId": "player",
+    "tags": ["handwritten", "faded"],
+    "chapters": /* REQUIRED, because the type is 'book' */
+    [ /* Multiple chapters because the type it 'book' */
       {
-        "actionName": "Cut",
-        "promptEffect": "Cut something.",
-        "description": "Use this to cut things.",
-        "appliesWhenActive": false,
-        "appliesWhenInactive": false
+        "heading": "Preface",
+        "description": "Introduction. Written by the author, explaining his decisions to start his travels.",
+        "contentLength": 53
+      },
+      {
+        "heading": "Journey One",
+        "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",
+        "contentLength": 246 
+      },
+      {
+        "heading": "Journey Two",
+        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
+        "contentLength": 312 
+      },
+      {
+        "heading": "Final Thoughts",
+        "description": "The author's contemplation about whether the journeys were worth it", 
+        "contentLength": 98 
       }
     ]
   }]
 
-- Example for adding a known use (type/description etc. inherited):
-  playerItemsHint: "Mystic Orb can now 'Peer into the Orb'."
+- Example for losing, destroying, completely removing the item:
+playerItemsHint: "Lost Old Lantern (flickering)."
 
-  - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
-  - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effects".
-  - Mention remaining uses for multi-use items when they change.
+- Example for giving an *existing* item from one holder to another:
+npcItemsHint: "Gave Iron Sword to Guard."
+
+- "take" is an alias for "give". Example:
+playerItemsHint: "Took Coin Pouch from Bandit."
+
+- Example for simple update of *existing* item (only changing "isActive"):
+playerItemsHint: "Plasma Torch is now active."
+
+- Example for transformation or crafting:
+playerItemsHint: "Scrap Metal transformed into Makeshift Shiv."
+
+- Example for adding a known use to an item without changing anything else:
+playerItemsHint: "Mystic Orb can now 'Peer into the Orb'."
+
+- ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
+- Make sure that 'page', 'map' and 'picture' type items have exactly ONE chapter.
+- Make sure that 'book' type items have between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.
+- Make sure 'page', 'book', 'map' and 'picture' type items have one of the required tags: ${TEXT_STYLE_TAGS_STRING}.
+- Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effects".
+- Mention remaining uses for multi-use items when they change.
 IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light sources, powered equipment, wielded or worn items) provide at least the two knownUses to enable and disable them with appropriate names:
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
-IMPORTANT: NEVER add "Inspect", "Use", "Drop", "Discard", "Enter", "Park", "Read", "Write" known uses - there are dedicated buttons for those in the game.
-
-If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, mention it in "playerItemsHint".
-If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, mention it in "playerItemsHint".
+  - ALWAYS provide these actions in pairs, e.g. turn on/turn off, wield/put away, wear/take off, light/extinguish, activate/deactivate, start/stop, etc.
+IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedicated buttons for those in the game.
 
 ${ITEM_TYPES_GUIDE}
 
@@ -190,6 +189,18 @@ export const MAP_EDGE_TYPE_GUIDE = `Map Edge Types:
 - temporary_bridge: Deployable link such as a boarding tube or rope bridge.
 - boarding_hook: Grappling device to connect to a moving object.
 - shortcut: Any special connection that bypasses hierarchy rules.`;
+
+export const MAP_NODE_HIERARCHY_GUIDE = `Map Node Hierarchy:
+- A "region" can contain "locations".
+- A "location" can contain "settlements".
+- A "settlement" can contain "districts".
+- A "district" can contain "exteriors".
+- An "exterior" can contain "interiors".
+- An "interior" can contain "rooms".
+- A "room" can contain "features".
+- The "Universe" is the root node, it can contain any other nodes.
+- A "feature" can be placed anywhere in the hierarchy, but can never be a parent to any other node.
+- Only "feature" nodes can be connected to each other with edges.`;
 
 export const LOCAL_CONDITIONS_GUIDE = `- You MUST provide "localTime", "localEnvironment", "localPlace" in the response.
 - "localTime" should be a very short phrase (e.g., "Dawn", "Mid-morning", "Twilight", "Deep Night", "Temporal Flux").

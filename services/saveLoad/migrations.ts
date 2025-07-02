@@ -2,7 +2,13 @@
  * @file migrations.ts
  * @description Functions for normalizing and converting saved game data between versions.
  */
-import { FullGameState, SavedGameDataShape, MapData } from '../../types';
+import {
+  FullGameState,
+  SavedGameDataShape,
+  MapData,
+  GameStateStack,
+  SavedGameStack,
+} from '../../types';
 import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../../constants';
 import { findThemeByName } from '../../utils/themeUtils';
 import {
@@ -72,6 +78,9 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     objectiveAnimationType,
     lastDebugPacket,
     lastTurnChanges,
+    debugLore,
+    debugGoodFacts,
+    debugBadFacts,
     isAwaitingManualShiftThemeSelection,
     ...restOfGameState
   } = gameState;
@@ -80,6 +89,9 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   void objectiveAnimationType;
   void lastDebugPacket;
   void lastTurnChanges;
+  void debugLore;
+  void debugGoodFacts;
+  void debugBadFacts;
   void isAwaitingManualShiftThemeSelection;
 
   const mapDataForSave: MapData = {
@@ -103,14 +115,19 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     ...restOfGameState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
     currentThemeObject: gameState.currentThemeObject,
-    inventory: gameState.inventory.map(item => ({ ...item, tags: item.tags ?? [], holderId: item.holderId || PLAYER_HOLDER_ID })),
-      allCharacters: gameState.allCharacters.map(c => ({
-        ...c,
-        aliases: c.aliases ?? [],
-        presenceStatus: c.presenceStatus,
-        lastKnownLocation: c.lastKnownLocation,
-        preciseLocation: c.preciseLocation,
-        dialogueSummaries: c.dialogueSummaries ?? [],
+    inventory: gameState.inventory.map(item => ({
+      ...item,
+      tags: item.tags ?? [],
+      stashed: item.stashed ?? false,
+      holderId: item.holderId || PLAYER_HOLDER_ID,
+    })),
+      allNPCs: gameState.allNPCs.map(npc => ({
+        ...npc,
+        aliases: npc.aliases ?? [],
+        presenceStatus: npc.presenceStatus,
+        lastKnownLocation: npc.lastKnownLocation,
+        preciseLocation: npc.preciseLocation,
+        dialogueSummaries: npc.dialogueSummaries ?? [],
       })),
     mapData: mapDataForSave,
       currentMapNodeId: gameState.currentMapNodeId,
@@ -128,6 +145,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     turnsSinceLastShift: gameState.turnsSinceLastShift,
     globalTurnNumber: gameState.globalTurnNumber,
     isCustomGameMode: gameState.isCustomGameMode,
+    themeFacts: gameState.themeFacts,
   };
   return savedData;
 };
@@ -156,9 +174,9 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
   return {
     ...savedData,
     currentThemeObject: themeObjectToUse,
-    allCharacters: savedData.allCharacters.map(c => ({
-      ...c,
-      dialogueSummaries: c.dialogueSummaries ?? [],
+    allNPCs: savedData.allNPCs.map(npc => ({
+      ...npc,
+      dialogueSummaries: npc.dialogueSummaries ?? [],
     })),
     mapData: mapDataFromLoad,
     currentMapNodeId: savedData.currentMapNodeId,
@@ -167,6 +185,10 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     mapViewBox: savedData.mapViewBox,
     isCustomGameMode: savedData.isCustomGameMode,
     globalTurnNumber: savedData.globalTurnNumber,
+    themeFacts: savedData.themeFacts,
+    debugLore: false,
+    debugGoodFacts: [],
+    debugBadFacts: [],
     isAwaitingManualShiftThemeSelection: false,
     dialogueState: null,
     objectiveAnimationType: null,
@@ -174,3 +196,59 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     lastTurnChanges: null,
   };
 };
+
+export const prepareGameStateStackForSaving = (
+  stack: GameStateStack,
+): SavedGameStack => ({
+  current: prepareGameStateForSaving(stack[0]),
+  previous: stack[1] ? prepareGameStateForSaving(stack[1]) : null,
+});
+
+export const prepareGameStateForSavingWithoutImages = (
+  gameState: FullGameState,
+): SavedGameDataShape => {
+  const data = prepareGameStateForSaving(gameState);
+  data.inventory = data.inventory.map(item => ({
+    ...item,
+    chapters: item.chapters?.map(ch => ({
+      ...ch,
+      imageData: undefined,
+    })),
+  }));
+  data.playerJournal = data.playerJournal.map(ch => ({
+    ...ch,
+    imageData: undefined,
+  }));
+  return data;
+};
+
+export const prepareGameStateStackForSavingWithoutImages = (
+  stack: GameStateStack,
+): SavedGameStack => ({
+  current: prepareGameStateForSavingWithoutImages(stack[0]),
+  previous: stack[1] ? prepareGameStateForSavingWithoutImages(stack[1]) : null,
+});
+
+export const expandSavedStackToFullStates = (
+  savedStack: SavedGameStack,
+): GameStateStack => [
+  expandSavedDataToFullState(savedStack.current),
+  savedStack.previous ? expandSavedDataToFullState(savedStack.previous) : undefined,
+];
+
+export function normalizeLoadedSaveDataStack(
+  parsedObj: Record<string, unknown>,
+  sourceLabel: string,
+): SavedGameStack | null {
+  const currentRaw = (parsedObj as { current?: unknown }).current;
+  if (!currentRaw || typeof currentRaw !== 'object') return null;
+  const current = normalizeLoadedSaveData(currentRaw as Record<string, unknown>, sourceLabel);
+  if (!current) return null;
+  const prevRaw = (parsedObj as { previous?: unknown }).previous;
+  let previous: SavedGameDataShape | null = null;
+  if (prevRaw && typeof prevRaw === 'object') {
+    const processedPrev = normalizeLoadedSaveData(prevRaw as Record<string, unknown>, sourceLabel);
+    if (processedPrev) previous = processedPrev;
+  }
+  return { current, previous };
+}

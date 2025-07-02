@@ -4,6 +4,7 @@ import type {
   MapData,
   MapNode,
   MapEdge,
+  Item,
   MinimalModelCallRecord,
 } from '../../types';
 import type { EdgeChainRequest } from '../corrections/edgeFixes';
@@ -29,10 +30,11 @@ export interface ApplyUpdatesContext {
   edgesToAdd_mut: NonNullable<AIMapUpdatePayload['edgesToAdd']>;
   edgesToRemove_mut: NonNullable<AIMapUpdatePayload['edgesToRemove']>;
   resolveNodeReference: (identifier: string) => Promise<MapNode | undefined>;
-  nameMatchesItemOrChar: (name: string) => boolean;
+  nameMatchesItemOrNPC: (name: string) => boolean;
   minimalModelCalls: Array<MinimalModelCallRecord>;
   sceneDesc: string;
   logMsg: string;
   localPlace: string;
   debugInfo: MapUpdateDebugInfo;
+  inventoryItems: Array<Item>;
 }

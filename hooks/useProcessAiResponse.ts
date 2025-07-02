@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import * as React from 'react';
 import {
   AdventureTheme,
   FullGameState,
@@ -15,11 +16,17 @@ import {
   addLogMessageToList,
   buildItemChangeRecords,
   applyAllItemChanges,
+  applyThemeFactChanges,
 } from '../utils/gameLogicUtils';
 import { itemsToString } from '../utils/promptFormatters/inventory';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { applyInventoryHints_Service } from '../services/inventory';
+import { refineLore_Service } from '../services/loremaster';
+import { generatePageText } from '../services/page';
+import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
+import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
+import { findItemByIdentifier } from '../utils/entityUtils';
 
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
@@ -45,6 +52,20 @@ const correctItemChanges = async ({
   const result: Array<ItemChange> = [];
   for (const change of aiItemChanges) {
     let currentChange: ItemChange = { ...change };
+
+    if ('item' in currentChange && (currentChange.item as { type?: string }).type === 'immovable') {
+      if (currentChange.action === 'create') {
+        const itm = currentChange.item;
+        if (!itm.holderId.startsWith('node_')) {
+          itm.holderId = baseState.currentMapNodeId ?? 'unknown';
+        }
+      } else if (currentChange.action === 'move') {
+        const payload = currentChange.item;
+        if (!payload.newHolderId.startsWith('node_')) {
+          payload.newHolderId = baseState.currentMapNodeId ?? 'unknown';
+        }
+      }
+    }
     if (currentChange.action === 'destroy') {
       const itemRef = currentChange.item;
       const itemNameFromAI = itemRef.name;
@@ -99,7 +120,7 @@ const correctItemChanges = async ({
         );
         if (invItem) {
           currentChange = {
-            action: 'put',
+            action: 'create',
             item: {
               ...invItem,
               holderId: baseState.currentMapNodeId ?? 'unknown',
@@ -166,24 +187,24 @@ const handleInventoryHints = async ({
   baseInventoryForPlayer: Array<Item>;
 }> => {
   const baseInventoryForPlayer = baseState.inventory.filter(
-    (i) => i.holderId === PLAYER_HOLDER_ID,
+    (item) => item.holderId === PLAYER_HOLDER_ID,
   );
   const locationInventory = baseState.inventory.filter(
-    (i) => i.holderId === baseState.currentMapNodeId,
+    (item) => item.holderId === baseState.currentMapNodeId,
   );
-  const companionChars = baseState.allCharacters.filter(
-    (c) => c.presenceStatus === 'companion',
+  const companionNPCs = baseState.allNPCs.filter(
+    (npc) => npc.presenceStatus === 'companion',
   );
-  const nearbyChars = baseState.allCharacters.filter(
-    (c) => c.presenceStatus === 'nearby',
+  const nearbyNPCs = baseState.allNPCs.filter(
+    (npc) => npc.presenceStatus === 'nearby',
   );
 
-  const formatCharInventoryList = (chars: typeof companionChars): string => {
-    if (chars.length === 0) return 'None.';
-    return chars
-      .map((ch) => {
-        const items = baseState.inventory.filter((i) => i.holderId === ch.id);
-        return `ID: ${ch.id} - ${ch.name}: ${itemsToString(items, ' - ')}`;
+  const formatNPCInventoryList = (npcs: typeof companionNPCs): string => {
+    if (npcs.length === 0) return 'None.';
+    return npcs
+      .map((npc) => {
+        const items = baseState.inventory.filter((i) => i.holderId === npc.id);
+        return `ID: ${npc.id} - ${npc.name}: ${itemsToString(items, ' - ', true, true, false, true)}`;
       })
       .join('\n');
   };
@@ -204,11 +225,11 @@ const handleInventoryHints = async ({
       'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
       'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [],
       playerActionText ?? '',
-      itemsToString(baseInventoryForPlayer, ' - '),
-      itemsToString(locationInventory, ' - '),
+      itemsToString(baseInventoryForPlayer, ' - ', true, true, false, true),
+      itemsToString(locationInventory, ' - ', true, true, false, true),
       baseState.currentMapNodeId ?? null,
-      formatCharInventoryList(companionChars),
-      formatCharInventoryList(nearbyChars),
+      formatNPCInventoryList(companionNPCs),
+      formatNPCInventoryList(nearbyNPCs),
       'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
       aiData.logMessage,
       theme,
@@ -249,6 +270,7 @@ export interface ProcessAiResponseOptions {
   isFromDialogueSummary?: boolean;
   scoreChangeFromAction?: number;
   playerActionText?: string;
+  dialogueTranscript?: string;
 }
 
 export type ProcessAiResponseFn = (
@@ -259,20 +281,27 @@ export type ProcessAiResponseFn = (
 ) => Promise<void>;
 
 export interface UseProcessAiResponseProps {
-  loadingReason: LoadingReason | null;
+  loadingReasonRef: React.RefObject<LoadingReason | null>;
   setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
+  debugLore: boolean;
+  openDebugLoreModal: (
+    facts: Array<string>,
+    resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
+  ) => void;
 }
 
 export const useProcessAiResponse = ({
-  loadingReason,
+  loadingReasonRef,
   setLoadingReason,
   setError,
   setGameStateStack,
+  debugLore,
+  openDebugLoreModal,
 }: UseProcessAiResponseProps) => {
   const { processMapUpdates } = useMapUpdateProcessor({
-    loadingReason,
+    loadingReasonRef,
     setLoadingReason,
     setError,
   });
@@ -297,7 +326,7 @@ export const useProcessAiResponse = ({
 
       const turnChanges: TurnChanges = {
         itemChanges: [],
-        characterChanges: [],
+        npcChanges: [],
         objectiveAchieved: false,
         objectiveTextChanged: false,
         mainQuestTextChanged: false,
@@ -337,6 +366,7 @@ export const useProcessAiResponse = ({
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        loremasterDebugInfo: draftState.lastDebugPacket?.loremasterDebugInfo ?? { collect: null, extract: null, integrate: null, distill: null, journal: null },
       };
 
       if (aiData.localTime !== undefined) {
@@ -407,7 +437,7 @@ export const useProcessAiResponse = ({
         theme: themeContextForResponse,
         baseState: baseStateSnapshot,
         playerActionText,
-        loadingReason,
+        loadingReason: loadingReasonRef.current,
         setLoadingReason,
       });
 
@@ -428,7 +458,7 @@ export const useProcessAiResponse = ({
           baseState: baseStateSnapshot,
           correctedItemChanges: correctedAndVerifiedItemChanges,
           playerActionText,
-          loadingReason,
+          loadingReason: loadingReasonRef.current,
           setLoadingReason,
         });
 
@@ -448,11 +478,163 @@ export const useProcessAiResponse = ({
         draftState.lastActionLog = 'The Dungeon Master remains silent on the outcome of your last action.';
       }
 
+      if (themeContextForResponse) {
+        for (const change of combinedItemChanges) {
+          if (change.action === 'addDetails') {
+            const target = findItemByIdentifier([
+              change.item.id,
+              change.item.name,
+            ], draftState.inventory, false, true) as Item | null;
+            if (!target) continue;
+            const chapter = change.item.chapters?.[0];
+            if (!chapter) continue;
+            const { name: themeName, systemInstructionModifier } = themeContextForResponse;
+            const nodes = draftState.mapData.nodes.filter(
+              n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+            );
+            const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
+            const npcs = draftState.allNPCs.filter(npc => npc.themeName === themeName);
+            const knownNPCs = npcs.length > 0
+              ? npcsToString(npcs, ' - ', false, false, false, true)
+              : 'None specifically known in this theme yet.';
+            const prev = target.chapters?.[target.chapters.length - 1]?.actualContent ?? '';
+            const thoughts = draftState.lastDebugPacket.storytellerThoughts?.slice(-1)[0] ?? '';
+            const actual = await generatePageText(
+              chapter.heading,
+              chapter.description,
+              chapter.contentLength,
+              themeName,
+              systemInstructionModifier,
+              draftState.currentScene,
+              thoughts,
+              knownPlaces,
+              knownNPCs,
+              draftState.mainQuest,
+              `Take into account: ${draftState.lastActionLog ?? ''}`,
+              prev
+            );
+            if (actual) {
+              const tags = target.tags ?? [];
+              let visible = actual;
+              if (tags.includes('foreign')) {
+                const fake = await generatePageText(
+                  chapter.heading,
+                  chapter.description,
+                  chapter.contentLength,
+                  themeName,
+                  systemInstructionModifier,
+                  draftState.currentScene,
+                  thoughts,
+                  knownPlaces,
+                  knownNPCs,
+                  draftState.mainQuest,
+                  `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
+                );
+                visible = fake ?? actual;
+              } else if (tags.includes('encrypted')) {
+                visible = rot13(actual);
+              } else if (tags.includes('runic')) {
+                visible = toRunic(actual);
+              }
+              if (tags.includes('torn') && !tags.includes('recovered')) {
+                visible = tornVisibleText(visible);
+              }
+              const updatedChapter = { ...chapter, actualContent: actual, visibleContent: visible };
+              const idx = draftState.inventory.findIndex(i => i.id === target.id);
+              const updated = {
+                ...target,
+                chapters: [...(target.chapters ?? []), updatedChapter],
+                lastInspectTurn: undefined,
+              };
+              draftState.inventory[idx] = updated;
+            }
+          }
+        }
+      }
+
+      if (themeContextForResponse) {
+        const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
+        const baseContext = isFromDialogueSummary
+          ? [options.dialogueTranscript ?? '', thoughts ? `\n  ## Storyteller's Thoughts:\n${thoughts}\n------` : '']
+              .filter(Boolean)
+              .join('\n')
+          : [
+              playerActionText ? `Action: ${playerActionText}` : '',
+              aiData.sceneDescription,
+              aiData.logMessage ?? '',
+              thoughts ? `\n  ## Storyteller's Thoughts:\n\n${thoughts}\n------` : '',
+            ]
+              .filter(Boolean)
+              .join('\n');
+
+        const nodesForTheme = draftState.mapData.nodes.filter(
+          n => n.themeName === themeContextForResponse.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
+        );
+        const npcsForTheme = draftState.allNPCs.filter(npc => npc.themeName === themeContextForResponse.name);
+        const itemsForTheme = draftState.inventory.filter(
+          item =>
+            item.holderId === PLAYER_HOLDER_ID ||
+            nodesForTheme.some(n => n.id === item.holderId) ||
+            npcsForTheme.some(npc => npc.id === item.holderId),
+        );
+        const idsContext = [
+          `Node IDs: ${nodesForTheme.map(n => n.id).join(', ')}`,
+          `NPC IDs: ${npcsForTheme.map(n => n.id).join(', ')}`,
+          `Item IDs: ${itemsForTheme.map(i => i.id).join(', ')}`,
+        ].join('\n');
+
+        const contextParts = `${baseContext}\n${idsContext}`;
+        const original = loadingReasonRef.current;
+        const refineResult = await refineLore_Service({
+          themeName: themeContextForResponse.name,
+          turnContext: contextParts,
+          existingFacts: draftState.themeFacts,
+          onFactsExtracted: debugLore
+            ? async (facts) =>
+                new Promise<{ proceed: boolean }>(resolve => {
+                  openDebugLoreModal(
+                    facts.map(f => f.text),
+                    (good, bad, proceed) => {
+                      if (proceed) {
+                        draftState.debugGoodFacts.push(...good);
+                        draftState.debugBadFacts.push(...bad);
+                      }
+                      resolve({ proceed });
+                    },
+                  );
+                })
+            : undefined,
+          onSetLoadingReason: setLoadingReason,
+        });
+        if (draftState.lastDebugPacket.loremasterDebugInfo) {
+          draftState.lastDebugPacket.loremasterDebugInfo.extract = refineResult?.debugInfo?.extract ?? null;
+          draftState.lastDebugPacket.loremasterDebugInfo.integrate = refineResult?.debugInfo?.integrate ?? null;
+        }
+        if (refineResult?.refinementResult) {
+          applyThemeFactChanges(
+            draftState,
+            refineResult.refinementResult.factsChange,
+            draftState.globalTurnNumber,
+            themeContextForResponse.name,
+          );
+        }
+        setLoadingReason(original);
+      }
+
       updateDialogueState(draftState, aiData, isFromDialogueSummary);
 
       draftState.lastTurnChanges = turnChanges;
     },
-    [loadingReason, setLoadingReason, setError, setGameStateStack, processMapUpdates, clearObjectiveAnimationTimer],
+    [
+      loadingReasonRef,
+      setLoadingReason,
+      setError,
+      setGameStateStack,
+      processMapUpdates,
+      clearObjectiveAnimationTimer,
+      debugLore,
+      openDebugLoreModal,
+    ],
   );
 
   return { processAiResponse, clearObjectiveAnimationTimer };

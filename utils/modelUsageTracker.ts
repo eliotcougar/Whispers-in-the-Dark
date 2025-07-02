@@ -1,13 +1,13 @@
 // Utility to track AI model usage within the last minute
 import {
   GEMINI_MODEL_NAME,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   MINIMAL_MODEL_NAME,
 } from '../constants';
 
 const usageHistories: Record<string, Array<number> | undefined> = {
   [GEMINI_MODEL_NAME]: [],
-  [AUXILIARY_MODEL_NAME]: [],
+  [GEMINI_LITE_MODEL_NAME]: [],
   [MINIMAL_MODEL_NAME]: [],
 };
 

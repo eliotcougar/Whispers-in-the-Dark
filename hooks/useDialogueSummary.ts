@@ -3,7 +3,7 @@
  * @description Hook for concluding a dialogue and summarizing its results.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   DialogueHistoryEntry,
   GameStateFromAI,
@@ -19,11 +19,9 @@ import {
   executeDialogueSummary,
   executeMemorySummary,
 } from '../services/dialogue';
-import { MAX_LOG_MESSAGES, MAX_DIALOGUE_SUMMARIES_PER_CHARACTER, PLAYER_HOLDER_ID } from '../constants';
-import { addLogMessageToList } from '../utils/gameLogicUtils';
+import { MAX_DIALOGUE_SUMMARIES_PER_NPC, PLAYER_HOLDER_ID } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 
-const DIALOGUE_EXIT_READ_DELAY_MS = 5000;
 
 export interface UseDialogueSummaryProps {
   getCurrentGameState: () => FullGameState;
@@ -41,7 +39,7 @@ export interface UseDialogueSummaryProps {
       summaryRawResponse?: string;
       summaryThoughts?: Array<string>;
     }
-  ) => void;
+  ) => Promise<void>;
   getDialogueDebugLogs: () => Array<DialogueTurnDebugEntry>;
   clearDialogueDebugLogs: () => void;
 }
@@ -63,8 +61,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
   } = props;
 
   const [isDialogueExiting, setIsDialogueExiting] = useState<boolean>(false);
-  const [dialogueUiCloseDelayTargetMs, setDialogueUiCloseDelayTargetMs] = useState<number>(0);
-  const [dialogueNextSceneAttempted, setDialogueNextSceneAttempted] = useState<boolean>(false);
 
   /**
    * Finalizes a dialogue session and gathers summary updates.
@@ -76,10 +72,10 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
 
     if (!currentThemeObj || !stateAtDialogueConclusionStart.dialogueState) {
       console.error('Cannot exit dialogue: current theme is null or not in dialogue state.', stateAtDialogueConclusionStart);
-      onDialogueConcluded(
+      await onDialogueConcluded(
         null,
         stateAtDialogueConclusionStart,
-        { turns: getDialogueDebugLogs() }
+        { turns: getDialogueDebugLogs() },
       );
       clearDialogueDebugLogs();
       setIsDialogueExiting(false);
@@ -91,8 +87,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setIsLoading(true);
     setLoadingReason('dialogue_summary');
     setIsDialogueExiting(true);
-    setDialogueNextSceneAttempted(false);
-    setDialogueUiCloseDelayTargetMs(Date.now() + DIALOGUE_EXIT_READ_DELAY_MS);
     setError(null);
 
     const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
@@ -108,24 +102,24 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       dialogueParticipants: finalParticipants,
       dialogueLog: finalHistory,
     };
-    const characterMemoryText = await executeMemorySummary(memorySummaryContext);
+    const npcMemoryText = await executeMemorySummary(memorySummaryContext);
 
     const newSummaryRecord: DialogueSummaryRecord = {
-      summaryText: characterMemoryText ?? 'A conversation took place, but the details are hazy.',
+      summaryText: npcMemoryText ?? 'A conversation took place, but the details are hazy.',
       participants: finalParticipants,
       timestamp: workingGameState.localTime ?? 'Unknown Time',
       location: workingGameState.localPlace ?? 'Unknown Location',
     };
 
-    workingGameState.allCharacters = workingGameState.allCharacters.map((char) => {
-      if (finalParticipants.includes(char.name) && char.themeName === currentThemeObj.name) {
-        const newSummaries = [...(char.dialogueSummaries ?? []), newSummaryRecord];
-        if (newSummaries.length > MAX_DIALOGUE_SUMMARIES_PER_CHARACTER) {
+    workingGameState.allNPCs = workingGameState.allNPCs.map((npc) => {
+      if (finalParticipants.includes(npc.name) && npc.themeName === currentThemeObj.name) {
+        const newSummaries = [...(npc.dialogueSummaries ?? []), newSummaryRecord];
+        if (newSummaries.length > MAX_DIALOGUE_SUMMARIES_PER_NPC) {
           newSummaries.shift();
         }
-        return { ...char, dialogueSummaries: newSummaries };
+        return { ...npc, dialogueSummaries: newSummaries };
       }
-      return char;
+      return npc;
     });
 
     setLoadingReason('dialogue_conclusion_summary');
@@ -145,8 +139,8 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       localEnvironment: workingGameState.localEnvironment,
       localPlace: workingGameState.localPlace,
       mapDataForTheme: mapDataForSummary,
-      knownCharactersInTheme: workingGameState.allCharacters.filter((c) => c.themeName === currentThemeObj.name),
-      inventory: workingGameState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+      knownNPCsInTheme: workingGameState.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
+      inventory: workingGameState.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
       playerGender: playerGenderProp,
       dialogueLog: finalHistory,
       dialogueParticipants: finalParticipants,
@@ -160,11 +154,8 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       thoughts: summaryThoughts,
     } = await executeDialogueSummary(summaryContextForUpdates);
 
-    const participantsForLog = [...finalParticipants];
-    const dialogueBlock =
-      `Conversation transcript with ${participantsForLog.join(', ')}:\n` +
-      finalHistory.map((entry) => `  ${entry.speaker}: ${entry.line}`).join('\n');
-    workingGameState.gameLog = addLogMessageToList(workingGameState.gameLog, dialogueBlock, MAX_LOG_MESSAGES);
+    // Dialogue transcript previously logged to the game history is now omitted
+    // since the Loremaster maintains summaries of key exchanges.
 
     workingGameState.dialogueState = null;
 
@@ -174,16 +165,15 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       summaryRawResponse,
       summaryThoughts,
     };
-    onDialogueConcluded(summaryUpdatePayload, workingGameState, debugInfo);
+    await onDialogueConcluded(
+      summaryUpdatePayload,
+      workingGameState,
+      debugInfo,
+    );
     clearDialogueDebugLogs();
-    setDialogueNextSceneAttempted(true);
+    setIsDialogueExiting(false);
   }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
 
-  useEffect(() => {
-    if (isDialogueExiting && dialogueNextSceneAttempted && Date.now() >= dialogueUiCloseDelayTargetMs) {
-      setIsDialogueExiting(false);
-    }
-  }, [isDialogueExiting, dialogueNextSceneAttempted, dialogueUiCloseDelayTargetMs]);
 
   /**
    * Immediately aborts the dialogue and triggers the summary workflow.

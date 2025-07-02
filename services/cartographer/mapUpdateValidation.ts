@@ -251,17 +251,6 @@ function isValidAIEdgeRemovalInternal(edgeRemove: unknown): boolean {
   return true;
 }
 
-function isValidSplitFamilyOperationInternal(op: unknown): boolean {
-  if (typeof op !== 'object' || op === null) return false;
-  const o = op as Record<string, unknown>;
-  if (typeof o.originalNodeId !== 'string' || o.originalNodeId.trim() === '') return false;
-  if (typeof o.newNodeId !== 'string' || o.newNodeId.trim() === '') return false;
-  if (typeof o.newConnectorNodeId !== 'string' || o.newConnectorNodeId.trim() === '') return false;
-  if (typeof o.newNodeType !== 'string' || !VALID_NODE_TYPE_VALUES.includes(o.newNodeType as MapNodeData['nodeType'])) return false;
-  if (!Array.isArray(o.originalChildren) || !o.originalChildren.every(id => typeof id === 'string')) return false;
-  if (!Array.isArray(o.newChildren) || !o.newChildren.every(id => typeof id === 'string')) return false;
-  return true;
-}
 
 /**
  * Validates a full AIMapUpdatePayload object received from the map AI service.
@@ -307,12 +296,6 @@ export function isValidAIMapUpdatePayload(payload: AIMapUpdatePayload | null): p
   if (payload.suggestedCurrentMapNodeId != null && typeof payload.suggestedCurrentMapNodeId !== 'string') {
     console.warn("Validation Error (AIMapUpdatePayload): 'suggestedCurrentMapNodeId' must be a string or null if present. Value:", payload.suggestedCurrentMapNodeId);
     return false;
-  }
-  if (payload.splitFamily != null) {
-    if (!isValidSplitFamilyOperationInternal(payload.splitFamily)) {
-      console.warn("Validation Error (AIMapUpdatePayload): 'splitFamily' is invalid.");
-      return false;
-    }
   }
   return true;
 }

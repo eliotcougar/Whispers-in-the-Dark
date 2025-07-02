@@ -55,7 +55,7 @@ const mapData: MapData = {
 };
 
 const baseState: FullGameState = {
-  saveGameVersion: '1',
+  saveGameVersion: '7',
   currentThemeName: theme.name,
   currentThemeObject: theme,
   currentScene: '',
@@ -63,11 +63,16 @@ const baseState: FullGameState = {
   mainQuest: null,
   currentObjective: null,
   inventory: [],
+  playerJournal: [],
+  lastJournalWriteTurn: 0,
+  lastJournalInspectTurn: 0,
+  lastLoreDistillTurn: 0,
   gameLog: [],
   lastActionLog: null,
   themeHistory: {} as ThemeHistoryState,
+  themeFacts: [],
   pendingNewThemeNameAfterShift: null,
-  allCharacters: [],
+  allNPCs: [],
   mapData: structuredCloneGameState(mapData),
   currentMapNodeId: 'universe',
   destinationNodeId: null,
@@ -93,6 +98,9 @@ const baseState: FullGameState = {
   enabledThemePacks: [],
   stabilityLevel: 0,
   chaosLevel: 0,
+  debugLore: false,
+  debugGoodFacts: [],
+  debugBadFacts: [],
   objectiveAnimationType: null,
   lastDebugPacket: null,
   lastTurnChanges: null
@@ -106,7 +114,7 @@ const aiData = {
 
 const turnChanges: TurnChanges = {
   itemChanges: [],
-  characterChanges: [],
+  npcChanges: [],
   objectiveAchieved: false,
   objectiveTextChanged: false,
   mainQuestTextChanged: false,

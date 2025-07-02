@@ -1,4 +1,4 @@
-export { default as CharactersTab } from './CharactersTab';
+export { default as NPCsTab } from './NPCsTab';
 export { default as DialogueAITab } from './DialogueAITab';
 export { default as GameLogTab } from './GameLogTab';
 export { default as GameStateTab } from './GameStateTab';
@@ -6,9 +6,12 @@ export { default as InventoryAITab } from './InventoryAITab';
 export { default as InventoryTab } from './InventoryTab';
 export { default as MainAITab } from './MainAITab';
 export { default as MapDataFullTab } from './MapDataFullTab';
+export { default as LoreTab } from './LoreTab';
 export { default as MapLocationAITab } from './MapLocationAITab';
+export { default as LoremasterAITab } from './LoremasterAITab';
 export { default as MiscStateTab } from './MiscStateTab';
 export { default as ThemeHistoryTab } from './ThemeHistoryTab';
 export { default as TravelPathTab } from './TravelPathTab';
 export { default as PlaygroundTab } from './PlaygroundTab';
+export { default as SettingsTab } from './SettingsTab';
 export * from './tabUtils';

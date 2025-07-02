@@ -6,11 +6,13 @@ interface ThemeHistoryTabProps {
 }
 
 function ThemeHistoryTab({ themeHistory }: ThemeHistoryTabProps) {
-  return (<DebugSection
-    content={themeHistory}
-    maxHeightClass="max-h-[70vh]"
-    title="Current Theme History"
-  />)
+  return (
+    <DebugSection
+      content={themeHistory}
+      maxHeightClass="max-h-[70vh]"
+      title="Current Theme History"
+    />
+  );
 }
 
 export default ThemeHistoryTab;

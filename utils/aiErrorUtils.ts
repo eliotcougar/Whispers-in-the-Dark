@@ -42,3 +42,29 @@ export const isServerOrClientError = (err: unknown): boolean => {
   const status = extractStatusFromError(err);
   return status !== null && status >= 400 && status < 600;
 };
+
+/**
+ * Determines if the error is likely transient (e.g. network hiccups).
+ * Currently checks for common messages like net::ERR_SSL_PROTOCOL_ERROR.
+ *
+ * @param err - The caught error.
+ * @returns True if the error message suggests a transient network failure.
+ */
+export const isTransientNetworkError = (err: unknown): boolean => {
+  if (!err) return false;
+  const message =
+    err instanceof Error
+      ? err.message
+      : typeof err === 'string' ||
+          typeof err === 'number' ||
+          typeof err === 'boolean'
+        ? String(err)
+        : '';
+  return (
+    message.includes('ERR_SSL_PROTOCOL_ERROR') ||
+    message.includes('ECONNRESET') ||
+    message.includes('ETIMEDOUT') ||
+    message.includes('EAI_AGAIN') ||
+    message.includes('Failed to fetch')
+  );
+};

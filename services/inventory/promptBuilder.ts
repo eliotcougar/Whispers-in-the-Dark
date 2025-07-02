@@ -25,18 +25,17 @@ export const buildInventoryPrompt = (
     newItems.length > 0
       ? JSON.stringify(newItems, null, 2)
       : '[]';
-  return `
-  - Player's Last Action: ${playerLastAction}
-  - Player Items Hint: "${playerItemsHint}";
-  - World Items Hint: "${worldItemsHint}";
-  - NPC Items Hint: "${npcItemsHint}".
+  return `- Player's Last Action: ${playerLastAction}
+- Player Items Hint: "${playerItemsHint}";
+- World Items Hint: "${worldItemsHint}";
+- NPC Items Hint: "${npcItemsHint}".
 
-  ${newItemsJson ? `New Items from Storyteller AI or Dialogue AI:\n${newItemsJson}\n` : ''}
-  ${playerInventory ? `Current Player's Inventory:\n${playerInventory}\n` : ''}
-  ${locationInventory ? `Current Location Inventory - ID: ${currentNodeId ?? 'unknown'}\n${locationInventory}\n` : ''}
-  ${companionsInventory ? `Companions Inventory:\n${companionsInventory}\n` : ''}
-  ${nearbyNpcsInventory ? `Nearby NPCs Inventory:\n${nearbyNpcsInventory}\n` : ''}
-  ${limitedMapContext ? `Nearby Map Context where you can put Items:\n${limitedMapContext}\n` : ''}
+${newItemsJson ? `New Items from Storyteller AI or Dialogue AI:\n${newItemsJson}\n` : ''}
+${playerInventory ? `Current Player's Inventory:\n${playerInventory}\n` : ''}
+${locationInventory ? `Current Location Inventory - ID: ${currentNodeId ?? 'unknown'}\n${locationInventory}\n` : ''}
+${companionsInventory ? `Companions Inventory:\n${companionsInventory}\n` : ''}
+${nearbyNpcsInventory ? `Nearby NPCs Inventory:\n${nearbyNpcsInventory}\n` : ''}
+${limitedMapContext ? `Nearby Map Context where you can put Items:\n${limitedMapContext}\n` : ''}
 
-  Provide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
+Provide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
 };

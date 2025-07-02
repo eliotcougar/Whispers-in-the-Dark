@@ -13,7 +13,7 @@ function DebugSection({
   title,
   content,
   isJson = true,
-  maxHeightClass = 'max-h-60',
+  maxHeightClass = 'overflow-auto max-h-60',
 }: DebugSectionProps) {
   const displayContent: string = (() => {
     if (content === null || content === undefined) return 'N/A';
@@ -61,7 +61,7 @@ function DebugSection({
 
 DebugSection.defaultProps = {
   isJson: true,
-  maxHeightClass: 'max-h-60',
+  maxHeightClass: 'overflow-auto max-h-60',
 };
 
 export default DebugSection;

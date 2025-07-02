@@ -3,13 +3,18 @@
  * @description Provides debounced autosave functionality for App.
  */
 import { useEffect, useRef } from 'react';
-import { FullGameState } from '../types';
-import { saveGameStateToLocalStorage } from '../services/storage';
+import { GameStateStack, DebugPacketStack } from '../types';
+import {
+  saveGameStateToLocalStorage,
+  saveDebugPacketStackToLocalStorage,
+  saveDebugLoreToLocalStorage,
+} from '../services/storage';
 
 export const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 export interface UseAutosaveOptions {
-  readonly gatherCurrentGameState: () => FullGameState;
+  readonly gatherGameStateStack: () => GameStateStack;
+  readonly gatherDebugPacketStack: () => DebugPacketStack;
   readonly isLoading: boolean;
   readonly hasGameBeenInitialized: boolean;
   readonly appReady: boolean;
@@ -19,7 +24,8 @@ export interface UseAutosaveOptions {
 }
 
 export function useAutosave({
-  gatherCurrentGameState,
+  gatherGameStateStack,
+  gatherDebugPacketStack,
   isLoading,
   hasGameBeenInitialized,
   appReady,
@@ -39,11 +45,18 @@ export function useAutosave({
       clearTimeout(autosaveTimeoutRef.current);
     }
     autosaveTimeoutRef.current = window.setTimeout(() => {
-      const gameStateToSave = gatherCurrentGameState();
+      const gameStateStack = gatherGameStateStack();
+      const debugStack = gatherDebugPacketStack();
       saveGameStateToLocalStorage(
-        gameStateToSave,
+        gameStateStack,
         setError ? (msg) => { setError(msg); } : undefined,
       );
+      saveDebugPacketStackToLocalStorage(debugStack);
+      saveDebugLoreToLocalStorage({
+        debugLore: gameStateStack[0].debugLore,
+        debugGoodFacts: gameStateStack[0].debugGoodFacts,
+        debugBadFacts: gameStateStack[0].debugBadFacts,
+      });
     }, AUTOSAVE_DEBOUNCE_TIME);
 
     return () => {
@@ -52,7 +65,8 @@ export function useAutosave({
       }
     };
   }, [
-    gatherCurrentGameState,
+    gatherGameStateStack,
+    gatherDebugPacketStack,
     isLoading,
     hasGameBeenInitialized,
     appReady,

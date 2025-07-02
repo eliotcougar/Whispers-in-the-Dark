@@ -10,20 +10,24 @@ import {
   TurnChanges,
   MapNode,
   LoadingReason,
-  ValidNewCharacterPayload,
-  ValidCharacterUpdatePayload
+  ValidNewNPCPayload,
+  ValidNPCUpdatePayload
 } from '../types';
 import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/cartographer';
-import { fetchFullPlaceDetailsForNewMapNode_Service } from '../services/corrections';
+import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
-import { buildCharacterChangeRecords, applyAllCharacterChanges } from './gameLogicUtils';
-import { upgradeFeaturesWithChildren } from './mapHierarchyUpgradeUtils';
+import {
+  buildNPCChangeRecords,
+  applyAllNPCChanges,
+  updateEntityIdsInFacts,
+} from './gameLogicUtils';
 import {
   existsNonRumoredPath,
   getAncestors,
   isDescendantOf,
   buildNonRumoredAdjacencyMap,
 } from './mapGraphUtils';
+import { buildNodeId } from './entityUtils';
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
@@ -53,7 +57,7 @@ export const handleMapUpdates = async (
       knownMainMapNodesForTheme,
       baseStateSnapshot.currentMapNodeId,
       draftState.inventory,
-      draftState.allCharacters
+      draftState.allNPCs
     );
     setLoadingReason(originalLoadingReason);
 
@@ -113,27 +117,52 @@ export const handleMapUpdates = async (
       }
     }
 
+      const renameResults = await assignSpecificNamesToDuplicateNodes_Service(
+        draftState.mapData.nodes.filter(n => n.themeName === themeContextForResponse.name),
+        themeContextForResponse,
+        mapUpdateResult?.debugInfo?.minimalModelCalls,
+      );
+      if (renameResults.length > 0) {
+        const renameMap: Record<string, string> = {};
+        for (const r of renameResults) {
+          const idx = draftState.mapData.nodes.findIndex(n => n.id === r.nodeId);
+          if (idx === -1) continue;
+          const node = draftState.mapData.nodes[idx];
+          const oldId = node.id;
+          const newId = buildNodeId(r.newName);
+          renameMap[oldId] = newId;
+          node.placeName = r.newName;
+          node.id = newId;
+          draftState.mapData.nodes.forEach(n => {
+            if (n.data.parentNodeId === oldId) n.data.parentNodeId = newId;
+          });
+          draftState.mapData.edges.forEach(e => {
+            if (e.sourceNodeId === oldId) e.sourceNodeId = newId;
+            if (e.targetNodeId === oldId) e.targetNodeId = newId;
+          });
+          draftState.inventory.forEach(item => {
+            if (item.holderId === oldId) item.holderId = newId;
+          });
+          if (draftState.currentMapNodeId === oldId) draftState.currentMapNodeId = newId;
+          if (draftState.destinationNodeId === oldId) draftState.destinationNodeId = newId;
+        }
+        if (Object.keys(renameMap).length > 0) {
+          updateEntityIdsInFacts(draftState.themeFacts, renameMap);
+        }
+        turnChanges.mapDataChanged = true;
+      }
 
-  // Upgrade any feature nodes that now have children into regions or adjust hierarchy
-  const upgradeResult = await upgradeFeaturesWithChildren(draftState.mapData, themeContextForResponse);
-  if (upgradeResult.addedNodes.length > 0 || upgradeResult.addedEdges.length > 0) {
-    draftState.mapData = upgradeResult.updatedMapData;
-    turnChanges.mapDataChanged = true;
-  }
 
   const newlyAddedEdgeIds = new Set(
-    [
-      ...upgradeResult.addedEdges,
-      ...(mapUpdateResult?.newlyAddedEdges ?? []),
-    ].map(e => e.id)
+    (mapUpdateResult?.newlyAddedEdges ?? []).map(e => e.id)
   );
 
   const themeName = themeContextForResponse.name;
-  const charactersAddedFromAI = ('charactersAdded' in aiData && aiData.charactersAdded ? aiData.charactersAdded : []) as Array<ValidNewCharacterPayload>;
-  const charactersUpdatedFromAI = ('charactersUpdated' in aiData && aiData.charactersUpdated ? aiData.charactersUpdated : []) as Array<ValidCharacterUpdatePayload>;
-  if (charactersAddedFromAI.length > 0 || charactersUpdatedFromAI.length > 0) {
-    turnChanges.characterChanges = buildCharacterChangeRecords(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
-    draftState.allCharacters = applyAllCharacterChanges(charactersAddedFromAI, charactersUpdatedFromAI, themeName, draftState.allCharacters);
+  const npcsAddedFromAI = ('npcsAdded' in aiData && aiData.npcsAdded ? aiData.npcsAdded : []) as Array<ValidNewNPCPayload>;
+  const npcsUpdatedFromAI = ('npcsUpdated' in aiData && aiData.npcsUpdated ? aiData.npcsUpdated : []) as Array<ValidNPCUpdatePayload>;
+  if (npcsAddedFromAI.length > 0 || npcsUpdatedFromAI.length > 0) {
+    turnChanges.npcChanges = buildNPCChangeRecords(npcsAddedFromAI, npcsUpdatedFromAI, themeName, draftState.allNPCs);
+    draftState.allNPCs = applyAllNPCChanges(npcsAddedFromAI, npcsUpdatedFromAI, themeName, draftState.allNPCs);
   }
 
   const oldMapNodeId = baseStateSnapshot.currentMapNodeId;

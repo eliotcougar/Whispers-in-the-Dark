@@ -5,6 +5,7 @@ const mapEdgeSynonyms = {
     "walkway": "path",
     "footpath": "path",
     "feature": "path",
+    "default": "path",
     "foot path": "path",
     "street": "road",
     "roadway": "road",
@@ -50,6 +51,9 @@ const mapEdgeSynonyms = {
   "status": {
     "opened": "open",
     "active": "open",
+    "normal": "open",
+    "default": "open",
+    "accessible": "open",
     "functional": "open",
     "discovered": "accessible",
     "usable": "accessible",
@@ -84,7 +88,7 @@ const mapEdgeSynonyms = {
     "disconnected",
     "obliterated",
     "terminated",
-  "dismantled"
+    "dismantled"
   ]
 };
 

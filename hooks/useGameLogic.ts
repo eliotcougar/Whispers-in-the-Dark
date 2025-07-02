@@ -4,15 +4,20 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { ThemePackName, FullGameState, GameStateStack, LoadingReason } from '../types';
+import { ThemePackName, FullGameState, GameStateStack, DebugPacketStack, LoadingReason } from '../types';
+import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingState';
+import { useLoadingReason } from './useLoadingReason';
 import { getInitialGameStates } from '../utils/initialStates';
 import { useDialogueManagement } from './useDialogueManagement';
 import { useRealityShift } from './useRealityShift';
 import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
+import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-import { PLAYER_HOLDER_ID } from '../constants';
+import { PLAYER_HOLDER_ID, DISTILL_LORE_INTERVAL } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
+import { distillFacts_Service } from '../services/loremaster';
+import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 
 export interface UseGameLogicProps {
   playerGenderProp: string;
@@ -22,8 +27,13 @@ export interface UseGameLogicProps {
   onSettingsUpdateFromLoad: (
     loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>
   ) => void;
-  initialSavedStateFromApp: FullGameState | null;
+  initialSavedStateFromApp: GameStateStack | null;
+  initialDebugStackFromApp: DebugPacketStack | null;
   isAppReady: boolean;
+  openDebugLoreModal: (
+    facts: Array<string>,
+    resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
+  ) => void;
 }
 
 /** Manages overall game state and delegates to sub hooks. */
@@ -35,12 +45,22 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     chaosLevelProp,
     onSettingsUpdateFromLoad,
     initialSavedStateFromApp,
+    initialDebugStackFromApp,
     isAppReady,
+    openDebugLoreModal,
   } = props;
 
   const [gameStateStack, setGameStateStack] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
+  const [debugPacketStack, setDebugPacketStack] = useState<DebugPacketStack>(
+    () => initialDebugStackFromApp ?? [null, null],
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [loadingReason, setLoadingReason] = useState<LoadingReason>(null);
+  const loadingReason = useLoadingReason();
+  const loadingReasonRef = useRef<LoadingReason | null>(loadingReason);
+  const setLoadingReasonRef = useCallback((reason: LoadingReason | null) => {
+    loadingReasonRef.current = reason;
+    setGlobalLoadingReason(reason);
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [parseErrorCounter, setParseErrorCounter] = useState<number>(0);
   void parseErrorCounter;
@@ -50,6 +70,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   // Tracks whether a saved game from app initialization has already been
   // applied to prevent re-loading it when starting a new game.
   const hasLoadedInitialSave = useRef<boolean>(false);
+  // Tracks whether the debug packet stack from app initialization has been
+  // applied so it doesn't overwrite new data on subsequent renders.
+  const hasLoadedInitialDebugStack = useRef<boolean>(false);
 
   const triggerShiftRef = useRef<(c?: boolean) => void>(() => undefined);
   const manualShiftRef = useRef<() => void>(() => undefined);
@@ -60,6 +83,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
   const commitGameState = useCallback((newGameState: FullGameState) => {
     setGameStateStack(prev => [newGameState, prev[0]]);
+    setDebugPacketStack(prev => [newGameState.lastDebugPacket ?? null, prev[0]]);
   }, []);
 
   /**
@@ -67,7 +91,38 @@ export const useGameLogic = (props: UseGameLogicProps) => {
    */
   const resetGameStateStack = useCallback((newState: FullGameState) => {
     setGameStateStack([newState, newState]);
+    setDebugPacketStack([newState.lastDebugPacket ?? null, newState.lastDebugPacket ?? null]);
   }, []);
+
+  const gatherGameStateStackForSave = useCallback((): GameStateStack => {
+    const [current, previous] = gameStateStack;
+    return [
+      buildSaveStateSnapshot({
+        currentState: current,
+        playerGender: playerGenderProp,
+        enabledThemePacks: enabledThemePacksProp,
+        stabilityLevel: stabilityLevelProp,
+        chaosLevel: chaosLevelProp,
+      }),
+      previous
+        ? buildSaveStateSnapshot({
+            currentState: previous,
+            playerGender: playerGenderProp,
+            enabledThemePacks: enabledThemePacksProp,
+            stabilityLevel: stabilityLevelProp,
+            chaosLevel: chaosLevelProp,
+          })
+        : undefined,
+    ];
+  }, [
+    gameStateStack,
+    playerGenderProp,
+    enabledThemePacksProp,
+    stabilityLevelProp,
+    chaosLevelProp,
+  ]);
+
+  const gatherDebugPacketStackForSave = useCallback((): DebugPacketStack => debugPacketStack, [debugPacketStack]);
 
   const {
     triggerRealityShift,
@@ -83,12 +138,29 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setError,
-    setLoadingReason,
+    setLoadingReason: setLoadingReasonRef,
     isLoading,
   });
 
   triggerShiftRef.current = triggerRealityShift;
   manualShiftRef.current = executeManualRealityShift;
+
+  const currentSnapshot = getCurrentGameState();
+
+  const toggleDebugLore = useCallback(() => {
+    setGameStateStack(prev => [
+      { ...prev[0], debugLore: !prev[0].debugLore },
+      prev[1],
+    ]);
+  }, []);
+
+  const clearDebugFacts = useCallback(() => {
+    setGameStateStack(prev => [
+      { ...prev[0], debugGoodFacts: [], debugBadFacts: [] },
+      prev[1],
+    ]);
+  }, []);
+
 
   const {
     handleMapLayoutConfigChange,
@@ -100,8 +172,12 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleItemInteraction,
     handleDropItem,
     handleTakeLocationItem,
+    handleStashToggle,
     updateItemContent,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    recordPlayerJournalInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
   } = useGameTurn({
@@ -112,7 +188,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setIsLoading,
-    setLoadingReason,
+    setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     triggerRealityShift,
@@ -121,11 +197,12 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setFreeFormActionText,
     isLoading,
     hasGameBeenInitialized,
-    loadingReason,
+    loadingReasonRef,
+    debugLore: currentSnapshot.debugLore,
+    openDebugLoreModal,
   });
 
   const {
-    gatherCurrentGameStateForSave,
     loadInitialGame,
     handleStartNewGameFromButton,
     startCustomGame,
@@ -137,7 +214,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     stabilityLevelProp,
     chaosLevelProp,
     setIsLoading,
-    setLoadingReason,
+    setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     setHasGameBeenInitialized,
@@ -145,6 +222,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     getCurrentGameState,
     commitGameState,
     resetGameStateStack,
+    setGameStateStack,
     processAiResponse,
   });
   loadInitialGameRef.current = loadInitialGame;
@@ -156,39 +234,44 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     playerGenderProp,
     setError,
     setIsLoading,
-    setLoadingReason,
+    setLoadingReason: setLoadingReasonRef,
     onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
-      processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
+      return processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
         playerActionText: undefined,
-      }).then(() => {
-        draftState.lastDebugPacket ??= {
-          prompt: '',
-          rawResponseText: null,
-          parsedResponse: null,
-          timestamp: new Date().toISOString(),
-          storytellerThoughts: null,
-          mapUpdateDebugInfo: null,
-          inventoryDebugInfo: null,
-          dialogueDebugInfo: null,
-        };
-        draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;
-        draftState.lastDebugPacket.rawResponseText = debugInfo.summaryRawResponse ?? null;
-        draftState.lastDebugPacket.storytellerThoughts = debugInfo.summaryThoughts ?? null;
-        draftState.lastDebugPacket.parsedResponse = summaryPayload;
-        draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
-        commitGameState(draftState);
-        setIsLoading(false);
-        setLoadingReason(null);
-      }).catch((e: unknown) => {
-        console.error('Error in post-dialogue processAiResponse:', e);
-        setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
-        commitGameState(preparedGameState);
-        setIsLoading(false);
-        setLoadingReason(null);
-      });
+        dialogueTranscript:
+          preparedGameState.gameLog[preparedGameState.gameLog.length - 1] ?? '',
+      })
+        .then(() => {
+          draftState.lastDebugPacket ??= {
+            prompt: '',
+            rawResponseText: null,
+            parsedResponse: null,
+            timestamp: new Date().toISOString(),
+            storytellerThoughts: null,
+            mapUpdateDebugInfo: null,
+            inventoryDebugInfo: null,
+            loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
+            dialogueDebugInfo: null,
+          };
+          draftState.lastDebugPacket.prompt = `[Dialogue Outcome]\n${debugInfo.summaryPrompt ?? draftState.lastDebugPacket.prompt}`;
+          draftState.lastDebugPacket.rawResponseText = debugInfo.summaryRawResponse ?? null;
+          draftState.lastDebugPacket.storytellerThoughts = debugInfo.summaryThoughts ?? null;
+          draftState.lastDebugPacket.parsedResponse = summaryPayload;
+          draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
+          commitGameState(draftState);
+          setIsLoading(false);
+          setLoadingReasonRef(null);
+        })
+        .catch((e: unknown) => {
+          console.error('Error in post-dialogue processAiResponse:', e);
+          setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
+          commitGameState(preparedGameState);
+          setIsLoading(false);
+          setLoadingReasonRef(null);
+        });
     },
   });
 
@@ -203,6 +286,17 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       hasLoadedInitialSave.current = true;
     }
   }, [isAppReady, hasGameBeenInitialized, initialSavedStateFromApp, loadInitialGame]);
+
+  useEffect(() => {
+    if (
+      isAppReady &&
+      initialDebugStackFromApp &&
+      !hasLoadedInitialDebugStack.current
+    ) {
+      setDebugPacketStack(initialDebugStackFromApp);
+      hasLoadedInitialDebugStack.current = true;
+    }
+  }, [isAppReady, initialDebugStackFromApp]);
 
   const currentFullState = getCurrentGameState();
 
@@ -255,6 +349,92 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     return map;
   }, [currentFullState.inventory, currentFullState.mapData.nodes]);
 
+  const handleDistillFacts = useCallback(async () => {
+    const currentFullState = getCurrentGameState();
+    const themeObj = currentFullState.currentThemeObject;
+    if (!themeObj) return;
+    setIsLoading(true);
+    setError(null);
+    const currentThemeNodes = currentFullState.mapData.nodes.filter(
+      n => n.themeName === themeObj.name,
+    );
+    const inventoryItemNames = Array.from(
+      new Set(
+        currentFullState.inventory
+          .filter(item => {
+            if (item.holderId === PLAYER_HOLDER_ID) return true;
+            if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
+            const holderNpc = currentFullState.allNPCs.find(
+              npc => npc.id === item.holderId && npc.themeName === themeObj.name,
+            );
+            return Boolean(holderNpc);
+          })
+          .map(item => item.name),
+      ),
+    );
+    const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+    setLoadingReasonRef('loremaster_refine');
+    const result = await distillFacts_Service({
+      themeName: themeObj.name,
+      facts: currentFullState.themeFacts,
+      currentQuest: currentFullState.mainQuest,
+      currentObjective: currentFullState.currentObjective,
+      inventoryItemNames,
+      mapNodeNames,
+    });
+    const draftState = structuredCloneGameState(currentFullState);
+    draftState.lastLoreDistillTurn = currentFullState.globalTurnNumber;
+    draftState.lastDebugPacket ??= {
+      prompt: '',
+      rawResponseText: null,
+      parsedResponse: null,
+      timestamp: new Date().toISOString(),
+      storytellerThoughts: null,
+      mapUpdateDebugInfo: null,
+      inventoryDebugInfo: null,
+      loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
+      dialogueDebugInfo: null,
+    };
+    if (draftState.lastDebugPacket.loremasterDebugInfo) {
+      draftState.lastDebugPacket.loremasterDebugInfo.distill = result?.debugInfo ?? null;
+    }
+    if (result?.refinementResult) {
+      applyThemeFactChanges(
+        draftState,
+        result.refinementResult.factsChange,
+        draftState.globalTurnNumber,
+        themeObj.name,
+      );
+    }
+    commitGameState(draftState);
+    setIsLoading(false);
+    setLoadingReasonRef(null);
+  }, [commitGameState, getCurrentGameState, setError, setIsLoading, setLoadingReasonRef]);
+
+  useEffect(() => {
+    if (
+      !hasGameBeenInitialized ||
+      isLoading ||
+      currentFullState.dialogueState !== null
+    )
+      return;
+    if (
+      currentFullState.globalTurnNumber > 0 &&
+      currentFullState.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
+      currentFullState.lastLoreDistillTurn !==
+        currentFullState.globalTurnNumber
+    ) {
+      void handleDistillFacts();
+    }
+  }, [
+    currentFullState.globalTurnNumber,
+    currentFullState.lastLoreDistillTurn,
+    handleDistillFacts,
+    hasGameBeenInitialized,
+    isLoading,
+    currentFullState.dialogueState,
+  ]);
+
   return {
     currentTheme: currentFullState.currentThemeObject,
     currentScene: currentFullState.currentScene,
@@ -262,6 +442,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     mainQuest: currentFullState.mainQuest,
     currentObjective: currentFullState.currentObjective,
     inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+    playerJournal: currentFullState.playerJournal,
+    lastJournalWriteTurn: currentFullState.lastJournalWriteTurn,
+    lastJournalInspectTurn: currentFullState.lastJournalInspectTurn,
+    lastLoreDistillTurn: currentFullState.lastLoreDistillTurn,
     itemsHere: useMemo(() => {
       if (!currentFullState.currentMapNodeId) return [];
       const atCurrent = currentFullState.inventory.filter(
@@ -291,7 +475,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     loadingReason,
     error,
     themeHistory: currentFullState.themeHistory,
-    allCharacters: currentFullState.allCharacters,
+    allNPCs: currentFullState.allNPCs,
     mapData: currentFullState.mapData,
     currentMapNodeId: currentFullState.currentMapNodeId,
     destinationNodeId: currentFullState.destinationNodeId,
@@ -315,9 +499,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleDialogueOptionSelect,
     handleForceExitDialogue,
 
-    lastDebugPacket: currentFullState.lastDebugPacket,
+    lastDebugPacket: debugPacketStack[0],
     lastTurnChanges: currentFullState.lastTurnChanges,
     gameStateStack,
+    debugPacketStack,
 
     handleActionSelect,
     handleItemInteraction,
@@ -330,7 +515,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     completeManualShiftWithSelectedTheme,
     cancelManualShiftThemeSelection,
     startCustomGame,
-    gatherCurrentGameState: gatherCurrentGameStateForSave,
+    gatherCurrentGameState: gatherGameStateStackForSave,
+    gatherDebugPacketStack: gatherDebugPacketStackForSave,
     applyLoadedGameState: loadInitialGame,
     setError,
     setIsLoading,
@@ -341,7 +527,17 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleMapNodesPositionChange,
     handleSelectDestinationNode,
     handleUndoTurn,
+    handleStashToggle,
     addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    recordPlayerJournalInspect,
     commitGameState,
+    handleDistillFacts,
+    toggleDebugLore,
+    clearDebugFacts,
+    debugLore: currentFullState.debugLore,
+    debugGoodFacts: currentFullState.debugGoodFacts,
+    debugBadFacts: currentFullState.debugBadFacts,
   };
 };

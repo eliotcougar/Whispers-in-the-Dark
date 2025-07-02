@@ -3,14 +3,19 @@
  * @description Hook managing save/load operations and related state for App.
  */
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
-import { FullGameState, ThemePackName } from '../types';
+import { FullGameState, ThemePackName, GameStateStack, DebugPacketStack } from '../types';
 import {
   saveGameStateToFile,
   loadGameStateFromFile,
 } from '../services/saveLoad';
+import { clearAllImages } from '../services/imageDb';
 import {
   saveGameStateToLocalStorage,
-  loadGameStateFromLocalStorage,
+  loadGameStateFromLocalStorageWithImages,
+  saveDebugPacketStackToLocalStorage,
+  loadDebugPacketStackFromLocalStorage,
+  saveDebugLoreToLocalStorage,
+  loadDebugLoreFromLocalStorage,
 } from '../services/storage';
 import {
   DEFAULT_PLAYER_GENDER,
@@ -20,8 +25,12 @@ import {
 } from '../constants';
 
 export interface UseSaveLoadOptions {
-  gatherCurrentGameState?: () => FullGameState;
-  applyLoadedGameState?: (opts: { savedStateToLoad: FullGameState }) => Promise<void>;
+  gatherGameStateStack?: () => GameStateStack;
+  gatherDebugPacketStack?: () => DebugPacketStack;
+  applyLoadedGameState?: (opts: {
+    savedStateToLoad: GameStateStack;
+    clearImages?: boolean;
+  }) => Promise<void>;
   setError?: Dispatch<SetStateAction<string | null>>;
   setIsLoading?: Dispatch<SetStateAction<boolean>>;
   isLoading?: boolean;
@@ -32,7 +41,8 @@ export interface UseSaveLoadOptions {
 const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 export const useSaveLoad = ({
-  gatherCurrentGameState,
+  gatherGameStateStack,
+  gatherDebugPacketStack,
   applyLoadedGameState,
   setError,
   setIsLoading,
@@ -44,21 +54,33 @@ export const useSaveLoad = ({
   const [enabledThemePacks, setEnabledThemePacks] = useState<Array<ThemePackName>>([...DEFAULT_ENABLED_THEME_PACKS]);
   const [stabilityLevel, setStabilityLevel] = useState<number>(DEFAULT_STABILITY_LEVEL);
   const [chaosLevel, setChaosLevel] = useState<number>(DEFAULT_CHAOS_LEVEL);
-  const [initialSavedState, setInitialSavedState] = useState<FullGameState | null>(null);
+  const [initialSavedState, setInitialSavedState] = useState<GameStateStack | null>(null);
+  const [initialDebugStack, setInitialDebugStack] = useState<DebugPacketStack | null>(null);
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    const loadedState = loadGameStateFromLocalStorage();
-    if (loadedState) {
-      setPlayerGender(loadedState.playerGender);
-      setEnabledThemePacks(loadedState.enabledThemePacks);
-      setStabilityLevel(loadedState.stabilityLevel);
-      setChaosLevel(loadedState.chaosLevel);
-      setInitialSavedState(loadedState);
-    } else {
-      setInitialSavedState(null);
-    }
-    setAppReady(true);
+    void (async () => {
+      const loadedState = await loadGameStateFromLocalStorageWithImages();
+      const loadedDebug = loadDebugPacketStackFromLocalStorage();
+      const loadedDebugLore = loadDebugLoreFromLocalStorage();
+      if (loadedState) {
+        if (loadedDebug) setInitialDebugStack(loadedDebug);
+        if (loadedDebugLore) {
+          loadedState[0].debugLore = loadedDebugLore.debugLore;
+          loadedState[0].debugGoodFacts = loadedDebugLore.debugGoodFacts;
+          loadedState[0].debugBadFacts = loadedDebugLore.debugBadFacts;
+        }
+        const current = loadedState[0];
+        setPlayerGender(current.playerGender);
+        setEnabledThemePacks(current.enabledThemePacks);
+        setStabilityLevel(current.stabilityLevel);
+        setChaosLevel(current.chaosLevel);
+        setInitialSavedState(loadedState);
+      } else {
+        setInitialSavedState(null);
+      }
+      setAppReady(true);
+    })();
   }, []);
 
   const updateSettingsFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>) => {
@@ -76,18 +98,26 @@ export const useSaveLoad = ({
     if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current);
 
     autosaveTimeoutRef.current = window.setTimeout(() => {
-      if (gatherCurrentGameState) {
-        const gameStateToSave = gatherCurrentGameState();
+      if (gatherGameStateStack && gatherDebugPacketStack) {
+        const stack = gatherGameStateStack();
+        const debugStack = gatherDebugPacketStack();
         saveGameStateToLocalStorage(
-          gameStateToSave,
+          stack,
           setError ? (msg) => { setError(msg); } : undefined,
         );
+        saveDebugPacketStackToLocalStorage(debugStack);
+        saveDebugLoreToLocalStorage({
+          debugLore: stack[0].debugLore,
+          debugGoodFacts: stack[0].debugGoodFacts,
+          debugBadFacts: stack[0].debugBadFacts,
+        });
       }
     }, AUTOSAVE_DEBOUNCE_TIME);
 
     return () => { if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current); };
   }, [
-    gatherCurrentGameState,
+    gatherGameStateStack,
+    gatherDebugPacketStack,
     isLoading,
     hasGameBeenInitialized,
     appReady,
@@ -95,19 +125,21 @@ export const useSaveLoad = ({
     setError,
   ]);
 
-  const handleSaveToFile = useCallback(() => {
+  const handleSaveToFile = useCallback(async () => {
     if (isLoading || !!dialogueState) {
       setError?.('Cannot save to file while loading or in dialogue.');
       return;
     }
-    if (gatherCurrentGameState) {
-      const gameState = gatherCurrentGameState();
-      saveGameStateToFile(
+    if (gatherGameStateStack && gatherDebugPacketStack) {
+      const gameState = gatherGameStateStack();
+      const debugStack = gatherDebugPacketStack();
+      await saveGameStateToFile(
         gameState,
-        setError ? (msg) => { setError(msg); } : undefined,
+        debugStack,
+        setError ? msg => { setError(msg); } : undefined,
       );
     }
-  }, [gatherCurrentGameState, isLoading, dialogueState, setError]);
+  }, [gatherGameStateStack, gatherDebugPacketStack, isLoading, dialogueState, setError]);
 
   const handleLoadFromFileClick = () => {
     if (isLoading || !!dialogueState) {
@@ -127,15 +159,33 @@ export const useSaveLoad = ({
     if (file) {
       setIsLoading?.(true);
       setError?.(null);
-      const loadedFullState = await loadGameStateFromFile(file);
-      if (loadedFullState) {
+      await clearAllImages();
+      const loaded = await loadGameStateFromFile(file);
+      if (loaded) {
+        const { gameStateStack: loadedStack, debugPacketStack: loadedDebug } = loaded;
+        const existingLore = loadDebugLoreFromLocalStorage();
+        if (existingLore) {
+          loadedStack[0].debugLore = existingLore.debugLore;
+          loadedStack[0].debugGoodFacts = existingLore.debugGoodFacts;
+          loadedStack[0].debugBadFacts = existingLore.debugBadFacts;
+        }
         if (applyLoadedGameState) {
-          await applyLoadedGameState({ savedStateToLoad: loadedFullState });
+          await applyLoadedGameState({ savedStateToLoad: loadedStack });
         }
         saveGameStateToLocalStorage(
-          loadedFullState,
+          loadedStack,
           setError ? (msg) => { setError(msg); } : undefined,
         );
+        saveDebugPacketStackToLocalStorage(loadedDebug);
+        if (existingLore) {
+          saveDebugLoreToLocalStorage(existingLore);
+        } else {
+          saveDebugLoreToLocalStorage({
+            debugLore: loadedStack[0].debugLore,
+            debugGoodFacts: loadedStack[0].debugGoodFacts,
+            debugBadFacts: loadedStack[0].debugBadFacts,
+          });
+        }
       } else {
         setError?.('Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file.');
       }
@@ -158,6 +208,7 @@ export const useSaveLoad = ({
     chaosLevel,
     setChaosLevel,
     initialSavedState,
+    initialDebugStack,
     appReady,
     fileInputRef,
     handleSaveToFile,

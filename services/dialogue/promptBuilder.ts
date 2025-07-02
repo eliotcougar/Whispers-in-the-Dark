@@ -7,7 +7,10 @@ import {
   DialogueMemorySummaryContext,
   DialogueTurnContext,
 } from '../../types';
-import { MAX_DIALOGUE_SUMMARIES_IN_PROMPT } from '../../constants';
+import {
+  MAX_DIALOGUE_SUMMARIES_IN_PROMPT,
+  MAIN_TURN_OPTIONS_COUNT,
+} from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 
 /**
@@ -25,12 +28,13 @@ export const buildDialogueTurnPrompt = (
     localEnvironment,
     localPlace,
     knownMainMapNodesInTheme,
-    knownCharactersInTheme,
+    knownNPCsInTheme: knownNPCsInTheme,
     inventory,
     playerGender,
     dialogueHistory,
     playerLastUtterance,
     dialogueParticipants,
+    relevantFacts,
   } = context;
   let historyToUseInPrompt = [...dialogueHistory];
   if (
@@ -64,58 +68,75 @@ export const buildDialogueTurnPrompt = (
       inventory.length > 0
         ? inventory.map(item => `${item.name} (Type: ${item.type}, Active: ${String(!!item.isActive)})`).join(', ')
         : 'Empty';
-  const knownPlacesString = formatKnownPlacesForPrompt(knownMainMapNodesInTheme, true);
+  const knownPlacesString = formatKnownPlacesForPrompt(
+    knownMainMapNodesInTheme,
+    true,
+    false,
+  );
 
-  let characterContextString = 'Known Characters: ';
-  if (knownCharactersInTheme.length > 0) {
-    characterContextString +=
-      knownCharactersInTheme
-        .map(c => {
-          let charStr = `"${c.name}" (Description: ${c.description.substring(0, 70)}...; Presence: ${c.presenceStatus}`;
-          if (c.presenceStatus === 'nearby' || c.presenceStatus === 'companion') {
-            charStr += ` at ${c.preciseLocation ?? 'around'}`;
+  let npcContextString = '## Known NPCs: ';
+  if (knownNPCsInTheme.length > 0) {
+    npcContextString +=
+      knownNPCsInTheme
+        .map(npc => {
+          let npcStr = `"${npc.name}" (Description: ${npc.description}; Presence: ${npc.presenceStatus}`;
+          if (npc.presenceStatus === 'nearby' || npc.presenceStatus === 'companion') {
+            npcStr += ` at ${npc.preciseLocation ?? 'around'}`;
           } else {
-            charStr += `, last seen: ${c.lastKnownLocation ?? 'Unknown'}`;
+            npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
           }
-          charStr += ')';
-          return charStr;
+          npcStr += ')';
+          return npcStr;
         })
         .join('; ') + '.';
   } else {
-    characterContextString += 'None specifically known.';
+    npcContextString += 'None specifically known.';
   }
 
   let pastDialogueSummariesContext = '';
   dialogueParticipants.forEach(participantName => {
-    const participantChar = knownCharactersInTheme.find(char => char.name === participantName);
-    if (participantChar?.dialogueSummaries && participantChar.dialogueSummaries.length > 0) {
+    const participantNPC = knownNPCsInTheme.find(npc => npc.name === participantName);
+    if (participantNPC?.dialogueSummaries && participantNPC.dialogueSummaries.length > 0) {
       pastDialogueSummariesContext += `\nRecent Past Conversations involving ${participantName}:\n`;
-      const summariesToShow = participantChar.dialogueSummaries.slice(-MAX_DIALOGUE_SUMMARIES_IN_PROMPT);
+      const summariesToShow = participantNPC.dialogueSummaries.slice(-MAX_DIALOGUE_SUMMARIES_IN_PROMPT);
       summariesToShow.forEach(summary => {
         pastDialogueSummariesContext += `- Summary: "${summary.summaryText}" (Participants: ${summary.participants.join(', ')}; Time: ${summary.timestamp}; Location: ${summary.location})\n`;
       });
     }
   });
 
-  return `
-Context for Dialogue Turn:
-- Current Theme: "${currentTheme.name}"
-- System Instruction Modifier for Theme: "${currentTheme.systemInstructionModifier}"
-- Current Main Quest: "${currentQuest ?? 'Not set'}"
-- Current Objective: "${currentObjective ?? 'Not set'}"
-- Scene Description (for environmental context): "${currentScene}"
-- Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}"
-- Player's Character Gender: ${playerGender}
+  const relevantFactsSection =
+    relevantFacts.length > 0
+      ? relevantFacts.map(f => `- ${f}`).join('\n')
+      : 'None';
 
-- Player's Inventory:
+  return `**Context for Dialogue Turn**
+Current Theme: "${currentTheme.name}";
+System Instruction Modifier for Theme: "${currentTheme.systemInstructionModifier}";
+Current Main Quest: "${currentQuest ?? 'Not set'}";
+Current Objective: "${currentObjective ?? 'Not set'}";
+Scene Description (for environmental context): "${currentScene}";
+Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}";
+Player's Character Gender: ${playerGender};
+
+## Relevant Facts about the world:
+${relevantFactsSection}
+
+## Player's Inventory:
 ${inventoryString}
-- Known Locations:
+
+## Known Locations:
 ${knownPlacesString}
-- ${characterContextString}
-- Current Dialogue Participants: ${dialogueParticipants.join(', ')}
+
+${npcContextString}
+
+## Dialogue Context:
+- Current Dialogue Participants: ${dialogueParticipants.join(', ')};
 ${pastDialogueSummariesContext.trim() ? pastDialogueSummariesContext : '\n- No specific past dialogue summaries available for current participants.'}
- - Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):
+
+- Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):
 ${historyString}
+
 - Player's Last Utterance/Choice: "${playerLastUtterance}"
 
 Based on this context, provide the next part of the dialogue according to the DIALOGUE_SYSTEM_INSTRUCTION.
@@ -136,27 +157,30 @@ export const buildDialogueSummaryPrompt = (
       ? summaryContext.inventory.map(item => `${item.name} (Type: ${item.type})`).join(', ')
       : 'Empty';
   const knownPlacesString = formatKnownPlacesForPrompt(
-    summaryContext.mapDataForTheme.nodes.filter(n => n.data.nodeType !== 'feature'),
+    summaryContext.mapDataForTheme.nodes.filter(
+      n => n.data.nodeType !== 'feature',
+    ),
     true,
+    false,
   );
 
-  let knownCharactersString = 'Known Characters: ';
-  if (summaryContext.knownCharactersInTheme.length > 0) {
-    knownCharactersString +=
-      summaryContext.knownCharactersInTheme
-        .map(c => {
-          let charStr = `"${c.name}" (Description: ${c.description.substring(0, 70)}...; Presence: ${c.presenceStatus}`;
-          if (c.presenceStatus === 'nearby' || c.presenceStatus === 'companion') {
-            charStr += ` at ${c.preciseLocation ?? 'around'}`;
+  let knownNPCsString = 'Known NPCs: ';
+  if (summaryContext.knownNPCsInTheme.length > 0) {
+    knownNPCsString +=
+      summaryContext.knownNPCsInTheme
+        .map(npc => {
+          let npcStr = `"${npc.name}" (Description: ${npc.description}; Presence: ${npc.presenceStatus}`;
+          if (npc.presenceStatus === 'nearby' || npc.presenceStatus === 'companion') {
+            npcStr += ` at ${npc.preciseLocation ?? 'around'}`;
           } else {
-            charStr += `, last seen: ${c.lastKnownLocation ?? 'Unknown'}`;
+            npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
           }
-          charStr += ')';
-          return charStr;
+          npcStr += ')';
+          return npcStr;
         })
         .join('; ') + '.';
   } else {
-    knownCharactersString += 'None specifically known.';
+    knownNPCsString += 'None specifically known.';
   }
 
   return `
@@ -173,19 +197,18 @@ Context for Dialogue Summary:
 ${inventoryString}
 - Known Locations (before dialogue):
 ${knownPlacesString}
-- ${knownCharactersString}
+- ${knownNPCsString}
 - Dialogue Participants: ${summaryContext.dialogueParticipants.join(', ')}
 
-Full Dialogue Transcript:
+## Full Dialogue Transcript:
 ${dialogueLogString}
 
-Based *only* on the Dialogue Transcript and the provided context, determine what concrete game state changes (items, characters, quest/objective updates, log message, map updates) resulted *directly* from this dialogue.
+Based *only* on the Dialogue Transcript and the provided context, determine what specific game state changes (items, NPCs, quest/objective updates, log message, map updates) resulted *directly* from this dialogue.
 The "logMessage" field in your response should be a concise summary suitable for the main game log.
-Provide the next scene description and SIX action options for the player as you would for a normal game turn.
-If the dialogue revealed a new alias for an existing character, use "charactersUpdated" with "addAlias".
-If the dialogue changed some character's general whereabouts, use "newLastKnownLocation" in "charactersUpdated".
+Provide the next scene description and ${String(MAIN_TURN_OPTIONS_COUNT)} action options for the player as you would for a normal game turn.
+If the dialogue revealed a new alias for an existing NPC, use "npcsUpdated" with "addAlias".
+If the dialogue changed some NPC's general whereabouts, use "newLastKnownLocation" in "npcsUpdated".
 If the dialogue revealed new map information (new locations, changed accessibility, etc.), or if Player's own location changed over the course of the dialogue, then set "mapUpdated": true.
-Respond using the SAME JSON structure defined in the SYSTEM_INSTRUCTION for regular turns.
 `;
 };
 
@@ -197,7 +220,7 @@ export const buildDialogueMemorySummaryPrompts = (
 ): { systemInstructionPart: string; userPromptPart: string } => {
   const dialogueLogString = context.dialogueLog.map(entry => `  ${entry.speaker}: ${entry.line}`).join('\n');
 
-  const systemInstructionPart = `You are an AI assistant creating a detailed memory of a conversation. This memory will be stored by the game characters who participated.
+  const systemInstructionPart = `You are an AI assistant creating a detailed memory of a conversation. This memory will be remembered by the NPCs who participated.
 Your task is to write a concise yet detailed summary of the conversation.
 The summary should be between 500 and 1500 characters. It should be written from the point of view of the Conversation Participants other than the Player.
 The summary should ALWAYS mention all names and the "Player" explicitly without pronouns.
@@ -206,16 +229,17 @@ It should capture:
 - Important information revealed or exchanged by any participant.
 - Significant decisions made or outcomes reached.
 - The overall emotional tone or atmosphere of the conversation.
-- Any impressions or key takeaways the characters might have.
+- Any impressions or key takeaways the NPCs might have.
 
 Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any preamble like "Here is the summary:".`;
 
   const userPromptPart = `Generate a memory summary for the following conversation:
- - Conversation Participants: ${context.dialogueParticipants.join(', ')}
- - Theme: "${context.currentThemeObject?.name ?? context.themeName}" (System Modifier: ${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
-- Scene at start of conversation: "${context.currentScene}"
-  - Context: Time: "${context.localTime ?? 'Unknown'}", Environment: "${context.localEnvironment ?? 'Undetermined'}", Place: "${context.localPlace ?? 'Undetermined'}"
-- Full Dialogue Transcript:
+- Conversation Participants: ${context.dialogueParticipants.join(', ')}
+- Theme: "${context.currentThemeObject?.name ?? context.themeName}" (${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
+- Scene at the start of conversation: "${context.currentScene}"
+- Context: Time: "${context.localTime ?? 'Unknown'}", Environment: "${context.localEnvironment ?? 'Undetermined'}", Place: "${context.localPlace ?? 'Undetermined'}"
+
+## Full Dialogue Transcript:
 ${dialogueLogString}
 
 Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any preamble like "Here is the summary:".`;

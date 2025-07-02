@@ -9,7 +9,7 @@ import { Icon } from '../elements/icons';
 import { GameStateStack, DebugPacket, FullGameState } from '../../types';
 import { TravelStep } from '../../utils/mapPathfinding';
 import {
-  CharactersTab,
+  NPCsTab,
   DialogueAITab,
   GameLogTab,
   GameStateTab,
@@ -17,11 +17,14 @@ import {
   InventoryTab,
   MainAITab,
   MapDataFullTab,
+  LoreTab,
   MapLocationAITab,
   PlaygroundTab,
+  LoremasterAITab,
   MiscStateTab,
   ThemeHistoryTab,
   TravelPathTab,
+  SettingsTab,
 } from './tabs';
 
 interface DebugViewProps {
@@ -32,6 +35,13 @@ interface DebugViewProps {
   readonly onUndoTurn: () => void; // New prop for undoing turn
   readonly onApplyGameState: (state: FullGameState) => void;
   readonly travelPath: Array<TravelStep> | null;
+  readonly onDistillFacts: () => void;
+  readonly debugLore: boolean;
+  readonly onToggleDebugLore: () => void;
+  readonly goodFacts: Array<string>;
+  readonly badFacts: Array<string>;
+  readonly onSaveFacts: (data: string) => void;
+  readonly onClearFacts: () => void;
 }
 
 type DebugTab =
@@ -40,14 +50,17 @@ type DebugTab =
   | "MapLocationAI"
   | "InventoryAI"
   | "DialogueAI"
+  | "LoremasterAI"
   | "Inventory"
-  | "Characters"
+  | "NPCs"
   | "MapDataFull"
+  | "Lore"
   | "ThemeHistory"
   | "GameLog"
   | "TravelPath"
   | "MiscState"
-  | "Playground";
+  | "Playground"
+  | "Settings";
 
 /**
  * Developer-only panel for inspecting and manipulating game state.
@@ -60,6 +73,13 @@ function DebugView({
   onUndoTurn,
   onApplyGameState,
   travelPath,
+  onDistillFacts,
+  debugLore,
+  onToggleDebugLore,
+  goodFacts,
+  badFacts,
+  onSaveFacts,
+  onClearFacts,
 }: DebugViewProps) {
   const [activeTab, setActiveTab] = useState<DebugTab>('GameState');
 
@@ -78,15 +98,18 @@ function DebugView({
     { name: "MainAI", label: "Storyteller AI" },
     { name: "MapLocationAI", label: "Cartographer AI" },
     { name: "InventoryAI", label: "Inventory AI" },
+    { name: "LoremasterAI", label: "Loremaster AI" },
     { name: "DialogueAI", label: "Dialogue AI" },
     { name: "Inventory", label: "Inventory" },
-    { name: "Characters", label: "Characters" },
+    { name: "NPCs", label: "NPCs" },
     { name: "MapDataFull", label: "Map Data" },
+    { name: "Lore", label: "Lore" },
     { name: "ThemeHistory", label: "Theme History" },
     { name: "GameLog", label: "Game Log" },
     { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
     { name: "Playground", label: "Playground" },
+    { name: "Settings", label: "Settings" },
   ];
 
   /**
@@ -109,14 +132,29 @@ function DebugView({
         return <MapLocationAITab debugPacket={debugPacket} />;
       case 'InventoryAI':
         return <InventoryAITab debugPacket={debugPacket} />;
+      case 'LoremasterAI':
+        return (
+          <LoremasterAITab
+            debugPacket={debugPacket}
+            onDistillFacts={onDistillFacts}
+          />
+        );
       case 'DialogueAI':
         return <DialogueAITab debugPacket={debugPacket} />;
       case 'Inventory':
         return <InventoryTab inventory={currentState.inventory} />;
-      case 'Characters':
-        return <CharactersTab characters={currentState.allCharacters} />;
+      case 'NPCs':
+        return <NPCsTab npcs={currentState.allNPCs} />;
       case 'MapDataFull':
         return <MapDataFullTab mapData={currentState.mapData} />;
+      case 'Lore':
+        return (
+          <LoreTab
+            themeFacts={currentState.themeFacts.filter(
+              fact => fact.themeName === currentState.currentThemeName
+            )}
+          />
+        );
       case 'ThemeHistory':
         return <ThemeHistoryTab themeHistory={currentState.themeHistory} />;
       case 'GameLog':
@@ -132,6 +170,17 @@ function DebugView({
         return <MiscStateTab currentState={currentState} />;
       case 'Playground':
         return <PlaygroundTab />;
+      case 'Settings':
+        return (
+          <SettingsTab
+            badFacts={badFacts}
+            debugLore={debugLore}
+            goodFacts={goodFacts}
+            onClearFacts={onClearFacts}
+            onSaveFacts={onSaveFacts}
+            onToggleDebugLore={onToggleDebugLore}
+          />
+        );
       default:
         return (
           <p>

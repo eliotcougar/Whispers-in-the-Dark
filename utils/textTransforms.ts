@@ -68,3 +68,21 @@ export function toRunic(input: string): string {
     .map(ch => runicMap[ch] ?? ch)
     .join('');
 }
+
+export function tornVisibleText(input: string): string {
+  const middle = Math.floor(input.length / 2);
+  const before = input.lastIndexOf(' ', middle);
+  const after = input.indexOf(' ', middle);
+  const split =
+    before !== -1 && middle - before < 20
+      ? before
+      : after !== -1 && after - middle < 20
+        ? after
+        : middle;
+  const showFirst = Math.random() < 0.5;
+  const marker = '\n--- torn ---\n';
+  return showFirst
+    ? `${input.slice(0, split)}${marker}`
+    : `${marker}${input.slice(split)}`;
+}
+

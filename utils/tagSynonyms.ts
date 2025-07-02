@@ -1,6 +1,7 @@
 import { ItemTag } from '../types';
 import { VALID_TAGS } from '../constants';
 import tagSynonymsRaw from '../resources/itemTagSynonyms';
+import { createHeuristicRegexes } from './mapSynonyms';
 
 const tagSynonyms = tagSynonymsRaw as {
   tag: Record<string, ItemTag | undefined>;
@@ -8,6 +9,17 @@ const tagSynonyms = tagSynonymsRaw as {
 
 export const TAG_SYNONYMS: Record<string, ItemTag | undefined> =
   tagSynonyms.tag;
+
+let tagHeuristics: Array<[RegExp, ItemTag]> | null = null;
+
+export function createTagHeuristicRegexes(): Array<[RegExp, ItemTag]> {
+  if (tagHeuristics) return tagHeuristics;
+  tagHeuristics = createHeuristicRegexes(
+    TAG_SYNONYMS as Record<string, ItemTag>,
+    VALID_TAGS,
+  );
+  return tagHeuristics;
+}
 
 export function normalizeTag(tag: unknown): ItemTag | null {
   if (typeof tag !== 'string') return null;

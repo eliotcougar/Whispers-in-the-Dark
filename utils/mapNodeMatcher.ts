@@ -113,7 +113,7 @@ const parseLocalPlaceIntoChunks = (localPlace: string | null | undefined): Array
       });
     }
   }
-  return chunks.filter(c => c.phrase.length > 0);
+  return chunks.filter(chunk => chunk.phrase.length > 0);
 };
 
 const PROXIMITY_BONUS = 30;

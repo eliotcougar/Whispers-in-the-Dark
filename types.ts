@@ -31,7 +31,7 @@ export type MapEdgeStatus = typeof VALID_EDGE_STATUS_VALUES[number];
 export interface KnownUse {
   actionName: string; // Text for the button, e.g., "Light Torch"
   promptEffect: string; // What to send to AI, e.g., "Player attempts to light the Torch"
-  description?: string; // Optional: A small hint or detail about this use
+  description: string; // A small hint or detail about this use
   appliesWhenActive?: boolean; // If true, this use is shown when item.isActive is true
   appliesWhenInactive?: boolean; // If true, this use is shown when item.isActive is false (or undefined)
 }
@@ -42,6 +42,7 @@ export interface ItemChapter {
   contentLength: number;
   actualContent?: string;
   visibleContent?: string;
+  imageData?: string;
 }
 
 export interface Item {
@@ -53,6 +54,7 @@ export interface Item {
   isActive?: boolean; // Defaults to false if undefined
   knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
   tags?: Array<ItemTag>; // Tags for classification, e.g., ["junk"]
+  stashed?: boolean; // Hidden pages and books when true
   holderId: string; // ID of the entity holding this item or 'player'
   /**
    * Text content for written items.
@@ -63,9 +65,8 @@ export interface Item {
   chapters?: Array<ItemChapter>;
   lastWriteTurn?: number;
   lastInspectTurn?: number;
-  // --- Fields for "update" action payloads ---
+  // --- Fields for "change" action payloads ---
   newName?: string;
-  addKnownUse?: KnownUse;
 }
 
 // This ItemChange is from the AI's perspective, and will be processed into ItemChangeRecord
@@ -74,16 +75,13 @@ export interface ItemReference {
   name?: string;
 }
 
-export interface GiveItemPayload {
+export interface MoveItemPayload {
   id?: string;
   name?: string;
-  fromId: string;
-  fromName?: string;
-  toId: string;
-  toName?: string;
+  newHolderId: string;
 }
 
-export type ItemUpdatePayload =
+export type ItemChangePayload =
   Partial<Omit<Item, 'activeDescription'>> & { activeDescription?: string | null };
 
 export interface NewItemSuggestion {
@@ -98,14 +96,18 @@ export interface NewItemSuggestion {
   knownUses?: Array<KnownUse>;
 }
 
+export interface AddDetailsPayload {
+  id: string;
+  name: string;
+  type: ItemType;
+  knownUses?: Array<KnownUse>;
+  tags?: Array<ItemTag>;
+  chapters?: Array<ItemChapter>;
+}
+
 export type ItemChange =
   | {
-      action: 'gain';
-      item: Item;
-      invalidPayload?: unknown;
-    }
-  | {
-      action: 'put';
+      action: 'create';
       item: Item;
       invalidPayload?: unknown;
     }
@@ -115,29 +117,29 @@ export type ItemChange =
       invalidPayload?: unknown;
     }
   | {
-      action: 'update';
-      item: ItemUpdatePayload;
+      action: 'change';
+      item: ItemChangePayload;
       invalidPayload?: unknown;
     }
   | {
-      action: 'give';
-      item: GiveItemPayload;
+      action: 'addDetails';
+      item: AddDetailsPayload;
       invalidPayload?: unknown;
     }
   | {
-      action: 'take';
-      item: GiveItemPayload;
+      action: 'move';
+      item: MoveItemPayload;
       invalidPayload?: unknown;
     };
 
 export interface DialogueSummaryRecord {
   summaryText: string;
-  participants: Array<string>; // Names of characters involved in that dialogue
+  participants: Array<string>; // Names of NPCs involved in that dialogue
   timestamp: string; // localTime when the dialogue occurred
   location: string; // localPlace where the dialogue occurred
 }
 
-export interface Character {
+export interface NPC {
   id: string;
   themeName: string;
   name: string;
@@ -190,12 +192,13 @@ export interface DialogueTurnContext {
   localEnvironment: string | null;
   localPlace: string | null;
   knownMainMapNodesInTheme: Array<MapNode>;
-  knownCharactersInTheme: Array<Character>;
+  knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
   playerGender: string;
   dialogueHistory: Array<DialogueHistoryEntry>;
   playerLastUtterance: string;
   dialogueParticipants: Array<string>;
+  relevantFacts: Array<string>;
 }
 
 export interface DialogueSummaryContext {
@@ -206,7 +209,7 @@ export interface DialogueSummaryContext {
   localEnvironment: string | null;
   localPlace: string | null; // The free-text local place string
   mapDataForTheme: MapData; // Map data for the current theme (nodes and edges)
-  knownCharactersInTheme: Array<Character>;
+  knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
   playerGender: string;
   dialogueLog: Array<DialogueHistoryEntry>; 
@@ -240,20 +243,20 @@ export interface GameStateFromAI {
   currentObjective?: string;
   itemChange: Array<ItemChange>; 
   logMessage?: string;
-  charactersAdded?: Array<{ 
+  npcsAdded?: Array<{ 
     name: string; 
     description: string; 
     aliases?: Array<string>; 
-    presenceStatus?: Character['presenceStatus'];
+    presenceStatus?: NPC['presenceStatus'];
     lastKnownLocation?: string | null; 
     preciseLocation?: string | null;
   }>; 
-  charactersUpdated?: Array<{ 
+  npcsUpdated?: Array<{ 
     name: string; 
     newDescription?: string; 
     newAliases?: Array<string>; 
     addAlias?: string; 
-    newPresenceStatus?: Character['presenceStatus'];
+    newPresenceStatus?: NPC['presenceStatus'];
     newLastKnownLocation?: string | null; 
     newPreciseLocation?: string | null;
   }>;
@@ -279,6 +282,7 @@ export interface AdventureTheme {
   initialCurrentObjective: string;
   initialSceneDescriptionSeed: string;
   initialItems: string;
+  playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
 }
 
 export interface ThemeMemory {
@@ -286,31 +290,85 @@ export interface ThemeMemory {
   mainQuest: string;
   currentObjective: string;
   placeNames: Array<string>; // These will be MapNode.placeName of main map nodes in the theme
-  characterNames: Array<string>;
+  npcNames: Array<string>;
 }
 
 export type ThemeHistoryState = Record<string, ThemeMemory>;
 
+export interface FactWithEntities {
+  text: string;
+  entities: Array<string>;
+}
+
+export interface ThemeFact {
+  id: number;
+  text: string;
+  entities: Array<string>;
+  themeName: string;
+  createdTurn: number;
+  tier: number;
+}
+
+export interface ThemeFactChange {
+  action: 'add' | 'change' | 'delete';
+  fact?: Partial<Omit<ThemeFact, 'id' | 'createdTurn'>> & {
+    createdTurn?: number;
+  };
+  id?: number;
+}
+
+export interface GeneratedJournalEntry {
+  heading: string;
+  text: string;
+}
+
+export interface LoreRefinementResult {
+  factsChange: Array<ThemeFactChange>;
+  loreRefinementOutcome: string;
+  observations?: string;
+  rationale?: string;
+}
+
+export interface LoremasterModeDebugInfo {
+  prompt: string;
+  rawResponse?: string;
+  parsedPayload?:
+    | Array<string>
+    | Array<FactWithEntities>
+    | LoreRefinementResult
+    | GeneratedJournalEntry;
+  observations?: string;
+  rationale?: string;
+  thoughts?: Array<string>;
+  systemInstruction?: string;
+  jsonSchema?: unknown;
+}
+
+export interface LoremasterRefineDebugInfo {
+  extract?: LoremasterModeDebugInfo | null;
+  integrate?: LoremasterModeDebugInfo | null;
+}
+
 // --- TurnChanges Data Structures ---
 export interface ItemChangeRecord {
-  type: 'gain' | 'loss' | 'update';
-  gainedItem?: Item;     // For 'gain'
+  type: 'acquire' | 'loss' | 'update';
+  acquiredItem?: Item;   // For 'acquire'
   lostItem?: Item;       // For 'loss' (the full item object before it was lost)
   oldItem?: Item;        // For 'update' (item state before update)
   newItem?: Item;        // For 'update' (item state after update, including transformations)
 }
 
-export interface CharacterChangeRecord {
+export interface NPCChangeRecord {
   type: 'add' | 'update';
-  characterName: string; // Common identifier
-  addedCharacter?: Character; // For 'add' (will include new presence fields)
-  oldCharacter?: Character;   // For 'update' (will include old presence fields)
-  newCharacter?: Character;   // For 'update' (will include new presence fields)
+  npcName: string; // Common identifier
+  addedNPC?: NPC; // For 'add' (will include new presence fields)
+  oldNPC?: NPC;   // For 'update' (will include old presence fields)
+  newNPC?: NPC;   // For 'update' (will include new presence fields)
 }
 
 export interface TurnChanges {
   itemChanges: Array<ItemChangeRecord>;
-  characterChanges: Array<CharacterChangeRecord>;
+  npcChanges: Array<NPCChangeRecord>;
   objectiveAchieved: boolean;
   objectiveTextChanged: boolean;
   mainQuestTextChanged: boolean;
@@ -389,15 +447,6 @@ export interface AINodeUpdate {
   initialPosition?: { x: number; y: number };
 }
 
-export interface AISplitFamilyOperation {
-  originalNodeId: string;
-  newNodeId: string;
-  newNodeType: MapNodeData['nodeType'];
-  newConnectorNodeId: string;
-  originalChildren: Array<string>;
-  newChildren: Array<string>;
-}
-
 export interface AIMapUpdatePayload {
   // parentNodeId is mandatory for each entry in nodesToAdd. The value is a NAME
   // of the intended parent node (use "Universe" for the root node).
@@ -416,7 +465,6 @@ export interface AIMapUpdatePayload {
   edgesToUpdate?: Array<AIEdgeUpdate> | null;
   edgesToRemove?: Array<{ edgeId: string; sourceId?: string; targetId?: string; }> | null;
   suggestedCurrentMapNodeId?: string | null | undefined;
-  splitFamily?: AISplitFamilyOperation | null | undefined;
 }
 // --- End Map Update Service Payload ---
 
@@ -424,8 +472,10 @@ export interface AIMapUpdatePayload {
 export interface MinimalModelCallRecord {
   prompt: string;
   systemInstruction: string;
+  jsonSchema?: unknown;
   modelUsed: string;
   responseText: string;
+  promptUsed?: string;
 }
 
 export interface DialogueTurnDebugEntry {
@@ -441,14 +491,19 @@ export interface DebugPacket {
   parsedResponse: GameStateFromAI | null;
   error?: string;
   timestamp: string;
+  systemInstruction?: string;
+  jsonSchema?: unknown;
   storytellerThoughts?: Array<string> | null;
   mapUpdateDebugInfo?: {
     prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     rawResponse?: string;
     parsedPayload?: AIMapUpdatePayload;
     validationError?: string;
     observations?: string;
     rationale?: string;
+    thoughts?: Array<string>;
     minimalModelCalls?: Array<MinimalModelCallRecord>;
     connectorChainsDebugInfo?: Array<{
       round: number;
@@ -456,19 +511,32 @@ export interface DebugPacket {
       rawResponse?: string;
       parsedPayload?: AIMapUpdatePayload;
       validationError?: string;
+      thoughts?: Array<string>;
       observations?: string;
       rationale?: string;
     }> | null;
   } | null;
   inventoryDebugInfo?: {
     prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     rawResponse?: string;
     parsedItemChanges?: Array<ItemChange>;
     observations?: string;
     rationale?: string;
+    thoughts?: Array<string>;
+  } | null;
+  loremasterDebugInfo?: {
+    collect?: LoremasterModeDebugInfo | null;
+    extract?: LoremasterModeDebugInfo | null;
+    integrate?: LoremasterModeDebugInfo | null;
+    distill?: LoremasterModeDebugInfo | null;
+    journal?: LoremasterModeDebugInfo | null;
   } | null;
   dialogueDebugInfo?: {
     turns: Array<DialogueTurnDebugEntry>;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
     summaryPrompt?: string;
     summaryRawResponse?: string;
     summaryThoughts?: Array<string>;
@@ -485,11 +553,16 @@ export interface FullGameState {
   mainQuest: string | null;
   currentObjective: string | null;
   inventory: Array<Item>;
-  gameLog: Array<string>; 
+  playerJournal: Array<ItemChapter>;
+  lastJournalWriteTurn: number;
+  lastJournalInspectTurn: number;
+  lastLoreDistillTurn: number;
+  gameLog: Array<string>;
   lastActionLog: string | null;
   themeHistory: ThemeHistoryState;
-  pendingNewThemeNameAfterShift: string | null; 
-  allCharacters: Array<Character>;
+  themeFacts: Array<ThemeFact>;
+  pendingNewThemeNameAfterShift: string | null;
+  allNPCs: Array<NPC>;
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
   destinationNodeId: string | null; // Optional destination node ID
@@ -510,6 +583,10 @@ export interface FullGameState {
   stabilityLevel: number;
   chaosLevel: number;
 
+  debugLore: boolean;
+  debugGoodFacts: Array<string>;
+  debugBadFacts: Array<string>;
+
   // Transient/Debug fields (not part of SavedGameDataShape)
   objectiveAnimationType: 'success' | 'neutral' | null;
   lastDebugPacket: DebugPacket | null; 
@@ -528,11 +605,16 @@ export type SavedGameDataShape = Pick<
   | 'mainQuest'
   | 'currentObjective'
   | 'inventory'
+  | 'playerJournal'
+  | 'lastJournalWriteTurn'
+  | 'lastJournalInspectTurn'
+  | 'lastLoreDistillTurn'
   | 'gameLog'
   | 'lastActionLog'
   | 'themeHistory'
+  | 'themeFacts'
   | 'pendingNewThemeNameAfterShift'
-  | 'allCharacters'
+  | 'allNPCs'
   | 'mapData'
   | 'currentMapNodeId'
   | 'destinationNodeId'
@@ -553,25 +635,32 @@ export type SavedGameDataShape = Pick<
 
 export type GameStateStack = [FullGameState, FullGameState?];
 
+export type DebugPacketStack = [DebugPacket | null, (DebugPacket | null)?];
+
+export interface SavedGameStack {
+  current: SavedGameDataShape;
+  previous: SavedGameDataShape | null;
+}
 
 
-// Payload for a validated character update, used in parsing
-export interface ValidCharacterUpdatePayload {
+
+// Payload for a validated NPC update, used in parsing
+export interface ValidNPCUpdatePayload {
   name: string;
   newDescription?: string;
   newAliases?: Array<string>;
   addAlias?: string;
-  newPresenceStatus?: Character['presenceStatus'];
+  newPresenceStatus?: NPC['presenceStatus'];
   newLastKnownLocation?: string | null;
   newPreciseLocation?: string | null;
 }
 
-// Payload for a validated new character, used in parsing
-export interface ValidNewCharacterPayload {
+// Payload for a validated new NPC, used in parsing
+export interface ValidNewNPCPayload {
   name: string;
   description: string;
   aliases?: Array<string>;
-  presenceStatus?: Character['presenceStatus'];
+  presenceStatus?: NPC['presenceStatus'];
   lastKnownLocation?: string | null;
   preciseLocation?: string | null;
 }

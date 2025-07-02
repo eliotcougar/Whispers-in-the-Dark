@@ -67,6 +67,7 @@ describe('getAdjacentNodeIds for item reachability', () => {
         disabled: false,
         items: displayItems,
         mapNodes: mapData.nodes.map(n => ({ id: n.id, placeName: n.placeName })),
+        onItemInteract: vi.fn(),
         onTakeItem: vi.fn(),
       })
     );

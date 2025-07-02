@@ -6,7 +6,7 @@ import { AdventureTheme } from '../../types';
 import {
   MAX_RETRIES,
   MINIMAL_MODEL_NAME,
-  AUXILIARY_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
@@ -38,7 +38,7 @@ export const fetchCorrectedName_Service = async (
   const validNamesContext = `The corrected ${entityTypeToCorrect} name MUST be one of these exact, case-sensitive full names: [${validNamesList.map(name => `"${name}"`).join(', ')}].`;
 
   const prompt = `
-Role: You are an AI assistant specialized in matching a potentially incorrect or partial entity name against a predefined list of valid names, using narrative context.
+You are an AI assistant specialized in matching a potentially incorrect or partial entity name against a predefined list of valid names, using narrative context.
 Entity Type: ${entityTypeToCorrect}
 Malformed/Partial Name Provided by another AI: "${malformedOrPartialName}"
 
@@ -59,7 +59,7 @@ If no suitable match can be confidently made, respond with an empty string.`;
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
       const { response } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,

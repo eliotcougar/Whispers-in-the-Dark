@@ -2,6 +2,9 @@
 
 body {
   font-family: "Georgia", serif; /* Thematic font */
+  /* Prevent layout shifts when modals toggle body overflow */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 /* Font used for the main game title */
@@ -53,6 +56,9 @@ body {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
+}
+.debug-lore-frame {
+  z-index: 110;
 }
 .animated-frame-content {
   background-color: #1f2937; /* gray-800 */
@@ -680,7 +686,7 @@ body {
   transform: scale(1); /* Normal visible state */
 }
 
-/* Target state for gain/change disappearance */
+/* Target state for acquire/change disappearance */
 .animating-item-card.disappear-to-small {
   opacity: 0;
   transform: scale(0.1); /* Shrink to small */
@@ -715,5 +721,20 @@ body {
 /* Small text shadow for button labels */
 .text-shadow-sm {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Medium text shadow for overlays */
+.text-shadow-md {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.7);
+}
+.mask-gradient-edges {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0px, black 5px, black calc(100% - 5px), transparent 100%),
+    linear-gradient(to bottom, transparent 0px, black 5px, black calc(100% - 5px), transparent 100%);
+  mask-image:
+    linear-gradient(to right, transparent 0px, black 5px, black calc(100% - 5px), transparent 100%),
+    linear-gradient(to bottom, transparent 0px, black 5px, black calc(100% - 5px), transparent 100%);
+  -webkit-mask-composite: intersect;
+  mask-composite: intersect;
 }
 

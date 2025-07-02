@@ -3,6 +3,7 @@
  * @file TitleMenu.tsx
  * @description Main title screen with game start options.
  */
+import { useCallback } from 'react';
 import { CURRENT_GAME_VERSION } from '../../constants';
 import AppHeader from '../app/AppHeader';
 import Button from '../elements/Button';
@@ -14,7 +15,7 @@ interface TitleMenuProps {
   readonly onClose: () => void;
   readonly onNewGame: () => void;
   readonly onCustomGame: () => void; 
-  readonly onSaveGame?: () => void;
+  readonly onSaveGame?: () => void | Promise<void>;
   readonly onLoadGame: () => void;
   readonly onOpenSettings: () => void;
   readonly onOpenInfo: () => void;
@@ -35,6 +36,12 @@ function TitleMenu({
   onOpenInfo,
   isGameActive,
 }: TitleMenuProps) {
+
+  const handleSaveClick = useCallback(() => {
+    if (onSaveGame) {
+      void onSaveGame();
+    }
+  }, [onSaveGame]);
 
   return (
     <div
@@ -88,7 +95,7 @@ function TitleMenu({
               <Button
                 ariaLabel="Save Current Game to File"
                 label="Save Game"
-                onClick={onSaveGame}
+                onClick={handleSaveClick}
                 preset="green"
                 size="lg"
               />

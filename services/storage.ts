@@ -3,25 +3,27 @@
  * @description Helper functions for persisting game state to browser localStorage.
  */
 
-import { FullGameState } from '../types';
+import { DebugPacket, GameStateStack, DebugPacketStack } from '../types';
 import {
   LOCAL_STORAGE_SAVE_KEY,
-  
+  LOCAL_STORAGE_DEBUG_KEY,
+  LOCAL_STORAGE_DEBUG_LORE_KEY,
 } from '../constants';
 import {
-  prepareGameStateForSaving,
-  expandSavedDataToFullState,
-  normalizeLoadedSaveData,
+  prepareGameStateStackForSavingWithoutImages,
+  expandSavedStackToFullStates,
+  normalizeLoadedSaveDataStack,
 } from './saveLoad';
+import { attachImageRefsFromDb } from './imageDb';
 import { safeParseJson } from '../utils/jsonUtils';
 
 /** Saves the current game state to localStorage. */
 export const saveGameStateToLocalStorage = (
-  gameState: FullGameState,
+  stack: GameStateStack,
   onError?: (message: string) => void,
 ): boolean => {
   try {
-    const dataToSave = prepareGameStateForSaving(gameState);
+    const dataToSave = prepareGameStateStackForSavingWithoutImages(stack);
     localStorage.setItem(LOCAL_STORAGE_SAVE_KEY, JSON.stringify(dataToSave));
     return true;
   } catch (error: unknown) {
@@ -40,7 +42,7 @@ export const saveGameStateToLocalStorage = (
  * Loads the latest saved game from localStorage if available.
  * Handles version conversion and validation steps.
  */
-export const loadGameStateFromLocalStorage = (): FullGameState | null => {
+export const loadGameStateFromLocalStorage = (): GameStateStack | null => {
   try {
     const savedDataString = localStorage.getItem(LOCAL_STORAGE_SAVE_KEY);
     if (!savedDataString) return null;
@@ -55,17 +57,122 @@ export const loadGameStateFromLocalStorage = (): FullGameState | null => {
       return null;
     }
 
-    const processed = normalizeLoadedSaveData(parsedData as Record<string, unknown>, 'localStorage');
+    const processed = normalizeLoadedSaveDataStack(parsedData as Record<string, unknown>, 'localStorage');
     if (processed) {
-      return expandSavedDataToFullState(processed);
+      return expandSavedStackToFullStates(processed);
     }
     console.warn('Local save data is invalid or version mismatch for V3. Starting new game.');
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
     return null;
   } catch (error: unknown) {
     console.error('Error loading game state from localStorage:', error);
     localStorage.removeItem(LOCAL_STORAGE_SAVE_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
     return null;
+  }
+};
+
+export const loadGameStateFromLocalStorageWithImages = async (): Promise<GameStateStack | null> => {
+  const loaded = loadGameStateFromLocalStorage();
+  if (!loaded) return null;
+  const [current, previous] = loaded;
+  const withImagesCurrent = await attachImageRefsFromDb(current);
+  const withImagesPrevious = previous ? await attachImageRefsFromDb(previous) : undefined;
+  return [withImagesCurrent, withImagesPrevious];
+};
+
+export const saveDebugPacketStackToLocalStorage = (
+  stack: DebugPacketStack,
+): void => {
+  try {
+    localStorage.setItem(
+      LOCAL_STORAGE_DEBUG_KEY,
+      JSON.stringify(stack),
+    );
+  } catch (error: unknown) {
+    console.error('Error saving debug packet stack to localStorage:', error);
+  }
+};
+
+export const loadDebugPacketStackFromLocalStorage = (): DebugPacketStack | null => {
+  try {
+    const savedDataString = localStorage.getItem(LOCAL_STORAGE_DEBUG_KEY);
+    if (!savedDataString) return null;
+    const parsedData: unknown = safeParseJson(savedDataString);
+    if (Array.isArray(parsedData)) {
+      const [current, previous] = parsedData as Array<DebugPacket | null>;
+      return [current ?? null, previous ?? null];
+    }
+    if (parsedData && typeof parsedData === 'object') {
+      return [parsedData as DebugPacket, null];
+    }
+    console.warn('Saved debug stack found in localStorage could not be parsed.');
+    return null;
+  } catch (error: unknown) {
+    console.error('Error loading debug packet stack from localStorage:', error);
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_KEY);
+    return null;
+  }
+};
+
+export interface DebugLoreStorageData {
+  debugLore: boolean;
+  debugGoodFacts: Array<string>;
+  debugBadFacts: Array<string>;
+}
+
+export const saveDebugLoreToLocalStorage = (
+  data: DebugLoreStorageData,
+): void => {
+  try {
+    localStorage.setItem(
+      LOCAL_STORAGE_DEBUG_LORE_KEY,
+      JSON.stringify(data),
+    );
+  } catch (error: unknown) {
+    console.error('Error saving debug lore state to localStorage:', error);
+  }
+};
+
+export const loadDebugLoreFromLocalStorage = (): DebugLoreStorageData | null => {
+  try {
+    const savedDataString = localStorage.getItem(LOCAL_STORAGE_DEBUG_LORE_KEY);
+    if (!savedDataString) return null;
+    const parsed: unknown = safeParseJson(savedDataString);
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      typeof (parsed as { debugLore?: unknown }).debugLore !== 'boolean'
+    ) {
+      console.warn(
+        'Saved debug lore data found in localStorage could not be parsed.',
+      );
+      return null;
+    }
+    const good = Array.isArray((parsed as { debugGoodFacts?: unknown }).debugGoodFacts)
+      ? [...(parsed as { debugGoodFacts: Array<string> }).debugGoodFacts]
+      : [];
+    const bad = Array.isArray((parsed as { debugBadFacts?: unknown }).debugBadFacts)
+      ? [...(parsed as { debugBadFacts: Array<string> }).debugBadFacts]
+      : [];
+    return {
+      debugLore: (parsed as { debugLore: boolean }).debugLore,
+      debugGoodFacts: good,
+      debugBadFacts: bad,
+    };
+  } catch (error: unknown) {
+    console.error('Error loading debug lore state from localStorage:', error);
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_LORE_KEY);
+    return null;
+  }
+};
+
+export const clearDebugLoreFromLocalStorage = (): void => {
+  try {
+    localStorage.removeItem(LOCAL_STORAGE_DEBUG_LORE_KEY);
+  } catch (error: unknown) {
+    console.error('Error clearing debug lore from localStorage:', error);
   }
 };
 

@@ -6,10 +6,12 @@ import {
   Item,
   ItemTag,
   ItemChapter,
+  LoremasterModeDebugInfo,
 } from '../types';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-import { addLogMessageToList } from '../utils/gameLogicUtils';
+import { makeUniqueHeading } from '../utils/uniqueHeading';
+import { addLogMessageToList, removeDroppedItemLog } from '../utils/gameLogicUtils';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 
 export interface UseInventoryActionsProps {
@@ -39,15 +41,27 @@ export const useInventoryActions = ({
 
       const draftState = structuredCloneGameState(currentFullState);
       const currentLocationId = currentFullState.currentMapNodeId ?? 'unknown';
-      draftState.inventory = draftState.inventory.map((item) =>
-        item.name === itemName && item.holderId === PLAYER_HOLDER_ID
-          ? { ...item, holderId: currentLocationId }
-          : item,
-      );
+      draftState.inventory = draftState.inventory.map(item => {
+        if (item.name !== itemName || item.holderId !== PLAYER_HOLDER_ID) {
+          return item;
+        }
+
+        const shouldResetStashed =
+          item.type === 'page' ||
+          item.type === 'book' ||
+          item.type === 'picture' ||
+          item.type === 'map';
+
+        return {
+          ...item,
+          holderId: currentLocationId,
+          ...(shouldResetStashed ? { stashed: false } : {}),
+        };
+      });
       const itemChangeRecord: ItemChangeRecord = { type: 'loss', lostItem: { ...itemToDiscard } };
       const turnChangesForDiscard: TurnChanges = {
         itemChanges: [itemChangeRecord],
-        characterChanges: [],
+        npcChanges: [],
         objectiveAchieved: false,
         objectiveTextChanged: false,
         mainQuestTextChanged: false,
@@ -106,12 +120,12 @@ export const useInventoryActions = ({
       );
 
       const itemChangeRecord: ItemChangeRecord = {
-        type: 'gain',
-        gainedItem: { ...itemToTake, holderId: PLAYER_HOLDER_ID },
+        type: 'acquire',
+        acquiredItem: { ...itemToTake, holderId: PLAYER_HOLDER_ID },
       };
       const turnChangesForTake: TurnChanges = {
         itemChanges: [itemChangeRecord],
-        characterChanges: [],
+        npcChanges: [],
         objectiveAchieved: false,
         objectiveTextChanged: false,
         mainQuestTextChanged: false,
@@ -123,22 +137,38 @@ export const useInventoryActions = ({
         mapDataChanged: false,
       };
       draftState.lastTurnChanges = turnChangesForTake;
+
+      draftState.gameLog = removeDroppedItemLog(draftState.gameLog, itemName);
+      if (draftState.lastActionLog?.startsWith(`You left your ${itemName}`)) {
+        draftState.lastActionLog = null;
+      }
       commitGameState(draftState);
     },
     [getCurrentGameState, commitGameState, isLoading],
   );
 
   const updateItemContent = useCallback(
-    (id: string, actual: string, visible: string, chapterIndex?: number) => {
+    (
+      id: string,
+      actual?: string,
+      visible?: string,
+      chapterIndex?: number,
+      imageData?: string,
+    ) => {
       const currentFullState = getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item => {
         if (item.id !== id) return item;
         if (item.chapters) {
           const idx = typeof chapterIndex === 'number' ? chapterIndex : 0;
-          const updatedChapters = item.chapters.map((ch, cIdx) =>
-            cIdx === idx ? { ...ch, actualContent: actual, visibleContent: visible } : ch
-          );
+          const updatedChapters = item.chapters.map((ch, cIdx) => {
+            if (cIdx !== idx) return ch;
+            const updated = { ...ch };
+            if (actual !== undefined) updated.actualContent = actual;
+            if (visible !== undefined) updated.visibleContent = visible;
+            if (imageData !== undefined) updated.imageData = imageData;
+            return updated;
+          });
           return { ...item, chapters: updatedChapters };
         }
         return item;
@@ -154,9 +184,13 @@ export const useInventoryActions = ({
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item => {
         if (item.id !== id) return item;
+        const newChapter = {
+          ...chapter,
+          heading: makeUniqueHeading(chapter.heading, item.chapters ?? []),
+        };
         return {
           ...item,
-          chapters: [...(item.chapters ?? []), chapter],
+          chapters: [...(item.chapters ?? []), newChapter],
           lastWriteTurn: currentFullState.globalTurnNumber,
         };
       });
@@ -164,6 +198,59 @@ export const useInventoryActions = ({
     },
     [commitGameState]
   );
+
+  const addPlayerJournalEntry = useCallback(
+    (chapter: ItemChapter, debugInfo?: LoremasterModeDebugInfo | null) => {
+      const currentFullState = getStateRef.current();
+      const draftState = structuredCloneGameState(currentFullState);
+      const newChapter = {
+        ...chapter,
+        heading: makeUniqueHeading(chapter.heading, draftState.playerJournal),
+      };
+      draftState.playerJournal = [...draftState.playerJournal, newChapter];
+      draftState.lastJournalWriteTurn = currentFullState.globalTurnNumber;
+      if (debugInfo) {
+        draftState.lastDebugPacket ??= {
+          prompt: '',
+          rawResponseText: null,
+          parsedResponse: null,
+          timestamp: new Date().toISOString(),
+          storytellerThoughts: null,
+          mapUpdateDebugInfo: null,
+          inventoryDebugInfo: null,
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
+          dialogueDebugInfo: null,
+        };
+        if (draftState.lastDebugPacket.loremasterDebugInfo) {
+          draftState.lastDebugPacket.loremasterDebugInfo.journal = debugInfo;
+        }
+      }
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  const updatePlayerJournalContent = useCallback(
+    (actual: string, chapterIndex?: number) => {
+      const currentFullState = getStateRef.current();
+      const idx = typeof chapterIndex === 'number' ? chapterIndex : 0;
+      if (idx < 0 || idx >= currentFullState.playerJournal.length) return;
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.playerJournal = draftState.playerJournal.map((ch, cIdx) =>
+        cIdx === idx ? { ...ch, actualContent: actual } : ch
+      );
+      commitGameState(draftState);
+    },
+    [commitGameState]
+  );
+
+  const recordPlayerJournalInspect = useCallback(() => {
+    const currentFullState = getStateRef.current();
+    const draftState = structuredCloneGameState(currentFullState);
+    draftState.lastJournalInspectTurn = currentFullState.globalTurnNumber;
+    commitGameState(draftState);
+    return draftState;
+  }, [commitGameState]);
 
   const addTag = useCallback(
     (id: string, tag: ItemTag) => {
@@ -181,9 +268,28 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
+
+  const handleStashToggle = useCallback(
+    (name: string) => {
+      const currentFullState = getCurrentGameState();
+      if (isLoading || currentFullState.dialogueState) return;
+
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.map(item =>
+        item.name === name && item.holderId === PLAYER_HOLDER_ID
+          ? { ...item, stashed: !item.stashed }
+          : item,
+      );
+      draftState.lastTurnChanges = currentFullState.lastTurnChanges;
+      commitGameState(draftState);
+    },
+    [getCurrentGameState, commitGameState, isLoading],
+  );
+
+
   const recordInspect = useCallback(
-    (id: string): FullGameState => {
-      const currentFullState = getStateRef.current();
+    (id: string, baseState?: FullGameState): FullGameState => {
+      const currentFullState = baseState ?? getStateRef.current();
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item =>
         item.id === id
@@ -196,7 +302,18 @@ export const useInventoryActions = ({
     [commitGameState]
   );
 
-  return { handleDropItem, handleTakeLocationItem, updateItemContent, addJournalEntry, addTag, recordInspect };
+  return {
+    handleDropItem,
+    handleTakeLocationItem,
+    updateItemContent,
+    addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    addTag,
+    recordInspect,
+    recordPlayerJournalInspect,
+    handleStashToggle,
+  };
 };
 
 export type InventoryActions = ReturnType<typeof useInventoryActions>;

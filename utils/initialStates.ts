@@ -54,11 +54,16 @@ export const getInitialGameStates = (): FullGameState => {
     currentObjective: null,
     actionOptions: [],
     inventory: [],
+    playerJournal: [],
+    lastJournalWriteTurn: 0,
+    lastJournalInspectTurn: 0,
+    lastLoreDistillTurn: 0,
     gameLog: ["Welcome to Whispers in the Dark!"],
     lastActionLog: null,
     themeHistory: {},
+    themeFacts: [],
     pendingNewThemeNameAfterShift: null,
-    allCharacters: [],
+    allNPCs: [],
     mapData: { nodes: [], edges: [] },
     currentMapNodeId: null,
     destinationNodeId: null,
@@ -84,6 +89,10 @@ export const getInitialGameStates = (): FullGameState => {
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
     stabilityLevel: DEFAULT_STABILITY_LEVEL,
     chaosLevel: DEFAULT_CHAOS_LEVEL,
+
+    debugLore: false,
+    debugGoodFacts: [],
+    debugBadFacts: [],
   };
 };
 

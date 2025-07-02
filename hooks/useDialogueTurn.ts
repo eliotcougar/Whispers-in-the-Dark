@@ -11,7 +11,9 @@ import {
   LoadingReason,
 } from '../types';
 import { executeDialogueTurn } from '../services/dialogue';
-import { PLAYER_HOLDER_ID } from '../constants';
+import { collectRelevantFacts_Service } from '../services/loremaster';
+import { PLAYER_HOLDER_ID, RECENT_LOG_COUNT_FOR_PROMPT } from '../constants';
+import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { DialogueTurnDebugEntry } from '../types';
 
 export interface UseDialogueTurnProps {
@@ -76,6 +78,29 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
           node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
         );
+        const currentThemeNPCs = stateAfterPlayerChoice.allNPCs.filter(npc => npc.themeName === currentThemeObj.name);
+        const recentLogs = stateAfterPlayerChoice.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
+        const detailedContextForFacts = formatDetailedContextForMentionedEntities(
+          currentThemeMapNodes,
+          currentThemeNPCs,
+          `${stateAfterPlayerChoice.currentScene} ${option}`,
+          'Locations mentioned:',
+          'NPCs mentioned:'
+        );
+        const sortedFacts = [...stateAfterPlayerChoice.themeFacts]
+          .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
+          .map(f => ({ text: f.text, tier: f.tier }));
+        setLoadingReason('loremaster_collect');
+        const collectResult = await collectRelevantFacts_Service({
+          themeName: currentThemeObj.name,
+          facts: sortedFacts,
+          lastScene: stateAfterPlayerChoice.currentScene,
+          playerAction: option,
+          recentLogEntries: recentLogs,
+          detailedContext: detailedContextForFacts,
+        });
+        setLoadingReason('dialogue_turn');
+        const relevantFacts = collectResult?.facts ?? [];
         const { parsed: turnData, prompt: turnPrompt, rawResponse, thoughts } = await executeDialogueTurn(
           currentThemeObj,
           stateAfterPlayerChoice.mainQuest,
@@ -85,8 +110,8 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.localEnvironment,
           stateAfterPlayerChoice.localPlace,
           currentThemeMapNodes,
-          stateAfterPlayerChoice.allCharacters.filter((c) => c.themeName === currentThemeObj.name),
-          stateAfterPlayerChoice.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+          stateAfterPlayerChoice.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
+          stateAfterPlayerChoice.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
           playerGenderProp,
           historyWithPlayerChoice,
           option,
@@ -95,7 +120,8 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
               throw new Error('Dialogue state is not defined');
             }
             return stateAfterPlayerChoice.dialogueState.participants;
-          })()
+          })(),
+          relevantFacts,
         );
         addDebugEntry({ prompt: turnPrompt, rawResponse, thoughts });
 
@@ -146,7 +172,15 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
       } finally {
         const latestState = getCurrentGameState();
         const { dialogueState } = latestState;
-        if (!(dialogueState && dialogueState.options.length === 0 && dialogueState.history.length > 0)) {
+        const exitInProgress = Boolean(
+          dialogueState &&
+            dialogueState.options.length === 0 &&
+            dialogueState.history.length > 0
+        );
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (exitInProgress || isDialogueExiting) {
+          // keep spinner until exit completes
+        } else {
           setIsLoading(false);
           setLoadingReason(null);
         }

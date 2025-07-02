@@ -9,6 +9,7 @@ import { isApiConfigured } from './apiClient';
 import {
   isServerOrClientError,
   extractStatusFromError,
+  isTransientNetworkError,
 } from '../utils/aiErrorUtils';
 import { MinimalModelCallRecord } from '../types';
 import {
@@ -18,25 +19,36 @@ import {
 import {
   MINIMAL_MODEL_NAME,
   GEMINI_MODEL_NAME,
-  AUXILIARY_MODEL_NAME,
-  MINIMAL_RATE_LIMIT_PER_MINUTE,
-  GEMINI_RATE_LIMIT_PER_MINUTE,
-  AUXILIARY_RATE_LIMIT_PER_MINUTE,
+  GEMINI_LITE_MODEL_NAME,
+  TINY_MODEL_NAME,
+  MINIMAL_MODEL_RPM,
+  GEMINI_MODEL_RPM,
+  GEMINI_LITE_MODEL_RPM,
+  TINY_MODEL_RPM,
   MAX_RETRIES,
 } from '../constants';
+import { jsonSchemaToPrompt, JsonSchema } from '../utils/schemaPrompt';
 
-/** Determines if a model supports separate system instructions. */
-const supportsSystemInstruction = (model: string): boolean => !model.startsWith('gemma-');
+export type ModelFeature = 'thinking' | 'system' | 'schema';
+
+export type ModelEntry = string | [string, Array<ModelFeature>];
+
+const DEFAULT_FEATURES: Record<string, Array<ModelFeature>> = {
+  [GEMINI_MODEL_NAME]: ['thinking', 'system', 'schema'],
+  [GEMINI_LITE_MODEL_NAME]: ['thinking', 'system', 'schema'],
+  [MINIMAL_MODEL_NAME]: [],
+  [TINY_MODEL_NAME]: [],
+};
 
 export interface ModelDispatchOptions {
-  modelNames: Array<string>;
+  modelNames: Array<ModelEntry>;
   prompt: string;
   systemInstruction?: string;
   temperature?: number;
   responseMimeType?: string;
   thinkingBudget?: number;
   includeThoughts?: boolean;
-  responseSchema?: object;
+  jsonSchema?: unknown;
   label?: string;
   debugLog?: Array<MinimalModelCallRecord>;
 }
@@ -47,32 +59,50 @@ export interface ModelDispatchOptions {
  * is encountered.
  */
 export const dispatchAIRequest = async (
-  options: ModelDispatchOptions
-): Promise<{ response: GenerateContentResponse; modelUsed: string }> => {
+  options: ModelDispatchOptions,
+): Promise<{
+  response: GenerateContentResponse;
+  modelUsed: string;
+  systemInstructionUsed: string;
+  jsonSchemaUsed?: unknown;
+  promptUsed: string;
+}> => {
   if (!isApiConfigured() || !ai) {
     return Promise.reject(new Error('API Key not configured.'));
   }
 
   const rateLimits: Record<string, number> = {
-    [GEMINI_MODEL_NAME]: GEMINI_RATE_LIMIT_PER_MINUTE,
-    [AUXILIARY_MODEL_NAME]: AUXILIARY_RATE_LIMIT_PER_MINUTE,
-    [MINIMAL_MODEL_NAME]: MINIMAL_RATE_LIMIT_PER_MINUTE,
+    [GEMINI_MODEL_NAME]: GEMINI_MODEL_RPM,
+    [GEMINI_LITE_MODEL_NAME]: GEMINI_LITE_MODEL_RPM,
+    [MINIMAL_MODEL_NAME]: MINIMAL_MODEL_RPM,
+    [TINY_MODEL_NAME]: TINY_MODEL_RPM,
   };
 
   let lastError: unknown = null;
-  for (const model of options.modelNames) {
-    const modelSupportsSystem = supportsSystemInstruction(model);
-    const contents = modelSupportsSystem
+  for (const entry of options.modelNames) {
+    const [model, features] = Array.isArray(entry)
+      ? entry
+      : [entry, DEFAULT_FEATURES[entry] ?? []];
+    const supportsSystem = features.includes('system');
+    const supportsThinking = features.includes('thinking');
+    const supportsSchema = features.includes('schema');
+
+    let systemInstruction = options.systemInstruction ?? '';
+    if (!supportsSchema && options.jsonSchema) {
+      const schemaPrompt = jsonSchemaToPrompt(options.jsonSchema as JsonSchema);
+      systemInstruction = systemInstruction
+        ? `${systemInstruction}\n\n${schemaPrompt}`
+        : schemaPrompt;
+    }
+
+    const contents = supportsSystem
       ? options.prompt
-      : `${options.systemInstruction ? options.systemInstruction + '\n\n' : ''}${options.prompt}`;
+      : `${systemInstruction ? systemInstruction + '\n\n' : ''}${options.prompt}`;
 
     const cfg: Record<string, unknown> = {};
     if (options.temperature !== undefined) cfg.temperature = options.temperature;
-    if (options.responseMimeType && model !== MINIMAL_MODEL_NAME) cfg.responseMimeType = options.responseMimeType;
-    if (
-      model !== MINIMAL_MODEL_NAME &&
-      (options.thinkingBudget !== undefined || options.includeThoughts)
-    ) {
+    if (options.responseMimeType && supportsSchema) cfg.responseMimeType = options.responseMimeType;
+    if (supportsThinking && (options.thinkingBudget !== undefined || options.includeThoughts)) {
       const thinkingCfg: { thinkingBudget?: number; includeThoughts?: boolean } = {};
       if (options.thinkingBudget !== undefined) {
         thinkingCfg.thinkingBudget = options.thinkingBudget;
@@ -82,11 +112,11 @@ export const dispatchAIRequest = async (
       }
       cfg.thinkingConfig = thinkingCfg;
     }
-    if (modelSupportsSystem && options.systemInstruction) {
-      cfg.systemInstruction = options.systemInstruction;
+    if (supportsSystem && systemInstruction) {
+      cfg.systemInstruction = systemInstruction;
     }
-    if (options.responseSchema && model !== MINIMAL_MODEL_NAME) {
-      cfg.responseSchema = options.responseSchema;
+    if (supportsSchema && options.jsonSchema) {
+      cfg.responseJsonSchema = options.jsonSchema;
     }
 
     for (let attempt = 1; attempt <= MAX_RETRIES; ) {
@@ -112,30 +142,43 @@ export const dispatchAIRequest = async (
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
-            systemInstruction: options.systemInstruction ?? '',
+            systemInstruction: systemInstruction,
+            jsonSchema: options.jsonSchema,
             modelUsed: model,
             responseText: response.text ?? '',
+            promptUsed: contents,
           });
         }
 
-        return { response, modelUsed: model };
+        return {
+          response,
+          modelUsed: model,
+          systemInstructionUsed: systemInstruction,
+          jsonSchemaUsed: supportsSchema ? options.jsonSchema : undefined,
+          promptUsed: contents,
+        };
       } catch (err: unknown) {
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
-            systemInstruction: options.systemInstruction ?? '',
+            systemInstruction: systemInstruction,
+            jsonSchema: options.jsonSchema,
             modelUsed: model,
             responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
+            promptUsed: contents,
           });
         }
 
         lastError = err;
-        if (!isServerOrClientError(err)) {
+        if (!isServerOrClientError(err) && !isTransientNetworkError(err)) {
           throw err;
         }
 
+        const status = extractStatusFromError(err);
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        const statusInfo = status !== null ? String(status) : errorMsg;
         console.warn(
-          `dispatchAIRequest: Model ${model} failed with status ${String(extractStatusFromError(err))}. Retry ${String(attempt)}/${String(MAX_RETRIES)}`
+          `dispatchAIRequest: Model ${model} failed with ${statusInfo}. Retry ${String(attempt)}/${String(MAX_RETRIES)}`
         );
         attempt += 1;
       }

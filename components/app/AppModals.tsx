@@ -4,14 +4,17 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import HistoryDisplay from '../modals/HistoryDisplay';
 import ImageVisualizer from '../modals/ImageVisualizer';
 import PageView from '../modals/PageView';
+import { PLAYER_HOLDER_ID, PLAYER_JOURNAL_ID } from '../../constants';
+import { useCallback } from 'react';
 import {
   AdventureTheme,
   MapData,
   MapLayoutConfig,
-  Character,
+  NPC,
   ThemeHistoryState,
   MapNode,
   Item,
+  ItemChapter,
 } from '../../types';
 
 interface AppModalsProps {
@@ -24,7 +27,7 @@ interface AppModalsProps {
   readonly currentScene: string;
   readonly currentTheme: AdventureTheme;
   readonly mapData: MapData;
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly localTime: string | null;
   readonly localEnvironment: string | null;
   readonly localPlace: string | null;
@@ -65,13 +68,27 @@ interface AppModalsProps {
   readonly handleCancelShift: () => void;
   readonly isCustomGameModeShift: boolean;
   readonly inventory: Array<Item>;
+  readonly playerJournal: Array<ItemChapter>;
+  readonly lastJournalWriteTurn: number;
   readonly pageItemId: string | null;
   readonly pageStartChapterIndex: number;
   readonly isPageVisible: boolean;
   readonly onClosePage: () => void;
   readonly storytellerThoughts: string;
   readonly currentQuest: string | null;
-  readonly updateItemContent: (id: string, actual: string, visible: string, chapterIndex?: number) => void;
+  readonly updateItemContent: (
+    id: string,
+    actual?: string,
+    visible?: string,
+    chapterIndex?: number,
+    imageData?: string,
+  ) => void;
+  readonly updatePlayerJournalContent: (actual: string, chapterIndex?: number) => void;
+  readonly onItemInspect: (itemId: string) => void;
+  readonly canInspectJournal: boolean;
+  readonly onWriteJournal: () => void;
+  readonly isWritingJournal: boolean;
+  readonly canWriteJournal: boolean;
 }
 
 function AppModals({
@@ -84,7 +101,7 @@ function AppModals({
   currentScene,
   currentTheme,
   mapData,
-  allCharacters,
+  allNPCs,
   localTime,
   localEnvironment,
   localPlace,
@@ -124,6 +141,8 @@ function AppModals({
   handleCancelShift,
   isCustomGameModeShift,
   inventory,
+  playerJournal,
+  lastJournalWriteTurn,
   pageItemId,
   pageStartChapterIndex,
   isPageVisible,
@@ -131,13 +150,49 @@ function AppModals({
   storytellerThoughts,
   currentQuest,
   updateItemContent,
+  updatePlayerJournalContent,
+  onItemInspect,
+  canInspectJournal,
+  onWriteJournal,
+  canWriteJournal,
+  isWritingJournal,
 }: AppModalsProps) {
+
+  const updateContentHandler = useCallback(
+    (
+      itemId: string,
+      a?: string,
+      v?: string,
+      idx?: number,
+      img?: string,
+    ) => {
+      if (pageItemId === PLAYER_JOURNAL_ID) {
+        updatePlayerJournalContent(a ?? '', idx);
+      } else {
+        updateItemContent(itemId, a, v, idx, img);
+      }
+    },
+    [pageItemId, updateItemContent, updatePlayerJournalContent]
+  );
+
+  const inspectHandler = useCallback(() => {
+    if (pageItemId) {
+      onItemInspect(pageItemId);
+      onClosePage();
+    }
+  }, [pageItemId, onItemInspect, onClosePage]);
+
+  const writeJournalHandler = useCallback(() => {
+    if (pageItemId === PLAYER_JOURNAL_ID) {
+      onWriteJournal();
+    }
+  }, [pageItemId, onWriteJournal]);
 
 
   return (
     <>
       <ImageVisualizer
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
         cachedImageScene={visualizerImageScene}
         cachedImageUrl={visualizerImageUrl}
         currentSceneDescription={currentScene}
@@ -152,7 +207,7 @@ function AppModals({
       />
 
       <KnowledgeBase
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
         currentTheme={currentTheme}
         isVisible={isKnowledgeBaseVisible}
         onClose={onCloseKnowledgeBase}
@@ -166,17 +221,35 @@ function AppModals({
       />
 
       <PageView
-        allCharacters={allCharacters}
+        allNPCs={allNPCs}
+        canInspectJournal={canInspectJournal}
+        canWriteJournal={canWriteJournal}
         currentQuest={currentQuest}
         currentScene={currentScene}
         currentTheme={currentTheme}
         isVisible={isPageVisible}
-        item={inventory.find(it => it.id === pageItemId) ?? null}
+        isWritingJournal={isWritingJournal}
+        item={
+          pageItemId === PLAYER_JOURNAL_ID
+            ? {
+                id: PLAYER_JOURNAL_ID,
+                name: 'Personal Journal',
+                type: 'book',
+                description: 'Your own journal',
+                holderId: PLAYER_HOLDER_ID,
+                chapters: playerJournal,
+                lastWriteTurn: lastJournalWriteTurn,
+                tags: [currentTheme.playerJournalStyle],
+              }
+            : inventory.find(it => it.id === pageItemId) ?? null
+        }
         mapData={mapData}
         onClose={onClosePage}
+        onInspect={pageItemId ? inspectHandler : undefined}
+        onWriteJournal={pageItemId ? writeJournalHandler : undefined}
         startIndex={pageStartChapterIndex}
         storytellerThoughts={storytellerThoughts}
-        updateItemContent={updateItemContent}
+        updateItemContent={updateContentHandler}
       />
 
       <MapDisplay

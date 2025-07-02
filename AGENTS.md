@@ -11,15 +11,15 @@
   6. If there are auto-fixable warnings, you can easily auto-fix them using `npm run lint:fix` or `npm run lint-strict:fix`.
 
 ## Specific terms:
-  - "REALITY SHIFT" - process of switching between Themes.
-  - "Theme" - for the sets of stylistic details of each reality.
-  - "Player"
-  - "Item"
-  - "Place" - refers to Map Nodes in the AI prompts
-  - "Character"
-  - "Node" - for the map graph
-  - "Edge" - for the map graph
-  - "Alias" - alternative names, partial names, shorthands for various entities like Places and Characters.
+  - "REALITY SHIFT" - process of switching between Themes;
+  - "Theme" - for the sets of stylistic details of each reality;
+  - "Player";
+  - "Item";
+  - "Place" - refers to Map Nodes in the AI prompts;
+  - "NPC" - the word 'character' is reserved for "Player's Character" and "printable characters" (chars);
+  - "Node" - for the map graph;
+  - "Edge" - for the map graph;
+  - "Alias" - alternative names, partial names, shorthands for various entities like Places and NPCs.
 
   CURRENT_SAVE_GAME_VERSION string should always be a single incremental number, for example "1", "2", "3", etc...
   ID suffix is 4 character alphanumeric: ${Math.random().toString(36).substring(2,6)}

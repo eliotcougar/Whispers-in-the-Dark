@@ -6,7 +6,7 @@
  */
 import { useMemo } from 'react';
 
-import { Item, Character, MapNode } from '../types';
+import { Item, NPC, MapNode } from '../types';
 import { buildHighlightableEntities } from '../utils/highlightHelper';
 import TextBox from './elements/TextBox';
 
@@ -15,7 +15,7 @@ interface SceneDisplayProps {
   readonly lastActionLog?: string | null;
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly currentThemeName: string | null;
   readonly localTime?: string | null;
   readonly localEnvironment?: string | null;
@@ -30,7 +30,7 @@ function SceneDisplay({
   lastActionLog,
   inventory,
   mapData,
-  allCharacters,
+  allNPCs,
   currentThemeName,
   localTime,
   localEnvironment,
@@ -38,8 +38,8 @@ function SceneDisplay({
 }: SceneDisplayProps) {
 
   const entitiesForHighlighting = useMemo(
-    () => buildHighlightableEntities(inventory, mapData, allCharacters, currentThemeName),
-    [inventory, mapData, allCharacters, currentThemeName]
+    () => buildHighlightableEntities(inventory, mapData, allNPCs, currentThemeName),
+    [inventory, mapData, allNPCs, currentThemeName]
   );
 
   const enableMobileTap =

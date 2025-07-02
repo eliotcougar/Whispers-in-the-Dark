@@ -47,6 +47,7 @@ function HistoryDisplay({
           variant="close"
         />
 
+
         <div className="theme-memory-content-area">
           <TextBox
             borderColorClass="border-purple-700"
@@ -81,8 +82,8 @@ function HistoryDisplay({
           {rememberedThemes.length > 0 && (
             <ul className="space-y-4">
               {rememberedThemes.map(([themeName, memory]) => (
-                <li 
-                  className="text-slate-300 bg-slate-700/80 p-4 rounded-lg shadow-lg border border-slate-600 transition-all hover:shadow-purple-500/40 hover:border-purple-500" 
+                <li
+                  className="text-slate-300 bg-slate-700/80 p-4 rounded-lg shadow-lg border border-slate-600 transition-all hover:shadow-purple-500/40 hover:border-purple-500"
                   key={themeName}
                 >
                   <h4 className="font-semibold text-xl text-purple-300 mb-2">
@@ -103,7 +104,7 @@ function HistoryDisplay({
                 </li>
               ))}
             </ul>
-          )}
+            )}
         </div>
       </div>
     </div>

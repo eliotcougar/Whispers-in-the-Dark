@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { applyItemChangeAction, buildItemChangeRecords, applyAllItemChanges } from '../utils/inventoryUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
-import type { ItemChange } from '../types';
+import type { ItemChange, Item } from '../types';
 
 describe('inventoryUtils', () => {
-  it('applyItemChangeAction adds gained item', () => {
+  it('applyItemChangeAction adds acquired item', () => {
     const change: ItemChange = {
-      action: 'gain',
+      action: 'create',
       item: { id: 'it1', name: 'Torch', type: 'equipment', description: 'Bright', holderId: PLAYER_HOLDER_ID },
     };
     const result = applyItemChangeAction([], change);
@@ -14,9 +14,9 @@ describe('inventoryUtils', () => {
     expect(result[0].name).toBe('Torch');
   });
 
-  it('gain page item preserves contentLength', () => {
+  it('acquire page item preserves contentLength', () => {
     const change: ItemChange = {
-      action: 'gain',
+      action: 'create',
       item: {
         id: 'pg1',
         name: 'Torn Note',
@@ -36,16 +36,16 @@ describe('inventoryUtils', () => {
     expect(result[0].chapters?.[0].contentLength).toBe(25);
   });
 
-  it('buildItemChangeRecords returns gain record', () => {
+  it('buildItemChangeRecords returns acquire record', () => {
     const change: ItemChange = {
-      action: 'gain',
+      action: 'create',
       item: { id: 'it1', name: 'Torch', type: 'equipment', description: 'Bright', holderId: PLAYER_HOLDER_ID },
     };
     const records = buildItemChangeRecords([change], []);
     expect(records).toEqual([
       {
-        type: 'gain',
-        gainedItem: {
+        type: 'acquire',
+        acquiredItem: {
           id: 'it1',
           name: 'Torch',
           type: 'equipment',
@@ -63,15 +63,43 @@ describe('inventoryUtils', () => {
   it('applyAllItemChanges applies multiple changes', () => {
     const changes: Array<ItemChange> = [
       {
-        action: 'gain',
+        action: 'create',
         item: { id: 'it1', name: 'Torch', type: 'equipment', description: 'Bright', holderId: PLAYER_HOLDER_ID },
       },
       {
-        action: 'update',
+        action: 'change',
         item: { id: 'it1', name: 'Torch', isActive: true, holderId: PLAYER_HOLDER_ID },
       },
     ];
     const result = applyAllItemChanges(changes, []);
     expect(result[0].isActive).toBe(true);
+  });
+
+  it('addDetails action appends chapter and resets inspect turn', () => {
+    const initial: Array<Item> = [
+      {
+        id: 'book1',
+        name: 'Mysteries',
+        type: 'book',
+        description: 'Old book',
+        holderId: PLAYER_HOLDER_ID,
+        chapters: [
+          { heading: 'Intro', description: 'start', contentLength: 50 },
+        ],
+        lastInspectTurn: 3,
+      },
+    ];
+    const change: ItemChange = {
+      action: 'addDetails',
+      item: {
+        id: 'book1',
+        name: 'Mysteries',
+        type: 'book',
+        chapters: [{ heading: 'New', description: 'More', contentLength: 60 }],
+      },
+    };
+    const result = applyItemChangeAction(initial, change);
+    expect(result[0].chapters?.length).toBe(2);
+    expect(result[0].lastInspectTurn).toBeUndefined();
   });
 });

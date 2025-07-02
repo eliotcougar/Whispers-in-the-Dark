@@ -1,17 +1,16 @@
 import { generateUniqueId, findMapNodeByIdentifier } from '../../utils/entityUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
-import { buildChainRequest } from './connectorChains';
+import { buildChainRequest, filterEdgeChainRequests } from './connectorChains';
 import { fetchConnectorChains_Service } from '../corrections/edgeFixes';
-import { resolveSplitFamilyOrphans_Service } from '../corrections/hierarchyUpgrade';
-import { MAX_RETRIES } from '../../constants';
+import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS } from '../../constants';
 import type { MapNode } from '../../types';
 import type { ConnectorChainsServiceResult, EdgeChainRequest } from '../corrections/edgeFixes';
 import type { ApplyUpdatesContext } from './updateContext';
 
-const MAX_CHAIN_REFINEMENT_ROUNDS = 2;
-
 export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<void> {
-  let chainRequests: Array<EdgeChainRequest> = ctx.pendingChainRequests.splice(0);
+  let chainRequests: Array<EdgeChainRequest> = filterEdgeChainRequests(
+    ctx.pendingChainRequests.splice(0),
+  );
   let refineAttempts = 0;
   const chainContext = {
     sceneDescription: ctx.sceneDesc,
@@ -21,6 +20,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
   };
 
   while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
+    chainRequests = filterEdgeChainRequests(chainRequests);
     let chainResult: ConnectorChainsServiceResult | null = null;
     for (let attempt = 0; attempt < MAX_RETRIES; ) {
       console.log(
@@ -132,6 +132,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
       );
       break;
     }
+    chainRequests = filterEdgeChainRequests(chainRequests);
     refineAttempts++;
   }
 
@@ -139,53 +140,4 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
     ctx.debugInfo.connectorChainsDebugInfo = null;
   }
 
-  if (ctx.payload.splitFamily) {
-    const sf = ctx.payload.splitFamily;
-    const originalParent = ctx.themeNodeIdMap.get(sf.originalNodeId);
-    const newParent = ctx.themeNodeIdMap.get(sf.newNodeId);
-    const connector = ctx.themeNodeIdMap.get(sf.newConnectorNodeId);
-    if (originalParent && newParent && connector) {
-      newParent.data.nodeType = sf.newNodeType;
-      newParent.data.parentNodeId = originalParent.data.parentNodeId;
-      connector.data.parentNodeId = newParent.id;
-      ctx.newMapData.edges.forEach(edge => {
-        if (edge.sourceNodeId === newParent.id) edge.sourceNodeId = connector.id;
-        if (edge.targetNodeId === newParent.id) edge.targetNodeId = connector.id;
-      });
-      const originalSet = new Set(sf.originalChildren);
-      const newSet = new Set(sf.newChildren);
-      const orphans: Array<MapNode> = [];
-      ctx.newMapData.nodes.forEach(n => {
-        if (n.data.parentNodeId === originalParent.id && n.id !== newParent.id && n.id !== connector.id) {
-          if (newSet.has(n.id)) {
-            n.data.parentNodeId = newParent.id;
-          } else if (originalSet.has(n.id)) {
-            n.data.parentNodeId = originalParent.id;
-          } else {
-            orphans.push(n);
-          }
-        }
-      });
-      if (orphans.length > 0) {
-        const resolution = await resolveSplitFamilyOrphans_Service({
-          sceneDescription: ctx.sceneDesc,
-          logMessage: ctx.logMsg,
-          originalParent,
-          newParent,
-          orphanNodes: orphans,
-          currentTheme: ctx.currentTheme,
-        });
-        resolution.originalChildren.forEach(id => {
-          const node = ctx.themeNodeIdMap.get(id);
-          if (node) node.data.parentNodeId = originalParent.id;
-        });
-        resolution.newChildren.forEach(id => {
-          const node = ctx.themeNodeIdMap.get(id);
-          if (node) node.data.parentNodeId = newParent.id;
-        });
-      }
-    } else {
-      console.warn('splitFamily references unknown node ids');
-    }
-  }
 }

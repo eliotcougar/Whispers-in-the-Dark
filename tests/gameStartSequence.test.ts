@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import 'fake-indexeddb/auto';
 import {
   buildNewGameFirstTurnPrompt,
   parseAIResponse,
@@ -42,12 +43,15 @@ describe('game start sequence', () => {
     mockedExecute.mockResolvedValue({
       response: { text: fakeAiJson } as unknown as GenerateContentResponse,
       thoughts: [],
+      systemInstructionUsed: 'test',
+      jsonSchemaUsed: undefined,
+      promptUsed: 'req',
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
     const prompt = buildNewGameFirstTurnPrompt(theme, 'Male');
 
-    const { response } = await executeAIMainTurn(prompt, theme.systemInstructionModifier);
+    const { response } = await executeAIMainTurn(prompt);
     const parsed = await parseAIResponse(
       response.text ?? '',
       'Male',
@@ -97,11 +101,14 @@ describe('game start sequence', () => {
     mockedExecute.mockResolvedValue({
       response: { text: fakeAiJson } as unknown as GenerateContentResponse,
       thoughts: [],
+      systemInstructionUsed: 'test',
+      jsonSchemaUsed: undefined,
+      promptUsed: 'req',
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
     const prompt = buildNewGameFirstTurnPrompt(theme, 'Male');
-    const { response } = await executeAIMainTurn(prompt, theme.systemInstructionModifier);
+    const { response } = await executeAIMainTurn(prompt);
     const parsed = await parseAIResponse(
       response.text ?? '',
       'Male',
@@ -132,7 +139,7 @@ describe('game start sequence', () => {
     state.currentMapNodeId = parsed.currentMapNodeId ?? null;
     state.globalTurnNumber = 1;
 
-    const result = saveGameStateToLocalStorage(state);
+    const result = saveGameStateToLocalStorage([state, undefined]);
     expect(result).toBe(true);
     expect(setItem).toHaveBeenCalledWith(
       LOCAL_STORAGE_SAVE_KEY,
@@ -140,8 +147,9 @@ describe('game start sequence', () => {
     );
     const savedString = saved[LOCAL_STORAGE_SAVE_KEY];
     const parsedSaved = JSON.parse(savedString) as Record<string, unknown>;
-    expect(parsedSaved.currentThemeName).toBe(theme.name);
-    expect(parsedSaved.currentScene).toBe(parsed.sceneDescription);
-    expect(Array.isArray(parsedSaved.actionOptions)).toBe(true);
+    const current = parsedSaved.current as Record<string, unknown>;
+    expect(current.currentThemeName).toBe(theme.name);
+    expect(current.currentScene).toBe(parsed.sceneDescription);
+    expect(Array.isArray(current.actionOptions)).toBe(true);
   });
 });

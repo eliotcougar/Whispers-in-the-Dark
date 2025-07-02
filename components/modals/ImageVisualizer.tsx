@@ -8,11 +8,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { geminiClient as ai, isApiConfigured } from '../../services/apiClient';
 import type { Part } from '@google/genai';
-import { AdventureTheme, Character, MapNode } from '../../types';
+import { AdventureTheme, NPC, MapNode } from '../../types';
 import LoadingSpinner from '../LoadingSpinner';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';
 import { dispatchAIRequest } from '../../services/modelDispatcher';
-import { MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME } from '../../constants';
+import { MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME } from '../../constants';
+import { setLoadingReason } from '../../utils/loadingState';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 
@@ -37,7 +38,7 @@ interface ImageVisualizerProps {
   readonly currentSceneDescription: string;
   readonly currentTheme: AdventureTheme | null;
   readonly mapData: Array<MapNode>; 
-  readonly allCharacters: Array<Character>;
+  readonly allNPCs: Array<NPC>;
   readonly localTime: string | null; 
   readonly localEnvironment: string | null; 
   readonly localPlace: string | null;
@@ -55,7 +56,7 @@ function ImageVisualizer({
   currentSceneDescription,
   currentTheme, // This is now AdventureTheme | null
   mapData,
-  allCharacters,
+  allNPCs: allNPCs,
   localTime,
   localEnvironment,
   localPlace,
@@ -169,10 +170,12 @@ function ImageVisualizer({
     if (!ai || !currentTheme) {
       setError("Image generation service or theme is not available.");
       setIsLoading(false);
+      setLoadingReason(null);
       return;
     }
 
     setIsLoading(true);
+    setLoadingReason('visualize');
     setError(null);
     setInternalImageUrl(null);
 
@@ -192,11 +195,11 @@ function ImageVisualizer({
         }
       });
 
-    const mentionedCharacters: Array<string> = [];
-    allCharacters.forEach(character => {
-      if (character.themeName === currentTheme.name && currentSceneDescription.toLowerCase().includes(character.name.toLowerCase())) {
-        rawPrompt += ` ${character.name} here, appearing as: ${character.description}.`;
-        mentionedCharacters.push(character.name);
+    const mentionedNPCs: Array<string> = [];
+    allNPCs.forEach(npc => {
+      if (npc.themeName === currentTheme.name && currentSceneDescription.toLowerCase().includes(npc.name.toLowerCase())) {
+        rawPrompt += ` ${npc.name} here, appearing as: ${npc.description}.`;
+        mentionedNPCs.push(npc.name);
       }
     });
     
@@ -207,7 +210,7 @@ function ImageVisualizer({
     let safePrompt = rawPrompt;
     try {
       const { response: safeResp } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, AUXILIARY_MODEL_NAME],
+        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
         prompt: `Rewrite the following scene description into a safe and aestetic visual depiction suitable for highly censored image generation. Only include the elements that are definitely present in the scene and omit anything non-visual, that is mentioned only for unrelated context. Preserve all details of the landscape or environment. Mention time, weather, mood of the environment. Preserve small details. Avoid any depressing, explicit or unsafe elements. Absolutely avoid nudity or corpses.\n\nScene:\n${rawPrompt}`,
         systemInstruction: 'Respond ONLY with the visual description of the scene.',
         temperature: 1,
@@ -221,7 +224,7 @@ function ImageVisualizer({
 
     try {
       const response = await ai.models.generateImages({
-        model: 'imagen-3.0-generate-002',
+        model: 'imagen-4.0-generate-preview-06-06',
         prompt: safePrompt,
         config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
       });
@@ -303,8 +306,9 @@ function ImageVisualizer({
       }
     } finally {
       setIsLoading(false);
+      setLoadingReason(null);
     }
-  }, [currentSceneDescription, currentTheme, mapData, allCharacters, localTime, localEnvironment, localPlace, setGeneratedImage]);
+  }, [currentSceneDescription, currentTheme, mapData, allNPCs, localTime, localEnvironment, localPlace, setGeneratedImage]);
 
   const handleRetry = useCallback(() => {
     void generateImage();
@@ -342,7 +346,7 @@ function ImageVisualizer({
         />
         
         {isLoading ? <div className="visualizer-spinner-container">
-          <LoadingSpinner loadingReason="visualize" />
+          <LoadingSpinner />
 
         </div> : null}
 
