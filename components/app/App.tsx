@@ -23,7 +23,7 @@ import CustomGameSetupScreen from '../modals/CustomGameSetupScreen';
 import SettingsDisplay from '../modals/SettingsDisplay';
 import InfoDisplay from '../modals/InfoDisplay';
 import DebugLoreModal from '../modals/DebugLoreModal';
-import { loginWithGoogle, maybeCompleteOAuth } from '../../services/auth/googleAuth';
+import { loginWithGoogle } from '../../services/auth/googleAuth';
 import { isApiConfigured } from '../../services/apiClient';
 import Footer from './Footer';
 import AppModals from './AppModals';
@@ -325,10 +325,7 @@ function App() {
   const [apiConfigured, setApiConfigured] = useState(isApiConfigured());
 
   useEffect(() => {
-    void (async () => {
-      await maybeCompleteOAuth();
-      setApiConfigured(isApiConfigured());
-    })();
+    setApiConfigured(isApiConfigured());
   }, []);
 
   const canPerformFreeAction = score >= FREE_FORM_ACTION_COST && !isLoading && hasGameBeenInitialized && !dialogueState;
