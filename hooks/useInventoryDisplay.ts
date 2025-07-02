@@ -227,7 +227,7 @@ export const useInventoryDisplay = ({
   const displayedItems = useMemo(() => {
     const itemsToDisplay = items.filter(item => {
       if (stashingItemNames.has(item.name)) return true;
-      const isWritten = ['page', 'book'].includes(item.type);
+      const isWritten = ['page', 'book', 'picture', 'map'].includes(item.type);
       if (filterMode === 'stashed') return item.stashed && isWritten;
       const isStashedWritten = item.stashed && isWritten;
       return !isStashedWritten;
