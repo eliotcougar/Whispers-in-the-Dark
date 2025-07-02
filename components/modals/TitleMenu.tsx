@@ -19,6 +19,8 @@ interface TitleMenuProps {
   readonly onLoadGame: () => void;
   readonly onOpenSettings: () => void;
   readonly onOpenInfo: () => void;
+  readonly onLoginWithGoogle?: () => void;
+  readonly isApiConfigured?: boolean;
   readonly isGameActive: boolean;
 }
 
@@ -34,6 +36,8 @@ function TitleMenu({
   onLoadGame,
   onOpenSettings,
   onOpenInfo,
+  onLoginWithGoogle,
+  isApiConfigured,
   isGameActive,
 }: TitleMenuProps) {
 
@@ -109,6 +113,16 @@ function TitleMenu({
               size="lg"
             />
 
+            {!isApiConfigured && onLoginWithGoogle ? (
+              <Button
+                ariaLabel="Login with Google to fetch your API key"
+                label="Login with Google"
+                onClick={onLoginWithGoogle}
+                preset="yellow"
+                size="lg"
+              />
+            ) : null}
+
             <Button
               ariaLabel="Open Settings"
               label="Settings"
@@ -146,6 +160,10 @@ function TitleMenu({
   );
 }
 
-TitleMenu.defaultProps = { onSaveGame: undefined };
+TitleMenu.defaultProps = {
+  onSaveGame: undefined,
+  isApiConfigured: false,
+  onLoginWithGoogle: undefined,
+};
 
 export default TitleMenu;
