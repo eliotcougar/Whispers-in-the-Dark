@@ -10,7 +10,7 @@ function VersionBadge({ version, sourceInfo }: VersionBadgeProps) {
 
       <br />
 
-      <span>{sourceInfo ? `${sourceInfo}` : null}</span>
+      <span>{sourceInfo ?? null}</span>
     </p>
   );
 }

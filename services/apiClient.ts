@@ -13,7 +13,17 @@ if (typeof localStorage !== 'undefined') {
 }
 
 if (!geminiApiKey) {
-  geminiApiKey = process.env.GEMINI_API_KEY ?? process.env.API_KEY ?? null;
+  const globalKey =
+    typeof globalThis !== 'undefined'
+      ? (globalThis as Record<string, unknown>).GEMINI_API_KEY as string | undefined
+      : undefined;
+
+  const envKey =
+    typeof process !== 'undefined'
+      ? process.env.GEMINI_API_KEY ?? process.env.API_KEY
+      : undefined;
+
+  geminiApiKey = globalKey ?? envKey ?? null;
   if (geminiApiKey) {
     geminiKeyFromEnv = true;
   }
