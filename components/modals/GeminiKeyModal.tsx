@@ -87,6 +87,10 @@ function GeminiKeyModal({ isVisible, onClose }: GeminiKeyModalProps) {
             variant="compact"
           />
         </div>
+
+        <div className="mb-4 text-amber-400 text-center">
+          The game runs entirely in your browser. The key never leaves your device and will be stored in the Browser&apos;s Local Storage.
+        </div>
       </div>
     </div>
   );
