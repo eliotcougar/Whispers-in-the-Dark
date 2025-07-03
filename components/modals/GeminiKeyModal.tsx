@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
-import TextBox from '../elements/TextBox';
 import { getApiKey, setApiKey } from '../../services/apiClient';
 
 interface GeminiKeyModalProps {
