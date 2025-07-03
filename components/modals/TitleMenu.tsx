@@ -5,7 +5,7 @@
  */
 import { useCallback } from 'react';
 import { CURRENT_GAME_VERSION } from '../../constants';
-import { isApiConfigured } from '../../services/apiClient';
+import { isApiConfigured, isApiKeyFromEnv } from '../../services/apiClient';
 import AppHeader from '../app/AppHeader';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
@@ -155,6 +155,7 @@ function TitleMenu({
 
         {/* Version Number Display */}
         <VersionBadge
+          sourceInfo={isApiKeyFromEnv() ? 'System Gemini Key' : undefined}
           version={CURRENT_GAME_VERSION}
         />
       </div>
