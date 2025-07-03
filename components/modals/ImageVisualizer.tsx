@@ -31,7 +31,7 @@ const THEME_STYLE_PROMPTS: Record<string, string> = {
 };
 
 if (!isApiConfigured()) {
-  console.error("GEMINI_API_KEY for GoogleGenAI is not set. Image visualization will not work.");
+  console.error('Gemini API key is not set. Image visualization will not work.');
 }
 
 interface ImageVisualizerProps {

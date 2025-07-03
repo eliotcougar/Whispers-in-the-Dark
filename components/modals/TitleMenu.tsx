@@ -78,7 +78,7 @@ function TitleMenu({
           />
 
           <div className="space-y-3 sm:space-y-3 w-full max-w-xs sm:max-w-sm">
-            {!isApiConfigured() ? (
+            {!isApiConfigured() && onOpenGeminiKeyModal ? (
               <Button
                 ariaLabel="Set Gemini API key"
                 label="Set Gemini Key"

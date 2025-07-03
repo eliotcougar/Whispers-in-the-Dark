@@ -4,20 +4,33 @@
  */
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }: { mode: string }) => {
   const env = loadEnv(mode, '.', '');
+  const plugins: Array<Plugin> = [svgr()];
+
+  if (mode !== 'production' && env.GEMINI_API_KEY) {
+    const injectGeminiKey = (): Plugin => ({
+      name: 'inject-gemini-key',
+      transformIndexHtml(html) {
+        const jsonKey = JSON.stringify(env.GEMINI_API_KEY);
+        return html.replace(
+          '</head>',
+          `<script>window.GEMINI_API_KEY=${jsonKey};localStorage.setItem('whispersInTheDark_geminiApiKey',${jsonKey});</script></head>`,
+        );
+      },
+    });
+    plugins.push(injectGeminiKey());
+  }
+
   return {
-    plugins: [svgr()],
+    plugins,
     base: "/Whispers-in-the-Dark/",
-    define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KE),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KE),
-    },
+    define: {},
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

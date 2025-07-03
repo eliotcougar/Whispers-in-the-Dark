@@ -5,6 +5,12 @@
 import { GoogleGenAI } from '@google/genai';
 import { LOCAL_STORAGE_GEMINI_KEY } from '../constants';
 
+declare global {
+  interface Window {
+    GEMINI_API_KEY?: string;
+  }
+}
+
 let geminiApiKey: string | null = null;
 let geminiKeyFromEnv = false;
 
@@ -13,14 +19,19 @@ if (typeof localStorage !== 'undefined') {
 }
 
 if (!geminiApiKey) {
-  geminiApiKey = process.env.GEMINI_API_KEY ?? process.env.API_KEY ?? null;
-  if (geminiApiKey) {
+  if (typeof window !== 'undefined' && window.GEMINI_API_KEY) {
+    geminiApiKey = window.GEMINI_API_KEY;
     geminiKeyFromEnv = true;
+  } else {
+    geminiApiKey = process.env.GEMINI_API_KEY ?? process.env.API_KEY ?? null;
+    if (geminiApiKey) {
+      geminiKeyFromEnv = true;
+    }
   }
 }
 
 if (!geminiApiKey) {
-  console.error('GEMINI_API_KEY environment variable is not set. Gemini services will be unavailable.');
+  console.error('Gemini API key is not set. Gemini services will be unavailable.');
 }
 
 export let geminiClient: GoogleGenAI | null = geminiApiKey

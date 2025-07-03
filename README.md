@@ -5,7 +5,7 @@ An AI-powered text adventure built with React and TypeScript. The game uses Goog
 ## Getting Started
 
 1. **Install Node.js 18 or newer**.
-2. **Set the environment variable `GEMINI_API_KEY`** with your API key so the app can talk to the Gemini service.
+2. **Set the environment variable `GEMINI_API_KEY`** with your API key. The dev server reads this value and stores it in your browser's local storage so the application can communicate with Gemini. The key is not embedded into the production build.
 3. Install dependencies and launch the dev server:
    ```bash
    npm install
