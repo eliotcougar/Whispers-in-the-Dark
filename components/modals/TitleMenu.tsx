@@ -155,7 +155,7 @@ function TitleMenu({
 
         {/* Version Number Display */}
         <VersionBadge
-          sourceInfo={isApiKeyFromEnv() ? 'System Gemini Key' : undefined}
+          sourceInfo={isApiKeyFromEnv() ? 'Using System Gemini Key' : undefined}
           version={CURRENT_GAME_VERSION}
         />
       </div>
