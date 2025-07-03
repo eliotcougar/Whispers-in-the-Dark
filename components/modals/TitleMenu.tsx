@@ -78,6 +78,16 @@ function TitleMenu({
           />
 
           <div className="space-y-3 sm:space-y-3 w-full max-w-xs sm:max-w-sm">
+            {!isApiConfigured() ? (
+              <Button
+                ariaLabel="Set Gemini API key"
+                label="Set Gemini Key"
+                onClick={onOpenGeminiKeyModal}
+                preset="indigo"
+                size="lg"
+              />
+            ) : null}
+
             <Button
               ariaLabel={isGameActive ? 'Start a New Game (Random Shifts, Progress will be lost)' : 'Start a New Game (Random Shifts)'}
               disabled={!isApiConfigured()}
@@ -96,16 +106,6 @@ function TitleMenu({
               size="lg"
             />
 
-            {!isApiConfigured() ? (
-              <Button
-                ariaLabel="Set Gemini API key"
-                label="Set Gemini Key"
-                onClick={onOpenGeminiKeyModal}
-                preset="indigo"
-                size="lg"
-              />
-            ) : null}
-
             {isGameActive && onSaveGame ? (
               <Button
                 ariaLabel="Save Current Game to File"
@@ -118,6 +118,7 @@ function TitleMenu({
 
             <Button
               ariaLabel={isGameActive ? 'Load Game from File (Current progress will be lost)' : 'Load Game from File'}
+              disabled={!isApiConfigured()}
               label="Load Game"
               onClick={onLoadGame}
               preset="blue"
