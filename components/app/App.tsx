@@ -23,6 +23,7 @@ import CustomGameSetupScreen from '../modals/CustomGameSetupScreen';
 import SettingsDisplay from '../modals/SettingsDisplay';
 import InfoDisplay from '../modals/InfoDisplay';
 import DebugLoreModal from '../modals/DebugLoreModal';
+import GeminiKeyModal from '../modals/GeminiKeyModal';
 import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
@@ -36,6 +37,7 @@ import { useAutosave } from '../../hooks/useAutosave';
 import { findTravelPath, buildTravelAdjacency, TravelStep, TravelAdjacency } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
 import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
+import { isApiConfigured } from '../../services/apiClient';
 
 
 import {
@@ -145,8 +147,19 @@ function App() {
     debugLoreFacts,
     openDebugLoreModal,
     submitDebugLoreModal,
-    closeDebugLoreModal,
-  } = useAppModals();
+  closeDebugLoreModal,
+} = useAppModals();
+
+  const [geminiKeyVisible, setGeminiKeyVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isApiConfigured()) {
+      setGeminiKeyVisible(true);
+    }
+  }, []);
+
+  const openGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(true); }, []);
+  const closeGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(false); }, []);
 
 
   const gameLogic = useGameLogic({
@@ -881,6 +894,7 @@ function App() {
         onNewGame={handleNewGameFromMenu}
         onOpenInfo={openInfoFromMenu}
         onOpenSettings={openSettingsFromMenu}
+        onOpenGeminiKeyModal={openGeminiKeyModal}
         onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
       />
 
@@ -923,6 +937,11 @@ function App() {
         isVisible={isDebugLoreVisible}
         onClose={closeDebugLoreModal}
         onSubmit={submitDebugLoreModal}
+      />
+
+      <GeminiKeyModal
+        isVisible={geminiKeyVisible}
+        onClose={closeGeminiKeyModal}
       />
 
       {hasGameBeenInitialized && currentTheme ? <AppModals

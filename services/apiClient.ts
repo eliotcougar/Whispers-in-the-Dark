@@ -3,21 +3,32 @@
  * @description Centralized Gemini API key handling and client exposure.
  */
 import { GoogleGenAI } from '@google/genai';
+import { LOCAL_STORAGE_GEMINI_KEY } from '../constants';
 
-/** Cached API key read from environment variables. */
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? process.env.API_KEY;
+let geminiApiKey: string | null = null;
 
-if (!GEMINI_API_KEY) {
+if (typeof localStorage !== 'undefined') {
+  geminiApiKey = localStorage.getItem(LOCAL_STORAGE_GEMINI_KEY);
+}
+
+geminiApiKey ??= process.env.GEMINI_API_KEY ?? process.env.API_KEY ?? null;
+
+if (!geminiApiKey) {
   console.error('GEMINI_API_KEY environment variable is not set. Gemini services will be unavailable.');
 }
 
-/** Shared GoogleGenAI client instance, or null if API key is missing. */
-export const geminiClient: GoogleGenAI | null = GEMINI_API_KEY
-  ? new GoogleGenAI({ apiKey: GEMINI_API_KEY })
+export let geminiClient: GoogleGenAI | null = geminiApiKey
+  ? new GoogleGenAI({ apiKey: geminiApiKey })
   : null;
 
-/** Returns whether the Gemini API key is configured. */
-export const isApiConfigured = (): boolean => !!GEMINI_API_KEY;
+export const isApiConfigured = (): boolean => !!geminiApiKey;
 
-/** Returns the configured API key, or null when absent. */
-export const getApiKey = (): string | null => GEMINI_API_KEY ?? null;
+export const getApiKey = (): string | null => geminiApiKey;
+
+export const setApiKey = (key: string): void => {
+  geminiApiKey = key;
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(LOCAL_STORAGE_GEMINI_KEY, key);
+  }
+  geminiClient = new GoogleGenAI({ apiKey: key });
+};

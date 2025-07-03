@@ -5,6 +5,7 @@
  */
 import { useCallback } from 'react';
 import { CURRENT_GAME_VERSION } from '../../constants';
+import { isApiConfigured } from '../../services/apiClient';
 import AppHeader from '../app/AppHeader';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
@@ -19,6 +20,7 @@ interface TitleMenuProps {
   readonly onLoadGame: () => void;
   readonly onOpenSettings: () => void;
   readonly onOpenInfo: () => void;
+  readonly onOpenGeminiKeyModal?: () => void;
   readonly isGameActive: boolean;
 }
 
@@ -34,6 +36,7 @@ function TitleMenu({
   onLoadGame,
   onOpenSettings,
   onOpenInfo,
+  onOpenGeminiKeyModal,
   isGameActive,
 }: TitleMenuProps) {
 
@@ -77,6 +80,7 @@ function TitleMenu({
           <div className="space-y-3 sm:space-y-3 w-full max-w-xs sm:max-w-sm">
             <Button
               ariaLabel={isGameActive ? 'Start a New Game (Random Shifts, Progress will be lost)' : 'Start a New Game (Random Shifts)'}
+              disabled={!isApiConfigured()}
               label="New Game"
               onClick={onNewGame}
               preset="red"
@@ -85,11 +89,22 @@ function TitleMenu({
 
             <Button
               ariaLabel={isGameActive ? 'Start a Custom Game (Choose Theme, No Random Shifts, Progress will be lost)' : 'Start a Custom Game (Choose Theme, No Random Shifts)'}
+              disabled={!isApiConfigured()}
               label="Custom Game"
               onClick={onCustomGame}
               preset="orange"
               size="lg"
             />
+
+            {!isApiConfigured() ? (
+              <Button
+                ariaLabel="Set Gemini API key"
+                label="Set Gemini Key"
+                onClick={onOpenGeminiKeyModal}
+                preset="indigo"
+                size="lg"
+              />
+            ) : null}
 
             {isGameActive && onSaveGame ? (
               <Button
@@ -146,6 +161,6 @@ function TitleMenu({
   );
 }
 
-TitleMenu.defaultProps = { onSaveGame: undefined };
+TitleMenu.defaultProps = { onSaveGame: undefined, onOpenGeminiKeyModal: undefined };
 
 export default TitleMenu;
