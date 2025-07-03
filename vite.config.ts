@@ -15,8 +15,8 @@ export default defineConfig(({ mode }: { mode: string }) => {
     plugins: [svgr()],
     base: "/Whispers-in-the-Dark/",
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KE),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KE),
     },
     resolve: {
       alias: {
