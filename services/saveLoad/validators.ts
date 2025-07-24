@@ -19,6 +19,9 @@ import {
   MapNodeData,
   DialogueSummaryRecord,
   ThemeFact,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
 } from '../../types';
 import {
   CURRENT_SAVE_GAME_VERSION,
@@ -132,6 +135,45 @@ export function isValidThemeFact(fact: unknown): fact is ThemeFact {
     typeof maybe.themeName === 'string' &&
     typeof maybe.createdTurn === 'number' &&
     typeof maybe.tier === 'number'
+  );
+}
+
+export function isValidWorldFacts(data: unknown): data is WorldFacts {
+  if (!data || typeof data !== 'object') return false;
+  const maybe = data as Partial<WorldFacts> & Record<string, unknown>;
+  return (
+    typeof maybe.geography === 'string' &&
+    typeof maybe.climate === 'string' &&
+    typeof maybe.technologyLevel === 'string' &&
+    typeof maybe.supernaturalElements === 'string' &&
+    Array.isArray(maybe.majorFactions) && maybe.majorFactions.every((v: unknown) => typeof v === 'string') &&
+    Array.isArray(maybe.keyResources) && maybe.keyResources.every((v: unknown) => typeof v === 'string') &&
+    Array.isArray(maybe.culturalNotes) && maybe.culturalNotes.every((v: unknown) => typeof v === 'string') &&
+    Array.isArray(maybe.notableLocations) && maybe.notableLocations.every((v: unknown) => typeof v === 'string')
+  );
+}
+
+export function isValidHeroSheet(data: unknown): data is HeroSheet {
+  if (!data || typeof data !== 'object') return false;
+  const maybe = data as Partial<HeroSheet> & Record<string, unknown>;
+  return (
+    typeof maybe.name === 'string' &&
+    typeof maybe.occupation === 'string' &&
+    Array.isArray(maybe.traits) && maybe.traits.every((v: unknown) => typeof v === 'string') &&
+    Array.isArray(maybe.startingItems) && maybe.startingItems.every((v: unknown) => typeof v === 'string')
+  );
+}
+
+export function isValidHeroBackstory(data: unknown): data is HeroBackstory {
+  if (!data || typeof data !== 'object') return false;
+  const maybe = data as Partial<HeroBackstory> & Record<string, unknown>;
+  return (
+    typeof maybe.fiveYearsAgo === 'string' &&
+    typeof maybe.oneYearAgo === 'string' &&
+    typeof maybe.sixMonthsAgo === 'string' &&
+    typeof maybe.oneMonthAgo === 'string' &&
+    typeof maybe.oneWeekAgo === 'string' &&
+    typeof maybe.yesterday === 'string'
   );
 }
 
@@ -268,7 +310,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
 
   const fields: Array<keyof SavedGameDataShape> = [
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
-    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeHistory', 'themeFacts',
+    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeHistory', 'themeFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
     'pendingNewThemeNameAfterShift',
     'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
@@ -289,12 +331,18 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
         'currentMapNodeId',
         'destinationNodeId',
         'themeFacts',
+        'worldFacts',
+        'heroSheet',
+        'heroBackstory',
       ];
       if (
         !(nullableFields.includes(field) && obj[field] === null) &&
         field !== 'isCustomGameMode' &&
         field !== 'globalTurnNumber' &&
-        field !== 'themeFacts'
+        field !== 'themeFacts' &&
+        field !== 'worldFacts' &&
+        field !== 'heroSheet' &&
+        field !== 'heroBackstory'
       ) {
         console.warn(`Invalid save data (V3): Missing field '${field}'.`); return false;
       }
@@ -327,6 +375,18 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   }
   if (Array.isArray(obj.themeFacts) && !obj.themeFacts.every(isValidThemeFact)) {
     console.warn('Invalid save data (V5): themeFacts structure.');
+    return false;
+  }
+  if (obj.worldFacts !== null && obj.worldFacts !== undefined && !isValidWorldFacts(obj.worldFacts)) {
+    console.warn('Invalid save data (V5): worldFacts structure.');
+    return false;
+  }
+  if (obj.heroSheet !== null && obj.heroSheet !== undefined && !isValidHeroSheet(obj.heroSheet)) {
+    console.warn('Invalid save data (V5): heroSheet structure.');
+    return false;
+  }
+  if (obj.heroBackstory !== null && obj.heroBackstory !== undefined && !isValidHeroBackstory(obj.heroBackstory)) {
+    console.warn('Invalid save data (V5): heroBackstory structure.');
     return false;
   }
   if (obj.pendingNewThemeNameAfterShift !== null && typeof obj.pendingNewThemeNameAfterShift !== 'string') { console.warn('Invalid save data (V3): pendingNewThemeNameAfterShift type.'); return false; }
@@ -430,6 +490,15 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
   data.mapViewBox = typeof data.mapViewBox === 'string' ? data.mapViewBox : DEFAULT_VIEWBOX;
   if (!Array.isArray(data.themeFacts)) {
     data.themeFacts = [];
+  }
+  if (!data.worldFacts || !isValidWorldFacts(data.worldFacts)) {
+    data.worldFacts = null;
+  }
+  if (!data.heroSheet || !isValidHeroSheet(data.heroSheet)) {
+    data.heroSheet = null;
+  }
+  if (!data.heroBackstory || !isValidHeroBackstory(data.heroBackstory)) {
+    data.heroBackstory = null;
   }
   if (!Array.isArray(data.playerJournal)) {
     data.playerJournal = [];

@@ -30,6 +30,7 @@ import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
 import { repairFeatureHierarchy } from '../utils/mapHierarchyUpgradeUtils';
 import { clearAllImages } from '../services/imageDb';
+import { generateWorldData } from '../services/worldData';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
@@ -194,6 +195,11 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.currentThemeName = themeObjToLoad.name;
       draftState.currentThemeObject = themeObjToLoad;
       draftState.turnsSinceLastShift = 0;
+
+      const worldData = await generateWorldData(themeObjToLoad, playerGenderProp);
+      draftState.worldFacts = worldData?.worldFacts ?? null;
+      draftState.heroSheet = worldData?.heroSheet ?? null;
+      draftState.heroBackstory = worldData?.heroBackstory ?? null;
 
       if (isTransitioningFromShift) {
         const previousState = getCurrentGameState();

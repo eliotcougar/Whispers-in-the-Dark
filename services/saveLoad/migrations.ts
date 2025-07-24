@@ -146,6 +146,9 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     globalTurnNumber: gameState.globalTurnNumber,
     isCustomGameMode: gameState.isCustomGameMode,
     themeFacts: gameState.themeFacts,
+    worldFacts: gameState.worldFacts,
+    heroSheet: gameState.heroSheet,
+    heroBackstory: gameState.heroBackstory,
   };
   return savedData;
 };
@@ -186,6 +189,9 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     isCustomGameMode: savedData.isCustomGameMode,
     globalTurnNumber: savedData.globalTurnNumber,
     themeFacts: savedData.themeFacts,
+    worldFacts: savedData.worldFacts,
+    heroSheet: savedData.heroSheet,
+    heroBackstory: savedData.heroBackstory,
     debugLore: false,
     debugGoodFacts: [],
     debugBadFacts: [],
