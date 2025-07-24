@@ -80,6 +80,7 @@ Select the ten most important facts for the upcoming story turn.
 export const DISTILL_SYSTEM_INSTRUCTION = `You are the Loremaster refining and pruning accumulated facts.
 1. Look for statements that describe the same idea and merge them into a single, more specific fact. Keep the length of the merged fact under 200 words. Split any fact longer than 200 words into two non-overlapping facts.
 Increase the tier of the merged fact by one.
+When merging, combine the entity IDs from all merged facts into a single set with no duplicates.
 
 2. Prune facts that reference obsolete or irrelevant details, such as:
 - places that no longer exist;

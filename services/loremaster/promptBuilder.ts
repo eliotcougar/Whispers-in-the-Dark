@@ -85,7 +85,10 @@ export const buildDistillFactsPrompt = (
   mapNodeNames: Array<string>,
 ): string => {
   const factLines = facts
-    .map(f => `- ID ${String(f.id)}: "${f.text}" (Tier ${String(f.tier)})`)
+    .map(
+      f =>
+        `- ID ${String(f.id)}: "${f.text}" [${f.entities.join(', ')}] (Tier ${String(f.tier)})`,
+    )
     .join('\n');
   const inventoryLines = inventoryItemNames
     .map(name => `- ${name}`)
