@@ -117,19 +117,19 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
         type: 'object',
         properties: {
           action: { enum: ['add', 'change', 'delete'] },
-          id: { type: 'integer', description: "Required for *change* and *delete* actions." },
           fact: {
             type: 'object',
             description: 'REQUIRED for the *add* and *change* actions. Omitted for the *delete* action.',
             properties: {
-              text: { type: 'string', description: 'REQUIRED for the *add* and *change* actions.' },
               entities: { type: 'array', items: { type: 'string' } },
+              text: { type: 'string', description: 'REQUIRED for the *add* and *change* actions.' },
               tier: { type: 'integer', description: 'Omit tier for *add* action. Increase tier by one for *change* action, when any number of other facts are merged into this one.', default: 1 },
             },
             propertyOrdering: ['entities', 'text', 'tier'],
             required: ['entities', 'text'],
             additionalProperties: false,
           },
+          id: { type: 'integer', description: "Required for *change* and *delete* actions." }
         },
         propertyOrdering: ['action', 'fact', 'id'],
         required: ['action'],

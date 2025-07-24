@@ -86,4 +86,34 @@ When merging, combine the entity IDs from all merged facts into a single set wit
 - places that no longer exist;
 - items that no longer exist;
 - old quest and objective that is different from the current quest and objective.
+
+## Examples:
+"factsChange": [
+    {
+        "action": "delete",
+        "id": 13
+    },
+    {
+        "action": "add",
+        "fact": {
+        "entities": [
+            "node_Whisperwood_Jungle_38ax"
+        ],
+        "text": "The Whisperwood Jungle is a colossal green wall of ancient trees and tangled vines, characterized by oppressive humidity in its undergrowth and a high canopy with gaps allowing sunlight to filter through. It resonates with exotic bird calls and the distant roar of vast, unseen creatures."
+        }
+    },
+    {
+        "action": "change",
+        "fact": {
+        "entities": [
+            "node_Whisperwood_Jungle_38ax",
+            "node_Jagged_Peaks_44re",
+            "item_Ancient_Map_Fragment_mjdl"
+        ],
+        "text": "From the current location within the Whisperwood Jungle, the colossal green wall appears to stretch limitlessly to the north. To the east, a dip in the terrain suggests a watercourse, while a lone, massive flowering tree with vibrant red blossoms is visible to the south. To the west, a distant jagged peak is discernible, matching a feature marked on the Ancient Map Fragment.",
+        "tier": 2
+        },
+        "id": 3
+    }
+]
 `;
