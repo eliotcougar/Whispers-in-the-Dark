@@ -52,57 +52,50 @@ export const INVENTORY_JSON_SCHEMA = {
       minLength: 500,
       description: 'Reasoning behind the inventory changes.',
     },
-    create: {
+    addDetails: {
       type: 'array',
-      description: `New items to create, taken exactly from the provided New Items JSON`,
+      description: 'Add new knownUses, chapters, or tags to an existing item.',
       items: {
         type: 'object',
         properties: {
-          name: { type: 'string', description: 'Item name as it will appear to the player.' },
-          type: { enum: VALID_ITEM_TYPES, description: `Item type. One of ${VALID_ITEM_TYPES_STRING}` },
-          description: { type: 'string', description: 'Concise explanation of what the item is.' },
-          activeDescription: { type: 'string', description: 'Description when item is active.' },
-          isActive: { type: 'boolean', description: 'True if the item is active.' },
-          holderId: {
-            type: 'string',
-            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*', depending on Item Hints.`,
-          },
-          tags: {
-            type: 'array',
-            items: { enum: [...COMMON_TAGS,...WRITING_TAGS] },
-            description: `Example tags: ${COMMON_TAGS_STRING}, 'book', 'page', 'map', and 'picture' type items require one of ${TEXT_STYLE_TAGS_STRING} and optionally ${TEXT_MOD_TAGS_STRING}.`,
-          },
           chapters: {
             type: 'array',
-            description: `For type page, map, or picture - exactly one chapter. For type book - between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.`,
             items: {
               type: 'object',
               properties: {
-                heading: { type: 'string', description: 'Short heading for the chapter.' },
-                description: { type: 'string', description: 'Detailed abstract of the chapter contents.' },
-                contentLength: { type: 'number', minimum: 50, maximum: 500, description: 'Approximate length in words.' },
+                contentLength: { type: 'number', minimum: 50, maximum: 500 },
+                description: { type: 'string' },
+                heading: { type: 'string' },
               },
-              required: ['heading', 'description', 'contentLength'],
+              required: ['contentLength', 'description', 'heading'],
               additionalProperties: false,
             },
           },
+          id: { type: 'string', description: 'ID of the item like item_* .' },
           knownUses: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                actionName: { type: 'string', description: 'Name of the use action.' },
-                promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
-                description: { type: 'string', description: 'Tooltip hint for this use.' },
-                appliesWhenActive: { type: 'boolean', description: 'Use is available when item is active.' },
-                appliesWhenInactive: { type: 'boolean', description: 'Use is available when item is inactive.' },
+                actionName: { type: 'string' },
+                appliesWhenActive: { type: 'boolean' },
+                appliesWhenInactive: { type: 'boolean' },
+                description: { type: 'string' },
+                promptEffect: { type: 'string' },
               },
-              required: ['actionName', 'promptEffect', 'description'],
+              required: ['actionName', 'description', 'promptEffect'],
               additionalProperties: false,
             },
           },
+          name: { type: 'string', description: 'Name of the item.' },
+          tags: {
+            type: 'array',
+            items: { enum: [...COMMON_TAGS, 'restored'] },
+            description:
+              `Updated tags. Written items can receive 'recovered' tag if translated, decoded, or restored.`,
+          },
         },
-        required: ['name', 'type', 'description', 'holderId', 'tags'],
+        required: ['id', 'name'],
         additionalProperties: false,
       },
     },
@@ -112,34 +105,98 @@ export const INVENTORY_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'string', description: 'Identifier of the item to change.' },
-          name: { type: 'string', description: 'Current item name.' },
-          newName: { type: 'string', description: 'Updated name if changed.' },
-          type: { enum: VALID_ITEM_TYPES, description: `Updated type if changed. One of ${VALID_ITEM_TYPES_STRING}.` },
-          description: { type: 'string', description: 'Updated description if changed.' },
           activeDescription: { type: 'string', description: 'Updated active description.' },
+          description: { type: 'string', description: 'Updated description if changed.' },
+          id: { type: 'string', description: 'Identifier of the item to change.' },
           isActive: { type: 'boolean', description: 'Updated active state.' },
-          tags: {
-            type: 'array',
-            items: { enum: COMMON_TAGS },
-            description: `Updated tags.`,
-          },
           knownUses: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
                 actionName: { type: 'string' },
-                promptEffect: { type: 'string' },
-                description: { type: 'string' },
                 appliesWhenActive: { type: 'boolean' },
                 appliesWhenInactive: { type: 'boolean' },
+                description: { type: 'string' },
+                promptEffect: { type: 'string' },
               },
-              required: ['actionName', 'promptEffect', 'description'],
+              required: ['actionName', 'description', 'promptEffect'],
               additionalProperties: false,
             },
-          }
+          },
+          name: { type: 'string', description: 'Current item name.' },
+          newName: { type: 'string', description: 'Updated name if changed.' },
+          tags: {
+            type: 'array',
+            items: { enum: COMMON_TAGS },
+            description: `Updated tags.`,
+          },
+          type: { enum: VALID_ITEM_TYPES, description: `Updated type if changed. One of ${VALID_ITEM_TYPES_STRING}.` },
         },
+        required: ['id', 'name'],
+        additionalProperties: false,
+      },
+    },
+    create: {
+      type: 'array',
+      description: `New items to create, taken exactly from the provided New Items JSON`,
+      items: {
+        type: 'object',
+        properties: {
+          activeDescription: { type: 'string', description: 'Description when item is active.' },
+          chapters: {
+            type: 'array',
+            description: `For type page, map, or picture - exactly one chapter. For type book - between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.`,
+            items: {
+              type: 'object',
+              properties: {
+                contentLength: { type: 'number', minimum: 50, maximum: 500, description: 'Approximate length in words.' },
+                description: { type: 'string', description: 'Detailed abstract of the chapter contents.' },
+                heading: { type: 'string', description: 'Short heading for the chapter.' },
+              },
+              required: ['contentLength', 'description', 'heading'],
+              additionalProperties: false,
+            },
+          },
+          description: { type: 'string', description: 'Concise explanation of what the item is.' },
+          holderId: {
+            type: 'string',
+            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*', depending on Item Hints.`,
+          },
+          isActive: { type: 'boolean', description: 'True if the item is active.' },
+          knownUses: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                actionName: { type: 'string', description: 'Name of the use action.' },
+                appliesWhenActive: { type: 'boolean', description: 'Use is available when item is active.' },
+                appliesWhenInactive: { type: 'boolean', description: 'Use is available when item is inactive.' },
+                description: { type: 'string', description: 'Tooltip hint for this use.' },
+                promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
+              },
+              required: ['actionName', 'description', 'promptEffect'],
+              additionalProperties: false,
+            },
+          },
+          name: { type: 'string', description: 'Item name as it will appear to the player.' },
+          tags: {
+            type: 'array',
+            items: { enum: [...COMMON_TAGS,...WRITING_TAGS] },
+            description: `Example tags: ${COMMON_TAGS_STRING}, 'book', 'page', 'map', and 'picture' type items require one of ${TEXT_STYLE_TAGS_STRING} and optionally ${TEXT_MOD_TAGS_STRING}.`,
+          },
+          type: { enum: VALID_ITEM_TYPES, description: `Item type. One of ${VALID_ITEM_TYPES_STRING}` },
+        },
+        required: ['name', 'type', 'description', 'holderId', 'tags'],
+        additionalProperties: false,
+      },
+    },
+    destroy: {
+      type: 'array',
+      description: 'Remove items from the world.',
+      items: {
+        type: 'object',
+        properties: { id: { type: 'string' }, name: { type: 'string' } },
         required: ['id', 'name'],
         additionalProperties: false,
       },
@@ -161,67 +218,17 @@ export const INVENTORY_JSON_SCHEMA = {
         additionalProperties: false,
       },
     },
-    destroy: {
-      type: 'array',
-      description: 'Remove items from the world.',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' },
-          name: { type: 'string' },
-        },
-        required: ['id', 'name'],
-        additionalProperties: false,
-      },
-    },
-    addDetails: {
-      type: 'array',
-      description: 'Add new knownUses, chapters, or tags to an existing item.',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', description: 'ID of the item like item_* .' },
-          name: { type: 'string', description: 'Name of the item.' },
-          tags: {
-            type: 'array',
-            items: { enum: [...COMMON_TAGS, 'restored'] },
-            description: `Updated tags. Written items can receive 'recovered' tag if translated, decoded, or restored.`,
-          },
-          knownUses: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                actionName: { type: 'string' },
-                promptEffect: { type: 'string' },
-                description: { type: 'string' },
-                appliesWhenActive: { type: 'boolean' },
-                appliesWhenInactive: { type: 'boolean' },
-              },
-              required: ['actionName', 'promptEffect', 'description'],
-              additionalProperties: false,
-            },
-          },
-          chapters: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                heading: { type: 'string' },
-                description: { type: 'string' },
-                contentLength: { type: 'number', minimum: 50, maximum: 500 },
-              },
-              required: ['heading', 'description', 'contentLength'],
-              additionalProperties: false,
-            },
-          },
-        },
-        required: ['id', 'name'],
-        additionalProperties: false,
-      },
-    },
   },
   required: ['observations', 'rationale'],
+  propertyOrdering: [
+    'observations',
+    'rationale',
+    'addDetails',
+    'change',
+    'create',
+    'destroy',
+    'move',
+  ],
   additionalProperties: false,
 } as const;
 

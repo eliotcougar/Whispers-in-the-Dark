@@ -91,6 +91,7 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
     }
   },
   required: ['observations', 'rationale', 'factsChange'],
+  propertyOrdering: ['observations', 'rationale', 'factsChange'],
   additionalProperties: false,
 } as const;
 
@@ -132,6 +133,7 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
     }
   },
   required: ['observations', 'rationale', 'factsChange'],
+  propertyOrdering: ['observations', 'rationale', 'factsChange'],
   additionalProperties: false,
 } as const;
 

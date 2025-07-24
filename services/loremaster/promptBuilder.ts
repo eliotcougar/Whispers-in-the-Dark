@@ -14,7 +14,7 @@ export const buildExtractFactsPrompt = (
 ${turnContext}
 
 List immutable facts according to your instructions. Return JSON as:
-[{"text": "fact", "entities": ["id1", "id2"]}]
+[{"entities": ["id1", "id2"], "text": "fact"}]
 `;
 };
 

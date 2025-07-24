@@ -202,14 +202,14 @@ export const STORYTELLER_JSON_SCHEMA = {
             items: {
               type: 'object',
               properties: {
-                heading: { type: 'string', description: 'Short heading for the chapter.' },
+                contentLength: { type: 'number', minLength: 50, maxLength: 500, description: 'Approximate length in words.' },
                 description: {
                   type: 'string',
                   description: 'Detailed abstract of the chapter contents.',
                 },
-                contentLength: { type: 'number', minLength: 50, maxLength: 500, description: 'Approximate length in words.' },
+                heading: { type: 'string', description: 'Short heading for the chapter.' },
               },
-              required: ['heading', 'description', 'contentLength'],
+              required: ['contentLength', 'description', 'heading'],
               additionalProperties: false,
             },
           },
@@ -220,12 +220,12 @@ export const STORYTELLER_JSON_SCHEMA = {
               type: 'object',
               properties: {
                 actionName: { type: 'string', description: 'Name of the use action.' },
-                promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
-                description: { type: 'string', description: 'Tooltip hint for this use.' },
                 appliesWhenActive: { type: 'boolean', description: 'Use is available when item is active.' },
                 appliesWhenInactive: { type: 'boolean', description: 'Use is available when item is inactive.' },
+                description: { type: 'string', description: 'Tooltip hint for this use.' },
+                promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
               },
-              required: ['actionName', 'promptEffect', 'description'],
+              required: ['actionName', 'description', 'promptEffect'],
               additionalProperties: false,
             },
           },

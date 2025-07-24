@@ -61,11 +61,11 @@ Context:
 
 Respond ONLY in JSON format with the following structure:
 {
-  "description": "string (A detailed, engaging description fitting the scene and theme. MUST be non-empty.)",
   "aliases": ["string"],
-  "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING},
+  "description": "string (A detailed, engaging description fitting the scene and theme. MUST be non-empty.)",
   "lastKnownLocation": "string | null",
-  "preciseLocation": "string | null"
+  "preciseLocation": "string | null",
+  "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}
 }
 
 Constraints:

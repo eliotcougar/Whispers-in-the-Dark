@@ -42,26 +42,25 @@ playerItemsHint: "Picked up Old Lantern."
 newItems:
 [
   {
-    "name": "Old Lantern",
-    "type": "equipment",
-    "description": "A dusty old lantern that still flickers faintly.",
     "activeDescription": "The lantern is lit and casts a warm glow.",
+    "description": "A dusty old lantern that still flickers faintly.",
     "isActive": false,
-    "knownUses":
-    [
+    "knownUses": [
       {
         "actionName": "Light the Lantern",
-        "promptEffect": "Light the lantern to illuminate the area.",
+        "appliesWhenInactive": true,
         "description": "Use this to light your way in dark places.",
-        "appliesWhenInactive": true
+        "promptEffect": "Light the lantern to illuminate the area."
       },
       {
         "actionName": "Extinguish the Lantern",
-        "promptEffect": "Extinguish the lantern.",
+        "appliesWhenActive": true,
         "description": "Extinguish the lantern and conserve fuel.",
-        "appliesWhenActive": true
+        "promptEffect": "Extinguish the lantern."
       }
-    ]
+    ],
+    "name": "Old Lantern",
+    "type": "equipment"
   }
 ]
 
@@ -70,10 +69,10 @@ npcItemsHint: "Guard now carries a Rusty Key."
 newItems:
 [
   {
-    "name": "Rusty Key",
-    "type": "key",
     "description": "A key for the armory door.",
-    "holderId": "npc_guard_4f3a"
+    "holderId": "npc_guard_4f3a",
+    "name": "Rusty Key",
+    "type": "key"
   }
 ]
 
@@ -82,19 +81,19 @@ playerItemsHint: "Found Smudged Note."
 newItems:
 [
   {
-    "name": "Smudged Note",
-    "type": "page",
-    "description": "A hastily scribbled message with a big smudge over it.",
-    "tags": ["typed", "smudged"],
-    "holderId": "player",
     "chapters": /* REQUIRED, because the type is 'page' */
     [ /* Only one chapter, because the type is 'page' */
       {
-        "heading": "string",
+        "contentLength": 50,
         "description": "A hastily scribbled message about the dangers of the sunken tunnel.",
-        "contentLength": 50
+        "heading": "string"
       }
-    ]
+    ],
+    "description": "A hastily scribbled message with a big smudge over it.",
+    "holderId": "player",
+    "name": "Smudged Note",
+    "tags": ["typed", "smudged"],
+    "type": "page"
   }
 ]
 
@@ -103,34 +102,34 @@ playerItemsHint: "Obtained the Explorer's Adventures."
 newItems:
 [
   {
-    "name": "Explorer's Adventures",
-    "type": "book",
-    "description": "Weathered log of travels.",
-    "holderId": "player",
-    "tags": ["handwritten", "faded"],
     "chapters": /* REQUIRED, because the type is 'book' */
     [ /* Multiple chapters because the type it 'book' */
       {
-        "heading": "Preface",
+        "contentLength": 53,
         "description": "Introduction. Written by the author, explaining his decisions to start his travels.",
-        "contentLength": 53
+        "heading": "Preface"
       },
       {
-        "heading": "Journey One",
+        "contentLength": 246,
         "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",
-        "contentLength": 246 
+        "heading": "Journey One"
       },
       {
-        "heading": "Journey Two",
-        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
-        "contentLength": 312 
+        "contentLength": 312,
+        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis",
+        "heading": "Journey Two"
       },
       {
-        "heading": "Final Thoughts",
-        "description": "The author's contemplation about whether the journeys were worth it", 
-        "contentLength": 98 
+        "contentLength": 98,
+        "description": "The author's contemplation about whether the journeys were worth it",
+        "heading": "Final Thoughts"
       }
-    ]
+    ],
+    "description": "Weathered log of travels.",
+    "holderId": "player",
+    "name": "Explorer's Adventures",
+    "tags": ["handwritten", "faded"],
+    "type": "book"
   }]
 
 - Example for losing, destroying, completely removing the item:
