@@ -329,6 +329,33 @@ export interface LoreRefinementResult {
   rationale?: string;
 }
 
+export interface WorldFacts {
+  geography: string;
+  climate: string;
+  technologyLevel: string;
+  supernaturalElements: string;
+  majorFactions: Array<string>;
+  keyResources: Array<string>;
+  culturalNotes: Array<string>;
+  notableLocations: Array<string>;
+}
+
+export interface HeroSheet {
+  name: string;
+  occupation: string;
+  traits: Array<string>;
+  startingItems: Array<string>;
+}
+
+export interface HeroBackstory {
+  fiveYearsAgo: string;
+  oneYearAgo: string;
+  sixMonthsAgo: string;
+  oneMonthAgo: string;
+  oneWeekAgo: string;
+  yesterday: string;
+}
+
 export interface LoremasterModeDebugInfo {
   prompt: string;
   rawResponse?: string;
@@ -561,6 +588,9 @@ export interface FullGameState {
   lastActionLog: string | null;
   themeHistory: ThemeHistoryState;
   themeFacts: Array<ThemeFact>;
+  worldFacts: WorldFacts | null;
+  heroSheet: HeroSheet | null;
+  heroBackstory: HeroBackstory | null;
   pendingNewThemeNameAfterShift: string | null;
   allNPCs: Array<NPC>;
   mapData: MapData; // Single source of truth for map/location data
@@ -613,6 +643,9 @@ export type SavedGameDataShape = Pick<
   | 'lastActionLog'
   | 'themeHistory'
   | 'themeFacts'
+  | 'worldFacts'
+  | 'heroSheet'
+  | 'heroBackstory'
   | 'pendingNewThemeNameAfterShift'
   | 'allNPCs'
   | 'mapData'
