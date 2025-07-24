@@ -39,6 +39,11 @@ import { parseAIResponse } from '../storyteller/responseParser';
 export const DIALOGUE_TURN_JSON_SCHEMA = {
   type: 'object',
   properties: {
+    dialogueEnds: {
+      type: 'boolean',
+      description:
+        'Set true when the NPCs indicate the conversation is over or naturally concludes.',
+    },
     npcResponses: {
       type: 'array',
       minItems: 1,
@@ -47,8 +52,8 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          speaker: { type: 'string' },
           line: { type: 'string' },
+          speaker: { type: 'string' },
         },
         required: ['speaker', 'line'],
         additionalProperties: false,
@@ -61,11 +66,6 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
       description:
         'Possible player replies. The last option must politely or firmly end the conversation.',
       items: { type: 'string' },
-    },
-    dialogueEnds: {
-      type: 'boolean',
-      description:
-        'Set true when the NPCs indicate the conversation is over or naturally concludes.',
     },
     updatedParticipants: {
       type: 'array',

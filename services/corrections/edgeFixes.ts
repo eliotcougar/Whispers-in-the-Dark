@@ -147,12 +147,34 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
     observations: {
       type: "string",
       minLength: 1500,
-      description: "Contextually relevant observations about the chains and map graph."
+      description: "Contextually relevant observations about the chains and map graph.",
     },
     rationale: {
       type: "string",
       minLength: 1000,
-      description: "Explain the reasoning behind your chain fixes and refinement suggestions."
+      description: "Explain the reasoning behind your chain fixes and refinement suggestions.",
+    },
+    edgesToAdd: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          data: {
+            type: "object",
+            properties: {
+              description: { type: "string", minLength: 30, description: EDGE_DESCRIPTION_INSTRUCTION },
+              status: { enum: VALID_EDGE_STATUS_VALUES },
+              type: { enum: VALID_EDGE_TYPE_VALUES },
+            },
+            required: ["description", "status", "type"],
+            additionalProperties: false,
+          },
+          sourcePlaceName: { type: "string", description: "Name of the source feature node. MUST be a feature type node." },
+          targetPlaceName: { type: "string", description: "Name of the target feature node. MUST be a feature type node." },
+        },
+        required: ["data", "sourcePlaceName", "targetPlaceName"],
+        additionalProperties: false,
+      },
     },
     nodesToAdd: {
       type: "array",
@@ -165,22 +187,23 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
           data: {
             type: "object",
             properties: {
-              description: { type: "string", minLength: 30, description: NODE_DESCRIPTION_INSTRUCTION },
               aliases: {
                 type: "array",
                 description: ALIAS_INSTRUCTION,
                 minItems: 2,
-                items: { type: "string" } },
-              status: { enum: VALID_NODE_STATUS_VALUES },
+                items: { type: "string" },
+              },
+              description: { type: "string", minLength: 30, description: NODE_DESCRIPTION_INSTRUCTION },
               nodeType: { enum: ["feature"] },
               parentNodeId: { type: "string", description: "Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent" },
+              status: { enum: VALID_NODE_STATUS_VALUES },
             },
             required: [
-              "description",
               "aliases",
-              "status",
+              "description",
               "nodeType",
               "parentNodeId",
+              "status",
             ],
             additionalProperties: false,
           },
@@ -189,30 +212,14 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
         additionalProperties: false,
       },
     },
-    edgesToAdd: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          sourcePlaceName: { type: "string", description: "Name of the source feature node. MUST be a feature type node." },
-          targetPlaceName: { type: "string", description: "Name of the target feature node. MUST be a feature type node." },
-          data: {
-            type: "object",
-            properties: {
-              type: { enum: VALID_EDGE_TYPE_VALUES },
-              status: { enum: VALID_EDGE_STATUS_VALUES },
-              description: { type: "string", minLength: 30, description: EDGE_DESCRIPTION_INSTRUCTION},
-            },
-            required: ["type", "status", "description"],
-            additionalProperties: false,
-          },
-        },
-        required: ["sourcePlaceName", "targetPlaceName", "data"],
-        additionalProperties: false,
-      },
-    },
   },
-  required: ["observations", "rationale", "nodesToAdd", "edgesToAdd"],
+  required: ["observations", "rationale", "edgesToAdd", "nodesToAdd"],
+  propertyOrdering: [
+    "observations",
+    "rationale",
+    "edgesToAdd",
+    "nodesToAdd",
+  ],
   additionalProperties: false,
 } as const;
 

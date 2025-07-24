@@ -148,9 +148,9 @@ ${malformedMapNodePayloadString}
 
 Required JSON Structure for corrected map location details:
 {
-  "name": "string",
+  "aliases": ["string"], // ${ALIAS_INSTRUCTION}
   "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
-  "aliases": ["string"] // ${ALIAS_INSTRUCTION}
+  "name": "string"
 }
 
 Respond ONLY with the single, complete, corrected JSON object.`;
@@ -224,9 +224,9 @@ Map Location Name to Detail: "${mapNodePlaceName}"
 
 Required JSON Structure:
 {
-  "name": "${mapNodePlaceName}",
+  "aliases": ["string"], // ${ALIAS_INSTRUCTION}
   "description": "string", // ${NODE_DESCRIPTION_INSTRUCTION}
-  "aliases": ["string"] // ${ALIAS_INSTRUCTION}
+  "name": "${mapNodePlaceName}"
 }
 
 Respond ONLY with the single, complete JSON object.`;

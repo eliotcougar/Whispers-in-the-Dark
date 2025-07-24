@@ -67,9 +67,9 @@ Narrative Context:
 
 Required JSON Structure for corrected 'dialogueSetup':
 {
-  "participants": ["NPC Name 1", "NPC Name 2"?],
   "initialNpcResponses": [{ "speaker": "NPCr Name 1", "line": "Their first line." }],
-  "initialPlayerOptions": []
+  "initialPlayerOptions": [],
+  "participants": ["NPC Name 1", "NPC Name 2"?]
 }
 
 Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup'.`;
@@ -134,9 +134,9 @@ Valid Participant Names: [${participantList}]
 
 Required JSON Structure:
 {
+  "dialogueEnds": boolean?,
   "npcResponses": [{ "speaker": "Name", "line": "text" }],
   "playerOptions": ["text"],
-  "dialogueEnds": boolean?,
   "updatedParticipants": ["Name"]?
 }
 

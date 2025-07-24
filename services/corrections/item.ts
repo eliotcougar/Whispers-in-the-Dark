@@ -61,23 +61,23 @@ export const fetchCorrectedItemPayload_Service = async (
 `;
 
   const baseItemStructureForPrompt = `{
-  "name": "string",
-  "type": "(${VALID_ITEM_TYPES_STRING})",
-  "description": "string",
   "activeDescription?": "string",
-  "holderId": "string",
-  "isActive?": boolean,
-  "tags?": ["junk"],
+  "addKnownUse?": { },
   "chapters"?: [
-    { 
-      "heading": "string",
+    {
+      "contentLength": number /* Range: 50-500 */,
       "description": "string",
-      "contentLength": number /* Range: 50-500 */
+      "heading": "string"
     }
   ]
+  "description": "string",
+  "holderId": "string",
+  "isActive?": boolean,
   "knownUses?": [ ],
+  "name": "string",
   "newName?": "string",
-  "addKnownUse?": { }
+  "tags?": ["junk"],
+  "type": "(${VALID_ITEM_TYPES_STRING})"
 }`;
 
   let itemContextDescription = '';

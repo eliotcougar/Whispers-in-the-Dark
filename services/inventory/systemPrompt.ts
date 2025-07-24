@@ -32,26 +32,26 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 {
   "create": [
     {
-      "name": "Old Lantern",
-      "type": "equipment",
+      "activeDescription": "The lantern is lit and casts a warm glow.",
       "description": "A dusty old lantern that still flickers faintly.",
       "holderId": "player",
-      "activeDescription": "The lantern is lit and casts a warm glow.",
       "isActive": false,
       "knownUses": [
         {
           "actionName": "Light the Lantern",
-          "promptEffect": "Light the lantern to illuminate the area.",
+          "appliesWhenInactive": true,
           "description": "Use this to light your way in dark places.",
-          "appliesWhenInactive": true
+          "promptEffect": "Light the lantern to illuminate the area."
         },
         {
           "actionName": "Extinguish the Lantern",
-          "promptEffect": "Extinguish the lantern.",
+          "appliesWhenActive": true,
           "description": "Extinguish and conserve the fuel",
-          "appliesWhenActive": true
+          "promptEffect": "Extinguish the lantern."
         }
-      ]
+      ],
+      "name": "Old Lantern",
+      "type": "equipment"
     }
   ]
 }
@@ -59,29 +59,29 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 - Example of gaining a new book item with chapters:
 {
   "action": "create",
-  item: { 
-    "name": "Adventurer's Path",
-    "type": "book",
-    "description": "A personal recollection filled with the adventures of a seasoned explorer.",
-    "holderId": "player",
-    "tags": ["handwritten"],
+  item: {
     "chapters": [
       {
-        "heading": "Chapter 1: The Beginning",
+        "contentLength": 100,
         "description": "The first steps of an adventurer's journey.",
-        "contentLength": 100
+        "heading": "Chapter 1: The Beginning"
       },
       {
-        "heading": "Chapter 2: The Trials",
+        "contentLength": 150,
         "description": "Facing challenges and overcoming obstacles.",
-        "contentLength": 150
+        "heading": "Chapter 2: The Trials"
       },
       {
-        "heading": "Chapter 3: The Triumph",
+        "contentLength": 200,
         "description": "The final victory and lessons learned.",
-        "contentLength": 200
+        "heading": "Chapter 3: The Triumph"
       }
-    ]
+    ],
+    "description": "A personal recollection filled with the adventures of a seasoned explorer.",
+    "holderId": "player",
+    "name": "Adventurer's Path",
+    "tags": ["handwritten"],
+    "type": "book"
   }
 }
 
@@ -133,8 +133,8 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
   "change": [
     {
       "id": "item_plasma_torch_7fr4",
-      "name": "Plasma Torch",
-      "isActive": true
+      "isActive": true,
+      "name": "Plasma Torch"
     }
   ]
 }
@@ -143,19 +143,19 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 { 
   "change": [
     {
-      "id": "item_scrap_metal_7fr4",
-      "name": "Scrap Metal",
-      "newName": "Makeshift Shiv",
-      "type": "weapon",
       "description": "A sharp piece of metal.",
-      "tags": [], /* empty array to remove the 'junk' tag from scrap metal */
+      "id": "item_scrap_metal_7fr4",
       "knownUses": [
         {
           "actionName": "Cut",
-          "promptEffect": "Cut something with the shiv.",
-          "description": "Use this to cut things."
+          "description": "Use this to cut things.",
+          "promptEffect": "Cut something with the shiv."
         }
-      ]
+      ],
+      "name": "Scrap Metal",
+      "newName": "Makeshift Shiv",
+      "tags": [], /* empty array to remove the 'junk' tag from scrap metal */
+      "type": "weapon"
     }
   ]
 }
@@ -164,14 +164,14 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 { 
   "change": [
     {
-      "id": "item_mystic_orb_7fr4",
-      "name": "Mystic Orb",
       "addKnownUse": {
         "actionName": "Peer into the Orb",
-        "promptEffect": "Peer into the Mystic Orb, trying to glimpse the future.",
+        "AppliesWhenActive": true,
         "description": "Try to see the beyond",
-        "AppliesWhenActive": true
-      }
+        "promptEffect": "Peer into the Mystic Orb, trying to glimpse the future."
+      },
+      "id": "item_mystic_orb_7fr4",
+      "name": "Mystic Orb"
     }
   ]
 }
@@ -181,16 +181,16 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 {
   "addDetails": [
     {
-      "id": "item_codex_8g3c",
-      "name": "The Codex of Whispering Echoes",
-      "type": "book",
       "chapters": [
         {
-          "heading": "The Sacrifice of Silence",
+          "contentLength": 120,
           "description": "A grim tale about the price of forbidden knowledge.",
-          "contentLength": 120
+          "heading": "The Sacrifice of Silence"
         }
-      ]
+      ],
+      "id": "item_codex_8g3c",
+      "name": "The Codex of Whispering Echoes",
+      "type": "book"
     }
   ]
 }
