@@ -35,29 +35,56 @@ const STORYTELLER_VALID_TAGS = (VALID_TAGS).filter(
 export const STORYTELLER_JSON_SCHEMA = {
   type: 'object',
   properties: {
-    sceneDescription: {
+    currentMapNodeId: {
       type: 'string',
-      minLength: 500,
-      description:
-        "Description of the scene, taking into account the entirety of the player's current situation and surroundings. Include relevant details the player must be aware of to make informed decisions. This should be an engaging text that sets the stage for the player's next actions.",
+      description: 'Name or ID of the map node the player is currently at.',
     },
-    options: {
-      type: 'array',
-      minItems: MAIN_TURN_OPTIONS_COUNT,
-      maxItems: MAIN_TURN_OPTIONS_COUNT,
-      items: { type: 'string' },
-      description: `Exactly ${String(
-        MAIN_TURN_OPTIONS_COUNT,
-      )} distinct action options for the player to choose to progress in the story, tailored to the context.`,
-    },
-    logMessage: {
+    currentObjective: {
       type: 'string',
       description:
-        "Outcome of the player's previous actions, including any significant events, discoveries, or changes in the scene. This should be a concise narrative that captures the essence of what has happened since the last turn, providing additional context for the current scene.",
+        'Short-term objective reflecting the next immediate task. Provide only when updated.',
     },
-    localTime: {
-      type: 'string',
-      description: `Concise description of current time. e.g. 'Midday', 'Early morning', '12:30'.`,
+    dialogueSetup: {
+      type: 'object',
+      description: 'Initiates dialogue when context suggests a conversation begins.',
+      properties: {
+        initialNpcResponses: {
+          type: 'array',
+          minItems: 1,
+          items: {
+            type: 'object',
+            properties: {
+              line: {
+                type: 'string',
+                description: 'Opening line spoken by the NPC.',
+              },
+              speaker: {
+                type: 'string',
+                description: 'Speaker NPC delivering the line.',
+              },
+            },
+            required: ['speaker', 'line'],
+            additionalProperties: false,
+          },
+        },
+        initialPlayerOptions: {
+          type: 'array',
+          minItems: 4,
+          maxItems: 8,
+          items: { type: 'string' },
+          description:
+            'First-person dialogue choices, last one not necessarily politely, but contextually approprialely ends the conversation.',
+        },
+        participants: {
+          type: 'array',
+          minItems: 1,
+          items: { type: 'string' },
+          description:
+            'NPC names taking part in the conversation, excluding the player.',
+        },
+      },
+      required: ['participants', 'initialNpcResponses', 'initialPlayerOptions'],
+      additionalProperties: false,
     },
     localEnvironment: {
       type: 'string',
@@ -67,100 +94,29 @@ export const STORYTELLER_JSON_SCHEMA = {
       type: 'string',
       description: `Player's specific location in the scene, including the Place Name. e.g. 'Inside the Old Mill, near the quern'.`,
     },
+    localTime: {
+      type: 'string',
+      description: `Concise description of current time. e.g. 'Midday', 'Early morning', '12:30'.`,
+    },
+    logMessage: {
+      type: 'string',
+      description:
+        "Outcome of the player's previous actions, including any significant events, discoveries, or changes in the scene. This should be a concise narrative that captures the essence of what has happened since the last turn, providing additional context for the current scene.",
+    },
     mainQuest: {
       type: 'string',
       description:
         'Long-term goal for the player. Provide only when it changes.',
     },
-    currentObjective: {
+    mapHint: {
       type: 'string',
+      maxLength: 1000,
+      description: 'Short hints about new or changed relevant locations and their connections.',
+    },
+    mapUpdated: {
+      type: 'boolean',
       description:
-        'Short-term objective reflecting the next immediate task. Provide only when updated.',
-    },
-    npcsAdded: {
-      type: 'array',
-      description: 'NPCs introduced this turn.',
-      items: {
-        type: 'object',
-        properties: {
-          name: {
-            type: 'string',
-            description: 'Unique NPC name introduced this turn.',
-          },
-          description: {
-            type: 'string',
-            minLength: 100,
-            description:
-              'Concise NPC description including role, appearance and personality.',
-          },
-          aliases: {
-            type: 'array',
-            items: { type: 'string', minItems: 1, maxItems: 3 },
-            description: ALIAS_INSTRUCTION,
-          },
-          presenceStatus: {
-            enum: VALID_PRESENCE_STATUS_VALUES,
-            description: 'Current relation to the player: companion, nearby or distant.',
-          },
-          lastKnownLocation: {
-            type: 'string',
-            description: 'General location when presenceStatus is distant or unknown.',
-          },
-          preciseLocation: {
-            type: 'string',
-            description: "NPC's exact position in the scene when presenceStatus is nearby or companion.",
-          },
-        },
-        required: [
-          'name',
-          'description',
-          'aliases',
-          'presenceStatus',
-          'lastKnownLocation',
-        ],
-        additionalProperties: false,
-      },
-    },
-    npcsUpdated: {
-      type: 'array',
-      description: 'Updates to existing NPCs.',
-      items: {
-        type: 'object',
-        properties: {
-          name: {
-            type: 'string',
-            description: 'Existing NPC name or ID being updated.',
-          },
-          newDescription: {
-            type: 'string',
-            minLength: 100,
-            description: 'Expanded or revised description for the NPC.',
-          },
-          newAliases: {
-            type: 'array',
-            items: { type: 'string', minItems: 1, maxItems: 3 },
-            description: `${ALIAS_INSTRUCTION} When provided, it replaces all old Aliases for this NPC.`,
-          },
-          addAlias: {
-            type: 'string',
-            description: `${ALIAS_INSTRUCTION} Single alias to append to the NPC record.`,
-          },
-          newPresenceStatus: {
-            enum: VALID_PRESENCE_STATUS_VALUES,
-            description: 'Updated relation to the player or scene.',
-          },
-          newLastKnownLocation: {
-            type: 'string',
-            description: 'Updated general location if the NPC is away.',
-          },
-          newPreciseLocation: {
-            type: 'string',
-            description: 'Updated exact position in the scene, when newPresenceStatus is nearby or companion.',
-          },
-        },
-        required: ['name'],
-        additionalProperties: false,
-      },
+        'Set to true if new locations or changes mean the map might need updating.',
     },
     newItems: {
       type: 'array',
@@ -168,31 +124,9 @@ export const STORYTELLER_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          name: { type: 'string', description: 'Item name as it will appear to the player.' },
-          type: {
-            enum: VALID_ITEM_TYPES,
-            description: `Item type. One of ${VALID_ITEM_TYPES_STRING}`,
-          },
-          description: {
-            type: 'string',
-            description: 'Concise explanation of what the item is.'
-          },
           activeDescription: {
             type: 'string',
             description: 'Optional description shown when the item is active or equipped.',
-          },
-          isActive: {
-            type: 'boolean',
-            description: 'Whether the item is currently active, equipped, worn, or piloted (if vehicle).'
-          },
-          holderId: {
-            type: 'string',
-            description: `ID or Name of the item holder. CAN be NPC, Location, or '${PLAYER_HOLDER_ID}'. CAN NOT be an Item. Use '${PLAYER_HOLDER_ID}' only if it is obvious from the context that the player actually acquired the item.`,
-          },
-          tags: {
-            type: 'array',
-            items: { enum: STORYTELLER_VALID_TAGS },
-            description: `Descriptor tags. For written items such as page, book, map, picture, always supply the text style tag, one of ${TEXT_STYLE_TAGS_STRING}. Assign 'junk' only to unusable items.`,
           },
           chapters: {
             type: 'array',
@@ -213,6 +147,18 @@ export const STORYTELLER_JSON_SCHEMA = {
               additionalProperties: false,
             },
           },
+          description: {
+            type: 'string',
+            description: 'Concise explanation of what the item is.'
+          },
+          holderId: {
+            type: 'string',
+            description: `ID or Name of the item holder. CAN be NPC, Location, or '${PLAYER_HOLDER_ID}'. CAN NOT be an Item. Use '${PLAYER_HOLDER_ID}' only if it is obvious from the context that the player actually acquired the item.`,
+          },
+          isActive: {
+            type: 'boolean',
+            description: 'Whether the item is currently active, equipped, worn, or piloted (if vehicle).'
+          },
           knownUses: {
             type: 'array',
             description: `Optional interactive uses not covered by ${DEDICATED_BUTTON_USES_STRING}.`,
@@ -229,82 +175,136 @@ export const STORYTELLER_JSON_SCHEMA = {
               additionalProperties: false,
             },
           },
+          name: { type: 'string', description: 'Item name as it will appear to the player.' },
+          tags: {
+            type: 'array',
+            items: { enum: STORYTELLER_VALID_TAGS },
+            description: `Descriptor tags. For written items such as page, book, map, picture, always supply the text style tag, one of ${TEXT_STYLE_TAGS_STRING}. Assign 'junk' only to unusable items.`,
+          },
+          type: {
+            enum: VALID_ITEM_TYPES,
+            description: `Item type. One of ${VALID_ITEM_TYPES_STRING}`,
+          },
         },
         required: ['name', 'type', 'description'],
         additionalProperties: false,
       },
     },
-    playerItemsHint: {
-      type: 'string',
-      description: 'Summary of player item gains, losses or state changes.',
-    },
-    worldItemsHint: {
-      type: 'string',
-      description: 'Summary of items discovered or dropped in the world.',
-    },
     npcItemsHint: {
       type: 'string',
       description: 'Summary of items revealed to be carried by NPCs.',
+    },
+    npcsAdded: {
+      type: 'array',
+      description: 'NPCs introduced this turn.',
+      items: {
+        type: 'object',
+        properties: {
+          aliases: {
+            type: 'array',
+            items: { type: 'string', minItems: 1, maxItems: 3 },
+            description: ALIAS_INSTRUCTION,
+          },
+          description: {
+            type: 'string',
+            minLength: 100,
+            description:
+              'Concise NPC description including role, appearance and personality.',
+          },
+          lastKnownLocation: {
+            type: 'string',
+            description: 'General location when presenceStatus is distant or unknown.',
+          },
+          name: {
+            type: 'string',
+            description: 'Unique NPC name introduced this turn.',
+          },
+          preciseLocation: {
+            type: 'string',
+            description: "NPC's exact position in the scene when presenceStatus is nearby or companion.",
+          },
+          presenceStatus: {
+            enum: VALID_PRESENCE_STATUS_VALUES,
+            description: 'Current relation to the player: companion, nearby or distant.',
+          },
+        },
+        required: [
+          'name',
+          'description',
+          'aliases',
+          'presenceStatus',
+          'lastKnownLocation',
+        ],
+        additionalProperties: false,
+      },
+    },
+    npcsUpdated: {
+      type: 'array',
+      description: 'Updates to existing NPCs.',
+      items: {
+        type: 'object',
+        properties: {
+          addAlias: {
+            type: 'string',
+            description: `${ALIAS_INSTRUCTION} Single alias to append to the NPC record.`,
+          },
+          name: {
+            type: 'string',
+            description: 'Existing NPC name or ID being updated.',
+          },
+          newAliases: {
+            type: 'array',
+            items: { type: 'string', minItems: 1, maxItems: 3 },
+            description: `${ALIAS_INSTRUCTION} When provided, it replaces all old Aliases for this NPC.`,
+          },
+          newDescription: {
+            type: 'string',
+            minLength: 100,
+            description: 'Expanded or revised description for the NPC.',
+          },
+          newLastKnownLocation: {
+            type: 'string',
+            description: 'Updated general location if the NPC is away.',
+          },
+          newPreciseLocation: {
+            type: 'string',
+            description: 'Updated exact position in the scene, when newPresenceStatus is nearby or companion.',
+          },
+          newPresenceStatus: {
+            enum: VALID_PRESENCE_STATUS_VALUES,
+            description: 'Updated relation to the player or scene.',
+          },
+        },
+        required: ['name'],
+        additionalProperties: false,
+      },
     },
     objectiveAchieved: {
       type: 'boolean',
       description: 'True when the current objective was successfully completed this turn.',
     },
-    dialogueSetup: {
-      type: 'object',
-      description: 'Initiates dialogue when context suggests a conversation begins.',
-      properties: {
-        participants: {
-          type: 'array',
-          minItems: 1,
-          items: { type: 'string' },
-          description:
-            'NPC names taking part in the conversation, excluding the player.',
-        },
-        initialNpcResponses: {
-          type: 'array',
-          minItems: 1,
-          items: {
-            type: 'object',
-            properties: {
-              speaker: {
-                type: 'string',
-                description: 'Speaker NPC delivering the line.',
-              },
-              line: {
-                type: 'string',
-                description: 'Opening line spoken by the NPC.',
-              },
-            },
-            required: ['speaker', 'line'],
-            additionalProperties: false,
-          },
-        },
-        initialPlayerOptions: {
-          type: 'array',
-          minItems: 4,
-          maxItems: 8,
-          items: { type: 'string' },
-          description:
-            'First-person dialogue choices, last one not necessarily politely, but contextually approprialely ends the conversation.',
-        },
-      },
-      required: ['participants', 'initialNpcResponses', 'initialPlayerOptions'],
-      additionalProperties: false,
+    options: {
+      type: 'array',
+      minItems: MAIN_TURN_OPTIONS_COUNT,
+      maxItems: MAIN_TURN_OPTIONS_COUNT,
+      items: { type: 'string' },
+      description: `Exactly ${String(
+        MAIN_TURN_OPTIONS_COUNT,
+      )} distinct action options for the player to choose to progress in the story, tailored to the context.`,
     },
-    mapUpdated: {
-      type: 'boolean',
+    playerItemsHint: {
+      type: 'string',
+      description: 'Summary of player item gains, losses or state changes.',
+    },
+    sceneDescription: {
+      type: 'string',
+      minLength: 500,
       description:
-        'Set to true if new locations or changes mean the map might need updating.',
+        "Description of the scene, taking into account the entirety of the player's current situation and surroundings. Include relevant details the player must be aware of to make informed decisions. This should be an engaging text that sets the stage for the player's next actions.",
     },
-    currentMapNodeId: {
+    worldItemsHint: {
       type: 'string',
-      description: 'Name or ID of the map node the player is currently at.',
-    },
-    mapHint: {
-      type: 'string',
-      maxLength: 1000,
-      description: 'Short hints about new or changed relevant locations and their connections.',
+      description: 'Summary of items discovered or dropped in the world.',
     },
   },
   required: [
