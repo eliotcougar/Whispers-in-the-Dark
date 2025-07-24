@@ -55,7 +55,8 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
           line: { type: 'string' },
           speaker: { type: 'string' },
         },
-        required: ['speaker', 'line'],
+        propertyOrdering: ['line', 'speaker'],
+        required: ['line', 'speaker'],
         additionalProperties: false,
       },
     },
@@ -76,6 +77,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
     },
   },
   required: ['npcResponses', 'playerOptions'],
+  propertyOrdering: ['dialogueEnds', 'npcResponses', 'playerOptions', 'updatedParticipants'],
   additionalProperties: false,
 } as const;
 
