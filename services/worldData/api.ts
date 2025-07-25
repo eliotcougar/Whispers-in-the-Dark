@@ -19,14 +19,14 @@ import type {
 const worldFactsSchema = {
   type: 'object',
   properties: {
-    geography: { type: 'string' },
+    geography: { type: 'string', minLength: 1000 },
     climate: { type: 'string' },
     technologyLevel: { type: 'string' },
     supernaturalElements: { type: 'string' },
-    majorFactions: { type: 'array', items: { type: 'string' } },
+    majorFactions: { type: 'array', items: { type: 'string' }, description: 'Names of the factions and their brief description' },
     keyResources: { type: 'array', items: { type: 'string' } },
     culturalNotes: { type: 'array', items: { type: 'string' } },
-    notableLocations: { type: 'array', items: { type: 'string' } },
+    notableLocations: { type: 'array', items: { type: 'string' }, description: 'Notable geographic locations and their brief description' },
   },
   required: [
     'geography',
@@ -56,12 +56,12 @@ const heroSheetSchema = {
 const heroBackstorySchema = {
   type: 'object',
   properties: {
-    fiveYearsAgo: { type: 'string' },
-    oneYearAgo: { type: 'string' },
-    sixMonthsAgo: { type: 'string' },
-    oneMonthAgo: { type: 'string' },
-    oneWeekAgo: { type: 'string' },
-    yesterday: { type: 'string' },
+    fiveYearsAgo: { type: 'string', minLength: 1000 },
+    oneYearAgo: { type: 'string', minLength: 1000 },
+    sixMonthsAgo: { type: 'string', minLength: 1000 },
+    oneMonthAgo: { type: 'string', minLength: 1000 },
+    oneWeekAgo: { type: 'string', minLength: 1000 },
+    yesterday: { type: 'string', minLength: 1000 },
   },
   required: [
     'fiveYearsAgo',
@@ -94,7 +94,7 @@ export const generateWorldFacts = async (
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: 'Respond only with JSON matching the provided schema.',
-      thinkingBudget: 512,
+      thinkingBudget: 1024,
       includeThoughts: false,
       responseMimeType: 'application/json',
       jsonSchema: worldFactsSchema,
@@ -119,17 +119,19 @@ export const generateCharacterNames = async (
     return null;
   }
   const prompt =
-    `Using this world description:\n${JSON.stringify(worldFacts)}\n` +
-    `Generate 50 ${gender} or neutral full names with optional nicknames appropriate for the theme "${theme.name}".`;
+    `Using this world description:
+    ${JSON.stringify(worldFacts)}
+    Generate 50 ${gender} or gender-neutral full names with occasional optional nicknames appropriate for the theme "${theme.name}".
+    The names shouls follow 'First Name Last Name' or 'First Name "Nickname" Last Name' or 'Prefix First Name Last Name' template.`;
   const request = async () => {
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: 'Respond with a JSON array of strings.',
-      thinkingBudget: 256,
+      thinkingBudget: 1024,
       includeThoughts: false,
       responseMimeType: 'application/json',
-      jsonSchema: { type: 'array', items: { type: 'string' } },
+      jsonSchema: { type: 'array', minItems: 50, items: { type: 'string' } },
       label: 'HeroNames',
     });
     return response.text ?? null;
@@ -151,22 +153,24 @@ export const generateCharacterDescriptions = async (
     return null;
   }
   const prompt =
-    `Using this world description:\n${JSON.stringify(worldFacts)}\n` +
-    `Provide a short adventurous description for each of these potential heroes: ${names.join('; ')}.`;
+    `Using this world description:
+    ${JSON.stringify(worldFacts)}
+    Provide a short adventurous description for each of these potential player characters appropriate for the theme "${theme.name}":
+    ${names.join('\n')}`;
   const request = async () => {
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction:
         'Respond with a JSON array matching the provided names with their descriptions.',
-      thinkingBudget: 512,
+      thinkingBudget: 1024,
       includeThoughts: false,
       responseMimeType: 'application/json',
       jsonSchema: {
         type: 'array',
         items: {
           type: 'object',
-          properties: { name: { type: 'string' }, description: { type: 'string' } },
+          properties: { name: { type: 'string' }, description: { type: 'string', minLength: 1000 } },
           required: ['name', 'description'],
           additionalProperties: false,
         },
@@ -194,16 +198,17 @@ export const generateHeroData = async (
     return null;
   }
   const heroSheetPrompt =
-    `Using the theme "${theme.name}" and these world details:\n${JSON.stringify(worldFacts)}\n` +
-    `The player's character gender is "${playerGender}" and their name is "${heroName}". ` +
-    `Here is a short description of the hero: ${heroDescription}. ` +
-    'Create a brief character sheet including occupation, notable traits, and starting items.';
+    `Using the theme "${theme.name}" and these world details:
+    ${JSON.stringify(worldFacts)}
+    The player's character gender is ${playerGender} and their name is ${heroName}.
+    Here is a short description of the hero: ${heroDescription}.
+    Create a brief character sheet including occupation, notable traits, and starting items.`;
   const request = async (prompt: string, schema: unknown, label: string) => {
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: 'Respond only with JSON matching the provided schema.',
-      thinkingBudget: 512,
+      thinkingBudget: 1024,
       includeThoughts: false,
       responseMimeType: 'application/json',
       jsonSchema: schema,
@@ -217,9 +222,12 @@ export const generateHeroData = async (
       const sheetText = await request(heroSheetPrompt, heroSheetSchema, 'HeroSheet');
       const parsedSheet = sheetText ? safeParseJson<HeroSheet>(extractJsonFromFence(sheetText)) : null;
       const backstoryPrompt =
-        `Using these world details:\n${JSON.stringify(worldFacts)}\nand this hero sheet:\n${sheetText ?? ''}\n` +
-        `The hero's description is: ${heroDescription}. ` +
-        `Write a short backstory for ${heroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, and yesterday.`;
+        `Using these world details:
+        ${JSON.stringify(worldFacts)}
+        and this hero sheet:
+        ${sheetText ?? ''}
+        The hero's description is: ${heroDescription}.
+        Write a short backstory for ${heroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, and yesterday.`;
       const backstoryText = await request(backstoryPrompt, heroBackstorySchema, 'HeroBackstory');
       const parsedBackstory = backstoryText ? safeParseJson<HeroBackstory>(extractJsonFromFence(backstoryText)) : null;
       return { result: { heroSheet: parsedSheet ?? null, heroBackstory: parsedBackstory ?? null } };
@@ -237,8 +245,7 @@ export const generateWorldData = async (
   }
 
   const worldFactsPrompt =
-    `Using the theme description "${theme.systemInstructionModifier}" and the seed ` +
-    `"${theme.initialSceneDescriptionSeed}", expand them into a world profile.`;
+    `Using the theme description "${theme.systemInstructionModifier}" and the seed scene "${theme.initialSceneDescriptionSeed}", expand them into a detailed world profile.`;
 
   const request = async (
     prompt: string,
@@ -249,7 +256,7 @@ export const generateWorldData = async (
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: 'Respond only with JSON matching the provided schema.',
-      thinkingBudget: 512,
+      thinkingBudget: 1024,
       includeThoughts: false,
       responseMimeType: 'application/json',
       jsonSchema: schema,
