@@ -40,6 +40,8 @@ import {
   generateCharacterNames,
   generateCharacterDescriptions,
 } from '../services/worldData';
+import { extractInitialFacts_Service } from '../services/loremaster';
+import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
@@ -260,6 +262,31 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           heroBackstory = result.heroBackstory;
           draftState.heroSheet = heroSheet;
           draftState.heroBackstory = heroBackstory;
+          if (worldFacts) {
+            const initialFacts = await extractInitialFacts_Service({
+              themeName: themeObjToLoad.name,
+              worldFacts,
+              heroSheet: heroSheet ?? undefined,
+              heroBackstory: heroBackstory ?? undefined,
+              onSetLoadingReason: setLoadingReason,
+            });
+            if (initialFacts) {
+              if (draftState.lastDebugPacket?.loremasterDebugInfo) {
+                draftState.lastDebugPacket.loremasterDebugInfo.extract =
+                  initialFacts.debugInfo.extract;
+              }
+              const changes = initialFacts.facts.map(f => ({
+                action: 'add' as const,
+                fact: { text: f.text, entities: f.entities },
+              }));
+              applyThemeFactChanges(
+                draftState,
+                changes,
+                draftState.globalTurnNumber,
+                themeObjToLoad.name,
+              );
+            }
+          }
         }
       }
 

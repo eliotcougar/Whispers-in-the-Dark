@@ -25,6 +25,9 @@ import {
   LoreRefinementResult,
   LoremasterRefineDebugInfo,
   LoadingReason,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
 } from '../../types';
 import {
   EXTRACT_SYSTEM_INSTRUCTION,
@@ -45,7 +48,7 @@ export const EXTRACT_FACTS_JSON_SCHEMA = {
     required: ['entities', 'text'],
     additionalProperties: false,
     description:
-      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact. Entities array must include at least one relevant node_*, npc_*, or item_* ID from the supplied list of IDs.',
+      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact. Entities array must include at least one relevant node_*, npc_*, or item_* ID from the supplied list of IDs, or the IDs "player" or "universe".',
   },
 } as const;
 
@@ -146,6 +149,9 @@ export interface RefineLoreParams {
   themeName: string;
   turnContext: string;
   existingFacts: Array<ThemeFact>;
+  worldFacts?: WorldFacts;
+  heroSheet?: HeroSheet;
+  heroBackstory?: HeroBackstory;
   onFactsExtracted?: (facts: Array<FactWithEntities>) => Promise<{ proceed: boolean }>;
   onSetLoadingReason?: (reason: LoadingReason) => void;
 }
@@ -155,6 +161,98 @@ export interface RefineLoreServiceResult {
   debugInfo: LoremasterRefineDebugInfo | null;
 }
 
+export interface ExtractInitialFactsParams {
+  themeName: string;
+  worldFacts: WorldFacts;
+  heroSheet?: HeroSheet;
+  heroBackstory?: HeroBackstory;
+  onSetLoadingReason?: (reason: LoadingReason) => void;
+}
+
+export interface ExtractInitialFactsServiceResult {
+  facts: Array<FactWithEntities>;
+  debugInfo: LoremasterRefineDebugInfo;
+}
+
+export const extractInitialFacts_Service = async (
+  params: ExtractInitialFactsParams,
+): Promise<ExtractInitialFactsServiceResult | null> => {
+  if (!isApiConfigured()) {
+    console.error('extractInitialFacts_Service: API not configured');
+    return null;
+  }
+  const { themeName, worldFacts, heroSheet, heroBackstory } = params;
+
+  const extractPrompt = buildExtractFactsPrompt(
+    themeName,
+    '',
+    worldFacts,
+    heroSheet,
+    heroBackstory,
+  );
+
+  const newFacts = await retryAiCall<{
+    parsed: Array<FactWithEntities> | null;
+    raw: string;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+    promptUsed: string;
+  } | null>(async () => {
+    params.onSetLoadingReason?.('loremaster_extract');
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_extract.icon);
+    const {
+      response,
+      systemInstructionUsed,
+      jsonSchemaUsed,
+      promptUsed,
+    } = await dispatchAIRequest({
+      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+      prompt: extractPrompt,
+      systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
+      thinkingBudget: 512,
+      includeThoughts: true,
+      responseMimeType: 'application/json',
+      jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
+      temperature: 0.7,
+      label: 'LoremasterExtractInitial',
+    });
+    const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
+      text?: string;
+      thought?: boolean;
+    }>;
+    const thoughtParts = parts
+      .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+      .map(p => p.text);
+    return {
+      result: {
+        parsed: parseExtractFactsResponse(response.text ?? ''),
+        raw: response.text ?? '',
+        thoughts: thoughtParts,
+        systemInstructionUsed,
+        jsonSchemaUsed,
+        promptUsed,
+      },
+    };
+  });
+  if (!newFacts) return null;
+
+  return {
+    facts: newFacts.parsed ?? [],
+    debugInfo: {
+      extract: {
+        prompt: newFacts.promptUsed,
+        systemInstruction: newFacts.systemInstructionUsed,
+        jsonSchema: newFacts.jsonSchemaUsed,
+        rawResponse: newFacts.raw,
+        parsedPayload: newFacts.parsed ?? undefined,
+        thoughts: newFacts.thoughts,
+      },
+      integrate: null,
+    },
+  };
+};
+
 export const refineLore_Service = async (
   params: RefineLoreParams,
 ): Promise<RefineLoreServiceResult | null> => {
@@ -162,9 +260,23 @@ export const refineLore_Service = async (
     console.error('refineLore_Service: API not configured');
     return null;
   }
-  const { themeName, turnContext, existingFacts, onFactsExtracted } = params;
+  const {
+    themeName,
+    turnContext,
+    existingFacts,
+    worldFacts,
+    heroSheet,
+    heroBackstory,
+    onFactsExtracted,
+  } = params;
 
-  const extractPrompt = buildExtractFactsPrompt(themeName, turnContext);
+  const extractPrompt = buildExtractFactsPrompt(
+    themeName,
+    turnContext,
+    worldFacts,
+    heroSheet,
+    heroBackstory,
+  );
   const newFacts = await retryAiCall<{
     parsed: Array<FactWithEntities> | null;
     raw: string;
