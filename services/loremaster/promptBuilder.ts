@@ -2,16 +2,36 @@
  * @file promptBuilder.ts
  * @description Constructs prompts for the Loremaster service.
  */
-import { ThemeFact, FactWithEntities } from '../../types';
+import {
+  ThemeFact,
+  FactWithEntities,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
+} from '../../types';
+import {
+  formatWorldFactsForPrompt,
+  formatHeroSheetForPrompt,
+  formatHeroBackstoryForPrompt,
+} from '../../utils/promptFormatters';
 
 export const buildExtractFactsPrompt = (
   themeName: string,
   turnContext: string,
+  worldFacts?: WorldFacts,
+  heroSheet?: HeroSheet,
+  heroBackstory?: HeroBackstory,
 ): string => {
+  const worldInfo = worldFacts ? `\n${formatWorldFactsForPrompt(worldFacts)}` : '';
+  const heroInfo = heroSheet ? `\n${formatHeroSheetForPrompt(heroSheet, false)}` : '';
+  const heroPast = heroBackstory
+    ? `\n${formatHeroBackstoryForPrompt(heroBackstory)}`
+    : '';
+  const extras = `${worldInfo}${heroInfo}${heroPast}`;
   return `Theme: ${themeName}
 
   ## Context:
-${turnContext}
+${turnContext}${extras}
 
 List immutable facts according to your instructions. Return JSON as:
 [{"entities": ["id1", "id2"], "text": "fact"}]
