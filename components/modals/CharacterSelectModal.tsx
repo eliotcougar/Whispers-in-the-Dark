@@ -73,13 +73,8 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
 
         {isGenerating ? (
           <LoadingSpinner />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
-            {options.map(renderOption)}
-          </div>
-        )}
-
-          {heroSheet && heroBackstory ? (
+        ) : heroSheet && heroBackstory ? (
+          <>
             <div className="mt-4 space-y-3 text-slate-300">
               <p className="text-lg font-semibold text-amber-400 text-center">{heroSheet.name}</p>
               <p className="text-center">Occupation: {heroSheet.occupation}</p>
@@ -99,11 +94,35 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
                 </ul>
               </div>
             </div>
-          ) : null}
+
+            <div className="mt-4 space-y-1 text-slate-300">
+              <p className="text-lg font-semibold text-sky-300 text-center">World Information</p>
+              <p className="text-center">Geography: {worldFacts.geography}</p>
+              <p className="text-center">Climate: {worldFacts.climate}</p>
+              <p className="text-center">Technology Level: {worldFacts.technologyLevel}</p>
+              <p className="text-center">Supernatural Elements: {worldFacts.supernaturalElements}</p>
+              <p className="text-center">Major Factions: {worldFacts.majorFactions.join(', ')}</p>
+              <p className="text-center">Key Resources: {worldFacts.keyResources.join(', ')}</p>
+              <p className="text-center">Cultural Notes: {worldFacts.culturalNotes.join(', ')}</p>
+              <p className="text-center">Notable Locations: {worldFacts.notableLocations.join(', ')}</p>
+            </div>
+          </>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
+            {options.map(renderOption)}
+          </div>
+        )}
 
         <div className="mt-6 flex justify-center space-x-4">
           {heroSheet && heroBackstory ? (
-            <Button ariaLabel="Begin the adventure" icon={<Icon name="bookOpen" size={20} />} onClick={handleBegin} preset="green" size="lg" label="Begin the Journey" />
+            <Button
+              ariaLabel="Begin the adventure"
+              icon={<Icon name="bookOpen" size={20} />}
+              label="Begin the Journey"
+              onClick={handleBegin}
+              preset="green"
+              size="lg"
+            />
           ) : null}
         </div>
       </div>

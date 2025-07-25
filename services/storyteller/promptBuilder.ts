@@ -39,7 +39,7 @@ export const buildNewGameFirstTurnPrompt = (
   heroBackstory: HeroBackstory,
 ): string => {
   const worldInfo = formatWorldFactsForPrompt(worldFacts);
-  const heroDescription = formatHeroSheetForPrompt(heroSheet);
+  const heroDescription = formatHeroSheetForPrompt(heroSheet, true);
   const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
   const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.systemInstructionModifier}
 Player's Character Gender: "${playerGender}"
@@ -269,7 +269,7 @@ export const buildMainGameTurnPrompt = (
     worldFacts !== null ? formatWorldFactsForPrompt(worldFacts) : 'Unknown';
   const heroDescription =
     heroSheet !== null
-      ? formatHeroSheetForPrompt(heroSheet)
+      ? formatHeroSheetForPrompt(heroSheet, false)
       : 'The hero remains undescribed.';
 
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
