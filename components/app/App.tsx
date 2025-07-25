@@ -24,6 +24,7 @@ import SettingsDisplay from '../modals/SettingsDisplay';
 import InfoDisplay from '../modals/InfoDisplay';
 import DebugLoreModal from '../modals/DebugLoreModal';
 import GeminiKeyModal from '../modals/GeminiKeyModal';
+import CharacterSelectModal from '../modals/CharacterSelectModal';
 import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
@@ -48,7 +49,17 @@ import {
   JOURNAL_WRITE_COOLDOWN,
   INSPECT_COOLDOWN,
 } from '../../constants';
-import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
+import {
+  ThemePackName,
+  Item,
+  ItemChapter,
+  FullGameState,
+  AdventureTheme,
+  WorldFacts,
+  CharacterOption,
+  HeroSheet,
+  HeroBackstory,
+} from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
 
 
@@ -146,6 +157,10 @@ function App() {
     isDebugLoreVisible,
     debugLoreFacts,
     openDebugLoreModal,
+    openCharacterSelectModal,
+    isCharacterSelectVisible,
+    characterSelectData,
+    submitCharacterSelectModal,
     submitDebugLoreModal,
   closeDebugLoreModal,
 } = useAppModals();
@@ -161,6 +176,18 @@ function App() {
   const openGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(true); }, []);
   const closeGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(false); }, []);
 
+  const openCharacterSelect = useCallback(
+    (data: {
+      theme: AdventureTheme;
+      playerGender: string;
+      worldFacts: WorldFacts;
+      options: Array<CharacterOption>;
+    }) => new Promise<{ name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }>(resolve => {
+      openCharacterSelectModal(data, resolve);
+    }),
+    [openCharacterSelectModal],
+  );
+
 
   const gameLogic = useGameLogic({
     playerGenderProp: playerGender,
@@ -172,6 +199,7 @@ function App() {
     initialDebugStackFromApp: initialDebugStack,
     isAppReady: appReady,
     openDebugLoreModal,
+    openCharacterSelectModal: openCharacterSelect,
   });
   gameLogicRef.current = gameLogic;
 
@@ -943,6 +971,17 @@ function App() {
         isVisible={geminiKeyVisible}
         onClose={closeGeminiKeyModal}
       />
+
+      {characterSelectData ? (
+        <CharacterSelectModal
+          isVisible={isCharacterSelectVisible}
+          onComplete={submitCharacterSelectModal}
+          options={characterSelectData.options}
+          playerGender={characterSelectData.playerGender}
+          theme={characterSelectData.theme}
+          worldFacts={characterSelectData.worldFacts}
+        />
+      ) : null}
 
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allNPCs={allNPCs}
