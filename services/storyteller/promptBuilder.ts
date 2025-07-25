@@ -11,6 +11,9 @@ import {
   MapNode,
   ThemeMemory,
   ThemeHistoryState,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
 } from '../../types';
 import {
   itemsToString,
@@ -20,27 +23,36 @@ import {
   formatRecentEventsForPrompt,
   formatDetailedContextForMentionedEntities,
   formatTravelPlanLine,
+  formatWorldFactsForPrompt,
+  formatHeroSheetForPrompt,
+  formatHeroBackstoryForPrompt,
 } from '../../utils/promptFormatters';
 
 /**
  * Build the initial prompt for starting a new game.
  */
 export const buildNewGameFirstTurnPrompt = (
-
   theme: AdventureTheme,
-  playerGender: string
+  playerGender: string,
+  worldFacts: WorldFacts,
+  heroSheet: HeroSheet,
+  heroBackstory: HeroBackstory,
 ): string => {
+  const worldInfo = formatWorldFactsForPrompt(worldFacts);
+  const heroDescription = formatHeroSheetForPrompt(heroSheet);
+  const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
   const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.systemInstructionModifier}
 Player's Character Gender: "${playerGender}"
-Suggested Initial Scene: "${theme.initialSceneDescriptionSeed}" (adjust for variety)
-Suggested Initial Main Quest: "${theme.initialMainQuest}" (adjust for variety)
-Suggested Initial Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
-Suggested Initial New Items for the player: "${theme.initialItems}" (adjust names and descriptions for variety)
+
+World Details:\n${worldInfo}
+
+Hero Description:\n${heroDescription}
+
+Hero Backstory:\n${heroPast}
 
 The player's last action was unremarkable—something common anyone would do in this situation.
 
-Creatively generate variations of the main quest and current objective based on the suggestions, but make them noticeably different.
-Creatively generate the initial scene description, action options, and items (variations based on 'New Items for the player'), along with a logMessage.
+Creatively generate the main quest, current objective, scene description, action options, and starting items using the world details and hero history for inspiration.
 Creatively add any important quest item(s), if any, based on your generated quest and objective.
 
 ALWAYS SET "mapUpdated": true.

@@ -2,7 +2,16 @@
  * @file initPromptHelpers.ts
  * @description Helper for constructing initial game prompts.
  */
-import { AdventureTheme, NPC, MapData, ThemeMemory, Item } from '../types';
+import {
+  AdventureTheme,
+  NPC,
+  MapData,
+  ThemeMemory,
+  Item,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
+} from '../types';
 import { PLAYER_HOLDER_ID } from '../constants';
 import {
   buildNewGameFirstTurnPrompt,
@@ -18,6 +27,9 @@ export interface BuildInitialGamePromptOptions {
   themeMemory?: ThemeMemory;
   mapDataForTheme?: MapData;
   npcsForTheme?: Array<NPC>;
+  worldFacts?: WorldFacts;
+  heroSheet?: HeroSheet;
+  heroBackstory?: HeroBackstory;
 }
 
 /**
@@ -34,6 +46,9 @@ export const buildInitialGamePrompt = (
     themeMemory,
     mapDataForTheme,
     npcsForTheme,
+    worldFacts,
+    heroSheet,
+    heroBackstory,
   } = options;
 
   const inventoryForPrompt = inventory.filter(i => i.holderId === PLAYER_HOLDER_ID);
@@ -55,7 +70,29 @@ export const buildInitialGamePrompt = (
       playerGender,
     );
   } else {
-    prompt = buildNewGameFirstTurnPrompt(theme, playerGender);
+    prompt = buildNewGameFirstTurnPrompt(
+      theme,
+      playerGender,
+      worldFacts ?? {
+        geography: '',
+        climate: '',
+        technologyLevel: '',
+        supernaturalElements: '',
+        majorFactions: [],
+        keyResources: [],
+        culturalNotes: [],
+        notableLocations: [],
+      },
+      heroSheet ?? { name: 'Hero', occupation: '', traits: [], startingItems: [] },
+      heroBackstory ?? {
+        fiveYearsAgo: '',
+        oneYearAgo: '',
+        sixMonthsAgo: '',
+        oneMonthAgo: '',
+        oneWeekAgo: '',
+        yesterday: '',
+      },
+    );
   }
   return prompt;
 };
