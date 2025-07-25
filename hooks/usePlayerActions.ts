@@ -262,6 +262,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentFullState.localEnvironment,
         currentFullState.localPlace,
         playerGenderProp,
+        currentFullState.worldFacts,
+        currentFullState.heroSheet,
         currentFullState.themeHistory,
         currentMapNodeDetails,
         currentFullState.mapData,

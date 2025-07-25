@@ -180,6 +180,8 @@ export const buildMainGameTurnPrompt = (
   localEnvironment: string | null,
   localPlace: string | null,
   playerGender: string,
+  worldFacts: WorldFacts | null,
+  heroSheet: HeroSheet | null,
   themeHistory: ThemeHistoryState,
   currentMapNodeDetails: MapNode | null,
   fullMapData: MapData,
@@ -263,10 +265,20 @@ export const buildMainGameTurnPrompt = (
     '### Details on relevant NPCs mentioned in current scene or action:'
   );
 
+  const worldInfo =
+    worldFacts !== null ? formatWorldFactsForPrompt(worldFacts) : 'Unknown';
+  const heroDescription =
+    heroSheet !== null
+      ? formatHeroSheetForPrompt(heroSheet)
+      : 'The hero remains undescribed.';
+
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
 
 ## Context:
 Player's Character Gender: "${playerGender}"
+World Details:\n${worldInfo}
+
+Hero Description:\n${heroDescription}
 Previous Local Time: "${localTime ?? 'Unknown'}"
 Previous Local Environment: "${localEnvironment ?? 'Undetermined'}"
 Previous Local Place: "${localPlace ?? 'Undetermined Location'}"
