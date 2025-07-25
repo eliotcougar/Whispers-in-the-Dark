@@ -173,7 +173,8 @@ export function isValidHeroBackstory(data: unknown): data is HeroBackstory {
     typeof maybe.sixMonthsAgo === 'string' &&
     typeof maybe.oneMonthAgo === 'string' &&
     typeof maybe.oneWeekAgo === 'string' &&
-    typeof maybe.yesterday === 'string'
+    typeof maybe.yesterday === 'string' &&
+    typeof maybe.now === 'string'
   );
 }
 

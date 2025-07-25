@@ -64,6 +64,7 @@ const dummyHeroBackstory: HeroBackstory = {
   oneMonthAgo: 'Was betrayed by a friend.',
   oneWeekAgo: 'Left home seeking adventure.',
   yesterday: 'Arrived at the new town.',
+  now: 'Standing in the town square.',
 };
 
 describe('game start sequence', () => {

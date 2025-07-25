@@ -53,8 +53,6 @@ ${heroDescription}
 ## Player Character Backstory:
 ${heroPast}
 
-The player's last action was unremarkable—something common anyone would do in this situation.
-
 Creatively generate the main quest, current objective, scene description, action options, and starting items using the world details and hero history for inspiration.
 Creatively add any important quest item(s), if any, based on your generated quest and objective.
 
