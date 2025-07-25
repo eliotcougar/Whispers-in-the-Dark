@@ -5,7 +5,7 @@
 
 export const EXTRACT_SYSTEM_INSTRUCTION = `You are the Loremaster, collecting immutable facts about the game world from narrative context.
 Your sole task is to harvest immutable, setting-level facts from the surrounding narrative and return them as a JSON array of objects with "text" and "entities" fields.
-The "entities" array should list IDs of map nodes, NPCs or items referenced in the fact.
+The "entities" array must list IDs of map nodes, NPCs or items referenced in the fact, selected from the supplied node_, npc_, and item_ IDs.
 Each fact must aid long-term continuity and world-building.
 
 ## What is a valid fact? Think “map pins & rulebook notes”

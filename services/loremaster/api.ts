@@ -39,13 +39,13 @@ export const EXTRACT_FACTS_JSON_SCHEMA = {
     type: 'object',
     properties: {
       text: { type: 'string' },
-      entities: { type: 'array', items: { type: 'string' } },
+      entities: { type: 'array', minItems: 1, items: { type: 'string' } },
     },
     propertyOrdering: ['entities', 'text'],
     required: ['entities', 'text'],
     additionalProperties: false,
     description:
-      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact.',
+      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact. Entities array must include at least one relevant node_*, npc_*, or item_* ID from the supplied list of IDs.',
   },
 } as const;
 
