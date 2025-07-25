@@ -12,6 +12,7 @@ import {
   MAIN_TURN_OPTIONS_COUNT,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
+import { formatHeroSheetForPrompt } from '../../utils/promptFormatters';
 
 /**
  * Builds the prompt used to fetch the next dialogue turn.
@@ -31,11 +32,16 @@ export const buildDialogueTurnPrompt = (
     knownNPCsInTheme: knownNPCsInTheme,
     inventory,
     playerGender,
+    heroSheet,
     dialogueHistory,
     playerLastUtterance,
     dialogueParticipants,
     relevantFacts,
   } = context;
+  const heroDescription =
+    heroSheet !== null
+      ? formatHeroSheetForPrompt(heroSheet, false)
+      : 'The player character remains undescribed.';
   let historyToUseInPrompt = [...dialogueHistory];
   if (
     historyToUseInPrompt.length > 0 &&
@@ -117,7 +123,10 @@ Current Main Quest: "${currentQuest ?? 'Not set'}";
 Current Objective: "${currentObjective ?? 'Not set'}";
 Scene Description (for environmental context): "${currentScene}";
 Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}";
-Player's Character Gender: ${playerGender};
+### Player Character Description:
+Gender: ${playerGender}.
+${heroDescription}
+Character Traits should especially influence dialogue choices.
 
 ## Relevant Facts about the world:
 ${relevantFactsSection}

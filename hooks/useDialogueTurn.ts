@@ -113,6 +113,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
           stateAfterPlayerChoice.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
           playerGenderProp,
+          stateAfterPlayerChoice.heroSheet,
           historyWithPlayerChoice,
           option,
           (() => {

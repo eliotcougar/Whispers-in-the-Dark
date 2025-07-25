@@ -12,6 +12,7 @@ import {
   MapNode,
   DialogueMemorySummaryContext,
   AdventureTheme,
+  HeroSheet,
 } from '../../types';
 import {
   GEMINI_MODEL_NAME,
@@ -97,6 +98,7 @@ export const executeDialogueTurn = async (
   knownNPCsInTheme: Array<NPC>,
   inventory: Array<Item>,
   playerGender: string,
+  heroSheet: HeroSheet | null,
   dialogueHistory: Array<DialogueHistoryEntry>,
   playerLastUtterance: string,
   dialogueParticipants: Array<string>,
@@ -119,6 +121,7 @@ export const executeDialogueTurn = async (
     knownNPCsInTheme: knownNPCsInTheme,
     inventory,
     playerGender,
+    heroSheet,
     dialogueHistory,
     playerLastUtterance,
     dialogueParticipants,
