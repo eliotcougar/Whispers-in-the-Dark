@@ -197,11 +197,20 @@ export const formatWorldFactsForPrompt = (worldFacts: WorldFacts): string => {
 /**
  * Formats a hero sheet into a short single paragraph.
  */
-export const formatHeroSheetForPrompt = (hero: HeroSheet): string =>
-  `Name: ${hero.name}
-Occupation: ${hero.occupation}.
-Traits: ${hero.traits.join(', ')}.
-Starting items: ${hero.startingItems.join(', ')}.`;
+export const formatHeroSheetForPrompt = (
+  hero: HeroSheet,
+  includeStartingItems = false,
+): string => {
+  const lines = [
+    `Name: ${hero.name}`,
+    `Occupation: ${hero.occupation}.`,
+    `Traits: ${hero.traits.join(', ')}.`,
+  ];
+  if (includeStartingItems && hero.startingItems.length > 0) {
+    lines.push(`Starting items: ${hero.startingItems.join(', ')}.`);
+  }
+  return lines.join('\n');
+};
 
 /**
  * Formats a hero backstory as a multiline string.
