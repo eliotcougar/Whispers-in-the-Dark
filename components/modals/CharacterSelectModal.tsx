@@ -62,7 +62,7 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
 
   return (
     <div aria-labelledby="character-select-title" aria-modal="true" className="animated-frame open" role="dialog">
-      <div className="animated-frame-content">
+      <div className="animated-frame-content character-select-content-area flex flex-col items-center">
         <h1 className="text-3xl font-bold text-sky-300 mb-4 text-center" id="character-select-title">
           Choose Your Hero
         </h1>
@@ -74,20 +74,32 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
         {isGenerating ? (
           <LoadingSpinner />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
             {options.map(renderOption)}
           </div>
         )}
 
-        {heroSheet && heroBackstory ? (
-          <div className="mt-4 space-y-3 text-slate-300">
-            <p className="text-lg font-semibold text-amber-400 text-center">{heroSheet.name}</p>
-            <p className="text-center">Occupation: {heroSheet.occupation}</p>
-            <p className="text-center">Traits: {heroSheet.traits.join(', ')}</p>
-            <p className="text-center">Starting Items: {heroSheet.startingItems.join(', ')}</p>
-            <p className="mt-2 whitespace-pre-line text-sm">Backstory:\n- 5 years ago: {heroBackstory.fiveYearsAgo}\n- 1 year ago: {heroBackstory.oneYearAgo}\n- 6 months ago: {heroBackstory.sixMonthsAgo}\n- 1 month ago: {heroBackstory.oneMonthAgo}\n- 1 week ago: {heroBackstory.oneWeekAgo}\n- Yesterday: {heroBackstory.yesterday}</p>
-          </div>
-        ) : null}
+          {heroSheet && heroBackstory ? (
+            <div className="mt-4 space-y-3 text-slate-300">
+              <p className="text-lg font-semibold text-amber-400 text-center">{heroSheet.name}</p>
+              <p className="text-center">Occupation: {heroSheet.occupation}</p>
+              <p className="text-center">Traits: {heroSheet.traits.join(', ')}</p>
+              <p className="text-center">Starting Items: {heroSheet.startingItems.join(', ')}</p>
+
+              <div className="mt-2">
+                <p className="font-semibold">Backstory:</p>
+
+                <ul className="list-disc list-inside text-sm whitespace-pre-line">
+                  <li>5 years ago: {heroBackstory.fiveYearsAgo}</li>
+                  <li>1 year ago: {heroBackstory.oneYearAgo}</li>
+                  <li>6 months ago: {heroBackstory.sixMonthsAgo}</li>
+                  <li>1 month ago: {heroBackstory.oneMonthAgo}</li>
+                  <li>1 week ago: {heroBackstory.oneWeekAgo}</li>
+                  <li>Yesterday: {heroBackstory.yesterday}</li>
+                </ul>
+              </div>
+            </div>
+          ) : null}
 
         <div className="mt-6 flex justify-center space-x-4">
           {heroSheet && heroBackstory ? (
