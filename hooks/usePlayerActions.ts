@@ -27,6 +27,7 @@ import {
   RECENT_LOG_COUNT_FOR_PROMPT,
   PLAYER_HOLDER_ID,
   DISTILL_LORE_INTERVAL,
+  RECENT_LOG_COUNT_FOR_DISTILL,
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -138,6 +139,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           ),
         );
         const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+        const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
         setLoadingReason('loremaster_refine');
         const result = await distillFacts_Service({
           themeName: themeObj.name,
@@ -146,6 +148,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           currentObjective: state.currentObjective,
           inventoryItemNames,
           mapNodeNames,
+          recentLogEntries: recentLogs,
         });
         state.lastLoreDistillTurn = state.globalTurnNumber;
         state.lastDebugPacket ??= {

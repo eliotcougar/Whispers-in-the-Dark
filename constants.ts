@@ -282,6 +282,7 @@ export const MAX_DIALOGUE_SUMMARIES_IN_PROMPT = 3;   // Max summaries to include
 export const MIN_DIALOGUE_TURN_OPTIONS = 4; // Minimum dialogue options per turn
 export const MAX_DIALOGUE_TURN_OPTIONS = 8; // Maximum dialogue options per turn
 export const RECENT_LOG_COUNT_FOR_PROMPT = 10; // Number of log messages to include in AI prompts
+export const RECENT_LOG_COUNT_FOR_DISTILL = 20; // Log entries for loremaster distill
 
 // Standard instructions for AI-generated text fields
 export const NODE_DESCRIPTION_INSTRUCTION =

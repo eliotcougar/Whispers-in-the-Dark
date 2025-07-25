@@ -25,7 +25,11 @@ import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-import { PLAYER_HOLDER_ID, DISTILL_LORE_INTERVAL } from '../constants';
+import {
+  PLAYER_HOLDER_ID,
+  DISTILL_LORE_INTERVAL,
+  RECENT_LOG_COUNT_FOR_DISTILL,
+} from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
@@ -394,6 +398,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       ),
     );
     const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+    const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
     setLoadingReasonRef('loremaster_refine');
     const result = await distillFacts_Service({
       themeName: themeObj.name,
@@ -402,6 +407,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       currentObjective: currentFullState.currentObjective,
       inventoryItemNames,
       mapNodeNames,
+      recentLogEntries: recentLogs,
     });
     const draftState = structuredCloneGameState(currentFullState);
     draftState.lastLoreDistillTurn = currentFullState.globalTurnNumber;
