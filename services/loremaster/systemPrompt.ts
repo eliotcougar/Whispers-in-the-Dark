@@ -88,6 +88,8 @@ When merging, combine the entity IDs from all merged facts into a single set wit
 - items that no longer exist;
 - old quest and objective that is different from the current quest and objective.
 
+3. Edit or prune any facts facts that are no longer in effect based on Recent Log of events.
+
 ## Examples:
 "factsChange": [
     {
