@@ -8,6 +8,9 @@ import {
   NPC,
   MapData,
   MapNode,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
 } from '../../types';
 import { formatKnownPlacesForPrompt } from './map';
 import { findTravelPath, buildTravelAdjacency } from '../mapPathfinding';
@@ -172,3 +175,42 @@ export const formatTravelPlanLine = (
   return line;
 };
 
+
+
+/**
+ * Formats world facts into a multiline string for prompts.
+ */
+export const formatWorldFactsForPrompt = (worldFacts: WorldFacts): string => {
+  const lines = [
+    `Geography: ${worldFacts.geography}`,
+    `Climate: ${worldFacts.climate}`,
+    `Technology Level: ${worldFacts.technologyLevel}`,
+    `Supernatural Elements: ${worldFacts.supernaturalElements}`,
+    `Major Factions: ${worldFacts.majorFactions.join(', ')}`,
+    `Key Resources: ${worldFacts.keyResources.join(', ')}`,
+    `Cultural Notes: ${worldFacts.culturalNotes.join(', ')}`,
+    `Notable Locations: ${worldFacts.notableLocations.join(', ')}`,
+  ];
+  return lines.join('\n');
+};
+
+/**
+ * Formats a hero sheet into a short single paragraph.
+ */
+export const formatHeroSheetForPrompt = (hero: HeroSheet): string =>
+  `${hero.name} - Occupation: ${hero.occupation}. Traits: ${hero.traits.join(', ')}. Starting items: ${hero.startingItems.join(', ')}.`;
+
+/**
+ * Formats a hero backstory as a multiline string.
+ */
+export const formatHeroBackstoryForPrompt = (
+  backstory: HeroBackstory,
+): string =>
+  [
+    `5 years ago: ${backstory.fiveYearsAgo}`,
+    `1 year ago: ${backstory.oneYearAgo}`,
+    `6 months ago: ${backstory.sixMonthsAgo}`,
+    `1 month ago: ${backstory.oneMonthAgo}`,
+    `1 week ago: ${backstory.oneWeekAgo}`,
+    `Yesterday: ${backstory.yesterday}`,
+  ].join('\n');
