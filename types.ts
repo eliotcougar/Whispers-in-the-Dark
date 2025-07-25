@@ -195,6 +195,7 @@ export interface DialogueTurnContext {
   knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
   playerGender: string;
+  heroSheet: HeroSheet | null;
   dialogueHistory: Array<DialogueHistoryEntry>;
   playerLastUtterance: string;
   dialogueParticipants: Array<string>;
