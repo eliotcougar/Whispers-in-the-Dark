@@ -66,7 +66,7 @@ const heroSheet: HeroSheet;
 
 ## 5. Protagonist Backstory
 
-*Prompt*: "Write a short backstory for `heroName` using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, and yesterday. Keep each segment to two sentences."
+*Prompt*: "Write a short backstory for `heroName` using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now. Keep each segment to two sentences."
 
 *Data Stored*:
 ```ts
@@ -77,6 +77,7 @@ interface HeroBackstory {
   oneMonthAgo: string;
   oneWeekAgo: string;
   yesterday: string;
+  now: string;
 }
 const heroBackstory: HeroBackstory;
 ```

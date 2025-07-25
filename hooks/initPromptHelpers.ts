@@ -91,6 +91,7 @@ export const buildInitialGamePrompt = (
         oneMonthAgo: '',
         oneWeekAgo: '',
         yesterday: '',
+        now: '',
       },
     );
   }

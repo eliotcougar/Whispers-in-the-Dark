@@ -62,6 +62,7 @@ const heroBackstorySchema = {
     oneMonthAgo: { type: 'string', minLength: 2000 },
     oneWeekAgo: { type: 'string', minLength: 2000 },
     yesterday: { type: 'string', minLength: 2000 },
+    now: { type: 'string', minLength: 2000 },
   },
   required: [
     'fiveYearsAgo',
@@ -70,6 +71,7 @@ const heroBackstorySchema = {
     'oneMonthAgo',
     'oneWeekAgo',
     'yesterday',
+    'now',
   ],
   additionalProperties: false,
 } as const;
@@ -228,7 +230,7 @@ export const generateHeroData = async (
         and this hero sheet:
         ${sheetText ?? ''}
         The hero's description is: ${heroDescription}.
-        Write a short backstory for ${heroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, and yesterday.`;
+        Write a short backstory for ${heroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.`;
       const backstoryText = await request(backstoryPrompt, heroBackstorySchema, 'HeroBackstory');
       const parsedBackstory = backstoryText ? safeParseJson<HeroBackstory>(extractJsonFromFence(backstoryText)) : null;
       return { result: { heroSheet: parsedSheet ?? null, heroBackstory: parsedBackstory ?? null } };
@@ -282,7 +284,7 @@ export const generateWorldData = async (
     const heroBackstoryPrompt =
       `Using these world details:\n${factsText ?? ''}\nand this hero sheet:\n${heroSheetText ?? ''}\n` +
       `Write a short backstory for ${heroName} using these time markers: ` +
-      '5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, and yesterday.';
+      '5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.';
     const backstoryText = await request(heroBackstoryPrompt, heroBackstorySchema, 'HeroBackstory');
     const parsedBackstory = backstoryText ? safeParseJson<HeroBackstory>(extractJsonFromFence(backstoryText)) : null;
     return {

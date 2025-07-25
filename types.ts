@@ -354,6 +354,7 @@ export interface HeroBackstory {
   oneMonthAgo: string;
   oneWeekAgo: string;
   yesterday: string;
+  now: string;
 }
 
 export interface CharacterOption {

@@ -86,11 +86,18 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
 
                 <ul className="list-disc list-inside text-lg whitespace-pre-line">
                   <li>5 years ago: {heroBackstory.fiveYearsAgo}</li>
+
                   <li>1 year ago: {heroBackstory.oneYearAgo}</li>
+
                   <li>6 months ago: {heroBackstory.sixMonthsAgo}</li>
+
                   <li>1 month ago: {heroBackstory.oneMonthAgo}</li>
+
                   <li>1 week ago: {heroBackstory.oneWeekAgo}</li>
+
                   <li>Yesterday: {heroBackstory.yesterday}</li>
+
+                  <li>Now: {heroBackstory.now}</li>
                 </ul>
               </div>
             </div>

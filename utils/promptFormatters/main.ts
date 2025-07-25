@@ -225,4 +225,5 @@ export const formatHeroBackstoryForPrompt = (
     `1 month ago: ${backstory.oneMonthAgo}`,
     `1 week ago: ${backstory.oneWeekAgo}`,
     `Yesterday: ${backstory.yesterday}`,
+    `Now: ${backstory.now}`,
   ].join('\n');
