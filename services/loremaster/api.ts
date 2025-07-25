@@ -516,6 +516,7 @@ export interface DistillFactsParams {
   currentObjective: string | null;
   inventoryItemNames: Array<string>;
   mapNodeNames: Array<string>;
+  recentLogEntries: Array<string>;
 }
 
 export interface DistillFactsServiceResult {
@@ -546,6 +547,7 @@ export const distillFacts_Service = async (
     currentObjective,
     inventoryItemNames,
     mapNodeNames,
+    recentLogEntries,
   } = params;
 
   const prompt = buildDistillFactsPrompt(
@@ -555,6 +557,7 @@ export const distillFacts_Service = async (
     currentObjective,
     inventoryItemNames,
     mapNodeNames,
+    recentLogEntries,
   );
 
   const result = await retryAiCall<{

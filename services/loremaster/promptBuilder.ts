@@ -103,6 +103,7 @@ export const buildDistillFactsPrompt = (
   currentObjective: string | null,
   inventoryItemNames: Array<string>,
   mapNodeNames: Array<string>,
+  recentLogEntries: Array<string>,
 ): string => {
   const factLines = facts
     .map(
@@ -114,9 +115,13 @@ export const buildDistillFactsPrompt = (
     .map(name => `- ${name}`)
     .join('\n');
   const mapLines = mapNodeNames.map(name => `- ${name}`).join('\n');
+  const logLines = recentLogEntries.map(l => `- ${l}`).join('\n');
   return `Theme: ${themeName}
 Current Quest: ${currentQuest ?? 'None'}
 Current Objective: ${currentObjective ?? 'None'}
+
+## Recent Log:
+${logLines || 'None'}
 
 ## Inventory Items:
 ${inventoryLines || 'None'}

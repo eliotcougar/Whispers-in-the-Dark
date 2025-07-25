@@ -9,10 +9,17 @@ describe('buildDistillFactsPrompt', () => {
       { id: 2, text: 'Second fact', entities: ['c'], themeName: 'theme', createdTurn: 1, tier: 1 },
     ];
 
-    const prompt = buildDistillFactsPrompt('theme', facts, null, null, [], []);
+    const prompt = buildDistillFactsPrompt('theme', facts, null, null, [], [], []);
 
     expect(prompt).toContain('ID 1: "First fact" [a, b]');
     expect(prompt).toContain('ID 2: "Second fact" [c]');
+  });
+
+  it('includes recent log entries', () => {
+    const facts: Array<ThemeFact> = [];
+    const prompt = buildDistillFactsPrompt('theme', facts, null, null, [], [], ['log a', 'log b']);
+    expect(prompt).toContain('log a');
+    expect(prompt).toContain('log b');
   });
 });
 
