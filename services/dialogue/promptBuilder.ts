@@ -123,10 +123,11 @@ Current Main Quest: "${currentQuest ?? 'Not set'}";
 Current Objective: "${currentObjective ?? 'Not set'}";
 Scene Description (for environmental context): "${currentScene}";
 Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}";
-### Player Character Description:
+
+## Player Character Description:
 Gender: ${playerGender}.
 ${heroDescription}
-Character Traits should especially influence dialogue choices.
+Character Traits should slightly influence dialogue choices.
 
 ## Relevant Facts about the world:
 ${relevantFactsSection}
