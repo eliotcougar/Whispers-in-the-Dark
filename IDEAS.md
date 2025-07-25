@@ -23,7 +23,7 @@ v1.4. Ink and Quill update
 
 v1.5 Backstory update
   - Character Generation.
-  - Backstory generation: 5 years, 3 years, 1 year, 6 months, 1 month, 1 week, yesterday.
+  - Backstory generation: 5 years, 3 years, 1 year, 6 months, 1 month, 1 week, yesterday, now.
   - Extraction of extra lore from backstory that should not change.
   - Interactive backstory generation for the custom mode, random generation, based on old choices durin shifts.
   - Character sheet (per Theme)
