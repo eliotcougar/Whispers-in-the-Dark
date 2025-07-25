@@ -13,6 +13,7 @@ import {
   formatWorldFactsForPrompt,
   formatHeroSheetForPrompt,
   formatHeroBackstoryForPrompt,
+  formatRecentEventsForPrompt,
 } from '../../utils/promptFormatters';
 
 export const buildExtractFactsPrompt = (
@@ -42,6 +43,8 @@ export const buildIntegrateFactsPrompt = (
   themeName: string,
   existingFacts: Array<ThemeFact>,
   newFacts: Array<FactWithEntities>,
+  logMessage: string,
+  currentScene: string,
 ): string => {
   const existing =
     existingFacts
@@ -51,14 +54,20 @@ export const buildIntegrateFactsPrompt = (
     newFacts
       .map(f => `- ${f.text} [${f.entities.join(', ')}]`)
       .join('\n') || 'None.';
+  const events = formatRecentEventsForPrompt(
+    [logMessage, currentScene].filter(e => e.trim() !== ''),
+  );
   return `Theme: ${themeName}
 
   ## Known Facts:
 ${existing}
 
   ## New Candidate Facts:
-${proposed}
-  
+  ${proposed}
+
+  ## Recent Events:
+  ${events || 'None'}
+
 Provide integration instructions acording to your instructions.
 `;
 };

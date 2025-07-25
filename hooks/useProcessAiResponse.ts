@@ -589,6 +589,8 @@ export const useProcessAiResponse = ({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
           existingFacts: draftState.themeFacts,
+          logMessage: aiData.logMessage ?? '',
+          currentScene: aiData.sceneDescription,
           onFactsExtracted: debugLore
             ? async (facts) =>
                 new Promise<{ proceed: boolean }>(resolve => {
