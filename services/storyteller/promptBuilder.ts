@@ -274,16 +274,19 @@ export const buildMainGameTurnPrompt = (
 
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
 
-## Context:
-Player's Character Gender: "${playerGender}"
-World Details:\n${worldInfo}
-
-Hero Description:\n${heroDescription}
+## Context that may or may not be relevant for this specific turn:
 Previous Local Time: "${localTime ?? 'Unknown'}"
 Previous Local Environment: "${localEnvironment ?? 'Undetermined'}"
 Previous Local Place: "${localPlace ?? 'Undetermined Location'}"
 Main Quest: "${mainQuest ?? 'Not set'}"
 Current Objective: "${currentObjective ?? 'Not set'}"
+
+### World Details:
+${worldInfo}
+
+### Hero Description:
+Gender: ${playerGender}.
+${heroDescription}
 
 ### Player's Inventory:
 ${inventoryStrings}
