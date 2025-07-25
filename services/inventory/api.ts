@@ -98,6 +98,7 @@ export const INVENTORY_JSON_SCHEMA = {
           name: { type: 'string', description: 'Name of the item.' },
           tags: {
             type: 'array',
+            maxItems: 5,
             items: { enum: [...COMMON_TAGS, 'restored'] },
             description:
               `Updated tags. Written items can receive 'recovered' tag if translated, decoded, or restored.`,
@@ -144,6 +145,7 @@ export const INVENTORY_JSON_SCHEMA = {
           newName: { type: 'string', description: 'Updated name if changed.' },
           tags: {
             type: 'array',
+            maxItems: 5,
             items: { enum: COMMON_TAGS },
             description: `Updated tags.`,
           },
@@ -217,6 +219,7 @@ export const INVENTORY_JSON_SCHEMA = {
           name: { type: 'string', description: 'Item name as it will appear to the player.' },
           tags: {
             type: 'array',
+            maxItems: 5,
             items: { enum: [...COMMON_TAGS,...WRITING_TAGS] },
             description: `Example tags: ${COMMON_TAGS_STRING}, 'book', 'page', 'map', and 'picture' type items require one of ${TEXT_STYLE_TAGS_STRING} and optionally ${TEXT_MOD_TAGS_STRING}.`,
           },
