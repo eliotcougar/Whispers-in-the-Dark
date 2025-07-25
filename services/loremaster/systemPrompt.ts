@@ -69,8 +69,8 @@ Each fact must aid long-term continuity and world-building.
 CRITICALLY IMPORTANT: DO NOT include bad quality and irrelevant facts.
 `;
 
-export const INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION = `You are the Loremaster integrating newly discovered facts with existing lore, while avoiding overlaps and potential contradictions.
-In your JSON response, 'action' field MUST always be 'add'.`;
+export const INTEGRATE_SYSTEM_INSTRUCTION = `You are the Loremaster integrating newly discovered facts with existing lore, while avoiding overlaps and potential contradictions.
+Use the "add", "change" or "delete" actions to update the lore based on recent events.`;
 
 export const COLLECT_SYSTEM_INSTRUCTION = `You are the Loremaster selecting relevant known facts.
 Relevant facts are those that directly inform the next scene: details the NPCs might reference, rules that shape the environment, or recent events likely to influence decisions.

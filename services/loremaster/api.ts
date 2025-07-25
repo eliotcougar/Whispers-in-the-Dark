@@ -31,7 +31,7 @@ import {
 } from '../../types';
 import {
   EXTRACT_SYSTEM_INSTRUCTION,
-  INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
+  INTEGRATE_SYSTEM_INSTRUCTION,
   COLLECT_SYSTEM_INSTRUCTION,
   DISTILL_SYSTEM_INSTRUCTION,
 } from './systemPrompt';
@@ -76,24 +76,51 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
     factsChange: {
       type: 'array',
       items: {
-        type: 'object',
-        properties: {
-          action: { enum: ['add'], description: 'Always equal to "add" exactly.' },
-          fact: {
+        oneOf: [
+          {
             type: 'object',
             properties: {
-              text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*.' },
-              entities: { type: 'array', items: { type: 'string' } },
+              action: { enum: ['add'] },
+              fact: {
+                type: 'object',
+                properties: {
+                  text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*.' },
+                  entities: { type: 'array', items: { type: 'string' } },
+                },
+                propertyOrdering: ['entities', 'text'],
+                required: ['entities', 'text'],
+                additionalProperties: false,
+              },
             },
-            propertyOrdering: ['entities', 'text'],
-            required: ['entities', 'text'],
+            propertyOrdering: ['action', 'fact'],
+            required: ['action', 'fact'],
             additionalProperties: false,
           },
-        },
-        propertyOrdering: ['action', 'fact'],
-        required: ['action', 'fact'],
-        additionalProperties: false,
-      }
+          {
+            type: 'object',
+            properties: {
+              action: {
+                enum: ['delete', 'change'],
+                description: 'change or delete the lore facts that are no longer relevant, based on the recent events',
+              },
+              id: { type: 'integer', description: 'ID of the fact to modify or remove.' },
+              fact: {
+                type: 'object',
+                properties: {
+                  text: { type: 'string', description: 'Updated fact text for the change action.' },
+                  entities: { type: 'array', items: { type: 'string' } },
+                },
+                propertyOrdering: ['entities', 'text'],
+                required: ['entities', 'text'],
+                additionalProperties: false,
+              },
+            },
+            propertyOrdering: ['action', 'id', 'fact'],
+            required: ['action', 'id'],
+            additionalProperties: false,
+          },
+        ],
+      },
     }
   },
   required: ['observations', 'rationale', 'factsChange'],
@@ -149,6 +176,8 @@ export interface RefineLoreParams {
   themeName: string;
   turnContext: string;
   existingFacts: Array<ThemeFact>;
+  logMessage: string;
+  currentScene: string;
   worldFacts?: WorldFacts;
   heroSheet?: HeroSheet;
   heroBackstory?: HeroBackstory;
@@ -264,6 +293,8 @@ export const refineLore_Service = async (
     themeName,
     turnContext,
     existingFacts,
+    logMessage,
+    currentScene,
     worldFacts,
     heroSheet,
     heroBackstory,
@@ -340,7 +371,13 @@ export const refineLore_Service = async (
     }
   }
 
-  const integratePrompt = buildIntegrateFactsPrompt(themeName, existingFacts, newFacts.parsed ?? []);
+  const integratePrompt = buildIntegrateFactsPrompt(
+    themeName,
+    existingFacts,
+    newFacts.parsed ?? [],
+    logMessage,
+    currentScene,
+  );
   const integration = await retryAiCall<{
     parsed: LoreRefinementResult;
     raw: string;
@@ -359,7 +396,7 @@ export const refineLore_Service = async (
     } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: integratePrompt,
-      systemInstruction: INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
+      systemInstruction: INTEGRATE_SYSTEM_INSTRUCTION,
       thinkingBudget: 1024,
       includeThoughts: true,
       responseMimeType: 'application/json',
@@ -398,7 +435,7 @@ export const refineLore_Service = async (
       },
       integrate: {
         prompt: integration?.promptUsed ?? integratePrompt,
-        systemInstruction: integration?.systemInstructionUsed ?? INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION,
+        systemInstruction: integration?.systemInstructionUsed ?? INTEGRATE_SYSTEM_INSTRUCTION,
         jsonSchema: integration?.jsonSchemaUsed ?? INTEGRATE_FACTS_JSON_SCHEMA,
         rawResponse: integration?.raw,
         parsedPayload: integration?.parsed,
