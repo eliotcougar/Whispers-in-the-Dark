@@ -304,6 +304,9 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         themeMemory: hasExistingHistory ? draftState.themeHistory[themeObjToLoad.name] : undefined,
         mapDataForTheme: draftState.mapData,
         npcsForTheme: draftState.allNPCs.filter(npc => npc.themeName === themeObjToLoad.name),
+        worldFacts: draftState.worldFacts ?? undefined,
+        heroSheet: draftState.heroSheet ?? undefined,
+        heroBackstory: draftState.heroBackstory ?? undefined,
       });
       draftState.lastDebugPacket = {
         prompt,
