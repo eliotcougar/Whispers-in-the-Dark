@@ -16,7 +16,7 @@ function CharacterCard({ option, onSelect, disabled = false }: CharacterCardProp
       ariaLabel={`Select character ${option.name}${disabled ? ' (selected)' : ''}`}
       disabled={disabled}
       label={(
-        <div className="flex flex-col items-start text-left w-full" style={{ minHeight: '160px' }}>
+        <div className="flex flex-col items-start text-left w-full" style={{ minHeight: '120px' }}>
           <h3 className="text-xl font-semibold text-amber-400 mb-2">
             {option.name}
           </h3>

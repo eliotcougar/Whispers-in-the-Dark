@@ -46,11 +46,11 @@ export const buildNewGameFirstTurnPrompt = (
 ## World Details:
 ${worldInfo}
 
-## Hero Description:
+## Player Character Description:
 Gender: ${playerGender}.
 ${heroDescription}
 
-## Hero Backstory:
+## Player Character Backstory:
 ${heroPast}
 
 The player's last action was unremarkable—something common anyone would do in this situation.
@@ -273,7 +273,7 @@ export const buildMainGameTurnPrompt = (
   const heroDescription =
     heroSheet !== null
       ? formatHeroSheetForPrompt(heroSheet, false)
-      : 'The hero remains undescribed.';
+      : 'The player character remains undescribed.';
 
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
 
@@ -287,7 +287,7 @@ Current Objective: "${currentObjective ?? 'Not set'}"
 ### World Details:
 ${worldInfo}
 
-### Hero Description:
+### Player Character Description:
 Gender: ${playerGender}.
 ${heroDescription}
 

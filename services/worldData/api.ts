@@ -56,12 +56,12 @@ const heroSheetSchema = {
 const heroBackstorySchema = {
   type: 'object',
   properties: {
-    fiveYearsAgo: { type: 'string', minLength: 1000 },
-    oneYearAgo: { type: 'string', minLength: 1000 },
-    sixMonthsAgo: { type: 'string', minLength: 1000 },
-    oneMonthAgo: { type: 'string', minLength: 1000 },
-    oneWeekAgo: { type: 'string', minLength: 1000 },
-    yesterday: { type: 'string', minLength: 1000 },
+    fiveYearsAgo: { type: 'string', minLength: 2000 },
+    oneYearAgo: { type: 'string', minLength: 2000 },
+    sixMonthsAgo: { type: 'string', minLength: 2000 },
+    oneMonthAgo: { type: 'string', minLength: 2000 },
+    oneWeekAgo: { type: 'string', minLength: 2000 },
+    yesterday: { type: 'string', minLength: 2000 },
   },
   required: [
     'fiveYearsAgo',
@@ -122,7 +122,8 @@ export const generateCharacterNames = async (
     `Using this world description:
     ${JSON.stringify(worldFacts)}
     Generate 50 ${gender} or gender-neutral full names with occasional optional nicknames appropriate for the theme "${theme.name}".
-    The names shouls follow 'First Name Last Name' or 'First Name "Nickname" Last Name' or 'Prefix First Name Last Name' template.`;
+    The names shouls follow 'First Name Last Name' or 'First Name "Nickname" Last Name' or 'Prefix First Name Last Name' template.
+    Strongly avoid repeating First Names, Last Names, and Nicknames throughout the list. They all should be unique.`;
   const request = async () => {
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
@@ -170,7 +171,7 @@ export const generateCharacterDescriptions = async (
         type: 'array',
         items: {
           type: 'object',
-          properties: { name: { type: 'string' }, description: { type: 'string', minLength: 1000 } },
+          properties: { name: { type: 'string' }, description: { type: 'string', minLength: 2000 } },
           required: ['name', 'description'],
           additionalProperties: false,
         },

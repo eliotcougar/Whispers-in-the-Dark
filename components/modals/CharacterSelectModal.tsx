@@ -64,11 +64,11 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
     <div aria-labelledby="character-select-title" aria-modal="true" className="animated-frame open" role="dialog">
       <div className="animated-frame-content character-select-content-area flex flex-col items-center">
         <h1 className="text-3xl font-bold text-sky-300 mb-4 text-center" id="character-select-title">
-          Choose Your Hero
+          Choose Your Character
         </h1>
 
         <p className="text-slate-300 mb-6 text-center text-sm max-w-2xl mx-auto">
-          Explore the world of {theme.name}. Select a hero to begin your adventure.
+          Explore the world of {theme.name}. Select a character to begin your adventure.
         </p>
 
         {isGenerating ? (
@@ -84,7 +84,7 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
               <div className="mt-2">
                 <p className="font-semibold">Backstory:</p>
 
-                <ul className="list-disc list-inside text-sm whitespace-pre-line">
+                <ul className="list-disc list-inside text-lg whitespace-pre-line">
                   <li>5 years ago: {heroBackstory.fiveYearsAgo}</li>
                   <li>1 year ago: {heroBackstory.oneYearAgo}</li>
                   <li>6 months ago: {heroBackstory.sixMonthsAgo}</li>
@@ -97,14 +97,14 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
 
             <div className="mt-4 space-y-1 text-slate-300">
               <p className="text-lg font-semibold text-sky-300 text-center">World Information</p>
-              <p className="text-center">Geography: {worldFacts.geography}</p>
-              <p className="text-center">Climate: {worldFacts.climate}</p>
-              <p className="text-center">Technology Level: {worldFacts.technologyLevel}</p>
-              <p className="text-center">Supernatural Elements: {worldFacts.supernaturalElements}</p>
-              <p className="text-center">Major Factions: {worldFacts.majorFactions.join(', ')}</p>
-              <p className="text-center">Key Resources: {worldFacts.keyResources.join(', ')}</p>
-              <p className="text-center">Cultural Notes: {worldFacts.culturalNotes.join(', ')}</p>
-              <p className="text-center">Notable Locations: {worldFacts.notableLocations.join(', ')}</p>
+              <p className="text-left">Geography: {worldFacts.geography}</p>
+              <p className="text-left">Climate: {worldFacts.climate}</p>
+              <p className="text-left">Technology Level: {worldFacts.technologyLevel}</p>
+              <p className="text-left">Supernatural Elements: {worldFacts.supernaturalElements}</p>
+              <p className="text-left">Major Factions: {worldFacts.majorFactions.join(', ')}</p>
+              <p className="text-left">Key Resources: {worldFacts.keyResources.join(', ')}</p>
+              <p className="text-left">Cultural Notes: {worldFacts.culturalNotes.join(', ')}</p>
+              <p className="text-left">Notable Locations: {worldFacts.notableLocations.join(', ')}</p>
             </div>
           </>
         ) : (

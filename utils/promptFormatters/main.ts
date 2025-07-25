@@ -202,7 +202,7 @@ export const formatHeroSheetForPrompt = (
   includeStartingItems = false,
 ): string => {
   const lines = [
-    `Name: ${hero.name}`,
+    `Player Character Name: ${hero.name}`,
     `Occupation: ${hero.occupation}.`,
     `Traits: ${hero.traits.join(', ')}.`,
   ];
