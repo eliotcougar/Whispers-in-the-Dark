@@ -42,13 +42,16 @@ export const buildNewGameFirstTurnPrompt = (
   const heroDescription = formatHeroSheetForPrompt(heroSheet, true);
   const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
   const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.systemInstructionModifier}
-Player's Character Gender: "${playerGender}"
 
-World Details:\n${worldInfo}
+## World Details:
+${worldInfo}
 
-Hero Description:\n${heroDescription}
+## Hero Description:
+Gender: ${playerGender}.
+${heroDescription}
 
-Hero Backstory:\n${heroPast}
+## Hero Backstory:
+${heroPast}
 
 The player's last action was unremarkable—something common anyone would do in this situation.
 
