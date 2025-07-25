@@ -4,7 +4,18 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { ThemePackName, FullGameState, GameStateStack, DebugPacketStack, LoadingReason } from '../types';
+import {
+  ThemePackName,
+  FullGameState,
+  GameStateStack,
+  DebugPacketStack,
+  LoadingReason,
+  AdventureTheme,
+  WorldFacts,
+  CharacterOption,
+  HeroSheet,
+  HeroBackstory,
+} from '../types';
 import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingState';
 import { useLoadingReason } from './useLoadingReason';
 import { getInitialGameStates } from '../utils/initialStates';
@@ -34,6 +45,14 @@ export interface UseGameLogicProps {
     facts: Array<string>,
     resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
   ) => void;
+  openCharacterSelectModal: (
+    data: {
+      theme: AdventureTheme;
+      playerGender: string;
+      worldFacts: WorldFacts;
+      options: Array<CharacterOption>;
+    },
+  ) => Promise<{ name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }>;
 }
 
 /** Manages overall game state and delegates to sub hooks. */
@@ -48,6 +67,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     initialDebugStackFromApp,
     isAppReady,
     openDebugLoreModal,
+    openCharacterSelectModal,
   } = props;
 
   const [gameStateStack, setGameStateStack] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
@@ -224,6 +244,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     resetGameStateStack,
     setGameStateStack,
     processAiResponse,
+    openCharacterSelectModal,
   });
   loadInitialGameRef.current = loadInitialGame;
 

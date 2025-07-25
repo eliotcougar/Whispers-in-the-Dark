@@ -356,6 +356,12 @@ export interface HeroBackstory {
   yesterday: string;
 }
 
+export interface CharacterOption {
+  name: string;
+  description: string;
+}
+
+
 export interface LoremasterModeDebugInfo {
   prompt: string;
   rawResponse?: string;

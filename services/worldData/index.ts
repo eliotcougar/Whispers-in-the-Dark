@@ -1,1 +1,7 @@
-export { generateWorldData } from './api';
+export {
+  generateWorldData,
+  generateWorldFacts,
+  generateCharacterNames,
+  generateCharacterDescriptions,
+  generateHeroData,
+} from './api';

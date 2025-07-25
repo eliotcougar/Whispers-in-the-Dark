@@ -4,6 +4,7 @@
  */
 import { useCallback, useState, useRef } from 'react';
 import { clearProgress } from '../utils/loadingProgress';
+import type { AdventureTheme, WorldFacts, CharacterOption, HeroSheet, HeroBackstory } from '../types';
 
 export const useAppModals = () => {
   const [isVisualizerVisible, setIsVisualizerVisible] = useState(false);
@@ -29,6 +30,14 @@ export const useAppModals = () => {
   const [isDebugLoreVisible, setIsDebugLoreVisible] = useState(false);
   const [debugLoreFacts, setDebugLoreFacts] = useState<Array<string>>([]);
   const debugLoreResolveRef = useRef<((good: Array<string>, bad: Array<string>, proceed: boolean) => void) | null>(null);
+  const [isCharacterSelectVisible, setIsCharacterSelectVisible] = useState(false);
+  const [characterSelectData, setCharacterSelectData] = useState<{
+    theme: AdventureTheme;
+    playerGender: string;
+    worldFacts: WorldFacts;
+    options: Array<CharacterOption>;
+  } | null>(null);
+  const characterSelectResolveRef = useRef<((result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }) => void) | null>(null);
 
   const openVisualizer = useCallback(() => { setIsVisualizerVisible(true); }, []);
   const closeVisualizer = useCallback(() => { setIsVisualizerVisible(false); }, []);
@@ -85,6 +94,32 @@ export const useAppModals = () => {
     setIsDebugLoreVisible(false);
   }, []);
 
+  const openCharacterSelectModal = useCallback(
+    (
+      data: {
+        theme: AdventureTheme;
+        playerGender: string;
+        worldFacts: WorldFacts;
+        options: Array<CharacterOption>;
+      },
+      resolve: (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }) => void,
+    ) => {
+      setCharacterSelectData(data);
+      characterSelectResolveRef.current = resolve;
+      setIsCharacterSelectVisible(true);
+    },
+    []
+  );
+
+  const submitCharacterSelectModal = useCallback(
+    (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }) => {
+      characterSelectResolveRef.current?.(result);
+      setIsCharacterSelectVisible(false);
+      setCharacterSelectData(null);
+    },
+    []
+  );
+
   return {
     // state
     isVisualizerVisible,
@@ -107,6 +142,8 @@ export const useAppModals = () => {
    pageItemId,
    pageStartChapterIndex,
    isPageVisible,
+    isCharacterSelectVisible,
+    characterSelectData,
    // setters used outside
     setVisualizerImageUrl,
     setVisualizerImageScene,
@@ -144,9 +181,11 @@ export const useAppModals = () => {
    closePageView,
    isDebugLoreVisible,
    debugLoreFacts,
-   openDebugLoreModal,
-   submitDebugLoreModal,
-   closeDebugLoreModal,
+    openDebugLoreModal,
+    submitDebugLoreModal,
+    closeDebugLoreModal,
+    openCharacterSelectModal,
+    submitCharacterSelectModal,
   } as const;
 };
 

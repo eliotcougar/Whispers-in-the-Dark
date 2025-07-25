@@ -9,6 +9,11 @@ import {
   ThemePackName,
   LoadingReason,
   GameStateStack,
+  AdventureTheme,
+  WorldFacts,
+  CharacterOption,
+  HeroSheet,
+  HeroBackstory,
 } from '../types';
 import {
   executeAIMainTurn,
@@ -30,7 +35,11 @@ import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
 import { repairFeatureHierarchy } from '../utils/mapHierarchyUpgradeUtils';
 import { clearAllImages } from '../services/imageDb';
-import { generateWorldData } from '../services/worldData';
+import {
+  generateWorldFacts,
+  generateCharacterNames,
+  generateCharacterDescriptions,
+} from '../services/worldData';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
@@ -59,6 +68,14 @@ export interface UseGameInitializationProps {
   resetGameStateStack: (state: FullGameState) => void;
   setGameStateStack: (stack: GameStateStack) => void;
   processAiResponse: ProcessAiResponseFn;
+  openCharacterSelectModal: (
+    data: {
+      theme: AdventureTheme;
+      playerGender: string;
+      worldFacts: WorldFacts;
+      options: Array<CharacterOption>;
+    },
+  ) => Promise<{ name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }>;
 }
 
 /**
@@ -81,6 +98,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     resetGameStateStack,
     setGameStateStack,
     processAiResponse,
+    openCharacterSelectModal,
   } = props;
 
 
@@ -196,10 +214,54 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.currentThemeObject = themeObjToLoad;
       draftState.turnsSinceLastShift = 0;
 
-      const worldData = await generateWorldData(themeObjToLoad, playerGenderProp);
-      draftState.worldFacts = worldData?.worldFacts ?? null;
-      draftState.heroSheet = worldData?.heroSheet ?? null;
-      draftState.heroBackstory = worldData?.heroBackstory ?? null;
+      const worldFacts = await generateWorldFacts(themeObjToLoad);
+      draftState.worldFacts = worldFacts ?? null;
+
+      const names = await generateCharacterNames(
+        themeObjToLoad,
+        playerGenderProp,
+        worldFacts ?? { geography: '', climate: '', technologyLevel: '', supernaturalElements: '', majorFactions: [], keyResources: [], culturalNotes: [], notableLocations: [] },
+      );
+      let heroSheet: HeroSheet | null = null;
+      let heroBackstory: HeroBackstory | null = null;
+      if (names && names.length > 0) {
+        const shuffled = [...names].sort(() => Math.random() - 0.5).slice(0, 10);
+        const descriptions = await generateCharacterDescriptions(
+          themeObjToLoad,
+          worldFacts ?? {
+            geography: '',
+            climate: '',
+            technologyLevel: '',
+            supernaturalElements: '',
+            majorFactions: [],
+            keyResources: [],
+            culturalNotes: [],
+            notableLocations: [],
+          },
+          shuffled,
+        );
+        if (descriptions) {
+          const result = await openCharacterSelectModal({
+            theme: themeObjToLoad,
+            playerGender: playerGenderProp,
+            worldFacts: worldFacts ?? {
+              geography: '',
+              climate: '',
+              technologyLevel: '',
+              supernaturalElements: '',
+              majorFactions: [],
+              keyResources: [],
+              culturalNotes: [],
+              notableLocations: [],
+            },
+            options: descriptions,
+          });
+          heroSheet = result.heroSheet;
+          heroBackstory = result.heroBackstory;
+          draftState.heroSheet = heroSheet;
+          draftState.heroBackstory = heroBackstory;
+        }
+      }
 
       if (isTransitioningFromShift) {
         const previousState = getCurrentGameState();
@@ -336,6 +398,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       commitGameState,
       processAiResponse,
       setGameStateStack,
+      openCharacterSelectModal,
     ]);
 
   /**
