@@ -1,5 +1,4 @@
 import { geminiClient as ai, isApiConfigured } from '../apiClient';
-import type { Part } from '@google/genai';
 import { AdventureTheme, Item, ItemChapter } from '../../types';
 import {
   GEMINI_LITE_MODEL_NAME,
@@ -147,22 +146,15 @@ export const generateChapterImage = async (
         const status = extractStatusFromError(err);
         if (status === 400) {
           try {
-            const fallbackResp = await client.models.generateContentStream({
-              model: 'gemini-2.0-flash-preview-image-generation',
-              contents: [
-                { role: 'user', parts: [{ text: safePrompt }] },
-              ],
-              config: { responseModalities: ['IMAGE', 'TEXT'], responseMimeType: 'text/plain' },
-            });
-            const isInlinePart = (part: unknown): part is Part => typeof part === 'object' && part !== null && 'inlineData' in part;
-            for await (const chunk of fallbackResp) {
-              const candidate = chunk.candidates?.[0];
-              const inlinePart = candidate?.content?.parts?.find(isInlinePart);
-              const inlineData = inlinePart?.inlineData;
-              if (inlineData?.data) {
-                return { result: inlineData.data };
-              }
-            }
+            const fallbackResp = await client.models.generateImages({
+            model: 'imagen-3.0-generate-002',
+            prompt: safePrompt,
+            config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
+          });
+          const bytes = fallbackResp.generatedImages?.[0]?.image?.imageBytes;
+          if (bytes) {
+            return { result: bytes };
+          }
           } catch (fallbackErr: unknown) {
             console.error('Fallback image generation failed:', fallbackErr);
           }

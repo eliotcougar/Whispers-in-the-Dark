@@ -125,7 +125,7 @@ export const generateCharacterNames = async (
     ${JSON.stringify(worldFacts)}
     Generate 50 ${gender} or gender-neutral full names with occasional optional nicknames appropriate for the theme "${theme.name}".
     The names shouls follow 'First Name Last Name' or 'First Name "Nickname" Last Name' or 'Prefix First Name Last Name' template.
-    Strongly avoid repeating First Names, Last Names, and Nicknames throughout the list. They all should be unique.`;
+    You MUST guarantee name variety! Every individual First Name, Last Name, and Nickname MUST appear only once throughout the whole list. They all should be unique.`;
   const request = async () => {
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],

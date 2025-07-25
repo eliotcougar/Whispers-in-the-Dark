@@ -41,7 +41,7 @@ const infoDisplayContent = {
       "text": [
         "This game is powered by Google's Gemini large language models:",
         "Text Generation: {{GEMINI_MODEL_NAME}}",
-        "Image Generation: imagen-3.0-generate-002 (fallback gemini-2.0-flash-preview-image-generation)",
+        "Image Generation: imagen-4.0",
         "AI Unpredictability: As with any generative AI, the responses can sometimes be unpredictable, creative in unexpected ways, or may not perfectly adhere to all instructions or context. This is part of the charm and challenge of an AI-driven adventure!",
         "API Quotas: The use of these AI models is subject to API call limits and quotas. If you (or the environment this app is running in) exceed these daily quotas, the game's AI features (text generation, image visualization) may temporarily stop working until the quota resets."
       ]

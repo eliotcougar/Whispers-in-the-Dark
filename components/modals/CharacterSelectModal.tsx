@@ -75,16 +75,16 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
           <LoadingSpinner />
         ) : heroSheet && heroBackstory ? (
           <>
-            <div className="mt-4 space-y-3 text-slate-300">
-              <p className="text-lg font-semibold text-amber-400 text-center">{heroSheet.name}</p>
+            <div className="mt-4 text-lg space-y-3 text-slate-300">
+              <p className="font-semibold text-amber-400 text-center">{heroSheet.name}</p>
               <p className="text-center">Occupation: {heroSheet.occupation}</p>
               <p className="text-center">Traits: {heroSheet.traits.join(', ')}</p>
               <p className="text-center">Starting Items: {heroSheet.startingItems.join(', ')}</p>
 
-              <div className="mt-2">
+              <div className="mt-2 text-lg">
                 <p className="font-semibold">Backstory:</p>
 
-                <ul className="list-disc list-inside text-lg whitespace-pre-line">
+                <ul className=" text-lg list-disc list-inside whitespace-pre-line">
                   <li>5 years ago: {heroBackstory.fiveYearsAgo}</li>
 
                   <li>1 year ago: {heroBackstory.oneYearAgo}</li>
@@ -102,8 +102,8 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
               </div>
             </div>
 
-            <div className="mt-4 space-y-1 text-slate-300">
-              <p className="text-lg font-semibold text-sky-300 text-center">World Information</p>
+            <div className="mt-4 text-lg space-y-1 text-slate-300">
+              <p className="font-semibold text-sky-300 text-center">World Information</p>
               <p className="text-left">Geography: {worldFacts.geography}</p>
               <p className="text-left">Climate: {worldFacts.climate}</p>
               <p className="text-left">Technology Level: {worldFacts.technologyLevel}</p>
