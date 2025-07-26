@@ -407,10 +407,15 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     const mapNodeNames = currentThemeNodes.map(n => n.placeName);
     const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
     setLoadingReasonRef('loremaster_refine');
+    const act =
+      currentFullState.storyArc?.acts[
+        currentFullState.storyArc.currentAct - 1
+      ];
+    const actQuest = act?.mainObjective ?? null;
     const result = await distillFacts_Service({
       themeName: themeObj.name,
       facts: currentFullState.themeFacts,
-      currentQuest: currentFullState.mainQuest,
+      currentQuest: actQuest,
       currentObjective: currentFullState.currentObjective,
       inventoryItemNames,
       mapNodeNames,
@@ -470,11 +475,18 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     currentFullState.dialogueState,
   ]);
 
+  const currentAct =
+    currentFullState.storyArc?.acts[
+      currentFullState.storyArc.currentAct - 1
+    ];
+  const mainQuest = currentAct?.mainObjective ?? null;
+
   return {
     currentTheme: currentFullState.currentThemeObject,
     currentScene: currentFullState.currentScene,
     actionOptions: currentFullState.actionOptions,
-    mainQuest: currentFullState.mainQuest,
+    mainQuest,
+    storyArc: currentFullState.storyArc,
     currentObjective: currentFullState.currentObjective,
     inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
     playerJournal: currentFullState.playerJournal,

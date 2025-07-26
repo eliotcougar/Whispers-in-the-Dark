@@ -131,8 +131,12 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
         return sourceNode?.themeName === currentThemeObj.name && targetNode?.themeName === currentThemeObj.name;
       }),
     };
+    const act =
+      workingGameState.storyArc?.acts[
+        workingGameState.storyArc.currentAct - 1
+      ];
     const summaryContextForUpdates: DialogueSummaryContext = {
-      mainQuest: workingGameState.mainQuest,
+      mainQuest: act?.mainObjective ?? null,
       currentObjective: workingGameState.currentObjective,
       currentScene: workingGameState.currentScene,
       localTime: workingGameState.localTime,
