@@ -242,9 +242,9 @@ export const INVENTORY_JSON_SCHEMA = {
     },
     destroy: {
       type: 'array',
-      description: 'Remove items from the world.',
       items: {
         type: 'object',
+        description: 'Remove items from the world.',
         properties: { id: { type: 'string' }, name: { type: 'string' } },
         propertyOrdering: ['id', 'name'],
         required: ['id', 'name'],
@@ -253,9 +253,9 @@ export const INVENTORY_JSON_SCHEMA = {
     },
     move: {
       type: 'array',
-      description: 'Move an existing item to a new holder.',
       items: {
         type: 'object',
+        description: 'Move an existing item to a new holder.',
         properties: {
           id: { type: 'string' },
           name: { type: 'string' },
