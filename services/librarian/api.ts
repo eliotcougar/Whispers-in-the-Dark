@@ -4,13 +4,13 @@ import {
   GEMINI_MODEL_NAME,
   MINIMAL_MODEL_NAME,
   LOADING_REASON_UI_MAP,
-  WRITING_ITEM_TYPES,
-  WRITING_ITEM_TYPES_STRING,
-  WRITING_TAGS,
+  WRITTEN_ITEM_TYPES,
+  WRITTEN_ITEM_TYPES_STRING,
+  WRITTEN_TAGS,
   MIN_BOOK_CHAPTERS,
   MAX_BOOK_CHAPTERS,
   PLAYER_HOLDER_ID,
-  WRITING_TAGS_STRING,
+  WRITTEN_TAGS_STRING,
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -109,10 +109,10 @@ export const LIBRARIAN_JSON_SCHEMA = {
           tags: {
             type: 'array',
             maxItems: 5,
-            items: { enum: WRITING_TAGS },
+            items: { enum: WRITTEN_TAGS },
             description: 'Updated tags.',
           },
-          type: { enum: WRITING_ITEM_TYPES, description: `Updated type if changed. One of ${WRITING_ITEM_TYPES_STRING}.` },
+          type: { enum: WRITTEN_ITEM_TYPES, description: `Updated type if changed. One of ${WRITTEN_ITEM_TYPES_STRING}.` },
         },
         propertyOrdering: [
           'description',
@@ -170,10 +170,10 @@ export const LIBRARIAN_JSON_SCHEMA = {
           tags: {
             type: 'array',
             maxItems: 5,
-            items: { enum: WRITING_TAGS },
-            description: `Allowed tags: ${WRITING_TAGS_STRING}.`,
+            items: { enum: WRITTEN_TAGS },
+            description: `Allowed tags: ${WRITTEN_TAGS_STRING}.`,
           },
-          type: { enum: WRITING_ITEM_TYPES, description: `Item type. One of ${WRITING_ITEM_TYPES_STRING}` },
+          type: { enum: WRITTEN_ITEM_TYPES, description: `Item type. One of ${WRITTEN_ITEM_TYPES_STRING}` },
         },
         propertyOrdering: [
           'chapters',

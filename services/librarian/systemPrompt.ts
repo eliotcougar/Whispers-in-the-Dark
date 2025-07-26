@@ -1,4 +1,4 @@
-import { VALID_ACTIONS_STRING, WRITING_ITEM_TYPES_STRING, TEXT_STYLE_TAGS_STRING, MIN_BOOK_CHAPTERS, MAX_BOOK_CHAPTERS, DEDICATED_BUTTON_USES_STRING } from '../../constants';
+import { VALID_ACTIONS_STRING, WRITTEN_ITEM_TYPES_STRING, TEXT_STYLE_TAGS_STRING, MIN_BOOK_CHAPTERS, MAX_BOOK_CHAPTERS, DEDICATED_BUTTON_USES_STRING } from '../../constants';
 import { ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
 
 export const SYSTEM_INSTRUCTION = `** SYSTEM INSTRUCTIONS: **
@@ -10,7 +10,7 @@ Define any operations on existing items at Locations, or in NPCs' inventories, a
 Define any transfers of existing items between NPCs' and Player's Inventories using the 'move' action.
 
 Allowed actions are: ${String(VALID_ACTIONS_STRING)}.
-Allowed item types are: ${String(WRITING_ITEM_TYPES_STRING)}
+Allowed item types are: ${String(WRITTEN_ITEM_TYPES_STRING)}
 CRITICALLY IMPORTANT: Use 'create' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory. You MUST 'create' *all* items in the New Items JSON and *only* the items in the New Items JSON. NEVER create items that are part of the Player's Inventory.
 CRITICALLY IMPORTANT: Use 'move' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
 CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world.

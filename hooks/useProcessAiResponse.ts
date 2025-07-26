@@ -11,7 +11,7 @@ import {
   TurnChanges,
 } from '../types';
 import { fetchCorrectedName_Service } from '../services/corrections';
-import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITING_ITEM_TYPES } from '../constants';
+import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITTEN_ITEM_TYPES } from '../constants';
 import {
   addLogMessageToList,
   buildItemChangeRecords,
@@ -223,10 +223,10 @@ const handleInventoryHints = async ({
     const allNewItems =
       'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
     const librarianNewItems = allNewItems.filter(it =>
-      WRITING_ITEM_TYPES.includes(it.type as (typeof WRITING_ITEM_TYPES)[number]),
+      WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
     );
     const inventoryNewItems = allNewItems.filter(
-      it => !WRITING_ITEM_TYPES.includes(it.type as (typeof WRITING_ITEM_TYPES)[number]),
+      it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
     );
     const invResult = await applyInventoryHints_Service(
       'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,

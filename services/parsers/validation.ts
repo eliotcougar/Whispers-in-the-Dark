@@ -19,7 +19,7 @@ import {
   VALID_TAGS,
   TEXT_STYLE_TAGS,
   COMMON_TAGS,
-  WRITING_TAGS,
+  WRITTEN_TAGS,
 } from '../../constants';
 import { normalizeItemType } from '../../utils/itemSynonyms';
 import { normalizeTags } from '../../utils/tagSynonyms';
@@ -131,7 +131,7 @@ export function isValidItem(item: unknown, context?: 'create' | 'change'): item 
     else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
 
     const allowed = WRITTEN_TYPE_SET.has(obj.type ?? '')
-      ? [...COMMON_TAGS, ...WRITING_TAGS]
+      ? [...COMMON_TAGS, ...WRITTEN_TAGS]
       : COMMON_TAGS;
     obj.tags = obj.tags.filter(t => (allowed as ReadonlyArray<string>).includes(t));
   }
@@ -270,7 +270,7 @@ export function isValidAddDetailsPayload(obj: unknown): obj is AddDetailsPayload
     return false;
   }
 
-  const allowedTags = isWritten ? [...COMMON_TAGS, ...WRITING_TAGS] : COMMON_TAGS;
+  const allowedTags = isWritten ? [...COMMON_TAGS, ...WRITTEN_TAGS] : COMMON_TAGS;
   const tagsValid =
     Array.isArray(maybe.tags) &&
     maybe.tags.every(t => (allowedTags as ReadonlyArray<string>).includes(t));

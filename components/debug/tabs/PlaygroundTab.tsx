@@ -11,14 +11,14 @@ import Button, {
 } from '../../elements/Button';
 import {
   TEXT_STYLE_TAGS,
-  WRITING_TAGS,
+  WRITTEN_TAGS,
 } from '../../../constants';
 
 const presets: Array<NonNullable<ButtonProps['preset']>> = [...BUTTON_PRESETS];
 const variants: Array<ButtonProps['variant']> = [...BUTTON_VARIANTS];
 const iconNames: Array<IconName> = [...ICON_NAMES];
 
-const additionalTags = WRITING_TAGS.filter(
+const additionalTags = WRITTEN_TAGS.filter(
   tag =>
     !TEXT_STYLE_TAGS.includes(tag as (typeof TEXT_STYLE_TAGS)[number]) &&
     tag !== 'glitching',

@@ -66,27 +66,9 @@ export const DISTILL_LORE_INTERVAL = 10; // Turns between automatic lore distill
 export const MIN_BOOK_CHAPTERS = 4;
 export const MAX_BOOK_CHAPTERS = 10;
 
-export const VALID_ITEM_TYPES = [
-  'single-use',
-  'multi-use',
-  'equipment',
-  'container',
-  'key',
-  'weapon',
-  'ammunition',
-  'vehicle',
-  'immovable',
-  'status effect',
-  'page',
-  'book',
-  'picture',
-  'map',
-] as const; // 'as const' makes it a tuple of string literals
+export const WRITTEN_ITEM_TYPES = ['page', 'book', 'picture', 'map'] as const;
+export const WRITTEN_ITEM_TYPES_STRING = WRITTEN_ITEM_TYPES.map(t => t).join(', ');
 
-export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => type).join(', ');
-
-export const WRITING_ITEM_TYPES = ['page', 'book', 'picture', 'map'] as const;
-export const WRITING_ITEM_TYPES_STRING = WRITING_ITEM_TYPES.map(t => t).join(', ');
 export const REGULAR_ITEM_TYPES = [
   'single-use',
   'multi-use',
@@ -100,6 +82,9 @@ export const REGULAR_ITEM_TYPES = [
   'status effect',
 ] as const;
 export const REGULAR_ITEM_TYPES_STRING = REGULAR_ITEM_TYPES.map(t => t).join(', ');
+
+export const VALID_ITEM_TYPES = [...REGULAR_ITEM_TYPES, ...WRITTEN_ITEM_TYPES] as const;
+export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => type).join(', ');
 
 export const VALID_ACTIONS = [
   'create',
@@ -136,14 +121,14 @@ export const TEXT_MOD_TAGS = [
   'recovered',
 ] as const;
 
-export const WRITING_TAGS = [...TEXT_STYLE_TAGS, ...TEXT_MOD_TAGS] as const;
+export const WRITTEN_TAGS = [...TEXT_STYLE_TAGS, ...TEXT_MOD_TAGS] as const;
 
-export const VALID_TAGS = [...COMMON_TAGS, ...INTERNAL_TAGS, ...WRITING_TAGS] as const;
+export const VALID_TAGS = [...COMMON_TAGS, ...INTERNAL_TAGS, ...WRITTEN_TAGS] as const;
 
 export const COMMON_TAGS_STRING = COMMON_TAGS.map(t => t).join(', ');
 export const TEXT_STYLE_TAGS_STRING = TEXT_STYLE_TAGS.map(t => t).join(', ');
 export const TEXT_MOD_TAGS_STRING = TEXT_MOD_TAGS.map(t => t).join(', ');
-export const WRITING_TAGS_STRING = WRITING_TAGS.map(t => t).join(', ');
+export const WRITTEN_TAGS_STRING = WRITTEN_TAGS.map(t => t).join(', ');
 export const VALID_TAGS_STRING = VALID_TAGS.map(t => t).join(', ');
 
 export const DEDICATED_BUTTON_USES = [
@@ -195,7 +180,7 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   map: { text: 'Cartographer draws the map...', icon: '░' },
   correction: { text: 'Dungeon Master is fixing mistakes...', icon: '▓' },
   inventory: { text: 'Dungeon Master handles items...', icon: '░' },
-  librarian: { text: 'Dungeon Master manages books...', icon: '░' },
+  librarian: { text: 'Dungeon Master handles books...', icon: '░' },
   dialogue_turn: { text: 'Conversation continues...', icon: '░' },
   dialogue_summary: { text: 'Dialogue concludes...', icon: '░' },
   dialogue_memory_creation: { text: 'Memories form...', icon: '░' },
