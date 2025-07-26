@@ -277,7 +277,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
               }
               const changes = initialFacts.facts.map(f => ({
                 action: 'add' as const,
-                fact: { text: f.text, entities: f.entities },
+                text: f.text,
+                entities: f.entities,
               }));
               applyThemeFactChanges(
                 draftState,

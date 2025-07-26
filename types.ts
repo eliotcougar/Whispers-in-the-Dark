@@ -312,9 +312,10 @@ export interface ThemeFact {
 
 export interface ThemeFactChange {
   action: 'add' | 'change' | 'delete';
-  fact?: Partial<Omit<ThemeFact, 'id' | 'createdTurn'>> & {
-    createdTurn?: number;
-  };
+  text?: string;
+  entities?: Array<string>;
+  tier?: number;
+  createdTurn?: number;
   id?: number;
 }
 

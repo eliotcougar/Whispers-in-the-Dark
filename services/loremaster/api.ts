@@ -60,18 +60,21 @@ export const COLLECT_FACTS_JSON_SCHEMA = {
   items: { type: 'string' },
 } as const;
 
+
 export const INTEGRATE_FACTS_JSON_SCHEMA = {
   type: 'object',
   properties: {
     observations: {
       type: 'string',
       minLength: 500,
-      description: 'Minimum 300 words. Observations about the lore state and the proposed new facts, e.g. There are 3 facts that can be merged. Some of the facts may be too vague or obsolete to be included...'
+      description:
+        'Minimum 300 words. Observations about the lore state and the proposed new facts, e.g. There are 3 facts that can be merged. Some of the facts may be too vague or obsolete to be included...'
     },
     rationale: {
       type: 'string',
       minLength: 500,
-      description: 'Minimum 300 words. Rationale for and against including the proposed facts into the lore, e.g. Most facts are good enough to be included in the lore. However, the facts about the old tavern are no longer relevant. The fact about *a path* leading to the church is too vague - a more concrete named path should have been mentioned instead. I will omit these facts.'
+      description:
+        'Minimum 300 words. Rationale for and against including the proposed facts into the lore, e.g. Most facts are good enough to be included in the lore. However, the facts about the old tavern are no longer relevant. The fact about *a path* leading to the church is too vague - a more concrete named path should have been mentioned instead. I will omit these facts.'
     },
     factsChange: {
       type: 'array',
@@ -81,47 +84,33 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
             type: 'object',
             properties: {
               action: { enum: ['add'] },
-              fact: {
-                type: 'object',
-                properties: {
-                  text: { type: 'string', description: 'Must be one of the accepted *New Candidate Facts*.' },
-                  entities: { type: 'array', items: { type: 'string' } },
-                },
-                propertyOrdering: ['entities', 'text'],
-                required: ['entities', 'text'],
-                additionalProperties: false,
+              text: {
+                type: 'string',
+                description: 'Must be one of the accepted *New Candidate Facts*.',
               },
+              entities: { type: 'array', items: { type: 'string' } },
             },
-            propertyOrdering: ['action', 'fact'],
-            required: ['action', 'fact'],
+            propertyOrdering: ['action', 'entities', 'text'],
+            required: ['action', 'entities', 'text'],
             additionalProperties: false,
           },
           {
             type: 'object',
-            description: 'Change or delete the lore facts that are no longer relevant according to Recent Events',
+            description:
+              'Change or delete the lore facts that are no longer relevant according to Recent Events',
             properties: {
-              action: {
-                enum: ['delete', 'change']
-              },
+              action: { enum: ['delete', 'change'] },
               id: { type: 'integer', description: 'ID of the fact to change or remove.' },
-              fact: {
-                type: 'object',
-                properties: {
-                  text: { type: 'string', description: 'Updated fact text for the change action.' },
-                  entities: { type: 'array', items: { type: 'string' } },
-                },
-                propertyOrdering: ['entities', 'text'],
-                required: ['entities', 'text'],
-                additionalProperties: false,
-              },
+              text: { type: 'string', description: 'Updated fact text for the change action.' },
+              entities: { type: 'array', items: { type: 'string' } },
             },
-            propertyOrdering: ['action', 'id', 'fact'],
+            propertyOrdering: ['action', 'id', 'entities', 'text'],
             required: ['action', 'id'],
             additionalProperties: false,
           },
         ],
       },
-    }
+    },
   },
   required: ['observations', 'rationale', 'factsChange'],
   propertyOrdering: ['observations', 'rationale', 'factsChange'],
@@ -145,23 +134,24 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
+        description: 'REQUIRED for the *add* and *change* actions. Omitted for the *delete* action.',
         properties: {
           action: { enum: ['add', 'change', 'delete'] },
-          fact: {
-            type: 'object',
-            description: 'REQUIRED for the *add* and *change* actions. Omitted for the *delete* action.',
-            properties: {
-              entities: { type: 'array', items: { type: 'string' } },
-              text: { type: 'string', maxLength: 2000, description: 'REQUIRED for the *add* and *change* actions. MUST be under 200 words.' },
-              tier: { type: 'integer', description: 'Omit tier for *add* action. Increase tier by one for *change* action, when any number of other facts are merged into this one.', default: 1 },
-            },
-            propertyOrdering: ['entities', 'text', 'tier'],
-            required: ['entities', 'text'],
-            additionalProperties: false,
+          entities: { type: 'array', items: { type: 'string' } },
+          text: {
+            type: 'string',
+            maxLength: 2000,
+            description: 'REQUIRED for the *add* and *change* actions. MUST be under 200 words.',
+          },
+          tier: {
+            type: 'integer',
+            description:
+              'Omit tier for *add* action. Increase tier by one for *change* action, when any number of other facts are merged into this one.',
+            default: 1,
           },
           id: { type: 'integer', description: "Required for *change* and *delete* actions." }
         },
-        propertyOrdering: ['action', 'fact', 'id'],
+        propertyOrdering: ['action', 'entities', 'text', 'tier', 'id'],
         required: ['action'],
         additionalProperties: false,
       }
