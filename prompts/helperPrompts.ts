@@ -26,10 +26,10 @@ export const REGULAR_ITEM_TYPES_GUIDE = `Valid item "type" values are: ${REGULAR
 - "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.`;
 
 export const WRITTEN_ITEM_TYPES_GUIDE = `Written item types (${WRITTEN_ITEM_TYPES_STRING}):
-  - "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
-  - "book": Multi-page text with "chapters". Journals are blank books that start with no chapters and gain new entries when the player writes. Each chapter MUST have {"heading", "description", "contentLength"}.
-  - "picture": Single image such as a photograph, drawing, or painting. Use one chapter to describe what the image portrays in detail.
-  - "map": Hand-drawn or printed diagram showing terrain, directions, floor plan, or schematic. Use one chapter to describe the layout and any notable markings.`;
+  - "page": Single sheet, scroll, or a digital device that can display some static text. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
+  - "book": Multi-page text with "chapters", paper-based or digital. Each chapter MUST have {"heading", "description", "contentLength"}.
+  - "picture": Single image such as a photograph, drawing, or painting. Use ONE chapter to describe what the image portrays in detail.
+  - "map": Hand-drawn or printed diagram showing terrain, directions, floor plan, or schematic. Use ONE chapter to describe the layout and any notable markings.`;
 
 export const ITEM_TYPES_GUIDE = `${REGULAR_ITEM_TYPES_GUIDE}\n${WRITTEN_ITEM_TYPES_GUIDE}`;
 
@@ -37,11 +37,12 @@ export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "playerItemsHint": short summary of gains, losses or state changes for the Player.
 - "worldItemsHint": short summary of items dropped or discovered in the environment.
 - "npcItemsHint": short summary of items held or used by NPCs.
-- "librarianHint": short summary for written items (pages, books, pictures, maps). Use this instead of playerItemsHint when the item is written.
+- "librarianHint": short summary for written items (pages, books, pictures, maps). Use this instead of playerItemsHint, worldItemsHint, or npcItemsHint when the item is written.
 - "newItems": array of brand new items introduced this turn, or [] if none.
 
-Examples illustrating the hint style:
-- Example of creating a *new* item "Old Lantern" and placing it in player's inventory. Because "Old Lantern" is included in newItems, it means the item is not already present in the scene:
+## Examples illustrating the hint style:
+
+### Example of creating a *new* item "Old Lantern" and placing it in player's inventory. Because "Old Lantern" is included in newItems, it means the item is not already present in the scene:
 playerItemsHint: "Picked up Old Lantern."
 newItems:
 [
@@ -68,7 +69,7 @@ newItems:
   }
 ]
 
-- Example for creating a *new* item "Rusty Key" inside npc_guard_4f3a inventory:
+### Example for creating a *new* item "Rusty Key" inside npc_guard_4f3a inventory:
 npcItemsHint: "Guard now carries a Rusty Key."
 newItems:
 [
@@ -80,8 +81,8 @@ newItems:
   }
 ]
 
- - Example of creating a *new* 'page' written item and placing it in player's inventory (same structure for the 'map' and 'picture' types):
- librarianHint: "Found Smudged Note."
+### Example of creating a *new* 'page' written item and placing it in player's inventory (same structure for the 'map' and 'picture' types):
+librarianHint: "Found Smudged Note."
 newItems:
 [
   {
@@ -101,8 +102,8 @@ newItems:
   }
 ]
 
- - Example of creating a *new* 'book' written item and placing it in player's inventory:
- librarianHint: "Obtained the Explorer's Adventures."
+### Example of creating a *new* 'book' written item and placing it in player's inventory:
+librarianHint: "Obtained the Explorer's Adventures."
 newItems:
 [
   {
@@ -136,22 +137,22 @@ newItems:
     "type": "book"
   }]
 
-- Example for losing, destroying, completely removing the item:
+### Example for losing, destroying, completely removing the item:
 playerItemsHint: "Lost Old Lantern (flickering)."
 
-- Example for giving an *existing* item from one holder to another:
+### Example for giving an *existing* item from one holder to another:
 npcItemsHint: "Gave Iron Sword to Guard."
 
-- "take" is an alias for "give". Example:
+### "take" is an alias for "give". Example:
 playerItemsHint: "Took Coin Pouch from Bandit."
 
-- Example for simple update of *existing* item (only changing "isActive"):
+### Example for simple update of *existing* item (only changing "isActive"):
 playerItemsHint: "Plasma Torch is now active."
 
-- Example for transformation or crafting:
+### Example for transformation or crafting:
 playerItemsHint: "Scrap Metal transformed into Makeshift Shiv."
 
-- Example for adding a known use to an item without changing anything else:
+### Example for adding a known use to an item without changing anything else:
 playerItemsHint: "Mystic Orb can now 'Peer into the Orb'."
 
 - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
