@@ -59,16 +59,16 @@ export const buildIntegrateFactsPrompt = (
   );
   return `Theme: ${themeName}
 
+  ## Recent Events:
+${events || 'None'}
+
   ## Known Facts:
 ${existing}
 
   ## New Candidate Facts:
-  ${proposed}
+${proposed}
 
-  ## Recent Events:
-  ${events || 'None'}
-
-Provide integration instructions acording to your instructions.
+Provide facts integration, changes and pruning instructions acording to your instructions.
 `;
 };
 
@@ -142,6 +142,6 @@ ${mapLines || 'None'}
 ${factLines}
 
 Identify pairs of facts that could be merged into a single, more specific statement.
-Delete facts that reference obsolete quests, objectives, items or places. If merging or deleting, provide instructions.
+Delete facts that reference obsolete quests, objectives, conditions, items or places. If merging or deleting, provide instructions.
 `;
 };

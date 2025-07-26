@@ -98,12 +98,12 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
           },
           {
             type: 'object',
+            description: 'Change or delete the lore facts that are no longer relevant according to Recent Events',
             properties: {
               action: {
-                enum: ['delete', 'change'],
-                description: 'change or delete the lore facts that are no longer relevant, based on the recent events',
+                enum: ['delete', 'change']
               },
-              id: { type: 'integer', description: 'ID of the fact to modify or remove.' },
+              id: { type: 'integer', description: 'ID of the fact to change or remove.' },
               fact: {
                 type: 'object',
                 properties: {
@@ -152,7 +152,7 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
             description: 'REQUIRED for the *add* and *change* actions. Omitted for the *delete* action.',
             properties: {
               entities: { type: 'array', items: { type: 'string' } },
-              text: { type: 'string', description: 'REQUIRED for the *add* and *change* actions.' },
+              text: { type: 'string', maxLength: 2000, description: 'REQUIRED for the *add* and *change* actions. MUST be under 200 words.' },
               tier: { type: 'integer', description: 'Omit tier for *add* action. Increase tier by one for *change* action, when any number of other facts are merged into this one.', default: 1 },
             },
             propertyOrdering: ['entities', 'text', 'tier'],
