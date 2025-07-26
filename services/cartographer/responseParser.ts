@@ -2,10 +2,11 @@
  * @file responseParser.ts
  * @description Parsing helpers for cartographer AI responses.
  */
-import { AIMapUpdatePayload } from '../../types';
+import { AIMapUpdatePayload, AdventureTheme } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { isValidAIMapUpdatePayload } from './mapUpdateValidation';
 import { normalizeStatusAndTypeSynonyms } from './mapUpdateUtils';
+import { fetchCorrectedMapUpdatePayload_Service } from '../corrections';
 
 /**
  * Attempts to parse the AI response text into an AIMapUpdatePayload.
@@ -27,9 +28,10 @@ export interface ParsedMapUpdateResult {
   validationError?: string;
 }
 
-export const parseAIMapUpdateResponse = (
+export const parseAIMapUpdateResponse = async (
   responseText: string,
-): ParsedMapUpdateResult => {
+  currentTheme: AdventureTheme,
+): Promise<ParsedMapUpdateResult> => {
   const jsonStr = extractJsonFromFence(responseText);
   const parsed: unknown = safeParseJson(jsonStr);
   try {
@@ -140,11 +142,30 @@ export const parseAIMapUpdateResponse = (
       }
       validationError = warnings.length > 0 ? warnings.join('; ') : undefined;
     }
-    console.warn('Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:', parsed);
+    console.warn(
+      'Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:',
+      parsed,
+    );
+    const corrected = await fetchCorrectedMapUpdatePayload_Service(
+      jsonStr,
+      validationError,
+      currentTheme,
+    );
+    if (corrected) {
+      return { payload: corrected };
+    }
     return { payload: null, validationError };
   } catch (e: unknown) {
     console.error('Failed to parse map update JSON response from AI:', e);
     console.debug('Original map update response text:', responseText);
+    const corrected = await fetchCorrectedMapUpdatePayload_Service(
+      jsonStr,
+      e instanceof Error ? e.message : String(e),
+      currentTheme,
+    );
+    if (corrected) {
+      return { payload: corrected };
+    }
     return { payload: null, validationError: e instanceof Error ? e.message : String(e) };
   }
 };

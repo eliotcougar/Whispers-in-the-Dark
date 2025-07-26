@@ -127,6 +127,7 @@ export const updateMapFromAIData_Service = async (
     basePrompt,
     MAP_UPDATE_SYSTEM_INSTRUCTION,
     minimalModelCalls,
+    currentTheme,
   );
 
   if (!payload) {
