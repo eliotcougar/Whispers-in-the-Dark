@@ -14,7 +14,22 @@ import type {
   HeroSheet,
   HeroBackstory,
   CharacterOption,
+  StoryArc,
 } from '../../types';
+
+interface StoryActData {
+  title: string;
+  description: string;
+  mainObjective: string;
+  sideObjectives: Array<string>;
+  successCondition: string;
+}
+
+interface StoryArcData {
+  title: string;
+  overview: string;
+  acts: Array<StoryActData>;
+}
 
 const worldFactsSchema = {
   type: 'object',
@@ -53,6 +68,37 @@ const heroSheetSchema = {
   additionalProperties: false,
 } as const;
 
+
+const storyActSchema = {
+  type: 'object',
+  properties: {
+    title: { type: 'string' },
+    description: { type: 'string', minLength: 3000 },
+    mainObjective: { type: 'string' },
+    sideObjectives: { type: 'array', items: { type: 'string' } },
+    successCondition: { type: 'string' },
+  },
+  required: [
+    'title',
+    'description',
+    'mainObjective',
+    'sideObjectives',
+    'successCondition',
+  ],
+  additionalProperties: false,
+} as const;
+
+const storyArcSchema = {
+  type: 'object',
+  properties: {
+    title: { type: 'string' },
+    overview: { type: 'string', minLength: 3000 },
+    acts: { type: 'array', minItems: 1, maxItems: 5, items: storyActSchema },
+  },
+  required: ['title', 'overview', 'acts'],
+  additionalProperties: false,
+} as const;
+
 const heroBackstorySchema = {
   type: 'object',
   properties: {
@@ -63,6 +109,7 @@ const heroBackstorySchema = {
     oneWeekAgo: { type: 'string', minLength: 2000 },
     yesterday: { type: 'string', minLength: 2000 },
     now: { type: 'string', minLength: 2000 },
+    storyArc: storyArcSchema,
   },
   required: [
     'fiveYearsAgo',
@@ -72,6 +119,7 @@ const heroBackstorySchema = {
     'oneWeekAgo',
     'yesterday',
     'now',
+    'storyArc',
   ],
   additionalProperties: false,
 } as const;
@@ -80,6 +128,7 @@ export interface WorldDataResult {
   worldFacts: WorldFacts | null;
   heroSheet: HeroSheet | null;
   heroBackstory: HeroBackstory | null;
+  storyArc: StoryArc | null;
 }
 
 export const generateWorldFacts = async (
@@ -193,9 +242,9 @@ export const generateHeroData = async (
   theme: AdventureTheme,
   playerGender: string,
   worldFacts: WorldFacts,
-  heroName: string,
-  heroDescription: string,
-): Promise<{ heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null } | null> => {
+  heroName?: string,
+  heroDescription?: string,
+): Promise<{ heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null } | null> => {
   if (!isApiConfigured()) {
     console.error('generateHeroData: API key not configured.');
     return null;
@@ -203,9 +252,10 @@ export const generateHeroData = async (
   const heroSheetPrompt =
     `Using the theme "${theme.name}" and these world details:
     ${JSON.stringify(worldFacts)}
-    The player's character gender is ${playerGender} and their name is ${heroName}.
-    Here is a short description of the hero: ${heroDescription}.
-    Create a brief character sheet including occupation, notable traits, and starting items.`;
+    The player's character gender is ${playerGender}.` +
+    (heroName ? ` Their name is ${heroName}.` : '') +
+    (heroDescription ? ` Here is a short description of the hero: ${heroDescription}.` : '') +
+    ' Create a brief character sheet including occupation, notable traits, and starting items.';
   const request = async (prompt: string, schema: unknown, label: string) => {
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
@@ -219,24 +269,54 @@ export const generateHeroData = async (
     });
     return response.text ?? null;
   };
-  return retryAiCall<{ heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }>(
+  return retryAiCall<{ heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null }>(
     async () => {
       addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
       const sheetText = await request(heroSheetPrompt, heroSheetSchema, 'HeroSheet');
       const parsedSheet = sheetText ? safeParseJson<HeroSheet>(extractJsonFromFence(sheetText)) : null;
+      const finalHeroName = heroName ?? parsedSheet?.name ?? 'the hero';
       const backstoryPrompt =
         `Using these world details:
         ${JSON.stringify(worldFacts)}
         and this hero sheet:
         ${sheetText ?? ''}
-        The hero's description is: ${heroDescription}.
-        Write a short backstory for ${heroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.`;
+        ${heroDescription ? `The hero's description is: ${heroDescription}.` : ''}
+        Write a short backstory for ${finalHeroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.` +
+        ' Then outline a five act narrative arc for this adventure with an overview of at least 3000 characters.' +
+        ' Provide details only for Act 1 titled "Exposition" including a description of at least 3000 characters, the main objective, two side quests, and the success condition to proceed.';
       const backstoryText = await request(backstoryPrompt, heroBackstorySchema, 'HeroBackstory');
-      const parsedBackstory = backstoryText ? safeParseJson<HeroBackstory>(extractJsonFromFence(backstoryText)) : null;
-      return { result: { heroSheet: parsedSheet ?? null, heroBackstory: parsedBackstory ?? null } };
+      const parsedData = backstoryText
+        ? safeParseJson<HeroBackstory & { storyArc: StoryArcData }>(
+            extractJsonFromFence(backstoryText),
+          )
+        : null;
+      let storyArc: StoryArc | null = null;
+      let heroBackstory: HeroBackstory | null = null;
+      if (parsedData) {
+        const { storyArc: arcData, ...rest } = parsedData;
+        storyArc = {
+          title: arcData.title,
+          overview: arcData.overview,
+          acts: arcData.acts.map((a, i) => ({
+            ...a,
+            actNumber: i + 1,
+            completed: false,
+          })),
+          currentAct: 1,
+        };
+        heroBackstory = rest;
+      }
+      return {
+        result: {
+          heroSheet: parsedSheet ?? null,
+          heroBackstory,
+          storyArc,
+        },
+      };
     },
   );
 };
+
 
 export const generateWorldData = async (
   theme: AdventureTheme,
@@ -273,25 +353,23 @@ export const generateWorldData = async (
     const factsText = await request(worldFactsPrompt, worldFactsSchema, 'WorldFacts');
     const parsedFacts = factsText ? safeParseJson<WorldFacts>(extractJsonFromFence(factsText)) : null;
 
-    const heroSheetPrompt =
-      `Using the theme "${theme.name}" and these world details:\n${factsText ?? ''}\n` +
-      `The player's character gender is "${playerGender}". ` +
-      'Create a brief character sheet including a generated name, occupation, notable traits, and starting items.';
-    const heroSheetText = await request(heroSheetPrompt, heroSheetSchema, 'HeroSheet');
-    const parsedSheet = heroSheetText ? safeParseJson<HeroSheet>(extractJsonFromFence(heroSheetText)) : null;
+    const heroData = await generateHeroData(theme, playerGender, parsedFacts ?? {
+      geography: '',
+      climate: '',
+      technologyLevel: '',
+      supernaturalElements: '',
+      majorFactions: [],
+      keyResources: [],
+      culturalNotes: [],
+      notableLocations: [],
+    });
 
-    const heroName = parsedSheet?.name ?? 'the hero';
-    const heroBackstoryPrompt =
-      `Using these world details:\n${factsText ?? ''}\nand this hero sheet:\n${heroSheetText ?? ''}\n` +
-      `Write a short backstory for ${heroName} using these time markers: ` +
-      '5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.';
-    const backstoryText = await request(heroBackstoryPrompt, heroBackstorySchema, 'HeroBackstory');
-    const parsedBackstory = backstoryText ? safeParseJson<HeroBackstory>(extractJsonFromFence(backstoryText)) : null;
     return {
       result: {
         worldFacts: parsedFacts ?? null,
-        heroSheet: parsedSheet ?? null,
-        heroBackstory: parsedBackstory ?? null,
+        heroSheet: heroData?.heroSheet ?? null,
+        heroBackstory: heroData?.heroBackstory ?? null,
+        storyArc: heroData?.storyArc ?? null,
       },
     };
   });

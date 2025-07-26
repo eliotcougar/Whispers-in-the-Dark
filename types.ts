@@ -375,15 +375,14 @@ export interface StoryAct {
   mainObjective: string;
   sideObjectives: Array<string>;
   successCondition: string;
+  completed: boolean;
 }
 
 export interface StoryArc {
-  id: string;
   title: string;
   overview: string;
   acts: Array<StoryAct>;
   currentAct: number;
-  completed: boolean;
 }
 
 
