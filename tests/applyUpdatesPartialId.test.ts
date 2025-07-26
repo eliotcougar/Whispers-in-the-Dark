@@ -45,30 +45,28 @@ const payload: AIMapUpdatePayload = {
   nodesToAdd: [
     {
       placeName: 'Side Tunnel',
-      data: {
-        description: '',
-        aliases: [],
-        status: 'rumored',
-        parentNodeId: 'Universe',
-        nodeType: 'location',
-      },
+      description: '',
+      aliases: [],
+      status: 'rumored',
+      parentNodeId: 'Universe',
+      nodeType: 'location',
     },
     {
       placeName: 'Hidden Door',
-      data: {
-        description: '',
-        aliases: [],
-        status: 'rumored',
-        parentNodeId: 'node_side_tunnel_fake',
-        nodeType: 'feature',
-      },
+      description: '',
+      aliases: [],
+      status: 'rumored',
+      parentNodeId: 'node_side_tunnel_fake',
+      nodeType: 'feature',
     },
   ],
   edgesToAdd: [
     {
       sourcePlaceName: existingFeature.id,
       targetPlaceName: 'node_hidden_door_fake',
-      data: { type: 'path', status: 'rumored', description: '' },
+      type: 'path',
+      status: 'rumored',
+      description: '',
     },
   ],
 };

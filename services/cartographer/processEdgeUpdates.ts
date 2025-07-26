@@ -23,13 +23,23 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
 
     const pairKey =
       sourceNode.id < targetNode.id
-        ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.data.type ?? 'path'}`
-        : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.data.type ?? 'path'}`;
+        ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.type ?? 'path'}`
+        : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.type ?? 'path'}`;
     if (ctx.processedChainKeys.has(pairKey)) continue;
     ctx.processedChainKeys.add(pairKey);
 
-    const chainReq = buildChainRequest(sourceNode, targetNode, edgeAddOp.data, ctx.themeNodeIdMap);
-    if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.data.type, ctx.themeNodeIdMap)) {
+    const chainReq = buildChainRequest(
+      sourceNode,
+      targetNode,
+      {
+        description: edgeAddOp.description,
+        status: edgeAddOp.status,
+        travelTime: edgeAddOp.travelTime,
+        type: edgeAddOp.type,
+      },
+      ctx.themeNodeIdMap,
+    );
+    if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.type, ctx.themeNodeIdMap)) {
       ctx.pendingChainRequests.push(chainReq);
       continue;
     }
@@ -38,9 +48,11 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       sourceNode,
       targetNode,
       {
-        ...edgeAddOp.data,
+        description: edgeAddOp.description,
+        type: edgeAddOp.type,
+        travelTime: edgeAddOp.travelTime,
         status:
-          edgeAddOp.data.status ??
+          edgeAddOp.status ??
           (sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored'
             ? 'rumored'
             : 'open'),
@@ -71,7 +83,7 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
         (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)
     );
 
-    const checkType = edgeUpdateOp.newData.type ?? candidateEdges[0]?.data.type;
+    const checkType = edgeUpdateOp.type ?? candidateEdges[0]?.data.type;
     if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType, ctx.themeNodeIdMap)) {
       console.warn(
         `MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`
@@ -79,7 +91,7 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       continue;
     }
     const edgeToUpdate = candidateEdges.find(e =>
-      edgeUpdateOp.newData.type ? e.data.type === edgeUpdateOp.newData.type : true
+      edgeUpdateOp.type ? e.data.type === edgeUpdateOp.type : true
     );
 
     if (!edgeToUpdate) {
@@ -89,7 +101,13 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       continue;
     }
 
-    edgeToUpdate.data = { ...edgeToUpdate.data, ...edgeUpdateOp.newData };
+    edgeToUpdate.data = {
+      ...edgeToUpdate.data,
+      description: edgeUpdateOp.description ?? edgeToUpdate.data.description,
+      status: edgeUpdateOp.status ?? edgeToUpdate.data.status,
+      travelTime: edgeUpdateOp.travelTime ?? edgeToUpdate.data.travelTime,
+      type: edgeUpdateOp.type ?? edgeToUpdate.data.type,
+    };
   }
 
   for (const edgeRemoveOp of ctx.edgesToRemove_mut) {

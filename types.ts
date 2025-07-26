@@ -471,16 +471,36 @@ export interface MapData {
 // --- End Map Data Structures ---
 
 // --- Map Update Service Payload ---
-export interface AIEdgeUpdate { 
-  sourcePlaceName: string; 
-  targetPlaceName: string; 
-  newData: MapEdge['data']; 
+export interface AIEdgeUpdate {
+  sourcePlaceName: string;
+  targetPlaceName: string;
+  description?: string;
+  status?: MapEdgeData['status'];
+  travelTime?: string;
+  type?: MapEdgeData['type'];
+}
+
+export interface AIEdgeAdd extends AIEdgeUpdate {
+  status: MapEdgeData['status'];
+  type: MapEdgeData['type'];
 }
 
 export interface AINodeUpdate {
-  placeName: string; // User-facing name to identify the node for update or to set for a new node.
-  data: Partial<MapNodeData> & { description?: string }; // 'description' mainly provided for feature-level nodes.
-  initialPosition?: { x: number; y: number };
+  placeName: string; // Existing node ID or name to identify it.
+  aliases?: Array<string>;
+  description?: string;
+  nodeType?: MapNodeData['nodeType'];
+  parentNodeId?: string;
+  status?: MapNodeData['status'];
+  newPlaceName?: string;
+}
+
+export interface AINodeAdd extends AINodeUpdate {
+  aliases: Array<string>;
+  description: string;
+  nodeType: MapNodeData['nodeType'];
+  parentNodeId: string;
+  status: MapNodeData['status'];
 }
 
 export interface AIMapUpdatePayload {
@@ -489,15 +509,10 @@ export interface AIMapUpdatePayload {
   // Description and aliases are required for all new nodes.
   observations?: string | null;
   rationale?: string | null;
-  nodesToAdd?: Array<AINodeUpdate & {
-    data: {
-      status: MapNodeData['status'];
-      parentNodeId: string;
-    } & Partial<Omit<MapNodeData, 'status' | 'parentNodeId'>>;
-  }> | null;
-  nodesToUpdate?: Array<{ placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }> | null; // Added placeName to newData for renaming
+  nodesToAdd?: Array<AINodeAdd> | null;
+  nodesToUpdate?: Array<AINodeUpdate> | null;
   nodesToRemove?: Array<{ nodeId: string; nodeName?: string; }> | null;
-  edgesToAdd?: Array<{ sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }> | null;
+  edgesToAdd?: Array<AIEdgeAdd> | null;
   edgesToUpdate?: Array<AIEdgeUpdate> | null;
   edgesToRemove?: Array<{ edgeId: string; sourceId?: string; targetId?: string; }> | null;
   suggestedCurrentMapNodeId?: string | null | undefined;
