@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { AdventureTheme, WorldFacts, CharacterOption, HeroSheet, HeroBackstory } from '../../types';
+import type { AdventureTheme, WorldFacts, CharacterOption, HeroSheet, HeroBackstory, StoryArc } from '../../types';
 import Button from '../elements/Button';
 import CharacterCard from '../elements/CharacterCard';
 import LoadingSpinner from '../LoadingSpinner';
@@ -12,13 +12,21 @@ interface CharacterSelectModalProps {
   readonly playerGender: string;
   readonly worldFacts: WorldFacts;
   readonly options: Array<CharacterOption>;
-  readonly onComplete: (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }) => void;
+  readonly onComplete: (
+    result: {
+      name: string;
+      heroSheet: HeroSheet | null;
+      heroBackstory: HeroBackstory | null;
+      storyArc: StoryArc | null;
+    }
+  ) => void;
 }
 
 function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, options, onComplete }: CharacterSelectModalProps) {
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [heroSheet, setHeroSheet] = useState<HeroSheet | null>(null);
   const [heroBackstory, setHeroBackstory] = useState<HeroBackstory | null>(null);
+  const [storyArc, setStoryArc] = useState<StoryArc | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleSelect = useCallback(
@@ -35,6 +43,7 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
         );
         setHeroSheet(result?.heroSheet ?? null);
         setHeroBackstory(result?.heroBackstory ?? null);
+        setStoryArc(result?.storyArc ?? null);
         setIsGenerating(false);
       })();
     },
@@ -43,8 +52,8 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
 
   const handleBegin = useCallback(() => {
     if (!selectedName) return;
-    onComplete({ name: selectedName, heroSheet, heroBackstory });
-  }, [selectedName, heroSheet, heroBackstory, onComplete]);
+    onComplete({ name: selectedName, heroSheet, heroBackstory, storyArc });
+  }, [selectedName, heroSheet, heroBackstory, storyArc, onComplete]);
 
   const renderOption = useCallback(
     (opt: CharacterOption) => (

@@ -4,7 +4,7 @@
  */
 import { useCallback, useState, useRef } from 'react';
 import { clearProgress } from '../utils/loadingProgress';
-import type { AdventureTheme, WorldFacts, CharacterOption, HeroSheet, HeroBackstory } from '../types';
+import type { AdventureTheme, WorldFacts, CharacterOption, HeroSheet, HeroBackstory, StoryArc } from '../types';
 
 export const useAppModals = () => {
   const [isVisualizerVisible, setIsVisualizerVisible] = useState(false);
@@ -37,7 +37,14 @@ export const useAppModals = () => {
     worldFacts: WorldFacts;
     options: Array<CharacterOption>;
   } | null>(null);
-  const characterSelectResolveRef = useRef<((result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }) => void) | null>(null);
+  const characterSelectResolveRef = useRef<(
+    (result: {
+      name: string;
+      heroSheet: HeroSheet | null;
+      heroBackstory: HeroBackstory | null;
+      storyArc: StoryArc | null;
+    }) => void
+  ) | null>(null);
 
   const openVisualizer = useCallback(() => { setIsVisualizerVisible(true); }, []);
   const closeVisualizer = useCallback(() => { setIsVisualizerVisible(false); }, []);
@@ -102,7 +109,7 @@ export const useAppModals = () => {
         worldFacts: WorldFacts;
         options: Array<CharacterOption>;
       },
-      resolve: (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }) => void,
+      resolve: (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null }) => void,
     ) => {
       setCharacterSelectData(data);
       characterSelectResolveRef.current = resolve;
@@ -112,7 +119,7 @@ export const useAppModals = () => {
   );
 
   const submitCharacterSelectModal = useCallback(
-    (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }) => {
+    (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null }) => {
       characterSelectResolveRef.current?.(result);
       setIsCharacterSelectVisible(false);
       setCharacterSelectData(null);

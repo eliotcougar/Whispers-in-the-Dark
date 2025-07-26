@@ -15,6 +15,7 @@ import {
   CharacterOption,
   HeroSheet,
   HeroBackstory,
+  StoryArc,
 } from '../types';
 import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingState';
 import { useLoadingReason } from './useLoadingReason';
@@ -56,7 +57,12 @@ export interface UseGameLogicProps {
       worldFacts: WorldFacts;
       options: Array<CharacterOption>;
     },
-  ) => Promise<{ name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }>;
+  ) => Promise<{
+    name: string;
+    heroSheet: HeroSheet | null;
+    heroBackstory: HeroBackstory | null;
+    storyArc: StoryArc | null;
+  }>;
 }
 
 /** Manages overall game state and delegates to sub hooks. */
