@@ -67,24 +67,26 @@ export const applyThemeFactChanges = (
   for (const change of changes) {
     switch (change.action) {
       case 'add':
-        if (change.fact && change.fact.text && defaultThemeName) {
+        if (change.text && defaultThemeName) {
           const newFact: ThemeFact = {
             id: nextId++,
-            text: change.fact.text,
-            entities: change.fact.entities ?? [],
+            text: change.text,
+            entities: change.entities ?? [],
             themeName: defaultThemeName,
-            createdTurn: change.fact.createdTurn ?? currentTurn,
-            tier: change.fact.tier ?? 1,
+            createdTurn: change.createdTurn ?? currentTurn,
+            tier: change.tier ?? 1,
           };
           state.themeFacts.push(newFact);
         }
         break;
       case 'change': {
         const idx = state.themeFacts.findIndex(f => f.id === change.id);
-        if (idx >= 0 && change.fact) {
+        if (idx >= 0) {
           const updated: ThemeFact = {
             ...state.themeFacts[idx],
-            ...change.fact,
+            text: change.text ?? state.themeFacts[idx].text,
+            entities: change.entities ?? state.themeFacts[idx].entities,
+            tier: change.tier ?? state.themeFacts[idx].tier,
             themeName: state.themeFacts[idx].themeName,
           };
           state.themeFacts[idx] = updated;

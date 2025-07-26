@@ -9,15 +9,13 @@ const isThemeFactChange = (value: unknown): value is ThemeFactChange => {
   if (!value || typeof value !== 'object') return false;
   const obj = value as Partial<ThemeFactChange>;
   if (typeof obj.action !== 'string') return false;
-  if (obj.fact) {
-    const fact = obj.fact as Partial<ThemeFactChange['fact']> | undefined;
-    if (
-      fact?.entities !== undefined &&
-      (!Array.isArray(fact.entities) || !fact.entities.every(id => typeof id === 'string'))
-    ) {
-      return false;
-    }
+  if (
+    obj.entities !== undefined &&
+    (!Array.isArray(obj.entities) || !obj.entities.every(id => typeof id === 'string'))
+  ) {
+    return false;
   }
+  if (obj.text !== undefined && typeof obj.text !== 'string') return false;
   return true;
 };
 
@@ -57,10 +55,10 @@ export const parseIntegrationResponse = (
   if (Array.isArray(obj.factsChange)) {
     obj.factsChange.forEach(raw => {
       if (isThemeFactChange(raw)) {
-        if (raw.fact) {
-          raw.fact.entities = Array.isArray(raw.fact.entities)
-            ? raw.fact.entities.filter((id: unknown): id is string => typeof id === 'string')
-            : [];
+        if (Array.isArray(raw.entities)) {
+          raw.entities = raw.entities.filter(
+            (id: unknown): id is string => typeof id === 'string',
+          );
         }
         factsArr.push(raw);
       }
