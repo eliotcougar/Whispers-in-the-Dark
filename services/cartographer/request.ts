@@ -19,6 +19,7 @@ import {
   NODE_DESCRIPTION_INSTRUCTION,
   EDGE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
+  MINIMAL_MODEL_NAME,
 } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
@@ -252,14 +253,14 @@ export const executeMapUpdateRequest = async (
   }>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
     const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
-      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+      modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME],
       prompt,
       systemInstruction,
       thinkingBudget: 4096,
       includeThoughts: true,
       responseMimeType: 'application/json',
       jsonSchema: MAP_UPDATE_JSON_SCHEMA,
-      temperature: 0.75,
+      temperature: 1.0,
       label: 'Cartographer',
     });
     const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;

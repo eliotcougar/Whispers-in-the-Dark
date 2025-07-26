@@ -253,7 +253,7 @@ export const executeLibrarianRequest = async (
     addProgressSymbol(LOADING_REASON_UI_MAP.librarian.icon);
     const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } =
       await dispatchAIRequest({
-        modelNames: [GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME],
         prompt,
         systemInstruction: SYSTEM_INSTRUCTION,
         jsonSchema: LIBRARIAN_JSON_SCHEMA,

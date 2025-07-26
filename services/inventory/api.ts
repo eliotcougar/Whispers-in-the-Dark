@@ -55,6 +55,7 @@ export const INVENTORY_JSON_SCHEMA = {
           id: { type: 'string', description: 'ID of the item like item_* .' },
           knownUses: {
             type: 'array',
+            description: 'Additional Known Uses to be added to the item.',
             items: {
               type: 'object',
               properties: {
@@ -100,6 +101,7 @@ export const INVENTORY_JSON_SCHEMA = {
           isActive: { type: 'boolean', description: 'True if the item becomes active, worn, wielded, etc. False otherwise.' },
           knownUses: {
             type: 'array',
+            description: 'Edited set of Known Uses. For example, if an obsolete Known Use has to be removed, or an existing Known Use has to be changed. If provided, this array fully replaces the existing Known Uses.',
             items: {
               type: 'object',
               properties: {
@@ -280,7 +282,7 @@ export const executeInventoryRequest = async (
         jsonSchemaUsed,
         promptUsed,
       } = await dispatchAIRequest({
-        modelNames: [GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME, GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME],
         prompt,
         systemInstruction: SYSTEM_INSTRUCTION,
         jsonSchema: INVENTORY_JSON_SCHEMA,

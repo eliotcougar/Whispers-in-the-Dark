@@ -21,7 +21,9 @@ Items described in the "World Items Hint" must be placed at their appropriate ma
 Allowed actions are: ${String(VALID_ACTIONS_STRING)}.
 CRITICALLY IMPORTANT: Use 'create' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory. You MUST 'create' *all* items in the New Items JSON and *only* the items in the New Items JSON. NEVER create items that are part of the Player's Inventory.
 CRITICALLY IMPORTANT: Use 'move' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
-CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world. Never 'destroy' items if only some Known Use needs to be deleted. Use 'change' to edit Known Uses.
+CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world. Never 'destroy' items if only some Known Use needs to be deleted.
+Use 'change' to edit or delete existing Known Uses.
+Use 'addDetails' to add new Known Uses or Tags.
 
 ## Example:
 
