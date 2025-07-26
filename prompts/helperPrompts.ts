@@ -5,14 +5,15 @@
  */
 
 import {
-  VALID_ITEM_TYPES_STRING,
+  REGULAR_ITEM_TYPES_STRING,
+  WRITTEN_ITEM_TYPES_STRING,
   DEDICATED_BUTTON_USES_STRING,
   MIN_BOOK_CHAPTERS,
   MAX_BOOK_CHAPTERS,
   TEXT_STYLE_TAGS_STRING
 } from '../constants';
 
-export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
+export const REGULAR_ITEM_TYPES_GUIDE = `Valid item "type" values are: ${REGULAR_ITEM_TYPES_STRING}.
 - "single-use": Consumed after one use (e.g., potion, one-shot scroll, stimpak, medicine pill, spare part). Assumed to be stored in player's pockets/bag/backpack. Excludes any written material. Cannot be worn on a person directly.
 - "multi-use": Can be used multiple times (e.g., lockpick set, toolkit, medkit). Can have limited number of uses, indicated in brackets after the name, or in the description. Assumed to be stored in player's pockets/bag/backpack. Cannot be worn on a person directly.
 - "equipment": Can be worn on a person, or wielded (e.g., armor, shield, helmet, lantern, flashlight, crowbar). Can have active/inactive states.
@@ -22,18 +23,21 @@ export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPE
 - "ammunition": For reloading specific ranged weapons, e.g., Arrows for Longbow, Rounds for firearms, Charges for energy weapons. Using weapon consumes ammo (handled by log/update).
 - "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
 - "immovable": Built-in or heavy feature at a location (e.g., control panel or machinery). Cannot be moved or stored. Interact using known uses or generic attempts.
-- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
-Written items:
-- "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
-- "book": Multi-page text with "chapters". Journals are blank books that start with no chapters and gain new entries when the player writes. Each chapter MUST have {"heading", "description", "contentLength"}.
-- "picture": Single image such as a photograph, drawing, or painting. Use one chapter to describe what the image portrays in detail.
-- "map": Hand-drawn or printed diagram showing terrain, directions, floor plan, or schematic. Use one chapter to describe the layout and any notable markings.
-`;
+- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.`;
+
+export const WRITTEN_ITEM_TYPES_GUIDE = `Written item types (${WRITTEN_ITEM_TYPES_STRING}):
+  - "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
+  - "book": Multi-page text with "chapters". Journals are blank books that start with no chapters and gain new entries when the player writes. Each chapter MUST have {"heading", "description", "contentLength"}.
+  - "picture": Single image such as a photograph, drawing, or painting. Use one chapter to describe what the image portrays in detail.
+  - "map": Hand-drawn or printed diagram showing terrain, directions, floor plan, or schematic. Use one chapter to describe the layout and any notable markings.`;
+
+export const ITEM_TYPES_GUIDE = `${REGULAR_ITEM_TYPES_GUIDE}\n${WRITTEN_ITEM_TYPES_GUIDE}`;
 
 export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "playerItemsHint": short summary of gains, losses or state changes for the Player.
 - "worldItemsHint": short summary of items dropped or discovered in the environment.
 - "npcItemsHint": short summary of items held or used by NPCs.
+- "librarianHint": short summary for written items (pages, books, pictures, maps). Use this instead of playerItemsHint when the item is written.
 - "newItems": array of brand new items introduced this turn, or [] if none.
 
 Examples illustrating the hint style:
@@ -76,8 +80,8 @@ newItems:
   }
 ]
 
-- Example of creating a *new* 'page' written item and placing it in player's inventory (same structure for the 'map' and 'picture' types):
-playerItemsHint: "Found Smudged Note."
+ - Example of creating a *new* 'page' written item and placing it in player's inventory (same structure for the 'map' and 'picture' types):
+ librarianHint: "Found Smudged Note."
 newItems:
 [
   {
@@ -97,8 +101,8 @@ newItems:
   }
 ]
 
-- Example of creating a *new* 'book' written item and placing it in player's inventory:
-playerItemsHint: "Obtained the Explorer's Adventures."
+ - Example of creating a *new* 'book' written item and placing it in player's inventory:
+ librarianHint: "Obtained the Explorer's Adventures."
 newItems:
 [
   {

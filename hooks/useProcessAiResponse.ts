@@ -11,7 +11,7 @@ import {
   TurnChanges,
 } from '../types';
 import { fetchCorrectedName_Service } from '../services/corrections';
-import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITTEN_ITEM_TYPES } from '../constants';
+import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITTEN_ITEM_TYPES, REGULAR_ITEM_TYPES } from '../constants';
 import {
   addLogMessageToList,
   buildItemChangeRecords,
@@ -200,11 +200,38 @@ const handleInventoryHints = async ({
     (npc) => npc.presenceStatus === 'nearby',
   );
 
-  const formatNPCInventoryList = (npcs: typeof companionNPCs): string => {
+  const filterItemsByType = (
+    items: Array<Item>,
+    allowed: ReadonlyArray<string>,
+  ): Array<Item> => items.filter(it => allowed.includes(it.type));
+
+  const regularPlayerInventory = filterItemsByType(
+    baseInventoryForPlayer,
+    REGULAR_ITEM_TYPES,
+  );
+  const regularLocationInventory = filterItemsByType(
+    locationInventory,
+    REGULAR_ITEM_TYPES,
+  );
+  const writtenPlayerInventory = filterItemsByType(
+    baseInventoryForPlayer,
+    WRITTEN_ITEM_TYPES,
+  );
+  const writtenLocationInventory = filterItemsByType(
+    locationInventory,
+    WRITTEN_ITEM_TYPES,
+  );
+
+  const formatNPCInventoryList = (
+    npcs: typeof companionNPCs,
+    allowedTypes: ReadonlyArray<string>,
+  ): string => {
     if (npcs.length === 0) return 'None.';
     return npcs
       .map((npc) => {
-        const items = baseState.inventory.filter((i) => i.holderId === npc.id);
+        const items = baseState.inventory.filter(
+          (i) => i.holderId === npc.id && allowedTypes.includes(i.type),
+        );
         return `ID: ${npc.id} - ${npc.name}: ${itemsToString(items, ' - ', true, true, false, true)}`;
       })
       .join('\n');
@@ -215,10 +242,15 @@ const handleInventoryHints = async ({
   if (theme) {
     const original = loadingReason;
     setLoadingReason('inventory');
-    const limitedMapContext = formatLimitedMapContextForPrompt(
+    const limitedMapContextRegular = formatLimitedMapContextForPrompt(
       draftState.mapData,
       draftState.currentMapNodeId,
-      baseState.inventory,
+      filterItemsByType(baseState.inventory, REGULAR_ITEM_TYPES),
+    );
+    const limitedMapContextWritten = formatLimitedMapContextForPrompt(
+      draftState.mapData,
+      draftState.currentMapNodeId,
+      filterItemsByType(baseState.inventory, WRITTEN_ITEM_TYPES),
     );
     const allNewItems =
       'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
@@ -228,22 +260,32 @@ const handleInventoryHints = async ({
     const inventoryNewItems = allNewItems.filter(
       it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
     );
-    const invResult = await applyInventoryHints_Service(
-      'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
-      'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
-      'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
-      inventoryNewItems,
-      playerActionText ?? '',
-      itemsToString(baseInventoryForPlayer, ' - ', true, true, false, true),
-      itemsToString(locationInventory, ' - ', true, true, false, true),
-      baseState.currentMapNodeId ?? null,
-      formatNPCInventoryList(companionNPCs),
-      formatNPCInventoryList(nearbyNPCs),
-      'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
-      aiData.logMessage,
-      theme,
-      limitedMapContext,
-    );
+
+    const playerItemsHint =
+      'playerItemsHint' in aiData ? aiData.playerItemsHint?.trim() : '';
+    const worldItemsHint =
+      'worldItemsHint' in aiData ? aiData.worldItemsHint?.trim() : '';
+    const npcItemsHint =
+      'npcItemsHint' in aiData ? aiData.npcItemsHint?.trim() : '';
+    let invResult: Awaited<ReturnType<typeof applyInventoryHints_Service>> | null = null;
+    if (playerItemsHint || worldItemsHint || npcItemsHint || inventoryNewItems.length > 0) {
+      invResult = await applyInventoryHints_Service(
+        playerItemsHint,
+        worldItemsHint,
+        npcItemsHint,
+        inventoryNewItems,
+        playerActionText ?? '',
+        itemsToString(regularPlayerInventory, ' - ', true, true, false, true),
+        itemsToString(regularLocationInventory, ' - ', true, true, false, true),
+        baseState.currentMapNodeId ?? null,
+        formatNPCInventoryList(companionNPCs, REGULAR_ITEM_TYPES),
+        formatNPCInventoryList(nearbyNPCs, REGULAR_ITEM_TYPES),
+        'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
+        aiData.logMessage,
+        theme,
+        limitedMapContextRegular,
+      );
+    }
     setLoadingReason(original);
     if (invResult) {
       combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
@@ -252,17 +294,22 @@ const handleInventoryHints = async ({
       }
     }
 
-    const libResult = await applyLibrarianHints_Service(
-      'librarianHint' in aiData ? aiData.librarianHint : undefined,
-      librarianNewItems,
-      playerActionText ?? '',
-      itemsToString(baseInventoryForPlayer, ' - ', true, true, false, true),
-      itemsToString(locationInventory, ' - ', true, true, false, true),
-      baseState.currentMapNodeId ?? null,
-      formatNPCInventoryList(companionNPCs),
-      formatNPCInventoryList(nearbyNPCs),
-      limitedMapContext,
-    );
+    const librarianHint =
+      'librarianHint' in aiData ? aiData.librarianHint?.trim() : '';
+    let libResult: Awaited<ReturnType<typeof applyLibrarianHints_Service>> | null = null;
+    if (librarianHint) {
+      libResult = await applyLibrarianHints_Service(
+        librarianHint,
+        librarianNewItems,
+        playerActionText ?? '',
+        itemsToString(writtenPlayerInventory, ' - ', true, true, false, true),
+        itemsToString(writtenLocationInventory, ' - ', true, true, false, true),
+        baseState.currentMapNodeId ?? null,
+        formatNPCInventoryList(companionNPCs, WRITTEN_ITEM_TYPES),
+        formatNPCInventoryList(nearbyNPCs, WRITTEN_ITEM_TYPES),
+        limitedMapContextWritten,
+      );
+    }
     if (libResult) {
       combinedItemChanges = combinedItemChanges.concat(libResult.itemChanges);
       if (draftState.lastDebugPacket) {

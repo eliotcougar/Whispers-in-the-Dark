@@ -1,4 +1,5 @@
 import { NewItemSuggestion } from '../../types';
+import { WRITTEN_ITEM_TYPES } from '../../constants';
 
 export const buildLibrarianPrompt = (
   playerLastAction: string,
@@ -11,8 +12,10 @@ export const buildLibrarianPrompt = (
   nearbyNpcsInventory: string,
   limitedMapContext: string,
 ): string => {
-  const newItemsJson =
-    newItems.length > 0 ? JSON.stringify(newItems, null, 2) : '[]';
+  const filtered = newItems.filter(it =>
+    WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
+  );
+  const newItemsJson = filtered.length > 0 ? JSON.stringify(filtered, null, 2) : '[]';
   return `- Player's Last Action: ${playerLastAction}
 - Librarian Hint: "${librarianHint}".
 
