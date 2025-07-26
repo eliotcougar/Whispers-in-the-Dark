@@ -24,7 +24,10 @@ import {
     safeParseJson,
     coerceNullToUndefined,
 } from '../../utils/jsonUtils';
-import { buildNPCId as buildNPCId } from '../../utils/entityUtils';
+import {
+    buildNPCId as buildNPCId,
+    findNPCByIdentifier,
+} from '../../utils/entityUtils';
 
 /** Interface describing contextual data required by the parsing helpers. */
 interface ParserContext {
@@ -253,34 +256,51 @@ async function handleNPCChanges(
                 ...(npcUpdate as Record<string, unknown>),
                 name: (npcUpdate as { name: string }).name,
             };
-            const payloadNameForLogs = currentNPCUpdatePayload.name;
-            const allKnownAndCurrentlyAddedNPCNames = new Set([
-                ...context.allRelevantNPCs.map(npc => npc.name),
-                ...finalNPCsAdded.map(npc => npc.name),
-            ]);
+            const payloadIdentifierForLogs = currentNPCUpdatePayload.name;
+            const knownNPCsForLookup: Array<NPC> = [
+                ...context.allRelevantNPCs,
+                ...finalNPCsAdded,
+            ];
+            const matchedNPC = findNPCByIdentifier(
+                currentNPCUpdatePayload.name,
+                knownNPCsForLookup,
+            ) as NPC | undefined;
 
-            if (!allKnownAndCurrentlyAddedNPCNames.has(currentNPCUpdatePayload.name)) {
-                console.warn(`parseAIResponse ('npcsUpdated'): Original target name "${payloadNameForLogs}" not found. Attempting name correction.`);
-                const correctedName = await fetchCorrectedName_Service(
-                    'NPC name',
-                    currentNPCUpdatePayload.name,
-                    context.logMessageFromPayload ?? baseData.logMessage,
-                    context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
-                    Array.from(allKnownAndCurrentlyAddedNPCNames),
-                    context.currentTheme
+            if (matchedNPC) {
+                currentNPCUpdatePayload.name = matchedNPC.name;
+            } else {
+                const allKnownNPCNames = new Set(
+                    knownNPCsForLookup.map(npc => npc.name),
                 );
-                if (correctedName && correctedName.trim() !== '') {
-                    currentNPCUpdatePayload.name = correctedName;
-                    console.log(`parseAIResponse ('npcsUpdated'): Corrected target name to "${correctedName}".`);
-                } else {
-                    console.warn(`parseAIResponse ('npcsUpdated'): Failed to correct target name for "${payloadNameForLogs}". Will attempt to process as is, may convert to 'add'.`);
+                if (!allKnownNPCNames.has(currentNPCUpdatePayload.name)) {
+                    console.warn(
+                        `parseAIResponse ('npcsUpdated'): Identifier "${payloadIdentifierForLogs}" not found. Attempting name correction.`,
+                    );
+                    const correctedName = await fetchCorrectedName_Service(
+                        'NPC name',
+                        currentNPCUpdatePayload.name,
+                        context.logMessageFromPayload ?? baseData.logMessage,
+                        context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
+                        Array.from(allKnownNPCNames),
+                        context.currentTheme,
+                    );
+                    if (correctedName && correctedName.trim() !== '') {
+                        currentNPCUpdatePayload.name = correctedName;
+                        console.log(
+                            `parseAIResponse ('npcsUpdated'): Corrected target name to "${correctedName}".`,
+                        );
+                    } else {
+                        console.warn(
+                            `parseAIResponse ('npcsUpdated'): Failed to correct identifier "${payloadIdentifierForLogs}". Will attempt to process as is, may convert to 'add'.`,
+                        );
+                    }
                 }
             }
 
             if (isValidNPCUpdate(currentNPCUpdatePayload)) {
                 tempFinalNPCsUpdatedPayloads.push(currentNPCUpdatePayload);
             } else {
-                console.warn(`parseAIResponse ('npcsUpdated'): Payload for "${payloadNameForLogs}" is invalid after potential name correction. Discarding. Payload:`, currentNPCUpdatePayload);
+                console.warn(`parseAIResponse ('npcsUpdated'): Payload for "${payloadIdentifierForLogs}" is invalid after potential name correction. Discarding. Payload:`, currentNPCUpdatePayload);
             }
         } else {
             console.warn("parseAIResponse ('npcsUpdated'): Update missing or has invalid 'name'. Discarding.", npcUpdate);
@@ -413,31 +433,49 @@ export async function parseAIResponse(
         validated.npcsUpdated = npcResult.npcsUpdated;
 
         if (isDialogueTurn && validated.dialogueSetup) {
-            const allAvailableNPCNamesThisTurn = new Set([
-                ...allRelevantNPCs.map(npc => npc.name),
-                ...validated.npcsAdded.map(npc => npc.name),
-                ...validated.npcsUpdated.map(npcUpd => npcUpd.name)
+            const availableNPCObjectsThisTurn: Array<NPC> = [
+                ...allRelevantNPCs,
+                ...((validated.npcsAdded ?? []) as Array<NPC>),
+            ];
+            const availableNPCNamesThisTurn = new Set([
+                ...availableNPCObjectsThisTurn.map(npc => npc.name),
+                ...validated.npcsUpdated.map(npcUpd => npcUpd.name),
             ]);
 
             const finalValidParticipants: Array<string> = [];
             for (const participant of validated.dialogueSetup.participants) {
-                if (allAvailableNPCNamesThisTurn.has(participant)) {
+                const matchedNPC = findNPCByIdentifier(
+                    participant,
+                    availableNPCObjectsThisTurn,
+                ) as NPC | undefined;
+                if (matchedNPC) {
+                    finalValidParticipants.push(matchedNPC.name);
+                } else if (availableNPCNamesThisTurn.has(participant)) {
                     finalValidParticipants.push(participant);
                 } else {
-                    console.warn(`parseAIResponse: Dialogue participant "${participant}" is not among known or newly added/updated NPCs. Attempting name correction against this turn's NPCs.`);
+                    console.warn(
+                        `parseAIResponse: Dialogue participant "${participant}" is not among known or newly added/updated NPCs. Attempting name correction against this turn's NPCs.`,
+                    );
                     const correctedParticipantName = await fetchCorrectedName_Service(
                         'dialogue participant',
                         participant,
                         logMessageFromPayload ?? validated.logMessage,
                         sceneDescriptionFromPayload ?? validated.sceneDescription,
-                        Array.from(allAvailableNPCNamesThisTurn),
-                        currentTheme
+                        Array.from(availableNPCNamesThisTurn),
+                        currentTheme,
                     );
-                    if (correctedParticipantName && allAvailableNPCNamesThisTurn.has(correctedParticipantName)) {
+                    if (
+                        correctedParticipantName &&
+                        availableNPCNamesThisTurn.has(correctedParticipantName)
+                    ) {
                         finalValidParticipants.push(correctedParticipantName);
-                        console.log(`parseAIResponse: Corrected dialogue participant name from "${participant}" to "${correctedParticipantName}".`);
+                        console.log(
+                            `parseAIResponse: Corrected dialogue participant name from "${participant}" to "${correctedParticipantName}".`,
+                        );
                     } else {
-                        console.warn(`parseAIResponse: Dialogue participant "${participant}" could not be validated/corrected against this turn's NPCs. Discarding participant.`);
+                        console.warn(
+                            `parseAIResponse: Dialogue participant "${participant}" could not be validated/corrected against this turn's NPCs. Discarding participant.`,
+                        );
                     }
                 }
             }
