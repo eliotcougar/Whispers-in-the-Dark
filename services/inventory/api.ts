@@ -83,7 +83,7 @@ export const INVENTORY_JSON_SCHEMA = {
             description: `Additional tags. One of ${COMMON_TAGS_STRING}`,
           },
         },
-        propertyOrdering: ['chapters', 'id', 'knownUses', 'name', 'tags'],
+        propertyOrdering: ['id', 'knownUses', 'name', 'tags'],
         required: ['id', 'name'],
         additionalProperties: false,
       },
@@ -191,7 +191,6 @@ export const INVENTORY_JSON_SCHEMA = {
         },
         propertyOrdering: [
           'activeDescription',
-          'chapters',
           'description',
           'holderId',
           'isActive',

@@ -21,13 +21,14 @@ Items described in the "World Items Hint" must be placed at their appropriate ma
 Allowed actions are: ${String(VALID_ACTIONS_STRING)}.
 CRITICALLY IMPORTANT: Use 'create' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory. You MUST 'create' *all* items in the New Items JSON and *only* the items in the New Items JSON. NEVER create items that are part of the Player's Inventory.
 CRITICALLY IMPORTANT: Use 'move' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
-CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world.
+CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world. Never 'destroy' items if only some Known Use needs to be deleted. Use 'change' to edit Known Uses.
 
-## Examples:
+## Example:
 
-### Example for gaining a *new* item from the provided New Items JSON:
+"observations": "",
+"rationale": "",
 "create": [
-    {
+    { // Example for gaining a *new* item from the provided New Items JSON:
         "activeDescription": "The lantern is lit and casts a warm glow.",
         "description": "A dusty old lantern that still flickers faintly.",
         "holderId": "player",
@@ -49,55 +50,37 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
         "name": "Old Lantern",
         "type": "equipment"
     }
-]
-
-### Example for losing, destroying, completely removing an *existing* item from the world:
+],
 "destroy": [
-    {
+    { // Example for losing, destroying, completely removing an *existing* item from the world:
         "id": "item_old_lantern_7fr4",
         "name": "Old Lantern (flickering)"
     }
-]
-
-### Example for giving an *existing* item item_iron_sword_ab12 from player to npc_guard_4f3a, or for placing it in the current location:
+],
 "move": [
-    {
+    { // Example for giving an *existing* item item_iron_sword_ab12 from player to npc_guard_4f3a, or for placing it in the current location:
         "id": "item_iron_sword_ab12",
         "name": "Iron Sword",
         "newHolderId": "npc_guard_4f3a"
-    }
-]
-
-### Example of taking an *existing* item item_coin_pouch_8f2c from npc_bandit_1wrc and putting it in player's inventory:
-"move": [
-    {
+    },
+    { // Example of taking an *existing* item item_coin_pouch_8f2c from npc_bandit_1wrc and putting it in player's inventory:
         "id": "item_coin_pouch_8f2c",
         "name": "Coin Pouch",
         "newHolderId": "player"
-    }
-]
-
-### Example of picking up an *existing* item item_crowbar_55nf from node_rubble_pile_f4s3 and putting it in player's inventory:
-"move": [
-    {
+    },
+    { // Example of picking up an *existing* item item_crowbar_55nf from node_rubble_pile_f4s3 and putting it in player's inventory:
         "id": "item_crowbar_55nf",
         "name": "Crowbar",
         "newHolderId": "player"
     }
-]
-
-### Example for a simple change that only alters "isActive" state (lighting the Plasma Torch). All other properties are inherited from the *existing* item item_plasma_torch_7fr4:
+],
 "change": [
-    {
+    { // Example for a simple change that only alters "isActive" state (lighting the Plasma Torch). All other properties are inherited from the *existing* item item_plasma_torch_7fr4:
         "id": "item_plasma_torch_7fr4",
         "isActive": true,
         "name": "Plasma Torch"
-    }
-]
-
-### Example for transformation or crafting (new item details can be partial and will inherit old properties):
-"change": [
-    {
+    },
+    { // Example for transformation or crafting (new item details can be partial and will inherit old properties):
         "description": "A sharp piece of metal.",
         "id": "item_scrap_metal_7fr4",
         "knownUses": [
@@ -112,18 +95,16 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
         "tags": [], /* empty array to remove the 'junk' tag from scrap metal */
         "type": "weapon"
     }
-]
-
-### Example for adding a known use to *existing* item (existing properties and known uses are inherited):
-"change": [
-    {
-        "addKnownUse": {
+],
+addDetails: [
+    { // Example for adding a known use to *existing* item (existing properties and known uses are inherited):
+        "id": "item_mystic_orb_7fr4",    
+        "knownUses": {
             "actionName": "Peer into the Orb",
             "AppliesWhenActive": true,
             "description": "Try to see the beyond",
             "promptEffect": "Peer into the Mystic Orb, trying to glimpse the future."
         },
-        "id": "item_mystic_orb_7fr4",
         "name": "Mystic Orb"
     }
 ]
