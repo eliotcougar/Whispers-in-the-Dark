@@ -72,11 +72,11 @@ const heroSheetSchema = {
 const storyActSchema = {
   type: 'object',
   properties: {
-    title: { type: 'string' },
+    title: { type: 'string', description: 'Creative title for the act.' },
     description: { type: 'string', minLength: 3000 },
-    mainObjective: { type: 'string' },
+    mainObjective: { type: 'string', description: 'Main objective that must be achieved in order to complete the act.' },
     sideObjectives: { type: 'array', items: { type: 'string' } },
-    successCondition: { type: 'string' },
+    successCondition: { type: 'string', description: 'Actionable, clearly defined condition for finishing the act and moving forvard into the next act.' },
   },
   required: [
     'title',
@@ -91,9 +91,9 @@ const storyActSchema = {
 const storyArcSchema = {
   type: 'object',
   properties: {
-    title: { type: 'string' },
-    overview: { type: 'string', minLength: 3000 },
-    acts: { type: 'array', minItems: 1, maxItems: 5, items: storyActSchema },
+    title: { type: 'string', description: 'Creative title for the whole storyline.' },
+    overview: { type: 'string', description: 'High level story overview, like a book series synopsis, without going into specifics of the story.', minLength: 3000 },
+    acts: { type: 'array', minItems: 1, maxItems: 1, items: storyActSchema },
   },
   required: ['title', 'overview', 'acts'],
   additionalProperties: false,
@@ -283,7 +283,7 @@ export const generateHeroData = async (
         ${heroDescription ? `The hero's description is: ${heroDescription}.` : ''}
         Write a short backstory for ${finalHeroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.` +
         ' Then outline a five act narrative arc for this adventure with an overview of at least 3000 characters.' +
-        ' Provide details only for Act 1 titled "Exposition" including a description of at least 3000 characters, the main objective, two side quests, and the success condition to proceed.';
+        ' Provide details only for Act 1 (exposition) including a description of at least 3000 characters, the main objective, two side quests, and the success condition to proceed to the next act (rising action).';
       const backstoryText = await request(backstoryPrompt, heroBackstorySchema, 'HeroBackstory');
       const parsedData = backstoryText
         ? safeParseJson<HeroBackstory & { storyArc: StoryArcData }>(
