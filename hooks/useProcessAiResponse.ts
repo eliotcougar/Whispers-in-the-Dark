@@ -27,7 +27,11 @@ import { refineLore_Service } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
 import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
-import { findItemByIdentifier } from '../utils/entityUtils';
+import {
+  findItemByIdentifier,
+  findMapNodeByIdentifier,
+  findNPCByIdentifier,
+} from '../utils/entityUtils';
 
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
@@ -51,8 +55,56 @@ const correctItemChanges = async ({
   if (!theme) return [...aiItemChanges];
 
   const result: Array<ItemChange> = [];
+
+  const resolveHolder = (holderId: string | undefined): string | undefined => {
+    if (!holderId) return undefined;
+    if (holderId === PLAYER_HOLDER_ID) return PLAYER_HOLDER_ID;
+    if (holderId.startsWith('node_')) {
+      const node = findMapNodeByIdentifier(
+        holderId,
+        baseState.mapData.nodes,
+        baseState.mapData,
+        baseState.currentMapNodeId,
+      );
+      return Array.isArray(node) ? node[0]?.id : node?.id;
+    }
+    if (holderId.startsWith('npc_')) {
+      const npc = findNPCByIdentifier(holderId, baseState.allNPCs);
+      return Array.isArray(npc) ? npc[0]?.id : npc?.id;
+    }
+    return undefined;
+  };
   for (const change of aiItemChanges) {
     let currentChange: ItemChange = { ...change };
+
+    if (currentChange.action === 'create') {
+      const item = currentChange.item;
+      const match = findItemByIdentifier(
+        [item.id, item.name],
+        baseState.inventory,
+        false,
+        true,
+      );
+      const existing = Array.isArray(match) ? null : match;
+      if (existing) {
+        currentChange = {
+          action: 'change',
+          item: { ...item, id: existing.id },
+        };
+      }
+      const corrected = resolveHolder(item.holderId);
+      if (corrected) item.holderId = corrected;
+    } else if (currentChange.action === 'move') {
+      const payload = currentChange.item as { newHolderId: string };
+      const corrected = resolveHolder(payload.newHolderId);
+      if (corrected) payload.newHolderId = corrected;
+    } else if (currentChange.action === 'change') {
+      const itm = currentChange.item as { holderId?: string };
+      if (itm.holderId) {
+        const corrected = resolveHolder(itm.holderId);
+        if (corrected) itm.holderId = corrected;
+      }
+    }
 
     if ('item' in currentChange && (currentChange.item as { type?: string }).type === 'immovable') {
       if (currentChange.action === 'create') {
