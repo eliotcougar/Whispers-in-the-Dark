@@ -920,9 +920,9 @@ function App() {
         onCustomGame={handleOpenCustomGameSetup}
         onLoadGame={handleLoadGameFromMenu}
         onNewGame={handleNewGameFromMenu}
+        onOpenGeminiKeyModal={openGeminiKeyModal}
         onOpenInfo={openInfoFromMenu}
         onOpenSettings={openSettingsFromMenu}
-        onOpenGeminiKeyModal={openGeminiKeyModal}
         onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
       />
 

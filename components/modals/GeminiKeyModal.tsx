@@ -38,13 +38,19 @@ function GeminiKeyModal({ isVisible, onClose }: GeminiKeyModalProps) {
       <div className="animated-frame-content flex flex-col items-center">
         <Button
           ariaLabel="Close Gemini key setup"
-          icon={<Icon name="x" size={20} />}
+          icon={<Icon
+            name="x"
+            size={20}
+          />}
           onClick={onClose}
           size="sm"
           variant="close"
         />
 
-        <h1 className="text-2xl font-bold text-sky-300 mb-4" id="gemini-key-title">
+        <h1
+          className="text-2xl font-bold text-sky-300 mb-4"
+          id="gemini-key-title"
+        >
           Configure Gemini API Key
         </h1>
 
@@ -54,10 +60,10 @@ function GeminiKeyModal({ isVisible, onClose }: GeminiKeyModalProps) {
           {' '}
 
           <a
-            href="https://aistudio.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
             className="text-sky-400 underline hover:text-sky-300"
+            href="https://aistudio.google.com"
+            rel="noopener noreferrer"
+            target="_blank"
           >
             https://aistudio.google.com
 

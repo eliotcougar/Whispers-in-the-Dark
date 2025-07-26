@@ -163,6 +163,6 @@ function TitleMenu({
   );
 }
 
-TitleMenu.defaultProps = { onSaveGame: undefined, onOpenGeminiKeyModal: undefined };
+TitleMenu.defaultProps = { onOpenGeminiKeyModal: undefined, onSaveGame: undefined };
 
 export default TitleMenu;

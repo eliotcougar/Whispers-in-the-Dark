@@ -49,8 +49,8 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
   const renderOption = useCallback(
     (opt: CharacterOption) => (
       <CharacterCard
-        key={opt.name}
         disabled={selectedName === opt.name}
+        key={opt.name}
         onSelect={handleSelect}
         option={opt}
       />
@@ -61,14 +61,26 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
   if (!isVisible) return null;
 
   return (
-    <div aria-labelledby="character-select-title" aria-modal="true" className="animated-frame open" role="dialog">
+    <div
+      aria-labelledby="character-select-title"
+      aria-modal="true"
+      className="animated-frame open"
+      role="dialog"
+    >
       <div className="animated-frame-content character-select-content-area flex flex-col items-center">
-        <h1 className="text-3xl font-bold text-sky-300 mb-4 text-center" id="character-select-title">
+        <h1
+          className="text-3xl font-bold text-sky-300 mb-4 text-center"
+          id="character-select-title"
+        >
           Choose Your Character
         </h1>
 
         <p className="text-slate-300 mb-6 text-center text-sm max-w-2xl mx-auto">
-          Explore the world of {theme.name}. Select a character to begin your adventure.
+          Explore the world of 
+          {' '}
+
+          {theme.name}
+          . Select a character to begin your adventure.
         </p>
 
         {isGenerating ? (
@@ -76,42 +88,113 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
         ) : heroSheet && heroBackstory ? (
           <>
             <div className="mt-4 text-lg space-y-3 text-slate-300">
-              <p className="font-semibold text-amber-400 text-center">{heroSheet.name}</p>
-              <p className="text-center">Occupation: {heroSheet.occupation}</p>
-              <p className="text-center">Traits: {heroSheet.traits.join(', ')}</p>
-              <p className="text-center">Starting Items: {heroSheet.startingItems.join(', ')}</p>
+              <p className="font-semibold text-amber-400 text-center">
+                {heroSheet.name}
+              </p>
+
+              <p className="text-center">
+                Occupation:
+                {heroSheet.occupation}
+              </p>
+
+              <p className="text-center">
+                Traits:
+                {heroSheet.traits.join(', ')}
+              </p>
+
+              <p className="text-center">
+                Starting Items:
+                {heroSheet.startingItems.join(', ')}
+              </p>
 
               <div className="mt-2 text-lg">
-                <p className="font-semibold">Backstory:</p>
+                <p className="font-semibold">
+                  Backstory:
+                </p>
 
                 <ul className=" text-lg list-disc list-inside whitespace-pre-line">
-                  <li>5 years ago: {heroBackstory.fiveYearsAgo}</li>
+                  <li>
+                    5 years ago:
+                    {heroBackstory.fiveYearsAgo}
+                  </li>
 
-                  <li>1 year ago: {heroBackstory.oneYearAgo}</li>
+                  <li>
+                    1 year ago:
+                    {heroBackstory.oneYearAgo}
+                  </li>
 
-                  <li>6 months ago: {heroBackstory.sixMonthsAgo}</li>
+                  <li>
+                    6 months ago:
+                    {heroBackstory.sixMonthsAgo}
+                  </li>
 
-                  <li>1 month ago: {heroBackstory.oneMonthAgo}</li>
+                  <li>
+                    1 month ago:
+                    {heroBackstory.oneMonthAgo}
+                  </li>
 
-                  <li>1 week ago: {heroBackstory.oneWeekAgo}</li>
+                  <li>
+                    1 week ago:
+                    {heroBackstory.oneWeekAgo}
+                  </li>
 
-                  <li>Yesterday: {heroBackstory.yesterday}</li>
+                  <li>
+                    Yesterday:
+                    {heroBackstory.yesterday}
+                  </li>
 
-                  <li>Now: {heroBackstory.now}</li>
+                  <li>
+                    Now:
+                    {heroBackstory.now}
+                  </li>
                 </ul>
               </div>
             </div>
 
             <div className="mt-4 text-lg space-y-1 text-slate-300">
-              <p className="font-semibold text-sky-300 text-center">World Information</p>
-              <p className="text-left">Geography: {worldFacts.geography}</p>
-              <p className="text-left">Climate: {worldFacts.climate}</p>
-              <p className="text-left">Technology Level: {worldFacts.technologyLevel}</p>
-              <p className="text-left">Supernatural Elements: {worldFacts.supernaturalElements}</p>
-              <p className="text-left">Major Factions: {worldFacts.majorFactions.join(', ')}</p>
-              <p className="text-left">Key Resources: {worldFacts.keyResources.join(', ')}</p>
-              <p className="text-left">Cultural Notes: {worldFacts.culturalNotes.join(', ')}</p>
-              <p className="text-left">Notable Locations: {worldFacts.notableLocations.join(', ')}</p>
+              <p className="font-semibold text-sky-300 text-center">
+                World Information
+              </p>
+
+              <p className="text-left">
+                Geography:
+                {worldFacts.geography}
+              </p>
+
+              <p className="text-left">
+                Climate:
+                {worldFacts.climate}
+              </p>
+
+              <p className="text-left">
+                Technology Level:
+                {worldFacts.technologyLevel}
+              </p>
+
+              <p className="text-left">
+                Supernatural Elements:
+                {worldFacts.supernaturalElements}
+              </p>
+
+              <p className="text-left">
+                Major Factions:
+                {worldFacts.majorFactions.join(', ')}
+              </p>
+
+              <p className="text-left">
+                Key Resources:
+                {worldFacts.keyResources.join(', ')}
+              </p>
+
+              <p className="text-left">
+                Cultural Notes:
+                {worldFacts.culturalNotes.join(', ')}
+              </p>
+
+              <p className="text-left">
+                Notable Locations:
+                {worldFacts.notableLocations.join(', ')}
+              </p>
             </div>
           </>
         ) : (
@@ -124,7 +207,10 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
           {heroSheet && heroBackstory ? (
             <Button
               ariaLabel="Begin the adventure"
-              icon={<Icon name="bookOpen" size={20} />}
+              icon={<Icon
+                name="bookOpen"
+                size={20}
+              />}
               label="Begin the Journey"
               onClick={handleBegin}
               preset="green"
