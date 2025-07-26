@@ -141,10 +141,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         const mapNodeNames = currentThemeNodes.map(n => n.placeName);
         const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
         setLoadingReason('loremaster_refine');
+        const act =
+          state.storyArc?.acts[state.storyArc.currentAct - 1];
         const result = await distillFacts_Service({
           themeName: themeObj.name,
           facts: state.themeFacts,
-          currentQuest: state.mainQuest,
+          currentQuest: act?.mainObjective ?? null,
           currentObjective: state.currentObjective,
           inventoryItemNames,
           mapNodeNames,
@@ -255,7 +257,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         action,
         currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
         locationItems,
-        currentFullState.mainQuest,
+        currentFullState.storyArc?.acts[
+          currentFullState.storyArc.currentAct - 1
+        ]?.mainObjective ?? null,
         currentFullState.currentObjective,
         currentThemeObj,
         recentLogs,

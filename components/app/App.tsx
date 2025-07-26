@@ -212,7 +212,7 @@ function App() {
 
   const {
     currentTheme,
-    currentScene, mainQuest, currentObjective, actionOptions,
+    currentScene, mainQuest, currentObjective, actionOptions, storyArc,
     inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
     currentMapNodeId, mapLayoutConfig,
     allNPCs,
@@ -853,7 +853,7 @@ function App() {
                 globalTurnNumber={globalTurnNumber}
                 inventory={inventory}
                 itemsHere={itemsHere}
-                mainQuest={mainQuest}
+                storyArc={storyArc}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
                 onDropItem={gameLogic.handleDropItem}

@@ -10,6 +10,7 @@ import {
   Item,
   KnownUse,
   MapNode,
+  StoryArc,
 } from '../../types';
 
 interface GameSidebarProps {
@@ -20,7 +21,7 @@ interface GameSidebarProps {
   readonly enableMobileTap: boolean;
   readonly inventory: Array<Item>;
   readonly itemsHere: Array<Item>;
-  readonly mainQuest: string | null;
+  readonly storyArc: StoryArc | null;
   readonly mapNodes: Array<MapNode>;
   readonly objectiveAnimationType: 'success' | 'neutral' | null;
   readonly onDropItem: (itemName: string) => void;
@@ -45,7 +46,7 @@ function GameSidebar({
   enableMobileTap,
   inventory,
   itemsHere,
-  mainQuest,
+  storyArc,
   mapNodes,
   objectiveAnimationType,
   onDropItem,
@@ -67,6 +68,10 @@ function GameSidebar({
       ),
     [inventory, mapNodes, allNPCs, currentThemeName],
   );
+
+  const act = storyArc?.acts[storyArc.currentAct - 1];
+  const mainQuest = act?.mainObjective ?? null;
+  const actHeader = act ? `Act ${String(storyArc.currentAct)}: ${act.title}` : '';
 
   return (
     <>
@@ -95,7 +100,7 @@ function GameSidebar({
           contentColorClass="text-purple-200"
           contentFontClass="text-lg"
           enableMobileTap={enableMobileTap}
-          header="Main Quest"
+          header={actHeader}
           headerFont="lg"
           headerPreset="purple"
           highlightEntities={questHighlightEntities}
