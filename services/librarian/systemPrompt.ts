@@ -116,6 +116,6 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 - Make sure items have one of the required tags: ${String(TEXT_STYLE_TAGS_STRING)}.
 IMPORTANT: NEVER add ${String(DEDICATED_BUTTON_USES_STRING)} known uses - there are dedicated buttons for those in the game.
 
-${WRITTEN_ITEM_TYPES_GUIDE}
+${String(WRITTEN_ITEM_TYPES_GUIDE)}
 
 `;
