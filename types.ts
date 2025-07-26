@@ -188,6 +188,7 @@ export interface DialogueTurnContext {
   currentQuest: string | null;
   currentObjective: string | null;
   currentScene: string;
+  storyArc?: StoryArc | null;
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null;
@@ -206,6 +207,7 @@ export interface DialogueSummaryContext {
   mainQuest: string | null;
   currentObjective: string | null;
   currentScene: string;
+  storyArc?: StoryArc | null;
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null; // The free-text local place string
@@ -224,6 +226,7 @@ export interface DialogueMemorySummaryContext {
   themeName: string; // Retained for direct theme name access if needed
   currentThemeObject: AdventureTheme | null; // Added for full theme object access
   currentScene: string; // Scene at the START of the dialogue
+  storyArc?: StoryArc | null;
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null;
@@ -363,6 +366,24 @@ export interface HeroBackstory {
 export interface CharacterOption {
   name: string;
   description: string;
+}
+
+export interface StoryAct {
+  actNumber: number;
+  title: string;
+  description: string;
+  mainObjective: string;
+  sideObjectives: Array<string>;
+  successCondition: string;
+}
+
+export interface StoryArc {
+  id: string;
+  title: string;
+  overview: string;
+  acts: Array<StoryAct>;
+  currentAct: number;
+  completed: boolean;
 }
 
 
@@ -626,6 +647,7 @@ export interface FullGameState {
   worldFacts: WorldFacts | null;
   heroSheet: HeroSheet | null;
   heroBackstory: HeroBackstory | null;
+  storyArc: StoryArc | null;
   pendingNewThemeNameAfterShift: string | null;
   allNPCs: Array<NPC>;
   mapData: MapData; // Single source of truth for map/location data
@@ -681,6 +703,7 @@ export type SavedGameDataShape = Pick<
   | 'worldFacts'
   | 'heroSheet'
   | 'heroBackstory'
+  | 'storyArc'
   | 'pendingNewThemeNameAfterShift'
   | 'allNPCs'
   | 'mapData'

@@ -11,6 +11,7 @@ import {
   WorldFacts,
   HeroSheet,
   HeroBackstory,
+  StoryArc,
 } from '../../types';
 import { formatKnownPlacesForPrompt } from './map';
 import { findTravelPath, buildTravelAdjacency } from '../mapPathfinding';
@@ -227,3 +228,17 @@ export const formatHeroBackstoryForPrompt = (
     `Yesterday: ${backstory.yesterday}`,
     `Now: ${backstory.now}`,
   ].join('\n');
+
+export const formatStoryArcContext = (arc: StoryArc): string => {
+  const act = arc.acts[arc.currentAct - 1];
+  const side = act.sideObjectives.join(', ');
+  return [
+    `Arc Title: ${arc.title}`,
+    `Overview: ${arc.overview}`,
+    `Current Act ${String(act.actNumber)}: ${act.title}`,
+    `Act Description: ${act.description}`,
+    `Main Objective: ${act.mainObjective}`,
+    `Side Objectives: ${side}`,
+    `Success Condition: ${act.successCondition}`,
+  ].join('\n');
+};

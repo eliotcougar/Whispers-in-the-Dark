@@ -2,7 +2,7 @@
  * @file api.ts
  * @description Wrapper functions for dialogue-related AI interactions.
  */
-import {
+import type {
   DialogueAIResponse,
   DialogueHistoryEntry,
   DialogueSummaryContext,
@@ -12,6 +12,7 @@ import {
   MapNode,
   DialogueMemorySummaryContext,
   AdventureTheme,
+  StoryArc,
   HeroSheet,
 } from '../../types';
 import {
@@ -88,6 +89,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
  */
 export const executeDialogueTurn = async (
   currentTheme: AdventureTheme,
+  storyArc: StoryArc | null,
   currentQuest: string | null,
   currentObjective: string | null,
   currentScene: string,
@@ -122,6 +124,7 @@ export const executeDialogueTurn = async (
     inventory,
     playerGender,
     heroSheet,
+    storyArc,
     dialogueHistory,
     playerLastUtterance,
     dialogueParticipants,

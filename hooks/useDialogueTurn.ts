@@ -103,6 +103,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const relevantFacts = collectResult?.facts ?? [];
         const { parsed: turnData, prompt: turnPrompt, rawResponse, thoughts } = await executeDialogueTurn(
           currentThemeObj,
+          stateAfterPlayerChoice.storyArc,
           stateAfterPlayerChoice.mainQuest,
           stateAfterPlayerChoice.currentObjective,
           stateAfterPlayerChoice.currentScene,

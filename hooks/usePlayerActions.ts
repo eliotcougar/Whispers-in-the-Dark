@@ -271,7 +271,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentFullState.themeHistory,
         currentMapNodeDetails,
         currentFullState.mapData,
-        currentFullState.destinationNodeId
+        currentFullState.destinationNodeId,
+        currentFullState.storyArc
       );
 
       let draftState = structuredCloneGameState(currentFullState);

@@ -2,7 +2,7 @@
  * @file promptBuilder.ts
  * @description Helper functions for constructing dialogue-related prompts.
  */
-import {
+import type {
   DialogueSummaryContext,
   DialogueMemorySummaryContext,
   DialogueTurnContext,
@@ -12,7 +12,7 @@ import {
   MAIN_TURN_OPTIONS_COUNT,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
-import { formatHeroSheetForPrompt } from '../../utils/promptFormatters';
+import { formatHeroSheetForPrompt, formatStoryArcContext } from '../../utils/promptFormatters';
 
 /**
  * Builds the prompt used to fetch the next dialogue turn.
@@ -42,6 +42,7 @@ export const buildDialogueTurnPrompt = (
     heroSheet !== null
       ? formatHeroSheetForPrompt(heroSheet, false)
       : 'The player character remains undescribed.';
+  const arcContext = context.storyArc ? formatStoryArcContext(context.storyArc) : '';
   let historyToUseInPrompt = [...dialogueHistory];
   if (
     historyToUseInPrompt.length > 0 &&
@@ -117,8 +118,7 @@ export const buildDialogueTurnPrompt = (
       : 'None';
 
   return `**Context for Dialogue Turn**
-Current Theme: "${currentTheme.name}";
-System Instruction Modifier for Theme: "${currentTheme.systemInstructionModifier}";
+${arcContext ? `Narrative Arc:\n${arcContext}\n` : `Current Theme: "${currentTheme.name}";\nSystem Instruction Modifier for Theme: "${currentTheme.systemInstructionModifier}";`}
 Current Main Quest: "${currentQuest ?? 'Not set'}";
 Current Objective: "${currentObjective ?? 'Not set'}";
 Scene Description (for environmental context): "${currentScene}";
@@ -194,9 +194,8 @@ export const buildDialogueSummaryPrompt = (
   }
 
   return `
-Context for Dialogue Summary:
-- Current Theme: "${summaryContext.currentThemeObject?.name ?? summaryContext.themeName}"
-- System Instruction Modifier for Theme: "${summaryContext.currentThemeObject?.systemInstructionModifier ?? 'None'}"
+ Context for Dialogue Summary:
+${summaryContext.storyArc ? `Narrative Arc: ${summaryContext.storyArc.title} (Act ${String(summaryContext.storyArc.currentAct)}: ${summaryContext.storyArc.acts[summaryContext.storyArc.currentAct - 1].title})` : `Current Theme: "${summaryContext.currentThemeObject?.name ?? summaryContext.themeName}"\n- System Instruction Modifier for Theme: "${summaryContext.currentThemeObject?.systemInstructionModifier ?? 'None'}"`}
 - Current Main Quest (before dialogue): "${summaryContext.mainQuest ?? 'Not set'}"
 - Current Objective (before dialogue): "${summaryContext.currentObjective ?? 'Not set'}"
 - Scene Description (when dialogue started): "${summaryContext.currentScene}"
@@ -245,7 +244,7 @@ Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any 
 
   const userPromptPart = `Generate a memory summary for the following conversation:
 - Conversation Participants: ${context.dialogueParticipants.join(', ')}
-- Theme: "${context.currentThemeObject?.name ?? context.themeName}" (${context.currentThemeObject?.systemInstructionModifier ?? 'None'})
+${context.storyArc ? `- Narrative Arc: ${context.storyArc.title} (Act ${String(context.storyArc.currentAct)}: ${context.storyArc.acts[context.storyArc.currentAct - 1].title})` : `- Theme: "${context.currentThemeObject?.name ?? context.themeName}" (${context.currentThemeObject?.systemInstructionModifier ?? 'None'})`}
 - Scene at the start of conversation: "${context.currentScene}"
 - Context: Time: "${context.localTime ?? 'Unknown'}", Environment: "${context.localEnvironment ?? 'Undetermined'}", Place: "${context.localPlace ?? 'Undetermined'}"
 

@@ -65,6 +65,7 @@ export const getInitialGameStates = (): FullGameState => {
     worldFacts: null,
     heroSheet: null,
     heroBackstory: null,
+    storyArc: null,
     pendingNewThemeNameAfterShift: null,
     allNPCs: [],
     mapData: { nodes: [], edges: [] },

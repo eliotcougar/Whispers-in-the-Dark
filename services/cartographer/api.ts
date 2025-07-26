@@ -2,7 +2,7 @@
  * @file api.ts
  * @description High level cartographer service functions.
  */
-import {
+import type {
   GameStateFromAI,
   AdventureTheme,
   MapData,
@@ -10,6 +10,7 @@ import {
   Item,
   NPC,
   MinimalModelCallRecord,
+  StoryArc,
 } from '../../types';
 import { CARTOGRAPHER_SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION } from './systemPrompt';
 import { buildMapUpdatePrompt } from './promptBuilder';
@@ -33,6 +34,7 @@ export const updateMapFromAIData_Service = async (
   previousMapNodeId: string | null,
   inventoryItems: Array<Item>,
   knownNPCs: Array<NPC>,
+  storyArc: StoryArc | null,
 ): Promise<MapUpdateServiceResult | null> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Map Update Service.');
@@ -121,6 +123,7 @@ export const updateMapFromAIData_Service = async (
     allKnownMainPlacesString,
     itemNames,
     npcNames,
+    storyArc,
   );
 
   const { payload, debugInfo } = await fetchMapUpdatePayload(
