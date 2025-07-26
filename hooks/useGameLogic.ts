@@ -278,6 +278,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
             storytellerThoughts: null,
             mapUpdateDebugInfo: null,
             inventoryDebugInfo: null,
+            librarianDebugInfo: null,
             loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
             dialogueDebugInfo: null,
           };
@@ -419,6 +420,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       storytellerThoughts: null,
       mapUpdateDebugInfo: null,
       inventoryDebugInfo: null,
+      librarianDebugInfo: null,
       loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
       dialogueDebugInfo: null,
     };

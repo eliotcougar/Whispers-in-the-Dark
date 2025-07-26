@@ -272,6 +272,7 @@ export interface GameStateFromAI {
   playerItemsHint?: string;
   worldItemsHint?: string;
   npcItemsHint?: string;
+  librarianHint?: string;
   newItems?: Array<NewItemSuggestion>;
   // placesAdded and placesUpdated are removed from storyteller responsibility
 }
@@ -568,6 +569,16 @@ export interface DebugPacket {
     }> | null;
   } | null;
   inventoryDebugInfo?: {
+    prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
+    rawResponse?: string;
+    parsedItemChanges?: Array<ItemChange>;
+    observations?: string;
+    rationale?: string;
+    thoughts?: Array<string>;
+  } | null;
+  librarianDebugInfo?: {
     prompt: string;
     systemInstruction?: string;
     jsonSchema?: unknown;

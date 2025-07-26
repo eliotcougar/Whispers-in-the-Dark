@@ -3,6 +3,7 @@ export { default as DialogueAITab } from './DialogueAITab';
 export { default as GameLogTab } from './GameLogTab';
 export { default as GameStateTab } from './GameStateTab';
 export { default as InventoryAITab } from './InventoryAITab';
+export { default as LibrarianAITab } from './LibrarianAITab';
 export { default as InventoryTab } from './InventoryTab';
 export { default as MainAITab } from './MainAITab';
 export { default as MapDataFullTab } from './MapDataFullTab';

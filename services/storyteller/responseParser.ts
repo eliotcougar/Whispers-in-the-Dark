@@ -83,6 +83,7 @@ function validateBasicStructure(
         (data.playerItemsHint === undefined || data.playerItemsHint === null || typeof data.playerItemsHint === 'string') &&
         (data.worldItemsHint === undefined || data.worldItemsHint === null || typeof data.worldItemsHint === 'string') &&
         (data.npcItemsHint === undefined || data.npcItemsHint === null || typeof data.npcItemsHint === 'string') &&
+        (data.librarianHint === undefined || data.librarianHint === null || typeof data.librarianHint === 'string') &&
         (data.newItems === undefined || data.newItems === null || Array.isArray(data.newItems));
 
     if (!baseFieldsValid) {

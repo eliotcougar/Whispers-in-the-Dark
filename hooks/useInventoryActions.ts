@@ -218,6 +218,7 @@ export const useInventoryActions = ({
           storytellerThoughts: null,
           mapUpdateDebugInfo: null,
           inventoryDebugInfo: null,
+          librarianDebugInfo: null,
           loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
           dialogueDebugInfo: null,
         };

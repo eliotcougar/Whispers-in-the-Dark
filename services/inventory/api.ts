@@ -13,13 +13,10 @@ import {
   MAX_BOOK_CHAPTERS,
   MAX_RETRIES,
   PLAYER_HOLDER_ID,
-  VALID_ITEM_TYPES,
-  VALID_ITEM_TYPES_STRING,
+  REGULAR_ITEM_TYPES,
+  REGULAR_ITEM_TYPES_STRING,
   COMMON_TAGS,
-  COMMON_TAGS_STRING,
-  TEXT_STYLE_TAGS_STRING,
-  WRITING_TAGS,
-  TEXT_MOD_TAGS_STRING
+  COMMON_TAGS_STRING
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -149,7 +146,7 @@ export const INVENTORY_JSON_SCHEMA = {
             items: { enum: COMMON_TAGS },
             description: `Updated tags.`,
           },
-          type: { enum: VALID_ITEM_TYPES, description: `Updated type if changed. One of ${VALID_ITEM_TYPES_STRING}.` },
+          type: { enum: REGULAR_ITEM_TYPES, description: `Updated type if changed. One of ${REGULAR_ITEM_TYPES_STRING}.` },
         },
         propertyOrdering: [
           'activeDescription',
@@ -220,10 +217,10 @@ export const INVENTORY_JSON_SCHEMA = {
           tags: {
             type: 'array',
             maxItems: 5,
-            items: { enum: [...COMMON_TAGS,...WRITING_TAGS] },
-            description: `Example tags: ${COMMON_TAGS_STRING}, 'book', 'page', 'map', and 'picture' type items require one of ${TEXT_STYLE_TAGS_STRING} and optionally ${TEXT_MOD_TAGS_STRING}.`,
+            items: { enum: COMMON_TAGS },
+            description: `Example tags: ${COMMON_TAGS_STRING}.`,
           },
-          type: { enum: VALID_ITEM_TYPES, description: `Item type. One of ${VALID_ITEM_TYPES_STRING}` },
+          type: { enum: REGULAR_ITEM_TYPES, description: `Item type. One of ${REGULAR_ITEM_TYPES_STRING}` },
         },
         propertyOrdering: [
           'activeDescription',
