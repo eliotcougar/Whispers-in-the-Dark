@@ -68,7 +68,6 @@ const dummyHeroBackstory: HeroBackstory = {
 };
 
 const dummyArc: StoryArc = {
-  id: 'arc1',
   title: 'Heroic Trials',
   overview: 'A journey of hardship and triumph.',
   acts: [
@@ -79,10 +78,10 @@ const dummyArc: StoryArc = {
       mainObjective: 'Escape the cell.',
       sideObjectives: ['Find equipment'],
       successCondition: 'Reach freedom',
+      completed: false,
     },
   ],
   currentAct: 1,
-  completed: false,
 };
 
 describe('game start sequence', () => {

@@ -95,15 +95,14 @@ interface StoryAct {
   mainObjective: string;
   sideObjectives: Array<string>;
   successCondition: string;
+  completed: boolean;
 }
 
 interface StoryArc {
-  id: string;
   title: string;
   overview: string;
-  acts: Array<StoryAct>; // length 5
+  acts: Array<StoryAct>; // starts with 1 act, up to 5
   currentAct: number;
-  completed: boolean;
 }
 const narrativeArc: StoryArc;
 ```
