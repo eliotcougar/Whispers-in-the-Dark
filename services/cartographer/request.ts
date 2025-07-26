@@ -140,12 +140,6 @@ export const MAP_UPDATE_JSON_SCHEMA = {
             minLength: 30,
             description: NODE_DESCRIPTION_INSTRUCTION,
           },
-          initialPosition: {
-            type: 'object',
-            properties: { x: { type: 'number' }, y: { type: 'number' } },
-            required: ['x', 'y'],
-            additionalProperties: false,
-          },
           nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
           parentNodeId: {
             type: 'string',
@@ -161,7 +155,6 @@ export const MAP_UPDATE_JSON_SCHEMA = {
         propertyOrdering: [
           'aliases',
           'description',
-          'initialPosition',
           'nodeType',
           'parentNodeId',
           'placeName',
