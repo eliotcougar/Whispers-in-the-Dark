@@ -215,6 +215,10 @@ export const STORYTELLER_JSON_SCHEMA = {
       type: 'string',
       description: 'Summary of items revealed to be carried by NPCs.',
     },
+    librarianHint: {
+      type: 'string',
+      description: 'Summary of written material updates.',
+    },
     npcsAdded: {
       type: 'array',
       description: 'NPCs introduced this turn.',
@@ -366,6 +370,7 @@ export const STORYTELLER_JSON_SCHEMA = {
     'mapUpdated',
     'newItems',
     'npcItemsHint',
+    'librarianHint',
     'npcsAdded',
     'npcsUpdated',
     'objectiveAchieved',

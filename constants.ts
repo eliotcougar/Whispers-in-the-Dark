@@ -85,6 +85,22 @@ export const VALID_ITEM_TYPES = [
 
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => type).join(', ');
 
+export const WRITING_ITEM_TYPES = ['page', 'book', 'picture', 'map'] as const;
+export const WRITING_ITEM_TYPES_STRING = WRITING_ITEM_TYPES.map(t => t).join(', ');
+export const REGULAR_ITEM_TYPES = [
+  'single-use',
+  'multi-use',
+  'equipment',
+  'container',
+  'key',
+  'weapon',
+  'ammunition',
+  'vehicle',
+  'immovable',
+  'status effect',
+] as const;
+export const REGULAR_ITEM_TYPES_STRING = REGULAR_ITEM_TYPES.map(t => t).join(', ');
+
 export const VALID_ACTIONS = [
   'create',
   'change',
@@ -157,6 +173,7 @@ export const LOADING_REASONS = [
   'map',
   'correction',
   'inventory',
+  'librarian',
   'dialogue_turn',
   'dialogue_summary',
   'dialogue_memory_creation',
@@ -178,6 +195,7 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   map: { text: 'Cartographer draws the map...', icon: '░' },
   correction: { text: 'Dungeon Master is fixing mistakes...', icon: '▓' },
   inventory: { text: 'Dungeon Master handles items...', icon: '░' },
+  librarian: { text: 'Dungeon Master manages books...', icon: '░' },
   dialogue_turn: { text: 'Conversation continues...', icon: '░' },
   dialogue_summary: { text: 'Dialogue concludes...', icon: '░' },
   dialogue_memory_creation: { text: 'Memories form...', icon: '░' },

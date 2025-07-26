@@ -14,6 +14,7 @@ import {
   GameLogTab,
   GameStateTab,
   InventoryAITab,
+  LibrarianAITab,
   InventoryTab,
   MainAITab,
   MapDataFullTab,
@@ -49,6 +50,7 @@ type DebugTab =
   | "MainAI"
   | "MapLocationAI"
   | "InventoryAI"
+  | "LibrarianAI"
   | "DialogueAI"
   | "LoremasterAI"
   | "Inventory"
@@ -98,6 +100,7 @@ function DebugView({
     { name: "MainAI", label: "Storyteller AI" },
     { name: "MapLocationAI", label: "Cartographer AI" },
     { name: "InventoryAI", label: "Inventory AI" },
+    { name: "LibrarianAI", label: "Librarian AI" },
     { name: "LoremasterAI", label: "Loremaster AI" },
     { name: "DialogueAI", label: "Dialogue AI" },
     { name: "Inventory", label: "Inventory" },
@@ -132,6 +135,8 @@ function DebugView({
         return <MapLocationAITab debugPacket={debugPacket} />;
       case 'InventoryAI':
         return <InventoryAITab debugPacket={debugPacket} />;
+      case 'LibrarianAI':
+        return <LibrarianAITab debugPacket={debugPacket} />;
       case 'LoremasterAI':
         return (
           <LoremasterAITab

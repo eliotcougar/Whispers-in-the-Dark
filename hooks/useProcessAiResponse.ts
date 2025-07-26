@@ -11,7 +11,7 @@ import {
   TurnChanges,
 } from '../types';
 import { fetchCorrectedName_Service } from '../services/corrections';
-import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
+import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITING_ITEM_TYPES } from '../constants';
 import {
   addLogMessageToList,
   buildItemChangeRecords,
@@ -22,6 +22,7 @@ import { itemsToString } from '../utils/promptFormatters/inventory';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { applyInventoryHints_Service } from '../services/inventory';
+import { applyLibrarianHints_Service } from '../services/librarian';
 import { refineLore_Service } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
@@ -219,11 +220,19 @@ const handleInventoryHints = async ({
       draftState.currentMapNodeId,
       baseState.inventory,
     );
+    const allNewItems =
+      'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
+    const librarianNewItems = allNewItems.filter(it =>
+      WRITING_ITEM_TYPES.includes(it.type as (typeof WRITING_ITEM_TYPES)[number]),
+    );
+    const inventoryNewItems = allNewItems.filter(
+      it => !WRITING_ITEM_TYPES.includes(it.type as (typeof WRITING_ITEM_TYPES)[number]),
+    );
     const invResult = await applyInventoryHints_Service(
       'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
       'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
       'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
-      'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [],
+      inventoryNewItems,
       playerActionText ?? '',
       itemsToString(baseInventoryForPlayer, ' - ', true, true, false, true),
       itemsToString(locationInventory, ' - ', true, true, false, true),
@@ -240,6 +249,24 @@ const handleInventoryHints = async ({
       combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
       if (draftState.lastDebugPacket) {
         draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
+      }
+    }
+
+    const libResult = await applyLibrarianHints_Service(
+      'librarianHint' in aiData ? aiData.librarianHint : undefined,
+      librarianNewItems,
+      playerActionText ?? '',
+      itemsToString(baseInventoryForPlayer, ' - ', true, true, false, true),
+      itemsToString(locationInventory, ' - ', true, true, false, true),
+      baseState.currentMapNodeId ?? null,
+      formatNPCInventoryList(companionNPCs),
+      formatNPCInventoryList(nearbyNPCs),
+      limitedMapContext,
+    );
+    if (libResult) {
+      combinedItemChanges = combinedItemChanges.concat(libResult.itemChanges);
+      if (draftState.lastDebugPacket) {
+        draftState.lastDebugPacket.librarianDebugInfo = libResult.debugInfo;
       }
     }
   }
@@ -366,6 +393,7 @@ export const useProcessAiResponse = ({
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        librarianDebugInfo: null,
         loremasterDebugInfo: draftState.lastDebugPacket?.loremasterDebugInfo ?? { collect: null, extract: null, integrate: null, distill: null, journal: null },
       };
 
