@@ -1,5 +1,5 @@
 import { VALID_ACTIONS_STRING, WRITTEN_ITEM_TYPES_STRING, TEXT_STYLE_TAGS_STRING, MIN_BOOK_CHAPTERS, MAX_BOOK_CHAPTERS, DEDICATED_BUTTON_USES_STRING } from '../../constants';
-import { ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
+import { WRITTEN_ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
 
 export const SYSTEM_INSTRUCTION = `** SYSTEM INSTRUCTIONS: **
 You are an AI assistant that converts item hints into explicit inventory actions for a text adventure game.
@@ -45,52 +45,51 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
     }
 ]
 
-### Example for losing, destroying, completely removing an *existing* item from the world:
+### Example for losing, destroying, completely removing an *existing* written item from the world:
 "destroy": [
     {
-        "id": "item_old_lantern_7fr4",
-        "name": "Old Lantern (flickering)"
+        "id": "item_smudged_note_7fr4",
+        "name": "Smudged Note"
     }
 ]
 
-### Example for giving an *existing* item item_iron_sword_ab12 from player to npc_guard_4f3a, or for placing it in the current location:
+### Example for giving an *existing* item item_old_map_ab12 from player to npc_guard_4f3a, or for placing it in the current location:
 "move": [
     {
-        "id": "item_iron_sword_ab12",
-        "name": "Iron Sword",
+        "id": "item_old_map_ab12",
+        "name": "Old Map",
         "newHolderId": "npc_guard_4f3a"
     }
 ]
 
-### Example of taking an *existing* item item_coin_pouch_8f2c from npc_bandit_1wrc and putting it in player's inventory:
+### Example of taking an *existing* item item_family_portrait_8f2c from npc_bandit_1wrc and putting it in player's inventory:
 "move": [
     {
-        "id": "item_coin_pouch_8f2c",
-        "name": "Coin Pouch",
+        "id": "item_family_portrait_8f2c",
+        "name": "Family Portrait",
         "newHolderId": "player"
     }
 ]
 
-### Example of picking up an *existing* item item_crowbar_55nf from node_rubble_pile_f4s3 and putting it in player's inventory:
+### Example of picking up an *existing* item item_cryptic_page_55nf from node_rubble_pile_f4s3 and putting it in player's inventory:
 "move": [
     {
-        "id": "item_crowbar_55nf",
-        "name": "Crowbar",
+        "id": "item_cryptic_page_55nf",
+        "name": "Cryptic Page",
         "newHolderId": "player"
     }
 ]
 
-### Example for adding a known use to *existing* item (existing properties and known uses are inherited):
+### Example for adding a known use to an *existing* map (existing properties and known uses are inherited):
 "change": [
     {
         "addKnownUse": {
-            "actionName": "Peer into the Orb",
-            "AppliesWhenActive": true,
-            "description": "Try to see the beyond",
-            "promptEffect": "Peer into the Mystic Orb, trying to glimpse the future."
+            "actionName": "Translate Map",
+            "description": "Attempt to decipher the foreign notes.",
+            "promptEffect": "Study the map to translate its markings."
         },
-        "id": "item_mystic_orb_7fr4",
-        "name": "Mystic Orb"
+        "id": "item_ancient_map_7fr4",
+        "name": "Ancient Map"
     }
 ]
 
@@ -117,6 +116,6 @@ CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consu
 - Make sure items have one of the required tags: ${String(TEXT_STYLE_TAGS_STRING)}.
 IMPORTANT: NEVER add ${String(DEDICATED_BUTTON_USES_STRING)} known uses - there are dedicated buttons for those in the game.
 
-${ITEM_TYPES_GUIDE}
+${WRITTEN_ITEM_TYPES_GUIDE}
 
 `;

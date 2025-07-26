@@ -9,7 +9,8 @@ import {
   AIEdgeAdd,
   AIEdgeUpdate,
   MapNodeData,
-  MapEdgeData,
+  MapEdgeType,
+  MapEdgeStatus,
 } from '../../types';
 import {
   VALID_NODE_STATUS_VALUES,
@@ -97,8 +98,8 @@ function isValidAIEdgeAdd(op: unknown): op is AIEdgeAdd {
     console.warn("Validation Error (EdgeAdd): 'type' is invalid. Value:", e.type);
     return false;
   }
-  const edgeType = e.type as MapEdgeData['type'];
-  if (!VALID_EDGE_TYPE_VALUES.includes(edgeType as unknown as string)) {
+  const edgeType = e.type as MapEdgeType;
+  if (!VALID_EDGE_TYPE_VALUES.includes(edgeType)) {
     console.warn("Validation Error (EdgeAdd): 'type' is invalid. Value:", e.type);
     return false;
   }
@@ -106,8 +107,8 @@ function isValidAIEdgeAdd(op: unknown): op is AIEdgeAdd {
     console.warn("Validation Error (EdgeAdd): 'status' is invalid. Value:", e.status);
     return false;
   }
-  const edgeStatus = e.status as MapEdgeData['status'];
-  if (!VALID_EDGE_STATUS_VALUES.includes(edgeStatus as unknown as string)) {
+  const edgeStatus = e.status as MapEdgeStatus;
+  if (!VALID_EDGE_STATUS_VALUES.includes(edgeStatus)) {
     console.warn("Validation Error (EdgeAdd): 'status' is invalid. Value:", e.status);
     return false;
   }
@@ -138,8 +139,8 @@ function isValidAIEdgeUpdate(op: unknown): op is AIEdgeUpdate {
       console.warn("Validation Error (EdgeUpdate): 'type' is invalid. Value:", e.type);
       return false;
     }
-    const updEdgeType = e.type as MapEdgeData['type'];
-    if (!VALID_EDGE_TYPE_VALUES.includes(updEdgeType as unknown as string)) {
+    const updEdgeType = e.type as MapEdgeType;
+    if (!VALID_EDGE_TYPE_VALUES.includes(updEdgeType)) {
       console.warn("Validation Error (EdgeUpdate): 'type' is invalid. Value:", e.type);
       return false;
     }
@@ -149,8 +150,8 @@ function isValidAIEdgeUpdate(op: unknown): op is AIEdgeUpdate {
       console.warn("Validation Error (EdgeUpdate): 'status' is invalid. Value:", e.status);
       return false;
     }
-    const updEdgeStatus = e.status as MapEdgeData['status'];
-    if (!VALID_EDGE_STATUS_VALUES.includes(updEdgeStatus as unknown as string)) {
+    const updEdgeStatus = e.status as MapEdgeStatus;
+    if (!VALID_EDGE_STATUS_VALUES.includes(updEdgeStatus)) {
       console.warn("Validation Error (EdgeUpdate): 'status' is invalid. Value:", e.status);
       return false;
     }

@@ -7,7 +7,7 @@ import {
   VALID_ACTIONS_STRING,
   DEDICATED_BUTTON_USES_STRING,
 } from '../../constants';
-import { ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
+import { REGULAR_ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
 
 export const SYSTEM_INSTRUCTION = `** SYSTEM INSTRUCTIONS: **
 You are an AI assistant that converts item hints into explicit inventory actions for a text adventure game.
@@ -138,7 +138,7 @@ IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light source
   - ALWAYS provide these actions in pairs, e.g. turn on/turn off, wield/put away, wear/take off, light/extinguish, activate/deactivate, start/stop, etc.
 IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedicated buttons for those in the game.
 
-${ITEM_TYPES_GUIDE}
+${REGULAR_ITEM_TYPES_GUIDE}
 
 IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "change", providing "newName" and optionally the new "type" and "description" if they change. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand"."
 `;
