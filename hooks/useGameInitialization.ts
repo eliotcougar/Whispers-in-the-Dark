@@ -14,6 +14,7 @@ import {
   CharacterOption,
   HeroSheet,
   HeroBackstory,
+  StoryArc,
 } from '../types';
 import {
   executeAIMainTurn,
@@ -77,7 +78,12 @@ export interface UseGameInitializationProps {
       worldFacts: WorldFacts;
       options: Array<CharacterOption>;
     },
-  ) => Promise<{ name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }>;
+  ) => Promise<{
+    name: string;
+    heroSheet: HeroSheet | null;
+    heroBackstory: HeroBackstory | null;
+    storyArc: StoryArc | null;
+  }>;
 }
 
 /**
@@ -260,6 +266,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           });
           heroSheet = result.heroSheet;
           heroBackstory = result.heroBackstory;
+          draftState.storyArc = result.storyArc;
           draftState.heroSheet = heroSheet;
           draftState.heroBackstory = heroBackstory;
           if (worldFacts) {

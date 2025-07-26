@@ -59,6 +59,7 @@ import {
   CharacterOption,
   HeroSheet,
   HeroBackstory,
+  StoryArc,
 } from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
 
@@ -182,7 +183,13 @@ function App() {
       playerGender: string;
       worldFacts: WorldFacts;
       options: Array<CharacterOption>;
-    }) => new Promise<{ name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null }>(resolve => {
+    }) =>
+      new Promise<{
+        name: string;
+        heroSheet: HeroSheet | null;
+        heroBackstory: HeroBackstory | null;
+        storyArc: StoryArc | null;
+      }>(resolve => {
       openCharacterSelectModal(data, resolve);
     }),
     [openCharacterSelectModal],
