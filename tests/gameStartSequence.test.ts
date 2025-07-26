@@ -10,7 +10,7 @@ import { MAIN_TURN_OPTIONS_COUNT, LOCAL_STORAGE_SAVE_KEY } from '../constants';
 import { saveGameStateToLocalStorage } from '../services/storage';
 import { getInitialGameStates } from '../utils/initialStates';
 import type { GenerateContentResponse } from '@google/genai';
-import type { WorldFacts, HeroSheet, HeroBackstory } from '../types';
+import type { WorldFacts, HeroSheet, HeroBackstory, StoryArc } from '../types';
 
 vi.mock('../services/storyteller/api', () => ({
   executeAIMainTurn: vi.fn(),
@@ -67,6 +67,24 @@ const dummyHeroBackstory: HeroBackstory = {
   now: 'Standing in the town square.',
 };
 
+const dummyArc: StoryArc = {
+  id: 'arc1',
+  title: 'Heroic Trials',
+  overview: 'A journey of hardship and triumph.',
+  acts: [
+    {
+      actNumber: 1,
+      title: 'Call to Adventure',
+      description: 'The hero faces the first challenge.',
+      mainObjective: 'Escape the cell.',
+      sideObjectives: ['Find equipment'],
+      successCondition: 'Reach freedom',
+    },
+  ],
+  currentAct: 1,
+  completed: false,
+};
+
 describe('game start sequence', () => {
   it('generates a valid initial scene', async () => {
     mockedExecute.mockResolvedValue({
@@ -80,6 +98,7 @@ describe('game start sequence', () => {
     const theme = FANTASY_AND_MYTH_THEMES[0];
     const prompt = buildNewGameFirstTurnPrompt(
       theme,
+      dummyArc,
       'Male',
       dummyWorldFacts,
       dummyHeroSheet,
@@ -144,6 +163,7 @@ describe('game start sequence', () => {
     const theme = FANTASY_AND_MYTH_THEMES[0];
     const prompt = buildNewGameFirstTurnPrompt(
       theme,
+      dummyArc,
       'Male',
       dummyWorldFacts,
       dummyHeroSheet,

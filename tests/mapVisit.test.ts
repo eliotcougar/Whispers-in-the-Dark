@@ -74,6 +74,7 @@ const baseState: FullGameState = {
   worldFacts: null,
   heroSheet: null,
   heroBackstory: null,
+  storyArc: null,
   pendingNewThemeNameAfterShift: null,
   allNPCs: [],
   mapData: structuredCloneGameState(mapData),

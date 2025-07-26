@@ -2,7 +2,7 @@
  * @file promptBuilder.ts
  * @description Utilities for constructing prompts for the cartographer AI.
  */
-import { AdventureTheme, MapData } from '../../types';
+import type { AdventureTheme, MapData, StoryArc } from '../../types';
 
 /**
  * Builds a simple map update prompt using the provided context.
@@ -34,9 +34,11 @@ export const buildMapUpdatePrompt = (
   allKnownMainPlaces: string,
   itemNames: Array<string>,
   npcNames: Array<string>,
+  storyArc?: StoryArc | null,
 ): string => `## Narrative Context for Map Update:
   - Current Theme: "${currentTheme.name}";
   - System Modifier for Theme: "${currentTheme.systemInstructionModifier}";
+${storyArc ? `  - Current Arc: "${storyArc.title}" (Act ${String(storyArc.currentAct)}: ${storyArc.acts[storyArc.currentAct - 1].title});\n` : ''}
   - Scene Description: "${sceneDesc}";
   - Log Message (outcome of last action): "${logMsg}";
   - Player's Current Location Description (localPlace): "${localPlace}".

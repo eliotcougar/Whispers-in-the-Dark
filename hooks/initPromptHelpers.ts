@@ -11,6 +11,7 @@ import {
   WorldFacts,
   HeroSheet,
   HeroBackstory,
+  StoryArc,
 } from '../types';
 import { PLAYER_HOLDER_ID } from '../constants';
 import {
@@ -21,6 +22,7 @@ import {
 
 export interface BuildInitialGamePromptOptions {
   theme: AdventureTheme;
+  storyArc?: StoryArc | null;
   inventory: Array<Item>;
   playerGender: string;
   isTransitioningFromShift: boolean;
@@ -40,6 +42,7 @@ export const buildInitialGamePrompt = (
 ): string => {
   const {
     theme,
+    storyArc,
     inventory,
     playerGender,
     isTransitioningFromShift,
@@ -57,6 +60,7 @@ export const buildInitialGamePrompt = (
   if (isTransitioningFromShift && themeMemory && mapDataForTheme && npcsForTheme) {
     prompt = buildReturnToThemePostShiftPrompt(
       theme,
+      storyArc ?? null,
       inventoryForPrompt,
       playerGender,
       themeMemory,
@@ -66,12 +70,14 @@ export const buildInitialGamePrompt = (
   } else if (isTransitioningFromShift) {
     prompt = buildNewThemePostShiftPrompt(
       theme,
+      storyArc ?? null,
       inventoryForPrompt,
       playerGender,
     );
   } else {
     prompt = buildNewGameFirstTurnPrompt(
       theme,
+      storyArc ?? null,
       playerGender,
       worldFacts ?? {
         geography: '',

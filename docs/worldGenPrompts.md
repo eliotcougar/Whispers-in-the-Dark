@@ -88,13 +88,24 @@ const heroBackstory: HeroBackstory;
 
 *Data Stored*:
 ```ts
-interface ActInfo {
+interface StoryAct {
+  actNumber: number;
+  title: string;
   description: string;
-  mainQuest: string;
-  sideQuests: Array<string>;
+  mainObjective: string;
+  sideObjectives: Array<string>;
   successCondition: string;
 }
-const narrativeArc: Array<ActInfo>; // length 5
+
+interface StoryArc {
+  id: string;
+  title: string;
+  overview: string;
+  acts: Array<StoryAct>; // length 5
+  currentAct: number;
+  completed: boolean;
+}
+const narrativeArc: StoryArc;
 ```
 
 ## 7. Consolidated World Data
@@ -107,7 +118,7 @@ interface GameWorld {
   world: WorldFacts;
   hero: HeroSheet;
   backstory: HeroBackstory;
-  arc: Array<ActInfo>;
+  arc: StoryArc;
 }
 const gameWorld: GameWorld;
 ```

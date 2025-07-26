@@ -146,6 +146,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       dialogueParticipants: finalParticipants,
       themeName: currentThemeObj.name,
       currentThemeObject: currentThemeObj,
+      storyArc: workingGameState.storyArc,
     };
     const {
       parsed: summaryUpdatePayload,

@@ -3,7 +3,7 @@
  * @description Utilities for constructing storyteller prompts using named placeholders.
  */
 
-import {
+import type {
   AdventureTheme,
   Item,
   NPC,
@@ -14,6 +14,7 @@ import {
   WorldFacts,
   HeroSheet,
   HeroBackstory,
+  StoryArc,
 } from '../../types';
 import {
   itemsToString,
@@ -26,6 +27,7 @@ import {
   formatWorldFactsForPrompt,
   formatHeroSheetForPrompt,
   formatHeroBackstoryForPrompt,
+  formatStoryArcContext,
 } from '../../utils/promptFormatters';
 
 /**
@@ -33,6 +35,7 @@ import {
  */
 export const buildNewGameFirstTurnPrompt = (
   theme: AdventureTheme,
+  storyArc: StoryArc | null,
   playerGender: string,
   worldFacts: WorldFacts,
   heroSheet: HeroSheet,
@@ -41,7 +44,9 @@ export const buildNewGameFirstTurnPrompt = (
   const worldInfo = formatWorldFactsForPrompt(worldFacts);
   const heroDescription = formatHeroSheetForPrompt(heroSheet, true);
   const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
+  const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
   const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.systemInstructionModifier}
+${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
 
 ## World Details:
 ${worldInfo}
@@ -68,11 +73,14 @@ ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment
 export const buildNewThemePostShiftPrompt = (
 
   theme: AdventureTheme,
+  storyArc: StoryArc | null,
   inventory: Array<Item>,
   playerGender: string
 ): string => {
   const inventoryStrings = itemsToString(inventory, ' - ', true, true, false, false, true);
+  const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
   const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
+${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
 Player's Character Gender: "${playerGender}"
 Initial Scene: "${theme.initialSceneDescriptionSeed}" (adapt to an arrival scene describing the disorienting transition).
 Main Quest: "${theme.initialMainQuest}" (adjust for variety)
@@ -97,6 +105,7 @@ ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment
 export const buildReturnToThemePostShiftPrompt = (
 
   theme: AdventureTheme,
+  storyArc: StoryArc | null,
   inventory: Array<Item>,
   playerGender: string,
   themeMemory: ThemeMemory,
@@ -130,7 +139,9 @@ export const buildReturnToThemePostShiftPrompt = (
   const npcsStrings =
     knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
 
+  const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
   const prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
+${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
 Player's Character Gender: "${playerGender}"
 The Adventure Summary: "${themeMemory.summary}"
 Main Quest: "${themeMemory.mainQuest}"
@@ -186,7 +197,8 @@ export const buildMainGameTurnPrompt = (
   themeHistory: ThemeHistoryState,
   currentMapNodeDetails: MapNode | null,
   fullMapData: MapData,
-  destinationNodeId: string | null
+  destinationNodeId: string | null,
+  storyArc?: StoryArc | null
 ): string => {
   const inventoryStrings =
     inventory.length > 0
@@ -222,6 +234,7 @@ export const buildMainGameTurnPrompt = (
     relevantFacts.length > 0 ? relevantFacts.map(f => `- ${f}`).join('\n') : 'None';
 
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
+  const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
 
   const allNodesForCurrentTheme = fullMapData.nodes.filter(node => node.themeName === currentTheme.name);
   const allEdgesForCurrentTheme = fullMapData.edges.filter(edge => {
@@ -275,6 +288,8 @@ export const buildMainGameTurnPrompt = (
 
   const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
 
+${arcContext ? `### Narrative Arc:\n${arcContext}\n` : ''}
+
 ## Context that may or may not be relevant for this specific turn:
 Previous Local Time: "${localTime ?? 'Unknown'}"
 Previous Local Environment: "${localEnvironment ?? 'Undetermined'}"
@@ -321,8 +336,7 @@ ${recentEventsContext}
 IMPORTANT: Recent events are provided only for additional context. These actions have already been processed by the game and should NEVER trigger item actions again, to avoid double counting.
 
 ---
-
-Current Theme: "${currentTheme.name}"
+${storyArc ? `Current Arc: "${storyArc.title}" (Act ${String(storyArc.currentAct)}: ${storyArc.acts[storyArc.currentAct - 1].title})` : `Current Theme: "${currentTheme.name}"`}
 Previous Scene: "${currentScene}"
 Player Action: "${playerAction}"
 ${travelPlanOrUnknown}`;
