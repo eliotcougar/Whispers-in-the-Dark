@@ -129,7 +129,7 @@ export const buildDistillFactsPrompt = (
 Current Quest: ${currentQuest ?? 'None'}
 Current Objective: ${currentObjective ?? 'None'}
 
-## Recent Log:
+## Recent Events:
 ${logLines || 'None'}
 
 ## Inventory Items:

@@ -84,11 +84,11 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
             type: 'object',
             properties: {
               action: { enum: ['add'] },
+              entities: { type: 'array', items: { type: 'string' } },
               text: {
                 type: 'string',
                 description: 'Must be one of the accepted *New Candidate Facts*.',
               },
-              entities: { type: 'array', items: { type: 'string' } },
             },
             propertyOrdering: ['action', 'entities', 'text'],
             required: ['action', 'entities', 'text'],
@@ -96,15 +96,14 @@ export const INTEGRATE_FACTS_JSON_SCHEMA = {
           },
           {
             type: 'object',
-            description:
-              'Change or delete the lore facts that are no longer relevant according to Recent Events',
+            description: 'Change or delete the lore facts that are no longer relevant according to Recent Events',
             properties: {
               action: { enum: ['delete', 'change'] },
+              entities: { type: 'array', items: { type: 'string' } },
               id: { type: 'integer', description: 'ID of the fact to change or remove.' },
               text: { type: 'string', description: 'Updated fact text for the change action.' },
-              entities: { type: 'array', items: { type: 'string' } },
             },
-            propertyOrdering: ['action', 'id', 'entities', 'text'],
+            propertyOrdering: ['action', 'entities', 'id', 'text'],
             required: ['action', 'id'],
             additionalProperties: false,
           },
@@ -123,7 +122,7 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
     observations: {
       type: 'string',
       minLength: 500,
-      description: 'Minimum 300 words. Observations about the lore state, close duplicates, too vague facts.',
+      description: 'Minimum 300 words. Observations about the lore state, close duplicates, too vague facts, and facts made obsolete by recent events.',
     },
     rationale: {
       type: 'string',
@@ -138,6 +137,7 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
         properties: {
           action: { enum: ['add', 'change', 'delete'] },
           entities: { type: 'array', items: { type: 'string' } },
+          id: { type: 'integer', description: "Required for *change* and *delete* actions." },
           text: {
             type: 'string',
             maxLength: 2000,
@@ -149,9 +149,8 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
               'Omit tier for *add* action. Increase tier by one for *change* action, when any number of other facts are merged into this one.',
             default: 1,
           },
-          id: { type: 'integer', description: "Required for *change* and *delete* actions." }
         },
-        propertyOrdering: ['action', 'entities', 'text', 'tier', 'id'],
+        propertyOrdering: ['action', 'entities', 'id', 'text', 'tier'],
         required: ['action'],
         additionalProperties: false,
       }

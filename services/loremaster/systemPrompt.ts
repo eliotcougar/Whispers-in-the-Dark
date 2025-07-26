@@ -70,7 +70,7 @@ CRITICALLY IMPORTANT: DO NOT include bad quality and irrelevant facts.
 `;
 
 export const INTEGRATE_SYSTEM_INSTRUCTION = `You are the Loremaster maintaining up-to-date set of facts about the game world.
-1. Compare Recent Events and Known Facts, then change or delete any Known Facts that are no longer in effect based on the story developments described in Recent Events.
+1. Compare Recent Events and Known Facts, then change or delete any Known Facts that are obsolete and no longer in effect based on the story developments described in Recent Events.
 2. Compare Candidate Facts with existing Known Facts, then add good Known Facts that don't lead to overlaps and potential contradictions with Known Facts.
 
 ## Examples:
@@ -93,9 +93,9 @@ export const INTEGRATE_SYSTEM_INSTRUCTION = `You are the Loremaster maintaining 
             "node_Jagged_Peaks_44re",
             "item_Ancient_Map_Fragment_mjdl"
         ],
-        "text": "From the current location within the Whisperwood Jungle, the colossal green wall appears to stretch limitlessly to the north. To the east, a dip in the terrain suggests a watercourse, while a lone, massive flowering tree with vibrant red blossoms is visible to the south. To the west, a distant jagged peak is discernible, matching a feature marked on the Ancient Map Fragment.",
-        "tier": 2,
         "id": 3
+        "text": "From the current location within the Whisperwood Jungle, the colossal green wall appears to stretch limitlessly to the north. To the east, a dip in the terrain suggests a watercourse, while a lone, massive flowering tree with vibrant red blossoms is visible to the south. To the west, a distant jagged peak is discernible, matching a feature marked on the Ancient Map Fragment.",
+        "tier": 2
     }
 ]
 `;
@@ -116,7 +116,7 @@ When merging, combine the entity IDs from all merged facts into a single set wit
 - items that no longer exist;
 - old quest and objective that is different from the current quest and objective.
 
-3. Edit or prune any facts facts that are no longer in effect based on Recent Log of events.
+3. Edit or prune any facts facts that are obsolete and no longer in effect according to Recent Events.
 
 ## Examples:
 "factsChange": [
@@ -138,9 +138,9 @@ When merging, combine the entity IDs from all merged facts into a single set wit
             "node_Jagged_Peaks_44re",
             "item_Ancient_Map_Fragment_mjdl"
         ],
+        "id": 3,
         "text": "From the current location within the Whisperwood Jungle, the colossal green wall appears to stretch limitlessly to the north. To the east, a dip in the terrain suggests a watercourse, while a lone, massive flowering tree with vibrant red blossoms is visible to the south. To the west, a distant jagged peak is discernible, matching a feature marked on the Ancient Map Fragment.",
-        "tier": 2,
-        "id": 3
+        "tier": 2
     }
 ]
 `;
