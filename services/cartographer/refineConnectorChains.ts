@@ -3,7 +3,7 @@ import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest, filterEdgeChainRequests } from './connectorChains';
 import { fetchConnectorChains_Service } from '../corrections/edgeFixes';
 import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS } from '../../constants';
-import type { MapNode } from '../../types';
+import type { MapNode, AINodeAdd, AIEdgeAdd } from '../../types';
 import type { ConnectorChainsServiceResult, EdgeChainRequest } from '../corrections/edgeFixes';
 import type { ApplyUpdatesContext } from './updateContext';
 
@@ -48,7 +48,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
     if (chainResult?.payload) {
       chainRequests = [];
       (chainResult.payload.nodesToAdd ?? []).forEach(nAdd => {
-        const nodeData = nAdd;
+        const nodeData = nAdd as Partial<AINodeAdd>;
         const parent =
           nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
             ? (findMapNodeByIdentifier(
@@ -67,7 +67,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           ctx.referenceMapNodeId
         ) as MapNode | undefined;
         if (existing) {
-          if (nodeData.aliases.length > 0) {
+          if (Array.isArray(nodeData.aliases) && nodeData.aliases.length > 0) {
             const aliasSet = new Set([...(existing.data.aliases ?? [])]);
             nodeData.aliases.forEach(a => aliasSet.add(a));
             existing.data.aliases = Array.from(aliasSet);
@@ -92,6 +92,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
         ctx.themeNodeNameMap.set(node.placeName, node);
       });
       (chainResult.payload.edgesToAdd ?? []).forEach(eAdd => {
+        const edgeData = eAdd as Partial<AIEdgeAdd>;
         const src = findMapNodeByIdentifier(
           eAdd.sourcePlaceName,
           ctx.newMapData.nodes,
@@ -107,19 +108,19 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
         if (src && tgt) {
           const pairKey =
             src.id < tgt.id
-              ? `${src.id}|${tgt.id}|${eAdd.type ?? 'path'}`
-              : `${tgt.id}|${src.id}|${eAdd.type ?? 'path'}`;
+              ? `${src.id}|${tgt.id}|${edgeData.type ?? 'path'}`
+              : `${tgt.id}|${src.id}|${edgeData.type ?? 'path'}`;
           if (ctx.processedChainKeys.has(pairKey)) return;
           ctx.processedChainKeys.add(pairKey);
-          if (isEdgeConnectionAllowed(src, tgt, eAdd.type, ctx.themeNodeIdMap)) {
+          if (isEdgeConnectionAllowed(src, tgt, edgeData.type, ctx.themeNodeIdMap)) {
             addEdgeWithTracking(
               src,
               tgt,
               {
-                description: eAdd.description,
-                status: eAdd.status,
-                travelTime: eAdd.travelTime,
-                type: eAdd.type,
+                description: edgeData.description,
+                status: edgeData.status,
+                travelTime: edgeData.travelTime,
+                type: edgeData.type,
               },
               ctx.newMapData.edges,
               ctx.themeEdgesMap
@@ -133,10 +134,10 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
                 src,
                 tgt,
                 {
-                  description: eAdd.description,
-                  status: eAdd.status,
-                  travelTime: eAdd.travelTime,
-                  type: eAdd.type,
+                  description: edgeData.description,
+                  status: edgeData.status,
+                  travelTime: edgeData.travelTime,
+                  type: edgeData.type,
                 },
                 ctx.themeNodeIdMap,
               ),
