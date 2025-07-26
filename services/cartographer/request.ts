@@ -36,6 +36,7 @@ import {
 import type {
   AIMapUpdatePayload,
   MinimalModelCallRecord,
+  AdventureTheme,
 } from '../../types';
 import type { MapUpdateDebugInfo } from './types';
 
@@ -285,6 +286,7 @@ export const fetchMapUpdatePayload = async (
   basePrompt: string,
   systemInstruction: string,
   minimalModelCalls: Array<MinimalModelCallRecord>,
+  currentTheme: AdventureTheme,
 ): Promise<MapUpdateRequestResult> => {
   let prompt = basePrompt;
   const debugInfo: MapUpdateDebugInfo = {
@@ -319,7 +321,10 @@ export const fetchMapUpdatePayload = async (
       debugInfo.systemInstruction = systemInstructionUsed;
       debugInfo.jsonSchema = jsonSchemaUsed;
       debugInfo.prompt = promptUsed;
-      const { payload: parsedPayload, validationError: parseError } = parseAIMapUpdateResponse(response.text ?? '');
+      const { payload: parsedPayload, validationError: parseError } = await parseAIMapUpdateResponse(
+        response.text ?? '',
+        currentTheme,
+      );
       if (parsedPayload) {
         debugInfo.observations = parsedPayload.observations ?? debugInfo.observations;
         debugInfo.rationale = parsedPayload.rationale ?? debugInfo.rationale;
