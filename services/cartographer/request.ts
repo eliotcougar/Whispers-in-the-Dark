@@ -59,23 +59,28 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          data: {
-            type: 'object',
-            properties: {
-              description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
-              status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
-              travelTime: { type: 'string' },
-              type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
-            },
-            propertyOrdering: ['description', 'status', 'travelTime', 'type'],
-            required: ['status', 'type'],
-            additionalProperties: false,
+          description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
+          sourcePlaceName: {
+            type: 'string',
+            description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.',
           },
-          sourcePlaceName: { type: 'string', description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.' },
-          targetPlaceName: { type: 'string', description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.' },
+          status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
+          targetPlaceName: {
+            type: 'string',
+            description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.',
+          },
+          travelTime: { type: 'string' },
+          type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
         },
-        propertyOrdering: ['data', 'sourcePlaceName', 'targetPlaceName'],
-        required: ['data', 'sourcePlaceName', 'targetPlaceName'],
+        propertyOrdering: [
+          'description',
+          'sourcePlaceName',
+          'status',
+          'targetPlaceName',
+          'travelTime',
+          'type',
+        ],
+        required: ['sourcePlaceName', 'status', 'targetPlaceName', 'type'],
         additionalProperties: false,
       },
     },
@@ -94,22 +99,28 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          newData: {
-            type: 'object',
-            properties: {
-              description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
-              status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
-              travelTime: { type: 'string', description: 'Approximate travel time for the route.' },
-              type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
-            },
-            propertyOrdering: ['description', 'status', 'travelTime', 'type'],
-            additionalProperties: false,
+          description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
+          sourcePlaceName: {
+            type: 'string',
+            description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.',
           },
-          sourcePlaceName: { type: 'string', description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.' },
-          targetPlaceName: { type: 'string', description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.' },
+          status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
+          targetPlaceName: {
+            type: 'string',
+            description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.',
+          },
+          travelTime: { type: 'string', description: 'Approximate travel time for the route.' },
+          type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
         },
-        propertyOrdering: ['newData', 'sourcePlaceName', 'targetPlaceName'],
-        required: ['newData', 'sourcePlaceName', 'targetPlaceName'],
+        propertyOrdering: [
+          'description',
+          'sourcePlaceName',
+          'status',
+          'targetPlaceName',
+          'travelTime',
+          'type',
+        ],
+        required: ['sourcePlaceName', 'targetPlaceName'],
         additionalProperties: false,
       },
     },
@@ -118,39 +129,45 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
+          aliases: {
+            type: 'array',
+            minItems: 1,
+            items: { type: 'string' },
+            description: ALIAS_INSTRUCTION,
+          },
+          description: {
+            type: 'string',
+            minLength: 30,
+            description: NODE_DESCRIPTION_INSTRUCTION,
+          },
+          initialPosition: {
+            type: 'object',
+            properties: { x: { type: 'number' }, y: { type: 'number' } },
+            required: ['x', 'y'],
+            additionalProperties: false,
+          },
+          nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
+          parentNodeId: {
+            type: 'string',
+            description: 'Parent Node ID, or "Universe" for top-level nodes. Use placeName when referencing other nodes in this response.',
+          },
           placeName: {
             type: 'string',
             description:
               'Name of the node. Should not contain a comma. For sub-locations this can be a descriptive feature name.',
           },
-          data: {
-            type: 'object',
-            properties: {
-              aliases: {
-                type: 'array',
-                minItems: 1,
-                items: { type: 'string' },
-                description: ALIAS_INSTRUCTION,
-              },
-              description: {
-                type: 'string',
-                minLength: 30,
-                description: NODE_DESCRIPTION_INSTRUCTION,
-              },
-              nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
-              parentNodeId: {
-                type: 'string',
-                description: 'Parent Node ID, or "Universe" for top-level nodes. Use placeName when referencing other nodes in this response.',
-              },
-              status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
-            },
-            propertyOrdering: ['aliases', 'description', 'nodeType', 'parentNodeId', 'status'],
-            required: ['aliases', 'description', 'nodeType', 'parentNodeId', 'status'],
-            additionalProperties: false,
-          },
+          status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
         },
-        propertyOrdering: ['data', 'placeName'],
-        required: ['data', 'placeName'],
+        propertyOrdering: [
+          'aliases',
+          'description',
+          'initialPosition',
+          'nodeType',
+          'parentNodeId',
+          'placeName',
+          'status',
+        ],
+        required: ['aliases', 'description', 'nodeType', 'parentNodeId', 'placeName', 'status'],
         additionalProperties: false,
       },
     },
@@ -169,37 +186,28 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          newData: {
-            type: 'object',
-            properties: {
-              aliases: { type: 'array', items: { type: 'string' }, minItems: 1, description: ALIAS_INSTRUCTION },
-              description: { type: 'string', description: NODE_DESCRIPTION_INSTRUCTION },
-              nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
-              parentNodeId: {
-                type: 'string',
-                description:
-                  'Parent Node ID, or "Universe" for top-level nodes. Parent can not be a feature node. Use placeName when referencing other nodes in this response.',
-              },
-              placeName: {
-                type: 'string',
-                description: 'If provided, this will be the new name for the node.',
-              },
-              status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
-            },
-            propertyOrdering: [
-              'aliases',
-              'description',
-              'nodeType',
-              'parentNodeId',
-              'placeName',
-              'status',
-            ],
-            additionalProperties: false,
+          aliases: { type: 'array', items: { type: 'string' }, minItems: 1, description: ALIAS_INSTRUCTION },
+          description: { type: 'string', description: NODE_DESCRIPTION_INSTRUCTION },
+          newPlaceName: { type: 'string', description: 'If provided, this will be the new name for the node.' },
+          nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
+          parentNodeId: {
+            type: 'string',
+            description:
+              'Parent Node ID, or "Universe" for top-level nodes. Parent can not be a feature node. Use placeName when referencing other nodes in this response.',
           },
           placeName: { type: 'string', description: 'Existing node ID or name to identify it.' },
+          status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
         },
-        propertyOrdering: ['newData', 'placeName'],
-        required: ['newData', 'placeName'],
+        propertyOrdering: [
+          'aliases',
+          'description',
+          'newPlaceName',
+          'nodeType',
+          'parentNodeId',
+          'placeName',
+          'status',
+        ],
+        required: ['placeName'],
         additionalProperties: false,
       },
     },
