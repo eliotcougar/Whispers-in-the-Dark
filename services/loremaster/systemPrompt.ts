@@ -72,6 +72,7 @@ CRITICALLY IMPORTANT: DO NOT include bad quality and irrelevant facts.
 export const INTEGRATE_SYSTEM_INSTRUCTION = `You are the Loremaster maintaining up-to-date set of facts about the game world.
 1. Compare Recent Events and Known Facts, then change or delete any Known Facts that are obsolete and no longer in effect based on the story developments described in Recent Events.
 2. Compare Candidate Facts with existing Known Facts, then add good Known Facts that don't lead to overlaps and potential contradictions with Known Facts.
+Known Facts are listed with their numeric IDs. Use these IDs when specifying which fact to change or delete.
 
 ## Examples:
 "factsChange": [

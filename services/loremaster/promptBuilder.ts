@@ -48,7 +48,7 @@ export const buildIntegrateFactsPrompt = (
 ): string => {
   const existing =
     existingFacts
-      .map(f => `- ${f.text} [${f.entities.join(', ')}]`)
+      .map(f => `- ID ${String(f.id)}: ${f.text} [${f.entities.join(', ')}]`)
       .join('\n') || 'None.';
   const proposed =
     newFacts
