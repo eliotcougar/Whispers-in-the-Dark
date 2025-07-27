@@ -45,8 +45,7 @@ const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
 export const getInitialGameStates = (): FullGameState => {
   return {
     saveGameVersion: CURRENT_SAVE_GAME_VERSION, 
-    currentThemeName: null,
-    currentThemeObject: null, // Initialize currentThemeObject
+    currentTheme: null, // Initialize currentTheme
     currentScene: "", 
     mainQuest: null, 
     currentObjective: null,

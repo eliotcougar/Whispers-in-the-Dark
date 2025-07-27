@@ -43,7 +43,7 @@ export const buildNewGameFirstTurnPrompt = (
   const heroDescription = formatHeroSheetForPrompt(heroSheet, true);
   const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
   const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
-  const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.themeGuidance}
+  const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.storyGuidance}
 ${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
 
 ## World Details:

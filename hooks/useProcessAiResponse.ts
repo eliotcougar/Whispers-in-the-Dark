@@ -618,7 +618,7 @@ export const useProcessAiResponse = ({
             if (!target) continue;
             const chapter = change.item.chapters?.[0];
             if (!chapter) continue;
-            const { name: themeName, themeGuidance } = themeContextForResponse;
+            const { name: themeName, storyGuidance } = themeContextForResponse;
             const nodes = draftState.mapData.nodes.filter(
               n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
             );
@@ -634,7 +634,7 @@ export const useProcessAiResponse = ({
               chapter.description,
               chapter.contentLength,
               themeName,
-              themeGuidance,
+              storyGuidance,
               draftState.currentScene,
               thoughts,
               knownPlaces,
@@ -652,7 +652,7 @@ export const useProcessAiResponse = ({
                   chapter.description,
                   chapter.contentLength,
                   themeName,
-                  themeGuidance,
+                  storyGuidance,
                   draftState.currentScene,
                   thoughts,
                   knownPlaces,
@@ -757,12 +757,12 @@ export const useProcessAiResponse = ({
       if (
         turnChanges.mainQuestAchieved &&
         draftState.storyArc &&
-        draftState.currentThemeObject &&
+        draftState.currentTheme &&
         draftState.worldFacts &&
         draftState.heroSheet
       ) {
         const newAct = await generateNextStoryAct(
-          draftState.currentThemeObject,
+          draftState.currentTheme,
           draftState.worldFacts,
           draftState.heroSheet,
           draftState.storyArc,

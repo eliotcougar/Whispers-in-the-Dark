@@ -11,7 +11,7 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
       content={{
       currentMapNodeId: currentState.currentMapNodeId,
       currentObjective: currentState.currentObjective,
-      currentThemeName: currentState.currentThemeName,
+      currentThemeName: currentState.currentTheme?.name ?? null,
       globalTurnNumber: currentState.globalTurnNumber,
       lastTurnChangesBrief: currentState.lastTurnChanges ? {
         npcs: currentState.lastTurnChanges.npcChanges.length,

@@ -186,8 +186,7 @@ describe('game start sequence', () => {
 
     const state = getInitialGameStates();
     state.playerGender = 'Male';
-    state.currentThemeName = theme.name;
-    state.currentThemeObject = theme;
+    state.currentTheme = theme;
     state.currentScene = parsed.sceneDescription;
     state.actionOptions = parsed.options;
     state.mainQuest = parsed.mainQuest ?? null;
@@ -208,7 +207,7 @@ describe('game start sequence', () => {
     const savedString = saved[LOCAL_STORAGE_SAVE_KEY];
     const parsedSaved = JSON.parse(savedString) as Record<string, unknown>;
     const current = parsedSaved.current as Record<string, unknown>;
-    expect(current.currentThemeName).toBe(theme.name);
+    expect((current.currentTheme as { name: string }).name).toBe(theme.name);
     expect(current.currentScene).toBe(parsed.sceneDescription);
     expect(Array.isArray(current.actionOptions)).toBe(true);
   });

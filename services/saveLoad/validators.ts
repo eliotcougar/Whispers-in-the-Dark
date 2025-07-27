@@ -264,7 +264,7 @@ export function isValidAdventureThemeObject(obj: unknown): obj is AdventureTheme
   return (
     typeof maybe.name === 'string' &&
     maybe.name.trim() !== '' &&
-    typeof maybe.themeGuidance === 'string' &&
+    typeof maybe.storyGuidance === 'string' &&
     typeof maybe.playerJournalStyle === 'string'
   );
 }
@@ -281,7 +281,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   }
 
   const fields: Array<keyof SavedGameDataShape> = [
-    'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
+    'currentTheme', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
     'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
     'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
@@ -290,8 +290,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   for (const field of fields) {
     if (!(field in obj)) {
       const nullableFields: Array<keyof SavedGameDataShape> = [
-        'currentThemeName',
-        'currentThemeObject',
+        'currentTheme',
         'mainQuest',
         'currentObjective',
         'lastActionLog',
@@ -318,8 +317,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     }
   }
 
-  if (obj.currentThemeName !== null && typeof obj.currentThemeName !== 'string') { console.warn('Invalid save data (V3): currentThemeName type.'); return false; }
-  if (obj.currentThemeObject !== null && !isValidAdventureThemeObject(obj.currentThemeObject)) { console.warn('Invalid save data (V3): currentThemeObject type or structure.'); return false; }
+  if (obj.currentTheme !== null && !isValidAdventureThemeObject(obj.currentTheme)) { console.warn('Invalid save data (V3): currentTheme type or structure.'); return false; }
   if (typeof obj.currentScene !== 'string') { console.warn('Invalid save data (V3): currentScene type.'); return false; }
   if (!Array.isArray(obj.actionOptions) || !obj.actionOptions.every((opt: unknown) => typeof opt === 'string')) { console.warn('Invalid save data (V3): actionOptions.'); return false; }
   if (obj.mainQuest !== null && typeof obj.mainQuest !== 'string') { console.warn('Invalid save data (V3): mainQuest type.'); return false; }

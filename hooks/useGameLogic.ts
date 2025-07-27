@@ -231,7 +231,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setLoadingReason: setLoadingReasonRef,
     onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
-      return processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
+      return processAiResponse(summaryPayload, preparedGameState.currentTheme, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
         playerActionText: undefined,
@@ -340,7 +340,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const handleDistillFacts = useCallback(async () => {
     const currentFullState = getCurrentGameState();
-    const themeObj = currentFullState.currentThemeObject;
+    const themeObj = currentFullState.currentTheme;
     if (!themeObj) return;
     setIsLoading(true);
     setError(null);
@@ -436,7 +436,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const mainQuest = currentAct?.mainObjective ?? null;
 
   return {
-    currentTheme: currentFullState.currentThemeObject,
+    currentTheme: currentFullState.currentTheme,
     currentScene: currentFullState.currentScene,
     actionOptions: currentFullState.actionOptions,
     mainQuest,

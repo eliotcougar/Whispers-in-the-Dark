@@ -217,13 +217,13 @@ export interface DialogueSummaryContext {
   dialogueLog: Array<DialogueHistoryEntry>; 
   dialogueParticipants: Array<string>;
   themeName: string; // Retained for direct theme name access if needed
-  currentThemeObject: AdventureTheme | null; // Added for full theme object access
+  currentTheme: AdventureTheme | null; // Added for full theme object access
 }
 
 // New context type for detailed memory summarization
 export interface DialogueMemorySummaryContext {
   themeName: string; // Retained for direct theme name access if needed
-  currentThemeObject: AdventureTheme | null; // Added for full theme object access
+  currentTheme: AdventureTheme | null; // Added for full theme object access
   currentScene: string; // Scene at the START of the dialogue
   storyArc?: StoryArc | null;
   localTime: string | null;
@@ -282,7 +282,7 @@ export interface GameStateFromAI {
 
 export interface AdventureTheme {
   name: string;
-  themeGuidance: string;
+  storyGuidance: string;
   playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
 }
 
@@ -613,9 +613,8 @@ export interface DebugPacket {
 
 
 export interface FullGameState {
-  saveGameVersion: string; 
-  currentThemeName: string | null; // Retained for quick access and backward compatibility
-  currentThemeObject: AdventureTheme | null; // Stores the full theme object
+  saveGameVersion: string;
+  currentTheme: AdventureTheme | null; // Stores the full theme object
   currentScene: string;
   actionOptions: Array<string>; 
   mainQuest: string | null;
@@ -663,8 +662,7 @@ export interface FullGameState {
 export type SavedGameDataShape = Pick<
   FullGameState,
   | 'saveGameVersion'
-  | 'currentThemeName' // Retained for backward compatibility and quick lookup
-  | 'currentThemeObject' // Added for full theme object persistence
+  | 'currentTheme' // Full theme object persistence
   | 'currentScene'
   | 'actionOptions'
   | 'mainQuest'

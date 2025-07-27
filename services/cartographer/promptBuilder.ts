@@ -36,7 +36,7 @@ export const buildMapUpdatePrompt = (
   storyArc?: StoryArc | null,
 ): string => `## Narrative Context for Map Update:
   - Current Theme: "${currentTheme.name}";
-  - Theme Guidance: "${currentTheme.themeGuidance}";
+  - Theme Guidance: "${currentTheme.storyGuidance}";
 ${storyArc ? `  - Current Arc: "${storyArc.title}" (Act ${String(storyArc.currentAct)}: ${storyArc.acts[storyArc.currentAct - 1].title});\n` : ''}
   - Scene Description: "${sceneDesc}";
   - Log Message (outcome of last action): "${logMsg}";

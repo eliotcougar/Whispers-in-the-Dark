@@ -30,7 +30,7 @@ describe('correction heuristics', () => {
       'A weathered slab covered in strange symbols.',
       {
         name: '',
-        themeGuidance: '',
+        storyGuidance: '',
         playerJournalStyle: 'handwritten',
       },
     );

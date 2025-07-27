@@ -108,7 +108,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
   const runDistillIfNeeded = useCallback(
     async (state: FullGameState) => {
-      const themeObj = state.currentThemeObject;
+      const themeObj = state.currentTheme;
       if (!themeObj) return;
       if (
         state.globalTurnNumber > 0 &&
@@ -194,7 +194,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const baseStateSnapshot = structuredCloneGameState(currentFullState);
       const scoreChangeFromAction = isFreeForm ? -FREE_FORM_ACTION_COST : 0;
 
-      const currentThemeObj = currentFullState.currentThemeObject;
+      const currentThemeObj = currentFullState.currentTheme;
       if (!currentThemeObj) {
         setError('Critical error: Current theme object not found. Cannot proceed.');
         setIsLoading(false);
@@ -492,16 +492,16 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   const triggerMainQuestAchieved = useCallback(async () => {
     const currentState = getCurrentGameState();
     const {
-      currentThemeObject,
+      currentTheme,
       storyArc,
       worldFacts,
       heroSheet,
     } = currentState;
-    if (!currentThemeObject || !storyArc || !worldFacts || !heroSheet) return;
+    if (!currentTheme || !storyArc || !worldFacts || !heroSheet) return;
 
     const draftState = structuredCloneGameState(currentState);
     const newAct = await generateNextStoryAct(
-      currentThemeObject,
+      currentTheme,
       worldFacts,
       heroSheet,
       storyArc,
