@@ -11,6 +11,7 @@ import {
   FullGameState,
   GameStateStack,
   LoadingReason,
+  TurnChanges,
 } from '../types';
 import {
   executeAIMainTurn,
@@ -31,6 +32,7 @@ import {
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { generateNextStoryAct } from '../services/worldData';
 import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
 import { distillFacts_Service } from '../services/loremaster';
@@ -536,6 +538,58 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     });
   }, [setGameStateStack, clearObjectiveAnimationTimer]);
 
+  /**
+   * Forces the main quest completion procedure without AI involvement.
+   */
+  const triggerMainQuestAchieved = useCallback(async () => {
+    const currentState = getCurrentGameState();
+    const {
+      currentThemeObject,
+      storyArc,
+      worldFacts,
+      heroSheet,
+    } = currentState;
+    if (!currentThemeObject || !storyArc || !worldFacts || !heroSheet) return;
+
+    const draftState = structuredCloneGameState(currentState);
+    const newAct = await generateNextStoryAct(
+      currentThemeObject,
+      worldFacts,
+      heroSheet,
+      storyArc,
+      draftState.gameLog,
+      draftState.currentScene,
+    );
+
+    const turnChanges: TurnChanges = {
+      itemChanges: [],
+      npcChanges: [],
+      objectiveAchieved: false,
+      mainQuestAchieved: true,
+      objectiveTextChanged: false,
+      mainQuestTextChanged: false,
+      localTimeChanged: false,
+      localEnvironmentChanged: false,
+      localPlaceChanged: false,
+      currentMapNodeIdChanged: false,
+      scoreChangedBy: 0,
+      mapDataChanged: false,
+    };
+
+    if (newAct && draftState.storyArc) {
+      const arc = draftState.storyArc;
+      arc.acts[arc.currentAct - 1].completed = true;
+      arc.acts.push(newAct);
+      arc.currentAct = newAct.actNumber;
+      turnChanges.mainQuestAchieved = false;
+    }
+
+    draftState.turnsSinceLastShift += 1;
+    draftState.globalTurnNumber += 1;
+    draftState.lastTurnChanges = turnChanges;
+    commitGameState(draftState);
+  }, [getCurrentGameState, commitGameState]);
+
   return {
     processAiResponse,
     executePlayerAction,
@@ -551,5 +605,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     recordPlayerJournalInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
+    triggerMainQuestAchieved,
   };
 };

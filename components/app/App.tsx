@@ -241,6 +241,7 @@ function App() {
     debugPacketStack,
     handleMapLayoutConfigChange,
     handleUndoTurn,
+    triggerMainQuestAchieved,
     destinationNodeId,
     handleSelectDestinationNode,
     mapViewBox,
@@ -266,6 +267,10 @@ function App() {
     (state: FullGameState) => { commitGameState(state); },
     [commitGameState]
   );
+
+  const handleTriggerMainQuestAchievedClick = useCallback(() => {
+    void triggerMainQuestAchieved();
+  }, [triggerMainQuestAchieved]);
 
   const handleSaveFacts = useCallback((data: string) => {
     const blob = new Blob([data], { type: 'application/json' });
@@ -916,6 +921,7 @@ function App() {
         onDistillFacts={handleDistillClick}
         onSaveFacts={handleSaveFacts}
         onToggleDebugLore={toggleDebugLore}
+        onTriggerMainQuestAchieved={handleTriggerMainQuestAchievedClick}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
       />
