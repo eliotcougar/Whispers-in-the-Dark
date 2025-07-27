@@ -95,7 +95,7 @@ const storyArcSchema = {
   type: 'object',
   properties: {
     title: { type: 'string', description: 'Creative title for the whole storyline.' },
-    overview: { type: 'string', description: 'High level story overview, like a book series synopsis, without going into specifics of the story.', minLength: 3000 },
+    overview: { type: 'string', description: 'High level story overview, like a book series synopsis, without going into specifics of the story, and not describing specific acts.', minLength: 3000 },
     acts: { type: 'array', minItems: 1, maxItems: 1, items: storyActSchema },
   },
   required: ['title', 'overview', 'acts'],
@@ -104,14 +104,15 @@ const storyArcSchema = {
 
 const heroBackstorySchema = {
   type: 'object',
+  description: 'Narrative description of what was happening to the player character in each of the time periods up until present moment.',
   properties: {
-    fiveYearsAgo: { type: 'string', minLength: 2000 },
-    oneYearAgo: { type: 'string', minLength: 2000 },
-    sixMonthsAgo: { type: 'string', minLength: 2000 },
-    oneMonthAgo: { type: 'string', minLength: 2000 },
-    oneWeekAgo: { type: 'string', minLength: 2000 },
-    yesterday: { type: 'string', minLength: 2000 },
-    now: { type: 'string', minLength: 2000 },
+    fiveYearsAgo: { type: 'string', minLength: 2000, description: 'Narrative story from 5 years ago.' },
+    oneYearAgo: { type: 'string', minLength: 2000, description: 'Narrative story from one year ago.' }, 
+    sixMonthsAgo: { type: 'string', minLength: 2000, description: 'Narrative story from 6 months ago.' },
+    oneMonthAgo: { type: 'string', minLength: 2000, description: 'Narrative story from one month ago.' },
+    oneWeekAgo: { type: 'string', minLength: 2000, description: 'Narrative story from last week.' },
+    yesterday: { type: 'string', minLength: 2000, description: 'Narrative story from yesterday.' },
+    now: { type: 'string', minLength: 2000, description: 'Narrative story leading to the present moment.' },
     storyArc: storyArcSchema,
   },
   required: [
