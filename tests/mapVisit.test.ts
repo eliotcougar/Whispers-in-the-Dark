@@ -120,6 +120,7 @@ const turnChanges: TurnChanges = {
   itemChanges: [],
   npcChanges: [],
   objectiveAchieved: false,
+  mainQuestAchieved: false,
   objectiveTextChanged: false,
   mainQuestTextChanged: false,
   localTimeChanged: false,

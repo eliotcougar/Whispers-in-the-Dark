@@ -76,6 +76,7 @@ function validateBasicStructure(
         (data.npcsAdded === undefined || data.npcsAdded === null || Array.isArray(data.npcsAdded)) &&
         (data.npcsUpdated === undefined || data.npcsUpdated === null || Array.isArray(data.npcsUpdated)) &&
         (data.objectiveAchieved === undefined || data.objectiveAchieved === null || typeof data.objectiveAchieved === 'boolean') &&
+        (data.mainQuestAchieved === undefined || data.mainQuestAchieved === null || typeof data.mainQuestAchieved === 'boolean') &&
         (data.localTime === undefined || data.localTime === null || typeof data.localTime === 'string') &&
         (data.localEnvironment === undefined || data.localEnvironment === null || typeof data.localEnvironment === 'string') &&
         (data.localPlace === undefined || data.localPlace === null || typeof data.localPlace === 'string') &&
@@ -506,6 +507,7 @@ export async function parseAIResponse(
         }
 
         validated.objectiveAchieved = validated.objectiveAchieved ?? false;
+        validated.mainQuestAchieved = validated.mainQuestAchieved ?? false;
         validated.localTime = validated.localTime?.trim() ?? 'Time Unknown';
         validated.localEnvironment = validated.localEnvironment?.trim() ?? 'Environment Undetermined';
         validated.localPlace = validated.localPlace?.trim() ?? 'Undetermined Location';

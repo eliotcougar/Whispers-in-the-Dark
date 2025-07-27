@@ -4,4 +4,5 @@ export {
   generateCharacterNames,
   generateCharacterDescriptions,
   generateHeroData,
+  generateNextStoryAct,
 } from './api';

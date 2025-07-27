@@ -2,6 +2,8 @@ import {
   GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
   LOADING_REASON_UI_MAP,
+  ACT_NATURE_BY_NUMBER,
+  RECENT_LOG_COUNT_FOR_PROMPT,
 } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -15,6 +17,7 @@ import type {
   HeroBackstory,
   CharacterOption,
   StoryArc,
+  StoryAct,
 } from '../../types';
 
 interface StoryActData {
@@ -372,6 +375,75 @@ export const generateWorldData = async (
         storyArc: heroData?.storyArc ?? null,
       },
     };
+  });
+};
+
+export const generateNextStoryAct = async (
+  theme: AdventureTheme,
+  worldFacts: WorldFacts,
+  heroSheet: HeroSheet,
+  storyArc: StoryArc,
+  gameLog: Array<string>,
+  lastScene: string,
+): Promise<StoryAct | null> => {
+  if (!isApiConfigured()) {
+    console.error('generateNextStoryAct: API key not configured.');
+    return null;
+  }
+
+  const nextActNumber = storyArc.currentAct + 1;
+  const nature = ACT_NATURE_BY_NUMBER[nextActNumber];
+  if (!nature) {
+    return null;
+  }
+
+  const completedActs = storyArc.acts
+    .filter(a => a.actNumber <= storyArc.currentAct)
+    .map(a => `Act ${String(a.actNumber)}: ${a.description}`)
+    .join('\n');
+
+  const logLines = gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT).join('\n');
+
+  const prompt = `Using the theme "${theme.name}" continue the narrative.\n\n` +
+    `World Facts:\n${JSON.stringify(worldFacts)}\n\n` +
+    `Player Character:\n${JSON.stringify(heroSheet)}\n\n` +
+    `Story Arc Title: ${storyArc.title}\nOverview: ${storyArc.overview}\n\n` +
+    `Completed Acts:\n${completedActs}\n\n` +
+    `Last Scene:\n${lastScene}\n\n` +
+    `Recent Log:\n${logLines}\n\n` +
+    `Generate full details for Act ${String(nextActNumber)} (${nature}).`;
+
+  const request = async () => {
+    const { response } = await dispatchAIRequest({
+      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+      prompt,
+      systemInstruction: 'Respond only with JSON matching the provided schema.',
+      thinkingBudget: 1024,
+      includeThoughts: false,
+      responseMimeType: 'application/json',
+      jsonSchema: storyActSchema,
+      label: 'NextAct',
+    });
+    return response.text ?? null;
+  };
+
+  return retryAiCall<StoryAct>(async () => {
+    addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
+    const text = await request();
+    const parsed = text
+      ? safeParseJson<StoryActData>(extractJsonFromFence(text))
+      : null;
+    if (!parsed) return { result: null };
+    const newAct: StoryAct = {
+      actNumber: nextActNumber,
+      title: parsed.title,
+      description: parsed.description,
+      mainObjective: parsed.mainObjective,
+      sideObjectives: parsed.sideObjectives,
+      successCondition: parsed.successCondition,
+      completed: false,
+    };
+    return { result: newAct };
   });
 };
 

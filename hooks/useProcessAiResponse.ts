@@ -27,6 +27,7 @@ import { refineLore_Service } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
 import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
+import { generateNextStoryAct } from '../services/worldData';
 import {
   findItemByIdentifier,
   findMapNodeByIdentifier,
@@ -454,6 +455,7 @@ export const useProcessAiResponse = ({
         itemChanges: [],
         npcChanges: [],
         objectiveAchieved: false,
+        mainQuestAchieved: false,
         objectiveTextChanged: false,
         mainQuestTextChanged: false,
         localTimeChanged: false,
@@ -536,6 +538,7 @@ export const useProcessAiResponse = ({
         draftState.objectiveAnimationType = null;
       }
       turnChanges.objectiveAchieved = aiData.objectiveAchieved ?? false;
+      turnChanges.mainQuestAchieved = aiData.mainQuestAchieved ?? false;
       if (aiData.objectiveAchieved) {
         draftState.score = draftState.score + 1;
         turnChanges.scoreChangedBy += 1;
@@ -751,6 +754,30 @@ export const useProcessAiResponse = ({
       }
 
       updateDialogueState(draftState, aiData, isFromDialogueSummary);
+
+      if (
+        turnChanges.mainQuestAchieved &&
+        draftState.storyArc &&
+        draftState.currentThemeObject &&
+        draftState.worldFacts &&
+        draftState.heroSheet
+      ) {
+        const newAct = await generateNextStoryAct(
+          draftState.currentThemeObject,
+          draftState.worldFacts,
+          draftState.heroSheet,
+          draftState.storyArc,
+          draftState.gameLog,
+          draftState.currentScene,
+        );
+        if (newAct) {
+          const arc = draftState.storyArc;
+          arc.acts[arc.currentAct - 1].completed = true;
+          arc.acts.push(newAct);
+          arc.currentAct = newAct.actNumber;
+          turnChanges.mainQuestAchieved = false;
+        }
+      }
 
       draftState.lastTurnChanges = turnChanges;
     },

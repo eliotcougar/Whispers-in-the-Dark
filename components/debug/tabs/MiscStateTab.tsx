@@ -20,6 +20,7 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
         items: currentState.lastTurnChanges.itemChanges.length,
         mapChanged: currentState.lastTurnChanges.mapDataChanged,
         objAchieved: currentState.lastTurnChanges.objectiveAchieved,
+        mainQuestAchieved: currentState.lastTurnChanges.mainQuestAchieved,
       } : null,
       localEnvironment: currentState.localEnvironment,
       localPlace: currentState.localPlace,
