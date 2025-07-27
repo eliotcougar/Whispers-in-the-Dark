@@ -202,12 +202,12 @@ export const executeDialogueSummary = async (
     return Promise.reject(new Error('API Key not configured.'));
   }
 
-  if (!summaryContext.currentThemeObject) {
-    console.error('DialogueSummaryContext missing currentThemeObject. Cannot summarize dialogue.');
-    return Promise.reject(new Error('DialogueSummaryContext missing currentThemeObject.'));
+  if (!summaryContext.currentTheme) {
+    console.error('DialogueSummaryContext missing currentTheme. Cannot summarize dialogue.');
+    return Promise.reject(new Error('DialogueSummaryContext missing currentTheme.'));
   }
 
-  const themeObject = summaryContext.currentThemeObject;
+  const themeObject = summaryContext.currentTheme;
 
   const prompt = buildDialogueSummaryPrompt(summaryContext);
 
@@ -282,8 +282,8 @@ export const executeMemorySummary = async (
     console.error('API Key not configured for Dialogue Memory Summary Service.');
     return null;
   }
-  if (!context.currentThemeObject) {
-    console.error('DialogueMemorySummaryContext missing currentThemeObject. Cannot summarize memory.');
+  if (!context.currentTheme) {
+    console.error('DialogueMemorySummaryContext missing currentTheme. Cannot summarize memory.');
     return null;
   }
 

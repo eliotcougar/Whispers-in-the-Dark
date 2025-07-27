@@ -293,7 +293,7 @@ export const fetchConnectorChains_Service = async (
   const prompt = `Suggest chains of locations (feature nodes) to connect distant map nodes in a text adventure.
 ** Context: **
 Scene Description: "${context.sceneDescription}"
-Theme: "${context.currentTheme.name}" (${context.currentTheme.themeGuidance})
+Theme: "${context.currentTheme.name}" (${context.currentTheme.storyGuidance})
 
 ---
 

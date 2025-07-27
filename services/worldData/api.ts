@@ -142,7 +142,7 @@ export const generateWorldFacts = async (
     return null;
   }
   const prompt =
-    `Using the theme description "${theme.themeGuidance}", expand it into a world profile.`;
+    `Using the theme description "${theme.storyGuidance}", expand it into a world profile.`;
   const request = async () => {
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
@@ -331,7 +331,7 @@ export const generateWorldData = async (
   }
 
   const worldFactsPrompt =
-    `Using the theme description "${theme.themeGuidance}", expand it into a detailed world profile.`;
+    `Using the theme description "${theme.storyGuidance}", expand it into a detailed world profile.`;
 
   const request = async (
     prompt: string,

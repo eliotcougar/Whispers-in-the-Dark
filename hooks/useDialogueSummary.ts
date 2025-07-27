@@ -66,7 +66,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
    * Finalizes a dialogue session and gathers summary updates.
    */
   const initiateDialogueExit = useCallback(async (stateAtDialogueConclusionStart: FullGameState) => {
-    const currentThemeObj = stateAtDialogueConclusionStart.currentThemeObject;
+    const currentThemeObj = stateAtDialogueConclusionStart.currentTheme;
     const finalHistory = stateAtDialogueConclusionStart.dialogueState?.history ?? [];
     const finalParticipants = stateAtDialogueConclusionStart.dialogueState?.participants ?? [];
 
@@ -94,7 +94,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setLoadingReason('dialogue_memory_creation');
     const memorySummaryContext: DialogueMemorySummaryContext = {
       themeName: currentThemeObj.name,
-      currentThemeObject: currentThemeObj,
+      currentTheme: currentThemeObj,
       currentScene: workingGameState.currentScene,
       localTime: workingGameState.localTime,
       localEnvironment: workingGameState.localEnvironment,
@@ -142,7 +142,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       dialogueLog: finalHistory,
       dialogueParticipants: finalParticipants,
       themeName: currentThemeObj.name,
-      currentThemeObject: currentThemeObj,
+      currentTheme: currentThemeObj,
       storyArc: workingGameState.storyArc,
     };
     const {

@@ -127,12 +127,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       if (savedStateToLoad) {
         const [currentSaved, previousSaved] = savedStateToLoad;
-        let themeForLoadedState = currentSaved.currentThemeObject;
-        if (!themeForLoadedState && currentSaved.currentThemeName) {
-          themeForLoadedState = findThemeByName(currentSaved.currentThemeName);
+        let themeForLoadedState = currentSaved.currentTheme;
+        if (!themeForLoadedState) {
+          const legacyName = (currentSaved as { currentThemeName?: string | null }).currentThemeName;
+          if (legacyName) themeForLoadedState = findThemeByName(legacyName);
         }
-        if (currentSaved.currentThemeName && !themeForLoadedState) {
-          setError(`Failed to apply loaded state: Theme "${currentSaved.currentThemeName}" not found. Game state may be unstable.`);
+        if (!themeForLoadedState) {
+          const warnName = (currentSaved as { currentThemeName?: string | null }).currentThemeName;
+          if (warnName) setError(`Failed to apply loaded state: Theme "${warnName}" not found. Game state may be unstable.`);
         }
 
         let mapDataToApply = currentSaved.mapData;
@@ -154,7 +156,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
         const stateWithMapData = {
           ...currentSaved,
-          currentThemeObject: themeForLoadedState,
+          currentTheme: themeForLoadedState,
           mapData: mapDataToApply,
           currentMapNodeId: currentMapNodeIdToApply,
           destinationNodeId: destinationToApply,
@@ -202,8 +204,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.mapLayoutConfig = getDefaultMapLayoutConfig();
       draftState.mapViewBox = DEFAULT_VIEWBOX;
       draftState.globalTurnNumber = 0;
-      draftState.currentThemeName = themeObjToLoad.name;
-      draftState.currentThemeObject = themeObjToLoad;
+      draftState.currentTheme = themeObjToLoad;
 
       const worldFacts = await generateWorldFacts(themeObjToLoad);
       draftState.worldFacts = worldFacts ?? null;
@@ -444,7 +445,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     const currentFullState = getCurrentGameState();
 
     // If no theme has been initialized yet, retry initial load
-    if (!currentFullState.currentThemeName) {
+    if (!currentFullState.currentTheme) {
       await loadInitialGame({
         isRestart: true,
       });
@@ -452,10 +453,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     }
 
     const lastPrompt = currentFullState.lastDebugPacket?.prompt;
-    const currentThemeObj = currentFullState.currentThemeObject;
+    const currentThemeObj = currentFullState.currentTheme;
 
     // Fallback to generic retry if prompt or theme data is missing
-    if (!lastPrompt || !currentThemeObj) {
+    if (!lastPrompt) {
       const genericRetryState = {
         ...currentFullState,
         actionOptions: [

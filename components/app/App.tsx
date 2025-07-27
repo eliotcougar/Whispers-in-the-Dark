@@ -406,7 +406,7 @@ function App() {
     openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
     void (async () => {
       if (!currentTheme) { setIsPlayerJournalWriting(false); return; }
-      const { name: themeName, themeGuidance } = currentTheme;
+      const { name: themeName, storyGuidance } = currentTheme;
       const nodes = mapData.nodes.filter(
         node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
       );
@@ -422,7 +422,7 @@ function App() {
         'Your own journal',
         prev,
         themeName,
-        themeGuidance,
+        storyGuidance,
         currentScene,
         lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
         knownPlaces,

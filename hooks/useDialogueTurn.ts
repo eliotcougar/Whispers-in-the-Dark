@@ -46,7 +46,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
 
   const handleDialogueOptionSelect = useCallback(async (option: string) => {
     const currentFullState = getCurrentGameState();
-    const currentThemeObj = currentFullState.currentThemeObject;
+    const currentThemeObj = currentFullState.currentTheme;
 
     if (!currentThemeObj || !currentFullState.dialogueState || isDialogueExiting) return;
 

@@ -45,13 +45,12 @@ export function normalizeLoadedSaveData(
     ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
   }
 
-  if (!dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
-    dataToValidateAndExpand.currentThemeObject = findThemeByName(
-      dataToValidateAndExpand.currentThemeName
-    );
-    if (!dataToValidateAndExpand.currentThemeObject) {
+  const legacyThemeName = (parsedObj as { currentThemeName?: string | null }).currentThemeName;
+  if (!dataToValidateAndExpand.currentTheme && legacyThemeName) {
+    dataToValidateAndExpand.currentTheme = findThemeByName(legacyThemeName);
+    if (!dataToValidateAndExpand.currentTheme) {
       console.warn(
-        `Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during ${sourceLabel} load. Game state might be incomplete.`
+        `Failed to find theme "${legacyThemeName}" during ${sourceLabel} load. Game state might be incomplete.`
       );
     }
   }
@@ -112,7 +111,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   const savedData: SavedGameDataShape = {
     ...restOfGameState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
-    currentThemeObject: gameState.currentThemeObject,
+    currentTheme: gameState.currentTheme,
     inventory: gameState.inventory.map(item => ({
       ...item,
       tags: item.tags ?? [],
@@ -160,17 +159,20 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     edges: savedData.mapData.edges,
   };
 
-  let themeObjectToUse = savedData.currentThemeObject;
-  if (!themeObjectToUse && savedData.currentThemeName) {
-    themeObjectToUse = findThemeByName(savedData.currentThemeName);
-    if (!themeObjectToUse) {
-      console.warn(`expandSavedDataToFullState: Theme "${savedData.currentThemeName}" not found in current definitions. Game may be unstable.`);
+  let themeObjectToUse = savedData.currentTheme;
+  if (!themeObjectToUse) {
+    const legacyName = (savedData as { currentThemeName?: string | null }).currentThemeName;
+    if (legacyName) {
+      themeObjectToUse = findThemeByName(legacyName);
+      if (!themeObjectToUse) {
+        console.warn(`expandSavedDataToFullState: Theme "${legacyName}" not found in current definitions. Game may be unstable.`);
+      }
     }
   }
 
   return {
     ...savedData,
-    currentThemeObject: themeObjectToUse,
+    currentTheme: themeObjectToUse,
     allNPCs: savedData.allNPCs.map(npc => ({
       ...npc,
       dialogueSummaries: npc.dialogueSummaries ?? [],

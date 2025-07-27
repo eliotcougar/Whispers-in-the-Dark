@@ -34,6 +34,6 @@ export const buildSaveStateSnapshot = (
     mapLayoutConfig: currentState.mapLayoutConfig,
     mapViewBox: currentState.mapViewBox,
     globalTurnNumber: currentState.globalTurnNumber,
-    currentThemeObject: currentState.currentThemeObject,
+    currentTheme: currentState.currentTheme,
   };
 };
