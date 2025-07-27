@@ -99,7 +99,6 @@ describe('game start sequence', () => {
     const prompt = buildNewGameFirstTurnPrompt(
       theme,
       dummyArc,
-      'Male',
       dummyWorldFacts,
       dummyHeroSheet,
       dummyHeroBackstory,
@@ -164,7 +163,6 @@ describe('game start sequence', () => {
     const prompt = buildNewGameFirstTurnPrompt(
       theme,
       dummyArc,
-      'Male',
       dummyWorldFacts,
       dummyHeroSheet,
       dummyHeroBackstory,

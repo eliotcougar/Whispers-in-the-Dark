@@ -26,12 +26,11 @@ export interface BuildInitialGamePromptOptions {
 export const buildInitialGamePrompt = (
   options: BuildInitialGamePromptOptions,
 ): string => {
-  const { theme, storyArc, heroGender, worldFacts, heroSheet, heroBackstory } = options;
+  const { theme, storyArc, worldFacts, heroSheet, heroBackstory } = options;
 
   const prompt = buildNewGameFirstTurnPrompt(
     theme,
-    storyArc ?? null,
-    heroGender,
+    storyArc ?? { title: 'Untitled', overview: '', acts: [], currentAct: 1 },
     worldFacts ?? {
       geography: '',
       climate: '',
