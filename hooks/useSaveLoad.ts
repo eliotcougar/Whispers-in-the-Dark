@@ -20,8 +20,6 @@ import {
 import {
   DEFAULT_PLAYER_GENDER,
   DEFAULT_ENABLED_THEME_PACKS,
-  DEFAULT_STABILITY_LEVEL,
-  DEFAULT_CHAOS_LEVEL,
 } from '../constants';
 
 export interface UseSaveLoadOptions {
@@ -52,8 +50,6 @@ export const useSaveLoad = ({
 }: UseSaveLoadOptions) => {
   const [playerGender, setPlayerGender] = useState<string>(DEFAULT_PLAYER_GENDER);
   const [enabledThemePacks, setEnabledThemePacks] = useState<Array<ThemePackName>>([...DEFAULT_ENABLED_THEME_PACKS]);
-  const [stabilityLevel, setStabilityLevel] = useState<number>(DEFAULT_STABILITY_LEVEL);
-  const [chaosLevel, setChaosLevel] = useState<number>(DEFAULT_CHAOS_LEVEL);
   const [initialSavedState, setInitialSavedState] = useState<GameStateStack | null>(null);
   const [initialDebugStack, setInitialDebugStack] = useState<DebugPacketStack | null>(null);
   const [appReady, setAppReady] = useState(false);
@@ -73,8 +69,6 @@ export const useSaveLoad = ({
         const current = loadedState[0];
         setPlayerGender(current.playerGender);
         setEnabledThemePacks(current.enabledThemePacks);
-        setStabilityLevel(current.stabilityLevel);
-        setChaosLevel(current.chaosLevel);
         setInitialSavedState(loadedState);
       } else {
         setInitialSavedState(null);
@@ -83,11 +77,9 @@ export const useSaveLoad = ({
     })();
   }, []);
 
-  const updateSettingsFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>) => {
+  const updateSettingsFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks'>>) => {
     if (loadedSettings.playerGender !== undefined) setPlayerGender(loadedSettings.playerGender);
     if (loadedSettings.enabledThemePacks !== undefined) setEnabledThemePacks(loadedSettings.enabledThemePacks);
-    if (loadedSettings.stabilityLevel !== undefined) setStabilityLevel(loadedSettings.stabilityLevel);
-    if (loadedSettings.chaosLevel !== undefined) setChaosLevel(loadedSettings.chaosLevel);
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -203,10 +195,6 @@ export const useSaveLoad = ({
     setPlayerGender,
     enabledThemePacks,
     setEnabledThemePacks,
-    stabilityLevel,
-    setStabilityLevel,
-    chaosLevel,
-    setChaosLevel,
     initialSavedState,
     initialDebugStack,
     appReady,

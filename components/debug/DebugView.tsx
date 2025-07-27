@@ -23,7 +23,6 @@ import {
   PlaygroundTab,
   LoremasterAITab,
   MiscStateTab,
-  ThemeHistoryTab,
   TravelPathTab,
   SettingsTab,
 } from './tabs';
@@ -58,7 +57,6 @@ type DebugTab =
   | "NPCs"
   | "MapDataFull"
   | "Lore"
-  | "ThemeHistory"
   | "GameLog"
   | "TravelPath"
   | "MiscState"
@@ -109,7 +107,6 @@ function DebugView({
     { name: "NPCs", label: "NPCs" },
     { name: "MapDataFull", label: "Map Data" },
     { name: "Lore", label: "Lore" },
-    { name: "ThemeHistory", label: "Theme History" },
     { name: "GameLog", label: "Game Log" },
     { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
@@ -163,8 +160,6 @@ function DebugView({
             )}
           />
         );
-      case 'ThemeHistory':
-        return <ThemeHistoryTab themeHistory={currentState.themeHistory} />;
       case 'GameLog':
         return <GameLogTab gameLog={currentState.gameLog} />;
       case 'TravelPath':

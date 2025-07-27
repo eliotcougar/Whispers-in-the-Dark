@@ -169,7 +169,6 @@ IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedi
 
 ${ITEM_TYPES_GUIDE}
 
-IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Mention the transformation in "playerItemsHint" and include the resulting item in "newItems" with its new "name", "type" and "description". Your "logMessage" must creatively explain this transformation. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand". The log message could be: "The strange metal device from another world shimmers and reshapes into a humming metal wand in your grasp!"
 `;
 
 export const MAP_NODE_TYPE_GUIDE = `Map Node Types:

@@ -1,7 +1,6 @@
 /**
  * Provides a single Icon component that renders SVGs from the icons folder.
 */
-import RealityShiftIcon from './icons/RealityShift';
 import CoinIcon from './icons/Coin';
 import VisualizeIcon from './icons/Visualize';
 import BookOpenIcon from './icons/BookOpen';
@@ -22,7 +21,6 @@ import ErrorIcon from './icons/Error';
 import JournalPenIcon from './icons/JournalPen';
 
 const iconMap = {
-  realityShift: RealityShiftIcon,
   coin: CoinIcon,
   visualize: VisualizeIcon,
   bookOpen: BookOpenIcon,

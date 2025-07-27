@@ -9,8 +9,6 @@ export interface BuildSaveStateOptions {
   currentState: FullGameState;
   playerGender: string;
   enabledThemePacks: Array<ThemePackName>;
-  stabilityLevel: number;
-  chaosLevel: number;
 }
 
 /**
@@ -23,8 +21,6 @@ export const buildSaveStateSnapshot = (
     currentState,
     playerGender,
     enabledThemePacks,
-    stabilityLevel,
-    chaosLevel,
   } = options;
 
   return {
@@ -32,15 +28,11 @@ export const buildSaveStateSnapshot = (
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
     playerGender,
     enabledThemePacks,
-    stabilityLevel,
-    chaosLevel,
     mapData: currentState.mapData,
     currentMapNodeId: currentState.currentMapNodeId,
     destinationNodeId: currentState.destinationNodeId,
     mapLayoutConfig: currentState.mapLayoutConfig,
     mapViewBox: currentState.mapViewBox,
-    isCustomGameMode: currentState.isCustomGameMode,
-    isAwaitingManualShiftThemeSelection: currentState.isAwaitingManualShiftThemeSelection,
     globalTurnNumber: currentState.globalTurnNumber,
     currentThemeObject: currentState.currentThemeObject,
   };

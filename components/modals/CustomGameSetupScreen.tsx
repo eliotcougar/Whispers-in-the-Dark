@@ -1,7 +1,7 @@
 
 /**
  * @file CustomGameSetupScreen.tsx
- * @description Allows the Player to select starting themes.
+ * @description Allows the player to select a starting theme.
  */
 import { useCallback } from 'react';
 
@@ -21,7 +21,7 @@ interface CustomGameSetupScreenProps {
 }
 
 /**
- * Lets the player pick starting themes for a custom game.
+ * Lets the player pick the starting theme.
  */
 function CustomGameSetupScreen({
   isVisible,
@@ -50,7 +50,7 @@ function CustomGameSetupScreen({
 
   const effectiveTitle = titleText ?? "Choose Your Adventure Theme";
   const effectiveDescription = descriptionText ??
-    "Select a theme to start your custom game. In this mode, random reality shifts are disabled, allowing for a focused, single-theme experience. You can still manually trigger a reality shift if you wish to change themes later.";
+    "Select a theme to start your adventure. The story will remain in this setting until you begin a new game.";
 
 
   return (

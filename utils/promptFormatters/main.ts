@@ -114,10 +114,6 @@ export const formatDetailedContextForMentionedEntities = (
  */
 
 /**
- * Formats the prompt for entering a completely new theme after a shift.
- */
-
-/**
  * Creates a short travel plan line describing the next step toward the destination.
  */
 export const formatTravelPlanLine = (

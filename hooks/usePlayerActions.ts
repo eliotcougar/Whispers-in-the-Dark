@@ -43,15 +43,11 @@ export interface UsePlayerActionsProps {
   commitGameState: (state: FullGameState) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
   playerGenderProp: string;
-  stabilityLevelProp: number;
-  chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   loadingReasonRef: React.RefObject<LoadingReason | null>;
   setError: (err: string | null) => void;
   setParseErrorCounter: (val: number) => void;
-  triggerRealityShift: (isChaosShift?: boolean) => void;
-  executeManualRealityShift: () => void;
   freeFormActionText: string;
   setFreeFormActionText: (text: string) => void;
   isLoading: boolean;
@@ -72,14 +68,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     commitGameState,
     setGameStateStack,
     playerGenderProp,
-    stabilityLevelProp,
-    chaosLevelProp,
     setIsLoading,
     setLoadingReason,
     setError,
     setParseErrorCounter,
-    triggerRealityShift,
-    executeManualRealityShift,
     freeFormActionText,
     setFreeFormActionText,
     isLoading,
@@ -274,7 +266,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         playerGenderProp,
         currentFullState.worldFacts,
         currentFullState.heroSheet,
-        currentFullState.themeHistory,
         currentMapNodeDetails,
         currentFullState.mapData,
         currentFullState.destinationNodeId,
@@ -370,7 +361,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         draftState.lastDebugPacket = { ...debugPacket, error: e instanceof Error ? e.message : String(e) };
       } finally {
         if (!encounteredError) {
-          draftState.turnsSinceLastShift += 1;
           draftState.globalTurnNumber += 1;
           await runDistillIfNeeded(draftState);
         }
@@ -378,22 +368,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         setIsLoading(false);
         setLoadingReason(null);
 
-        if (!draftState.isCustomGameMode && !draftState.dialogueState) {
-          const stabilityThreshold = currentThemeObj.name === draftState.pendingNewThemeNameAfterShift ? 0 : stabilityLevelProp;
-          if (draftState.turnsSinceLastShift > stabilityThreshold && Math.random() * 100 < chaosLevelProp) {
-            setError('CHAOS SHIFT! Reality fractures without warning!');
-            triggerRealityShift(true);
-          }
-        }
       }
     }, [
       getCurrentGameState,
       commitGameState,
       isLoading,
       playerGenderProp,
-      stabilityLevelProp,
-      chaosLevelProp,
-      triggerRealityShift,
       setIsLoading,
       setLoadingReason,
       setError,
@@ -442,27 +422,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
       }
 
-      if (action === 'Try to force your way back to the previous reality.') {
-        const previousThemeName = Object.keys(currentFullState.themeHistory).pop();
-        if (previousThemeName) {
-          const statePreparedForShift = {
-            ...currentFullState,
-            pendingNewThemeNameAfterShift: previousThemeName,
-          } as FullGameState;
-          setGameStateStack((prev) => [statePreparedForShift, prev[1]]);
-
-          if (currentFullState.isCustomGameMode) {
-            executeManualRealityShift();
-          } else {
-            triggerRealityShift();
-          }
-        } else {
-          setError('No previous reality to return to.');
-        }
-      } else {
-        void executePlayerAction(finalAction);
-      }
-    }, [getCurrentGameState, executePlayerAction, triggerRealityShift, setError, setGameStateStack, executeManualRealityShift]);
+      void executePlayerAction(finalAction);
+    }, [getCurrentGameState, executePlayerAction]);
 
   /**
    * Triggers an action based on the player's interaction with an item.
@@ -584,7 +545,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       turnChanges.mainQuestAchieved = false;
     }
 
-    draftState.turnsSinceLastShift += 1;
     draftState.globalTurnNumber += 1;
     draftState.lastTurnChanges = turnChanges;
     commitGameState(draftState);

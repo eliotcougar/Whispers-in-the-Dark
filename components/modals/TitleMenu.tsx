@@ -15,7 +15,6 @@ interface TitleMenuProps {
   readonly isVisible: boolean;
   readonly onClose: () => void;
   readonly onNewGame: () => void;
-  readonly onCustomGame: () => void; 
   readonly onSaveGame?: () => void | Promise<void>;
   readonly onLoadGame: () => void;
   readonly onOpenSettings: () => void;
@@ -31,7 +30,6 @@ function TitleMenu({
   isVisible,
   onClose,
   onNewGame,
-  onCustomGame,
   onSaveGame,
   onLoadGame,
   onOpenSettings,
@@ -74,7 +72,6 @@ function TitleMenu({
           <AppHeader
             currentTheme={null} // No theme in title menu
             hasGameBeenInitialized={isGameActive}
-            isCustomGameMode={false} // Custom game mode not applicable here 
           />
 
           <div className="space-y-3 sm:space-y-3 w-full max-w-xs sm:max-w-sm">
@@ -89,7 +86,7 @@ function TitleMenu({
             ) : null}
 
             <Button
-              ariaLabel={isGameActive ? 'Start a New Game (Random Shifts, Progress will be lost)' : 'Start a New Game (Random Shifts)'}
+              ariaLabel={isGameActive ? 'Start a New Game (Progress will be lost)' : 'Start a New Game'}
               disabled={!isApiConfigured()}
               label="New Game"
               onClick={onNewGame}
@@ -97,14 +94,6 @@ function TitleMenu({
               size="lg"
             />
 
-            <Button
-              ariaLabel={isGameActive ? 'Start a Custom Game (Choose Theme, No Random Shifts, Progress will be lost)' : 'Start a Custom Game (Choose Theme, No Random Shifts)'}
-              disabled={!isApiConfigured()}
-              label="Custom Game"
-              onClick={onCustomGame}
-              preset="orange"
-              size="lg"
-            />
 
             {isGameActive && onSaveGame ? (
               <Button

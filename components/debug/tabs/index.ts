@@ -11,7 +11,6 @@ export { default as LoreTab } from './LoreTab';
 export { default as MapLocationAITab } from './MapLocationAITab';
 export { default as LoremasterAITab } from './LoremasterAITab';
 export { default as MiscStateTab } from './MiscStateTab';
-export { default as ThemeHistoryTab } from './ThemeHistoryTab';
 export { default as TravelPathTab } from './TravelPathTab';
 export { default as PlaygroundTab } from './PlaygroundTab';
 export { default as SettingsTab } from './SettingsTab';

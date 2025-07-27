@@ -25,7 +25,7 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   `MapDisplay.tsx`: Visualizes the `MapData` for the current theme. Includes pan/zoom interactions and exposes layout tuning via `MapControls`.
     *   `MapNodeView.tsx`: Renders individual nodes within the map SVG.
     *   `ItemChangeAnimator.tsx`: Animates inventory changes using `useItemChangeQueue`.
-    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `HistoryDisplay.tsx`, `PageView.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on NPCs currently.
+    *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `PageView.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on NPCs currently.
     *   `LoadingSpinner.tsx`, `ErrorDisplay.tsx`: Provide feedback during loading or error states.
     *   `MainToolbar.tsx`: Contains buttons for primary game actions and information display, including opening the map.
 
@@ -40,7 +40,7 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
         *   If the storyteller AI's response includes `mapUpdated: true` or if `localPlace` changes significantly, it triggers the cartographer service.
         *   Applies the `AIMapUpdatePayload` returned by the cartographer service to `FullGameState.mapData`.
         *   If the cartographer service indicates a new main map node was added without full details, `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to complete its data.
-    *   Manages the "Reality Shift" mechanic (via `useRealityShift`), theme selection, and dialogue mode.
+    *   Manages theme selection and dialogue mode.
     *   Provides undo functionality by swapping the two-element `GameStateStack`.
     *   Determines `currentMapNodeId` based on AI suggestions or by using `selectBestMatchingMapNode`, which operates on `MapNode[]`.
     *   Delegates to sub hooks: `usePlayerActions`, `useDialogueFlow`, `useMapUpdates`, and `useGameInitialization`.
@@ -59,7 +59,7 @@ This layer abstracts external interactions and complex data processing.
 *   **AI Interaction Services:**
     *   `services/geminiClient.ts`: Initializes the Google Gemini API client.
     *   `services/storyteller/` (Storyteller service):
-        *   `api.ts` orchestrates main turn calls and theme summarization.
+    *   `api.ts` orchestrates main turn calls.
         *   `promptBuilder.ts` builds storyteller prompts.
         *   `responseParser.ts` validates and extracts storyteller JSON.
         *   `systemPrompt.ts` contains storyteller instructions.
@@ -99,7 +99,7 @@ This layer abstracts external interactions and complex data processing.
    *   `utils/aiErrorUtils.ts`: Interprets errors from the Gemini API.
    *   `utils/cloneUtils.ts`: Deep clone helpers for game state objects.
   *   `utils/entityUtils.ts`: Entity lookup helpers plus `generateUniqueId`, `buildNodeId`, `buildEdgeId`, `buildNPCId`, and `buildItemId` for deterministic IDs. `generateUniqueId` sanitizes the base string before appending a random suffix.
-   *   `utils/gameLogicUtils.ts`: Applies item and NPC changes, manages logs, and selects the next theme.
+   *   `utils/gameLogicUtils.ts`: Applies item and NPC changes and manages logs.
    *   `utils/highlightHelper.tsx`: Builds highlight information for entity names in text.
    *   `utils/initialStates.ts`: Produces the default `FullGameState` objects.
    *   `utils/jsonUtils.ts`: Extracts JSON from AI responses and provides safe parsing.

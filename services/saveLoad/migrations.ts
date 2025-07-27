@@ -81,7 +81,6 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     debugLore,
     debugGoodFacts,
     debugBadFacts,
-    isAwaitingManualShiftThemeSelection,
     ...restOfGameState
   } = gameState;
 
@@ -92,7 +91,6 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   void debugLore;
   void debugGoodFacts;
   void debugBadFacts;
-  void isAwaitingManualShiftThemeSelection;
 
   const mapDataForSave: MapData = {
       nodes: gameState.mapData.nodes.map(node => ({
@@ -135,16 +133,12 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     mapLayoutConfig: gameState.mapLayoutConfig,
     mapViewBox: gameState.mapViewBox,
     score: gameState.score,
-    stabilityLevel: gameState.stabilityLevel,
-    chaosLevel: gameState.chaosLevel,
       localTime: gameState.localTime,
       localEnvironment: gameState.localEnvironment,
       localPlace: gameState.localPlace,
       enabledThemePacks: gameState.enabledThemePacks,
     playerGender: gameState.playerGender,
-    turnsSinceLastShift: gameState.turnsSinceLastShift,
     globalTurnNumber: gameState.globalTurnNumber,
-    isCustomGameMode: gameState.isCustomGameMode,
     themeFacts: gameState.themeFacts,
     worldFacts: gameState.worldFacts,
     heroSheet: gameState.heroSheet,
@@ -186,7 +180,6 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     destinationNodeId: savedData.destinationNodeId,
     mapLayoutConfig: savedData.mapLayoutConfig,
     mapViewBox: savedData.mapViewBox,
-    isCustomGameMode: savedData.isCustomGameMode,
     globalTurnNumber: savedData.globalTurnNumber,
     themeFacts: savedData.themeFacts,
     worldFacts: savedData.worldFacts,
@@ -195,7 +188,6 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     debugLore: false,
     debugGoodFacts: [],
     debugBadFacts: [],
-    isAwaitingManualShiftThemeSelection: false,
     dialogueState: null,
     objectiveAnimationType: null,
     lastDebugPacket: null,

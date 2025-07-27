@@ -11,10 +11,8 @@ import {
 } from '../types';
 import { 
     CURRENT_SAVE_GAME_VERSION, 
-    DEFAULT_PLAYER_GENDER, 
-    DEFAULT_ENABLED_THEME_PACKS, 
-    DEFAULT_STABILITY_LEVEL, 
-    DEFAULT_CHAOS_LEVEL 
+    DEFAULT_PLAYER_GENDER,
+    DEFAULT_ENABLED_THEME_PACKS
 } from '../constants';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
@@ -60,13 +58,11 @@ export const getInitialGameStates = (): FullGameState => {
     lastLoreDistillTurn: 0,
     gameLog: ["Welcome to Whispers in the Dark!"],
     lastActionLog: null,
-    themeHistory: {},
     themeFacts: [],
     worldFacts: null,
     heroSheet: null,
     heroBackstory: null,
     storyArc: null,
-    pendingNewThemeNameAfterShift: null,
     allNPCs: [],
     mapData: { nodes: [], edges: [] },
     currentMapNodeId: null,
@@ -77,9 +73,7 @@ export const getInitialGameStates = (): FullGameState => {
     localTime: "Unknown",
     localEnvironment: "Unknown",
     localPlace: "Unknown",
-    turnsSinceLastShift: 0,
     globalTurnNumber: 0, // Initialized to 0
-    isCustomGameMode: false, // Initialize custom game mode
     
     dialogueState: null, 
 
@@ -87,12 +81,9 @@ export const getInitialGameStates = (): FullGameState => {
     objectiveAnimationType: null,
     lastDebugPacket: null,
     lastTurnChanges: null, 
-    isAwaitingManualShiftThemeSelection: false, // Initialized
     // Configuration snapshot
     playerGender: DEFAULT_PLAYER_GENDER,
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
-    stabilityLevel: DEFAULT_STABILITY_LEVEL,
-    chaosLevel: DEFAULT_CHAOS_LEVEL,
 
     debugLore: false,
     debugGoodFacts: [],
@@ -107,13 +98,9 @@ export const getInitialGameStates = (): FullGameState => {
 export const getInitialGameStatesWithSettings = (
   playerGender: string,
   enabledThemePacks: Array<ThemePackName>,
-  stabilityLevel: number,
-  chaosLevel: number
 ): FullGameState => {
   const base = getInitialGameStates();
   base.playerGender = playerGender;
   base.enabledThemePacks = [...enabledThemePacks];
-  base.stabilityLevel = stabilityLevel;
-  base.chaosLevel = chaosLevel;
   return base;
 };

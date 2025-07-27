@@ -6,8 +6,6 @@ import {
   SavedGameDataShape,
   Item,
   ItemChapter,
-  ThemeHistoryState,
-  ThemeMemory,
   AdventureTheme,
   NPC,
   ThemePackName,
@@ -102,27 +100,6 @@ export function isValidItemForSave(item: unknown): item is Item {
   );
 }
 
-export function isValidThemeHistory(history: unknown): history is ThemeHistoryState {
-  if (typeof history !== 'object' || history === null) return false;
-  const record = history as Record<string, unknown>;
-  for (const key in record) {
-    if (Object.prototype.hasOwnProperty.call(record, key)) {
-      const entry = record[key] as Partial<ThemeMemory> | undefined;
-      if (
-        !entry ||
-        typeof entry.summary !== 'string' ||
-        typeof entry.mainQuest !== 'string' ||
-        typeof entry.currentObjective !== 'string' ||
-        !Array.isArray(entry.placeNames) ||
-        !entry.placeNames.every((name: unknown) => typeof name === 'string') ||
-        !Array.isArray(entry.npcNames) ||
-        !entry.npcNames.every((name: unknown) => typeof name === 'string')
-      )
-        return false;
-    }
-  }
-  return true;
-}
 
 export function isValidThemeFact(fact: unknown): fact is ThemeFact {
   if (!fact || typeof fact !== 'object') return false;
@@ -308,11 +285,10 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
 
   const fields: Array<keyof SavedGameDataShape> = [
     'currentThemeName', 'currentThemeObject', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
-    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeHistory', 'themeFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
-    'pendingNewThemeNameAfterShift',
-    'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score', 'stabilityLevel', 'chaosLevel',
+    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
+    'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score',
     'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
-    'turnsSinceLastShift', 'globalTurnNumber', 'isCustomGameMode'
+    'globalTurnNumber'
   ];
   for (const field of fields) {
     if (!(field in obj)) {
@@ -322,7 +298,6 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
         'mainQuest',
         'currentObjective',
         'lastActionLog',
-        'pendingNewThemeNameAfterShift',
         'localTime',
         'localEnvironment',
         'localPlace',
@@ -335,7 +310,6 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
       ];
       if (
         !(nullableFields.includes(field) && obj[field] === null) &&
-        field !== 'isCustomGameMode' &&
         field !== 'globalTurnNumber' &&
         field !== 'themeFacts' &&
         field !== 'worldFacts' &&
@@ -366,7 +340,6 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (typeof obj.lastLoreDistillTurn !== 'number') { console.warn('Invalid save data (V3): lastLoreDistillTurn type.'); return false; }
   if (!Array.isArray(obj.gameLog) || !obj.gameLog.every((msg: unknown) => typeof msg === 'string')) { console.warn('Invalid save data (V3): gameLog.'); return false; }
   if (obj.lastActionLog !== null && typeof obj.lastActionLog !== 'string') { console.warn('Invalid save data (V3): lastActionLog type.'); return false; }
-  if (!isValidThemeHistory(obj.themeHistory)) { console.warn('Invalid save data (V3): themeHistory.'); return false; }
   if (obj.themeFacts !== undefined && !Array.isArray(obj.themeFacts)) {
     console.warn('Invalid save data (V5): themeFacts type.');
     return false;
@@ -387,7 +360,6 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     console.warn('Invalid save data (V5): heroBackstory structure.');
     return false;
   }
-  if (obj.pendingNewThemeNameAfterShift !== null && typeof obj.pendingNewThemeNameAfterShift !== 'string') { console.warn('Invalid save data (V3): pendingNewThemeNameAfterShift type.'); return false; }
   if (!Array.isArray(obj.allNPCs) || !obj.allNPCs.every(isValidNPCForSave)) { console.warn('Invalid save data (V3): allNPCs.'); return false; }
   if (!isValidMapData(obj.mapData)) { console.warn('Invalid save data (V3): mapData.'); return false; }
   if (obj.currentMapNodeId !== null && typeof obj.currentMapNodeId !== 'string') { console.warn('Invalid save data (V3): currentMapNodeId type.'); return false; }
@@ -395,16 +367,12 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (!isValidMapLayoutConfig(obj.mapLayoutConfig)) { console.warn('Invalid save data (V3): mapLayoutConfig.'); return false; }
   if (typeof obj.mapViewBox !== 'string') { console.warn('Invalid save data (V3): mapViewBox type.'); return false; }
   if (typeof obj.score !== 'number') { console.warn('Invalid save data (V3): score type.'); return false; }
-  if (typeof obj.stabilityLevel !== 'number') { console.warn('Invalid save data (V3): stabilityLevel type.'); return false; }
-  if (typeof obj.chaosLevel !== 'number') { console.warn('Invalid save data (V3): chaosLevel type.'); return false; }
   if (obj.localTime !== null && typeof obj.localTime !== 'string') { console.warn('Invalid save data (V3): localTime type.'); return false; }
   if (obj.localEnvironment !== null && typeof obj.localEnvironment !== 'string') { console.warn('Invalid save data (V3): localEnvironment type.'); return false; }
   if (obj.localPlace !== null && typeof obj.localPlace !== 'string') { console.warn('Invalid save data (V3): localPlace type.'); return false; }
   if (!isValidThemePackNameArray(obj.enabledThemePacks)) { console.warn('Invalid save data (V3): enabledThemePacks.'); return false; }
   if (typeof obj.playerGender !== 'string') { console.warn('Invalid save data (V3): playerGender type.'); return false; }
-  if (typeof obj.turnsSinceLastShift !== 'number') { console.warn('Invalid save data(V3): turnsSinceLastShift type.'); return false; }
   if (typeof obj.globalTurnNumber !== 'number') { console.warn('Invalid save data(V3): globalTurnNumber type.'); return false; }
-  if (obj.isCustomGameMode !== undefined && typeof obj.isCustomGameMode !== 'boolean') { console.warn('Invalid save data (V3): isCustomGameMode type.'); return false; }
 
   const dialogueFields: Array<string> = ['dialogueState'];
   for (const field of dialogueFields) {
