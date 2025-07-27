@@ -255,16 +255,17 @@ export interface GameStateFromAI {
     lastKnownLocation?: string | null; 
     preciseLocation?: string | null;
   }>; 
-  npcsUpdated?: Array<{ 
-    name: string; 
-    newDescription?: string; 
-    newAliases?: Array<string>; 
-    addAlias?: string; 
+  npcsUpdated?: Array<{
+    name: string;
+    newDescription?: string;
+    newAliases?: Array<string>;
+    addAlias?: string;
     newPresenceStatus?: NPC['presenceStatus'];
-    newLastKnownLocation?: string | null; 
+    newLastKnownLocation?: string | null;
     newPreciseLocation?: string | null;
   }>;
   objectiveAchieved?: boolean;
+  mainQuestAchieved?: boolean;
   localTime?: string;
   localEnvironment?: string;
   localPlace?: string;
@@ -427,6 +428,7 @@ export interface TurnChanges {
   itemChanges: Array<ItemChangeRecord>;
   npcChanges: Array<NPCChangeRecord>;
   objectiveAchieved: boolean;
+  mainQuestAchieved: boolean;
   objectiveTextChanged: boolean;
   mainQuestTextChanged: boolean;
   localTimeChanged: boolean;

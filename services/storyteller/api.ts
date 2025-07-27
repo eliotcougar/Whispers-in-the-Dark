@@ -325,6 +325,10 @@ export const STORYTELLER_JSON_SCHEMA = {
       type: 'boolean',
       description: 'True when the current objective was successfully completed this turn.',
     },
+    mainQuestAchieved: {
+      type: 'boolean',
+      description: 'Set to true when the current act\'s success condition is undoubtedly met.',
+    },
     options: {
       type: 'array',
       minItems: MAIN_TURN_OPTIONS_COUNT,
@@ -374,6 +378,7 @@ export const STORYTELLER_JSON_SCHEMA = {
     'npcsAdded',
     'npcsUpdated',
     'objectiveAchieved',
+    'mainQuestAchieved',
     'options',
     'playerItemsHint',
     'sceneDescription',

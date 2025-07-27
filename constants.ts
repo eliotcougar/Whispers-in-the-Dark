@@ -153,6 +153,14 @@ export const VALID_PRESENCE_STATUS_VALUES = [
 
 export const VALID_PRESENCE_STATUS_VALUES_STRING = VALID_PRESENCE_STATUS_VALUES.map(s => s).join(', ');
 
+export const ACT_NATURE_BY_NUMBER: Record<number, string> = {
+  1: 'exposition - Introduces the setting, central characters, and the primary conflict of the tale.',
+  2: 'rising action - Tension and complications mount as the protagonist pursues their goal.',
+  3: 'climax - The story reaches a turning point where the protagonist confronts the core challenge.',
+  4: 'falling action - The immediate consequences of the climax unfold and loose ends are addressed.',
+  5: 'resolution - Conflicts resolve and the narrative ties up remaining threads for closure.',
+};
+
 export const LOADING_REASONS = [
   'storyteller',
   'map',
