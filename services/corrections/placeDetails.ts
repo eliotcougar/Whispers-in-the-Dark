@@ -56,7 +56,7 @@ Determine the most logical "localPlace" based on the provided context. This "loc
 
 ## Context for Inference:
 - Current Scene Description (primary source for inference): "${currentSceneDescription}"
-- Current Theme: "${currentTheme.name}" (Theme Guidance: ${currentTheme.systemInstructionModifier})
+- Current Theme: "${currentTheme.name}" (Theme Guidance: ${currentTheme.themeGuidance})
 - Current Local Time: "${localTime ?? 'Unknown'}"
 - Current Local Environment: "${localEnvironment ?? 'Undetermined'}"
 
@@ -144,7 +144,7 @@ ${malformedMapNodePayloadString}
 ## Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.themeGuidance}"
 
 Required JSON Structure for corrected map location details:
 {
@@ -220,7 +220,7 @@ Map Location Name to Detail: "${mapNodePlaceName}"
 ## Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.themeGuidance}"
 
 Required JSON Structure:
 {

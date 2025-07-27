@@ -290,11 +290,8 @@ export function isValidAdventureThemeObject(obj: unknown): obj is AdventureTheme
   return (
     typeof maybe.name === 'string' &&
     maybe.name.trim() !== '' &&
-    typeof maybe.systemInstructionModifier === 'string' &&
-    typeof maybe.initialMainQuest === 'string' &&
-    typeof maybe.initialCurrentObjective === 'string' &&
-    typeof maybe.initialSceneDescriptionSeed === 'string' &&
-    typeof maybe.initialItems === 'string'
+    typeof maybe.themeGuidance === 'string' &&
+    typeof maybe.playerJournalStyle === 'string'
   );
 }
 

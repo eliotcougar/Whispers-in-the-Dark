@@ -473,7 +473,7 @@ export const summarizeThemeAdventure_Service = async (
   const summarizationPrompt = `
 You are a masterful storyteller tasked with summarizing a segment of a text-based adventure game.
 The adventure took place in a theme called: "${themeToSummarize.name}".
-The theme's specific guidance was: "${themeToSummarize.systemInstructionModifier}"
+The theme's specific guidance was: "${themeToSummarize.themeGuidance}"
 
 The player's last known situation (scene description) in this theme was:
 "${lastSceneDescription}"

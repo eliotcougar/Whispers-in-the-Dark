@@ -59,7 +59,7 @@ ${malformedString}
 Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.themeGuidance}"
 - Known/Available NPCs for Dialogue: ${npcContext}
 - Known Map Locations: ${placeContext}
 - Player Inventory: ${inventoryContext}
@@ -123,7 +123,7 @@ export const fetchCorrectedDialogueTurn_Service = async (
 
   const prompt = `Role: You fix malformed JSON for a dialogue turn in a text adventure game.
 
-Theme Guidance: "${currentTheme.systemInstructionModifier}"
+Theme Guidance: "${currentTheme.themeGuidance}"
 
 Malformed Dialogue Response:
 \`\`\`

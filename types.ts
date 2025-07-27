@@ -283,11 +283,7 @@ export interface GameStateFromAI {
 
 export interface AdventureTheme {
   name: string;
-  systemInstructionModifier: string;
-  initialMainQuest: string;
-  initialCurrentObjective: string;
-  initialSceneDescriptionSeed: string;
-  initialItems: string;
+  themeGuidance: string;
   playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
 }
 

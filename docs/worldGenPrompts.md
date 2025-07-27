@@ -32,7 +32,7 @@ let heroName: string;
 
 ## 3. World Facts
 
-*Prompt*: "Using the `systemInstructionModifier` and `initialSceneDescriptionSeed` from `chosenTheme`, expand them into a consistent world profile. Provide at least eight attributes that remain stable throughout the story. Cover geography, climate, major factions, technology or magic level, key resources, cultural customs, notable locations, and any supernatural forces."
+*Prompt*: "Using the `themeGuidance` from `chosenTheme`, expand it into a consistent world profile. Provide at least eight attributes that remain stable throughout the story. Cover geography, climate, major factions, technology or magic level, key resources, cultural customs, notable locations, and any supernatural forces."
 
 *Data Stored*:
 ```ts
