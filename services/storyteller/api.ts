@@ -353,6 +353,7 @@ export const STORYTELLER_JSON_SCHEMA = {
     },
   },
   required: [
+    'currentMapNodeId',
     'localEnvironment',
     'localPlace',
     'localTime',
@@ -410,7 +411,7 @@ export const executeAIMainTurn = async (
   }>(async attempt => {
     try {
       console.log(
-        `Executing storyteller turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
+        `Executing storyteller turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
       const {

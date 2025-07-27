@@ -33,8 +33,7 @@ import {
  */
 export const buildNewGameFirstTurnPrompt = (
   theme: AdventureTheme,
-  storyArc: StoryArc | null,
-  heroGender: string,
+  storyArc: StoryArc,
   worldFacts: WorldFacts,
   heroSheet: HeroSheet,
   heroBackstory: HeroBackstory,
@@ -42,15 +41,16 @@ export const buildNewGameFirstTurnPrompt = (
   const worldInfo = formatWorldFactsForPrompt(worldFacts);
   const heroDescription = formatHeroSheetForPrompt(heroSheet, true);
   const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
-  const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
+  const arcContext = formatStoryArcContext(storyArc);
   const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.storyGuidance}
-${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
+
+## Narrative Arc:
+${arcContext}
 
 ## World Details:
 ${worldInfo}
 
 ## Player Character Description:
-Gender: ${heroGender}.
 ${heroDescription}
 
 ## Player Character Backstory:
@@ -83,9 +83,8 @@ export const buildMainGameTurnPrompt = (
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
-  heroGender: string,
-  worldFacts: WorldFacts | null,
-  heroSheet: HeroSheet | null,
+  worldFacts: WorldFacts,
+  heroSheet: HeroSheet,
   currentMapNodeDetails: MapNode | null,
   fullMapData: MapData,
   destinationNodeId: string | null,
@@ -119,7 +118,7 @@ export const buildMainGameTurnPrompt = (
   // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
   const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
   const NPCsStrings =
-    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
+    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known yet.';
 
   const relevantFactsSection =
     relevantFacts.length > 0 ? relevantFacts.map(f => `- ${f}`).join('\n') : 'None';
@@ -170,16 +169,13 @@ export const buildMainGameTurnPrompt = (
     '### Details on relevant NPCs mentioned in current scene or action:'
   );
 
-  const worldInfo =
-    worldFacts !== null ? formatWorldFactsForPrompt(worldFacts) : 'Unknown';
-  const heroDescription =
-    heroSheet !== null
-      ? formatHeroSheetForPrompt(heroSheet, false)
-      : 'The player character remains undescribed.';
+  const worldInfo = formatWorldFactsForPrompt(worldFacts);
+  const heroDescription = formatHeroSheetForPrompt(heroSheet, false);
 
-  const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
+  const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided narrative arc guidance and context, generate the next scene description, options, item changes, log message, etc.
 
-${arcContext ? `### Narrative Arc:\n${arcContext}\n` : ''}
+## Narrative Arc:
+${arcContext}
 
 ## Context that may or may not be relevant for this specific turn:
 Previous Local Time: "${localTime ?? 'Unknown'}"
@@ -192,7 +188,6 @@ Current Objective: "${currentObjective ?? 'Not set'}"
 ${worldInfo}
 
 ### Player Character Description:
-Gender: ${heroGender}.
 ${heroDescription}
 
 ### Player's Inventory:
@@ -218,7 +213,7 @@ ${mapContext}
 
 ${detailedEntityContext}
 
-### Relevant Facts about the world:
+### Relevant Facts at present moment:
 ${relevantFactsSection}
 
 ### Recent Events to keep in mind (for context and continuity):
@@ -227,9 +222,12 @@ ${recentEventsContext}
 IMPORTANT: Recent events are provided only for additional context. These actions have already been processed by the game and should NEVER trigger item actions again, to avoid double counting.
 
 ---
-${storyArc ? `Current Arc: "${storyArc.title}" (Act ${String(storyArc.currentAct)}: ${storyArc.acts[storyArc.currentAct - 1].title})` : `Current Theme: "${currentTheme.name}"`}
-Previous Scene: "${currentScene}"
-Player Action: "${playerAction}"
+
+## Previous Scene:
+${currentScene}
+
+## Player Action:
+${playerAction}
 ${travelPlanOrUnknown}`;
 
   return prompt;
