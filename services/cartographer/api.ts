@@ -50,12 +50,8 @@ export const updateMapFromAIData_Service = async (
       ? aiData.currentMapNodeId
       : previousMapNodeId;
 
-  const currentThemeNodesFromMapData = currentMapData.nodes.filter(
-    n => n.themeName === currentTheme.name,
-  );
-  const currentThemeNodeIdsSet = new Set(
-    currentThemeNodesFromMapData.map(n => n.id),
-  );
+  const currentThemeNodesFromMapData = currentMapData.nodes;
+  const currentThemeNodeIdsSet = new Set(currentThemeNodesFromMapData.map(n => n.id));
   const currentThemeEdgesFromMapData = currentMapData.edges.filter(e =>
     currentThemeNodeIdsSet.has(e.sourceNodeId) &&
     currentThemeNodeIdsSet.has(e.targetNodeId),

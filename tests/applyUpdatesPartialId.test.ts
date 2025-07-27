@@ -24,7 +24,6 @@ const theme: AdventureTheme = { name: 'TestTheme' } as AdventureTheme;
 
 const existingFeature: MapNode = {
   id: 'node_gate_real1',
-  themeName: theme.name,
   placeName: 'Ancient Gate',
   position: { x: 0, y: 0 },
   data: {

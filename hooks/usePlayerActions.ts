@@ -115,9 +115,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         state.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
         state.lastLoreDistillTurn !== state.globalTurnNumber
       ) {
-        const currentThemeNodes = state.mapData.nodes.filter(
-          n => n.themeName === themeObj.name,
-        );
+        const currentThemeNodes = state.mapData.nodes;
         const inventoryItemNames = Array.from(
           new Set(
             state.inventory
@@ -125,7 +123,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
                 if (item.holderId === PLAYER_HOLDER_ID) return true;
                 if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
                 const holderNpc = state.allNPCs.find(
-                  npc => npc.id === item.holderId && npc.themeName === themeObj.name,
+                  npc => npc.id === item.holderId,
                 );
                 return Boolean(holderNpc);
               })
@@ -167,7 +165,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
             state,
             result.refinementResult.factsChange,
             state.globalTurnNumber,
-            themeObj.name,
           );
         }
       }
@@ -206,13 +203,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
 
       const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
-        const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter(
-          n =>
-            n.themeName === currentThemeObj.name &&
-            n.data.nodeType !== 'feature' &&
-            n.data.nodeType !== 'room'
-        );
-      const currentThemeNPCs = currentFullState.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name);
+      const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter(
+        n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+      );
+      const currentThemeNPCs = currentFullState.allNPCs;
       const currentMapNodeDetails = currentFullState.currentMapNodeId
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
         : null;
@@ -315,14 +309,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           prompt: promptUsed,
         };
 
-        const currentThemeMapDataForParse = {
-          nodes: draftState.mapData.nodes.filter((n) => n.themeName === currentThemeObj.name),
-          edges: draftState.mapData.edges.filter((e) => {
-            const sourceNode = draftState.mapData.nodes.find((node) => node.id === e.sourceNodeId);
-            const targetNode = draftState.mapData.nodes.find((node) => node.id === e.targetNodeId);
-            return sourceNode?.themeName === currentThemeObj.name && targetNode?.themeName === currentThemeObj.name;
-          }),
-        };
+        const currentThemeMapDataForParse = draftState.mapData;
 
         const parsedData = await parseAIResponse(
           response.text ?? '',

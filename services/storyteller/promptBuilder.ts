@@ -127,7 +127,7 @@ export const buildMainGameTurnPrompt = (
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
   const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
 
-  const allNodesForCurrentTheme = fullMapData.nodes.filter(node => node.themeName === currentTheme.name);
+  const allNodesForCurrentTheme = fullMapData.nodes;
   const allEdgesForCurrentTheme = fullMapData.edges.filter(edge => {
     const sourceNode = allNodesForCurrentTheme.find(n => n.id === edge.sourceNodeId);
     const targetNode = allNodesForCurrentTheme.find(n => n.id === edge.targetNodeId);

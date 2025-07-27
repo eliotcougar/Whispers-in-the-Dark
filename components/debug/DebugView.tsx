@@ -155,9 +155,7 @@ function DebugView({
       case 'Lore':
         return (
           <LoreTab
-            themeFacts={currentState.themeFacts.filter(
-              fact => fact.themeName === currentState.currentThemeName
-            )}
+            themeFacts={currentState.themeFacts}
           />
         );
       case 'GameLog':

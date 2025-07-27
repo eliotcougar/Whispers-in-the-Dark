@@ -23,9 +23,8 @@ interface DialogueDisplayProps {
   readonly isLoading: boolean; 
   readonly isDialogueExiting?: boolean;
   readonly inventory: Array<Item>;
-  readonly mapData: Array<MapNode>; 
+  readonly mapData: Array<MapNode>;
   readonly allNPCs: Array<NPC>;
-  readonly currentThemeName: string | null;
 }
 
 /**
@@ -43,7 +42,6 @@ function DialogueDisplay({
   inventory,
   mapData,
   allNPCs: allNPCs,
-  currentThemeName,
 }: DialogueDisplayProps) {
   const dialogueFrameRef = useRef<HTMLDivElement | null>(null); 
   const lastHistoryEntryRef = useRef<HTMLDivElement | null>(null);
@@ -70,8 +68,8 @@ function DialogueDisplay({
   }, [isLoading, isDialogueExiting, options.length, isVisible, history.length]);
 
   const entitiesForHighlighting = useMemo(
-    () => buildHighlightableEntities(inventory, mapData, allNPCs, currentThemeName),
-    [inventory, mapData, allNPCs, currentThemeName]
+    () => buildHighlightableEntities(inventory, mapData, allNPCs),
+    [inventory, mapData, allNPCs]
   );
 
 

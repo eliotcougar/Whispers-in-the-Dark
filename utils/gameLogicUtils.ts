@@ -40,19 +40,17 @@ export const applyThemeFactChanges = (
   state: FullGameState,
   changes: Array<ThemeFactChange>,
   currentTurn: number,
-  defaultThemeName?: string,
 ): void => {
   let nextId =
     state.themeFacts.length > 0 ? Math.max(...state.themeFacts.map(f => f.id)) + 1 : 1;
   for (const change of changes) {
     switch (change.action) {
       case 'add':
-        if (change.text && defaultThemeName) {
+        if (change.text) {
           const newFact: ThemeFact = {
             id: nextId++,
             text: change.text,
             entities: change.entities ?? [],
-            themeName: defaultThemeName,
             createdTurn: change.createdTurn ?? currentTurn,
             tier: change.tier ?? 1,
           };
@@ -67,7 +65,6 @@ export const applyThemeFactChanges = (
             text: change.text ?? state.themeFacts[idx].text,
             entities: change.entities ?? state.themeFacts[idx].entities,
             tier: change.tier ?? state.themeFacts[idx].tier,
-            themeName: state.themeFacts[idx].themeName,
           };
           state.themeFacts[idx] = updated;
         }

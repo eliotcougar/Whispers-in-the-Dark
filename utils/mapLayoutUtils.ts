@@ -134,7 +134,6 @@ export const applyNestedCircleLayout = (
   childrenByParent.set(pseudoRootId, rootIds);
   const pseudoRootNode: MapNode = {
     id: pseudoRootId,
-    themeName: 'root',
     placeName: 'root',
     position: { x: 0, y: 0 },
     data: { description: 'root', nodeType: 'region', status: 'discovered' },

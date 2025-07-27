@@ -186,7 +186,6 @@ function ImageVisualizer({
     const mentionedPlaces: Array<string> = [];
     // Derive places from mapData (main nodes)
     mapData
-      .filter(node => node.themeName === currentTheme.name)
       .forEach(node => {
         if (currentSceneDescription.toLowerCase().includes(node.placeName.toLowerCase())) {
           rawPrompt += ` The ${node.placeName} is prominent, described as: ${node.data.description || 'A notable location.'}.`;
@@ -196,7 +195,7 @@ function ImageVisualizer({
 
     const mentionedNPCs: Array<string> = [];
     allNPCs.forEach(npc => {
-      if (npc.themeName === currentTheme.name && currentSceneDescription.toLowerCase().includes(npc.name.toLowerCase())) {
+      if (currentSceneDescription.toLowerCase().includes(npc.name.toLowerCase())) {
         rawPrompt += ` ${npc.name} here, appearing as: ${npc.description}.`;
         mentionedNPCs.push(npc.name);
       }

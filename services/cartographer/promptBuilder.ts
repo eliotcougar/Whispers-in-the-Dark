@@ -13,7 +13,6 @@ export const buildCartographerPrompt = (
   narrativeContext: string,
 ): string => {
   const mapNodes = mapData.nodes
-    .filter(n => n.themeName === theme.name)
     .map(n => `- "${n.placeName}" (${n.data.nodeType})`)
     .join('\n');
 

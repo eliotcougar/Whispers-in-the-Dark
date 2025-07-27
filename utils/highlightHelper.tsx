@@ -195,13 +195,12 @@ export const highlightEntitiesInText = (
 
 /**
  * Builds a list of highlightable entities from inventory items, map nodes and
- * NPCs for the current theme.
+ * NPCs for the current game state.
  */
 export const buildHighlightableEntities = (
   inventory: Array<Item>,
   mapData: Array<MapNode>,
-  allNPCs: Array<NPC>,
-  currentThemeName: string | null
+  allNPCs: Array<NPC>
 ): Array<HighlightableEntity> => {
   const items: Array<HighlightableEntity> = inventory.map(item => ({
     name: item.name,
@@ -211,27 +210,19 @@ export const buildHighlightableEntities = (
     item,
   }));
 
-  const places: Array<HighlightableEntity> = currentThemeName
-    ? mapData
-        .filter(node => node.themeName === currentThemeName)
-        .map(node => ({
-          name: node.placeName,
-          type: 'place',
-          description: node.data.description,
-          aliases: node.data.aliases ?? [],
-        }))
-    : [];
+  const places: Array<HighlightableEntity> = mapData.map(node => ({
+    name: node.placeName,
+    type: 'place',
+    description: node.data.description,
+    aliases: node.data.aliases ?? [],
+  }));
 
-  const npcs: Array<HighlightableEntity> = currentThemeName
-    ? allNPCs
-        .filter(npc => npc.themeName === currentThemeName)
-        .map(npc => ({
-          name: npc.name,
-          type: 'npc',
-          description: npc.description,
-          aliases: npc.aliases,
-        }))
-    : [];
+  const npcs: Array<HighlightableEntity> = allNPCs.map(npc => ({
+    name: npc.name,
+    type: 'npc',
+    description: npc.description,
+    aliases: npc.aliases,
+  }));
 
   return [...items, ...places, ...npcs];
 };

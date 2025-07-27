@@ -5,14 +5,12 @@ import type { MapNode } from '../types';
 const baseNodes: Array<MapNode> = [
   {
     id: 'loc1',
-    themeName: 'theme',
     placeName: 'Town',
     position: { x: 0, y: 0 },
     data: { description: 'Desc', status: 'discovered', nodeType: 'location' },
   },
   {
     id: 'loc2',
-    themeName: 'theme',
     placeName: 'Forest',
     position: { x: 0, y: 0 },
     data: { description: 'Trees', status: 'discovered', nodeType: 'location' },

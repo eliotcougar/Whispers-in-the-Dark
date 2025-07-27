@@ -76,9 +76,9 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
 
       try {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
-          node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
+          node => node.data.nodeType !== 'feature'
         );
-        const currentThemeNPCs = stateAfterPlayerChoice.allNPCs.filter(npc => npc.themeName === currentThemeObj.name);
+        const currentThemeNPCs = stateAfterPlayerChoice.allNPCs;
         const recentLogs = stateAfterPlayerChoice.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
         const detailedContextForFacts = formatDetailedContextForMentionedEntities(
           currentThemeMapNodes,
@@ -111,7 +111,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.localEnvironment,
           stateAfterPlayerChoice.localPlace,
           currentThemeMapNodes,
-          stateAfterPlayerChoice.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
+          stateAfterPlayerChoice.allNPCs,
           stateAfterPlayerChoice.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
           playerGenderProp,
           stateAfterPlayerChoice.heroSheet,

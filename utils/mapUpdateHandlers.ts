@@ -48,7 +48,7 @@ export const handleMapUpdates = async (
     const originalLoadingReason = loadingReason;
     setLoadingReason('map');
     const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
-      node => node.themeName === themeContextForResponse.name && node.data.nodeType !== 'feature'
+      node => node.data.nodeType !== 'feature'
     );
     mapUpdateResult = await updateMapFromAIData_Service(
       aiData,
@@ -119,7 +119,7 @@ export const handleMapUpdates = async (
     }
 
       const renameResults = await assignSpecificNamesToDuplicateNodes_Service(
-        draftState.mapData.nodes.filter(n => n.themeName === themeContextForResponse.name),
+        draftState.mapData.nodes,
         themeContextForResponse,
         mapUpdateResult?.debugInfo?.minimalModelCalls,
       );
@@ -158,17 +158,16 @@ export const handleMapUpdates = async (
     (mapUpdateResult?.newlyAddedEdges ?? []).map(e => e.id)
   );
 
-  const themeName = themeContextForResponse.name;
   const npcsAddedFromAI = ('npcsAdded' in aiData && aiData.npcsAdded ? aiData.npcsAdded : []) as Array<ValidNewNPCPayload>;
   const npcsUpdatedFromAI = ('npcsUpdated' in aiData && aiData.npcsUpdated ? aiData.npcsUpdated : []) as Array<ValidNPCUpdatePayload>;
   if (npcsAddedFromAI.length > 0 || npcsUpdatedFromAI.length > 0) {
-    turnChanges.npcChanges = buildNPCChangeRecords(npcsAddedFromAI, npcsUpdatedFromAI, themeName, draftState.allNPCs);
-    draftState.allNPCs = applyAllNPCChanges(npcsAddedFromAI, npcsUpdatedFromAI, themeName, draftState.allNPCs);
+    turnChanges.npcChanges = buildNPCChangeRecords(npcsAddedFromAI, npcsUpdatedFromAI, draftState.allNPCs);
+    draftState.allNPCs = applyAllNPCChanges(npcsAddedFromAI, npcsUpdatedFromAI, draftState.allNPCs);
   }
 
   const oldMapNodeId = baseStateSnapshot.currentMapNodeId;
   let finalChosenNodeId: string | null = oldMapNodeId;
-  const currentThemeNodesFromDraftState = draftState.mapData.nodes.filter(n => n.themeName === themeContextForResponse.name);
+  const currentThemeNodesFromDraftState = draftState.mapData.nodes;
 
   if (mapAISuggestedNodeIdentifier) {
     const matchResult = attemptMatchAndSetNode(mapAISuggestedNodeIdentifier, 'mapAI', oldMapNodeId, themeContextForResponse.name, currentThemeNodesFromDraftState);

@@ -9,35 +9,30 @@ const mapData: MapData = {
   nodes: [
     {
       id: 'node_rim_test',
-      themeName: theme.name,
       placeName: 'Neo-Atlantic Rim',
       position: { x: 0, y: 0 },
       data: { description: 'waters', aliases: ['Open Waters', "The Rim"], status: 'rumored', nodeType: 'region', parentNodeId: 'universe' }
     },
     {
       id: 'node_coast_test',
-      themeName: theme.name,
       placeName: 'Coast',
       position: { x: 0, y: 0 },
       data: { description: 'distant coast', aliases: ['Coast', "Outpost"], status: 'rumored', nodeType: 'location', parentNodeId: 'universe' }
     },
     {
       id: 'node_coastal_outpost_test',
-      themeName: theme.name,
       placeName: 'Coastal Outpost',
       position: { x: 0, y: 0 },
       data: { description: 'coastal outpost', aliases: ['Outer Base', "Outpost"], status: 'rumored', nodeType: 'exterior', parentNodeId: 'node_coast_test' }
     },
     {
       id: 'node_utility_entrance_test',
-      themeName: theme.name,
       placeName: 'Utility Entrance',
       position: { x: 0, y: 0 },
       data: { description: 'utility entrance', aliases: ['Utility Hatch', 'Metal Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_coastal_outpost_test' }
     },
     {
       id: 'node_main_entrance_test',
-      themeName: theme.name,
       placeName: 'Main Entrance',
       position: { x: 0, y: 0 },
       data: { description: 'utility entrance', aliases: ['Marked Door', 'Yellow Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_coastal_outpost_test' }

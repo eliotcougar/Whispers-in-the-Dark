@@ -16,7 +16,6 @@ interface SceneDisplayProps {
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
   readonly allNPCs: Array<NPC>;
-  readonly currentThemeName: string | null;
   readonly localTime?: string | null;
   readonly localEnvironment?: string | null;
   readonly localPlace?: string | null;
@@ -31,15 +30,14 @@ function SceneDisplay({
   inventory,
   mapData,
   allNPCs,
-  currentThemeName,
   localTime,
   localEnvironment,
   localPlace,
 }: SceneDisplayProps) {
 
   const entitiesForHighlighting = useMemo(
-    () => buildHighlightableEntities(inventory, mapData, allNPCs, currentThemeName),
-    [inventory, mapData, allNPCs, currentThemeName]
+    () => buildHighlightableEntities(inventory, mapData, allNPCs),
+    [inventory, mapData, allNPCs]
   );
 
   const enableMobileTap =

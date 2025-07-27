@@ -344,9 +344,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     if (!themeObj) return;
     setIsLoading(true);
     setError(null);
-    const currentThemeNodes = currentFullState.mapData.nodes.filter(
-      n => n.themeName === themeObj.name,
-    );
+    const currentThemeNodes = currentFullState.mapData.nodes;
     const inventoryItemNames = Array.from(
       new Set(
         currentFullState.inventory
@@ -354,7 +352,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
             if (item.holderId === PLAYER_HOLDER_ID) return true;
             if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
             const holderNpc = currentFullState.allNPCs.find(
-              npc => npc.id === item.holderId && npc.themeName === themeObj.name,
+              npc => npc.id === item.holderId,
             );
             return Boolean(holderNpc);
           })
@@ -400,7 +398,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         draftState,
         result.refinementResult.factsChange,
         draftState.globalTurnNumber,
-        themeObj.name,
       );
     }
     commitGameState(draftState);

@@ -408,12 +408,11 @@ function App() {
       if (!currentTheme) { setIsPlayerJournalWriting(false); return; }
       const { name: themeName, themeGuidance } = currentTheme;
       const nodes = mapData.nodes.filter(
-        node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
+        node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
       );
       const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-      const npcs = allNPCs.filter(npc => npc.themeName === themeName);
-      const knownNPCs = npcs.length > 0
-        ? npcsToString(npcs, ' - ', false, false, false, true)
+      const knownNPCs = allNPCs.length > 0
+        ? npcsToString(allNPCs, ' - ', false, false, false, true)
         : 'None specifically known in this theme yet.';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;
@@ -633,7 +632,7 @@ function App() {
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {
       const layoutNodes = applyNestedCircleLayout(
-        mapData.nodes.filter(n => n.themeName === currentTheme?.name).map(n => ({ ...n })),
+        mapData.nodes.map(n => ({ ...n })),
           {
             padding: mapLayoutConfig.NESTED_PADDING,
             anglePadding: mapLayoutConfig.NESTED_ANGLE_PADDING,
@@ -728,7 +727,6 @@ function App() {
                   <div className="relative">
                     <SceneDisplay
                       allNPCs={allNPCs}
-                      currentThemeName={currentTheme ? currentTheme.name : null}
                       description={currentScene}
                       inventory={inventory}
                       lastActionLog={lastActionLog}
@@ -747,7 +745,6 @@ function App() {
 
                   <ActionOptions
                     allNPCs={allNPCs}
-                    currentThemeName={currentTheme ? currentTheme.name : null}
                     disabled={isLoading || !!dialogueState}
                     inventory={inventory}
                     mapData={mapData.nodes}
@@ -772,7 +769,6 @@ function App() {
                 allNPCs={allNPCs}
                 currentMapNodeId={currentMapNodeId}
                 currentObjective={currentObjective}
-                currentThemeName={currentTheme ? currentTheme.name : null}
                 disabled={isLoading || isAnyModalOrDialogueActive}
                 enableMobileTap={enableMobileTap}
                 globalTurnNumber={globalTurnNumber}
@@ -815,7 +811,6 @@ function App() {
 
       <DialogueDisplay
         allNPCs={allNPCs}
-        currentThemeName={currentTheme ? currentTheme.name : null}
         history={dialogueState?.history ?? []}
         inventory={inventory}
         isDialogueExiting={isDialogueExiting}
