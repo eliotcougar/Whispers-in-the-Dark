@@ -37,14 +37,12 @@ export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the
 
 export const DEVELOPER = "Eliot the Cougar"
 export const CURRENT_GAME_VERSION = "1.4.0 (Ink and Quill)";
-export const CURRENT_SAVE_GAME_VERSION = "7";
+export const CURRENT_SAVE_GAME_VERSION = "8";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 export const LOCAL_STORAGE_DEBUG_KEY = "whispersInTheDark_debugPacket";
 export const LOCAL_STORAGE_DEBUG_LORE_KEY = "whispersInTheDark_debugLore";
 export const LOCAL_STORAGE_GEMINI_KEY = "whispersInTheDark_geminiApiKey";
 
-export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
-export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift
 export const DEFAULT_ENABLED_THEME_PACKS = ALL_THEME_PACK_NAMES_CONST.filter(
   name => name !== 'Testing'
 );
@@ -172,7 +170,6 @@ export const LOADING_REASONS = [
   'dialogue_memory_creation',
   'dialogue_conclusion_summary',
   'initial_load',
-  'reality_shift_load',
   'visualize',
   'page',
   'journal',
@@ -194,7 +191,6 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   dialogue_memory_creation: { text: 'Memories form...', icon: '░' },
   dialogue_conclusion_summary: { text: 'Returning to the world...', icon: '░' },
   initial_load: { text: 'Loading...', icon: '░' },
-  reality_shift_load: { text: 'Reality shifts...', icon: '░' },
   visualize: { text: 'Visualizing the scene...', icon: '░' },
   page: { text: 'Reading...', icon: '░' },
   journal: { text: 'Writing...', icon: '░' },

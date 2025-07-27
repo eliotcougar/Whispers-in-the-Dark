@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers.ts';
 import { structuredCloneGameState } from '../utils/cloneUtils.ts';
-import type { AdventureTheme, FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig, ThemeHistoryState } from '../types';
+import type { AdventureTheme, FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig } from '../types';
 
 const theme: AdventureTheme = { name: 'Kaiju Defense Force' } as AdventureTheme;
 
@@ -55,7 +55,7 @@ const mapData: MapData = {
 };
 
 const baseState: FullGameState = {
-  saveGameVersion: '7',
+  saveGameVersion: '8',
   currentThemeName: theme.name,
   currentThemeObject: theme,
   currentScene: '',
@@ -69,13 +69,11 @@ const baseState: FullGameState = {
   lastLoreDistillTurn: 0,
   gameLog: [],
   lastActionLog: null,
-  themeHistory: {} as ThemeHistoryState,
   themeFacts: [],
   worldFacts: null,
   heroSheet: null,
   heroBackstory: null,
   storyArc: null,
-  pendingNewThemeNameAfterShift: null,
   allNPCs: [],
   mapData: structuredCloneGameState(mapData),
   currentMapNodeId: 'universe',
@@ -94,14 +92,10 @@ const baseState: FullGameState = {
   localTime: null,
   localEnvironment: null,
   localPlace: null,
-  turnsSinceLastShift: 0,
   globalTurnNumber: 0,
   dialogueState: null,
-  isCustomGameMode: false,
   playerGender: 'neutral',
   enabledThemePacks: [],
-  stabilityLevel: 0,
-  chaosLevel: 0,
   debugLore: false,
   debugGoodFacts: [],
   debugBadFacts: [],

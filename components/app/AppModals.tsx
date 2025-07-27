@@ -1,7 +1,6 @@
 import KnowledgeBase from '../modals/KnowledgeBase';
 import MapDisplay from '../map/MapDisplay';
 import ConfirmationDialog from '../ConfirmationDialog';
-import HistoryDisplay from '../modals/HistoryDisplay';
 import ImageVisualizer from '../modals/ImageVisualizer';
 import PageView from '../modals/PageView';
 import { PLAYER_HOLDER_ID, PLAYER_JOURNAL_ID } from '../../constants';
@@ -11,7 +10,6 @@ import {
   MapData,
   MapLayoutConfig,
   NPC,
-  ThemeHistoryState,
   MapNode,
   Item,
   ItemChapter,
@@ -35,10 +33,6 @@ interface AppModalsProps {
   readonly isKnowledgeBaseVisible: boolean;
   readonly onCloseKnowledgeBase: () => void;
 
-  readonly isHistoryVisible: boolean;
-  readonly onCloseHistory: () => void;
-  readonly themeHistory: ThemeHistoryState;
-  readonly gameLog: Array<string>;
 
 
   readonly isMapVisible: boolean;
@@ -57,16 +51,9 @@ interface AppModalsProps {
   readonly newGameFromMenuConfirmOpen: boolean;
   readonly handleConfirmNewGameFromMenu: () => void;
   readonly handleCancelNewGameFromMenu: () => void;
-  readonly newCustomGameConfirmOpen: boolean;
-  readonly handleConfirmNewCustomGame: () => void;
-  readonly handleCancelNewCustomGame: () => void;
   readonly loadGameFromMenuConfirmOpen: boolean;
   readonly handleConfirmLoadGameFromMenu: () => void;
   readonly handleCancelLoadGameFromMenu: () => void;
-  readonly shiftConfirmOpen: boolean;
-  readonly handleConfirmShift: () => void;
-  readonly handleCancelShift: () => void;
-  readonly isCustomGameModeShift: boolean;
   readonly inventory: Array<Item>;
   readonly playerJournal: Array<ItemChapter>;
   readonly lastJournalWriteTurn: number;
@@ -109,11 +96,6 @@ function AppModals({
   isKnowledgeBaseVisible,
   onCloseKnowledgeBase,
 
-  isHistoryVisible,
-  onCloseHistory,
-  themeHistory,
-  gameLog,
-
   isMapVisible,
   onCloseMap,
   currentThemeName,
@@ -130,16 +112,9 @@ function AppModals({
   newGameFromMenuConfirmOpen,
   handleConfirmNewGameFromMenu,
   handleCancelNewGameFromMenu,
-  newCustomGameConfirmOpen,
-  handleConfirmNewCustomGame,
-  handleCancelNewCustomGame,
   loadGameFromMenuConfirmOpen,
   handleConfirmLoadGameFromMenu,
   handleCancelLoadGameFromMenu,
-  shiftConfirmOpen,
-  handleConfirmShift,
-  handleCancelShift,
-  isCustomGameModeShift,
   inventory,
   playerJournal,
   lastJournalWriteTurn,
@@ -213,12 +188,6 @@ function AppModals({
         onClose={onCloseKnowledgeBase}
       />
 
-      <HistoryDisplay
-        gameLog={gameLog}
-        isVisible={isHistoryVisible}
-        onClose={onCloseHistory}
-        themeHistory={themeHistory}
-      />
 
       <PageView
         allNPCs={allNPCs}
@@ -279,15 +248,6 @@ function AppModals({
         title="Confirm New Game"
       />
 
-      <ConfirmationDialog
-        confirmPreset="orange"
-        confirmText="Start Custom Game"
-        isOpen={newCustomGameConfirmOpen}
-        message="Are you sure you want to start a new custom game? Your current progress will be lost."
-        onCancel={handleCancelNewCustomGame}
-        onConfirm={handleConfirmNewCustomGame}
-        title="Confirm Custom Game"
-      />
 
       <ConfirmationDialog
         confirmPreset="blue"
@@ -299,26 +259,6 @@ function AppModals({
         title="Confirm Load Game"
       />
 
-      <ConfirmationDialog
-        confirmPreset="purple"
-        confirmText="Shift Reality"
-        isCustomModeShift={isCustomGameModeShift}
-        isOpen={shiftConfirmOpen}
-        message={<>
-          This will destabilize the current reality, leading to an
-          {' '}
-
-          <strong className="text-purple-400">
-            immediate and unpredictable shift
-          </strong>
-
-          {' '}
-          to a new theme. Are you sure you wish to proceed?
-        </>}
-        onCancel={handleCancelShift}
-        onConfirm={handleConfirmShift}
-        title="Confirm Reality Shift"
-      />
     </>
   );
 }

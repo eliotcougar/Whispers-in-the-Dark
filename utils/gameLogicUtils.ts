@@ -6,7 +6,6 @@
 export * from './inventoryUtils';
 export * from './npcUtils';
 
-import { AdventureTheme } from '../types';
 
 /** Adds a log message to the list while enforcing a maximum length. */
 export const addLogMessageToList = (
@@ -33,25 +32,6 @@ export const removeDroppedItemLog = (
     }
   }
   return currentLog;
-};
-
-/**
- * Selects the name of the next theme for a reality shift.
- */
-export const selectNextThemeName = (
-  availableThemes: Array<AdventureTheme>,
-  currentThemeName?: string | null,
-): string | null => {
-  if (availableThemes.length === 0) {
-    return null;
-  }
-  const filteredThemes =
-    currentThemeName && availableThemes.length > 1
-      ? availableThemes.filter(theme => theme.name !== currentThemeName)
-      : availableThemes;
-  const themesToChooseFrom = filteredThemes.length > 0 ? filteredThemes : availableThemes;
-  const randomIndex = Math.floor(Math.random() * themesToChooseFrom.length);
-  return themesToChooseFrom[randomIndex].name;
 };
 
 import { FullGameState, ThemeFactChange, ThemeFact } from '../types';

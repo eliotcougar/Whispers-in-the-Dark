@@ -21,7 +21,6 @@ import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingStat
 import { useLoadingReason } from './useLoadingReason';
 import { getInitialGameStates } from '../utils/initialStates';
 import { useDialogueManagement } from './useDialogueManagement';
-import { useRealityShift } from './useRealityShift';
 import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
@@ -38,10 +37,8 @@ import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 export interface UseGameLogicProps {
   playerGenderProp: string;
   enabledThemePacksProp: Array<ThemePackName>;
-  stabilityLevelProp: number;
-  chaosLevelProp: number;
   onSettingsUpdateFromLoad: (
-    loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>
+    loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks'>>
   ) => void;
   initialSavedStateFromApp: GameStateStack | null;
   initialDebugStackFromApp: DebugPacketStack | null;
@@ -70,8 +67,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const {
     playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
     onSettingsUpdateFromLoad,
     initialSavedStateFromApp,
     initialDebugStackFromApp,
@@ -104,8 +99,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   // applied so it doesn't overwrite new data on subsequent renders.
   const hasLoadedInitialDebugStack = useRef<boolean>(false);
 
-  const triggerShiftRef = useRef<(c?: boolean) => void>(() => undefined);
-  const manualShiftRef = useRef<() => void>(() => undefined);
   const loadInitialGameRef = useRef<(opts: LoadInitialGameOptions) => Promise<void>>(
     () => Promise.resolve(),
   );
@@ -131,16 +124,12 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         currentState: current,
         playerGender: playerGenderProp,
         enabledThemePacks: enabledThemePacksProp,
-        stabilityLevel: stabilityLevelProp,
-        chaosLevel: chaosLevelProp,
       }),
       previous
         ? buildSaveStateSnapshot({
             currentState: previous,
             playerGender: playerGenderProp,
             enabledThemePacks: enabledThemePacksProp,
-            stabilityLevel: stabilityLevelProp,
-            chaosLevel: chaosLevelProp,
           })
         : undefined,
     ];
@@ -148,32 +137,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     gameStateStack,
     playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
   ]);
 
   const gatherDebugPacketStackForSave = useCallback((): DebugPacketStack => debugPacketStack, [debugPacketStack]);
 
-  const {
-    triggerRealityShift,
-    executeManualRealityShift,
-    completeManualShiftWithSelectedTheme,
-    cancelManualShiftThemeSelection,
-  } = useRealityShift({
-    getCurrentGameState,
-    setGameStateStack,
-    loadInitialGame: (opts) => { void loadInitialGameRef.current(opts); },
-    enabledThemePacksProp,
-    playerGenderProp,
-    stabilityLevelProp,
-    chaosLevelProp,
-    setError,
-    setLoadingReason: setLoadingReasonRef,
-    isLoading,
-  });
-
-  triggerShiftRef.current = triggerRealityShift;
-  manualShiftRef.current = executeManualRealityShift;
+  // Reality shift mechanics removed
 
   const currentSnapshot = getCurrentGameState();
 
@@ -216,14 +184,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     commitGameState,
     setGameStateStack,
     playerGenderProp,
-    stabilityLevelProp,
-    chaosLevelProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
-    triggerRealityShift,
-    executeManualRealityShift,
     freeFormActionText,
     setFreeFormActionText,
     isLoading,
@@ -242,8 +206,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   } = useGameInitialization({
     playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
     setError,
@@ -343,9 +305,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
       if (
         curr.playerGender === playerGenderProp &&
-        packsEqual &&
-        curr.stabilityLevel === stabilityLevelProp &&
-        curr.chaosLevel === chaosLevelProp
+        packsEqual
       ) {
         return prevStack;
       }
@@ -354,8 +314,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         ...curr,
         playerGender: playerGenderProp,
         enabledThemePacks: [...enabledThemePacksProp],
-        stabilityLevel: stabilityLevelProp,
-        chaosLevel: chaosLevelProp,
       } as FullGameState;
 
       return [updatedCurrent, prevStack[1]];
@@ -363,8 +321,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   }, [
     playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
     hasGameBeenInitialized,
   ]);
 
@@ -522,7 +478,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),
     loadingReason,
     error,
-    themeHistory: currentFullState.themeHistory,
     allNPCs: currentFullState.allNPCs,
     mapData: currentFullState.mapData,
     currentMapNodeId: currentFullState.currentMapNodeId,
@@ -537,10 +492,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     localTime: currentFullState.localTime,
     localEnvironment: currentFullState.localEnvironment,
     localPlace: currentFullState.localPlace,
-    turnsSinceLastShift: currentFullState.turnsSinceLastShift,
     globalTurnNumber: currentFullState.globalTurnNumber,
-    isCustomGameMode: currentFullState.isCustomGameMode,
-    isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection,
 
     dialogueState: currentFullState.dialogueState,
     isDialogueExiting,
@@ -559,9 +511,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     updateItemContent,
     handleRetry,
     executeRestartGame,
-    executeManualRealityShift,
-    completeManualShiftWithSelectedTheme,
-    cancelManualShiftThemeSelection,
     startCustomGame,
     gatherCurrentGameState: gatherGameStateStackForSave,
     gatherDebugPacketStack: gatherDebugPacketStackForSave,

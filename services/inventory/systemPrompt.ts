@@ -123,5 +123,4 @@ IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedi
 
 ${String(REGULAR_ITEM_TYPES_GUIDE)}
 
-IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Use "itemChange" with "action": "change", providing "newName" and optionally the new "type" and "description" if they change. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand"."
 `;

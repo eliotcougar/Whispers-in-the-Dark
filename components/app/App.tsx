@@ -78,10 +78,6 @@ function App() {
     setPlayerGender,
     enabledThemePacks,
     setEnabledThemePacks,
-    stabilityLevel,
-    setStabilityLevel,
-    chaosLevel,
-    setChaosLevel,
     initialSavedState,
     initialDebugStack,
     appReady,
@@ -114,14 +110,10 @@ function App() {
     userRequestedTitleMenuOpen,
     setShouldReturnToTitleMenu,
     shouldReturnToTitleMenu,
-    isHistoryVisible,
     isDebugViewVisible,
     isCustomGameSetupVisible,
-    isManualShiftThemeSelectionVisible,
-    shiftConfirmOpen,
     newGameFromMenuConfirmOpen,
     loadGameFromMenuConfirmOpen,
-    newCustomGameConfirmOpen,
     openVisualizer,
     closeVisualizer,
     openKnowledgeBase,
@@ -134,22 +126,14 @@ function App() {
     closeInfo: closeInfoModal,
     openTitleMenu,
     closeTitleMenu,
-    openHistory,
-    closeHistory,
     closeDebugView,
     setIsDebugViewVisible,
     openCustomGameSetup,
     closeCustomGameSetup,
-    openManualShiftThemeSelection,
-    closeManualShiftThemeSelection,
-    openShiftConfirm,
-    closeShiftConfirm,
     openNewGameFromMenuConfirm,
     closeNewGameFromMenuConfirm,
     openLoadGameFromMenuConfirm,
     closeLoadGameFromMenuConfirm,
-    openNewCustomGameConfirm,
-    closeNewCustomGameConfirm,
     pageItemId,
     pageStartChapterIndex,
     isPageVisible,
@@ -199,8 +183,6 @@ function App() {
   const gameLogic = useGameLogic({
     playerGenderProp: playerGender,
     enabledThemePacksProp: enabledThemePacks,
-    stabilityLevelProp: stabilityLevel,
-    chaosLevelProp: chaosLevel,
     onSettingsUpdateFromLoad: updateSettingsFromLoad,
     initialSavedStateFromApp: initialSavedState,
     initialDebugStackFromApp: initialDebugStack,
@@ -213,20 +195,16 @@ function App() {
   const {
     currentTheme,
     currentScene, mainQuest, currentObjective, actionOptions, storyArc,
-    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
+    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, mapData,
     currentMapNodeId, mapLayoutConfig,
     allNPCs,
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    handleItemInteraction, handleTakeLocationItem, handleRetry, executeManualRealityShift,
-    completeManualShiftWithSelectedTheme,
-    cancelManualShiftThemeSelection,
-    isAwaitingManualShiftThemeSelection,
+    handleItemInteraction, handleTakeLocationItem, handleRetry,
     startCustomGame,
     gatherCurrentGameState: gatherGameStateStack,
     gatherDebugPacketStack,
     hasGameBeenInitialized,
-    handleStartNewGameFromButton,
     localTime, localEnvironment, localPlace,
     dialogueState,
     handleDialogueOptionSelect,
@@ -234,9 +212,7 @@ function App() {
     isDialogueExiting,
     lastDebugPacket,
     lastTurnChanges,
-    turnsSinceLastShift,
     globalTurnNumber,
-    isCustomGameMode,
     gameStateStack,
     debugPacketStack,
     handleMapLayoutConfigChange,
@@ -303,7 +279,7 @@ function App() {
   const prevSceneRef = useRef(currentScene);
 
 
-  const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
+  const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible);
 
   const isAnyModalOrDialogueActive =
     isVisualizerVisible ||
@@ -311,18 +287,14 @@ function App() {
     isSettingsVisible ||
     isInfoVisible ||
     isMapVisible ||
-    isHistoryVisible ||
     isDebugViewVisible ||
     isPageVisible ||
     isDebugLoreVisible ||
     !!dialogueState ||
     effectiveIsTitleMenuOpen ||
-    shiftConfirmOpen ||
     newGameFromMenuConfirmOpen ||
     loadGameFromMenuConfirmOpen ||
-    isCustomGameSetupVisible ||
-    newCustomGameConfirmOpen ||
-    isManualShiftThemeSelectionVisible;
+    isCustomGameSetupVisible;
 
 
   useEffect(() => {
@@ -366,10 +338,9 @@ function App() {
     setError: (msg) => { getGameLogic().setError(msg); },
     dependencies: [
       currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
-      inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId,
+      inventory, gameLog, lastActionLog, mapData, currentMapNodeId,
       mapLayoutConfig, allNPCs, score, localTime, localEnvironment, localPlace,
-      playerGender, enabledThemePacks, stabilityLevel, chaosLevel, turnsSinceLastShift,
-      isCustomGameMode, isAwaitingManualShiftThemeSelection,
+      playerGender, enabledThemePacks,
       debugLore, debugGoodFacts, debugBadFacts,
     ],
   });
@@ -389,10 +360,6 @@ function App() {
     setVisualizerImageScene(scene);
   }, [setVisualizerImageUrl, setVisualizerImageScene]);
 
-  const confirmShift = useCallback(() => {
-    executeManualRealityShift();
-    closeShiftConfirm();
-  }, [executeManualRealityShift, closeShiftConfirm]);
 
   const handleRetryClick = useCallback(() => {
     void handleRetry();
@@ -538,16 +505,6 @@ function App() {
     openTitleMenu();
   }, [closeLoadGameFromMenuConfirm, openTitleMenu]);
 
-  const handleCancelShift = useCallback(
-    () => { closeShiftConfirm(); },
-    [closeShiftConfirm]
-  );
-
-  const handleCancelNewCustomGame = useCallback(() => {
-    closeNewCustomGameConfirm();
-    openTitleMenu();
-  }, [closeNewCustomGameConfirm, openTitleMenu]);
-
   const handleCancelNewGameFromMenu = useCallback(() => {
     closeNewGameFromMenuConfirm();
     openTitleMenu();
@@ -568,26 +525,6 @@ function App() {
     },
     [setEnabledThemePacks]
   );
-
-  useEffect(() => {
-    if (isAwaitingManualShiftThemeSelection && !isManualShiftThemeSelectionVisible) {
-      openManualShiftThemeSelection();
-    }
-  }, [isAwaitingManualShiftThemeSelection, isManualShiftThemeSelectionVisible, openManualShiftThemeSelection]);
-
-  const handleManualShiftThemeSelected = useCallback(
-    (themeName: string) => {
-      closeManualShiftThemeSelection();
-      completeManualShiftWithSelectedTheme(themeName);
-    },
-    [closeManualShiftThemeSelection, completeManualShiftWithSelectedTheme]
-  );
-
-  const handleCancelManualShiftThemeSelection = useCallback(() => {
-    closeManualShiftThemeSelection();
-    cancelManualShiftThemeSelection();
-  }, [closeManualShiftThemeSelection, cancelManualShiftThemeSelection]);
-
   /**
    * Wrapper ensuring lint compliance for the async dialogue option handler.
    */
@@ -604,14 +541,14 @@ function App() {
     if (hasGameBeenInitialized) {
       openNewGameFromMenuConfirm();
     } else {
-      handleStartNewGameFromButton();
+      openCustomGameSetup();
     }
-  }, [closeTitleMenu, hasGameBeenInitialized, handleStartNewGameFromButton, openNewGameFromMenuConfirm]);
+  }, [closeTitleMenu, hasGameBeenInitialized, openCustomGameSetup, openNewGameFromMenuConfirm]);
 
   const confirmNewGameFromMenu = useCallback(() => {
     closeNewGameFromMenuConfirm();
-    handleStartNewGameFromButton();
-  }, [closeNewGameFromMenuConfirm, handleStartNewGameFromButton]);
+    openCustomGameSetup();
+  }, [closeNewGameFromMenuConfirm, openCustomGameSetup]);
 
   const handleLoadGameFromMenu = useCallback(() => {
     closeTitleMenu();
@@ -661,19 +598,6 @@ function App() {
   }, [closeInfoModal, shouldReturnToTitleMenu, hasGameBeenInitialized, openTitleMenu, setShouldReturnToTitleMenu]);
 
 
-  const handleOpenCustomGameSetup = useCallback(() => {
-    closeTitleMenu();
-    if (hasGameBeenInitialized) {
-      openNewCustomGameConfirm();
-    } else {
-      openCustomGameSetup();
-    }
-  }, [closeTitleMenu, hasGameBeenInitialized, openCustomGameSetup, openNewCustomGameConfirm]);
-
-  const confirmNewCustomGame = useCallback(() => {
-    closeNewCustomGameConfirm();
-    openCustomGameSetup();
-  }, [closeNewCustomGameConfirm, openCustomGameSetup]);
 
   const handleCloseCustomGameSetup = useCallback(() => {
     closeCustomGameSetup();
@@ -764,7 +688,6 @@ function App() {
         <AppHeader
           currentTheme={currentTheme}
           hasGameBeenInitialized={hasGameBeenInitialized}
-          isCustomGameMode={isCustomGameMode}
         />
 
         {error && !isLoading && !dialogueState && hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
@@ -787,14 +710,11 @@ function App() {
               currentSceneExists={!!currentScene}
               currentThemeName={currentTheme ? currentTheme.name : null}
               isLoading={isLoading || !!dialogueState}
-              onManualRealityShift={openShiftConfirm}
-              onOpenHistory={openHistory}
               onOpenKnowledgeBase={openKnowledgeBase}
               onOpenMap={openMap}
               onOpenTitleMenu={openTitleMenu}
               onOpenVisualizer={openVisualizer}
               score={score}
-              turnsSinceLastShift={turnsSinceLastShift}
             />
               
             <ModelUsageIndicators />
@@ -930,7 +850,6 @@ function App() {
         isGameActive={hasGameBeenInitialized}
         isVisible={effectiveIsTitleMenuOpen}
         onClose={closeTitleMenu}
-        onCustomGame={handleOpenCustomGameSetup}
         onLoadGame={handleLoadGameFromMenu}
         onNewGame={handleNewGameFromMenu}
         onOpenGeminiKeyModal={openGeminiKeyModal}
@@ -945,27 +864,14 @@ function App() {
         onThemeSelected={handleCustomThemeSelectedForNewGame}
       />
 
-      <CustomGameSetupScreen
-        descriptionText="Choose the theme you wish to manually shift your reality to. The current theme is disabled."
-        disabledThemeName={currentTheme ? currentTheme.name : null}
-        isVisible={isManualShiftThemeSelectionVisible}
-        onClose={handleCancelManualShiftThemeSelection}
-        onThemeSelected={handleManualShiftThemeSelected}
-        titleText="Select Destination Theme"
-      />
 
       <SettingsDisplay
-        chaosLevel={chaosLevel}
         enabledThemePacks={enabledThemePacks}
-        isCustomGameMode={isCustomGameMode}
         isVisible={isSettingsVisible}
-        onChaosChange={setChaosLevel}
         onClose={closeSettings}
         onPlayerGenderChange={setPlayerGender}
-        onStabilityChange={setStabilityLevel}
         onToggleThemePack={handleToggleThemePackStable}
         playerGender={playerGender}
-        stabilityLevel={stabilityLevel}
       />
 
       <InfoDisplay
@@ -1006,20 +912,13 @@ function App() {
         currentTheme={currentTheme}
         currentThemeName={currentTheme.name}
         destinationNodeId={destinationNodeId}
-        gameLog={gameLog}
         handleCancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
-        handleCancelNewCustomGame={handleCancelNewCustomGame}
         handleCancelNewGameFromMenu={handleCancelNewGameFromMenu}
-        handleCancelShift={handleCancelShift}
         handleConfirmLoadGameFromMenu={confirmLoadGameFromMenu}
-        handleConfirmNewCustomGame={confirmNewCustomGame}
         handleConfirmNewGameFromMenu={confirmNewGameFromMenu}
-        handleConfirmShift={confirmShift}
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
         inventory={inventory}
-        isCustomGameModeShift={isCustomGameMode}
-        isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
         isMapVisible={isMapVisible}
         isPageVisible={isPageVisible}
@@ -1032,9 +931,7 @@ function App() {
         localPlace={localPlace}
         localTime={localTime}
         mapData={mapData}
-        newCustomGameConfirmOpen={newCustomGameConfirmOpen}
         newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
-        onCloseHistory={closeHistory}
         onCloseKnowledgeBase={closeKnowledgeBase}
         onCloseMap={closeMap}
         onClosePage={closePageView}
@@ -1049,9 +946,7 @@ function App() {
         pageStartChapterIndex={pageStartChapterIndex}
         playerJournal={playerJournal}
         setGeneratedImage={setGeneratedImageCache}
-        shiftConfirmOpen={shiftConfirmOpen}
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
-        themeHistory={themeHistory}
         updateItemContent={updateItemContent}
         updatePlayerJournalContent={updatePlayerJournalContent}
         visualizerImageScene={visualizerImageScene}

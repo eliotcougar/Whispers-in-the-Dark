@@ -9,8 +9,6 @@ import type {
   NPC,
   MapData,
   MapNode,
-  ThemeMemory,
-  ThemeHistoryState,
   WorldFacts,
   HeroSheet,
   HeroBackstory,
@@ -68,109 +66,6 @@ ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment
 };
 
 /**
- * Build the prompt for entering a completely new theme after a reality shift.
- */
-export const buildNewThemePostShiftPrompt = (
-
-  theme: AdventureTheme,
-  storyArc: StoryArc | null,
-  inventory: Array<Item>,
-  playerGender: string
-): string => {
-  const inventoryStrings = itemsToString(inventory, ' - ', true, true, false, false, true);
-  const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
-  const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift. ${theme.themeGuidance}
-${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
-Player's Character Gender: "${playerGender}"
-
-Player's Current Inventory (brought from previous reality or last visit):
-${inventoryStrings}
-
-Creatively generate the main quest, current objective, scene description, action options, and starting items in the style of this theme. Describe the disorienting transition.
-
-List anachronistic Player's Items in playerItemsHint.
-
-ALWAYS SET "mapUpdated": true.
-ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-`;
-  return prompt;
-};
-
-/**
- * Build the prompt for returning to a previously visited theme after a shift.
- */
-export const buildReturnToThemePostShiftPrompt = (
-
-  theme: AdventureTheme,
-  storyArc: StoryArc | null,
-  inventory: Array<Item>,
-  playerGender: string,
-  themeMemory: ThemeMemory,
-  mapDataForTheme: MapData,
-  currentThemeNPCs: Array<NPC>
-): string => {
-  const inventoryPrompt = itemsToString(
-    inventory,
-    ' - ',
-    true,
-    true,
-    false,
-    false,
-    true,
-  );
-  const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
-    node => node.themeName === theme.name && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
-  );
-  const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
-
-    // Filter NPCs that are companions, as they are traveling with the player
-  const companions = currentThemeNPCs.filter(npc => npc.presenceStatus === 'companion');
-  const companionStrings =
-    companions.length > 0 ? npcsToString(companions, ' - ', false, false, false, true) : 'None';
-  // Filter NPCs that are nearby, as they are currently present and can be interacted with
-  const nearbyNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'nearby');
-  const nearbyStrings =
-    nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, false, false, true) : 'None';
-  // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
-  const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
-  const npcsStrings =
-    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
-
-  const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
-  const prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
-${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
-Player's Character Gender: "${playerGender}"
-The Adventure Summary: "${themeMemory.summary}"
-Main Quest: "${themeMemory.mainQuest}"
-Current Objective: "${themeMemory.currentObjective}"
-
-## Player's Current Inventory (brought from previous reality or last visit):
-${inventoryPrompt}
-
-List anachronistic Player's Items in playerItemsHint.
-
-## Known Locations:
-${placesContext}
-
-## Known NPCs (including presence):
-${npcsStrings}
-
-## Companions traveling with the Player:
-${companionStrings}
-
-## NPCs Player can interact with (nearby):
-${nearbyStrings}
-
-Describe the scene as they re-enter, potentially in a state of confusion from the shift, making it feel like a continuation or a new starting point consistent with the Adventure Summary and current quest/objective.
-Provide appropriate action options for the player to orient themselves.
-
-ALWAYS SET "mapUpdated": true.
-ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-`;
-  return prompt;
-};
-
-/**
  * Build the prompt for a main game turn.
  */
 export const buildMainGameTurnPrompt = (
@@ -191,7 +86,6 @@ export const buildMainGameTurnPrompt = (
   playerGender: string,
   worldFacts: WorldFacts | null,
   heroSheet: HeroSheet | null,
-  themeHistory: ThemeHistoryState,
   currentMapNodeDetails: MapNode | null,
   fullMapData: MapData,
   destinationNodeId: string | null,

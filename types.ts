@@ -287,15 +287,6 @@ export interface AdventureTheme {
   playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
 }
 
-export interface ThemeMemory {
-  summary: string;
-  mainQuest: string;
-  currentObjective: string;
-  placeNames: Array<string>; // These will be MapNode.placeName of main map nodes in the theme
-  npcNames: Array<string>;
-}
-
-export type ThemeHistoryState = Record<string, ThemeMemory>;
 
 export interface FactWithEntities {
   text: string;
@@ -639,13 +630,11 @@ export interface FullGameState {
   lastLoreDistillTurn: number;
   gameLog: Array<string>;
   lastActionLog: string | null;
-  themeHistory: ThemeHistoryState;
   themeFacts: Array<ThemeFact>;
   worldFacts: WorldFacts | null;
   heroSheet: HeroSheet | null;
   heroBackstory: HeroBackstory | null;
   storyArc: StoryArc | null;
-  pendingNewThemeNameAfterShift: string | null;
   allNPCs: Array<NPC>;
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
@@ -656,16 +645,12 @@ export interface FullGameState {
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null; // Free-text description, ideally aligns with a map node
-  turnsSinceLastShift: number;
   globalTurnNumber: number; // New field
   dialogueState: DialogueData | null;
-  isCustomGameMode: boolean; 
 
   // Configuration snapshot (remains part of FullGameState for runtime and saving)
   playerGender: string;
   enabledThemePacks: Array<ThemePackName>;
-  stabilityLevel: number;
-  chaosLevel: number;
 
   debugLore: boolean;
   debugGoodFacts: Array<string>;
@@ -675,7 +660,6 @@ export interface FullGameState {
   objectiveAnimationType: 'success' | 'neutral' | null;
   lastDebugPacket: DebugPacket | null; 
   lastTurnChanges: TurnChanges | null; 
-  isAwaitingManualShiftThemeSelection?: boolean; // Transient: True if game is waiting for theme selection after manual shift in custom mode
 }
 
 // Defines the subset of FullGameState that is actually saved for V3.
@@ -695,13 +679,11 @@ export type SavedGameDataShape = Pick<
   | 'lastLoreDistillTurn'
   | 'gameLog'
   | 'lastActionLog'
-  | 'themeHistory'
   | 'themeFacts'
   | 'worldFacts'
   | 'heroSheet'
   | 'heroBackstory'
   | 'storyArc'
-  | 'pendingNewThemeNameAfterShift'
   | 'allNPCs'
   | 'mapData'
   | 'currentMapNodeId'
@@ -712,13 +694,9 @@ export type SavedGameDataShape = Pick<
   | 'localTime'
   | 'localEnvironment'
   | 'localPlace'
-  | 'turnsSinceLastShift'
   | 'globalTurnNumber'
   | 'playerGender'
   | 'enabledThemePacks'
-  | 'stabilityLevel'
-  | 'chaosLevel'
-  | 'isCustomGameMode' 
 >;
 
 export type GameStateStack = [FullGameState, FullGameState?];

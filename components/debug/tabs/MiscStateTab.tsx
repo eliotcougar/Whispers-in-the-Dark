@@ -13,8 +13,6 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
       currentObjective: currentState.currentObjective,
       currentThemeName: currentState.currentThemeName,
       globalTurnNumber: currentState.globalTurnNumber,
-      isAwaitingManualShiftThemeSelection: currentState.isAwaitingManualShiftThemeSelection,
-      isCustomGameMode: currentState.isCustomGameMode,
       lastTurnChangesBrief: currentState.lastTurnChanges ? {
         npcs: currentState.lastTurnChanges.npcChanges.length,
         items: currentState.lastTurnChanges.itemChanges.length,
@@ -27,9 +25,7 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
       localTime: currentState.localTime,
       mainQuest: currentState.mainQuest,
       objectiveAnimationType: currentState.objectiveAnimationType,
-      pendingNewThemeNameAfterShift: currentState.pendingNewThemeNameAfterShift,
       score: currentState.score,
-      turnsSinceLastShift: currentState.turnsSinceLastShift,
     }}
       maxHeightClass="max-h-[70vh]"
       title="Miscellaneous State Values"

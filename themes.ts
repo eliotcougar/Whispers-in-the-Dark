@@ -1,7 +1,7 @@
 
 /**
  * @file themes.ts
- * @description Predefined theme packs for the game's reality shifts.
+ * @description Predefined theme packs for the game's adventures.
  */
 
 import { AdventureTheme } from "./types";
