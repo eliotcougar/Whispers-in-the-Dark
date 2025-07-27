@@ -618,7 +618,7 @@ export const useProcessAiResponse = ({
             if (!target) continue;
             const chapter = change.item.chapters?.[0];
             if (!chapter) continue;
-            const { name: themeName, systemInstructionModifier } = themeContextForResponse;
+            const { name: themeName, themeGuidance } = themeContextForResponse;
             const nodes = draftState.mapData.nodes.filter(
               n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
             );
@@ -634,7 +634,7 @@ export const useProcessAiResponse = ({
               chapter.description,
               chapter.contentLength,
               themeName,
-              systemInstructionModifier,
+              themeGuidance,
               draftState.currentScene,
               thoughts,
               knownPlaces,
@@ -652,7 +652,7 @@ export const useProcessAiResponse = ({
                   chapter.description,
                   chapter.contentLength,
                   themeName,
-                  systemInstructionModifier,
+                  themeGuidance,
                   draftState.currentScene,
                   thoughts,
                   knownPlaces,

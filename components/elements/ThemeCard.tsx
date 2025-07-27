@@ -28,7 +28,7 @@ function ThemeCard({ theme, onSelect, disabled = false }: ThemeCardProps) {
           </h3>
 
           <p className="text-sm text-slate-300 leading-snug line-clamp-8">
-            {theme.initialSceneDescriptionSeed}
+            {theme.themeGuidance}
           </p>
 
           {disabled ? (

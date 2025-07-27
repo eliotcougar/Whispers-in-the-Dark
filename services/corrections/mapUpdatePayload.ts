@@ -38,7 +38,7 @@ export const fetchCorrectedMapUpdatePayload_Service = async (
   const prompt = `You are an AI assistant fixing a malformed map update payload for a text adventure game.
 \nMalformed JSON:\n\`\`\`json\n${malformedJson}\n\`\`\`\nValidation Error: "${validationError ?? 'Unknown'}"\nRespond ONLY with the corrected JSON object.`;
 
-  const systemInstruction = `Correct the map update payload so it adheres to the expected structure. Valid node types: ${VALID_NODE_TYPE_STRING}. Valid node statuses: ${VALID_NODE_STATUS_STRING}. Valid edge types: ${VALID_EDGE_TYPE_STRING}. Valid edge statuses: ${VALID_EDGE_STATUS_STRING}. ${NODE_DESCRIPTION_INSTRUCTION} ${EDGE_DESCRIPTION_INSTRUCTION} ${ALIAS_INSTRUCTION} Theme Guidance: ${currentTheme.systemInstructionModifier}`;
+  const systemInstruction = `Correct the map update payload so it adheres to the expected structure. Valid node types: ${VALID_NODE_TYPE_STRING}. Valid node statuses: ${VALID_NODE_STATUS_STRING}. Valid edge types: ${VALID_EDGE_TYPE_STRING}. Valid edge statuses: ${VALID_EDGE_STATUS_STRING}. ${NODE_DESCRIPTION_INSTRUCTION} ${EDGE_DESCRIPTION_INSTRUCTION} ${ALIAS_INSTRUCTION} Theme Guidance: ${currentTheme.themeGuidance}`;
 
   return retryAiCall<AIMapUpdatePayload>(async attempt => {
     try {

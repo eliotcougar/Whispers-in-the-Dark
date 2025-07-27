@@ -45,7 +45,7 @@ export const buildNewGameFirstTurnPrompt = (
   const heroDescription = formatHeroSheetForPrompt(heroSheet, true);
   const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
   const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
-  const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.systemInstructionModifier}
+  const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.themeGuidance}
 ${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
 
 ## World Details:
@@ -79,17 +79,14 @@ export const buildNewThemePostShiftPrompt = (
 ): string => {
   const inventoryStrings = itemsToString(inventory, ' - ', true, true, false, false, true);
   const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
-  const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
+  const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift. ${theme.themeGuidance}
 ${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
 Player's Character Gender: "${playerGender}"
-Initial Scene: "${theme.initialSceneDescriptionSeed}" (adapt to an arrival scene describing the disorienting transition).
-Main Quest: "${theme.initialMainQuest}" (adjust for variety)
-Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
 
 Player's Current Inventory (brought from previous reality or last visit):
 ${inventoryStrings}
 
-Generate the scene description for a disoriented arrival, and provide appropriate initial action options for the player to orient themselves.
+Creatively generate the main quest, current objective, scene description, action options, and starting items in the style of this theme. Describe the disorienting transition.
 
 List anachronistic Player's Items in playerItemsHint.
 

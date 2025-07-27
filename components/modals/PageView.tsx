@@ -142,7 +142,7 @@ function PageView({
     [unlockedChapterCount, isBook, isJournal]
   );
 
-  const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
+  const { name: themeName, themeGuidance: themeDescription } = currentTheme;
 
   const handleToggleDecoded = useCallback(() => {
     setShowDecoded(prev => !prev);

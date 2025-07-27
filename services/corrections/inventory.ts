@@ -56,7 +56,7 @@ ${malformedResponseText}
 - Current Place ID: "${currentNodeId ?? 'unknown'}"
 - Companions: ${companionsContext}
 - Nearby NPCs: ${nearbyNpcsContext}
-- Theme Guidance: "${currentTheme.systemInstructionModifier || 'General adventure theme.'}"
+- Theme Guidance: "${currentTheme.themeGuidance || 'General adventure theme.'}"
 
 Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
 
