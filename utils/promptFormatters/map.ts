@@ -35,7 +35,7 @@ export const formatNodeLine = (
  * Formats a single map edge line for prompt context.
  */
 export const formatEdgeLine = (edge: MapEdge): string =>
-  `- ${edge.id} from ${edge.sourceNodeId} to ${edge.targetNodeId}`;
+  `- ${edge.id} (${String(edge.data.status)} ${String(edge.data.type)})`;
 
 /**
  * Formats a list of map nodes for inclusion in prompts.
@@ -94,7 +94,7 @@ export const mapEdgesToString = (
     .map(e => {
       const status = e.data.status ?? 'open';
       const type = e.data.type ?? 'path';
-      let str = `${prefix}${e.id} (${status} ${type}) from ${e.sourceNodeId} to ${e.targetNodeId}`;
+      let str = `${prefix}${e.id} (${status} ${type})`;
       const details: Array<string> = [];
       if (e.data.travelTime) details.push(`travel time: ${e.data.travelTime}`);
       if (e.data.description) details.push(e.data.description);
