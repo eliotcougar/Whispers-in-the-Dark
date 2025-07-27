@@ -16,7 +16,7 @@ import { useDialogueSummary } from './useDialogueSummary';
 export interface UseDialogueFlowProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (newGameState: FullGameState) => void;
-  playerGenderProp: string;
+  heroGenderProp: string;
   setError: (error: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
@@ -39,7 +39,7 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
   const {
     getCurrentGameState,
     commitGameState,
-    playerGenderProp,
+    heroGenderProp,
     setError,
     setIsLoading,
     setLoadingReason,
@@ -64,7 +64,6 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
   } = useDialogueSummary({
     getCurrentGameState,
     commitGameState,
-    playerGenderProp,
     setError,
     setIsLoading,
     setLoadingReason,
@@ -76,7 +75,7 @@ export const useDialogueFlow = (props: UseDialogueFlowProps) => {
   const { handleDialogueOptionSelect } = useDialogueTurn({
     getCurrentGameState,
     commitGameState,
-    playerGenderProp,
+    heroGenderProp,
     setError,
     setIsLoading,
     setLoadingReason,

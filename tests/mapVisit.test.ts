@@ -88,7 +88,6 @@ const baseState: FullGameState = {
   localPlace: null,
   globalTurnNumber: 0,
   dialogueState: null,
-  playerGender: 'neutral',
   enabledThemePacks: [],
   debugLore: false,
   debugGoodFacts: [],

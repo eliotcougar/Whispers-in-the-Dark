@@ -243,7 +243,7 @@ export const generateCharacterDescriptions = async (
 
 export const generateHeroData = async (
   theme: AdventureTheme,
-  playerGender: string,
+  heroGender: string,
   worldFacts: WorldFacts,
   heroName?: string,
   heroDescription?: string,
@@ -255,7 +255,7 @@ export const generateHeroData = async (
   const heroSheetPrompt =
     `Using the theme "${theme.name}" and these world details:
     ${JSON.stringify(worldFacts)}
-    The player's character gender is ${playerGender}.` +
+    The player's character gender is ${heroGender}.` +
     (heroName ? ` Their name is ${heroName}.` : '') +
     (heroDescription ? ` Here is a short description of the hero: ${heroDescription}.` : '') +
     ' Create a brief character sheet including occupation, notable traits, and starting items.';
@@ -277,6 +277,7 @@ export const generateHeroData = async (
       addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
       const sheetText = await request(heroSheetPrompt, heroSheetSchema, 'HeroSheet');
       const parsedSheet = sheetText ? safeParseJson<HeroSheet>(extractJsonFromFence(sheetText)) : null;
+      if (parsedSheet) parsedSheet.gender = heroGender;
       const finalHeroName = heroName ?? parsedSheet?.name ?? 'the hero';
       const backstoryPrompt =
         `Using these world details:
@@ -323,7 +324,7 @@ export const generateHeroData = async (
 
 export const generateWorldData = async (
   theme: AdventureTheme,
-  playerGender: string,
+  heroGender: string,
 ): Promise<WorldDataResult | null> => {
   if (!isApiConfigured()) {
     console.error('generateWorldData: API key not configured.');
@@ -356,7 +357,7 @@ export const generateWorldData = async (
     const factsText = await request(worldFactsPrompt, worldFactsSchema, 'WorldFacts');
     const parsedFacts = factsText ? safeParseJson<WorldFacts>(extractJsonFromFence(factsText)) : null;
 
-    const heroData = await generateHeroData(theme, playerGender, parsedFacts ?? {
+    const heroData = await generateHeroData(theme, heroGender, parsedFacts ?? {
       geography: '',
       climate: '',
       technologyLevel: '',
