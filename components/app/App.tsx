@@ -25,6 +25,7 @@ import InfoDisplay from '../modals/InfoDisplay';
 import DebugLoreModal from '../modals/DebugLoreModal';
 import GeminiKeyModal from '../modals/GeminiKeyModal';
 import CharacterSelectModal from '../modals/CharacterSelectModal';
+import GenderSelectModal from '../modals/GenderSelectModal';
 import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
@@ -74,8 +75,8 @@ function App() {
     return gameLogicRef.current;
   };
   const {
-    playerGender,
-    setPlayerGender,
+    heroGender,
+    setHeroGender,
     enabledThemePacks,
     setEnabledThemePacks,
     initialSavedState,
@@ -142,6 +143,9 @@ function App() {
     isDebugLoreVisible,
     debugLoreFacts,
     openDebugLoreModal,
+    isGenderSelectVisible,
+    openGenderSelectModal,
+    submitGenderSelectModal,
     openCharacterSelectModal,
     isCharacterSelectVisible,
     characterSelectData,
@@ -164,7 +168,7 @@ function App() {
   const openCharacterSelect = useCallback(
     (data: {
       theme: AdventureTheme;
-      playerGender: string;
+      heroGender: string;
       worldFacts: WorldFacts;
       options: Array<CharacterOption>;
     }) =>
@@ -174,14 +178,25 @@ function App() {
         heroBackstory: HeroBackstory | null;
         storyArc: StoryArc | null;
       }>(resolve => {
-      openCharacterSelectModal(data, resolve);
-    }),
+        openCharacterSelectModal(data, resolve);
+      }),
     [openCharacterSelectModal],
+  );
+
+  const openGenderSelect = useCallback(
+    (defaultGender: string) =>
+      new Promise<string>(resolve => {
+        openGenderSelectModal(defaultGender, gender => {
+          setHeroGender(gender);
+          resolve(gender);
+        });
+      }),
+    [openGenderSelectModal, setHeroGender],
   );
 
 
   const gameLogic = useGameLogic({
-    playerGenderProp: playerGender,
+    heroGenderProp: heroGender,
     enabledThemePacksProp: enabledThemePacks,
     onSettingsUpdateFromLoad: updateSettingsFromLoad,
     initialSavedStateFromApp: initialSavedState,
@@ -189,6 +204,7 @@ function App() {
     isAppReady: appReady,
     openDebugLoreModal,
     openCharacterSelectModal: openCharacterSelect,
+    openGenderSelectModal: openGenderSelect,
   });
   gameLogicRef.current = gameLogic;
 
@@ -340,7 +356,7 @@ function App() {
       currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
       inventory, gameLog, lastActionLog, mapData, currentMapNodeId,
       mapLayoutConfig, allNPCs, score, localTime, localEnvironment, localPlace,
-      playerGender, enabledThemePacks,
+      enabledThemePacks,
       debugLore, debugGoodFacts, debugBadFacts,
     ],
   });
@@ -864,9 +880,7 @@ function App() {
         enabledThemePacks={enabledThemePacks}
         isVisible={isSettingsVisible}
         onClose={closeSettings}
-        onPlayerGenderChange={setPlayerGender}
         onToggleThemePack={handleToggleThemePackStable}
-        playerGender={playerGender}
       />
 
       <InfoDisplay
@@ -886,12 +900,18 @@ function App() {
         onClose={closeGeminiKeyModal}
       />
 
+      <GenderSelectModal
+        defaultGender={heroGender}
+        isVisible={isGenderSelectVisible}
+        onSubmit={submitGenderSelectModal}
+      />
+
       {characterSelectData ? (
         <CharacterSelectModal
           isVisible={isCharacterSelectVisible}
           onComplete={submitCharacterSelectModal}
           options={characterSelectData.options}
-          playerGender={characterSelectData.playerGender}
+          heroGender={characterSelectData.heroGender}
           theme={characterSelectData.theme}
           worldFacts={characterSelectData.worldFacts}
         />

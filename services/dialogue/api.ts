@@ -99,7 +99,7 @@ export const executeDialogueTurn = async (
   knownMainMapNodesInTheme: Array<MapNode>,
   knownNPCsInTheme: Array<NPC>,
   inventory: Array<Item>,
-  playerGender: string,
+  heroGender: string,
   heroSheet: HeroSheet | null,
   dialogueHistory: Array<DialogueHistoryEntry>,
   playerLastUtterance: string,
@@ -122,7 +122,6 @@ export const executeDialogueTurn = async (
     knownMainMapNodesInTheme,
     knownNPCsInTheme: knownNPCsInTheme,
     inventory,
-    playerGender,
     heroSheet,
     storyArc,
     dialogueHistory,
@@ -240,7 +239,7 @@ export const executeDialogueSummary = async (
         .map(p => p.text);
       const parsed = await parseAIResponse(
         response.text ?? '',
-        summaryContext.playerGender,
+        summaryContext.heroSheet?.gender ?? 'Not Specified',
         themeObject,
         undefined,
         undefined,

@@ -34,7 +34,7 @@ import {
 export const buildNewGameFirstTurnPrompt = (
   theme: AdventureTheme,
   storyArc: StoryArc | null,
-  playerGender: string,
+  heroGender: string,
   worldFacts: WorldFacts,
   heroSheet: HeroSheet,
   heroBackstory: HeroBackstory,
@@ -50,7 +50,7 @@ ${arcContext ? `\n\n### Narrative Arc:\n${arcContext}` : ''}
 ${worldInfo}
 
 ## Player Character Description:
-Gender: ${playerGender}.
+Gender: ${heroGender}.
 ${heroDescription}
 
 ## Player Character Backstory:
@@ -83,7 +83,7 @@ export const buildMainGameTurnPrompt = (
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
-  playerGender: string,
+  heroGender: string,
   worldFacts: WorldFacts | null,
   heroSheet: HeroSheet | null,
   currentMapNodeDetails: MapNode | null,
@@ -192,7 +192,7 @@ Current Objective: "${currentObjective ?? 'Not set'}"
 ${worldInfo}
 
 ### Player Character Description:
-Gender: ${playerGender}.
+Gender: ${heroGender}.
 ${heroDescription}
 
 ### Player's Inventory:

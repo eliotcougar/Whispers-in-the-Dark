@@ -3,7 +3,7 @@
  * @description Hook managing save/load operations and related state for App.
  */
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
-import { FullGameState, ThemePackName, GameStateStack, DebugPacketStack } from '../types';
+import { ThemePackName, GameStateStack, DebugPacketStack } from '../types';
 import {
   saveGameStateToFile,
   loadGameStateFromFile,
@@ -48,7 +48,7 @@ export const useSaveLoad = ({
   dialogueState = null,
   hasGameBeenInitialized = false,
 }: UseSaveLoadOptions) => {
-  const [playerGender, setPlayerGender] = useState<string>(DEFAULT_PLAYER_GENDER);
+  const [heroGender, setHeroGender] = useState<string>(DEFAULT_PLAYER_GENDER);
   const [enabledThemePacks, setEnabledThemePacks] = useState<Array<ThemePackName>>([...DEFAULT_ENABLED_THEME_PACKS]);
   const [initialSavedState, setInitialSavedState] = useState<GameStateStack | null>(null);
   const [initialDebugStack, setInitialDebugStack] = useState<DebugPacketStack | null>(null);
@@ -67,7 +67,7 @@ export const useSaveLoad = ({
           loadedState[0].debugBadFacts = loadedDebugLore.debugBadFacts;
         }
         const current = loadedState[0];
-        setPlayerGender(current.playerGender);
+        setHeroGender(current.heroSheet?.gender ?? DEFAULT_PLAYER_GENDER);
         setEnabledThemePacks(current.enabledThemePacks);
         setInitialSavedState(loadedState);
       } else {
@@ -77,8 +77,8 @@ export const useSaveLoad = ({
     })();
   }, []);
 
-  const updateSettingsFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks'>>) => {
-    if (loadedSettings.playerGender !== undefined) setPlayerGender(loadedSettings.playerGender);
+  const updateSettingsFromLoad = useCallback((loadedSettings: { heroGender?: string; enabledThemePacks?: Array<ThemePackName> }) => {
+    if (loadedSettings.heroGender !== undefined) setHeroGender(loadedSettings.heroGender);
     if (loadedSettings.enabledThemePacks !== undefined) setEnabledThemePacks(loadedSettings.enabledThemePacks);
   }, []);
 
@@ -191,8 +191,8 @@ export const useSaveLoad = ({
   };
 
   return {
-    playerGender,
-    setPlayerGender,
+    heroGender,
+    setHeroGender,
     enabledThemePacks,
     setEnabledThemePacks,
     initialSavedState,

@@ -9,9 +9,8 @@ import {
   MapLayoutConfig,
   ThemePackName
 } from '../types';
-import { 
-    CURRENT_SAVE_GAME_VERSION, 
-    DEFAULT_PLAYER_GENDER,
+import {
+    CURRENT_SAVE_GAME_VERSION,
     DEFAULT_ENABLED_THEME_PACKS
 } from '../constants';
 import {
@@ -81,7 +80,6 @@ export const getInitialGameStates = (): FullGameState => {
     lastDebugPacket: null,
     lastTurnChanges: null, 
     // Configuration snapshot
-    playerGender: DEFAULT_PLAYER_GENDER,
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
 
     debugLore: false,
@@ -95,11 +93,9 @@ export const getInitialGameStates = (): FullGameState => {
  * Useful when starting a new game with user-supplied settings.
  */
 export const getInitialGameStatesWithSettings = (
-  playerGender: string,
   enabledThemePacks: Array<ThemePackName>,
 ): FullGameState => {
   const base = getInitialGameStates();
-  base.playerGender = playerGender;
   base.enabledThemePacks = [...enabledThemePacks];
   return base;
 };

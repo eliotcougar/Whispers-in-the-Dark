@@ -31,7 +31,6 @@ export const buildDialogueTurnPrompt = (
     knownMainMapNodesInTheme,
     knownNPCsInTheme: knownNPCsInTheme,
     inventory,
-    playerGender,
     heroSheet,
     dialogueHistory,
     playerLastUtterance,
@@ -42,6 +41,7 @@ export const buildDialogueTurnPrompt = (
     heroSheet !== null
       ? formatHeroSheetForPrompt(heroSheet, false)
       : 'The player character remains undescribed.';
+  const gender = heroSheet?.gender ?? 'Not Specified';
   const arcContext = context.storyArc ? formatStoryArcContext(context.storyArc) : '';
   let historyToUseInPrompt = [...dialogueHistory];
   if (
@@ -125,7 +125,7 @@ Scene Description (for environmental context): "${currentScene}";
 Local Time: "${localTime ?? 'Unknown'}", Environment: "${localEnvironment ?? 'Undetermined'}", Place: "${localPlace ?? 'Undetermined'}";
 
 ## Player Character Description:
-Gender: ${playerGender}.
+Gender: ${gender}.
 ${heroDescription}
 Character Traits should slightly influence dialogue choices.
 
@@ -200,7 +200,7 @@ ${summaryContext.storyArc ? `Narrative Arc: ${summaryContext.storyArc.title} (Ac
 - Current Objective (before dialogue): "${summaryContext.currentObjective ?? 'Not set'}"
 - Scene Description (when dialogue started): "${summaryContext.currentScene}"
 - Local Time: "${summaryContext.localTime ?? 'Unknown'}", Environment: "${summaryContext.localEnvironment ?? 'Undetermined'}", Place: "${summaryContext.localPlace ?? 'Undetermined'}"
-- Player's Character Gender: "${summaryContext.playerGender}"
+ - Player's Character Gender: "${summaryContext.heroSheet?.gender ?? 'Not Specified'}"
 
 - Player's Inventory (before dialogue):
 ${inventoryString}

@@ -31,7 +31,7 @@ import {
 
 /** Interface describing contextual data required by the parsing helpers. */
 interface ParserContext {
-    playerGender: string;
+    heroGender: string;
     currentTheme: AdventureTheme;
     onParseAttemptFailed?: () => void;
     logMessageFromPayload?: string;
@@ -149,7 +149,7 @@ async function handleDialogueSetup(
                 NPCsForDialogueContext,
                 context.allRelevantMainMapNodesForCorrection,
                 context.currentInventoryForCorrection,
-                context.playerGender,
+                context.heroGender,
                 dialogueSetup
             );
 
@@ -385,7 +385,7 @@ async function handleNPCChanges(
  */
 export async function parseAIResponse(
     responseText: string,
-    playerGender: string,
+    heroGender: string,
     currentTheme: AdventureTheme,
     onParseAttemptFailed?: () => void,
     logMessageFromPayload?: string,
@@ -406,7 +406,7 @@ export async function parseAIResponse(
         if (!validated) return null;
 
         const context: ParserContext = {
-            playerGender,
+            heroGender,
             currentTheme,
             onParseAttemptFailed,
             logMessageFromPayload,

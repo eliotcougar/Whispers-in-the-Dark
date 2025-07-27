@@ -31,7 +31,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
   allRelevantNPCs: Array<NPC>,
   allRelevantMapNodes: Array<MapNode>,
   currentInventory: Array<Item>,
-  playerGender: string,
+  heroGender: string,
   malformedDialogueSetup: Partial<DialogueSetupPayload>
 ): Promise<DialogueSetupPayload | null> => {
   if (!isApiConfigured()) {
@@ -63,7 +63,7 @@ Narrative Context:
 - Known/Available NPCs for Dialogue: ${npcContext}
 - Known Map Locations: ${placeContext}
 - Player Inventory: ${inventoryContext}
-- Player Gender: "${playerGender}"
+ - Player Gender: "${heroGender}"
 
 Required JSON Structure for corrected 'dialogueSetup':
 {
