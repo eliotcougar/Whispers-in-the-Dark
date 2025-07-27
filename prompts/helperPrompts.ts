@@ -37,8 +37,8 @@ export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "playerItemsHint": short summary of gains, losses or state changes for the Player.
 - "worldItemsHint": short summary of items dropped or discovered in the environment.
 - "npcItemsHint": short summary of items held or used by NPCs.
-- "librarianHint": short summary for written items (pages, books, pictures, maps). Use this instead of playerItemsHint, worldItemsHint, or npcItemsHint when the item is written.
-- "newItems": array of brand new items introduced this turn, or [] if none.
+- "librarianHint": short summary for written items (pages, books, pictures, maps). Do not mention the same items in playerItemsHint, worldItemsHint, or npcItemsHint if it is written items.
+- "newItems": array of brand new items (including written items) introduced this turn, or [] if none.
 
 ## Examples illustrating the hint style:
 
@@ -135,7 +135,8 @@ newItems:
     "name": "Explorer's Adventures",
     "tags": ["handwritten", "faded"],
     "type": "book"
-  }]
+  }
+]
 
 ### Example for losing, destroying, completely removing the item:
 playerItemsHint: "Lost Old Lantern (flickering)."

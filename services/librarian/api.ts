@@ -42,12 +42,13 @@ export const LIBRARIAN_JSON_SCHEMA = {
         properties: {
           chapters: {
             type: 'array',
+            description: 'Only add chapters if Librarian Hint directly instructs that.',
             items: {
               type: 'object',
               properties: {
-                contentLength: { type: 'number', minimum: 50, maximum: 500 },
-                description: { type: 'string' },
-                heading: { type: 'string' },
+                contentLength: { type: 'number', minimum: 50, maximum: 500, description: 'Approximate length in words.' },
+                description: { type: 'string', description: 'Detailed abstract of the chapter contents.' },
+                heading: { type: 'string', description: 'Short heading for the chapter.' },
               },
               propertyOrdering: ['contentLength', 'description', 'heading'],
               required: ['contentLength', 'description', 'heading'],
@@ -60,9 +61,9 @@ export const LIBRARIAN_JSON_SCHEMA = {
             items: {
               type: 'object',
               properties: {
-                actionName: { type: 'string' },
-                description: { type: 'string' },
-                promptEffect: { type: 'string' },
+                actionName: { type: 'string', description: 'Name of the use action.' },
+                description: { type: 'string', description: 'Tooltip hint for this use.' },
+                promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
               },
               propertyOrdering: ['actionName', 'description', 'promptEffect'],
               required: ['actionName', 'description', 'promptEffect'],
@@ -95,9 +96,9 @@ export const LIBRARIAN_JSON_SCHEMA = {
             items: {
               type: 'object',
               properties: {
-                actionName: { type: 'string' },
-                description: { type: 'string' },
-                promptEffect: { type: 'string' },
+                actionName: { type: 'string', description: 'Name of the use action.' },
+                description: { type: 'string', description: 'Tooltip hint for this use.' },
+                promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
               },
               propertyOrdering: ['actionName', 'description', 'promptEffect'],
               required: ['actionName', 'description', 'promptEffect'],
@@ -110,7 +111,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
             type: 'array',
             maxItems: 5,
             items: { enum: WRITTEN_TAGS },
-            description: 'Updated tags.',
+            description: `Updated tags. Allowed tags: ${WRITTEN_TAGS_STRING}.`,
           },
           type: { enum: WRITTEN_ITEM_TYPES, description: `Updated type if changed. One of ${WRITTEN_ITEM_TYPES_STRING}.` },
         },
@@ -158,6 +159,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
             items: {
               type: 'object',
               properties: {
+                actionName: { type: 'string', description: 'Name of the use action.' },
                 description: { type: 'string', description: 'Tooltip hint for this use.' },
                 promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
               },
