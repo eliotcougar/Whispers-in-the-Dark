@@ -52,7 +52,7 @@ export interface LoadInitialGameOptions {
 }
 
 export interface UseGameInitializationProps {
-  playerGenderProp: string;
+  heroGenderProp: string;
   enabledThemePacksProp: Array<ThemePackName>;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
@@ -60,7 +60,7 @@ export interface UseGameInitializationProps {
   setParseErrorCounter: (val: number) => void;
   setHasGameBeenInitialized: (val: boolean) => void;
   onSettingsUpdateFromLoad: (
-    loaded: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks'>>
+    loaded: Partial<Pick<FullGameState, 'enabledThemePacks'>> & { heroGender?: string }
   ) => void;
   getCurrentGameState: () => FullGameState;
   commitGameState: (state: FullGameState) => void;
@@ -70,7 +70,7 @@ export interface UseGameInitializationProps {
   openCharacterSelectModal: (
     data: {
       theme: AdventureTheme;
-      playerGender: string;
+      heroGender: string;
       worldFacts: WorldFacts;
       options: Array<CharacterOption>;
     },
@@ -80,6 +80,7 @@ export interface UseGameInitializationProps {
     heroBackstory: HeroBackstory | null;
     storyArc: StoryArc | null;
   }>;
+  openGenderSelectModal: (defaultGender: string) => Promise<string>;
 }
 
 /**
@@ -87,7 +88,7 @@ export interface UseGameInitializationProps {
  */
 export const useGameInitialization = (props: UseGameInitializationProps) => {
   const {
-    playerGenderProp,
+    heroGenderProp,
     enabledThemePacksProp,
     setIsLoading,
     setLoadingReason,
@@ -101,6 +102,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     setGameStateStack,
     processAiResponse,
     openCharacterSelectModal,
+    openGenderSelectModal,
   } = props;
 
 
@@ -169,7 +171,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
         onSettingsUpdateFromLoad({
           enabledThemePacks: stateWithMapData.enabledThemePacks,
-          playerGender: stateWithMapData.playerGender,
+          heroGender: stateWithMapData.heroSheet?.gender,
         });
 
         setHasGameBeenInitialized(true);
@@ -198,8 +200,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         return;
       }
 
+      const selectedGender = await openGenderSelectModal(heroGenderProp);
+      onSettingsUpdateFromLoad({ heroGender: selectedGender });
+
       let draftState = getInitialGameStates();
-      draftState.playerGender = playerGenderProp;
       draftState.enabledThemePacks = enabledThemePacksProp;
       draftState.mapLayoutConfig = getDefaultMapLayoutConfig();
       draftState.mapViewBox = DEFAULT_VIEWBOX;
@@ -211,7 +215,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       const names = await generateCharacterNames(
         themeObjToLoad,
-        playerGenderProp,
+        selectedGender,
         worldFacts ?? { geography: '', climate: '', technologyLevel: '', supernaturalElements: '', majorFactions: [], keyResources: [], culturalNotes: [], notableLocations: [] },
       );
       let heroSheet: HeroSheet | null = null;
@@ -235,7 +239,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         if (descriptions) {
           const result = await openCharacterSelectModal({
             theme: themeObjToLoad,
-            playerGender: playerGenderProp,
+            heroGender: selectedGender,
             worldFacts: worldFacts ?? {
               geography: '',
               climate: '',
@@ -288,9 +292,11 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.mapViewBox = DEFAULT_VIEWBOX;
 
       const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
+      if (draftState.heroSheet) draftState.heroSheet.gender = selectedGender;
+
       const prompt = buildInitialGamePrompt({
         theme: themeObjToLoad,
-        playerGender: playerGenderProp,
+        heroGender: selectedGender,
         worldFacts: draftState.worldFacts ?? undefined,
         heroSheet: draftState.heroSheet ?? undefined,
         heroBackstory: draftState.heroBackstory ?? undefined,
@@ -327,7 +333,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         const currentThemeMapDataForParse = draftState.mapData;
         const parsedData = await parseAIResponse(
           response.text ?? '',
-          playerGenderProp,
+          selectedGender,
           themeObjToLoad,
           () => { setParseErrorCounter(1); },
           undefined,
@@ -365,7 +371,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         setLoadingReason(null);
       }
     }, [
-      playerGenderProp,
+      heroGenderProp,
       enabledThemePacksProp,
       setIsLoading,
       setLoadingReason,
@@ -377,6 +383,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       processAiResponse,
       setGameStateStack,
       openCharacterSelectModal,
+      openGenderSelectModal,
     ]);
 
   /**
@@ -386,7 +393,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
    */
   const handleStartNewGameFromButton = useCallback(() => {
     const blankState = getInitialGameStatesWithSettings(
-      playerGenderProp,
       enabledThemePacksProp
     );
     resetGameStateStack(blankState);
@@ -396,7 +402,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     loadInitialGame,
     setHasGameBeenInitialized,
     resetGameStateStack,
-    playerGenderProp,
     enabledThemePacksProp,
   ]);
 
@@ -404,7 +409,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
   const startCustomGame = useCallback(
     (themeName: string) => {
       const blankState = getInitialGameStatesWithSettings(
-        playerGenderProp,
         enabledThemePacksProp
       );
       resetGameStateStack(blankState);
@@ -415,7 +419,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       loadInitialGame,
       setHasGameBeenInitialized,
       resetGameStateStack,
-      playerGenderProp,
       enabledThemePacksProp,
     ]
   );
@@ -424,7 +427,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
   const executeRestartGame = useCallback(() => {
     setError(null);
     const blankState = getInitialGameStatesWithSettings(
-      playerGenderProp,
       enabledThemePacksProp
     );
     resetGameStateStack(blankState);
@@ -435,7 +437,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     setError,
     setHasGameBeenInitialized,
     resetGameStateStack,
-    playerGenderProp,
     enabledThemePacksProp,
   ]);
 
@@ -517,7 +518,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       const parsedData = await parseAIResponse(
         response.text ?? '',
-        playerGenderProp,
+        heroGenderProp,
         currentThemeObj,
         () => { setParseErrorCounter(1); },
         currentFullState.lastActionLog ?? undefined,
@@ -565,7 +566,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     setLoadingReason,
     setParseErrorCounter,
     processAiResponse,
-    playerGenderProp,
+    heroGenderProp,
   ]);
 
   return {

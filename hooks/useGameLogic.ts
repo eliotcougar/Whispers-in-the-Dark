@@ -35,10 +35,10 @@ import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 
 export interface UseGameLogicProps {
-  playerGenderProp: string;
+  heroGenderProp: string;
   enabledThemePacksProp: Array<ThemePackName>;
   onSettingsUpdateFromLoad: (
-    loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks'>>
+    loadedSettings: Partial<Pick<FullGameState, 'enabledThemePacks'>> & { heroGender?: string }
   ) => void;
   initialSavedStateFromApp: GameStateStack | null;
   initialDebugStackFromApp: DebugPacketStack | null;
@@ -50,7 +50,7 @@ export interface UseGameLogicProps {
   openCharacterSelectModal: (
     data: {
       theme: AdventureTheme;
-      playerGender: string;
+      heroGender: string;
       worldFacts: WorldFacts;
       options: Array<CharacterOption>;
     },
@@ -60,12 +60,13 @@ export interface UseGameLogicProps {
     heroBackstory: HeroBackstory | null;
     storyArc: StoryArc | null;
   }>;
+  openGenderSelectModal: (defaultGender: string) => Promise<string>;
 }
 
 /** Manages overall game state and delegates to sub hooks. */
 export const useGameLogic = (props: UseGameLogicProps) => {
   const {
-    playerGenderProp,
+    heroGenderProp,
     enabledThemePacksProp,
     onSettingsUpdateFromLoad,
     initialSavedStateFromApp,
@@ -73,6 +74,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     isAppReady,
     openDebugLoreModal,
     openCharacterSelectModal,
+    openGenderSelectModal,
   } = props;
 
   const [gameStateStack, setGameStateStack] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
@@ -122,22 +124,16 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     return [
       buildSaveStateSnapshot({
         currentState: current,
-        playerGender: playerGenderProp,
         enabledThemePacks: enabledThemePacksProp,
       }),
       previous
         ? buildSaveStateSnapshot({
             currentState: previous,
-            playerGender: playerGenderProp,
             enabledThemePacks: enabledThemePacksProp,
           })
         : undefined,
     ];
-  }, [
-    gameStateStack,
-    playerGenderProp,
-    enabledThemePacksProp,
-  ]);
+  }, [gameStateStack, enabledThemePacksProp]);
 
   const gatherDebugPacketStackForSave = useCallback((): DebugPacketStack => debugPacketStack, [debugPacketStack]);
 
@@ -183,7 +179,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     getCurrentGameState,
     commitGameState,
     setGameStateStack,
-    playerGenderProp,
+    heroGenderProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
     setError,
@@ -204,7 +200,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     executeRestartGame,
     handleRetry,
   } = useGameInitialization({
-    playerGenderProp,
+    heroGenderProp,
     enabledThemePacksProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
@@ -218,6 +214,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     setGameStateStack,
     processAiResponse,
     openCharacterSelectModal,
+    openGenderSelectModal,
   });
   loadInitialGameRef.current = loadInitialGame;
 
@@ -225,7 +222,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue } = useDialogueManagement({
     getCurrentGameState,
     commitGameState,
-    playerGenderProp,
+    heroGenderProp,
     setError,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
@@ -295,6 +292,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const currentFullState = getCurrentGameState();
 
+  // Keep current state's enabled theme packs in sync with user settings
   useEffect(() => {
     if (!hasGameBeenInitialized) return;
     setGameStateStack(prevStack => {
@@ -302,27 +300,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       const packsEqual =
         curr.enabledThemePacks.length === enabledThemePacksProp.length &&
         curr.enabledThemePacks.every((p, i) => p === enabledThemePacksProp[i]);
-
-      if (
-        curr.playerGender === playerGenderProp &&
-        packsEqual
-      ) {
-        return prevStack;
-      }
-
+      if (packsEqual) return prevStack;
       const updatedCurrent = {
         ...curr,
-        playerGender: playerGenderProp,
         enabledThemePacks: [...enabledThemePacksProp],
       } as FullGameState;
-
       return [updatedCurrent, prevStack[1]];
     });
-  }, [
-    playerGenderProp,
-    enabledThemePacksProp,
-    hasGameBeenInitialized,
-  ]);
+  }, [enabledThemePacksProp, hasGameBeenInitialized]);
 
   const itemPresenceByNode = useMemo(() => {
     const map: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};

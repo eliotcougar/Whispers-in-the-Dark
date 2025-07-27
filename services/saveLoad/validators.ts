@@ -284,7 +284,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     'currentTheme', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
     'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
     'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score',
-    'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks', 'playerGender',
+    'localTime', 'localEnvironment', 'localPlace', 'enabledThemePacks',
     'globalTurnNumber'
   ];
   for (const field of fields) {
@@ -366,7 +366,6 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (obj.localEnvironment !== null && typeof obj.localEnvironment !== 'string') { console.warn('Invalid save data (V3): localEnvironment type.'); return false; }
   if (obj.localPlace !== null && typeof obj.localPlace !== 'string') { console.warn('Invalid save data (V3): localPlace type.'); return false; }
   if (!isValidThemePackNameArray(obj.enabledThemePacks)) { console.warn('Invalid save data (V3): enabledThemePacks.'); return false; }
-  if (typeof obj.playerGender !== 'string') { console.warn('Invalid save data (V3): playerGender type.'); return false; }
   if (typeof obj.globalTurnNumber !== 'number') { console.warn('Invalid save data(V3): globalTurnNumber type.'); return false; }
 
   const dialogueFields: Array<string> = ['dialogueState'];

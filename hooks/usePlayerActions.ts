@@ -42,7 +42,7 @@ export interface UsePlayerActionsProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (state: FullGameState) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
-  playerGenderProp: string;
+  heroGenderProp: string;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   loadingReasonRef: React.RefObject<LoadingReason | null>;
@@ -67,7 +67,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     getCurrentGameState,
     commitGameState,
     setGameStateStack,
-    playerGenderProp,
+    heroGenderProp,
     setIsLoading,
     setLoadingReason,
     setError,
@@ -257,7 +257,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentFullState.localTime,
         currentFullState.localEnvironment,
         currentFullState.localPlace,
-        playerGenderProp,
+        heroGenderProp,
         currentFullState.worldFacts,
         currentFullState.heroSheet,
         currentMapNodeDetails,
@@ -313,7 +313,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
         const parsedData = await parseAIResponse(
           response.text ?? '',
-          playerGenderProp,
+          heroGenderProp,
           currentThemeObj,
           () => { setParseErrorCounter(1); },
           currentFullState.lastActionLog ?? undefined,
@@ -360,7 +360,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       getCurrentGameState,
       commitGameState,
       isLoading,
-      playerGenderProp,
+      heroGenderProp,
       setIsLoading,
       setLoadingReason,
       setError,

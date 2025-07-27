@@ -14,7 +14,7 @@ import { buildNewGameFirstTurnPrompt } from '../services/storyteller';
 export interface BuildInitialGamePromptOptions {
   theme: AdventureTheme;
   storyArc?: StoryArc | null;
-  playerGender: string;
+  heroGender: string;
   worldFacts?: WorldFacts;
   heroSheet?: HeroSheet;
   heroBackstory?: HeroBackstory;
@@ -26,12 +26,12 @@ export interface BuildInitialGamePromptOptions {
 export const buildInitialGamePrompt = (
   options: BuildInitialGamePromptOptions,
 ): string => {
-  const { theme, storyArc, playerGender, worldFacts, heroSheet, heroBackstory } = options;
+  const { theme, storyArc, heroGender, worldFacts, heroSheet, heroBackstory } = options;
 
   const prompt = buildNewGameFirstTurnPrompt(
     theme,
     storyArc ?? null,
-    playerGender,
+    heroGender,
     worldFacts ?? {
       geography: '',
       climate: '',
@@ -42,7 +42,7 @@ export const buildInitialGamePrompt = (
       culturalNotes: [],
       notableLocations: [],
     },
-    heroSheet ?? { name: 'Hero', occupation: '', traits: [], startingItems: [] },
+    heroSheet ?? { name: 'Hero', gender: 'Not Specified', occupation: '', traits: [], startingItems: [] },
     heroBackstory ?? {
       fiveYearsAgo: '',
       oneYearAgo: '',

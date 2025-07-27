@@ -7,7 +7,6 @@ import { CURRENT_SAVE_GAME_VERSION } from '../constants';
 
 export interface BuildSaveStateOptions {
   currentState: FullGameState;
-  playerGender: string;
   enabledThemePacks: Array<ThemePackName>;
 }
 
@@ -19,14 +18,12 @@ export const buildSaveStateSnapshot = (
 ): FullGameState => {
   const {
     currentState,
-    playerGender,
     enabledThemePacks,
   } = options;
 
   return {
     ...currentState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
-    playerGender,
     enabledThemePacks,
     mapData: currentState.mapData,
     currentMapNodeId: currentState.currentMapNodeId,

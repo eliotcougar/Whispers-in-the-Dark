@@ -7,7 +7,6 @@ import { useCallback } from 'react';
 
 import { ThemePackName } from '../../types';
 import { ALL_THEME_PACK_NAMES_CONST } from '../../constants';
-import RadioSelector from '../elements/RadioSelector';
 import CheckboxSelector from '../elements/CheckboxSelector';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
@@ -17,8 +16,6 @@ interface SettingsDisplayProps {
   readonly onClose: () => void;
   readonly enabledThemePacks: Array<ThemePackName>;
   readonly onToggleThemePack: (packName: ThemePackName) => void;
-  readonly playerGender: string;
-  readonly onPlayerGenderChange: (gender: string) => void;
 }
 
 /**
@@ -29,8 +26,6 @@ function SettingsDisplay({
   onClose,
   enabledThemePacks,
   onToggleThemePack,
-  playerGender,
-  onPlayerGenderChange,
 }: SettingsDisplayProps) {
 
   /** Toggles a theme pack in the player's preferences. */
@@ -76,26 +71,6 @@ function SettingsDisplay({
             Game Settings
           </h1>
           
-
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
-              Player Character Gender
-            </h2>
-
-            <p className="settings-explanation mb-3">
-              Choose your character&apos;s gender. This may subtly influence descriptions and interactions in the game. Changing it in the middle of the game can have unexpected effects.
-            </p>
-
-            <RadioSelector
-              addCustom
-              name="playerGender"
-              onChange={onPlayerGenderChange}
-              options={['Male', 'Female']}
-              placeholder="Enter custom gender (or leave blank for 'Not Specified')"
-              value={playerGender}
-            />
-          </div>
-
 
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">

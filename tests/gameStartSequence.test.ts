@@ -52,6 +52,7 @@ const dummyWorldFacts: WorldFacts = {
 
 const dummyHeroSheet: HeroSheet = {
   name: 'Aron',
+  gender: 'Male',
   occupation: 'Warrior',
   traits: ['Brave'],
   startingItems: ['Sword', 'Shield'],
@@ -185,7 +186,7 @@ describe('game start sequence', () => {
     if (!parsed) return;
 
     const state = getInitialGameStates();
-    state.playerGender = 'Male';
+    state.heroSheet = { ...dummyHeroSheet, gender: 'Male' };
     state.currentTheme = theme;
     state.currentScene = parsed.sceneDescription;
     state.actionOptions = parsed.options;

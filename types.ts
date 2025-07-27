@@ -194,7 +194,6 @@ export interface DialogueTurnContext {
   knownMainMapNodesInTheme: Array<MapNode>;
   knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
-  playerGender: string;
   heroSheet: HeroSheet | null;
   dialogueHistory: Array<DialogueHistoryEntry>;
   playerLastUtterance: string;
@@ -213,9 +212,9 @@ export interface DialogueSummaryContext {
   mapDataForTheme: MapData; // Map data for the current theme (nodes and edges)
   knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
-  playerGender: string;
-  dialogueLog: Array<DialogueHistoryEntry>; 
+  dialogueLog: Array<DialogueHistoryEntry>;
   dialogueParticipants: Array<string>;
+  heroSheet: HeroSheet | null;
   themeName: string; // Retained for direct theme name access if needed
   currentTheme: AdventureTheme | null; // Added for full theme object access
 }
@@ -334,6 +333,7 @@ export interface WorldFacts {
 
 export interface HeroSheet {
   name: string;
+  gender: string;
   occupation: string;
   traits: Array<string>;
   startingItems: Array<string>;
@@ -645,7 +645,6 @@ export interface FullGameState {
   dialogueState: DialogueData | null;
 
   // Configuration snapshot (remains part of FullGameState for runtime and saving)
-  playerGender: string;
   enabledThemePacks: Array<ThemePackName>;
 
   debugLore: boolean;
@@ -690,7 +689,6 @@ export type SavedGameDataShape = Pick<
   | 'localEnvironment'
   | 'localPlace'
   | 'globalTurnNumber'
-  | 'playerGender'
   | 'enabledThemePacks'
 >;
 

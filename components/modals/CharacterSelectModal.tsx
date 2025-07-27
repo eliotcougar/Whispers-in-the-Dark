@@ -9,7 +9,7 @@ import { generateHeroData } from '../../services/worldData';
 interface CharacterSelectModalProps {
   readonly isVisible: boolean;
   readonly theme: AdventureTheme;
-  readonly playerGender: string;
+  readonly heroGender: string;
   readonly worldFacts: WorldFacts;
   readonly options: Array<CharacterOption>;
   readonly onComplete: (
@@ -22,7 +22,7 @@ interface CharacterSelectModalProps {
   ) => void;
 }
 
-function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, options, onComplete }: CharacterSelectModalProps) {
+function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, options, onComplete }: CharacterSelectModalProps) {
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [heroSheet, setHeroSheet] = useState<HeroSheet | null>(null);
   const [heroBackstory, setHeroBackstory] = useState<HeroBackstory | null>(null);
@@ -36,7 +36,7 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
       void (async () => {
         const result = await generateHeroData(
           theme,
-          playerGender,
+          heroGender,
           worldFacts,
           option.name,
           option.description,
@@ -47,7 +47,7 @@ function CharacterSelectModal({ isVisible, theme, playerGender, worldFacts, opti
         setIsGenerating(false);
       })();
     },
-    [theme, playerGender, worldFacts]
+    [theme, heroGender, worldFacts]
   );
 
   const handleBegin = useCallback(() => {

@@ -26,7 +26,6 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
 export interface UseDialogueSummaryProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (newGameState: FullGameState) => void;
-  playerGenderProp: string;
   setError: (error: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
@@ -51,7 +50,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
   const {
     getCurrentGameState,
     commitGameState,
-    playerGenderProp,
     setError,
     setIsLoading,
     setLoadingReason,
@@ -138,9 +136,9 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       mapDataForTheme: mapDataForSummary,
       knownNPCsInTheme: workingGameState.allNPCs,
       inventory: workingGameState.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
-      playerGender: playerGenderProp,
       dialogueLog: finalHistory,
       dialogueParticipants: finalParticipants,
+      heroSheet: workingGameState.heroSheet,
       themeName: currentThemeObj.name,
       currentTheme: currentThemeObj,
       storyArc: workingGameState.storyArc,
@@ -170,7 +168,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     );
     clearDialogueDebugLogs();
     setIsDialogueExiting(false);
-  }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
+  }, [setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
 
 
   /**

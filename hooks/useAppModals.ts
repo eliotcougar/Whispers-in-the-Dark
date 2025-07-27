@@ -27,10 +27,12 @@ export const useAppModals = () => {
   const [isDebugLoreVisible, setIsDebugLoreVisible] = useState(false);
   const [debugLoreFacts, setDebugLoreFacts] = useState<Array<string>>([]);
   const debugLoreResolveRef = useRef<((good: Array<string>, bad: Array<string>, proceed: boolean) => void) | null>(null);
+  const [isGenderSelectVisible, setIsGenderSelectVisible] = useState(false);
+  const genderSelectResolveRef = useRef<((gender: string) => void) | null>(null);
   const [isCharacterSelectVisible, setIsCharacterSelectVisible] = useState(false);
   const [characterSelectData, setCharacterSelectData] = useState<{
     theme: AdventureTheme;
-    playerGender: string;
+    heroGender: string;
     worldFacts: WorldFacts;
     options: Array<CharacterOption>;
   } | null>(null);
@@ -92,11 +94,21 @@ export const useAppModals = () => {
     setIsDebugLoreVisible(false);
   }, []);
 
+  const openGenderSelectModal = useCallback((defaultGender: string, resolve: (gender: string) => void) => {
+    genderSelectResolveRef.current = resolve;
+    setIsGenderSelectVisible(true);
+  }, []);
+
+  const submitGenderSelectModal = useCallback((gender: string) => {
+    genderSelectResolveRef.current?.(gender);
+    setIsGenderSelectVisible(false);
+  }, []);
+
   const openCharacterSelectModal = useCallback(
     (
       data: {
         theme: AdventureTheme;
-        playerGender: string;
+        heroGender: string;
         worldFacts: WorldFacts;
         options: Array<CharacterOption>;
       },
@@ -173,6 +185,9 @@ export const useAppModals = () => {
     openDebugLoreModal,
     submitDebugLoreModal,
     closeDebugLoreModal,
+    isGenderSelectVisible,
+    openGenderSelectModal,
+    submitGenderSelectModal,
     openCharacterSelectModal,
     submitCharacterSelectModal,
   } as const;
