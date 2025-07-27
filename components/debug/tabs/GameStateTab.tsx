@@ -12,10 +12,11 @@ interface GameStateTabProps {
   readonly currentState: FullGameState;
   readonly onUndoTurn: () => void;
   readonly onApplyGameState: (state: FullGameState) => void;
+  readonly onTriggerMainQuestAchieved: () => void;
   readonly previousState?: FullGameState;
 }
 
-function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousState = undefined }: GameStateTabProps) {
+function GameStateTab({ currentState, onUndoTurn, onApplyGameState, onTriggerMainQuestAchieved, previousState = undefined }: GameStateTabProps) {
   const [editableText, setEditableText] = useState<string>('');
   const [parseError, setParseError] = useState<string | null>(null);
 
@@ -72,6 +73,15 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
         label={`Undo Turn (Global Turn: ${String(currentState.globalTurnNumber)})`}
         onClick={onUndoTurn}
         preset="orange"
+        size="sm"
+        variant="compact"
+      />
+
+      <Button
+        ariaLabel="Trigger main quest achieved"
+        label="Main Quest Achieved"
+        onClick={onTriggerMainQuestAchieved}
+        preset="purple"
         size="sm"
         variant="compact"
       />

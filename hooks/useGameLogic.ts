@@ -210,6 +210,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     recordPlayerJournalInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
+    triggerMainQuestAchieved,
   } = useGameTurn({
     getCurrentGameState,
     commitGameState,
@@ -574,6 +575,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleMapNodesPositionChange,
     handleSelectDestinationNode,
     handleUndoTurn,
+    triggerMainQuestAchieved,
     handleStashToggle,
     addJournalEntry,
     addPlayerJournalEntry,

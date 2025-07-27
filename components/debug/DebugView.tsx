@@ -35,6 +35,7 @@ interface DebugViewProps {
   readonly gameStateStack: GameStateStack;
   readonly onUndoTurn: () => void; // New prop for undoing turn
   readonly onApplyGameState: (state: FullGameState) => void;
+  readonly onTriggerMainQuestAchieved: () => void;
   readonly travelPath: Array<TravelStep> | null;
   readonly onDistillFacts: () => void;
   readonly debugLore: boolean;
@@ -74,6 +75,7 @@ function DebugView({
   gameStateStack,
   onUndoTurn,
   onApplyGameState,
+  onTriggerMainQuestAchieved,
   travelPath,
   onDistillFacts,
   debugLore,
@@ -126,6 +128,7 @@ function DebugView({
             currentState={currentState}
             onApplyGameState={onApplyGameState}
             onUndoTurn={onUndoTurn}
+            onTriggerMainQuestAchieved={onTriggerMainQuestAchieved}
             previousState={previousState}
           />
         );
