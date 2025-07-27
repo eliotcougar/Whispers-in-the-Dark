@@ -347,8 +347,12 @@ const handleInventoryHints = async ({
       }
     }
 
-    const librarianHint =
+    let librarianHint =
       'librarianHint' in aiData ? aiData.librarianHint?.trim() : '';
+    if (!librarianHint && librarianNewItems.length > 0) {
+      const names = librarianNewItems.map(it => it.name).join(', ');
+      librarianHint = `Found ${names}.`;
+    }
     let libResult: Awaited<ReturnType<typeof applyLibrarianHints_Service>> | null = null;
     if (librarianHint) {
       libResult = await applyLibrarianHints_Service(
