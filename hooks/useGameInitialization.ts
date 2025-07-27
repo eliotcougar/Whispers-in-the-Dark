@@ -274,7 +274,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                 draftState,
                 changes,
                 draftState.globalTurnNumber,
-                themeObjToLoad.name,
               );
             }
           }
@@ -324,14 +323,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
         draftState.lastDebugPacket.prompt = promptUsed;
 
-        const currentThemeMapDataForParse = {
-          nodes: draftState.mapData.nodes.filter((n) => n.themeName === themeObjToLoad.name),
-          edges: draftState.mapData.edges.filter((e) => {
-            const sourceNode = draftState.mapData.nodes.find((node) => node.id === e.sourceNodeId);
-            const targetNode = draftState.mapData.nodes.find((node) => node.id === e.targetNodeId);
-            return sourceNode?.themeName === themeObjToLoad.name && targetNode?.themeName === themeObjToLoad.name;
-          }),
-        };
+        const currentThemeMapDataForParse = draftState.mapData;
         const parsedData = await parseAIResponse(
           response.text ?? '',
           playerGenderProp,
@@ -339,7 +331,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           () => { setParseErrorCounter(1); },
           undefined,
           undefined,
-          draftState.allNPCs.filter((npc) => npc.themeName === themeObjToLoad.name),
+          draftState.allNPCs,
           currentThemeMapDataForParse,
           draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
@@ -519,26 +511,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
       draftState.lastDebugPacket.prompt = promptUsed;
 
-      const currentThemeNPCs = draftState.allNPCs.filter(
-        (npc) => npc.themeName === currentThemeObj.name,
-      );
-      const currentThemeMapDataForParse = {
-        nodes: draftState.mapData.nodes.filter(
-          (node) => node.themeName === currentThemeObj.name,
-        ),
-        edges: draftState.mapData.edges.filter((e) => {
-          const sourceNode = draftState.mapData.nodes.find(
-            (node) => node.id === e.sourceNodeId,
-          );
-          const targetNode = draftState.mapData.nodes.find(
-            (node) => node.id === e.targetNodeId,
-          );
-          return (
-            sourceNode?.themeName === currentThemeObj.name &&
-            targetNode?.themeName === currentThemeObj.name
-          );
-        }),
-      };
+      const currentThemeNPCs = draftState.allNPCs;
+      const currentThemeMapDataForParse = draftState.mapData;
 
       const parsedData = await parseAIResponse(
         response.text ?? '',

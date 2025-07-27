@@ -15,10 +15,8 @@ interface KnowledgeBaseProps {
   readonly onClose: () => void;
 }
 
-type GroupedEntities = Record<string, Array<NPC> | undefined>;
-
 /**
- * Lists discovered NPCs grouped by their associated theme.
+ * Lists discovered NPCs.
  */
 function KnowledgeBase({
   allNPCs: allNPCs,
@@ -26,27 +24,10 @@ function KnowledgeBase({
   isVisible,
   onClose,
 }: KnowledgeBaseProps) {
-  const groupedEntities = React.useMemo(() => {
-    const grouped: GroupedEntities = {};
-
-    allNPCs.forEach(npc => {
-      let bucket = grouped[npc.themeName];
-      if (!bucket) {
-        bucket = [];
-        grouped[npc.themeName] = bucket;
-      }
-      bucket.push(npc);
-    });
-    return grouped;
-  }, [allNPCs]);
-
-  const sortedThemeNames = React.useMemo(() => {
-    return Object.keys(groupedEntities).sort((a, b) => {
-      if (currentTheme && a === currentTheme.name) return -1;
-      if (currentTheme && b === currentTheme.name) return 1;
-      return a.localeCompare(b);
-    });
-  }, [groupedEntities, currentTheme]);
+  const sortedNPCs = React.useMemo(
+    () => [...allNPCs].sort((a, b) => a.name.localeCompare(b.name)),
+    [allNPCs],
+  );
 
   return (
     <div
@@ -75,43 +56,18 @@ function KnowledgeBase({
             Knowledge Base
           </h1>
           
-          {sortedThemeNames.length === 0 && isVisible ? <p className="text-slate-300 italic text-center">
+          {sortedNPCs.length === 0 && isVisible ? <p className="text-slate-300 italic text-center">
             No knowledge has been recorded yet.
           </p> : null}
 
-          {isVisible ? sortedThemeNames.map(themeName => {
-            const npcs = groupedEntities[themeName] ?? [];
-
-            if (npcs.length === 0) { 
-              return null; 
-            }
-
-            return (
-              <section
-                className="mb-8"
-                key={themeName}
-              >
-                <h2 className="kb-theme-group-title">
-                  Theme: 
-                  {' '}
-
-                  {themeName}
-
-                  {currentTheme && themeName === currentTheme.name ? <span className="text-sm text-purple-400 ml-2">
-                    (Current Active Theme)
-                  </span> : null}
-                </h2>
-                
-                {npcs.length > 0 && (
-                  <>
-                    <h3 className="text-xl font-semibold text-emerald-400 mt-4 mb-2">
-                      NPCs
-                    </h3>
-
-                    <div className="kb-card-grid">
-                      {npcs.map(npc => {
+          {isVisible ? (
+            <section className="mb-8">
+              <h2 className="kb-theme-group-title">NPCs</h2>
+              {sortedNPCs.length > 0 && (
+                <div className="kb-card-grid">
+                  {sortedNPCs.map(npc => {
                         let locationDisplay: React.ReactNode;
-                        const isCurrentThemeNPC = currentTheme && themeName === currentTheme.name;
+                        const isCurrentThemeNPC = Boolean(currentTheme);
 
                         if (isCurrentThemeNPC && (npc.presenceStatus === 'companion' || npc.presenceStatus === 'nearby')) {
                           const iconName = npc.presenceStatus === 'companion' ? 'companion' : 'nearbyNpc';
@@ -165,7 +121,7 @@ function KnowledgeBase({
                         return (
                           <div
                             className="kb-card"
-                            key={`${themeName}-npc-${npc.name}`}
+                            key={npc.name}
                           >
                             <div className="kb-card-name-header">
                               {npc.name}
@@ -185,13 +141,11 @@ function KnowledgeBase({
                             </div>
                           </div>
                         );
-                      })}
-                    </div>
-                  </>
-                )}
-              </section>
-            );
-          }) : null}
+                  })}
+                </div>
+              )}
+            </section>
+          ) : null}
         </div>
       </div>
     </div>

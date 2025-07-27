@@ -14,7 +14,6 @@ import { buildNPCId } from './entityUtils';
 export const buildNPCChangeRecords = (
   npcsAddedFromAI: Array<ValidNewNPCPayload>,
   npcsUpdatedFromAI: Array<ValidNPCUpdatePayload>,
-  currentThemeName: string,
   currentAllNPCs: Array<NPC>,
 ): Array<NPCChangeRecord> => {
   const records: Array<NPCChangeRecord> = [];
@@ -22,7 +21,6 @@ export const buildNPCChangeRecords = (
     const newNPC: NPC = {
       ...npcAdd,
       id: buildNPCId(npcAdd.name),
-      themeName: currentThemeName,
       aliases: npcAdd.aliases ?? [],
       presenceStatus: npcAdd.presenceStatus ?? 'unknown',
       lastKnownLocation: npcAdd.lastKnownLocation ?? null,
@@ -34,7 +32,7 @@ export const buildNPCChangeRecords = (
 
   npcsUpdatedFromAI.forEach(npcUpdate => {
     const oldNPC = currentAllNPCs.find(
-      npc => npc.name === npcUpdate.name && npc.themeName === currentThemeName,
+      npc => npc.name === npcUpdate.name,
     );
     if (oldNPC) {
       const newNPCData: NPC = { ...oldNPC, dialogueSummaries: oldNPC.dialogueSummaries ?? [] };
@@ -67,16 +65,14 @@ export const buildNPCChangeRecords = (
 export const applyAllNPCChanges = (
   npcsAddedFromAI: Array<ValidNewNPCPayload>,
   npcsUpdatedFromAI: Array<ValidNPCUpdatePayload>,
-  currentThemeName: string,
   currentAllNPCs: Array<NPC>,
 ): Array<NPC> => {
   const newAllNPCs = [...currentAllNPCs];
   npcsAddedFromAI.forEach(npcAdd => {
-    if (!newAllNPCs.some(npc => npc.name === npcAdd.name && npc.themeName === currentThemeName)) {
+    if (!newAllNPCs.some(npc => npc.name === npcAdd.name)) {
       const newNPC: NPC = {
         ...npcAdd,
         id: buildNPCId(npcAdd.name),
-        themeName: currentThemeName,
         aliases: npcAdd.aliases ?? [],
         presenceStatus: npcAdd.presenceStatus ?? 'unknown',
         lastKnownLocation: npcAdd.lastKnownLocation ?? null,
@@ -92,7 +88,7 @@ export const applyAllNPCChanges = (
 
   npcsUpdatedFromAI.forEach(npcUpdate => {
     const idx = newAllNPCs.findIndex(
-      npc => npc.name === npcUpdate.name && npc.themeName === currentThemeName,
+      npc => npc.name === npcUpdate.name,
     );
     if (idx !== -1) {
       const npcToUpdate: NPC = {

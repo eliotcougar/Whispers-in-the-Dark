@@ -65,12 +65,8 @@ export const applyMapUpdates = async ({
       ? aiData.currentMapNodeId
       : previousMapNodeId;
 
-  const currentThemeNodesFromMapData = currentMapData.nodes.filter(
-    n => n.themeName === currentTheme.name,
-  );
-  const currentThemeNodeIdsSet = new Set(
-    currentThemeNodesFromMapData.map(n => n.id),
-  );
+  const currentThemeNodesFromMapData = currentMapData.nodes;
+  const currentThemeNodeIdsSet = new Set(currentThemeNodesFromMapData.map(n => n.id));
   const currentThemeEdgesFromMapData = currentMapData.edges.filter(e =>
     currentThemeNodeIdsSet.has(e.sourceNodeId) &&
     currentThemeNodeIdsSet.has(e.targetNodeId),
@@ -122,9 +118,7 @@ export const applyMapUpdates = async ({
       const corrected = await fetchCorrectedNodeIdentifier_Service(
         identifier,
         {
-          themeNodes: newMapData.nodes.filter(
-            n => n.themeName === currentTheme.name,
-          ),
+          themeNodes: newMapData.nodes,
           currentLocationId: referenceMapNodeId,
         },
         minimalModelCalls,
@@ -194,9 +188,7 @@ export const applyMapUpdates = async ({
   themeNodeNameMap.clear();
   themeNodeAliasMap.clear();
   themeEdgesMap.clear();
-  newMapData.nodes
-    .filter(n => n.themeName === currentTheme.name)
-    .forEach(n => {
+  newMapData.nodes.forEach(n => {
       themeNodeIdMap.set(n.id, n);
       themeNodeNameMap.set(n.placeName, n);
       if (n.data.aliases) n.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), n));
@@ -310,9 +302,7 @@ export const applyMapUpdates = async ({
     (npc.aliases ?? []).forEach(a => npcNameSet.add(normalizeName(a)));
   });
 
-  ctx.newMapData.nodes
-    .filter(n => n.themeName === ctx.currentTheme.name)
-    .forEach(node => {
+  ctx.newMapData.nodes.forEach(node => {
       const norm = normalizeName(node.placeName);
       if (itemNameSet.has(norm) || npcNameSet.has(norm)) {
         removeNode(node);

@@ -18,7 +18,6 @@ type Node = MapData['nodes'][number];
 
 const makeNode = (id: string): Node => ({
   id,
-  themeName: 'theme',
   placeName: id,
   position: { x: 0, y: 0 },
   data: { description: '', status: 'discovered', nodeType: 'location', parentNodeId: 'universe' },

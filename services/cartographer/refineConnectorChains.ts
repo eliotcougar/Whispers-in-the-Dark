@@ -16,7 +16,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
     sceneDescription: ctx.sceneDesc,
     logMessage: ctx.logMsg,
     currentTheme: ctx.currentTheme,
-    themeNodes: ctx.newMapData.nodes.filter(n => n.themeName === ctx.currentTheme.name),
+    themeNodes: ctx.newMapData.nodes,
   };
 
   while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
@@ -81,7 +81,6 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
         const newId = generateUniqueId(`node_${nAdd.placeName}_`);
         const node: MapNode = {
           id: newId,
-          themeName: ctx.currentTheme.name,
           placeName: nAdd.placeName,
           position: parent ? { ...parent.position } : { x: 0, y: 0 },
           data: { ...nodeData, parentNodeId: parentId },
@@ -145,9 +144,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           }
         }
       });
-      chainContext.themeNodes = ctx.newMapData.nodes.filter(
-        n => n.themeName === ctx.currentTheme.name
-      );
+      chainContext.themeNodes = ctx.newMapData.nodes;
     } else {
       console.warn(
         `Connector Chains Refinement failed after ${String(MAX_RETRIES)} attempts for round ${String(

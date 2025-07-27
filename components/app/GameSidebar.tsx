@@ -17,7 +17,6 @@ interface GameSidebarProps {
   readonly allNPCs: Array<NPC>;
   readonly currentMapNodeId: string | null;
   readonly currentObjective: string | null;
-  readonly currentThemeName: string | null;
   readonly enableMobileTap: boolean;
   readonly inventory: Array<Item>;
   readonly itemsHere: Array<Item>;
@@ -42,7 +41,6 @@ function GameSidebar({
   allNPCs: allNPCs,
   currentMapNodeId,
   currentObjective,
-  currentThemeName,
   enableMobileTap,
   inventory,
   itemsHere,
@@ -59,14 +57,8 @@ function GameSidebar({
   disabled,
 }: GameSidebarProps) {
   const questHighlightEntities = useMemo(
-    () =>
-      buildHighlightableEntities(
-        inventory,
-        mapNodes,
-        allNPCs,
-        currentThemeName,
-      ),
-    [inventory, mapNodes, allNPCs, currentThemeName],
+    () => buildHighlightableEntities(inventory, mapNodes, allNPCs),
+    [inventory, mapNodes, allNPCs],
   );
 
   const act = storyArc?.acts[storyArc.currentAct - 1];

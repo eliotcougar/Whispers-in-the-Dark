@@ -620,10 +620,10 @@ export const useProcessAiResponse = ({
             if (!chapter) continue;
             const { name: themeName, themeGuidance } = themeContextForResponse;
             const nodes = draftState.mapData.nodes.filter(
-              n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+              n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
             );
             const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-            const npcs = draftState.allNPCs.filter(npc => npc.themeName === themeName);
+            const npcs = draftState.allNPCs;
             const knownNPCs = npcs.length > 0
               ? npcsToString(npcs, ' - ', false, false, false, true)
               : 'None specifically known in this theme yet.';
@@ -698,9 +698,9 @@ export const useProcessAiResponse = ({
               .join('\n');
 
         const nodesForTheme = draftState.mapData.nodes.filter(
-          n => n.themeName === themeContextForResponse.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
+          n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
         );
-        const npcsForTheme = draftState.allNPCs.filter(npc => npc.themeName === themeContextForResponse.name);
+        const npcsForTheme = draftState.allNPCs;
         const itemsForTheme = draftState.inventory.filter(
           item =>
             item.holderId === PLAYER_HOLDER_ID ||
@@ -747,7 +747,6 @@ export const useProcessAiResponse = ({
             draftState,
             refineResult.refinementResult.factsChange,
             draftState.globalTurnNumber,
-            themeContextForResponse.name,
           );
         }
         setLoadingReason(original);

@@ -121,7 +121,6 @@ async function handleDialogueSetup(
                     NPCsForDialogueContext.push({
                         ...npcAdd,
                         id: buildNPCId(npcAdd.name),
-                        themeName: '',
                           presenceStatus: npcAdd.presenceStatus ?? 'unknown',
                           lastKnownLocation: npcAdd.lastKnownLocation ?? null,
                           preciseLocation: npcAdd.preciseLocation ?? null,
@@ -136,7 +135,6 @@ async function handleDialogueSetup(
                         name: npcUpd.name,
                           description: npcUpd.newDescription ?? existing?.description ?? 'Updated NPC',
                           aliases: npcUpd.newAliases ?? existing?.aliases ?? [],
-                        themeName: '',
                           presenceStatus: npcUpd.newPresenceStatus ?? existing?.presenceStatus ?? 'unknown',
                           lastKnownLocation: npcUpd.newLastKnownLocation ?? (existing?.lastKnownLocation ?? null),
                           preciseLocation: npcUpd.newPreciseLocation ?? (existing?.preciseLocation ?? null),
@@ -206,7 +204,6 @@ async function handleNPCChanges(
                     presenceStatus: originalNPCAdd.presenceStatus ?? 'unknown',
                     lastKnownLocation: originalNPCAdd.lastKnownLocation ?? null,
                     preciseLocation: originalNPCAdd.preciseLocation ?? null,
-                    themeName: '',
                 });
             } else {
                 console.warn(`parseAIResponse ('npcsAdded'): Invalid NPC structure for "${originalName ?? 'Unknown Name'}". Attempting correction.`);
@@ -228,7 +225,7 @@ async function handleNPCChanges(
                         preciseLocation: correctedDetails.preciseLocation,
                     };
                     if (isValidNewNPCPayload(correctedNPCAddPayload)) {
-                        finalNPCsAdded.push({ ...correctedNPCAddPayload, id: buildNPCId(correctedNPCAddPayload.name), themeName: '' } as NPC);
+                        finalNPCsAdded.push({ ...correctedNPCAddPayload, id: buildNPCId(correctedNPCAddPayload.name) } as NPC);
                         console.log(`parseAIResponse ('npcsAdded'): Successfully corrected NPC:`, correctedNPCAddPayload.name);
                     } else {
                         console.warn(`parseAIResponse ('npcsAdded'): Corrected NPC "${originalName ?? 'Unknown Name'}" still invalid. Discarding. Corrected Data:`, correctedNPCAddPayload);
@@ -341,7 +338,6 @@ async function handleNPCChanges(
                     name: targetName,
                     description: npcUpdatePayload.newDescription ?? `Details for ${targetName} are emerging.`,
                     aliases: npcUpdatePayload.newAliases ?? (npcUpdatePayload.addAlias ? [npcUpdatePayload.addAlias] : []),
-                    themeName: '',
                     presenceStatus: npcUpdatePayload.newPresenceStatus ?? 'unknown',
                     lastKnownLocation: npcUpdatePayload.newLastKnownLocation ?? null,
                     preciseLocation: npcUpdatePayload.newPreciseLocation ?? null,

@@ -11,7 +11,6 @@ const makeNode = (
   parent = 'universe',
 ): MapData['nodes'][number] => ({
   id,
-  themeName: 'theme',
   placeName: id,
   position: { x: 0, y: 0 },
   data: { description: '', status, nodeType: 'location', parentNodeId: parent },

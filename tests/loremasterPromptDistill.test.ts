@@ -5,8 +5,8 @@ import type { ThemeFact } from '../types';
 describe('buildDistillFactsPrompt', () => {
   it('includes entity IDs for each fact', () => {
     const facts: Array<ThemeFact> = [
-      { id: 1, text: 'First fact', entities: ['a', 'b'], themeName: 'theme', createdTurn: 1, tier: 1 },
-      { id: 2, text: 'Second fact', entities: ['c'], themeName: 'theme', createdTurn: 1, tier: 1 },
+      { id: 1, text: 'First fact', entities: ['a', 'b'], createdTurn: 1, tier: 1 },
+      { id: 2, text: 'Second fact', entities: ['c'], createdTurn: 1, tier: 1 },
     ];
 
     const prompt = buildDistillFactsPrompt('theme', facts, null, null, [], [], []);

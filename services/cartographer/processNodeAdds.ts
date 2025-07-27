@@ -106,7 +106,6 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
               const downgraded = suggestNodeTypeDowngrade(
                 {
                   id: 'temp',
-                  themeName: parent.themeName,
                   placeName: nodeAddOp.placeName,
                   position: { x: 0, y: 0 },
                   data: {
@@ -153,7 +152,6 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
 
       const canReuseExisting =
         existingNode !== undefined &&
-        existingNode.themeName === context.currentTheme.name &&
         ((resolvedParentId === undefined && !existingNode.data.parentNodeId) ||
           existingNode.data.parentNodeId === resolvedParentId) &&
         (existingNode.placeName.toLowerCase() === nodeAddOp.placeName.toLowerCase() ||
@@ -193,7 +191,6 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
 
       const newNode: MapNode = {
         id: newNodeId,
-        themeName: context.currentTheme.name,
         placeName: nodeAddOp.placeName,
         position: { x: 0, y: 0 },
         data: newNodeData,

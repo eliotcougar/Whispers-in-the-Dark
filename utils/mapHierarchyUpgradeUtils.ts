@@ -129,7 +129,6 @@ export const upgradeFeatureToRegion = (
   const connectorId = generateUniqueId(`node_${connectorName}_`);
   const connectorNode: MapNode = {
     id: connectorId,
-    themeName: featureNode.themeName,
     placeName: connectorName,
     position: { ...featureNode.position },
     data: {

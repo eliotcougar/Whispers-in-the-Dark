@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
-import { MapData, MapNode, MapEdge, MapLayoutConfig } from '../../types';
+import { MapData, MapNode, MapLayoutConfig } from '../../types';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
   DEFAULT_NESTED_PADDING,
@@ -121,21 +121,10 @@ function MapDisplay({
   }, [currentConfigToPropagate, onLayoutConfigChange]);
 
   /** Nodes belonging to the current theme. */
-  const currentThemeNodes = useMemo(() => {
-    if (!currentThemeName) return [] as Array<MapNode>;
-    return mapData.nodes.filter(node => node.themeName === currentThemeName);
-  }, [mapData.nodes, currentThemeName]);
+  const currentThemeNodes = useMemo(() => mapData.nodes, [mapData.nodes]);
 
   /** Edges belonging to the current theme. */
-  const currentThemeEdges = useMemo(() => {
-    if (!currentThemeName) return [] as Array<MapEdge>;
-    const themeNodeIds = new Set(currentThemeNodes.map(node => node.id));
-    return mapData.edges.filter(
-      edge =>
-        themeNodeIds.has(edge.sourceNodeId) &&
-        themeNodeIds.has(edge.targetNodeId)
-    );
-  }, [mapData.edges, currentThemeNodes, currentThemeName]);
+  const currentThemeEdges = useMemo(() => mapData.edges, [mapData.edges]);
 
   /**
    * Prepares nodes for display. The force-directed layout algorithm is

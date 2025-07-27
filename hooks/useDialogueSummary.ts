@@ -112,7 +112,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     };
 
     workingGameState.allNPCs = workingGameState.allNPCs.map((npc) => {
-      if (finalParticipants.includes(npc.name) && npc.themeName === currentThemeObj.name) {
+      if (finalParticipants.includes(npc.name)) {
         const newSummaries = [...(npc.dialogueSummaries ?? []), newSummaryRecord];
         if (newSummaries.length > MAX_DIALOGUE_SUMMARIES_PER_NPC) {
           newSummaries.shift();
@@ -123,14 +123,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     });
 
     setLoadingReason('dialogue_conclusion_summary');
-    const mapDataForSummary: MapData = {
-      nodes: workingGameState.mapData.nodes.filter((node) => node.themeName === currentThemeObj.name),
-      edges: workingGameState.mapData.edges.filter((edge) => {
-        const sourceNode = workingGameState.mapData.nodes.find((n) => n.id === edge.sourceNodeId);
-        const targetNode = workingGameState.mapData.nodes.find((n) => n.id === edge.targetNodeId);
-        return sourceNode?.themeName === currentThemeObj.name && targetNode?.themeName === currentThemeObj.name;
-      }),
-    };
+    const mapDataForSummary: MapData = workingGameState.mapData;
     const act =
       workingGameState.storyArc?.acts[
         workingGameState.storyArc.currentAct - 1
@@ -143,7 +136,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       localEnvironment: workingGameState.localEnvironment,
       localPlace: workingGameState.localPlace,
       mapDataForTheme: mapDataForSummary,
-      knownNPCsInTheme: workingGameState.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
+      knownNPCsInTheme: workingGameState.allNPCs,
       inventory: workingGameState.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
       playerGender: playerGenderProp,
       dialogueLog: finalHistory,

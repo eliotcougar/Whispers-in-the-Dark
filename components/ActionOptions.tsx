@@ -19,7 +19,6 @@ interface ActionOptionsProps {
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
   readonly allNPCs: Array<NPC>;
-  readonly currentThemeName: string | null;
 }
 
 /**
@@ -33,12 +32,11 @@ function ActionOptions({
   inventory,
   mapData,
   allNPCs,
-  currentThemeName
 }: ActionOptionsProps) {
 
   const entitiesForHighlighting = useMemo(
-    () => buildHighlightableEntities(inventory, mapData, allNPCs, currentThemeName),
-    [inventory, mapData, allNPCs, currentThemeName]
+    () => buildHighlightableEntities(inventory, mapData, allNPCs),
+    [inventory, mapData, allNPCs]
   );
 
 

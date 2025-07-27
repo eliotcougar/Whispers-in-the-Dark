@@ -141,7 +141,6 @@ export interface DialogueSummaryRecord {
 
 export interface NPC {
   id: string;
-  themeName: string;
   name: string;
   description: string;
   aliases?: Array<string>;
@@ -297,7 +296,6 @@ export interface ThemeFact {
   id: number;
   text: string;
   entities: Array<string>;
-  themeName: string;
   createdTurn: number;
   tier: number;
 }
@@ -453,7 +451,6 @@ export interface MapNodeData {
 
 export interface MapNode {
   id: string; // Unique identifier for the node
-  themeName: string;
   placeName: string; // User-facing name of the location/feature. Must be unique within its theme.
   position: { x: number; y: number }; // For map visualization
   data: MapNodeData;

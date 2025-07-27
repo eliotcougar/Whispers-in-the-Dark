@@ -109,7 +109,6 @@ export function isValidThemeFact(fact: unknown): fact is ThemeFact {
     typeof maybe.text === 'string' &&
     Array.isArray(maybe.entities) &&
     maybe.entities.every(id => typeof id === 'string') &&
-    typeof maybe.themeName === 'string' &&
     typeof maybe.createdTurn === 'number' &&
     typeof maybe.tier === 'number'
   );
@@ -161,7 +160,6 @@ export function isValidNPCForSave(npc: unknown): npc is NPC {
   return (
     typeof maybe.id === 'string' &&
     maybe.id.trim() !== '' &&
-    typeof maybe.themeName === 'string' &&
     typeof maybe.name === 'string' &&
     maybe.name.trim() !== '' &&
     typeof maybe.description === 'string' &&
@@ -210,7 +208,6 @@ export function isValidMapNode(node: unknown): node is MapNode {
   return (
     typeof maybe.id === 'string' &&
     maybe.id.trim() !== '' &&
-    typeof maybe.themeName === 'string' &&
     typeof maybe.placeName === 'string' &&
     maybe.placeName.trim() !== '' &&
     pos !== undefined &&
