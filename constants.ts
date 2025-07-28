@@ -7,7 +7,7 @@
 
 // Using gemini-2.5-flash model specified by API guidelines for general text tasks.
 export const GEMINI_MODEL_NAME = "gemini-2.5-flash";
-export const GEMINI_LITE_MODEL_NAME = "gemini-2.5-flash-lite-preview-06-17"; // Updated for better capability
+export const GEMINI_LITE_MODEL_NAME = "gemini-2.5-flash-lite"; // Updated for better capability
 export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string outputs
 export const TINY_MODEL_NAME = "gemma-3n-e4b-it" // Fastest free model with 8000 input limit
 
