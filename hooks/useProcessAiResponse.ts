@@ -10,7 +10,6 @@ import {
   LoadingReason,
   TurnChanges,
 } from '../types';
-import { fetchCorrectedName_Service } from '../services/corrections';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITTEN_ITEM_TYPES, REGULAR_ITEM_TYPES } from '../constants';
 import {
   addLogMessageToList,
@@ -33,6 +32,15 @@ import {
   findMapNodeByIdentifier,
   findNPCByIdentifier,
 } from '../utils/entityUtils';
+
+type FetchCorrectedNameFn = typeof import('../services/corrections')['fetchCorrectedName_Service'];
+let cachedFetchCorrectedName: FetchCorrectedNameFn | null = null;
+const getFetchCorrectedName = async (): Promise<FetchCorrectedNameFn> => {
+  if (!cachedFetchCorrectedName) {
+    ({ fetchCorrectedName_Service: cachedFetchCorrectedName } = await import('../services/corrections'));
+  }
+  return cachedFetchCorrectedName;
+};
 
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
@@ -134,7 +142,9 @@ const correctItemChanges = async ({
       if (!exactMatchInInventory) {
         const original = loadingReason;
         setLoadingReason('correction');
-        const correctedName = await fetchCorrectedName_Service(
+        const correctedName = await (
+          await getFetchCorrectedName()
+        )(
           'item',
           itemNameFromAI ?? '',
           aiData.logMessage,
