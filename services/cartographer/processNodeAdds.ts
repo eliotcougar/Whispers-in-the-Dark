@@ -1,7 +1,7 @@
 import type { MapNode, MapNodeData, MapEdgeData } from '../../types';
 import { findMapNodeByIdentifier, buildNodeId } from '../../utils/entityUtils';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
-import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
+import { suggestNodeTypeDowngrade } from './mapHierarchyUpgrades';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest } from './connectorChains';
 import { fetchLikelyParentNode_Service } from '../corrections/placeDetails';
