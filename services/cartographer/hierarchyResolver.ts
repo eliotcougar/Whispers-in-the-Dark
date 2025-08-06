@@ -4,7 +4,7 @@ import {
   suggestNodeTypeDowngrade,
   suggestNodeTypeUpgrade,
   mapHasHierarchyConflict,
-} from './mapHierarchyUpgrades';
+} from '../../utils/mapHierarchyUpgradeUtils';
 import { chooseHierarchyResolution_Service } from '../corrections/hierarchyUpgrade';
 import type { ApplyUpdatesContext } from './updateContext';
 

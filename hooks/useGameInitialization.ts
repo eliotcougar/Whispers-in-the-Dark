@@ -34,7 +34,7 @@ import { getDefaultMapLayoutConfig } from './useMapUpdates';
 import { buildInitialGamePrompt } from './initPromptHelpers';
 import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
-import { repairFeatureHierarchy } from '../services/cartographer/mapHierarchyUpgrades';
+import { repairFeatureHierarchy } from '../utils/mapHierarchyUpgradeUtils';
 import { clearAllImages } from '../services/imageDb';
 import {
   generateWorldFacts,
