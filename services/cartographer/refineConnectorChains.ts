@@ -1,10 +1,10 @@
 import { generateUniqueId, findMapNodeByIdentifier } from '../../utils/entityUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest, filterEdgeChainRequests } from './connectorChains';
-import { fetchConnectorChains_Service } from '../corrections/edgeFixes';
 import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS } from '../../constants';
 import type { MapNode, AINodeAdd, AIEdgeAdd } from '../../types';
 import type { ConnectorChainsServiceResult, EdgeChainRequest } from '../corrections/edgeFixes';
+import { loadCorrections } from './loadCorrections';
 import type { ApplyUpdatesContext } from './updateContext';
 
 export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<void> {
@@ -28,6 +28,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           MAX_CHAIN_REFINEMENT_ROUNDS
         )}, Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}`
       );
+      const { fetchConnectorChains_Service } = await loadCorrections();
       chainResult = await fetchConnectorChains_Service(chainRequests, chainContext);
       if (chainResult.debugInfo) {
         ctx.debugInfo.connectorChainsDebugInfo?.push({

@@ -1,9 +1,9 @@
-import type { AIMapUpdatePayload, MapNodeData, MapEdgeData } from '../../types';
+import type { AIMapUpdatePayload, MapNodeData, MapEdgeData } from '../types';
 import {
   NODE_REMOVAL_SYNONYMS,
   EDGE_REMOVAL_SYNONYMS,
-} from '../../utils/mapSynonyms';
-import { applyNodeDataFix, applyEdgeDataFix } from './normalizers';
+} from './mapSynonyms';
+import { applyNodeDataFix, applyEdgeDataFix } from './mapUpdateNormalizers';
 
 // Synonym lists for interpreting node and edge removal operations
 export const NODE_REMOVAL_SYNONYM_SET = new Set<string>(NODE_REMOVAL_SYNONYMS);

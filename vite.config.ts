@@ -52,10 +52,25 @@ export default defineConfig(({ mode }: { mode: string }) => {
             if (id.includes('resources')) {
               return 'resources';
             }
+            if (id.includes('cartographer')) {
+              return 'cartographer';
+            }
+            if (id.includes('hooks')) {
+              return 'hooks';
+            }
             if (id.includes('corrections')) {
               return 'corrections';
             }
-            if (id.includes('utils')) {
+            if (
+              id.includes('utils') ||
+              id.endsWith('/constants.ts') ||
+              id.endsWith('/types.ts') ||
+              id.endsWith('/themes.ts') ||
+              id.includes('/prompts/') ||
+              (id.includes('/services/') &&
+                !id.includes('/cartographer/') &&
+                !id.includes('/corrections/'))
+            ) {
               return 'utils';
             }
           },

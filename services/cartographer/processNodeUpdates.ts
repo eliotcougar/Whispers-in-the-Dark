@@ -1,5 +1,5 @@
 import type { Item, MapEdge } from '../../types';
-import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
+import { suggestNodeTypeDowngrade } from './mapHierarchyUpgrades';
 import type { ApplyUpdatesContext } from './updateContext';
 
 export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void> {

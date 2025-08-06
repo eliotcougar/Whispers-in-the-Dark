@@ -4,8 +4,8 @@ import {
   suggestNodeTypeDowngrade,
   suggestNodeTypeUpgrade,
   mapHasHierarchyConflict,
-} from '../../utils/mapHierarchyUpgradeUtils';
-import { chooseHierarchyResolution_Service } from '../corrections/hierarchyUpgrade';
+} from './mapHierarchyUpgrades';
+import { loadCorrections } from './loadCorrections';
 import type { ApplyUpdatesContext } from './updateContext';
 
 interface Net {
@@ -84,6 +84,7 @@ async function resolvePair(ctx: ApplyUpdatesContext, child: MapNode, parent: Map
 
   let chosen = validNets[0];
   if (validNets.length > 1) {
+    const { chooseHierarchyResolution_Service } = await loadCorrections();
     const choice = await chooseHierarchyResolution_Service(
       {
         sceneDescription: ctx.sceneDesc,

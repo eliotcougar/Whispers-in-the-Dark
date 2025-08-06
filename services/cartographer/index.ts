@@ -6,7 +6,6 @@ export * from './api';
 export * from './promptBuilder';
 export * from './responseParser';
 export * from './systemPrompt';
-export * from './mapUpdateUtils';
 export * from './edgeUtils';
 export * from './connectorChains';
 export * from './request';

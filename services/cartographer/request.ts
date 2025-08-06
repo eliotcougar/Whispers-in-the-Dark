@@ -33,7 +33,7 @@ import {
   dedupeEdgeOps,
   normalizeStatusAndTypeSynonyms,
   fixDeleteIdMixups,
-} from './mapUpdateUtils';
+} from '../../utils/mapUpdateUtils';
 import type {
   AIMapUpdatePayload,
   MinimalModelCallRecord,
