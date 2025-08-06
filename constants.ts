@@ -36,7 +36,7 @@ export const MAX_CHAIN_REFINEMENT_ROUNDS = 3; // Max rounds for refining connect
 export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the game log
 
 export const DEVELOPER = "Eliot the Cougar"
-export const CURRENT_GAME_VERSION = "1.4.0 (Ink and Quill)";
+export const CURRENT_GAME_VERSION = "1.5.0 (Backstory)";
 export const CURRENT_SAVE_GAME_VERSION = "8";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 export const LOCAL_STORAGE_DEBUG_KEY = "whispersInTheDark_debugPacket";

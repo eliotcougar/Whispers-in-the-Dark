@@ -47,6 +47,17 @@ const infoDisplayContent = {
   ],
   "changelog": [
     {
+      "title": "Version 1.5 (Backstory Update)",
+      "items": [
+        "Major new features - World backstory and Protagonist backstory.",
+        "Five act narrative structure for the main storyline.",
+        "Character generation and character selection",
+        "Removed Reality Shift game mechanic - it no longer fits nicely into the overall game progression.",
+        "Custom Mode is now the main game mode.",
+        "Reworked the AI response JSON structures based on new knowledge about Gemini quirks"
+      ]
+    },
+    {
       "title": "Version 1.4 (Ink and Quill Update)",
       "items": [
         "Major new features - Books and Notes. Player's Journal. Loremaster AI.",
