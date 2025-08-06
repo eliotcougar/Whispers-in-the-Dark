@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { handleMapUpdates } from '../services/cartographer/mapUpdateHandlers.ts';
+import { handleMapUpdates } from '../utils/mapUpdateHandlers.ts';
 import { structuredCloneGameState } from '../utils/cloneUtils.ts';
 import type { AdventureTheme, FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig } from '../types';
 

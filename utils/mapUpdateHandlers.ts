@@ -12,23 +12,22 @@ import {
   LoadingReason,
   ValidNewNPCPayload,
   ValidNPCUpdatePayload
-} from '../../types';
-import { updateMapFromAIData_Service } from './api';
-import type { MapUpdateServiceResult } from './types';
-import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../corrections';
-import { selectBestMatchingMapNode, attemptMatchAndSetNode } from '../../utils/mapNodeMatcher';
+} from '../types';
+import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/cartographer';
+import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
+import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import {
   buildNPCChangeRecords,
   applyAllNPCChanges,
   updateEntityIdsInFacts,
-} from '../../utils/gameLogicUtils';
+} from './gameLogicUtils';
 import {
   existsNonRumoredPath,
   getAncestors,
   isDescendantOf,
   buildNonRumoredAdjacencyMap,
-} from '../../utils/mapGraphUtils';
-import { buildNodeId } from '../../utils/entityUtils';
+} from './mapGraphUtils';
+import { buildNodeId } from './entityUtils';
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.

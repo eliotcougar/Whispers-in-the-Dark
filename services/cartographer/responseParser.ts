@@ -4,8 +4,8 @@
  */
 import { AIMapUpdatePayload, AdventureTheme } from '../../types';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isValidAIMapUpdatePayload } from '../../utils/mapUpdateValidation';
-import { normalizeStatusAndTypeSynonyms } from '../../utils/mapUpdateUtils';
+import { isValidAIMapUpdatePayload } from './mapUpdateValidation';
+import { normalizeStatusAndTypeSynonyms } from './mapUpdateUtils';
 import { fetchCorrectedMapUpdatePayload_Service } from '../corrections';
 
 /**
