@@ -30,7 +30,7 @@ export function normalizeLoadedSaveData(
   ) {
     if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
       console.warn(
-        `Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${String(parsedObj.saveGameVersion)}' from ${sourceLabel}. Attempting to treat as current version (V3) for validation.`
+        `Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${parsedObj.saveGameVersion}' from ${sourceLabel}. Attempting to treat as current version (V3) for validation.`
       );
     }
     dataToValidateAndExpand = parsedObj as SavedGameDataShape;

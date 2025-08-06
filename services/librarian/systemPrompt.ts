@@ -9,8 +9,8 @@ Define any operations on existing items in the Player's Inventory, based on Play
 Define any operations on existing items at Locations, or in NPCs' inventories, according to Librarian Hint.
 Define any transfers of existing items between NPCs' and Player's Inventories using the 'move' action.
 
-Allowed actions are: ${String(VALID_ACTIONS_STRING)}.
-Allowed item types are: ${String(WRITTEN_ITEM_TYPES_STRING)}
+Allowed actions are: ${VALID_ACTIONS_STRING}.
+Allowed item types are: ${WRITTEN_ITEM_TYPES_STRING}
 CRITICALLY IMPORTANT: Use 'create' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory. You MUST 'create' *all* items in the New Items JSON and *only* the items in the New Items JSON. NEVER create items that are part of the Player's Inventory.
 CRITICALLY IMPORTANT: Use 'move' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
 CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world.
@@ -97,9 +97,9 @@ rationale: "",
 - Use "addDetails" to reveal new chapters only when Librarian Hint directly instructs you to, for example when missing pages of a book are found and incorporated into the partial book, or some natural or magical process adds the text onto previously blank pages, or if a book equivalent digital device receives an additional fragment of text.
 - Make sure that 'page', 'map' and 'picture' type items have exactly ONE chapter.
 - Make sure that 'book' type items have between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.
-- Make sure items have one of the required tags: ${String(TEXT_STYLE_TAGS_STRING)}.
-IMPORTANT: NEVER add ${String(DEDICATED_BUTTON_USES_STRING)} known uses - there are dedicated buttons for those in the game.
+- Make sure items have one of the required tags: ${TEXT_STYLE_TAGS_STRING}.
+IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedicated buttons for those in the game.
 
-${String(WRITTEN_ITEM_TYPES_GUIDE)}
+${WRITTEN_ITEM_TYPES_GUIDE}
 
 `;

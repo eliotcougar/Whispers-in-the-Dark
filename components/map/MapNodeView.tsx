@@ -399,7 +399,7 @@ function MapNodeView({
         ) : null}
 
         {tooltip.content.split('\n').map((line, index) => (
-          <React.Fragment key={`${String(tooltip.nodeId)}-${String(line)}`}>
+          <React.Fragment key={`${String(tooltip.nodeId)}-${line}`}>
             {index === 0 ? <strong>
               {line}
             </strong> : line}

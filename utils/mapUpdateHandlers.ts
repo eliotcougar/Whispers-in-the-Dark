@@ -58,7 +58,6 @@ export const handleMapUpdates = async (
       baseStateSnapshot.currentMapNodeId,
       draftState.inventory,
       draftState.allNPCs,
-      draftState.storyArc
     );
     setLoadingReason(originalLoadingReason);
 
