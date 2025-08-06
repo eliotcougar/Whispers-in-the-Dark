@@ -36,31 +36,5 @@ export default defineConfig(({ mode }: { mode: string }) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes('genai')) {
-              return 'gemini';
-            }
-            if (id.includes('node_modules')) {
-              return 'vendor';
-            }
-            if (id.includes('debug')) {
-              return 'debug';
-            }
-            if (id.includes('resources')) {
-              return 'resources';
-            }
-            if (id.includes('corrections')) {
-              return 'corrections';
-            }
-            if (id.includes('utils')) {
-              return 'utils';
-            }
-          },
-        },
-      },
-    },
   };
 });

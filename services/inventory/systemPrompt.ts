@@ -18,7 +18,7 @@ Define any operations on existing items at Locations, or in NPCs' inventories, a
 Define any transfers of existing items between NPCs' and Player's Inventories using the 'move' action.
 Items described in the "World Items Hint" must be placed at their appropriate map node holderId using the 'create' action.
 
-Allowed actions are: ${String(VALID_ACTIONS_STRING)}.
+Allowed actions are: ${VALID_ACTIONS_STRING}.
 CRITICALLY IMPORTANT: Use 'create' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory. You MUST 'create' *all* items in the New Items JSON and *only* the items in the New Items JSON. NEVER create items that are part of the Player's Inventory.
 CRITICALLY IMPORTANT: Use 'move' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
 CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world. Never 'destroy' items if only some Known Use needs to be deleted.
@@ -121,6 +121,6 @@ IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light source
   - ALWAYS provide these actions in pairs, e.g. turn on/turn off, wield/put away, wear/take off, light/extinguish, activate/deactivate, start/stop, etc.
 IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedicated buttons for those in the game.
 
-${String(REGULAR_ITEM_TYPES_GUIDE)}
+${REGULAR_ITEM_TYPES_GUIDE}
 
 `;

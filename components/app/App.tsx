@@ -752,7 +752,7 @@ function App() {
                       mapData={mapData.nodes}
                     />
 
-                    {isLoading && !dialogueState && !isDialogueExiting && Boolean(hasGameBeenInitialized) ? (
+                    {isLoading && !dialogueState && !isDialogueExiting ? (
                       <div className="absolute inset-0 flex items-center justify-center bg-slate-900/75 rounded-lg">
                         <LoadingSpinner />
                       </div>

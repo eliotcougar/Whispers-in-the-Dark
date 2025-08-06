@@ -67,7 +67,7 @@ function PlaygroundTab() {
 
               <div className={`flex flex-wrap gap-1${isClose ? ' relative h-12' : ''}`}>
                 {buttons.map(preset => {
-                  const id = `${String(variant)}-${String(preset)}`;
+                  const id = `${String(variant)}-${preset}`;
                   return (
                     <Button
                       ariaLabel={id}
@@ -102,7 +102,7 @@ function PlaygroundTab() {
           {presets.slice(0, 8).map(color => (
             <input
               aria-label={color}
-              className={`p-2 rounded-md bg-${String(color)}-700 text-${String(color)}-200 border border-${String(color)}-500`}
+              className={`p-2 rounded-md bg-${color}-700 text-${color}-200 border border-${color}-500`}
               key={color}
               placeholder={color}
               readOnly
@@ -120,7 +120,7 @@ function PlaygroundTab() {
           <div className="space-y-3">
             {TEXT_STYLE_TAGS.map(style => (
               <div
-                className={`p-3 tag-${String(style)} rounded-md`}
+                className={`p-3 tag-${style} rounded-md`}
                 key={style}
               >
                 {style}
@@ -130,7 +130,7 @@ function PlaygroundTab() {
             {TEXT_STYLE_TAGS.flatMap(style =>
               additionalTags.map(tag => (
                 <div
-                  className={`p-3 tag-${String(style)} tag-${String(tag)} rounded-md`}
+                  className={`p-3 tag-${style} tag-${tag} rounded-md`}
                   key={`${style}-${tag}`}
                 >
                   {`${style} ${tag}`}
@@ -142,7 +142,7 @@ function PlaygroundTab() {
           <div className="space-y-3">
             {TEXT_STYLE_TAGS.map(style => (
               <div
-                className={`p-3 tag-${String(style)} tag-recovered rounded-md`}
+                className={`p-3 tag-${style} tag-recovered rounded-md`}
                 key={`${style}-recovered`}
               >
                 {`${style} recovered`}
@@ -152,7 +152,7 @@ function PlaygroundTab() {
             {TEXT_STYLE_TAGS.flatMap(style =>
               additionalTags.map(tag => (
                 <div
-                  className={`p-3 tag-${String(style)} tag-${String(tag)} tag-recovered rounded-md`}
+                  className={`p-3 tag-${style} tag-${tag} tag-recovered rounded-md`}
                   key={`${style}-${tag}-recovered`}
                 >
                   {`${style} ${tag} recovered`}
