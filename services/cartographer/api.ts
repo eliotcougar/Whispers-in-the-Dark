@@ -34,12 +34,14 @@ export const updateMapFromAIData_Service = async (
   previousMapNodeId: string | null,
   inventoryItems: Array<Item>,
   knownNPCs: Array<NPC>,
-  storyArc: StoryArc | null,
+  _storyArc: StoryArc | null,
 ): Promise<MapUpdateServiceResult | null> => {
   if (!isApiConfigured()) {
     console.error('API Key not configured for Map Update Service.');
     return null;
   }
+
+  void _storyArc;
 
   const sceneDesc = 'sceneDescription' in aiData ? aiData.sceneDescription : '';
   const logMsg = aiData.logMessage ?? '';
@@ -119,7 +121,6 @@ export const updateMapFromAIData_Service = async (
     allKnownMainPlacesString,
     itemNames,
     npcNames,
-    storyArc,
   );
 
   const { payload, debugInfo } = await fetchMapUpdatePayload(

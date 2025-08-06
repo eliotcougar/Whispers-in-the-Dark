@@ -1,5 +1,5 @@
 /**
- * @file mapHierarchyUpgradeUtils.ts
+ * @file mapHierarchyUpgrades.ts
  * @description Utilities for upgrading feature nodes to higher-level regions
  *              when they acquire child nodes. Introduces linking features and
  *              reroutes edges to conform to map layering rules.
@@ -11,11 +11,11 @@ import {
   MapEdge,
   AdventureTheme,
   MapNodeType,
-} from '../types';
-import { NODE_TYPE_LEVELS } from '../constants';
-import { structuredCloneGameState } from './cloneUtils';
-import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/hierarchyUpgrade';
-import { generateUniqueId } from './entityUtils';
+} from '../../types';
+import { NODE_TYPE_LEVELS } from '../../constants';
+import { structuredCloneGameState } from '../../utils/cloneUtils';
+import { decideFeatureHierarchyUpgrade_Service } from '../corrections/hierarchyUpgrade';
+import { generateUniqueId } from '../../utils/entityUtils';
 
 export const NODE_TYPE_DOWNGRADE_MAP: Record<MapNodeType, MapNodeType | undefined> = {
   region: 'location',

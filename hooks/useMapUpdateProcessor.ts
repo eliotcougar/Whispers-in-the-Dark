@@ -11,7 +11,7 @@ import {
   LoadingReason,
   TurnChanges,
 } from '../types';
-import { handleMapUpdates } from '../utils/mapUpdateHandlers';
+import { handleMapUpdates } from '../services/cartographer/mapUpdateHandlers';
 
 export interface UseMapUpdateProcessorProps {
   loadingReasonRef: React.RefObject<LoadingReason | null>;
