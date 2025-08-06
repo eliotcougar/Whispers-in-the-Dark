@@ -52,6 +52,12 @@ export default defineConfig(({ mode }: { mode: string }) => {
             if (id.includes('resources')) {
               return 'resources';
             }
+            if (id.includes('cartographer')) {
+              return 'cartographer';
+            }
+            if (id.includes('hooks')) {
+              return 'hooks';
+            }
             if (id.includes('corrections')) {
               return 'corrections';
             }

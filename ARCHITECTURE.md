@@ -106,11 +106,11 @@ This layer abstracts external interactions and complex data processing.
    *   `utils/loadingProgress.ts`: Tracks progress text for asynchronous operations.
    *   `constants.ts`: Map rendering constants like `NODE_RADIUS` and `DEFAULT_VIEWBOX`.
    *   `utils/mapGraphUtils.ts`: Helpers for navigating the map hierarchy.
-   *   `utils/mapHierarchyUpgradeUtils.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.
+   *   `services/cartographer/mapHierarchyUpgrades.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.
    *   `utils/mapLayoutUtils.ts`: Performs a nested circle layout for map visualization.
    *   `utils/mapNodeMatcher.ts`: Contains `selectBestMatchingMapNode` for fuzzy location lookups.
    *   `utils/mapPathfinding.ts`: Calculates travel paths between nodes.
-   *   `utils/mapUpdateHandlers.ts`: Applies AI map update payloads to `MapData`.
+   *   `services/cartographer/mapUpdateHandlers.ts`: Applies AI map update payloads to `MapData`.
    *   `services/cartographer/mapUpdateValidation.ts`: Validates `AIMapUpdatePayload` structures.
    *   `utils/mapSynonyms.ts` and `utils/matcherData.ts`: Provide regex helpers and keyword lists used when parsing player text.
    *   `utils/svgUtils.ts`: Converts screen coordinates to the map's SVG space.
