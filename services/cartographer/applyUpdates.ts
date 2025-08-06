@@ -14,6 +14,7 @@ import {
   NPC,
 } from '../../types';
 import { structuredCloneGameState } from '../../utils/cloneUtils';
+import { fetchCorrectedNodeIdentifier_Service } from '../corrections/placeDetails';
 import type { EdgeChainRequest } from '../corrections/edgeFixes';
 import { findMapNodeByIdentifier } from '../../utils/entityUtils';
 import type { MapUpdateDebugInfo } from './types';
@@ -24,7 +25,6 @@ import { processEdgeUpdates } from './processEdgeUpdates';
 import { refineConnectorChains } from './refineConnectorChains';
 import { resolveHierarchyConflicts } from './hierarchyResolver';
 import { pruneInvalidEdges } from './edgeUtils';
-import { loadCorrections } from './loadCorrections';
 
 export interface ApplyMapUpdatesParams {
   payload: AIMapUpdatePayload;
@@ -115,7 +115,6 @@ export const applyMapUpdates = async ({
       }
     }
     if (!node) {
-      const { fetchCorrectedNodeIdentifier_Service } = await loadCorrections();
       const corrected = await fetchCorrectedNodeIdentifier_Service(
         identifier,
         {

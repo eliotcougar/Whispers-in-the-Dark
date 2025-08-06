@@ -1,10 +1,10 @@
 import type { MapNode, MapNodeData, MapEdgeData } from '../../types';
 import { findMapNodeByIdentifier, buildNodeId } from '../../utils/entityUtils';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
-import { suggestNodeTypeDowngrade } from './mapHierarchyUpgrades';
+import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest } from './connectorChains';
-import { loadCorrections } from './loadCorrections';
+import { fetchLikelyParentNode_Service } from '../corrections/placeDetails';
 import type { ApplyUpdatesContext } from './updateContext';
 
 export async function processNodeAdds(context: ApplyUpdatesContext): Promise<void> {
@@ -225,7 +225,6 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
     if (nextQueue.length === unresolvedQueue.length) {
       if (!triedParentInference) {
         for (const unresolved of nextQueue) {
-          const { fetchLikelyParentNode_Service } = await loadCorrections();
           const guessed = await fetchLikelyParentNode_Service(
             {
               placeName: unresolved.placeName,

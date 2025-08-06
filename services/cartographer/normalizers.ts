@@ -1,16 +1,16 @@
-import type { MapNodeData, MapEdgeData } from '../types';
+import type { MapNodeData, MapEdgeData } from '../../types';
 import {
   VALID_NODE_STATUS_VALUES,
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
-} from '../constants';
+} from '../../constants';
 import {
   NODE_STATUS_SYNONYMS,
   NODE_TYPE_SYNONYMS,
   EDGE_TYPE_SYNONYMS,
   EDGE_STATUS_SYNONYMS,
-} from './mapSynonyms';
+} from '../../utils/mapSynonyms';
 
 /**
  * Normalizes a MapNodeData object in place and records any invalid values.

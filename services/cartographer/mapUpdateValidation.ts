@@ -11,13 +11,13 @@ import {
   MapNodeData,
   MapEdgeType,
   MapEdgeStatus,
-} from '../types';
+} from '../../types';
 import {
   VALID_NODE_STATUS_VALUES,
   VALID_NODE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
   VALID_EDGE_TYPE_VALUES,
-} from '../constants';
+} from '../../constants';
 
 function isValidAINodeAdd(op: unknown): op is AINodeAdd {
   if (typeof op !== 'object' || op === null) return false;

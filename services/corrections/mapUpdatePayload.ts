@@ -22,8 +22,8 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
-import { isValidAIMapUpdatePayload } from '../../utils/mapUpdateValidation';
-import { normalizeStatusAndTypeSynonyms } from '../../utils/mapUpdateUtils';
+import { isValidAIMapUpdatePayload } from '../cartographer/mapUpdateValidation';
+import { normalizeStatusAndTypeSynonyms } from '../cartographer/mapUpdateUtils';
 
 export const fetchCorrectedMapUpdatePayload_Service = async (
   malformedJson: string,
