@@ -376,8 +376,7 @@ export const applyInventoryHints_Service = async (
     promptUsed,
   } = await executeInventoryRequest(prompt);
   let parsed = parseInventoryResponse(response.text ?? '');
-  if (!parsed ||
-      (parsed.itemChanges.length === 0 && (response.text?.trim() ?? '') !== '[]')) {
+  if (!parsed) {
     const corrected = await fetchCorrectedItemChangeArray_Service(
       response.text ?? '',
       logMessage,
