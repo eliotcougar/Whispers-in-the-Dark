@@ -129,15 +129,11 @@ export function isValidItem(item: unknown, context?: 'create' | 'change'): item 
     const normalized = normalizeTags(obj.tags);
     if (normalized) obj.tags = normalized;
     else obj.tags = obj.tags.filter(t => (VALID_TAGS as ReadonlyArray<string>).includes(t));
-    const allowed =
-      obj.type === undefined
-        ? VALID_TAGS
-        : WRITTEN_TYPE_SET.has(obj.type)
-          ? [...COMMON_TAGS, ...WRITTEN_TAGS]
-          : COMMON_TAGS;
-    obj.tags = obj.tags.filter(t =>
-      (allowed as ReadonlyArray<string>).includes(t),
-    );
+
+    const allowed = WRITTEN_TYPE_SET.has(obj.type ?? '')
+      ? [...COMMON_TAGS, ...WRITTEN_TAGS]
+      : COMMON_TAGS;
+    obj.tags = obj.tags.filter(t => (allowed as ReadonlyArray<string>).includes(t));
   }
   if (WRITTEN_TYPE_SET.has(obj.type ?? '')) {
     obj.tags = obj.tags ?? [];
