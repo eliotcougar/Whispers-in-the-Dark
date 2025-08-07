@@ -21,6 +21,12 @@ export type ThemePackName = ThemePackNameConst;
 export type ItemTag = typeof VALID_TAGS[number];
 
 export type LoadingReason = typeof LOADING_REASONS[number] | null;
+export type ThinkingEffort = 'Low' | 'Medium' | 'High';
+
+export interface GameSettings {
+  enabledThemePacks: Array<ThemePackName>;
+  thinkingEffort: ThinkingEffort;
+}
 
 export type MapNodeStatus = typeof VALID_NODE_STATUS_VALUES[number];
 export type MapNodeType = typeof VALID_NODE_TYPE_VALUES[number];
@@ -646,6 +652,7 @@ export interface FullGameState {
 
   // Configuration snapshot (remains part of FullGameState for runtime and saving)
   enabledThemePacks: Array<ThemePackName>;
+  thinkingEffort: ThinkingEffort;
 
   debugLore: boolean;
   debugGoodFacts: Array<string>;
@@ -689,7 +696,6 @@ export type SavedGameDataShape = Pick<
   | 'localEnvironment'
   | 'localPlace'
   | 'globalTurnNumber'
-  | 'enabledThemePacks'
 >;
 
 export type GameStateStack = [FullGameState, FullGameState?];

@@ -15,7 +15,6 @@ import { isStoryArcValid } from '../utils/storyArcUtils';
 export interface BuildInitialGamePromptOptions {
   theme: AdventureTheme;
   storyArc?: StoryArc | null;
-  heroGender: string;
   worldFacts?: WorldFacts;
   heroSheet?: HeroSheet;
   heroBackstory?: HeroBackstory;
@@ -45,7 +44,7 @@ export const buildInitialGamePrompt = (
       culturalNotes: [],
       notableLocations: [],
     },
-    heroSheet ?? { name: 'Hero', gender: 'Not Specified', occupation: '', traits: [], startingItems: [] },
+    heroSheet ?? { name: 'Hero', gender: 'Male', occupation: '', traits: [], startingItems: [] },
     heroBackstory ?? {
       fiveYearsAgo: '',
       oneYearAgo: '',

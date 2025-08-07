@@ -2,12 +2,11 @@
  * @file saveSnapshotHelpers.ts
  * @description Utilities for creating save-ready game state snapshots.
  */
-import { FullGameState, ThemePackName } from '../types';
+import { FullGameState } from '../types';
 import { CURRENT_SAVE_GAME_VERSION } from '../constants';
 
 export interface BuildSaveStateOptions {
   currentState: FullGameState;
-  enabledThemePacks: Array<ThemePackName>;
 }
 
 /**
@@ -16,15 +15,11 @@ export interface BuildSaveStateOptions {
 export const buildSaveStateSnapshot = (
   options: BuildSaveStateOptions,
 ): FullGameState => {
-  const {
-    currentState,
-    enabledThemePacks,
-  } = options;
+  const { currentState } = options;
 
   return {
     ...currentState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
-    enabledThemePacks,
     mapData: currentState.mapData,
     currentMapNodeId: currentState.currentMapNodeId,
     destinationNodeId: currentState.destinationNodeId,

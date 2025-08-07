@@ -5,27 +5,32 @@
  */
 import { useCallback } from 'react';
 
-import { ThemePackName } from '../../types';
+import { ThemePackName, ThinkingEffort } from '../../types';
 import { ALL_THEME_PACK_NAMES_CONST } from '../../constants';
-import CheckboxSelector from '../elements/CheckboxSelector';
 import Button from '../elements/Button';
+import CheckboxSelector from '../elements/CheckboxSelector';
+import RadioSelector from '../elements/RadioSelector';
 import { Icon } from '../elements/icons';
 
 interface SettingsDisplayProps {
-  readonly isVisible: boolean;
-  readonly onClose: () => void;
   readonly enabledThemePacks: Array<ThemePackName>;
+  readonly isVisible: boolean;
+  readonly onChangeThinkingEffort: (value: ThinkingEffort) => void;
+  readonly onClose: () => void;
   readonly onToggleThemePack: (packName: ThemePackName) => void;
+  readonly thinkingEffort: ThinkingEffort;
 }
 
 /**
  * Screen for tweaking player and gameplay settings.
  */
 function SettingsDisplay({
-  isVisible,
-  onClose,
   enabledThemePacks,
+  isVisible,
+  onChangeThinkingEffort,
+  onClose,
   onToggleThemePack,
+  thinkingEffort,
 }: SettingsDisplayProps) {
 
   /** Toggles a theme pack in the player's preferences. */
@@ -41,6 +46,13 @@ function SettingsDisplay({
       handleThemePackToggle(value as ThemePackName);
     },
     [handleThemePackToggle]
+  );
+
+  const handleThinkingEffortChange = useCallback(
+    (value: string) => {
+      onChangeThinkingEffort(value as ThinkingEffort);
+    },
+    [onChangeThinkingEffort]
   );
 
 
@@ -70,7 +82,23 @@ function SettingsDisplay({
           >
             Game Settings
           </h1>
-          
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
+              Thinking Effort
+            </h2>
+
+            <p className="settings-explanation mb-3">
+              Select how much reasoning the AI uses. Higher levels may improve quality at the cost of time.
+            </p>
+
+            <RadioSelector
+              name="thinking-effort"
+              onChange={handleThinkingEffortChange}
+              options={['Low', 'Medium', 'High']}
+              value={thinkingEffort}
+            />
+          </div>
+
 
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">

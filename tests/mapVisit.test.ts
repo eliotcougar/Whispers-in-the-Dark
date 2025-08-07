@@ -50,7 +50,7 @@ const mapData: MapData = {
 };
 
 const baseState: FullGameState = {
-  saveGameVersion: '8',
+  saveGameVersion: '9',
   currentTheme: theme,
   currentScene: '',
   actionOptions: [],
@@ -89,6 +89,7 @@ const baseState: FullGameState = {
   globalTurnNumber: 0,
   dialogueState: null,
   enabledThemePacks: [],
+  thinkingEffort: 'Medium',
   debugLore: false,
   debugGoodFacts: [],
   debugBadFacts: [],

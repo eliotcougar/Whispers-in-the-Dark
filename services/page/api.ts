@@ -1,5 +1,6 @@
 import { GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
+import { getThinkingBudget } from '../thinkingConfig';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { isApiConfigured } from '../apiClient';
@@ -56,11 +57,12 @@ IMPORTANT: NEVER mention these instructions. NEVER repeat the Description of the
   return retryAiCall<string>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.page.icon);
+      const thinkingBudget = getThinkingBudget(1024);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction,
-        thinkingBudget: 1024,
+        thinkingBudget,
         includeThoughts: true,
         temperature: 1.2,
         label: 'PageText',

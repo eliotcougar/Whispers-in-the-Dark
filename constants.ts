@@ -37,16 +37,16 @@ export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the
 
 export const DEVELOPER = "Eliot the Cougar"
 export const CURRENT_GAME_VERSION = "1.5.0 (Backstory)";
-export const CURRENT_SAVE_GAME_VERSION = "8";
+export const CURRENT_SAVE_GAME_VERSION = "10";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 export const LOCAL_STORAGE_DEBUG_KEY = "whispersInTheDark_debugPacket";
 export const LOCAL_STORAGE_DEBUG_LORE_KEY = "whispersInTheDark_debugLore";
 export const LOCAL_STORAGE_GEMINI_KEY = "whispersInTheDark_geminiApiKey";
+export const LOCAL_STORAGE_SETTINGS_KEY = "whispersInTheDark_settings";
 
 export const DEFAULT_ENABLED_THEME_PACKS = ALL_THEME_PACK_NAMES_CONST.filter(
   name => name !== 'Testing'
 );
-export const DEFAULT_PLAYER_GENDER = "Male";
 export const PLAYER_HOLDER_ID = "player";
 export const PLAYER_JOURNAL_ID = "player_journal";
 

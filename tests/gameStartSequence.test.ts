@@ -107,8 +107,8 @@ describe('game start sequence', () => {
     const { response } = await executeAIMainTurn(prompt);
     const parsed = await parseAIResponse(
       response.text ?? '',
-      'Male',
       theme,
+      dummyHeroSheet,
       undefined,
       undefined,
       undefined,
@@ -170,8 +170,8 @@ describe('game start sequence', () => {
     const { response } = await executeAIMainTurn(prompt);
     const parsed = await parseAIResponse(
       response.text ?? '',
-      'Male',
       theme,
+      dummyHeroSheet,
       undefined,
       undefined,
       undefined,

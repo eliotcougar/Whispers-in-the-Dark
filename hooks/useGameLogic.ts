@@ -16,6 +16,7 @@ import {
   HeroSheet,
   HeroBackstory,
   StoryArc,
+  ThinkingEffort,
 } from '../types';
 import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingState';
 import { useLoadingReason } from './useLoadingReason';
@@ -35,11 +36,8 @@ import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 
 export interface UseGameLogicProps {
-  heroGenderProp: string;
   enabledThemePacksProp: Array<ThemePackName>;
-  onSettingsUpdateFromLoad: (
-    loadedSettings: Partial<Pick<FullGameState, 'enabledThemePacks'>> & { heroGender?: string }
-  ) => void;
+  thinkingEffortProp: ThinkingEffort;
   initialSavedStateFromApp: GameStateStack | null;
   initialDebugStackFromApp: DebugPacketStack | null;
   isAppReady: boolean;
@@ -66,9 +64,8 @@ export interface UseGameLogicProps {
 /** Manages overall game state and delegates to sub hooks. */
 export const useGameLogic = (props: UseGameLogicProps) => {
   const {
-    heroGenderProp,
     enabledThemePacksProp,
-    onSettingsUpdateFromLoad,
+    thinkingEffortProp,
     initialSavedStateFromApp,
     initialDebugStackFromApp,
     isAppReady,
@@ -124,16 +121,10 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     return [
       buildSaveStateSnapshot({
         currentState: current,
-        enabledThemePacks: enabledThemePacksProp,
       }),
-      previous
-        ? buildSaveStateSnapshot({
-            currentState: previous,
-            enabledThemePacks: enabledThemePacksProp,
-          })
-        : undefined,
+      previous ? buildSaveStateSnapshot({ currentState: previous }) : undefined,
     ];
-  }, [gameStateStack, enabledThemePacksProp]);
+  }, [gameStateStack]);
 
   const gatherDebugPacketStackForSave = useCallback((): DebugPacketStack => debugPacketStack, [debugPacketStack]);
 
@@ -179,7 +170,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     getCurrentGameState,
     commitGameState,
     setGameStateStack,
-    heroGenderProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
     setError,
@@ -200,14 +190,13 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     executeRestartGame,
     handleRetry,
   } = useGameInitialization({
-    heroGenderProp,
     enabledThemePacksProp,
+    thinkingEffortProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     setHasGameBeenInitialized,
-    onSettingsUpdateFromLoad,
     getCurrentGameState,
     commitGameState,
     resetGameStateStack,
@@ -219,14 +208,13 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   loadInitialGameRef.current = loadInitialGame;
 
 
-  const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue } = useDialogueManagement({
-    getCurrentGameState,
-    commitGameState,
-    heroGenderProp,
-    setError,
-    setIsLoading,
-    setLoadingReason: setLoadingReasonRef,
-    onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
+const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue } = useDialogueManagement({
+  getCurrentGameState,
+  commitGameState,
+  setError,
+  setIsLoading,
+  setLoadingReason: setLoadingReasonRef,
+  onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
       return processAiResponse(summaryPayload, preparedGameState.currentTheme, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),

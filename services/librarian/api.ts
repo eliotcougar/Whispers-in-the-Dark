@@ -14,6 +14,7 @@ import {
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
+import { getThinkingBudget } from '../thinkingConfig';
 import { isApiConfigured } from '../apiClient';
 import { ItemChange, NewItemSuggestion } from '../../types';
 import { buildLibrarianPrompt } from './promptBuilder';
@@ -253,13 +254,14 @@ export const executeLibrarianRequest = async (
     promptUsed: string;
   }>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.librarian.icon);
+    const thinkingBudget = getThinkingBudget(1024);
     const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } =
       await dispatchAIRequest({
         modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME],
         prompt,
         systemInstruction: SYSTEM_INSTRUCTION,
         jsonSchema: LIBRARIAN_JSON_SCHEMA,
-        thinkingBudget: 1024,
+        thinkingBudget,
         includeThoughts: true,
         responseMimeType: 'application/json',
         temperature: 0.7,

@@ -3,11 +3,13 @@
  * @description Helper functions for persisting game state to browser localStorage.
  */
 
-import { DebugPacket, GameStateStack, DebugPacketStack } from '../types';
+import { DebugPacket, GameStateStack, DebugPacketStack, GameSettings, ThemePackName, ThinkingEffort } from '../types';
 import {
   LOCAL_STORAGE_SAVE_KEY,
   LOCAL_STORAGE_DEBUG_KEY,
   LOCAL_STORAGE_DEBUG_LORE_KEY,
+  LOCAL_STORAGE_SETTINGS_KEY,
+  DEFAULT_ENABLED_THEME_PACKS,
 } from '../constants';
 import {
   prepareGameStateStackForSavingWithoutImages,
@@ -80,6 +82,62 @@ export const loadGameStateFromLocalStorageWithImages = async (): Promise<GameSta
   const withImagesCurrent = await attachImageRefsFromDb(current);
   const withImagesPrevious = previous ? await attachImageRefsFromDb(previous) : undefined;
   return [withImagesCurrent, withImagesPrevious];
+};
+
+const isValidThinkingEffort = (val: unknown): val is ThinkingEffort =>
+  val === 'Low' || val === 'Medium' || val === 'High';
+
+const isValidThemePackArray = (packs: unknown): packs is Array<ThemePackName> =>
+  Array.isArray(packs) && packs.every(p => typeof p === 'string');
+
+export const saveSettingsToLocalStorage = (settings: GameSettings): void => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_SETTINGS_KEY, JSON.stringify(settings));
+  } catch (error: unknown) {
+    console.error('Error saving settings to localStorage:', error);
+  }
+};
+
+export const loadSettingsFromLocalStorage = (): GameSettings => {
+  const defaults: GameSettings = {
+    enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
+    thinkingEffort: 'Medium',
+  };
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_SETTINGS_KEY);
+    if (!saved) {
+      return { ...defaults };
+    }
+    const parsed: unknown = safeParseJson(saved);
+    if (!parsed || typeof parsed !== 'object') {
+      console.warn('Saved settings found in localStorage could not be parsed.');
+      return { ...defaults };
+    }
+    const merged: GameSettings = { ...defaults };
+    if (
+      isValidThemePackArray(
+        (parsed as { enabledThemePacks?: unknown }).enabledThemePacks,
+      )
+    ) {
+      merged.enabledThemePacks = [
+        ...(parsed as { enabledThemePacks: Array<ThemePackName> }).enabledThemePacks,
+      ];
+    }
+    if (
+      isValidThinkingEffort(
+        (parsed as { thinkingEffort?: unknown }).thinkingEffort,
+      )
+    ) {
+      merged.thinkingEffort = (parsed as {
+        thinkingEffort: ThinkingEffort;
+      }).thinkingEffort;
+    }
+    return merged;
+  } catch (error: unknown) {
+    console.error('Error loading settings from localStorage:', error);
+    localStorage.removeItem(LOCAL_STORAGE_SETTINGS_KEY);
+    return { ...defaults };
+  }
 };
 
 export const saveDebugPacketStackToLocalStorage = (
