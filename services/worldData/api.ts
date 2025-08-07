@@ -19,6 +19,7 @@ import type {
   StoryArc,
   StoryAct,
 } from '../../types';
+import { isStoryArcValid } from '../../utils/storyArcUtils';
 
 interface StoryActData {
   title: string;
@@ -310,6 +311,9 @@ export const generateHeroData = async (
           currentAct: 1,
         };
         heroBackstory = rest;
+      }
+      if (storyArc && !isStoryArcValid(storyArc)) {
+        throw new Error('generateHeroData: invalid story arc');
       }
       return {
         result: {

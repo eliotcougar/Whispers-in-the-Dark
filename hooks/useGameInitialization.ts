@@ -43,6 +43,7 @@ import {
 } from '../services/worldData';
 import { extractInitialFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import { isStoryArcValid } from '../utils/storyArcUtils';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
@@ -212,6 +213,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       const worldFacts = await generateWorldFacts(themeObjToLoad);
       draftState.worldFacts = worldFacts ?? null;
+      commitGameState(draftState);
 
       const names = await generateCharacterNames(
         themeObjToLoad,
@@ -257,6 +259,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           draftState.storyArc = result.storyArc;
           draftState.heroSheet = heroSheet;
           draftState.heroBackstory = heroBackstory;
+          if (!result.storyArc || !isStoryArcValid(result.storyArc)) {
+            setError('Failed to generate a valid story arc. Please retry.');
+            setIsLoading(false);
+            setLoadingReason(null);
+            return;
+          }
+          commitGameState(draftState);
           if (worldFacts) {
             const initialFacts = await extractInitialFacts_Service({
               themeName: themeObjToLoad.name,
@@ -293,30 +302,31 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
       if (draftState.heroSheet) draftState.heroSheet.gender = selectedGender;
-
-      const prompt = buildInitialGamePrompt({
-        theme: themeObjToLoad,
-        heroGender: selectedGender,
-        worldFacts: draftState.worldFacts ?? undefined,
-        heroSheet: draftState.heroSheet ?? undefined,
-        heroBackstory: draftState.heroBackstory ?? undefined,
-      });
-      draftState.lastDebugPacket = {
-        prompt,
-        systemInstruction: SYSTEM_INSTRUCTION,
-        jsonSchema: undefined,
-        rawResponseText: null,
-        parsedResponse: null,
-        timestamp: new Date().toISOString(),
-        storytellerThoughts: null,
-        mapUpdateDebugInfo: null,
-        inventoryDebugInfo: null,
-        librarianDebugInfo: null,
-        loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
-        dialogueDebugInfo: null,
-      };
-
+      let prompt = '';
       try {
+        prompt = buildInitialGamePrompt({
+          theme: themeObjToLoad,
+          heroGender: selectedGender,
+          storyArc: draftState.storyArc ?? undefined,
+          worldFacts: draftState.worldFacts ?? undefined,
+          heroSheet: draftState.heroSheet ?? undefined,
+          heroBackstory: draftState.heroBackstory ?? undefined,
+        });
+        draftState.lastDebugPacket = {
+          prompt,
+          systemInstruction: SYSTEM_INSTRUCTION,
+          jsonSchema: undefined,
+          rawResponseText: null,
+          parsedResponse: null,
+          timestamp: new Date().toISOString(),
+          storytellerThoughts: null,
+          mapUpdateDebugInfo: null,
+          inventoryDebugInfo: null,
+          librarianDebugInfo: null,
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
+          dialogueDebugInfo: null,
+        };
+
         const {
           response,
           thoughts,
