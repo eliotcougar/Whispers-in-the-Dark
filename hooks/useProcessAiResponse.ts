@@ -33,6 +33,7 @@ import {
   findMapNodeByIdentifier,
   findNPCByIdentifier,
 } from '../utils/entityUtils';
+import { filterDuplicateCreates } from '../utils/itemChangeUtils';
 
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
@@ -340,12 +341,6 @@ const handleInventoryHints = async ({
       );
     }
     setLoadingReason(original);
-    if (invResult) {
-      combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
-      if (draftState.lastDebugPacket) {
-        draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
-      }
-    }
 
     let librarianHint =
       'librarianHint' in aiData ? aiData.librarianHint?.trim() : '';
@@ -367,6 +362,21 @@ const handleInventoryHints = async ({
         limitedMapContextWritten,
       );
     }
+
+    if (invResult && libResult) {
+      invResult.itemChanges = filterDuplicateCreates(
+        invResult.itemChanges,
+        libResult.itemChanges,
+      );
+    }
+
+    if (invResult) {
+      combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
+      if (draftState.lastDebugPacket) {
+        draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
+      }
+    }
+
     if (libResult) {
       combinedItemChanges = combinedItemChanges.concat(libResult.itemChanges);
       if (draftState.lastDebugPacket) {
