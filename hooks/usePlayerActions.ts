@@ -32,6 +32,7 @@ import {
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { resetInspectCooldowns } from '../utils/undoUtils';
 import { generateNextStoryAct } from '../services/worldData';
 import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
@@ -487,11 +488,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * Restores the previous turn's game state if available.
    */
   const handleUndoTurn = useCallback(() => {
-    setGameStateStack((prevStack) => {
+    setGameStateStack(prevStack => {
       const [current, previous] = prevStack;
       if (previous && current.globalTurnNumber > 0) {
         clearObjectiveAnimationTimer();
-        return [previous, current];
+        const cleanedPrev = resetInspectCooldowns(previous);
+        return [cleanedPrev, current];
       }
       return prevStack;
     });
