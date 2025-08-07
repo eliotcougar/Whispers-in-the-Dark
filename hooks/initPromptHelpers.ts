@@ -10,6 +10,7 @@ import {
   StoryArc,
 } from '../types';
 import { buildNewGameFirstTurnPrompt } from '../services/storyteller';
+import { isStoryArcValid } from '../utils/storyArcUtils';
 
 export interface BuildInitialGamePromptOptions {
   theme: AdventureTheme;
@@ -27,10 +28,13 @@ export const buildInitialGamePrompt = (
   options: BuildInitialGamePromptOptions,
 ): string => {
   const { theme, storyArc, worldFacts, heroSheet, heroBackstory } = options;
+  if (!storyArc || !isStoryArcValid(storyArc)) {
+    throw new Error('buildInitialGamePrompt: missing or invalid story arc');
+  }
 
   const prompt = buildNewGameFirstTurnPrompt(
     theme,
-    storyArc ?? { title: 'Untitled', overview: '', acts: [], currentAct: 1 },
+    storyArc,
     worldFacts ?? {
       geography: '',
       climate: '',

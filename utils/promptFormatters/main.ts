@@ -13,6 +13,7 @@ import {
   HeroBackstory,
   StoryArc,
 } from '../../types';
+import { isStoryArcValid } from '../storyArcUtils';
 import { formatKnownPlacesForPrompt } from './map';
 import { findTravelPath, buildTravelAdjacency } from '../mapPathfinding';
 
@@ -227,6 +228,7 @@ export const formatHeroBackstoryForPrompt = (
   ].join('\n');
 
 export const formatStoryArcContext = (arc: StoryArc): string => {
+  if (!isStoryArcValid(arc)) return '';
   const act = arc.acts[arc.currentAct - 1];
   const side = act.sideObjectives.join(', ');
   return [
