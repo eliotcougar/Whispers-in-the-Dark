@@ -10,7 +10,7 @@ import {
 import { REGULAR_ITEM_TYPES_GUIDE } from '../../prompts/helperPrompts';
 
 export const SYSTEM_INSTRUCTION = `** SYSTEM INSTRUCTIONS: **
-You are an AI assistant that converts item hints into explicit inventory actions for a text adventure game.
+You are an AI assistant that converts item hints into explicit inventory actions for a text adventure game, specializing on regular items that are not written items.
 Analyze the hints and optional new items JSON provided in the prompt.
 
 Define any operations on existing items in the Player's Inventory, based on Player's Action and the Player Items Hint.
@@ -20,7 +20,7 @@ Items described in the "World Items Hint" must be placed at their appropriate ma
 
 Allowed actions are: ${VALID_ACTIONS_STRING}.
 CRITICALLY IMPORTANT: Use 'create' only when revealing or creating a **NEW** item at a specific location, specific NPC inventory, or in Player's inventory. You MUST 'create' *all* items in the New Items JSON and *only* the items in the New Items JSON. NEVER create items that are part of the Player's Inventory.
-CRITICALLY IMPORTANT: When the hint instructs to create an item, but it is not in the New Items array, the array takes precedence, and the creation hint must be ignored.
+CRITICALLY IMPORTANT: When the hint instructs to create an item, but it is not in the New Items array, the array takes precedence, and the creation hint must be ignored. (Especially, if it seems to be a page, a book, a map, or a photo - don't worry, it'll be taken care of by the next AI after you who specializes on written items)
 CRITICALLY IMPORTANT: Use 'move' when transferring an **EXISTING** item from one holder to another, or dropping/picking up the item at the current location.
 CRITICALLY IMPORTANT: Use 'destroy' ONLY when the item is **IRREVERSIBLY** consumed, destroyed, or otherwise removed from the world. Never 'destroy' items if only some Known Use needs to be deleted.
 Use 'change' to edit or delete existing Known Uses.
