@@ -28,6 +28,7 @@ export const useAppModals = () => {
   const [debugLoreFacts, setDebugLoreFacts] = useState<Array<string>>([]);
   const debugLoreResolveRef = useRef<((good: Array<string>, bad: Array<string>, proceed: boolean) => void) | null>(null);
   const [isGenderSelectVisible, setIsGenderSelectVisible] = useState(false);
+  const [genderSelectDefault, setGenderSelectDefault] = useState('Male');
   const genderSelectResolveRef = useRef<((gender: string) => void) | null>(null);
   const [isCharacterSelectVisible, setIsCharacterSelectVisible] = useState(false);
   const [characterSelectData, setCharacterSelectData] = useState<{
@@ -95,6 +96,7 @@ export const useAppModals = () => {
   }, []);
 
   const openGenderSelectModal = useCallback((defaultGender: string, resolve: (gender: string) => void) => {
+    setGenderSelectDefault(defaultGender);
     genderSelectResolveRef.current = resolve;
     setIsGenderSelectVisible(true);
   }, []);
@@ -186,6 +188,7 @@ export const useAppModals = () => {
     submitDebugLoreModal,
     closeDebugLoreModal,
     isGenderSelectVisible,
+    genderSelectDefault,
     openGenderSelectModal,
     submitGenderSelectModal,
     openCharacterSelectModal,

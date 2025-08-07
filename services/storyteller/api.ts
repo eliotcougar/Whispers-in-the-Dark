@@ -23,6 +23,7 @@ import {
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
+import { getThinkingBudget, getMaxOutputTokens } from '../thinkingConfig';
 import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -390,7 +391,7 @@ export const STORYTELLER_JSON_SCHEMA = {
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
   fullPrompt: string,
-  maxOutputTokens?: number,
+  maxOutputTokensOverride?: number,
 ): Promise<{
   response: GenerateContentResponse;
   thoughts: Array<string>;
@@ -415,6 +416,8 @@ export const executeAIMainTurn = async (
         `Executing storyteller turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
+      const thinkingBudget = getThinkingBudget(4096);
+      const maxOutputTokens = maxOutputTokensOverride ?? getMaxOutputTokens(4096);
       const {
         response,
         systemInstructionUsed,
@@ -425,7 +428,7 @@ export const executeAIMainTurn = async (
         prompt: fullPrompt,
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 1.0,
-        thinkingBudget: 4096,
+        thinkingBudget,
         includeThoughts: true,
         responseMimeType: 'application/json',
         jsonSchema: STORYTELLER_JSON_SCHEMA,

@@ -28,6 +28,7 @@ import { LOADING_REASON_UI_MAP } from "../../constants";
 import { retryAiCall } from "../../utils/retry";
 import { isApiConfigured } from "../apiClient";
 import { extractJsonFromFence, safeParseJson } from "../../utils/jsonUtils";
+import { getThinkingBudget } from '../thinkingConfig';
 import {
   EDGE_TYPE_SYNONYMS,
   createHeuristicRegexes,
@@ -321,11 +322,12 @@ ${MAP_NODE_HIERARCHY_GUIDE}
         `fetchConnectorChains_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const thinkingBudget = getThinkingBudget(2048);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction: systemInstruction,
-        thinkingBudget: 2048,
+        thinkingBudget,
         includeThoughts: true,
         responseMimeType: "application/json",
         jsonSchema: CONNECTOR_CHAINS_JSON_SCHEMA,

@@ -7,6 +7,7 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../apiClient';
 import { addProgressSymbol } from '../../utils/loadingProgress';
+import { getThinkingBudget, getMaxOutputTokens } from '../thinkingConfig';
 import {
   buildExtractFactsPrompt,
   buildIntegrateFactsPrompt,
@@ -219,6 +220,8 @@ export const extractInitialFacts_Service = async (
   } | null>(async () => {
     params.onSetLoadingReason?.('loremaster_extract');
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_extract.icon);
+      const thinkingBudget = getThinkingBudget(512);
+      const maxOutputTokens = getMaxOutputTokens(512);
       const {
         response,
         systemInstructionUsed,
@@ -228,13 +231,13 @@ export const extractInitialFacts_Service = async (
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt: extractPrompt,
         systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
-        thinkingBudget: 512,
+        thinkingBudget,
         includeThoughts: true,
         responseMimeType: 'application/json',
         jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
         temperature: 0.7,
         label: 'LoremasterExtractInitial',
-        maxOutputTokens: 6500,
+        maxOutputTokens,
       });
     const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
       text?: string;
@@ -308,6 +311,7 @@ export const refineLore_Service = async (
   } | null>(async () => {
     params.onSetLoadingReason?.('loremaster_extract');
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_extract.icon);
+    const thinkingBudget = getThinkingBudget(512);
     const {
       response,
       systemInstructionUsed,
@@ -317,7 +321,7 @@ export const refineLore_Service = async (
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: extractPrompt,
       systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
-      thinkingBudget: 512,
+      thinkingBudget,
       includeThoughts: true,
       responseMimeType: 'application/json',
       jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
@@ -378,6 +382,7 @@ export const refineLore_Service = async (
   } | null>(async () => {
     params.onSetLoadingReason?.('loremaster_write');
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_write.icon);
+    const thinkingBudget = getThinkingBudget(1024);
     const {
       response,
       systemInstructionUsed,
@@ -387,7 +392,7 @@ export const refineLore_Service = async (
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt: integratePrompt,
       systemInstruction: INTEGRATE_SYSTEM_INSTRUCTION,
-      thinkingBudget: 1024,
+      thinkingBudget,
       includeThoughts: true,
       responseMimeType: 'application/json',
       jsonSchema: INTEGRATE_FACTS_JSON_SCHEMA,
@@ -492,6 +497,7 @@ export const collectRelevantFacts_Service = async (
     promptUsed: string;
   } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_collect.icon);
+    const thinkingBudget = getThinkingBudget(1024);
     const {
       response,
       systemInstructionUsed,
@@ -501,7 +507,7 @@ export const collectRelevantFacts_Service = async (
       modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
       systemInstruction: COLLECT_SYSTEM_INSTRUCTION,
-      thinkingBudget: 1024,
+      thinkingBudget,
       includeThoughts: true,
       responseMimeType: 'application/json',
       jsonSchema: COLLECT_FACTS_JSON_SCHEMA,
@@ -596,6 +602,7 @@ export const distillFacts_Service = async (
     promptUsed: string;
   } | null>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_refine.icon);
+    const thinkingBudget = getThinkingBudget(4096);
     const {
       response,
       systemInstructionUsed,
@@ -605,7 +612,7 @@ export const distillFacts_Service = async (
       modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
       prompt,
       systemInstruction: DISTILL_SYSTEM_INSTRUCTION,
-      thinkingBudget: 4096,
+      thinkingBudget,
       includeThoughts: true,
       responseMimeType: 'application/json',
       jsonSchema: DISTILL_FACTS_JSON_SCHEMA,

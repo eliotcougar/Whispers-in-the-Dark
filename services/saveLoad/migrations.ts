@@ -9,7 +9,7 @@ import {
   GameStateStack,
   SavedGameStack,
 } from '../../types';
-import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../../constants';
+import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID, DEFAULT_ENABLED_THEME_PACKS } from '../../constants';
 import { findThemeByName } from '../../utils/themeUtils';
 import {
   ensureCompleteMapLayoutConfig,
@@ -135,7 +135,6 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
       localTime: gameState.localTime,
       localEnvironment: gameState.localEnvironment,
       localPlace: gameState.localPlace,
-    enabledThemePacks: gameState.enabledThemePacks,
     globalTurnNumber: gameState.globalTurnNumber,
     themeFacts: gameState.themeFacts,
     worldFacts: gameState.worldFacts,
@@ -172,6 +171,8 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
   return {
     ...savedData,
     currentTheme: themeObjectToUse,
+    enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
+    thinkingEffort: 'Medium',
     allNPCs: savedData.allNPCs.map(npc => ({
       ...npc,
       dialogueSummaries: npc.dialogueSummaries ?? [],

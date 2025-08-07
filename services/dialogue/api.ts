@@ -37,6 +37,7 @@ import {
   parseDialogueTurnResponse,
 } from './responseParser';
 import { parseAIResponse } from '../storyteller/responseParser';
+import { getThinkingBudget } from '../thinkingConfig';
 
 export const DIALOGUE_TURN_JSON_SCHEMA = {
   type: 'object',
@@ -99,7 +100,6 @@ export const executeDialogueTurn = async (
   knownMainMapNodesInTheme: Array<MapNode>,
   knownNPCsInTheme: Array<NPC>,
   inventory: Array<Item>,
-  heroGender: string,
   heroSheet: HeroSheet | null,
   dialogueHistory: Array<DialogueHistoryEntry>,
   playerLastUtterance: string,
@@ -142,13 +142,14 @@ export const executeDialogueTurn = async (
         )}/${String(MAX_RETRIES + 1)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_turn.icon);
+      const thinkingBudget = getThinkingBudget(512);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction: DIALOGUE_SYSTEM_INSTRUCTION,
         temperature: 0.8,
         responseMimeType: 'application/json',
-        thinkingBudget: 512,
+        thinkingBudget,
         includeThoughts: true,
         jsonSchema: DIALOGUE_TURN_JSON_SCHEMA,
         label: 'Dialogue',
@@ -222,13 +223,14 @@ export const executeDialogueSummary = async (
         )}/${String(MAX_RETRIES + 1)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_summary.icon);
+      const thinkingBudget = getThinkingBudget(4096);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_MODEL_NAME],
         prompt,
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 1.0,
         responseMimeType: 'application/json',
-        thinkingBudget: 4096,
+        thinkingBudget,
         includeThoughts: true,
         jsonSchema: STORYTELLER_JSON_SCHEMA,
         label: 'Storyteller',
@@ -239,8 +241,8 @@ export const executeDialogueSummary = async (
         .map(p => p.text);
       const parsed = await parseAIResponse(
         response.text ?? '',
-        summaryContext.heroSheet?.gender ?? 'Not Specified',
         themeObject,
+        summaryContext.heroSheet ?? null,
         undefined,
         undefined,
         undefined,

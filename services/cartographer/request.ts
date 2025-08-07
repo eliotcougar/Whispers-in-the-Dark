@@ -28,6 +28,7 @@ import { retryAiCall } from '../../utils/retry';
 import {
   parseAIMapUpdateResponse,
 } from './responseParser';
+import { getThinkingBudget } from '../thinkingConfig';
 import {
   normalizeRemovalUpdates,
   dedupeEdgeOps,
@@ -252,11 +253,12 @@ export const executeMapUpdateRequest = async (
     promptUsed: string;
   }>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
+    const thinkingBudget = getThinkingBudget(4096);
     const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
       modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME],
       prompt,
       systemInstruction,
-      thinkingBudget: 4096,
+      thinkingBudget,
       includeThoughts: true,
       responseMimeType: 'application/json',
       jsonSchema: MAP_UPDATE_JSON_SCHEMA,

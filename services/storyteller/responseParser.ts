@@ -3,7 +3,7 @@
  * @description Utilities for validating and parsing AI storyteller responses.
  */
 
-import { GameStateFromAI, Item, NPC, MapData,
+import { GameStateFromAI, HeroSheet, Item, NPC, MapData,
     ValidNPCUpdatePayload, ValidNewNPCPayload as ValidNewNPCPayload, DialogueSetupPayload,
     MapNode, AdventureTheme } from '../../types';
 import { MAIN_TURN_OPTIONS_COUNT } from '../../constants';
@@ -385,8 +385,8 @@ async function handleNPCChanges(
  */
 export async function parseAIResponse(
     responseText: string,
-    heroGender: string,
     currentTheme: AdventureTheme,
+    heroSheet: HeroSheet | null,
     onParseAttemptFailed?: () => void,
     logMessageFromPayload?: string,
     sceneDescriptionFromPayload?: string,
@@ -406,7 +406,7 @@ export async function parseAIResponse(
         if (!validated) return null;
 
         const context: ParserContext = {
-            heroGender,
+            heroGender: heroSheet?.gender ?? 'Male',
             currentTheme,
             onParseAttemptFailed,
             logMessageFromPayload,

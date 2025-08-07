@@ -81,6 +81,7 @@ export const getInitialGameStates = (): FullGameState => {
     lastTurnChanges: null, 
     // Configuration snapshot
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
+    thinkingEffort: 'Medium',
 
     debugLore: false,
     debugGoodFacts: [],

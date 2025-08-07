@@ -61,6 +61,7 @@ import {
   HeroSheet,
   HeroBackstory,
   StoryArc,
+  ThinkingEffort,
 } from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
 
@@ -75,10 +76,10 @@ function App() {
     return gameLogicRef.current;
   };
   const {
-    heroGender,
-    setHeroGender,
     enabledThemePacks,
     setEnabledThemePacks,
+    thinkingEffort,
+    setThinkingEffort,
     initialSavedState,
     initialDebugStack,
     appReady,
@@ -86,7 +87,6 @@ function App() {
     handleSaveToFile,
     handleLoadFromFileClick,
     handleFileInputChange,
-    updateSettingsFromLoad,
   } = useSaveLoad({
     gatherGameStateStack: () => getGameLogic().gatherCurrentGameState(),
     gatherDebugPacketStack: () => getGameLogic().gatherDebugPacketStack(),
@@ -150,9 +150,10 @@ function App() {
     isCharacterSelectVisible,
     characterSelectData,
     submitCharacterSelectModal,
+    genderSelectDefault,
     submitDebugLoreModal,
-  closeDebugLoreModal,
-} = useAppModals();
+    closeDebugLoreModal,
+  } = useAppModals();
 
   const [geminiKeyVisible, setGeminiKeyVisible] = useState<boolean>(false);
 
@@ -186,19 +187,15 @@ function App() {
   const openGenderSelect = useCallback(
     (defaultGender: string) =>
       new Promise<string>(resolve => {
-        openGenderSelectModal(defaultGender, gender => {
-          setHeroGender(gender);
-          resolve(gender);
-        });
+        openGenderSelectModal(defaultGender, resolve);
       }),
-    [openGenderSelectModal, setHeroGender],
+    [openGenderSelectModal],
   );
 
 
   const gameLogic = useGameLogic({
-    heroGenderProp: heroGender,
     enabledThemePacksProp: enabledThemePacks,
-    onSettingsUpdateFromLoad: updateSettingsFromLoad,
+    thinkingEffortProp: thinkingEffort,
     initialSavedStateFromApp: initialSavedState,
     initialDebugStackFromApp: initialDebugStack,
     isAppReady: appReady,
@@ -207,6 +204,15 @@ function App() {
     openGenderSelectModal: openGenderSelect,
   });
   gameLogicRef.current = gameLogic;
+
+  const handleThinkingEffortChange = useCallback(
+    (value: ThinkingEffort) => {
+      setThinkingEffort(value);
+      const current = getGameLogic().gatherCurrentGameState()[0];
+      getGameLogic().commitGameState({ ...current, thinkingEffort: value });
+    },
+    [setThinkingEffort],
+  );
 
   const {
     currentTheme,
@@ -879,8 +885,10 @@ function App() {
       <SettingsDisplay
         enabledThemePacks={enabledThemePacks}
         isVisible={isSettingsVisible}
+        onChangeThinkingEffort={handleThinkingEffortChange}
         onClose={closeSettings}
         onToggleThemePack={handleToggleThemePackStable}
+        thinkingEffort={thinkingEffort}
       />
 
       <InfoDisplay
@@ -901,7 +909,7 @@ function App() {
       />
 
       <GenderSelectModal
-        defaultGender={heroGender}
+        defaultGender={genderSelectDefault}
         isVisible={isGenderSelectVisible}
         onSubmit={submitGenderSelectModal}
       />

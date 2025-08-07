@@ -18,6 +18,7 @@ import {
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
+import { getThinkingBudget } from '../thinkingConfig';
 import { isApiConfigured } from '../apiClient';
 import {
   AdventureTheme,
@@ -276,6 +277,7 @@ export const executeInventoryRequest = async (
         `Executing inventory request (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
+      const thinkingBudget = getThinkingBudget(1024);
       const {
         response,
         systemInstructionUsed,
@@ -286,7 +288,7 @@ export const executeInventoryRequest = async (
         prompt,
         systemInstruction: SYSTEM_INSTRUCTION,
         jsonSchema: INVENTORY_JSON_SCHEMA,
-        thinkingBudget: 1024,
+        thinkingBudget,
         includeThoughts: true,
         responseMimeType: 'application/json',
         temperature: 0.7,
