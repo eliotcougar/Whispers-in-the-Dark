@@ -390,6 +390,7 @@ export const STORYTELLER_JSON_SCHEMA = {
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
   fullPrompt: string,
+  maxOutputTokens?: number,
 ): Promise<{
   response: GenerateContentResponse;
   thoughts: Array<string>;
@@ -429,6 +430,7 @@ export const executeAIMainTurn = async (
         responseMimeType: 'application/json',
         jsonSchema: STORYTELLER_JSON_SCHEMA,
         label: 'Storyteller',
+        maxOutputTokens,
       });
       const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
         text?: string;

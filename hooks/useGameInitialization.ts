@@ -333,7 +333,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           systemInstructionUsed,
           jsonSchemaUsed,
           promptUsed,
-        } = await executeAIMainTurn(prompt);
+          } = await executeAIMainTurn(prompt, 6500);
         draftState.lastDebugPacket.rawResponseText = response.text ?? null;
         draftState.lastDebugPacket.storytellerThoughts = thoughts;
         draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;

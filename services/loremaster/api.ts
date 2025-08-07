@@ -219,22 +219,23 @@ export const extractInitialFacts_Service = async (
   } | null>(async () => {
     params.onSetLoadingReason?.('loremaster_extract');
     addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_extract.icon);
-    const {
-      response,
-      systemInstructionUsed,
-      jsonSchemaUsed,
-      promptUsed,
-    } = await dispatchAIRequest({
-      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-      prompt: extractPrompt,
-      systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
-      thinkingBudget: 512,
-      includeThoughts: true,
-      responseMimeType: 'application/json',
-      jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
-      temperature: 0.7,
-      label: 'LoremasterExtractInitial',
-    });
+      const {
+        response,
+        systemInstructionUsed,
+        jsonSchemaUsed,
+        promptUsed,
+      } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt: extractPrompt,
+        systemInstruction: EXTRACT_SYSTEM_INSTRUCTION,
+        thinkingBudget: 512,
+        includeThoughts: true,
+        responseMimeType: 'application/json',
+        jsonSchema: EXTRACT_FACTS_JSON_SCHEMA,
+        temperature: 0.7,
+        label: 'LoremasterExtractInitial',
+        maxOutputTokens: 6500,
+      });
     const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{
       text?: string;
       thought?: boolean;
