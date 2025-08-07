@@ -6,15 +6,18 @@ let currentThinkingEffort: ThinkingEffort = 'Medium';
 const budgetMap = new Map<number, number>();
 
 const computeBudget = (base: number): number => {
-  const baseInt = Math.floor(base);
+  let adjusted = Math.floor(base);
   switch (currentThinkingEffort) {
     case 'Low':
-      return Math.min(512, Math.floor(baseInt / 2));
+      adjusted = Math.floor(adjusted / 2);
+      break;
     case 'High':
-      return Math.min(8192, Math.floor(baseInt * 2));
+      adjusted = Math.floor(adjusted * 2);
+      break;
     default:
-      return baseInt;
+      break;
   }
+  return Math.min(8192, Math.max(512, adjusted));
 };
 
 const recalcBudgets = (): void => {
