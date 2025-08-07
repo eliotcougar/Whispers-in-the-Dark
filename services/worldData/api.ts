@@ -146,16 +146,17 @@ export const generateWorldFacts = async (
   const prompt =
     `Using the theme description "${theme.storyGuidance}", expand it into a world profile.`;
   const request = async () => {
-    const { response } = await dispatchAIRequest({
-      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-      prompt,
-      systemInstruction: 'Respond only with JSON matching the provided schema.',
-      thinkingBudget: 1024,
-      includeThoughts: false,
-      responseMimeType: 'application/json',
-      jsonSchema: worldFactsSchema,
-      label: 'WorldFacts',
-    });
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: 'Respond only with JSON matching the provided schema.',
+        thinkingBudget: 1024,
+        includeThoughts: false,
+        responseMimeType: 'application/json',
+        jsonSchema: worldFactsSchema,
+        label: 'WorldFacts',
+        maxOutputTokens: 6500,
+      });
     return response.text ?? null;
   };
   return retryAiCall<WorldFacts>(async () => {
@@ -181,16 +182,17 @@ export const generateCharacterNames = async (
     The names shouls follow 'First Name Last Name' or 'First Name "Nickname" Last Name' or 'Prefix First Name Last Name' template.
     You MUST guarantee name variety! Every individual First Name, Last Name, and Nickname MUST appear only once throughout the whole list. They all should be unique.`;
   const request = async () => {
-    const { response } = await dispatchAIRequest({
-      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-      prompt,
-      systemInstruction: 'Respond with a JSON array of strings.',
-      thinkingBudget: 1024,
-      includeThoughts: false,
-      responseMimeType: 'application/json',
-      jsonSchema: { type: 'array', minItems: 50, items: { type: 'string' } },
-      label: 'HeroNames',
-    });
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: 'Respond with a JSON array of strings.',
+        thinkingBudget: 1024,
+        includeThoughts: false,
+        responseMimeType: 'application/json',
+        jsonSchema: { type: 'array', minItems: 50, items: { type: 'string' } },
+        label: 'HeroNames',
+        maxOutputTokens: 6500,
+      });
     return response.text ?? null;
   };
   return retryAiCall<Array<string>>(async () => {
@@ -223,17 +225,18 @@ export const generateCharacterDescriptions = async (
       thinkingBudget: 1024,
       includeThoughts: false,
       responseMimeType: 'application/json',
-      jsonSchema: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: { name: { type: 'string' }, description: { type: 'string', minLength: 2000 } },
-          required: ['name', 'description'],
-          additionalProperties: false,
+        jsonSchema: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: { name: { type: 'string' }, description: { type: 'string', minLength: 2000 } },
+            required: ['name', 'description'],
+            additionalProperties: false,
+          },
         },
-      },
-      label: 'HeroDescriptions',
-    });
+        label: 'HeroDescriptions',
+        maxOutputTokens: 6500,
+      });
     return response.text ?? null;
   };
   return retryAiCall<Array<CharacterOption>>(async () => {
@@ -261,19 +264,20 @@ export const generateHeroData = async (
     (heroName ? ` Their name is ${heroName}.` : '') +
     (heroDescription ? ` Here is a short description of the hero: ${heroDescription}.` : '') +
     ' Create a brief character sheet including occupation, notable traits, and starting items.';
-  const request = async (prompt: string, schema: unknown, label: string) => {
-    const { response } = await dispatchAIRequest({
-      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-      prompt,
-      systemInstruction: 'Respond only with JSON matching the provided schema.',
-      thinkingBudget: 1024,
-      includeThoughts: false,
-      responseMimeType: 'application/json',
-      jsonSchema: schema,
-      label,
-    });
-    return response.text ?? null;
-  };
+    const request = async (prompt: string, schema: unknown, label: string) => {
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: 'Respond only with JSON matching the provided schema.',
+        thinkingBudget: 1024,
+        includeThoughts: false,
+        responseMimeType: 'application/json',
+        jsonSchema: schema,
+        label,
+        maxOutputTokens: 6500,
+      });
+      return response.text ?? null;
+    };
   return retryAiCall<{ heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null }>(
     async () => {
       addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
@@ -339,23 +343,24 @@ export const generateWorldData = async (
   const worldFactsPrompt =
     `Using the theme description "${theme.storyGuidance}", expand it into a detailed world profile.`;
 
-  const request = async (
-    prompt: string,
-    schema: unknown,
-    label: string,
-  ): Promise<string | null> => {
-    const { response } = await dispatchAIRequest({
-      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-      prompt,
-      systemInstruction: 'Respond only with JSON matching the provided schema.',
-      thinkingBudget: 1024,
-      includeThoughts: false,
-      responseMimeType: 'application/json',
-      jsonSchema: schema,
-      label,
-    });
-    return response.text ?? null;
-  };
+    const request = async (
+      prompt: string,
+      schema: unknown,
+      label: string,
+    ): Promise<string | null> => {
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: 'Respond only with JSON matching the provided schema.',
+        thinkingBudget: 1024,
+        includeThoughts: false,
+        responseMimeType: 'application/json',
+        jsonSchema: schema,
+        label,
+        maxOutputTokens: 6500,
+      });
+      return response.text ?? null;
+    };
 
   return retryAiCall<WorldDataResult>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
@@ -419,19 +424,20 @@ export const generateNextStoryAct = async (
     `Recent Log:\n${logLines}\n\n` +
     `Generate full details for Act ${String(nextActNumber)} (${nature}).`;
 
-  const request = async () => {
-    const { response } = await dispatchAIRequest({
-      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-      prompt,
-      systemInstruction: 'Respond only with JSON matching the provided schema.',
-      thinkingBudget: 1024,
-      includeThoughts: false,
-      responseMimeType: 'application/json',
-      jsonSchema: storyActSchema,
-      label: 'NextAct',
-    });
-    return response.text ?? null;
-  };
+    const request = async () => {
+      const { response } = await dispatchAIRequest({
+        modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+        prompt,
+        systemInstruction: 'Respond only with JSON matching the provided schema.',
+        thinkingBudget: 1024,
+        includeThoughts: false,
+        responseMimeType: 'application/json',
+        jsonSchema: storyActSchema,
+        label: 'NextAct',
+        maxOutputTokens: 6500,
+      });
+      return response.text ?? null;
+    };
 
   return retryAiCall<StoryAct>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
