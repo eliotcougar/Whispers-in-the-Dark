@@ -102,52 +102,52 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
                 </h2>
 
                 <p className="text-center">
-                  Occupation: {heroSheet.occupation}
+                  <span className="font-semibold text-amber-300">Occupation:</span> {heroSheet.occupation}
                 </p>
 
                 <p className="text-center">
-                  Traits: {heroSheet.traits.join(', ')}
+                  <span className="font-semibold text-amber-300">Traits:</span> {heroSheet.traits.join(', ')}
                 </p>
 
                 <p className="text-center">
-                  Starting Items: {heroSheet.startingItems.join(', ')}
+                  <span className="font-semibold text-amber-300">Starting Items:</span> {heroSheet.startingItems.join(', ')}
                 </p>
               </section>
 
               <section className="space-y-2 text-lg">
-                <h3 className="text-center font-semibold">
+                <h3 className="text-center font-semibold text-sky-300">
                   Backstory
                 </h3>
 
-                <ul className="list-inside list-disc space-y-2 whitespace-pre-line">
-                  <li>
-                    5 years ago: {heroBackstory.fiveYearsAgo}
-                  </li>
+                <div className="space-y-2 whitespace-pre-line">
+                  <p>
+                    <span className="font-semibold text-sky-300">5 years ago:</span> {heroBackstory.fiveYearsAgo}
+                  </p>
 
-                  <li>
-                    1 year ago: {heroBackstory.oneYearAgo}
-                  </li>
+                  <p>
+                    <span className="font-semibold text-sky-300">1 year ago:</span> {heroBackstory.oneYearAgo}
+                  </p>
 
-                  <li>
-                    6 months ago: {heroBackstory.sixMonthsAgo}
-                  </li>
+                  <p>
+                    <span className="font-semibold text-sky-300">6 months ago:</span> {heroBackstory.sixMonthsAgo}
+                  </p>
 
-                  <li>
-                    1 month ago: {heroBackstory.oneMonthAgo}
-                  </li>
+                  <p>
+                    <span className="font-semibold text-sky-300">1 month ago:</span> {heroBackstory.oneMonthAgo}
+                  </p>
 
-                  <li>
-                    1 week ago: {heroBackstory.oneWeekAgo}
-                  </li>
+                  <p>
+                    <span className="font-semibold text-sky-300">1 week ago:</span> {heroBackstory.oneWeekAgo}
+                  </p>
 
-                  <li>
-                    Yesterday: {heroBackstory.yesterday}
-                  </li>
+                  <p>
+                    <span className="font-semibold text-sky-300">Yesterday:</span> {heroBackstory.yesterday}
+                  </p>
 
-                  <li>
-                    Now: {heroBackstory.now}
-                  </li>
-                </ul>
+                  <p>
+                    <span className="font-semibold text-sky-300">Now:</span> {heroBackstory.now}
+                  </p>
+                </div>
               </section>
 
               <section className="space-y-2 text-lg">
@@ -156,35 +156,35 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
                 </h3>
 
                 <p>
-                  Geography: {worldFacts.geography}
+                  <span className="font-semibold text-sky-300">Geography:</span> {worldFacts.geography}
                 </p>
 
                 <p>
-                  Climate: {worldFacts.climate}
+                  <span className="font-semibold text-sky-300">Climate:</span> {worldFacts.climate}
                 </p>
 
                 <p>
-                  Technology Level: {worldFacts.technologyLevel}
+                  <span className="font-semibold text-sky-300">Technology Level:</span> {worldFacts.technologyLevel}
                 </p>
 
                 <p>
-                  Supernatural Elements: {worldFacts.supernaturalElements}
+                  <span className="font-semibold text-sky-300">Supernatural Elements:</span> {worldFacts.supernaturalElements}
                 </p>
 
                 <p>
-                  Major Factions: {worldFacts.majorFactions.join(', ')}
+                  <span className="font-semibold text-sky-300">Major Factions:</span> {worldFacts.majorFactions.join(', ')}
                 </p>
 
                 <p>
-                  Key Resources: {worldFacts.keyResources.join(', ')}
+                  <span className="font-semibold text-sky-300">Key Resources:</span> {worldFacts.keyResources.join(', ')}
                 </p>
 
                 <p>
-                  Cultural Notes: {worldFacts.culturalNotes.join(', ')}
+                  <span className="font-semibold text-sky-300">Cultural Notes:</span> {worldFacts.culturalNotes.join(', ')}
                 </p>
 
                 <p>
-                  Notable Locations: {worldFacts.notableLocations.join(', ')}
+                  <span className="font-semibold text-sky-300">Notable Locations:</span> {worldFacts.notableLocations.join(', ')}
                 </p>
               </section>
             </div>
