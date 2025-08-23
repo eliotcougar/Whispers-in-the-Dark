@@ -72,7 +72,16 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
         prevRectsRef.current.delete(id);
         return;
       }
-      newRects.set(id, el.getBoundingClientRect());
+      const rect = el.getBoundingClientRect();
+      newRects.set(
+        id,
+        new DOMRect(
+          rect.left + window.scrollX,
+          rect.top + window.scrollY,
+          rect.width,
+          rect.height,
+        ),
+      );
     });
 
     if (prevDisabledRef.current !== disabled) {
