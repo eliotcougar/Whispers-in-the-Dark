@@ -27,7 +27,6 @@ export const useInventoryDisplay = ({
 }: UseInventoryDisplayProps) => {
   const [newlyAddedItemIds, setNewlyAddedItemIds] = useState<Set<string>>(new Set());
   const prevItemsRef = useRef<Array<Item>>(items);
-  const [confirmingDiscardItemId, setConfirmingDiscardItemId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [stashingItemIds, setStashingItemIds] = useState<Set<string>>(new Set());
@@ -51,15 +50,6 @@ export const useInventoryDisplay = ({
     setFilterMode(prev => (prev === 'stashed' ? 'all' : 'stashed'));
     event.currentTarget.blur();
   }, []);
-
-  const handleStartConfirmDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    const id = event.currentTarget.dataset.itemId;
-    if (!id) return;
-    const item = items.find(i => i.id === id);
-    if (!item) return;
-    onItemInteract(item, 'drop');
-    event.currentTarget.blur();
-  }, [items, onItemInteract]);
 
 
   const handleStashToggleInternal = useCallback(
@@ -104,11 +94,6 @@ export const useInventoryDisplay = ({
     [filterMode, items, onStashToggle],
   );
 
-  const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    setConfirmingDiscardItemId(null);
-    event.currentTarget.blur();
-  }, []);
-
   const handleSpecificUse = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const { itemId, actionName, promptEffect } = event.currentTarget.dataset;
@@ -148,6 +133,18 @@ export const useInventoryDisplay = ({
       event.currentTarget.blur();
     },
     [items, onItemInteract]
+  );
+
+  const handleDrop = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const id = event.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      onItemInteract(item, 'drop');
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract],
   );
 
   const handleVehicleToggle = useCallback(
@@ -262,18 +259,16 @@ export const useInventoryDisplay = ({
     displayedItems,
     newlyAddedItemIds,
     stashingItemIds,
-    confirmingDiscardItemId,
     sortOrder,
     filterMode,
     handleSortByName,
     handleSortByType,
     handleFilterAll,
     handleFilterStashed,
-    handleStartConfirmDiscard,
-    handleCancelDiscard,
     handleSpecificUse,
     handleInspect,
     handleGenericUse,
+    handleDrop,
     handleVehicleToggle,
     handleStashToggleInternal,
     handleRead,

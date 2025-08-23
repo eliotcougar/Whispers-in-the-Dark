@@ -19,7 +19,7 @@ interface ActionOptionsProps {
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
   readonly allNPCs: Array<NPC>;
-  readonly queuedActions: Array<{ id: string; text: string; effect?: () => void }>;
+  readonly queuedActions: Array<{ id: string; displayText: string; promptText: string; effect?: () => void }>;
   readonly onClearQueuedActions: () => void;
 }
 
@@ -44,27 +44,28 @@ function ActionOptions({
   );
 
 
-  const queuedText = queuedActions.map(a => a.text).join(', ');
+  const queuedDisplayText = queuedActions.map(a => a.displayText).join(', ');
+  const queuedPromptText = queuedActions.map(a => a.promptText).join(', ');
 
   const executeQueuedOnly = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       queuedActions.forEach(a => a.effect?.());
-      onActionSelect(queuedText);
+      onActionSelect(queuedPromptText);
       onClearQueuedActions();
       event.currentTarget.blur();
     },
-    [queuedActions, onActionSelect, onClearQueuedActions, queuedText]
+    [queuedActions, onActionSelect, onClearQueuedActions, queuedPromptText],
   );
 
   const handleOptionClick = useCallback(
     (action: string) => (event: React.MouseEvent<HTMLButtonElement>) => {
-      const combined = queuedText ? `${queuedText}, and ${action}` : action;
+      const combined = queuedPromptText ? `${queuedPromptText}, and ${action}` : action;
       queuedActions.forEach(a => a.effect?.());
       onActionSelect(combined);
       onClearQueuedActions();
       event.currentTarget.blur();
     },
-    [queuedActions, onActionSelect, onClearQueuedActions, queuedText]
+    [queuedActions, onActionSelect, onClearQueuedActions, queuedPromptText],
   );
 
   return (
@@ -72,9 +73,9 @@ function ActionOptions({
       {queuedActions.length > 0 ? (
         <div className="mb-3">
           <Button
-            ariaLabel={queuedText}
+            ariaLabel={queuedDisplayText}
             disabled={disabled}
-            label={<>{highlightEntitiesInText(queuedText, entitiesForHighlighting)}</>}
+            label={<>{highlightEntitiesInText(queuedDisplayText, entitiesForHighlighting)}</>}
             onClick={executeQueuedOnly}
             preset="teal"
             size="lg"

@@ -190,7 +190,6 @@ function LocationItemsDisplay({ items, onItemInteract, disabled, currentNodeId, 
                     label={item.type === 'vehicle' ? 'Enter Vehicle' : 'Take'}
                     onClick={handleTakeItem}
                     preset="green"
-                    pressed={queuedActionIds.has(`${item.id}-take`)}
                     size="sm"
                   />
                 )}

@@ -29,18 +29,16 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
     displayedItems,
     newlyAddedItemIds,
     stashingItemIds,
-    confirmingDiscardItemId,
     sortOrder,
     handleSortByName,
     handleSortByType,
     filterMode,
     handleFilterAll,
     handleFilterStashed,
-    handleStartConfirmDiscard,
-    handleCancelDiscard,
     handleSpecificUse,
     handleInspect,
     handleGenericUse,
+    handleDrop,
     handleVehicleToggle,
     handleStashToggleInternal,
     handleRead,
@@ -144,24 +142,21 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
             const applicableUses = getApplicableKnownUses(item);
             const isNew = newlyAddedItemIds.has(item.id);
             const isStashing = stashingItemIds.has(item.id);
-            const isConfirmingDiscard = confirmingDiscardItemId === item.id;
             return (
               <InventoryItem
                 applicableUses={applicableUses}
                 currentTurn={currentTurn}
                 disabled={disabled}
                 filterMode={filterMode}
-                isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 isStashing={isStashing}
                 item={item}
                 key={item.id}
-                onCancelDiscard={handleCancelDiscard}
                 onGenericUse={handleGenericUse}
+                onDrop={handleDrop}
                 onInspect={handleInspect}
                 onRead={handleRead}
                 onSpecificUse={handleSpecificUse}
-                onStartConfirmDiscard={handleStartConfirmDiscard}
                 onStashToggle={handleStashToggleInternal}
                 onVehicleToggle={handleVehicleToggle}
                 queuedActionIds={queuedActionIds}

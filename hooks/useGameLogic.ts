@@ -92,7 +92,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   void parseErrorCounter;
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
-  const [queuedItemActions, setQueuedItemActions] = useState<Array<{ id: string; text: string; effect?: () => void }>>([]);
+  const [queuedItemActions, setQueuedItemActions] = useState<
+    Array<{ id: string; displayText: string; promptText: string; effect?: () => void }>
+  >([]);
 
   // Tracks whether a saved game from app initialization has already been
   // applied to prevent re-loading it when starting a new game.
@@ -188,56 +190,84 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     openDebugLoreModal,
   });
 
-  const toggleQueuedAction = useCallback((action: { id: string; text: string; effect?: () => void }) => {
-    setQueuedItemActions(prev => {
-      const exists = prev.some(a => a.id === action.id);
-      return exists ? prev.filter(a => a.id !== action.id) : [...prev, action];
-    });
-  }, []);
+  const toggleQueuedAction = useCallback(
+    (action: { id: string; displayText: string; promptText: string; effect?: () => void }) => {
+      setQueuedItemActions(prev => {
+        const exists = prev.some(a => a.id === action.id);
+        return exists ? prev.filter(a => a.id !== action.id) : [...prev, action];
+      });
+    },
+    [],
+  );
 
   const clearQueuedItemActions = useCallback(() => {
     setQueuedItemActions([]);
   }, []);
 
   const queueItemAction = useCallback(
-    (item: Item, interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop', knownUse?: KnownUse) => {
+    (
+      item: Item,
+      interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop',
+      knownUse?: KnownUse,
+    ) => {
+      if (interactionType === 'take') {
+        handleTakeLocationItem(item.id);
+        return;
+      }
+      if (interactionType === 'drop') {
+        handleDropItem(item.id);
+        return;
+      }
+
       let id = '';
-      let text = '';
+      let displayText = '';
+      let promptText = '';
       let effect: (() => void) | undefined;
+
       switch (interactionType) {
-        case 'inspect':
+        case 'inspect': {
           id = `${item.id}-inspect`;
-          text = `Inspect the ${item.name}`;
-          effect = () => { recordInspect(item.id); };
+          displayText = `Inspect the ${item.name}`;
+          effect = () => {
+            recordInspect(item.id);
+          };
+          if (item.type === 'book' || item.type === 'page') {
+            const showActual = item.tags?.includes('recovered');
+            const contents = (item.chapters ?? [])
+              .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
+              .join('\n\n');
+            promptText = `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`;
+          } else {
+            promptText = `Player investigates the ${item.name} - ${item.description}.`;
+          }
           break;
+        }
         case 'generic':
           id = `${item.id}-generic`;
-          text = `Attempt to use the ${item.name}`;
+          displayText = `Attempt to use the ${item.name}`;
+          promptText = `Attempt to use: ${item.name}`;
           break;
         case 'specific':
           if (knownUse) {
             id = `${item.id}-specific-${knownUse.actionName}`;
-            text = `${knownUse.actionName} the ${item.name}`;
+            const actionIncludesName = knownUse.actionName
+              .toLowerCase()
+              .includes(item.name.toLowerCase());
+            displayText = actionIncludesName
+              ? knownUse.actionName
+              : `${knownUse.actionName} the ${item.name}`;
+            promptText = knownUse.promptEffect;
           }
-          break;
-        case 'take':
-          id = `${item.id}-take`;
-          text = `Take the ${item.name}`;
-          effect = () => { handleTakeLocationItem(item.id); };
-          break;
-        case 'drop':
-          id = `${item.id}-drop`;
-          text = `Drop the ${item.name}`;
-          effect = () => { handleDropItem(item.id); };
           break;
         default:
           break;
       }
-      if (id && text) {
-        toggleQueuedAction({ id, text, effect });
+
+      if (id && displayText && promptText) {
+        toggleQueuedAction({ id, displayText, promptText, effect });
       }
     },
-    [handleDropItem, handleTakeLocationItem, toggleQueuedAction, recordInspect]
+    [handleDropItem, handleTakeLocationItem, toggleQueuedAction, recordInspect],
   );
 
   const {
