@@ -56,10 +56,11 @@ export interface ButtonProps {
   readonly title?: string;
   readonly type?: 'button' | 'submit' | 'reset';
   readonly 'data-action-name'?: string;
+  readonly 'data-item-id'?: string;
   readonly 'data-item-name'?: string;
+  readonly 'data-node-id'?: string;
   readonly 'data-option'?: string;
   readonly 'data-prompt-effect'?: string;
-  readonly 'data-node-id'?: string;
   readonly variant?: ButtonVariant;
   readonly preset?: ButtonPreset;
 }
@@ -79,10 +80,11 @@ function Button({
   variant = 'standard',
   preset,
   'data-action-name': dataActionName,
+  'data-item-id': dataItemId,
   'data-item-name': dataItemName,
+  'data-node-id': dataNodeId,
   'data-option': dataOption,
   'data-prompt-effect': dataPromptEffect,
-  'data-node-id': dataNodeId,
 }: ButtonProps) {
   const handleClick = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -164,6 +166,7 @@ function Button({
       aria-pressed={variant === 'toggle' ? pressed : undefined}
       className={`rounded-md shadow transition-colors duration-150 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${appliedSize} ${variantClasses[variant]} ${preset ? presetClasses[preset] : ''} ${pressedClasses}`}
       data-action-name={dataActionName}
+      data-item-id={dataItemId}
       data-item-name={dataItemName}
       data-node-id={dataNodeId}
       data-option={dataOption}
@@ -190,6 +193,7 @@ function Button({
 
 Button.defaultProps = {
   'data-action-name': undefined,
+  'data-item-id': undefined,
   'data-item-name': undefined,
   'data-node-id': undefined,
   'data-option': undefined,

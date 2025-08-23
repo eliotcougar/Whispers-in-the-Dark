@@ -7,7 +7,7 @@ import Button from '../elements/Button';
 
 interface LocationItemsDisplayProps {
   readonly items: Array<Item>;
-  readonly onTakeItem: (itemName: string) => void;
+  readonly onTakeItem: (itemId: string) => void;
   readonly onItemInteract: (
     item: Item,
     type: 'generic' | 'specific' | 'inspect',
@@ -21,9 +21,9 @@ interface LocationItemsDisplayProps {
 function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, currentNodeId, mapNodes }: LocationItemsDisplayProps) {
   const handleTakeItem = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const itemName = event.currentTarget.dataset.itemName;
-      if (itemName) {
-        onTakeItem(itemName);
+      const itemId = event.currentTarget.dataset.itemId;
+      if (itemId) {
+        onTakeItem(itemId);
         event.currentTarget.blur();
       }
     },
@@ -32,9 +32,9 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
 
   const handleInspect = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const name = event.currentTarget.dataset.itemName;
-      if (!name) return;
-      const item = items.find(i => i.name === name);
+      const id = event.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = items.find(i => i.id === id);
       if (!item) return;
       onItemInteract(item, 'inspect');
       event.currentTarget.blur();
@@ -44,9 +44,9 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
 
   const handleGenericUse = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const name = event.currentTarget.dataset.itemName;
-      if (!name) return;
-      const item = items.find(i => i.name === name);
+      const id = event.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = items.find(i => i.id === id);
       if (!item) return;
       onItemInteract(item, 'generic');
       event.currentTarget.blur();
@@ -56,9 +56,9 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
 
   const handleSpecificUse = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const { itemName, actionName, promptEffect } = event.currentTarget.dataset;
-      if (!itemName || !actionName || !promptEffect) return;
-      const item = items.find(i => i.name === itemName);
+      const { itemId, actionName, promptEffect } = event.currentTarget.dataset;
+      if (!itemId || !actionName || !promptEffect) return;
+      const item = items.find(i => i.id === itemId);
       if (!item) return;
       const ku: KnownUse = { actionName, promptEffect, description: actionName };
       onItemInteract(item, 'specific', ku);
@@ -113,7 +113,7 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
           return (
             <li
               className="w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 flex flex-col"
-              key={item.name}
+              key={item.id}
             >
               <div className="flex justify-between items-center mb-1 text-xs">
                 <ItemTypeDisplay type={item.type} />
@@ -146,10 +146,10 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
                       <Button
                         ariaLabel={`${ku.actionName}${ku.description ? ': ' + ku.description : ''}`}
                         data-action-name={ku.actionName}
-                        data-item-name={item.name}
+                        data-item-id={item.id}
                         data-prompt-effect={ku.promptEffect}
                         disabled={disabled}
-                        key={`${item.name}-ku-${ku.actionName}`}
+                        key={`${item.id}-ku-${ku.actionName}`}
                         label={ku.actionName}
                         onClick={handleSpecificUse}
                         preset="teal"
@@ -160,7 +160,7 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
 
                     <Button
                       ariaLabel={`Inspect ${item.name}`}
-                      data-item-name={item.name}
+                      data-item-id={item.id}
                       disabled={disabled}
                       label="Inspect"
                       onClick={handleInspect}
@@ -170,7 +170,7 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
 
                     <Button
                       ariaLabel={`Attempt to use ${item.name}`}
-                      data-item-name={item.name}
+                      data-item-id={item.id}
                       disabled={disabled}
                       label="Attempt to Use (Generic)"
                       onClick={handleGenericUse}
@@ -182,7 +182,7 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
                   <button
                     aria-label={item.type === 'vehicle' ? `Enter ${item.name}` : `Take ${item.name}`}
                     className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-600 disabled:text-slate-300 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
-                    data-item-name={item.name}
+                    data-item-id={item.id}
                     disabled={disabled}
                     onClick={handleTakeItem}
                     type="button"

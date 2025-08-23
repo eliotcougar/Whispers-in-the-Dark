@@ -23,8 +23,8 @@ interface GameSidebarProps {
   readonly storyArc: StoryArc | null;
   readonly mapNodes: Array<MapNode>;
   readonly objectiveAnimationType: 'success' | 'neutral' | null;
-  readonly onDropItem: (itemName: string) => void;
-  readonly onStashToggle: (itemName: string) => void;
+  readonly onDropItem: (itemId: string) => void;
+  readonly onStashToggle: (itemId: string) => void;
   readonly onItemInteract: (
     item: Item,
     interactionType: 'generic' | 'specific' | 'inspect',
@@ -32,7 +32,7 @@ interface GameSidebarProps {
   ) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onReadPlayerJournal: () => void;
-  readonly onTakeItem: (itemName: string) => void;
+  readonly onTakeItem: (itemId: string) => void;
   readonly globalTurnNumber: number;
   readonly disabled: boolean;
 }

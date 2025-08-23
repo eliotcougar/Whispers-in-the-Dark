@@ -17,8 +17,8 @@ interface InventoryDisplayProps {
     interactionType: 'generic' | 'specific' | 'inspect',
     knownUse?: KnownUse
   ) => void;
-  readonly onDropItem: (itemName: string) => void;
-  readonly onStashToggle: (itemName: string) => void;
+  readonly onDropItem: (itemId: string) => void;
+  readonly onStashToggle: (itemId: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly currentTurn: number;
   readonly disabled: boolean;
@@ -27,9 +27,9 @@ interface InventoryDisplayProps {
 function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, onReadPage, currentTurn, disabled }: InventoryDisplayProps) {
   const {
     displayedItems,
-    newlyAddedItemNames,
-    stashingItemNames,
-    confirmingDiscardItemName,
+    newlyAddedItemIds,
+    stashingItemIds,
+    confirmingDiscardItemId,
     sortOrder,
     handleSortByName,
     handleSortByType,
@@ -60,21 +60,21 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
 
   const registerItemRef = useCallback((el: HTMLLIElement | null) => {
     if (!el) return;
-    const name = el.dataset.itemName;
-    if (name) {
-      itemElementMap.current.set(name, el);
+    const id = el.dataset.itemId;
+    if (id) {
+      itemElementMap.current.set(id, el);
     }
   }, []);
 
   useLayoutEffect(() => {
     const newRects = new Map<string, DOMRect>();
-    itemElementMap.current.forEach((el, name) => {
+    itemElementMap.current.forEach((el, id) => {
       if (!el.isConnected) {
-        itemElementMap.current.delete(name);
-        prevRectsRef.current.delete(name);
+        itemElementMap.current.delete(id);
+        prevRectsRef.current.delete(id);
         return;
       }
-      newRects.set(name, el.getBoundingClientRect());
+      newRects.set(id, el.getBoundingClientRect());
     });
 
     if (prevDisabledRef.current !== disabled) {
@@ -84,9 +84,9 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
     }
 
     if (!disabled) {
-      prevRectsRef.current.forEach((prevRect, name) => {
-        const newRect = newRects.get(name);
-        const el = itemElementMap.current.get(name);
+      prevRectsRef.current.forEach((prevRect, id) => {
+        const newRect = newRects.get(id);
+        const el = itemElementMap.current.get(id);
         if (!newRect || !el) return;
         const dx = Math.round(prevRect.left - newRect.left);
         const dy = Math.round(prevRect.top - newRect.top);
@@ -144,9 +144,9 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
         <ul className="flex flex-wrap justify-center gap-4 list-none p-0">
           {displayedItems.map(item => {
             const applicableUses = getApplicableKnownUses(item);
-            const isNew = newlyAddedItemNames.has(item.name);
-            const isStashing = stashingItemNames.has(item.name);
-            const isConfirmingDiscard = confirmingDiscardItemName === item.name;
+            const isNew = newlyAddedItemIds.has(item.id);
+            const isStashing = stashingItemIds.has(item.id);
+            const isConfirmingDiscard = confirmingDiscardItemId === item.id;
             return (
               <InventoryItem
                 applicableUses={applicableUses}
@@ -157,7 +157,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
                 isNew={isNew}
                 isStashing={isStashing}
                 item={item}
-                key={item.name}
+                key={item.id}
                 onCancelDiscard={handleCancelDiscard}
                 onConfirmDrop={handleConfirmDrop}
                 onGenericUse={handleGenericUse}
