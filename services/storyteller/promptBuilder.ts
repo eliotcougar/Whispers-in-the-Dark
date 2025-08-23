@@ -228,8 +228,11 @@ IMPORTANT: Recent events are provided only for additional context. These actions
 ## Previous Scene:
 ${currentScene}
 
-## Player Action:
-${playerAction}
+## Player Actions:
+${playerAction
+    .split('\n')
+    .map(a => `- ${a}`)
+    .join('\n')}
 ${travelPlanOrUnknown}`;
 
   return prompt;
