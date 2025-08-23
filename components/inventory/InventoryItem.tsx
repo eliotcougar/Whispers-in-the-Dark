@@ -76,6 +76,7 @@ function InventoryItem({
         pressed={queuedActionIds.has(`${item.id}-specific-${knownUse.actionName}`)}
         size="sm"
         title={knownUse.description}
+        variant="toggleFull"
       />
     );
   });
@@ -103,6 +104,7 @@ function InventoryItem({
       preset="indigo"
       pressed={queuedActionIds.has(`${item.id}-inspect`)}
       size="sm"
+      variant="toggleFull"
     />
   );
 
@@ -137,6 +139,7 @@ function InventoryItem({
         preset="sky"
         pressed={queuedActionIds.has(`${item.id}-generic`)}
         size="sm"
+        variant="toggleFull"
       />
     );
   }
@@ -153,6 +156,7 @@ function InventoryItem({
         preset="sky"
         pressed={queuedActionIds.has(`${item.id}-specific-${item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}`)}
         size="sm"
+        variant="toggleFull"
       />
     );
   }

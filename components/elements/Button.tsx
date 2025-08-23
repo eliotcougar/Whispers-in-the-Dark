@@ -10,6 +10,7 @@ export const BUTTON_VARIANTS = [
   'toolbar',
   'toolbarLarge',
   'toggle',
+  'toggleFull',
   'close',
   'tab',
 ] as const;
@@ -103,7 +104,8 @@ function Button({
   const appliedSize =
     variant === 'standard' ||
     variant === 'center' ||
-    variant === 'compact'
+    variant === 'compact' ||
+    variant === 'toggleFull'
       ? sizeClasses[size]
       : '';
 
@@ -114,6 +116,7 @@ function Button({
     toolbar: 'flex items-center justify-center w-9 h-9 p-2',
     toolbarLarge: 'flex items-center justify-center w-[4.33rem] h-[4.33rem] p-3',
     toggle: 'inline-flex items-center justify-center px-3 py-1 text-xs',
+    toggleFull: 'w-full flex items-center justify-center',
     close: 'animated-frame-close-button',
     tab: 'px-3 py-2 text-sm font-medium transition-colors',
   };
@@ -144,7 +147,7 @@ function Button({
   };
 
   const pressedClasses = (() => {
-    if (variant === 'toggle' && pressed) {
+    if ((variant === 'toggle' || variant === 'toggleFull') && pressed) {
       return 'ring-2 ring-sky-400 ring-offset-1 ring-offset-slate-800';
     }
     if (variant === 'tab') {
@@ -163,7 +166,9 @@ function Button({
   return (
     <button
       aria-label={ariaLabel}
-      aria-pressed={variant === 'toggle' ? pressed : undefined}
+      aria-pressed={
+        variant === 'toggle' || variant === 'toggleFull' ? pressed : undefined
+      }
       className={`rounded-md shadow transition-colors duration-150 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${appliedSize} ${variantClasses[variant]} ${preset ? presetClasses[preset] : ''} ${pressedClasses}`}
       data-action-name={dataActionName}
       data-item-id={dataItemId}

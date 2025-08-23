@@ -157,9 +157,9 @@ function LocationItemsDisplay({ items, onItemInteract, disabled, currentNodeId, 
                         pressed={queuedActionIds.has(`${item.id}-specific-${ku.actionName}`)}
                         size="sm"
                         title={ku.description}
+                        variant="toggleFull"
                       />
                     ))}
-
                     <Button
                       ariaLabel={`Inspect ${item.name}`}
                       data-item-id={item.id}
@@ -169,6 +169,7 @@ function LocationItemsDisplay({ items, onItemInteract, disabled, currentNodeId, 
                       preset="indigo"
                       pressed={queuedActionIds.has(`${item.id}-inspect`)}
                       size="sm"
+                      variant="toggleFull"
                     />
 
                     <Button
@@ -180,9 +181,10 @@ function LocationItemsDisplay({ items, onItemInteract, disabled, currentNodeId, 
                       preset="sky"
                       pressed={queuedActionIds.has(`${item.id}-generic`)}
                       size="sm"
+                      variant="toggleFull"
                     />
-                  </>
-                ) : (
+                </>
+              ) : (
                   <Button
                     ariaLabel={item.type === 'vehicle' ? `Enter ${item.name}` : `Take ${item.name}`}
                     data-item-id={item.id}
