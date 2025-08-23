@@ -3,21 +3,23 @@ import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 
 interface SettingsTabProps {
-  readonly debugLore: boolean;
-  readonly onToggleDebugLore: () => void;
-  readonly goodFacts: Array<string>;
   readonly badFacts: Array<string>;
-  readonly onSaveFacts: (data: string) => void;
+  readonly debugLore: boolean;
+  readonly goodFacts: Array<string>;
   readonly onClearFacts: () => void;
+  readonly onSaveFacts: (data: string) => void;
+  readonly onSimulateVictory: () => void;
+  readonly onToggleDebugLore: () => void;
 }
 
 function SettingsTab({
-  debugLore,
-  onToggleDebugLore,
-  goodFacts,
   badFacts,
-  onSaveFacts,
+  debugLore,
+  goodFacts,
   onClearFacts,
+  onSaveFacts,
+  onSimulateVictory,
+  onToggleDebugLore,
 }: SettingsTabProps) {
   const [showFacts, setShowFacts] = useState(false);
 
@@ -49,6 +51,15 @@ function SettingsTab({
           pressed={debugLore}
           size="sm"
           variant="toggle"
+        />
+
+        <Button
+          ariaLabel="Simulate victory"
+          label="Simulate Victory"
+          onClick={onSimulateVictory}
+          preset="green"
+          size="sm"
+          variant="compact"
         />
 
         <Button

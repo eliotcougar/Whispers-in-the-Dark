@@ -166,6 +166,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleFreeFormActionSubmit,
     handleUndoTurn,
     triggerMainQuestAchieved,
+    simulateVictory,
   } = useGameTurn({
     getCurrentGameState,
     commitGameState,
@@ -414,6 +415,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     actionOptions: currentFullState.actionOptions,
     mainQuest,
     storyArc: currentFullState.storyArc,
+    heroSheet: currentFullState.heroSheet,
     currentObjective: currentFullState.currentObjective,
     inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
     playerJournal: currentFullState.playerJournal,
@@ -469,6 +471,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     handleDialogueOptionSelect,
     handleForceExitDialogue,
 
+    isVictory: currentFullState.isVictory,
     lastDebugPacket: debugPacketStack[0],
     lastTurnChanges: currentFullState.lastTurnChanges,
     gameStateStack,
@@ -495,6 +498,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     handleSelectDestinationNode,
     handleUndoTurn,
     triggerMainQuestAchieved,
+    simulateVictory,
     handleStashToggle,
     addJournalEntry,
     addPlayerJournalEntry,

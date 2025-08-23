@@ -80,6 +80,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     debugLore,
     debugGoodFacts,
     debugBadFacts,
+    isVictory,
     ...restOfGameState
   } = gameState;
 
@@ -90,6 +91,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   void debugLore;
   void debugGoodFacts;
   void debugBadFacts;
+  void isVictory;
 
   const mapDataForSave: MapData = {
       nodes: gameState.mapData.nodes.map(node => ({
@@ -191,6 +193,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     debugGoodFacts: [],
     debugBadFacts: [],
     dialogueState: null,
+    isVictory: false,
     objectiveAnimationType: null,
     lastDebugPacket: null,
     lastTurnChanges: null,

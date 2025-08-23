@@ -502,15 +502,17 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   /**
    * Forces the main quest completion procedure without AI involvement.
    */
-  const triggerMainQuestAchieved = useCallback(async () => {
-    const currentState = getCurrentGameState();
+  const triggerMainQuestAchieved = useCallback(async (
+    stateOverride?: FullGameState,
+  ): Promise<FullGameState | null> => {
+    const currentState = stateOverride ?? getCurrentGameState();
     const {
       currentTheme,
       storyArc,
       worldFacts,
       heroSheet,
     } = currentState;
-    if (!currentTheme || !storyArc || !worldFacts || !heroSheet) return;
+    if (!currentTheme || !storyArc || !worldFacts || !heroSheet) return null;
 
     const draftState = structuredCloneGameState(currentState);
     const newAct = await generateNextStoryAct(
@@ -537,18 +539,36 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       mapDataChanged: false,
     };
 
-    if (newAct && draftState.storyArc) {
+    if (draftState.storyArc) {
       const arc = draftState.storyArc;
       arc.acts[arc.currentAct - 1].completed = true;
-      arc.acts.push(newAct);
-      arc.currentAct = newAct.actNumber;
-      turnChanges.mainQuestAchieved = false;
+
+      if (newAct) {
+        arc.acts.push(newAct);
+        arc.currentAct = newAct.actNumber;
+        turnChanges.mainQuestAchieved = false;
+      } else {
+        draftState.isVictory = true;
+      }
     }
 
     draftState.globalTurnNumber += 1;
     draftState.lastTurnChanges = turnChanges;
     commitGameState(draftState);
+    return draftState;
   }, [getCurrentGameState, commitGameState]);
+
+  /**
+   * Sequentially completes all remaining acts to reach victory.
+   */
+  const simulateVictory = useCallback(async () => {
+    let state: FullGameState | null = getCurrentGameState();
+    let guard = 0;
+    while (state && !state.isVictory && guard < 10) {
+      state = await triggerMainQuestAchieved(state);
+      guard += 1;
+    }
+  }, [getCurrentGameState, triggerMainQuestAchieved]);
 
   return {
     processAiResponse,
@@ -566,5 +586,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleFreeFormActionSubmit,
     handleUndoTurn,
     triggerMainQuestAchieved,
+    simulateVictory,
   };
 };

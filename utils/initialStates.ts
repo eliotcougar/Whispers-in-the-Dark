@@ -72,13 +72,14 @@ export const getInitialGameStates = (): FullGameState => {
     localEnvironment: "Unknown",
     localPlace: "Unknown",
     globalTurnNumber: 0, // Initialized to 0
-    
-    dialogueState: null, 
+
+    dialogueState: null,
+    isVictory: false,
 
     // Transient/Debug fields initialized
     objectiveAnimationType: null,
     lastDebugPacket: null,
-    lastTurnChanges: null, 
+    lastTurnChanges: null,
     // Configuration snapshot
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
     thinkingEffort: 'Medium',

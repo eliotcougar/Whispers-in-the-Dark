@@ -88,6 +88,7 @@ const baseState: FullGameState = {
   localPlace: null,
   globalTurnNumber: 0,
   dialogueState: null,
+  isVictory: false,
   enabledThemePacks: [],
   thinkingEffort: 'Medium',
   debugLore: false,

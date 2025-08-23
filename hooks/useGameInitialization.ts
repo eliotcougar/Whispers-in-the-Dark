@@ -166,6 +166,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           globalTurnNumber: currentSaved.globalTurnNumber,
           enabledThemePacks: enabledThemePacksProp,
           thinkingEffort: thinkingEffortProp,
+          isVictory: false,
         } as FullGameState;
 
         const prev = previousSaved
@@ -173,6 +174,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
               ...previousSaved,
               enabledThemePacks: enabledThemePacksProp,
               thinkingEffort: thinkingEffortProp,
+              isVictory: false,
             }
           : stateWithMapData;
 

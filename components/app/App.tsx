@@ -26,6 +26,7 @@ import DebugLoreModal from '../modals/DebugLoreModal';
 import GeminiKeyModal from '../modals/GeminiKeyModal';
 import CharacterSelectModal from '../modals/CharacterSelectModal';
 import GenderSelectModal from '../modals/GenderSelectModal';
+import VictoryScreen from '../modals/VictoryScreen';
 import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
@@ -216,7 +217,7 @@ function App() {
 
   const {
     currentTheme,
-    currentScene, mainQuest, currentObjective, actionOptions, storyArc,
+    currentScene, mainQuest, currentObjective, actionOptions, storyArc, heroSheet,
     inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, mapData,
     currentMapNodeId, mapLayoutConfig,
     allNPCs,
@@ -258,6 +259,8 @@ function App() {
     debugLore,
     debugGoodFacts,
     debugBadFacts,
+    isVictory,
+    simulateVictory,
   } = gameLogic;
 
 
@@ -269,6 +272,15 @@ function App() {
   const handleTriggerMainQuestAchievedClick = useCallback(() => {
     void triggerMainQuestAchieved();
   }, [triggerMainQuestAchieved]);
+
+  const handleSimulateVictoryClick = useCallback(() => {
+    void simulateVictory();
+  }, [simulateVictory]);
+
+  const handleVictoryClose = useCallback(() => {
+    commitGameState({ ...gameStateStack[0], isVictory: false });
+    openTitleMenu();
+  }, [commitGameState, gameStateStack, openTitleMenu]);
 
   const handleSaveFacts = useCallback((data: string) => {
     const blob = new Blob([data], { type: 'application/json' });
@@ -857,6 +869,7 @@ function App() {
         onClose={closeDebugView}
         onDistillFacts={handleDistillClick}
         onSaveFacts={handleSaveFacts}
+        onSimulateVictory={handleSimulateVictoryClick}
         onToggleDebugLore={toggleDebugLore}
         onTriggerMainQuestAchieved={handleTriggerMainQuestAchievedClick}
         onUndoTurn={handleUndoTurn}
@@ -913,6 +926,14 @@ function App() {
         isVisible={isGenderSelectVisible}
         onSubmit={submitGenderSelectModal}
       />
+
+      {isVictory && heroSheet && storyArc ? (
+        <VictoryScreen
+          heroSheet={heroSheet}
+          onClose={handleVictoryClose}
+          storyArc={storyArc}
+        />
+      ) : null}
 
       {characterSelectData ? (
         <CharacterSelectModal
