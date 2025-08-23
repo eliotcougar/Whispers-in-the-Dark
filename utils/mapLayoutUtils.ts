@@ -3,8 +3,9 @@
  * @file mapLayoutUtils.ts
  * @description Utilities for computing a nested circle layout for map nodes.
  * The algorithm allocates extra padding so that child node circles and labels
- * fit comfortably inside their parent.
- */
+ * fit comfortably inside their parent. Angle padding shrinks for groups with
+ * many children to keep large maps compact.
+*/
 
 import { MapNode } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
@@ -48,7 +49,7 @@ export const applyNestedCircleLayout = (
 
   const BASE_FEATURE_RADIUS = NODE_RADIUS;
   const PADDING = config?.padding ?? DEFAULT_NESTED_PADDING;
-  const SMALL_ANGLE_PADDING = config?.anglePadding ?? DEFAULT_NESTED_ANGLE_PADDING;
+  const BASE_ANGLE_PADDING = config?.anglePadding ?? DEFAULT_NESTED_ANGLE_PADDING;
   const INCREMENT = 2;
 
   /**
@@ -59,6 +60,7 @@ export const applyNestedCircleLayout = (
     const node = nodeMap.get(nodeId);
     if (!node) throw new Error(`Node ${nodeId} missing in layout`);
     const childIds = childrenByParent.get(nodeId) ?? [];
+    const anglePadding = BASE_ANGLE_PADDING / Math.max(1, Math.sqrt(childIds.length));
 
     if (childIds.length === 0) {
       node.data.visualRadius = BASE_FEATURE_RADIUS;
@@ -102,7 +104,7 @@ export const applyNestedCircleLayout = (
           totalAngle = 2 * Math.PI + 1;
           break;
         }
-        totalAngle += 2 * Math.asin(needed) + SMALL_ANGLE_PADDING;
+        totalAngle += 2 * Math.asin(needed) + anglePadding;
       }
       if (totalAngle <= 2 * Math.PI) break;
       R += INCREMENT;
@@ -117,7 +119,7 @@ export const applyNestedCircleLayout = (
         y: R * Math.sin(currentAngle),
       };
       const rNext = children[(i + 1) % children.length].data.visualRadius ?? BASE_FEATURE_RADIUS;
-      currentAngle += 2 * Math.asin((rCurr + rNext + PADDING) / (2 * R)) + SMALL_ANGLE_PADDING;
+      currentAngle += 2 * Math.asin((rCurr + rNext + PADDING) / (2 * R)) + anglePadding;
     }
 
     const maxChildRadius = Math.max(...children.map(child => child.data.visualRadius ?? BASE_FEATURE_RADIUS));
