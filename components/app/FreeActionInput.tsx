@@ -69,6 +69,8 @@ function FreeActionInput({
       {canPerformFreeAction ? (
         <p className="text-xs text-slate-300 mt-1">
           Max
+          {' '}
+
           {FREE_FORM_ACTION_MAX_LENGTH}
 
           {' '}
