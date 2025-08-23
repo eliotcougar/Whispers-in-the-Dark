@@ -3,7 +3,13 @@ import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from '../elements/Button';
-import { INSPECT_COOLDOWN, PLAYER_JOURNAL_ID } from '../../constants';
+import {
+  INSPECT_COOLDOWN,
+  PLAYER_JOURNAL_ID,
+  KNOWN_USE_ACTION_COST,
+  GENERIC_USE_ACTION_COST,
+  INSPECT_ACTION_COST,
+} from '../../constants';
 import { FilterMode } from '../../hooks/useInventoryDisplay';
 
 interface InventoryItemProps {
@@ -24,6 +30,7 @@ interface InventoryItemProps {
   readonly filterMode: FilterMode;
   readonly registerRef?: (el: HTMLLIElement | null) => void;
   readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
 function InventoryItem({
@@ -44,6 +51,7 @@ function InventoryItem({
   filterMode,
   registerRef,
   queuedActionIds,
+  remainingActionPoints,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem =
@@ -86,18 +94,20 @@ function InventoryItem({
   }, []);
 
   applicableUses.forEach(knownUse => {
+    const isQueued = queuedActionIds.has(`${item.id}-specific-${knownUse.actionName}`);
     actionButtons.push(
       <Button
         ariaLabel={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
+        cost={KNOWN_USE_ACTION_COST}
         data-action-name={knownUse.actionName}
         data-item-id={item.id}
         data-prompt-effect={knownUse.promptEffect}
-        disabled={disabled}
+        disabled={disabled || (!isQueued && KNOWN_USE_ACTION_COST > remainingActionPoints)}
         key={`${item.id}-knownuse-${knownUse.actionName}`}
         label={knownUse.actionName}
         onClick={onSpecificUse}
         preset="teal"
-        pressed={queuedActionIds.has(`${item.id}-specific-${knownUse.actionName}`)}
+        pressed={isQueued}
         size="sm"
         title={knownUse.description}
         variant="toggleFull"
@@ -116,20 +126,22 @@ function InventoryItem({
         : false) ||
     (item.lastInspectTurn !== undefined &&
       currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN);
+  const inspectQueued = queuedActionIds.has(`${item.id}-inspect`);
 
   actionButtons.push(
     <Button
       ariaLabel={`Inspect ${item.name}`}
-      data-item-id={item.id}
-      disabled={inspectDisabled}
-      key={`${item.id}-inspect`}
-      label="Inspect"
-      onClick={onInspect}
-      preset="indigo"
-      pressed={queuedActionIds.has(`${item.id}-inspect`)}
-      size="sm"
-      variant="toggleFull"
-    />
+        cost={INSPECT_ACTION_COST}
+        data-item-id={item.id}
+        disabled={inspectDisabled || (!inspectQueued && INSPECT_ACTION_COST > remainingActionPoints)}
+        key={`${item.id}-inspect`}
+        label="Inspect"
+        onClick={onInspect}
+        preset="indigo"
+        pressed={inspectQueued}
+        size="sm"
+        variant="toggleFull"
+      />
   );
 
   if (item.type === 'page' || item.type === 'book' || item.type === 'picture' || item.type === 'map') {
@@ -151,22 +163,24 @@ function InventoryItem({
   }
 
 
-  if (canShowGenericUse) {
-    actionButtons.push(
-      <Button
-        ariaLabel={`Attempt to use ${item.name} (generic action)`}
-        data-item-id={item.id}
-        disabled={disabled}
-        key={`${item.id}-generic-use`}
-        label="Attempt to Use (Generic)"
-        onClick={onGenericUse}
-        preset="sky"
-        pressed={queuedActionIds.has(`${item.id}-generic`)}
-        size="sm"
-        variant="toggleFull"
-      />
-    );
-  }
+    if (canShowGenericUse) {
+      const genericQueued = queuedActionIds.has(`${item.id}-generic`);
+      actionButtons.push(
+        <Button
+          ariaLabel={`Attempt to use ${item.name} (generic action)`}
+          cost={GENERIC_USE_ACTION_COST}
+          data-item-id={item.id}
+          disabled={disabled || (!genericQueued && GENERIC_USE_ACTION_COST > remainingActionPoints)}
+          key={`${item.id}-generic-use`}
+          label="Attempt to Use (Generic)"
+          onClick={onGenericUse}
+          preset="sky"
+          pressed={genericQueued}
+          size="sm"
+          variant="toggleFull"
+        />
+      );
+    }
 
   if (item.type === 'vehicle') {
     actionButtons.push(

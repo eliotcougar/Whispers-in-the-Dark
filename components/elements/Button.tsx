@@ -64,6 +64,7 @@ export interface ButtonProps {
   readonly 'data-prompt-effect'?: string;
   readonly variant?: ButtonVariant;
   readonly preset?: ButtonPreset;
+  readonly cost?: number;
 }
 
 function Button({
@@ -80,6 +81,7 @@ function Button({
   type = 'button',
   variant = 'standard',
   preset,
+  cost,
   'data-action-name': dataActionName,
   'data-item-id': dataItemId,
   'data-item-name': dataItemName,
@@ -169,7 +171,7 @@ function Button({
       aria-pressed={
         variant === 'toggle' || variant === 'toggleFull' ? pressed : undefined
       }
-      className={`rounded-md shadow transition-colors duration-150 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${appliedSize} ${variantClasses[variant]} ${preset ? presetClasses[preset] : ''} ${pressedClasses}`}
+      className={`rounded-md shadow transition-colors duration-150 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${appliedSize} ${variantClasses[variant]} ${preset ? presetClasses[preset] : ''} ${pressedClasses} ${cost !== undefined ? 'relative' : ''}`}
       data-action-name={dataActionName}
       data-item-id={dataItemId}
       data-item-name={dataItemName}
@@ -188,8 +190,14 @@ function Button({
       ) : null}
 
       {displayLabel ? (
-        <span className="flex-1 text-shadow-sm">
+        <span className="flex-1 text-shadow-sm text-center">
           {displayLabel}
+        </span>
+      ) : null}
+
+      {cost !== undefined ? (
+        <span className="absolute right-2 text-xs">
+          {cost}
         </span>
       ) : null}
     </button>
@@ -210,6 +218,7 @@ Button.defaultProps = {
   label: undefined,
   preset: undefined,
   pressed: false,
+  cost: undefined,
   size: 'md',
   title: undefined,
   type: 'button',

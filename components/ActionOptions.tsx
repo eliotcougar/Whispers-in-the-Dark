@@ -19,7 +19,13 @@ interface ActionOptionsProps {
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
   readonly allNPCs: Array<NPC>;
-  readonly queuedActions: Array<{ id: string; displayText: string; promptText: string; effect?: () => void }>;
+  readonly queuedActions: Array<{
+    id: string;
+    displayText: string;
+    promptText: string;
+    cost: number;
+    effect?: () => void;
+  }>;
   readonly onClearQueuedActions: () => void;
 }
 

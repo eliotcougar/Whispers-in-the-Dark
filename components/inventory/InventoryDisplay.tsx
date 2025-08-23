@@ -22,9 +22,10 @@ interface InventoryDisplayProps {
   readonly currentTurn: number;
   readonly disabled: boolean;
   readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
-function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, currentTurn, disabled, queuedActionIds }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, currentTurn, disabled, queuedActionIds, remainingActionPoints }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemIds,
@@ -163,6 +164,7 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
                 onVehicleToggle={handleVehicleToggle}
                 queuedActionIds={queuedActionIds}
                 registerRef={registerItemRef}
+                remainingActionPoints={remainingActionPoints}
               />
             );
           })}
