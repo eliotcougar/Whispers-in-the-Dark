@@ -250,12 +250,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         case 'specific':
           if (knownUse) {
             id = `${item.id}-specific-${knownUse.actionName}`;
-            const actionIncludesName = knownUse.actionName
-              .toLowerCase()
-              .includes(item.name.toLowerCase());
-            displayText = actionIncludesName
-              ? knownUse.actionName
-              : `${knownUse.actionName} the ${item.name}`;
+            displayText = knownUse.actionName;
             promptText = knownUse.promptEffect;
           }
           break;
