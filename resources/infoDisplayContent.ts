@@ -21,7 +21,7 @@ const infoDisplayContent = {
     {
       "header": "Notable Features",
       "text": [
-        "Image Visualizer: Click the \"eye\" icon to generate an AI-powered image representing the current scene. It uses Imagen 3, and the daily quota is not very big. If you use it up, it will fall back to Gemini 2.0 Image Generation Preview",
+        "Image Visualizer: Click the \"eye\" icon to generate an AI-powered image representing the current scene. It uses Imagen 4, and the daily quota is not very big. If you use it up, it will fall back to Gemini 2.0 Image Generation Preview",
         "Knowledge Base: Click the \"book\" icon to view details about all Places and NPCs you've discovered across different themes.",
         "Map Display: Use the map icon to view a dynamic graph of locations within the current theme, showing connections and your current position."
       ]
@@ -51,6 +51,7 @@ const infoDisplayContent = {
       "items": [
         "Major new features - World backstory and Protagonist backstory.",
         "Major feature - Five act narrative structure for the main storyline.",
+        "It is now possible to finish the game by completing the last act.",
         "Character generation and character selection.",
         "Removed Reality Shift game mechanic - it no longer fits nicely into the overall game progression.",
         "Custom Mode is now the main game mode.",
