@@ -88,7 +88,7 @@ function SettingsDisplay({
             </h2>
 
             <p className="settings-explanation mb-3">
-              Select how much reasoning the AI uses. Higher levels may improve quality at the cost of time.
+              Select how much reasoning the AI uses. Higher levels may improve quality at the cost of time, but will not affect API usage quotas.
             </p>
 
             <RadioSelector
