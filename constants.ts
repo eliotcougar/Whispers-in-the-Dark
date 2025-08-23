@@ -55,6 +55,8 @@ export const MAIN_TURN_OPTIONS_COUNT = 6; // Number of action choices shown each
 export const FREE_FORM_ACTION_MAX_LENGTH = 70;
 export const FREE_FORM_ACTION_COST = 2;
 
+export const ACT_COMPLETION_SCORE = 5; // Score points awarded for completing an act
+
 export const ACTION_POINTS_PER_TURN = 3; // Points available each turn for item actions
 export const KNOWN_USE_ACTION_COST = 3;
 export const GENERIC_USE_ACTION_COST = 2;
