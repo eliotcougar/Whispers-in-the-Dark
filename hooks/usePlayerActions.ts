@@ -29,6 +29,7 @@ import {
   PLAYER_HOLDER_ID,
   DISTILL_LORE_INTERVAL,
   RECENT_LOG_COUNT_FOR_DISTILL,
+  ACT_COMPLETION_SCORE,
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -548,6 +549,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     if (draftState.storyArc) {
       const arc = draftState.storyArc;
       arc.acts[arc.currentAct - 1].completed = true;
+
+      draftState.score += ACT_COMPLETION_SCORE;
+      turnChanges.scoreChangedBy += ACT_COMPLETION_SCORE;
 
       if (newAct) {
         arc.acts.push(newAct);
