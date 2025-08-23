@@ -14,8 +14,8 @@ interface UseInventoryDisplayProps {
     type: 'generic' | 'specific' | 'inspect',
     knownUse?: KnownUse
   ) => void;
-  readonly onDropItem: (itemName: string) => void;
-  readonly onStashToggle: (itemName: string) => void;
+  readonly onDropItem: (itemId: string) => void;
+  readonly onStashToggle: (itemId: string) => void;
   readonly onReadPage: (item: Item) => void;
 }
 
@@ -27,12 +27,12 @@ export const useInventoryDisplay = ({
   onStashToggle,
   onReadPage,
 }: UseInventoryDisplayProps) => {
-  const [newlyAddedItemNames, setNewlyAddedItemNames] = useState<Set<string>>(new Set());
+  const [newlyAddedItemIds, setNewlyAddedItemIds] = useState<Set<string>>(new Set());
   const prevItemsRef = useRef<Array<Item>>(items);
-  const [confirmingDiscardItemName, setConfirmingDiscardItemName] = useState<string | null>(null);
+  const [confirmingDiscardItemId, setConfirmingDiscardItemId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
-  const [stashingItemNames, setStashingItemNames] = useState<Set<string>>(new Set());
+  const [stashingItemIds, setStashingItemIds] = useState<Set<string>>(new Set());
 
   const handleSortByName = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setSortOrder(prev => (prev === 'name' ? 'default' : 'name'));
@@ -55,22 +55,22 @@ export const useInventoryDisplay = ({
   }, []);
 
   const handleStartConfirmDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    const name = event.currentTarget.dataset.itemName;
-    if (name) {
-      setConfirmingDiscardItemName(name);
+    const id = event.currentTarget.dataset.itemId;
+    if (id) {
+      setConfirmingDiscardItemId(id);
       event.currentTarget.blur();
     }
   }, []);
 
   const handleConfirmDrop = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const name = event.currentTarget.dataset.itemName;
-      if (!name) return;
-      const item = items.find(i => i.name === name);
+      const id = event.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = items.find(i => i.id === id);
       if (!item) return;
-      onDropItem(name);
+      onDropItem(id);
 
-      setConfirmingDiscardItemName(null);
+      setConfirmingDiscardItemId(null);
       event.currentTarget.blur();
     },
     [items, onDropItem]
@@ -79,36 +79,36 @@ export const useInventoryDisplay = ({
 
   const handleStashToggleInternal = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const name = event.currentTarget.dataset.itemName;
-      if (name) {
-        const item = items.find(i => i.name === name);
-        onStashToggle(name);
+      const id = event.currentTarget.dataset.itemId;
+      if (id) {
+        const item = items.find(i => i.id === id);
+        onStashToggle(id);
         if (item?.stashed) {
           if (filterMode === 'stashed') {
-            setStashingItemNames(current => new Set(current).add(name));
+            setStashingItemIds(current => new Set(current).add(id));
             setTimeout(() => {
-              setStashingItemNames(current => {
+              setStashingItemIds(current => {
                 const updated = new Set(current);
-                updated.delete(name);
+                updated.delete(id);
                 return updated;
               });
             }, 1000);
           } else {
-            setNewlyAddedItemNames(current => new Set(current).add(name));
+            setNewlyAddedItemIds(current => new Set(current).add(id));
             setTimeout(() => {
-              setNewlyAddedItemNames(current => {
+              setNewlyAddedItemIds(current => {
                 const updated = new Set(current);
-                updated.delete(name);
+                updated.delete(id);
                 return updated;
               });
             }, 1500);
           }
         } else {
-          setStashingItemNames(current => new Set(current).add(name));
+          setStashingItemIds(current => new Set(current).add(id));
           setTimeout(() => {
-            setStashingItemNames(current => {
+            setStashingItemIds(current => {
               const updated = new Set(current);
-              updated.delete(name);
+              updated.delete(id);
               return updated;
             });
           }, 1000);
@@ -120,15 +120,15 @@ export const useInventoryDisplay = ({
   );
 
   const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    setConfirmingDiscardItemName(null);
+    setConfirmingDiscardItemId(null);
     event.currentTarget.blur();
   }, []);
 
   const handleSpecificUse = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const { itemName, actionName, promptEffect } = event.currentTarget.dataset;
-      if (!itemName || !actionName || !promptEffect) return;
-      const item = items.find(i => i.name === itemName);
+      const { itemId, actionName, promptEffect } = event.currentTarget.dataset;
+      if (!itemId || !actionName || !promptEffect) return;
+      const item = items.find(i => i.id === itemId);
       if (!item) return;
       const knownUse: KnownUse = {
         actionName,
@@ -143,9 +143,9 @@ export const useInventoryDisplay = ({
 
   const handleInspect = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const name = event.currentTarget.dataset.itemName;
-      if (!name) return;
-      const item = items.find(i => i.name === name);
+      const id = event.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = items.find(i => i.id === id);
       if (!item) return;
       onItemInteract(item, 'inspect');
       event.currentTarget.blur();
@@ -155,9 +155,9 @@ export const useInventoryDisplay = ({
 
   const handleGenericUse = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const name = event.currentTarget.dataset.itemName;
-      if (!name) return;
-      const item = items.find(i => i.name === name);
+      const id = event.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = items.find(i => i.id === id);
       if (!item) return;
       onItemInteract(item, 'generic');
       event.currentTarget.blur();
@@ -167,9 +167,9 @@ export const useInventoryDisplay = ({
 
   const handleVehicleToggle = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
-      const name = event.currentTarget.dataset.itemName;
-      if (!name) return;
-      const item = items.find(i => i.name === name);
+      const id = event.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = items.find(i => i.id === id);
       if (!item) return;
       const actionName = item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`;
       const dynamicKnownUse: KnownUse = {
@@ -184,9 +184,9 @@ export const useInventoryDisplay = ({
   );
 
   const handleRead = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    const name = event.currentTarget.dataset.itemName;
-    if (!name) return;
-    const item = items.find(i => i.name === name);
+    const id = event.currentTarget.dataset.itemId;
+    if (!id) return;
+    const item = items.find(i => i.id === id);
     if (!item) return;
     onReadPage(item);
     event.currentTarget.blur();
@@ -194,28 +194,28 @@ export const useInventoryDisplay = ({
 
 
   useEffect(() => {
-    const currentItemNames = new Set(items.map(item => item.name));
-    const prevItemNames = new Set(prevItemsRef.current.map(item => item.name));
+    const currentItemIds = new Set(items.map(item => item.id));
+    const prevItemIds = new Set(prevItemsRef.current.map(item => item.id));
     const added: Array<string> = [];
 
-    currentItemNames.forEach(name => {
-      if (!prevItemNames.has(name)) {
-        added.push(name);
+    currentItemIds.forEach(id => {
+      if (!prevItemIds.has(id)) {
+        added.push(id);
       }
     });
 
     if (added.length > 0) {
-      setNewlyAddedItemNames(currentAnimatingItems => {
+      setNewlyAddedItemIds(currentAnimatingItems => {
         const newSet = new Set(currentAnimatingItems);
-        added.forEach(name => newSet.add(name));
+        added.forEach(id => newSet.add(id));
         return newSet;
       });
 
-      added.forEach(name => {
+      added.forEach(id => {
         setTimeout(() => {
-          setNewlyAddedItemNames(currentAnimatingItems => {
+          setNewlyAddedItemIds(currentAnimatingItems => {
             const updatedSet = new Set(currentAnimatingItems);
-            updatedSet.delete(name);
+            updatedSet.delete(id);
             return updatedSet;
           });
         }, 1500);
@@ -226,7 +226,7 @@ export const useInventoryDisplay = ({
 
   const displayedItems = useMemo(() => {
     const itemsToDisplay = items.filter(item => {
-      if (stashingItemNames.has(item.name)) return true;
+      if (stashingItemIds.has(item.id)) return true;
       const isWritten = ['page', 'book', 'picture', 'map'].includes(item.type);
       if (filterMode === 'stashed') return item.stashed && isWritten;
       const isStashedWritten = item.stashed && isWritten;
@@ -249,7 +249,7 @@ export const useInventoryDisplay = ({
       sortedItems.reverse();
     }
     return sortedItems;
-  }, [items, sortOrder, filterMode, stashingItemNames]);
+  }, [items, sortOrder, filterMode, stashingItemIds]);
 
   const getApplicableKnownUses = useCallback((item: Item): Array<KnownUse> => {
     if (!item.knownUses) return [];
@@ -275,9 +275,9 @@ export const useInventoryDisplay = ({
 
   return {
     displayedItems,
-    newlyAddedItemNames,
-    stashingItemNames,
-    confirmingDiscardItemName,
+    newlyAddedItemIds,
+    stashingItemIds,
+    confirmingDiscardItemId,
     sortOrder,
     filterMode,
     handleSortByName,
