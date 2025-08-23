@@ -181,7 +181,7 @@ export const generateCharacterNames = async (
   const prompt =
     `Using this world description:
     ${JSON.stringify(worldFacts)}
-    Generate 50 ${gender} or gender-neutral full names with occasional optional nicknames appropriate for the theme "${theme.name}".
+    Generate 50 strictly ${gender} full names with occasional optional nicknames appropriate for the theme "${theme.name}".
     The names shouls follow 'First Name Last Name' or 'First Name "Nickname" Last Name' or 'Prefix First Name Last Name' template.
     You MUST guarantee name variety! Every individual First Name, Last Name, and Nickname MUST appear only once throughout the whole list. They all should be unique.`;
   const request = async () => {
@@ -209,6 +209,7 @@ export const generateCharacterNames = async (
 
 export const generateCharacterDescriptions = async (
   theme: AdventureTheme,
+  gender: string,
   worldFacts: WorldFacts,
   names: Array<string>,
 ): Promise<Array<CharacterOption> | null> => {
@@ -219,7 +220,7 @@ export const generateCharacterDescriptions = async (
   const prompt =
     `Using this world description:
     ${JSON.stringify(worldFacts)}
-    Provide a short adventurous description for each of these potential player characters appropriate for the theme "${theme.name}":
+    Provide a short adventurous description for each of these potential ${gender} player characters appropriate for the theme "${theme.name}":
     ${names.join('\n')}`;
   const request = async () => {
     const thinkingBudget = getThinkingBudget(1024);
