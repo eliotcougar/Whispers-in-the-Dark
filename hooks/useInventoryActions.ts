@@ -30,19 +30,19 @@ export const useInventoryActions = ({
     getStateRef.current = getCurrentGameState;
   }, [getCurrentGameState]);
   const handleDropItem = useCallback(
-    (itemName: string, logMessageOverride?: string) => {
+    (itemId: string, logMessageOverride?: string) => {
       const currentFullState = getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 
       const itemToDiscard = currentFullState.inventory.find(
-        (item) => item.name === itemName && item.holderId === PLAYER_HOLDER_ID,
+        item => item.id === itemId && item.holderId === PLAYER_HOLDER_ID,
       );
       if (!itemToDiscard) return;
 
       const draftState = structuredCloneGameState(currentFullState);
       const currentLocationId = currentFullState.currentMapNodeId ?? 'unknown';
       draftState.inventory = draftState.inventory.map(item => {
-        if (item.name !== itemName || item.holderId !== PLAYER_HOLDER_ID) {
+        if (item.id !== itemId || item.holderId !== PLAYER_HOLDER_ID) {
           return item;
         }
 
@@ -82,9 +82,9 @@ export const useInventoryActions = ({
           currentFullState.localPlace ??
           'Unknown Place';
         if (itemToDiscard.type === 'vehicle' && !itemToDiscard.isActive) {
-          logMessage = `You left your ${itemName} parked at ${placeName}.`;
+          logMessage = `You left your ${itemToDiscard.name} parked at ${placeName}.`;
         } else {
-          logMessage = `You left your ${itemName} at ${placeName}.`;
+          logMessage = `You left your ${itemToDiscard.name} at ${placeName}.`;
         }
       }
 
@@ -98,7 +98,7 @@ export const useInventoryActions = ({
   );
 
   const handleTakeLocationItem = useCallback(
-    (itemName: string) => {
+    (itemId: string) => {
       const currentFullState = getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 
@@ -106,8 +106,8 @@ export const useInventoryActions = ({
       if (!currentLocationId) return;
 
       const adjacentIds = getAdjacentNodeIds(currentFullState.mapData, currentLocationId);
-      const itemToTake = currentFullState.inventory.find((item) => {
-        if (item.name !== itemName) return false;
+      const itemToTake = currentFullState.inventory.find(item => {
+        if (item.id !== itemId) return false;
         if (item.holderId === currentLocationId) return true;
         return adjacentIds.includes(item.holderId);
       });
@@ -115,7 +115,7 @@ export const useInventoryActions = ({
 
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map((item) =>
-        item.name === itemName && item.holderId === itemToTake.holderId
+        item.id === itemId && item.holderId === itemToTake.holderId
           ? { ...item, holderId: PLAYER_HOLDER_ID }
           : item,
       );
@@ -140,8 +140,8 @@ export const useInventoryActions = ({
       };
       draftState.lastTurnChanges = turnChangesForTake;
 
-      draftState.gameLog = removeDroppedItemLog(draftState.gameLog, itemName);
-      if (draftState.lastActionLog?.startsWith(`You left your ${itemName}`)) {
+      draftState.gameLog = removeDroppedItemLog(draftState.gameLog, itemToTake.name);
+      if (draftState.lastActionLog?.startsWith(`You left your ${itemToTake.name}`)) {
         draftState.lastActionLog = null;
       }
       commitGameState(draftState);
@@ -273,13 +273,13 @@ export const useInventoryActions = ({
 
 
   const handleStashToggle = useCallback(
-    (name: string) => {
+    (id: string) => {
       const currentFullState = getCurrentGameState();
       if (isLoading || currentFullState.dialogueState) return;
 
       const draftState = structuredCloneGameState(currentFullState);
       draftState.inventory = draftState.inventory.map(item =>
-        item.name === name && item.holderId === PLAYER_HOLDER_ID
+        item.id === id && item.holderId === PLAYER_HOLDER_ID
           ? { ...item, stashed: !item.stashed }
           : item,
       );

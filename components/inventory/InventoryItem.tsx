@@ -73,10 +73,10 @@ function InventoryItem({
       <Button
         ariaLabel={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
         data-action-name={knownUse.actionName}
-        data-item-name={item.name}
+        data-item-id={item.id}
         data-prompt-effect={knownUse.promptEffect}
         disabled={disabled || isConfirmingDiscard}
-        key={`${item.name}-knownuse-${knownUse.actionName}`}
+        key={`${item.id}-knownuse-${knownUse.actionName}`}
         label={knownUse.actionName}
         onClick={onSpecificUse}
         preset="teal"
@@ -102,9 +102,9 @@ function InventoryItem({
   actionButtons.push(
     <Button
       ariaLabel={`Inspect ${item.name}`}
-      data-item-name={item.name}
+      data-item-id={item.id}
       disabled={inspectDisabled}
-      key={`${item.name}-inspect`}
+        key={`${item.id}-inspect`}
       label="Inspect"
       onClick={onInspect}
       preset="indigo"
@@ -116,13 +116,13 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={`Read ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={
           disabled ||
           isConfirmingDiscard ||
           (item.id === PLAYER_JOURNAL_ID && (item.chapters?.length ?? 0) === 0)
         }
-        key={`${item.name}-read`}
+        key={`${item.id}-read`}
         label="Read"
         onClick={onRead}
         preset="teal"
@@ -136,9 +136,9 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={`Attempt to use ${item.name} (generic action)`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled || isConfirmingDiscard}
-        key={`${item.name}-generic-use`}
+        key={`${item.id}-generic-use`}
         label="Attempt to Use (Generic)"
         onClick={onGenericUse}
         preset="sky"
@@ -151,9 +151,9 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled || isConfirmingDiscard}
-        key={`${item.name}-vehicle-action`}
+        key={`${item.id}-vehicle-action`}
         label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
         onClick={onVehicleToggle}
         preset="sky"
@@ -166,7 +166,7 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={`Discard ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
         icon={<Icon
           color="white"
@@ -175,7 +175,7 @@ function InventoryItem({
           name="trash"
           size={16}
         />}
-        key={`${item.name}-discard`}
+        key={`${item.id}-discard`}
         label="Discard"
         onClick={onStartConfirmDiscard}
         preset="orange"
@@ -194,9 +194,9 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={filterMode === 'stashed' ? `Retrieve ${item.name}` : `Stash ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
-        key={`${item.name}-stash`}
+        key={`${item.id}-stash`}
         label={filterMode === 'stashed' ? 'Retrieve' : 'Stash'}
         onClick={onStashToggle}
         preset="sky"
@@ -209,9 +209,9 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={`Drop ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
-        key={`${item.name}-drop`}
+        key={`${item.id}-drop`}
         label="Drop"
         onClick={onStartConfirmDiscard}
         preset="sky"
@@ -224,9 +224,9 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={`Drop ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
-        key={`${item.name}-drop`}
+        key={`${item.id}-drop`}
         label="Drop"
         onClick={onStartConfirmDiscard}
         preset="sky"
@@ -239,9 +239,9 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={`Park ${item.name} here`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
-        key={`${item.name}-drop`}
+        key={`${item.id}-drop`}
         label="Park Here"
         onClick={onStartConfirmDiscard}
         preset="sky"
@@ -254,13 +254,13 @@ function InventoryItem({
     actionButtons.push(
       <div
         className="grid grid-cols-2 gap-2 mt-2"
-        key={`${item.name}-confirm-group`}
+        key={`${item.id}-confirm-group`}
       >
         <Button
           ariaLabel={`Confirm drop of ${item.name}`}
-          data-item-name={item.name}
+          data-item-id={item.id}
           disabled={disabled}
-          key={`${item.name}-confirm-drop`}
+          key={`${item.id}-confirm-drop`}
           label={
             item.type === 'vehicle' && !item.isActive
               ? 'Confirm Park'
@@ -276,7 +276,7 @@ function InventoryItem({
         <Button
           ariaLabel="Cancel discard"
           disabled={disabled}
-          key={`${item.name}-cancel-discard`}
+          key={`${item.id}-cancel-discard`}
           label="Cancel"
           onClick={onCancelDiscard}
           preset="slate"
@@ -289,8 +289,8 @@ function InventoryItem({
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isStashing ? 'animate-archive-fade-out' : ''} flex flex-col`}
-      data-item-name={item.name}
-      key={item.name}
+      data-item-id={item.id}
+      key={item.id}
       ref={registerRef}
     >
       <div className="flex justify-between items-center mb-1 text-xs">
