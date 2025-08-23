@@ -222,9 +222,9 @@ function ImageVisualizer({
 
     try {
       const response = await ai.models.generateImages({
-        model: 'imagen-4.0-generate-preview-06-06',
+        model: 'imagen-4.0-generate-001',
         prompt: safePrompt,
-        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
+        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3', person_generation: "ALLOW_ALL", image_size: "1K" },
       });
 
       if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image?.imageBytes) {
