@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
@@ -62,6 +62,28 @@ function InventoryItem({
     filterMode === 'stashed' && (Boolean(item.stashed) || isStashing);
   const canShowDropNow = canEverDrop && (!isWrittenItem || showDropForWrittenItem);
   const actionButtons: Array<React.ReactElement> = [];
+  const [isConfirmingDiscard, setIsConfirmingDiscard] = useState(false);
+
+  const handleDiscardClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      setIsConfirmingDiscard(true);
+      event.currentTarget.blur();
+    },
+    [],
+  );
+
+  const handleConfirmDiscard = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      onDiscard(event);
+      setIsConfirmingDiscard(false);
+    },
+    [onDiscard],
+  );
+
+  const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setIsConfirmingDiscard(false);
+    event.currentTarget.blur();
+  }, []);
 
   applicableUses.forEach(knownUse => {
     actionButtons.push(
@@ -164,25 +186,50 @@ function InventoryItem({
   }
 
   if (item.tags?.includes('junk')) {
-    actionButtons.push(
-      <Button
-        ariaLabel={`Discard ${item.name}`}
-        data-item-id={item.id}
-        disabled={disabled}
-        icon={<Icon
-          color="white"
-          inline
-          marginRight={4}
-          name="trash"
-          size={16}
-        />}
-        key={`${item.id}-discard`}
-        label="Discard"
-        onClick={onDiscard}
-        preset="orange"
-        size="sm"
-      />
-    );
+    if (isConfirmingDiscard) {
+      actionButtons.push(
+        <div className="grid grid-cols-2 gap-2 mt-2" key={`${item.id}-confirm-group`}>
+          <Button
+            ariaLabel={`Confirm discard of ${item.name}`}
+            data-item-id={item.id}
+            disabled={disabled}
+            key={`${item.id}-confirm-discard`}
+            label={
+              item.type === 'vehicle' && !item.isActive
+                ? 'Confirm Park'
+                : 'Confirm Discard'
+            }
+            onClick={handleConfirmDiscard}
+            preset="red"
+            size="sm"
+          />
+
+          <Button
+            ariaLabel="Cancel discard"
+            disabled={disabled}
+            key={`${item.id}-cancel-discard`}
+            label="Cancel"
+            onClick={handleCancelDiscard}
+            preset="slate"
+            size="sm"
+          />
+        </div>
+      );
+    } else {
+      actionButtons.push(
+        <Button
+          ariaLabel={`Discard ${item.name}`}
+          data-item-id={item.id}
+          disabled={disabled}
+          icon={<Icon color="white" inline marginRight={4} name="trash" size={16} />}
+          key={`${item.id}-discard`}
+          label="Discard"
+          onClick={handleDiscardClick}
+          preset="orange"
+          size="sm"
+        />
+      );
+    }
   }
 
   if (

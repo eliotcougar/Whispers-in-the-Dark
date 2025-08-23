@@ -216,15 +216,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         return;
       }
       if (interactionType === 'drop') {
-        if (window.confirm(`Drop ${item.name}?`)) {
-          handleDropItem(item.id);
-        }
+        handleDropItem(item.id);
         return;
       }
       if (interactionType === 'discard') {
-        if (window.confirm(`Discard ${item.name}? This cannot be undone.`)) {
-          handleDiscardItem(item.id);
-        }
+        handleDiscardItem(item.id);
         return;
       }
 
