@@ -28,36 +28,6 @@ function ActIntroModal({ act, onContinue }: ActIntroModalProps) {
               {act.description}
             </p>
           </section>
-
-          <section className="space-y-2 text-lg">
-            <h3 className="text-center font-semibold text-sky-300">
-              Main Objective
-            </h3>
-
-            <p className="whitespace-pre-line text-center">
-              {act.mainObjective}
-            </p>
-          </section>
-
-          <section className="space-y-2 text-lg">
-            <h3 className="text-center font-semibold text-sky-300">
-              Side Objectives
-            </h3>
-
-            <p className="whitespace-pre-line text-center">
-              {act.sideObjectives.join('\n')}
-            </p>
-          </section>
-
-          <section className="space-y-2 text-lg">
-            <h3 className="text-center font-semibold text-sky-300">
-              Success Condition
-            </h3>
-
-            <p className="whitespace-pre-line text-center">
-              {act.successCondition}
-            </p>
-          </section>
         </div>
 
         <div className="mt-8 self-center">
