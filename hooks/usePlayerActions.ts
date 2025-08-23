@@ -502,8 +502,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   /**
    * Forces the main quest completion procedure without AI involvement.
    */
-  const triggerMainQuestAchieved = useCallback(async (): Promise<FullGameState | null> => {
-    const currentState = getCurrentGameState();
+  const triggerMainQuestAchieved = useCallback(async (
+    stateOverride?: FullGameState,
+  ): Promise<FullGameState | null> => {
+    const currentState = stateOverride ?? getCurrentGameState();
     const {
       currentTheme,
       storyArc,
@@ -563,7 +565,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     let state: FullGameState | null = getCurrentGameState();
     let guard = 0;
     while (state && !state.isVictory && guard < 10) {
-      state = await triggerMainQuestAchieved();
+      state = await triggerMainQuestAchieved(state);
       guard += 1;
     }
   }, [getCurrentGameState, triggerMainQuestAchieved]);
