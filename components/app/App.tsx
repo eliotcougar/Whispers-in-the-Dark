@@ -223,7 +223,7 @@ function App() {
     allNPCs,
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    handleItemInteraction, handleTakeLocationItem, handleRetry,
+    executeItemInteraction, handleRetry,
     startCustomGame,
     gatherCurrentGameState: gatherGameStateStack,
     gatherDebugPacketStack,
@@ -258,10 +258,14 @@ function App() {
     toggleDebugLore,
     debugLore,
     debugGoodFacts,
-    debugBadFacts,
-    isVictory,
-    simulateVictory,
-  } = gameLogic;
+      debugBadFacts,
+      isVictory,
+      simulateVictory,
+      queueItemAction,
+      queuedItemActions,
+      clearQueuedItemActions,
+      remainingActionPoints,
+    } = gameLogic;
 
 
   const handleApplyGameState = useCallback(
@@ -506,18 +510,18 @@ function App() {
           tags: [currentTheme?.playerJournalStyle ?? 'handwritten'],
         };
         const updatedState = recordPlayerJournalInspect();
-        handleItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
+        executeItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
         return;
       }
 
       const item = inventory.find(it => it.id === itemId);
       if (item) {
-        handleItemInteraction(item, 'inspect');
+        executeItemInteraction(item, 'inspect');
       }
     },
     [
       inventory,
-      handleItemInteraction,
+      executeItemInteraction,
       playerJournal,
       lastJournalWriteTurn,
       recordPlayerJournalInspect,
@@ -784,6 +788,8 @@ function App() {
                     mapData={mapData.nodes}
                     onActionSelect={handleActionSelect}
                     options={actionOptions}
+                    queuedActions={queuedItemActions}
+                    onClearQueuedActions={clearQueuedItemActions}
                   />
 
                   <FreeActionInput
@@ -811,14 +817,14 @@ function App() {
                 storyArc={storyArc}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
-                onDropItem={gameLogic.handleDropItem}
-                onItemInteract={handleItemInteraction}
-                onReadPage={handleReadPage}
-                onReadPlayerJournal={handleReadPlayerJournal}
-                onStashToggle={gameLogic.handleStashToggle}
-                onTakeItem={handleTakeLocationItem}
-              />
-            )}
+                onItemInteract={queueItemAction}
+                  onReadPage={handleReadPage}
+                  onReadPlayerJournal={handleReadPlayerJournal}
+                  onStashToggle={gameLogic.handleStashToggle}
+                  queuedActionIds={new Set(queuedItemActions.map(a => a.id))}
+                  remainingActionPoints={remainingActionPoints}
+                />
+              )}
           </div>
         </main>
 

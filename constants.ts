@@ -55,6 +55,11 @@ export const MAIN_TURN_OPTIONS_COUNT = 6; // Number of action choices shown each
 export const FREE_FORM_ACTION_MAX_LENGTH = 70;
 export const FREE_FORM_ACTION_COST = 5;
 
+export const ACTION_POINTS_PER_TURN = 3; // Points available each turn for item actions
+export const KNOWN_USE_ACTION_COST = 3;
+export const GENERIC_USE_ACTION_COST = 2;
+export const INSPECT_ACTION_COST = 1;
+
 export const JOURNAL_WRITE_COOLDOWN = 5; // Turns before a journal can be written again
 
 export const INSPECT_COOLDOWN = 10; // Turns before the same item can be inspected again

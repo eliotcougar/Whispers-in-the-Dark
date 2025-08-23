@@ -228,7 +228,7 @@ IMPORTANT: Recent events are provided only for additional context. These actions
 ## Previous Scene:
 ${currentScene}
 
-## Player Action:
+## Player Actions:
 ${playerAction}
 ${travelPlanOrUnknown}`;
 

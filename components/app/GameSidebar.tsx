@@ -23,18 +23,18 @@ interface GameSidebarProps {
   readonly storyArc: StoryArc | null;
   readonly mapNodes: Array<MapNode>;
   readonly objectiveAnimationType: 'success' | 'neutral' | null;
-  readonly onDropItem: (itemId: string) => void;
   readonly onStashToggle: (itemId: string) => void;
   readonly onItemInteract: (
     item: Item,
-    interactionType: 'generic' | 'specific' | 'inspect',
+    interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop' | 'discard',
     knownUse?: KnownUse,
   ) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onReadPlayerJournal: () => void;
-  readonly onTakeItem: (itemId: string) => void;
   readonly globalTurnNumber: number;
   readonly disabled: boolean;
+  readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
 function GameSidebar({
@@ -47,14 +47,14 @@ function GameSidebar({
   storyArc,
   mapNodes,
   objectiveAnimationType,
-  onDropItem,
   onStashToggle,
   onItemInteract,
   onReadPage,
   onReadPlayerJournal,
-  onTakeItem,
   globalTurnNumber,
   disabled,
+  queuedActionIds,
+  remainingActionPoints,
 }: GameSidebarProps) {
   const questHighlightEntities = useMemo(
     () => buildHighlightableEntities(inventory, mapNodes, allNPCs),
@@ -129,17 +129,19 @@ function GameSidebar({
         items={itemsHere}
         mapNodes={mapNodes}
         onItemInteract={onItemInteract}
-        onTakeItem={onTakeItem}
+        queuedActionIds={queuedActionIds}
+        remainingActionPoints={remainingActionPoints}
       />
 
       <InventoryDisplay
         currentTurn={globalTurnNumber}
         disabled={disabled}
         items={inventory}
-        onDropItem={onDropItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}
         onStashToggle={onStashToggle}
+        queuedActionIds={queuedActionIds}
+        remainingActionPoints={remainingActionPoints}
       />
     </>
   );
