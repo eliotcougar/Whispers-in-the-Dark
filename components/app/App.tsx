@@ -26,6 +26,7 @@ import DebugLoreModal from '../modals/DebugLoreModal';
 import GeminiKeyModal from '../modals/GeminiKeyModal';
 import CharacterSelectModal from '../modals/CharacterSelectModal';
 import GenderSelectModal from '../modals/GenderSelectModal';
+import ActIntroModal from '../modals/ActIntroModal';
 import VictoryScreen from '../modals/VictoryScreen';
 import Footer from './Footer';
 import AppModals from './AppModals';
@@ -61,6 +62,7 @@ import {
   CharacterOption,
   HeroSheet,
   HeroBackstory,
+  StoryAct,
   StoryArc,
   ThinkingEffort,
 } from '../../types';
@@ -263,9 +265,26 @@ function App() {
       simulateVictory,
       queueItemAction,
       queuedItemActions,
-      clearQueuedItemActions,
-      remainingActionPoints,
-    } = gameLogic;
+    clearQueuedItemActions,
+    remainingActionPoints,
+  } = gameLogic;
+
+  const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
+  const [lastShownAct, setLastShownAct] = useState(0);
+
+  useEffect(() => {
+    if (storyArc && storyArc.currentAct !== lastShownAct) {
+      const index = storyArc.currentAct - 1;
+      if (storyArc.acts.length > index) {
+        setPendingAct(storyArc.acts[index]);
+        setLastShownAct(storyArc.currentAct);
+      }
+    }
+  }, [storyArc?.currentAct, storyArc, lastShownAct]);
+
+  const handleActContinue = useCallback(() => {
+    setPendingAct(null);
+  }, []);
 
 
   const handleApplyGameState = useCallback(
@@ -332,7 +351,8 @@ function App() {
     effectiveIsTitleMenuOpen ||
     newGameFromMenuConfirmOpen ||
     loadGameFromMenuConfirmOpen ||
-    isCustomGameSetupVisible;
+    isCustomGameSetupVisible ||
+    pendingAct !== null;
 
 
   useEffect(() => {
@@ -932,6 +952,13 @@ function App() {
         isVisible={isGenderSelectVisible}
         onSubmit={submitGenderSelectModal}
       />
+
+      {pendingAct ? (
+        <ActIntroModal
+          act={pendingAct}
+          onContinue={handleActContinue}
+        />
+      ) : null}
 
       {isVictory && heroSheet && storyArc ? (
         <VictoryScreen

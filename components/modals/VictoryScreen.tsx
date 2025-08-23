@@ -24,10 +24,20 @@ function VictoryScreen({ heroSheet, storyArc, onClose }: VictoryScreenProps) {
           {`You guided ${heroSheet.name}, ${heroSheet.occupation}, through ${storyArc.title}.`}
         </p>
 
-        <ul className="mt-4 list-inside list-disc text-left">
+        <ul className="mt-4 space-y-4 text-left">
           {storyArc.acts.map(act => (
             <li key={act.actNumber}>
-              {`Act ${String(act.actNumber)}: ${act.title} - ${act.mainObjective}`}
+              <p className="font-semibold">
+                {`Act ${String(act.actNumber)}: ${act.title}`}
+              </p>
+
+              <p className="italic">
+                {act.mainObjective}
+              </p>
+
+              <p className="mt-1">
+                {act.description}
+              </p>
             </li>
           ))}
         </ul>
