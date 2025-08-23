@@ -171,20 +171,20 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
                   <span className="font-semibold text-sky-300">Supernatural Elements:</span> {worldFacts.supernaturalElements}
                 </p>
 
-                <p>
-                  <span className="font-semibold text-sky-300">Major Factions:</span> {worldFacts.majorFactions.join(', ')}
+                <p className="whitespace-pre-line">
+                  <span className="font-semibold text-sky-300">Major Factions:</span> {worldFacts.majorFactions.join('\n')}
                 </p>
 
-                <p>
-                  <span className="font-semibold text-sky-300">Key Resources:</span> {worldFacts.keyResources.join(', ')}
+                <p className="whitespace-pre-line">
+                  <span className="font-semibold text-sky-300">Key Resources:</span> {worldFacts.keyResources.join('\n')}
                 </p>
 
-                <p>
-                  <span className="font-semibold text-sky-300">Cultural Notes:</span> {worldFacts.culturalNotes.join(', ')}
+                <p className="whitespace-pre-line">
+                  <span className="font-semibold text-sky-300">Cultural Notes:</span> {worldFacts.culturalNotes.join('\n')}
                 </p>
 
-                <p>
-                  <span className="font-semibold text-sky-300">Notable Locations:</span> {worldFacts.notableLocations.join(', ')}
+                <p className="whitespace-pre-line">
+                  <span className="font-semibold text-sky-300">Notable Locations:</span> {worldFacts.notableLocations.join('\n')}
                 </p>
               </section>
             </div>
