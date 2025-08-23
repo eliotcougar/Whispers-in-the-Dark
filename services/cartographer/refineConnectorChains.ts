@@ -3,7 +3,7 @@ import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest, filterEdgeChainRequests } from './connectorChains';
 import { fetchConnectorChains_Service } from '../corrections/edgeFixes';
 import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS } from '../../constants';
-import type { MapNode } from '../../types';
+import type { MapNode, AINodeAdd, AIEdgeAdd } from '../../types';
 import type { ConnectorChainsServiceResult, EdgeChainRequest } from '../corrections/edgeFixes';
 import type { ApplyUpdatesContext } from './updateContext';
 
@@ -16,7 +16,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
     sceneDescription: ctx.sceneDesc,
     logMessage: ctx.logMsg,
     currentTheme: ctx.currentTheme,
-    themeNodes: ctx.newMapData.nodes.filter(n => n.themeName === ctx.currentTheme.name),
+    themeNodes: ctx.newMapData.nodes,
   };
 
   while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
@@ -48,7 +48,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
     if (chainResult?.payload) {
       chainRequests = [];
       (chainResult.payload.nodesToAdd ?? []).forEach(nAdd => {
-        const nodeData = nAdd.data;
+        const nodeData = nAdd as Partial<AINodeAdd>;
         const parent =
           nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
             ? (findMapNodeByIdentifier(
@@ -67,7 +67,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           ctx.referenceMapNodeId
         ) as MapNode | undefined;
         if (existing) {
-          if (nodeData.aliases) {
+          if (Array.isArray(nodeData.aliases) && nodeData.aliases.length > 0) {
             const aliasSet = new Set([...(existing.data.aliases ?? [])]);
             nodeData.aliases.forEach(a => aliasSet.add(a));
             existing.data.aliases = Array.from(aliasSet);
@@ -81,7 +81,6 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
         const newId = generateUniqueId(`node_${nAdd.placeName}_`);
         const node: MapNode = {
           id: newId,
-          themeName: ctx.currentTheme.name,
           placeName: nAdd.placeName,
           position: parent ? { ...parent.position } : { x: 0, y: 0 },
           data: { ...nodeData, parentNodeId: parentId },
@@ -92,6 +91,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
         ctx.themeNodeNameMap.set(node.placeName, node);
       });
       (chainResult.payload.edgesToAdd ?? []).forEach(eAdd => {
+        const edgeData = eAdd as Partial<AIEdgeAdd>;
         const src = findMapNodeByIdentifier(
           eAdd.sourcePlaceName,
           ctx.newMapData.nodes,
@@ -107,23 +107,44 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
         if (src && tgt) {
           const pairKey =
             src.id < tgt.id
-              ? `${src.id}|${tgt.id}|${eAdd.data.type ?? 'path'}`
-              : `${tgt.id}|${src.id}|${eAdd.data.type ?? 'path'}`;
+              ? `${src.id}|${tgt.id}|${edgeData.type ?? 'path'}`
+              : `${tgt.id}|${src.id}|${edgeData.type ?? 'path'}`;
           if (ctx.processedChainKeys.has(pairKey)) return;
           ctx.processedChainKeys.add(pairKey);
-          if (isEdgeConnectionAllowed(src, tgt, eAdd.data.type, ctx.themeNodeIdMap)) {
-            addEdgeWithTracking(src, tgt, eAdd.data, ctx.newMapData.edges, ctx.themeEdgesMap);
+          if (isEdgeConnectionAllowed(src, tgt, edgeData.type, ctx.themeNodeIdMap)) {
+            addEdgeWithTracking(
+              src,
+              tgt,
+              {
+                description: edgeData.description,
+                status: edgeData.status,
+                travelTime: edgeData.travelTime,
+                type: edgeData.type,
+              },
+              ctx.newMapData.edges,
+              ctx.themeEdgesMap
+            );
           } else {
             console.warn(
               `Connector chain edge between "${src.placeName}" and "${tgt.placeName}" violates hierarchy rules. Reprocessing.`
             );
-            chainRequests.push(buildChainRequest(src, tgt, eAdd.data, ctx.themeNodeIdMap));
+            chainRequests.push(
+              buildChainRequest(
+                src,
+                tgt,
+                {
+                  description: edgeData.description,
+                  status: edgeData.status,
+                  travelTime: edgeData.travelTime,
+                  type: edgeData.type,
+                },
+                ctx.themeNodeIdMap,
+              ),
+            );
           }
         }
       });
-      chainContext.themeNodes = ctx.newMapData.nodes.filter(
-        n => n.themeName === ctx.currentTheme.name
-      );
+      chainContext.themeNodes = ctx.newMapData.nodes;
     } else {
       console.warn(
         `Connector Chains Refinement failed after ${String(MAX_RETRIES)} attempts for round ${String(

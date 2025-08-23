@@ -12,3 +12,4 @@ export * from './name';
 export * from './duplicateNodeNames';
 export * from './dialogue';
 export * from './inventory';
+export * from './mapUpdatePayload';

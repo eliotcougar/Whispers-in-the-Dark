@@ -47,8 +47,9 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
   for (const e of context.edgesToAdd_mut) {
     const src = e.sourcePlaceName.toLowerCase();
     const tgt = e.targetPlaceName.toLowerCase();
-    const type = e.data.type ?? 'path';
-    const key = src < tgt ? `${src}|${tgt}|${type}` : `${tgt}|${src}|${type}`;
+    const type = e.type;
+    const typeStr = String(type);
+    const key = src < tgt ? `${src}|${tgt}|${typeStr}` : `${tgt}|${src}|${typeStr}`;
     if (!edgeKeySet.has(key)) {
       edgeKeySet.add(key);
       dedupedEdges.push(e);
@@ -72,7 +73,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
 
   (context.payload.nodesToUpdate ?? []).forEach(upd => {
     const updNames = [upd.placeName.toLowerCase()];
-    if (upd.newData.placeName) updNames.push(upd.newData.placeName.toLowerCase());
+    if (upd.newPlaceName) updNames.push(upd.newPlaceName.toLowerCase());
     for (const name of updNames) {
       const idx = context.nodesToRemove_mut.findIndex(
         r => r.nodeName && r.nodeName.toLowerCase() === name
@@ -89,29 +90,28 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
     for (const nodeAddOp of unresolvedQueue) {
       let resolvedParentId: string | undefined = undefined;
       let sameTypeParent: MapNode | null = null;
-      if (nodeAddOp.data.parentNodeId) {
-        if (nodeAddOp.data.parentNodeId === 'Universe') {
+      if (nodeAddOp.parentNodeId) {
+        if (nodeAddOp.parentNodeId === 'Universe') {
           resolvedParentId = undefined;
         } else {
           const parent = findMapNodeByIdentifier(
-            nodeAddOp.data.parentNodeId,
+            nodeAddOp.parentNodeId,
             context.newMapData.nodes,
             context.newMapData,
             context.referenceMapNodeId,
           ) as MapNode | undefined;
           if (parent) {
-            let childType = nodeAddOp.data.nodeType ?? 'feature';
+            let childType = nodeAddOp.nodeType;
             if (parent.data.nodeType === childType) {
               const downgraded = suggestNodeTypeDowngrade(
                 {
                   id: 'temp',
-                  themeName: parent.themeName,
                   placeName: nodeAddOp.placeName,
                   position: { x: 0, y: 0 },
                   data: {
-                    description: nodeAddOp.data.description ?? '',
-                    aliases: nodeAddOp.data.aliases ?? [],
-                    status: nodeAddOp.data.status,
+                    description: nodeAddOp.description,
+                    aliases: nodeAddOp.aliases,
+                    status: nodeAddOp.status,
                     parentNodeId: parent.id,
                     nodeType: childType,
                   },
@@ -120,7 +120,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
                 context.newMapData.nodes,
               );
               if (downgraded) {
-                nodeAddOp.data.nodeType = downgraded;
+                nodeAddOp.nodeType = downgraded;
                 childType = downgraded;
                 resolvedParentId = parent.id;
               } else {
@@ -152,27 +152,19 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
 
       const canReuseExisting =
         existingNode !== undefined &&
-        existingNode.themeName === context.currentTheme.name &&
         ((resolvedParentId === undefined && !existingNode.data.parentNodeId) ||
           existingNode.data.parentNodeId === resolvedParentId) &&
         (existingNode.placeName.toLowerCase() === nodeAddOp.placeName.toLowerCase() ||
-          (existingNode.data.aliases?.some(a => a.toLowerCase() === nodeAddOp.placeName.toLowerCase()) ??
-            false) ||
-          (nodeAddOp.data.aliases?.some(a => a.toLowerCase() === existingNode.placeName.toLowerCase()) ??
-            false));
+          (existingNode.data.aliases?.some(a => a.toLowerCase() === nodeAddOp.placeName.toLowerCase()) ?? false) ||
+          nodeAddOp.aliases.some(a => a.toLowerCase() === existingNode.placeName.toLowerCase()));
 
       if (canReuseExisting) {
         const existing = existingNode;
-        if (nodeAddOp.data.aliases) {
-          const aliasSet = new Set([...(existing.data.aliases ?? [])]);
-          nodeAddOp.data.aliases.forEach(a => aliasSet.add(a));
-          existing.data.aliases = Array.from(aliasSet);
-        }
-        if (
-          nodeAddOp.data.description &&
-          existing.data.description.trim().length === 0
-        ) {
-          existing.data.description = nodeAddOp.data.description;
+        const aliasSet = new Set([...(existing.data.aliases ?? [])]);
+        nodeAddOp.aliases.forEach(a => aliasSet.add(a));
+        existing.data.aliases = Array.from(aliasSet);
+        if (nodeAddOp.description && existing.data.description.trim().length === 0) {
+          existing.data.description = nodeAddOp.description;
         }
         Reflect.deleteProperty(
           context.newNodesInBatchIdNameMap,
@@ -185,25 +177,22 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
         string | undefined;
       const newNodeId = preId ?? buildNodeId(nodeAddOp.placeName);
 
-      const { description, aliases, parentNodeId: _ignoredParent, status, nodeType, visited: _ignoredVisited, ...rest } =
-        nodeAddOp.data;
-      void _ignoredParent;
-      void _ignoredVisited;
+      const { description, aliases, status, nodeType, parentNodeId: _unused, ...rest } = nodeAddOp;
+      void _unused;
 
       const newNodeData: MapNodeData = {
-        description: description ?? '',
-        aliases: aliases ?? [],
+        description,
+        aliases,
         status,
         parentNodeId: resolvedParentId,
-        nodeType: nodeType ?? 'feature',
+        nodeType,
         ...rest,
       };
 
       const newNode: MapNode = {
         id: newNodeId,
-        themeName: context.currentTheme.name,
         placeName: nodeAddOp.placeName,
-        position: nodeAddOp.initialPosition ?? { x: 0, y: 0 },
+        position: { x: 0, y: 0 },
         data: newNodeData,
       };
 
@@ -239,10 +228,10 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
           const guessed = await fetchLikelyParentNode_Service(
             {
               placeName: unresolved.placeName,
-              description: unresolved.data.description,
-              nodeType: unresolved.data.nodeType,
-              status: unresolved.data.status,
-              aliases: unresolved.data.aliases,
+              description: unresolved.description,
+              nodeType: unresolved.nodeType,
+              status: unresolved.status,
+              aliases: unresolved.aliases,
             },
             {
               sceneDescription: context.sceneDesc,
@@ -255,7 +244,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
             },
             context.minimalModelCalls
           );
-          unresolved.data.parentNodeId = guessed ?? 'Universe';
+          unresolved.parentNodeId = guessed ?? 'Universe';
         }
         triedParentInference = true;
         unresolvedQueue = nextQueue;

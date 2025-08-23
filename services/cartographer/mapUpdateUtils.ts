@@ -1,4 +1,4 @@
-import type { AIMapUpdatePayload } from '../../types';
+import type { AIMapUpdatePayload, MapNodeData, MapEdgeData } from '../../types';
 import {
   NODE_REMOVAL_SYNONYMS,
   EDGE_REMOVAL_SYNONYMS,
@@ -18,7 +18,7 @@ export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
   const updatedNodesToUpdate: typeof payload.nodesToUpdate = [];
   const updatedNodesToRemove: typeof payload.nodesToRemove = payload.nodesToRemove ? [...payload.nodesToRemove] : [];
   (payload.nodesToUpdate ?? []).forEach(nodeUpd => {
-    const statusVal = nodeUpd.newData.status?.toLowerCase();
+    const statusVal = nodeUpd.status?.toLowerCase();
     if (statusVal && NODE_REMOVAL_SYNONYM_SET.has(statusVal)) {
       updatedNodesToRemove.push({ nodeId: nodeUpd.placeName, nodeName: nodeUpd.placeName });
     } else {
@@ -31,7 +31,7 @@ export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
   const updatedEdgesToUpdate: typeof payload.edgesToUpdate = [];
   const updatedEdgesToRemove: typeof payload.edgesToRemove = payload.edgesToRemove ? [...payload.edgesToRemove] : [];
   (payload.edgesToUpdate ?? []).forEach(edgeUpd => {
-    const statusVal = edgeUpd.newData.status?.toLowerCase();
+    const statusVal = edgeUpd.status?.toLowerCase();
     if (statusVal && EDGE_REMOVAL_SYNONYM_SET.has(statusVal)) {
       updatedEdgesToRemove.push({ edgeId: '', sourceId: edgeUpd.sourcePlaceName, targetId: edgeUpd.targetPlaceName });
     } else {
@@ -70,8 +70,8 @@ export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
     return result;
   };
 
-  payload.edgesToAdd = dedupeNamed(payload.edgesToAdd ?? undefined, e => e.data.type);
-  payload.edgesToUpdate = dedupeNamed(payload.edgesToUpdate ?? undefined, e => e.newData.type);
+  payload.edgesToAdd = dedupeNamed(payload.edgesToAdd ?? undefined, e => e.type);
+  payload.edgesToUpdate = dedupeNamed(payload.edgesToUpdate ?? undefined, e => e.type);
 
   if (payload.edgesToRemove) {
     const seen = new Set<string>();
@@ -94,10 +94,18 @@ export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
 export function normalizeStatusAndTypeSynonyms(payload: AIMapUpdatePayload): Array<string> {
   const errors: Array<string> = [];
 
-  (payload.nodesToAdd ?? []).forEach((n, idx) => { applyNodeDataFix(n.data, errors, `nodesToAdd[${String(idx)}]`); });
-  (payload.nodesToUpdate ?? []).forEach((n, idx) => { applyNodeDataFix(n.newData, errors, `nodesToUpdate[${String(idx)}].newData`); });
-  (payload.edgesToAdd ?? []).forEach((e, idx) => { applyEdgeDataFix(e.data, errors, `edgesToAdd[${String(idx)}]`); });
-  (payload.edgesToUpdate ?? []).forEach((e, idx) => { applyEdgeDataFix(e.newData, errors, `edgesToUpdate[${String(idx)}].newData`); });
+  (payload.nodesToAdd ?? []).forEach((n, idx) => {
+    applyNodeDataFix(n as unknown as Partial<MapNodeData>, errors, `nodesToAdd[${String(idx)}]`);
+  });
+  (payload.nodesToUpdate ?? []).forEach((n, idx) => {
+    applyNodeDataFix(n as unknown as Partial<MapNodeData>, errors, `nodesToUpdate[${String(idx)}]`);
+  });
+  (payload.edgesToAdd ?? []).forEach((e, idx) => {
+    applyEdgeDataFix(e as unknown as Partial<MapEdgeData>, errors, `edgesToAdd[${String(idx)}]`);
+  });
+  (payload.edgesToUpdate ?? []).forEach((e, idx) => {
+    applyEdgeDataFix(e as unknown as Partial<MapEdgeData>, errors, `edgesToUpdate[${String(idx)}]`);
+  });
 
 
   return errors;

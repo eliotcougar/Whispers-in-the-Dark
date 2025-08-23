@@ -19,6 +19,7 @@ import {
   NODE_DESCRIPTION_INSTRUCTION,
   EDGE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
+  MINIMAL_MODEL_NAME,
 } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../apiClient';
@@ -27,6 +28,7 @@ import { retryAiCall } from '../../utils/retry';
 import {
   parseAIMapUpdateResponse,
 } from './responseParser';
+import { getThinkingBudget } from '../thinkingConfig';
 import {
   normalizeRemovalUpdates,
   dedupeEdgeOps,
@@ -36,6 +38,7 @@ import {
 import type {
   AIMapUpdatePayload,
   MinimalModelCallRecord,
+  AdventureTheme,
 } from '../../types';
 import type { MapUpdateDebugInfo } from './types';
 
@@ -54,107 +57,43 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       description:
         'Explanation of the reasons for the changes. Feature nodes can not be parents of other feature nodes.',
     },
-    nodesToAdd: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          placeName: {
-            type: 'string',
-            description:
-              'Name of the node. Should not contain a comma. For sub-locations this can be a descriptive feature name.',
-          },
-          data: {
-            type: 'object',
-            properties: {
-              description: {
-                type: 'string',
-                minLength: 30,
-                description: NODE_DESCRIPTION_INSTRUCTION,
-              },
-              aliases: {
-                type: 'array',
-                minItems: 1,
-                items: { type: 'string' },
-                description: ALIAS_INSTRUCTION,
-              },
-              status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
-              nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
-              parentNodeId: {
-                type: 'string',
-                description: 'Parent Node ID, or "Universe" for top-level nodes. Use placeName when referencing other nodes in this response.',
-              },
-            },
-            required: ['description', 'aliases', 'status', 'nodeType', 'parentNodeId'],
-            additionalProperties: false,
-          },
-        },
-        required: ['placeName', 'data'],
-        additionalProperties: false,
-      },
-    },
-    nodesToUpdate: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          placeName: { type: 'string', description: 'Existing node ID or name to identify it.' },
-          newData: {
-            type: 'object',
-            properties: {
-              placeName: {
-                type: 'string',
-                description: 'If provided, this will be the new name for the node.',
-              },
-              description: { type: 'string', description: NODE_DESCRIPTION_INSTRUCTION },
-              aliases: { type: 'array', items: { type: 'string' }, minItems: 1, description: ALIAS_INSTRUCTION },
-              status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
-              nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
-              parentNodeId: {
-                type: 'string',
-                description:
-                  'Parent Node ID, or "Universe" for top-level nodes. Parent can not be a feature node. Use placeName when referencing other nodes in this response.',
-              },
-            },
-            additionalProperties: false,
-          },
-        },
-        required: ['placeName', 'newData'],
-        additionalProperties: false,
-      },
-    },
-    nodesToRemove: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          nodeId: { type: 'string' },
-          nodeName: { type: 'string' },
-        },
-        required: ['nodeId'],
-        additionalProperties: false,
-      },
-    },
     edgesToAdd: {
       type: 'array',
       items: {
         type: 'object',
         properties: {
-          sourcePlaceName: { type: 'string', description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.' },
-          targetPlaceName: { type: 'string', description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.' },
-          data: {
-            type: 'object',
-            properties: {
-              description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
-              type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
-              status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
-              travelTime: { type: 'string' },
-            },
-            required: ['type', 'status'],
-            additionalProperties: false,
+          description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
+          sourcePlaceName: {
+            type: 'string',
+            description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.',
           },
+          status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
+          targetPlaceName: {
+            type: 'string',
+            description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.',
+          },
+          travelTime: { type: 'string' },
+          type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
         },
-        required: ['sourcePlaceName', 'targetPlaceName', 'data'],
+        propertyOrdering: [
+          'description',
+          'sourcePlaceName',
+          'status',
+          'targetPlaceName',
+          'travelTime',
+          'type',
+        ],
+        required: ['sourcePlaceName', 'status', 'targetPlaceName', 'type'],
+        additionalProperties: false,
+      },
+    },
+    edgesToRemove: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { edgeId: { type: 'string' }, sourceId: { type: 'string' }, targetId: { type: 'string' } },
+        propertyOrdering: ['edgeId', 'sourceId', 'targetId'],
+        required: ['edgeId'],
         additionalProperties: false,
       },
     },
@@ -163,33 +102,108 @@ export const MAP_UPDATE_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          sourcePlaceName: { type: 'string', description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.' },
-          targetPlaceName: { type: 'string', description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.' },
-          newData: {
-            type: 'object',
-            properties: {
-              description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
-              type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
-              status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
-              travelTime: { type: 'string', description: 'Approximate travel time for the route.' },
-            },
-            additionalProperties: false,
+          description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
+          sourcePlaceName: {
+            type: 'string',
+            description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.',
           },
+          status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
+          targetPlaceName: {
+            type: 'string',
+            description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.',
+          },
+          travelTime: { type: 'string', description: 'Approximate travel time for the route.' },
+          type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
         },
-        required: ['sourcePlaceName', 'targetPlaceName', 'newData'],
+        propertyOrdering: [
+          'description',
+          'sourcePlaceName',
+          'status',
+          'targetPlaceName',
+          'travelTime',
+          'type',
+        ],
+        required: ['sourcePlaceName', 'targetPlaceName'],
         additionalProperties: false,
       },
     },
-    edgesToRemove: {
+    nodesToAdd: {
       type: 'array',
       items: {
         type: 'object',
         properties: {
-          edgeId: { type: 'string' },
-          sourceId: { type: 'string' },
-          targetId: { type: 'string' },
+          aliases: {
+            type: 'array',
+            minItems: 1,
+            items: { type: 'string' },
+            description: ALIAS_INSTRUCTION,
+          },
+          description: {
+            type: 'string',
+            minLength: 30,
+            description: NODE_DESCRIPTION_INSTRUCTION,
+          },
+          nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
+          parentNodeId: {
+            type: 'string',
+            description: 'Parent Node ID, or "Universe" for top-level nodes. Use placeName when referencing other nodes in this response.',
+          },
+          placeName: {
+            type: 'string',
+            description:
+              'Name of the node. Should not contain a comma. For sub-locations this can be a descriptive feature name.',
+          },
+          status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
         },
-        required: ['edgeId'],
+        propertyOrdering: [
+          'aliases',
+          'description',
+          'nodeType',
+          'parentNodeId',
+          'placeName',
+          'status',
+        ],
+        required: ['aliases', 'description', 'nodeType', 'parentNodeId', 'placeName', 'status'],
+        additionalProperties: false,
+      },
+    },
+    nodesToRemove: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { nodeId: { type: 'string' }, nodeName: { type: 'string' } },
+        propertyOrdering: ['nodeId', 'nodeName'],
+        required: ['nodeId'],
+        additionalProperties: false,
+      },
+    },
+    nodesToUpdate: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          aliases: { type: 'array', items: { type: 'string' }, minItems: 1, description: ALIAS_INSTRUCTION },
+          description: { type: 'string', description: NODE_DESCRIPTION_INSTRUCTION },
+          newPlaceName: { type: 'string', description: 'If provided, this will be the new name for the node.' },
+          nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
+          parentNodeId: {
+            type: 'string',
+            description:
+              'Parent Node ID, or "Universe" for top-level nodes. Parent can not be a feature node. Use placeName when referencing other nodes in this response.',
+          },
+          placeName: { type: 'string', description: 'Existing node ID or name to identify it.' },
+          status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
+        },
+        propertyOrdering: [
+          'aliases',
+          'description',
+          'newPlaceName',
+          'nodeType',
+          'parentNodeId',
+          'placeName',
+          'status',
+        ],
+        required: ['placeName'],
         additionalProperties: false,
       },
     },
@@ -199,7 +213,18 @@ export const MAP_UPDATE_JSON_SCHEMA = {
         'If map updates and the context both imply a new player location, provide its node ID or placeName.',
     },
   },
-  required: ['observations', 'rationale'],
+  required: ['observations', 'rationale', 'edgesToAdd', 'edgesToRemove', 'edgesToUpdate', 'nodesToAdd', 'nodesToRemove', 'nodesToUpdate'],
+  propertyOrdering: [
+    'observations',
+    'rationale',
+    'edgesToAdd',
+    'edgesToRemove',
+    'edgesToUpdate',
+    'nodesToAdd',
+    'nodesToRemove',
+    'nodesToUpdate',
+    'suggestedCurrentMapNodeId',
+  ],
   additionalProperties: false,
 } as const;
 
@@ -228,15 +253,16 @@ export const executeMapUpdateRequest = async (
     promptUsed: string;
   }>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
+    const thinkingBudget = getThinkingBudget(4096);
     const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
-      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
+      modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME],
       prompt,
       systemInstruction,
-      thinkingBudget: 4096,
+      thinkingBudget,
       includeThoughts: true,
       responseMimeType: 'application/json',
       jsonSchema: MAP_UPDATE_JSON_SCHEMA,
-      temperature: 0.75,
+      temperature: 1.0,
       label: 'Cartographer',
     });
     const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
@@ -263,6 +289,7 @@ export const fetchMapUpdatePayload = async (
   basePrompt: string,
   systemInstruction: string,
   minimalModelCalls: Array<MinimalModelCallRecord>,
+  currentTheme: AdventureTheme,
 ): Promise<MapUpdateRequestResult> => {
   let prompt = basePrompt;
   const debugInfo: MapUpdateDebugInfo = {
@@ -297,7 +324,10 @@ export const fetchMapUpdatePayload = async (
       debugInfo.systemInstruction = systemInstructionUsed;
       debugInfo.jsonSchema = jsonSchemaUsed;
       debugInfo.prompt = promptUsed;
-      const { payload: parsedPayload, validationError: parseError } = parseAIMapUpdateResponse(response.text ?? '');
+      const { payload: parsedPayload, validationError: parseError } = await parseAIMapUpdateResponse(
+        response.text ?? '',
+        currentTheme,
+      );
       if (parsedPayload) {
         debugInfo.observations = parsedPayload.observations ?? debugInfo.observations;
         debugInfo.rationale = parsedPayload.rationale ?? debugInfo.rationale;

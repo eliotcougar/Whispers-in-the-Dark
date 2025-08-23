@@ -4,7 +4,7 @@ const infoDisplayContent = {
     {
       "header": "About \"Whispers in the Dark\"",
       "text": [
-        "Welcome to \"Whispers in the Dark,\" an AI-powered text adventure game where you navigate a constantly shifting reality. Your choices directly shape your fate as you uncover secrets, manage your inventory, and survive the challenges presented by an enigmatic Dungeon Master, powered by Google's Gemini AI. Each reality shift brings a new theme, new quests, and new dangers. You can also choose to start a \"Custom Game\" in a specific theme with random reality shifts disabled."
+        "Welcome to \"Whispers in the Dark,\" an AI-powered text adventure game where your choices directly shape your fate. Uncover secrets, manage your inventory, and survive the challenges presented by an enigmatic Dungeon Master powered by Google's Gemini AI. Choose a starting theme and dive into quests and dangers unique to that setting."
       ]
     },
     {
@@ -15,16 +15,14 @@ const infoDisplayContent = {
         "Quests & Objectives: Each theme typically has an \"Overarching Quest\" (a long-term goal) and a \"Current Objective\" (a short-term task). Completing objectives grants Score points and advances the story. The win/lose conditions are not implemented yet, and completing the main quest does not do much.",
         "Local Context: The game tracks \"Local Time,\" \"Local Environment,\" and \"Local Place.\" These details are influenced by your actions and the AI's narrative, providing a more immersive experience. The AI uses this context to generate scenes and the Image Visualizer uses it to create more accurate pictures.",
         "Score & Custom Actions: You earn Score points primarily by completing objectives. These points can be spent to perform \"Custom Actions\" by typing your desired action into the input field. Custom actions cost points and have a character limit.",
-        "Reality Shifts: The game world is unstable. In a standard game, reality shifts can occur randomly based on settings, or you can trigger them manually. Each shift brings a new theme.",
-        "Custom Game Mode: From the main menu, you can select \"Custom Game\" to choose a specific theme to start in. In this mode, random reality shifts are disabled, allowing for a more focused single-theme experience. Manual shifts are still possible if you wish to change themes."
+        "Starting Theme: At the beginning of each adventure, you choose which theme to play in, setting the tone for your journey."
       ]
     },
     {
       "header": "Notable Features",
       "text": [
-        "Image Visualizer: Click the \"eye\" icon to generate an AI-powered image representing the current scene. It uses Imagen 3, and the daily quota is not very big. If you use it up, it will fall back to Gemini 2.0 Image Generation Preview",
+        "Image Visualizer: Click the \"eye\" icon to generate an AI-powered image representing the current scene. It uses Imagen 4, and the daily quota is not very big. If you use it up, it will fall back to Gemini 2.0 Image Generation Preview",
         "Knowledge Base: Click the \"book\" icon to view details about all Places and NPCs you've discovered across different themes.",
-        "History: This panel shows your Game Log and a summary of themes you've previously experienced.",
         "Map Display: Use the map icon to view a dynamic graph of locations within the current theme, showing connections and your current position."
       ]
     },
@@ -41,13 +39,28 @@ const infoDisplayContent = {
       "text": [
         "This game is powered by Google's Gemini large language models:",
         "Text Generation: {{GEMINI_MODEL_NAME}}",
-        "Image Generation: imagen-3.0-generate-002 (fallback gemini-2.0-flash-preview-image-generation)",
+        "Image Generation: imagen-4.0",
         "AI Unpredictability: As with any generative AI, the responses can sometimes be unpredictable, creative in unexpected ways, or may not perfectly adhere to all instructions or context. This is part of the charm and challenge of an AI-driven adventure!",
         "API Quotas: The use of these AI models is subject to API call limits and quotas. If you (or the environment this app is running in) exceed these daily quotas, the game's AI features (text generation, image visualization) may temporarily stop working until the quota resets."
       ]
     }
   ],
   "changelog": [
+    {
+      "title": "Version 1.5 (Backstory Update)",
+      "items": [
+        "Major new features - World backstory and Protagonist backstory.",
+        "Major feature - Five act narrative structure for the main storyline.",
+        "It is now possible to finish the game by completing the last act.",
+        "Added the ability to combine item actions and player actions using the action points system.",
+        "Added character generation and character selection.",
+        "Removed Reality Shift game mechanic - it no longer fits nicely into the overall game progression.",
+        "Custom Mode is now the main game mode.",
+        "Reworked the AI response JSON structures based on new knowledge about Gemini quirks.",
+        "Implemented Thinking Effort setting.",
+        "Improved the map layout."
+      ]
+    },
     {
       "title": "Version 1.4 (Ink and Quill Update)",
       "items": [
@@ -155,7 +168,6 @@ const infoDisplayContent = {
         "Introduced \"Custom Action\" input field for more player agency.",
         "Added confirmation dialogs for \"Restart Game\" and \"Force Reality Shift\" actions.",
         "Initial screen now offers \"Start a New Adventure\" or \"Load a Save File\" before gameplay begins.",
-        "Simplified History display to show only theme name and summary for a cleaner look.",
         "Standardized font sizes across various UI boxes (Quest, Objective, Last Action, Options) for consistency.",
         "Added Knowledge Base where you can see all the Places and NPCs encountered.",
         "Added Visualizer that uses Imagen 3 to show the current scene.",
@@ -185,7 +197,6 @@ const infoDisplayContent = {
         "Game log to track player actions and key events.",
         "Autosave functionality to browser's local storage.",
         "Manual save and load game to/from a file.",
-        "History panel to summarize experiences in past themes."
       ]
     }
   ],

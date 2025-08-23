@@ -8,7 +8,12 @@ import {
   NPC,
   MapData,
   MapNode,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
+  StoryArc,
 } from '../../types';
+import { isStoryArcValid } from '../storyArcUtils';
 import { formatKnownPlacesForPrompt } from './map';
 import { findTravelPath, buildTravelAdjacency } from '../mapPathfinding';
 
@@ -110,10 +115,6 @@ export const formatDetailedContextForMentionedEntities = (
  */
 
 /**
- * Formats the prompt for entering a completely new theme after a shift.
- */
-
-/**
  * Creates a short travel plan line describing the next step toward the destination.
  */
 export const formatTravelPlanLine = (
@@ -172,3 +173,71 @@ export const formatTravelPlanLine = (
   return line;
 };
 
+
+
+/**
+ * Formats world facts into a multiline string for prompts.
+ */
+export const formatWorldFactsForPrompt = (worldFacts: WorldFacts): string => {
+  const lines = [
+    `Geography: ${worldFacts.geography}`,
+    `Climate: ${worldFacts.climate}`,
+    `Technology Level: ${worldFacts.technologyLevel}`,
+    `Supernatural Elements: ${worldFacts.supernaturalElements}`,
+    `Major Factions: ${worldFacts.majorFactions.join(', ')}`,
+    `Key Resources: ${worldFacts.keyResources.join(', ')}`,
+    `Cultural Notes: ${worldFacts.culturalNotes.join(', ')}`,
+    `Notable Locations: ${worldFacts.notableLocations.join(', ')}`,
+  ];
+  return lines.join('\n');
+};
+
+/**
+ * Formats a hero sheet into a short single paragraph.
+ */
+export const formatHeroSheetForPrompt = (
+  hero: HeroSheet,
+  includeStartingItems = false,
+): string => {
+  const lines = [
+    `Player Character Name: ${hero.name}`,
+    `Gender: ${hero.gender}.`,
+    `Occupation: ${hero.occupation}.`,
+    `Traits: ${hero.traits.join(', ')}.`,
+  ];
+  if (includeStartingItems && hero.startingItems.length > 0) {
+    lines.push(`Starting items: ${hero.startingItems.join(', ')}.`);
+  }
+  return lines.join('\n');
+};
+
+/**
+ * Formats a hero backstory as a multiline string.
+ */
+export const formatHeroBackstoryForPrompt = (
+  backstory: HeroBackstory,
+): string =>
+  [
+    `5 years ago: ${backstory.fiveYearsAgo}`,
+    `1 year ago: ${backstory.oneYearAgo}`,
+    `6 months ago: ${backstory.sixMonthsAgo}`,
+    `1 month ago: ${backstory.oneMonthAgo}`,
+    `1 week ago: ${backstory.oneWeekAgo}`,
+    `Yesterday: ${backstory.yesterday}`,
+    `Now: ${backstory.now}`,
+  ].join('\n');
+
+export const formatStoryArcContext = (arc: StoryArc): string => {
+  if (!isStoryArcValid(arc)) return '';
+  const act = arc.acts[arc.currentAct - 1];
+  const side = act.sideObjectives.join(', ');
+  return [
+    `Arc Title: ${arc.title}`,
+    `Overview: ${arc.overview}`,
+    `Current Act ${String(act.actNumber)}: ${act.title}`,
+    `Act Description: ${act.description}`,
+    `Main Objective: ${act.mainObjective}`,
+    `Side Objectives: ${side}`,
+    `Success Condition: ${act.successCondition}`,
+  ].join('\n');
+};

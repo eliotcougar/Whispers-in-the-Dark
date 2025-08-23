@@ -10,63 +10,60 @@ import {
   Item,
   KnownUse,
   MapNode,
+  StoryArc,
 } from '../../types';
 
 interface GameSidebarProps {
   readonly allNPCs: Array<NPC>;
   readonly currentMapNodeId: string | null;
   readonly currentObjective: string | null;
-  readonly currentThemeName: string | null;
   readonly enableMobileTap: boolean;
   readonly inventory: Array<Item>;
   readonly itemsHere: Array<Item>;
-  readonly mainQuest: string | null;
+  readonly storyArc: StoryArc | null;
   readonly mapNodes: Array<MapNode>;
   readonly objectiveAnimationType: 'success' | 'neutral' | null;
-  readonly onDropItem: (itemName: string) => void;
-  readonly onStashToggle: (itemName: string) => void;
+  readonly onStashToggle: (itemId: string) => void;
   readonly onItemInteract: (
     item: Item,
-    interactionType: 'generic' | 'specific' | 'inspect',
+    interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop' | 'discard',
     knownUse?: KnownUse,
   ) => void;
   readonly onReadPage: (item: Item) => void;
   readonly onReadPlayerJournal: () => void;
-  readonly onTakeItem: (itemName: string) => void;
   readonly globalTurnNumber: number;
   readonly disabled: boolean;
+  readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
 function GameSidebar({
   allNPCs: allNPCs,
   currentMapNodeId,
   currentObjective,
-  currentThemeName,
   enableMobileTap,
   inventory,
   itemsHere,
-  mainQuest,
+  storyArc,
   mapNodes,
   objectiveAnimationType,
-  onDropItem,
   onStashToggle,
   onItemInteract,
   onReadPage,
   onReadPlayerJournal,
-  onTakeItem,
   globalTurnNumber,
   disabled,
+  queuedActionIds,
+  remainingActionPoints,
 }: GameSidebarProps) {
   const questHighlightEntities = useMemo(
-    () =>
-      buildHighlightableEntities(
-        inventory,
-        mapNodes,
-        allNPCs,
-        currentThemeName,
-      ),
-    [inventory, mapNodes, allNPCs, currentThemeName],
+    () => buildHighlightableEntities(inventory, mapNodes, allNPCs),
+    [inventory, mapNodes, allNPCs],
   );
+
+  const act = storyArc?.acts[storyArc.currentAct - 1];
+  const mainQuest = act?.mainObjective ?? null;
+  const actHeader = act ? `Act ${String(storyArc.currentAct)}: ${act.title}` : '';
 
   return (
     <>
@@ -95,7 +92,7 @@ function GameSidebar({
           contentColorClass="text-purple-200"
           contentFontClass="text-lg"
           enableMobileTap={enableMobileTap}
-          header="Main Quest"
+          header={actHeader}
           headerFont="lg"
           headerPreset="purple"
           highlightEntities={questHighlightEntities}
@@ -132,17 +129,19 @@ function GameSidebar({
         items={itemsHere}
         mapNodes={mapNodes}
         onItemInteract={onItemInteract}
-        onTakeItem={onTakeItem}
+        queuedActionIds={queuedActionIds}
+        remainingActionPoints={remainingActionPoints}
       />
 
       <InventoryDisplay
         currentTurn={globalTurnNumber}
         disabled={disabled}
         items={inventory}
-        onDropItem={onDropItem}
         onItemInteract={onItemInteract}
         onReadPage={onReadPage}
         onStashToggle={onStashToggle}
+        queuedActionIds={queuedActionIds}
+        remainingActionPoints={remainingActionPoints}
       />
     </>
   );

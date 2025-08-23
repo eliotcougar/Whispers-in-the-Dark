@@ -14,6 +14,7 @@ import {
   GameLogTab,
   GameStateTab,
   InventoryAITab,
+  LibrarianAITab,
   InventoryTab,
   MainAITab,
   MapDataFullTab,
@@ -22,7 +23,6 @@ import {
   PlaygroundTab,
   LoremasterAITab,
   MiscStateTab,
-  ThemeHistoryTab,
   TravelPathTab,
   SettingsTab,
 } from './tabs';
@@ -34,6 +34,8 @@ interface DebugViewProps {
   readonly gameStateStack: GameStateStack;
   readonly onUndoTurn: () => void; // New prop for undoing turn
   readonly onApplyGameState: (state: FullGameState) => void;
+  readonly onTriggerMainQuestAchieved: () => void;
+  readonly onSimulateVictory: () => void;
   readonly travelPath: Array<TravelStep> | null;
   readonly onDistillFacts: () => void;
   readonly debugLore: boolean;
@@ -49,13 +51,13 @@ type DebugTab =
   | "MainAI"
   | "MapLocationAI"
   | "InventoryAI"
+  | "LibrarianAI"
   | "DialogueAI"
   | "LoremasterAI"
   | "Inventory"
   | "NPCs"
   | "MapDataFull"
   | "Lore"
-  | "ThemeHistory"
   | "GameLog"
   | "TravelPath"
   | "MiscState"
@@ -72,6 +74,8 @@ function DebugView({
   gameStateStack,
   onUndoTurn,
   onApplyGameState,
+  onTriggerMainQuestAchieved,
+  onSimulateVictory,
   travelPath,
   onDistillFacts,
   debugLore,
@@ -98,13 +102,13 @@ function DebugView({
     { name: "MainAI", label: "Storyteller AI" },
     { name: "MapLocationAI", label: "Cartographer AI" },
     { name: "InventoryAI", label: "Inventory AI" },
+    { name: "LibrarianAI", label: "Librarian AI" },
     { name: "LoremasterAI", label: "Loremaster AI" },
     { name: "DialogueAI", label: "Dialogue AI" },
     { name: "Inventory", label: "Inventory" },
     { name: "NPCs", label: "NPCs" },
     { name: "MapDataFull", label: "Map Data" },
     { name: "Lore", label: "Lore" },
-    { name: "ThemeHistory", label: "Theme History" },
     { name: "GameLog", label: "Game Log" },
     { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
@@ -123,6 +127,7 @@ function DebugView({
             currentState={currentState}
             onApplyGameState={onApplyGameState}
             onUndoTurn={onUndoTurn}
+            onTriggerMainQuestAchieved={onTriggerMainQuestAchieved}
             previousState={previousState}
           />
         );
@@ -132,6 +137,8 @@ function DebugView({
         return <MapLocationAITab debugPacket={debugPacket} />;
       case 'InventoryAI':
         return <InventoryAITab debugPacket={debugPacket} />;
+      case 'LibrarianAI':
+        return <LibrarianAITab debugPacket={debugPacket} />;
       case 'LoremasterAI':
         return (
           <LoremasterAITab
@@ -150,13 +157,9 @@ function DebugView({
       case 'Lore':
         return (
           <LoreTab
-            themeFacts={currentState.themeFacts.filter(
-              fact => fact.themeName === currentState.currentThemeName
-            )}
+            themeFacts={currentState.themeFacts}
           />
         );
-      case 'ThemeHistory':
-        return <ThemeHistoryTab themeHistory={currentState.themeHistory} />;
       case 'GameLog':
         return <GameLogTab gameLog={currentState.gameLog} />;
       case 'TravelPath':
@@ -178,6 +181,7 @@ function DebugView({
             goodFacts={goodFacts}
             onClearFacts={onClearFacts}
             onSaveFacts={onSaveFacts}
+            onSimulateVictory={onSimulateVictory}
             onToggleDebugLore={onToggleDebugLore}
           />
         );

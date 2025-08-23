@@ -9,7 +9,7 @@ import {
   GameStateStack,
   SavedGameStack,
 } from '../../types';
-import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID } from '../../constants';
+import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID, DEFAULT_ENABLED_THEME_PACKS } from '../../constants';
 import { findThemeByName } from '../../utils/themeUtils';
 import {
   ensureCompleteMapLayoutConfig,
@@ -30,7 +30,7 @@ export function normalizeLoadedSaveData(
   ) {
     if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
       console.warn(
-        `Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${String(parsedObj.saveGameVersion)}' from ${sourceLabel}. Attempting to treat as current version (V3) for validation.`
+        `Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${parsedObj.saveGameVersion}' from ${sourceLabel}. Attempting to treat as current version (V3) for validation.`
       );
     }
     dataToValidateAndExpand = parsedObj as SavedGameDataShape;
@@ -45,13 +45,12 @@ export function normalizeLoadedSaveData(
     ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
   }
 
-  if (!dataToValidateAndExpand.currentThemeObject && dataToValidateAndExpand.currentThemeName) {
-    dataToValidateAndExpand.currentThemeObject = findThemeByName(
-      dataToValidateAndExpand.currentThemeName
-    );
-    if (!dataToValidateAndExpand.currentThemeObject) {
+  const legacyThemeName = (parsedObj as { currentThemeName?: string | null }).currentThemeName;
+  if (!dataToValidateAndExpand.currentTheme && legacyThemeName) {
+    dataToValidateAndExpand.currentTheme = findThemeByName(legacyThemeName);
+    if (!dataToValidateAndExpand.currentTheme) {
       console.warn(
-        `Failed to find theme "${dataToValidateAndExpand.currentThemeName}" during ${sourceLabel} load. Game state might be incomplete.`
+        `Failed to find theme "${legacyThemeName}" during ${sourceLabel} load. Game state might be incomplete.`
       );
     }
   }
@@ -81,7 +80,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     debugLore,
     debugGoodFacts,
     debugBadFacts,
-    isAwaitingManualShiftThemeSelection,
+    isVictory,
     ...restOfGameState
   } = gameState;
 
@@ -92,7 +91,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   void debugLore;
   void debugGoodFacts;
   void debugBadFacts;
-  void isAwaitingManualShiftThemeSelection;
+  void isVictory;
 
   const mapDataForSave: MapData = {
       nodes: gameState.mapData.nodes.map(node => ({
@@ -114,7 +113,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   const savedData: SavedGameDataShape = {
     ...restOfGameState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
-    currentThemeObject: gameState.currentThemeObject,
+    currentTheme: gameState.currentTheme,
     inventory: gameState.inventory.map(item => ({
       ...item,
       tags: item.tags ?? [],
@@ -135,17 +134,14 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
     mapLayoutConfig: gameState.mapLayoutConfig,
     mapViewBox: gameState.mapViewBox,
     score: gameState.score,
-    stabilityLevel: gameState.stabilityLevel,
-    chaosLevel: gameState.chaosLevel,
       localTime: gameState.localTime,
       localEnvironment: gameState.localEnvironment,
       localPlace: gameState.localPlace,
-      enabledThemePacks: gameState.enabledThemePacks,
-    playerGender: gameState.playerGender,
-    turnsSinceLastShift: gameState.turnsSinceLastShift,
     globalTurnNumber: gameState.globalTurnNumber,
-    isCustomGameMode: gameState.isCustomGameMode,
     themeFacts: gameState.themeFacts,
+    worldFacts: gameState.worldFacts,
+    heroSheet: gameState.heroSheet,
+    heroBackstory: gameState.heroBackstory,
   };
   return savedData;
 };
@@ -163,17 +159,22 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     edges: savedData.mapData.edges,
   };
 
-  let themeObjectToUse = savedData.currentThemeObject;
-  if (!themeObjectToUse && savedData.currentThemeName) {
-    themeObjectToUse = findThemeByName(savedData.currentThemeName);
-    if (!themeObjectToUse) {
-      console.warn(`expandSavedDataToFullState: Theme "${savedData.currentThemeName}" not found in current definitions. Game may be unstable.`);
+  let themeObjectToUse = savedData.currentTheme;
+  if (!themeObjectToUse) {
+    const legacyName = (savedData as { currentThemeName?: string | null }).currentThemeName;
+    if (legacyName) {
+      themeObjectToUse = findThemeByName(legacyName);
+      if (!themeObjectToUse) {
+        console.warn(`expandSavedDataToFullState: Theme "${legacyName}" not found in current definitions. Game may be unstable.`);
+      }
     }
   }
 
   return {
     ...savedData,
-    currentThemeObject: themeObjectToUse,
+    currentTheme: themeObjectToUse,
+    enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
+    thinkingEffort: 'Medium',
     allNPCs: savedData.allNPCs.map(npc => ({
       ...npc,
       dialogueSummaries: npc.dialogueSummaries ?? [],
@@ -183,14 +184,16 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     destinationNodeId: savedData.destinationNodeId,
     mapLayoutConfig: savedData.mapLayoutConfig,
     mapViewBox: savedData.mapViewBox,
-    isCustomGameMode: savedData.isCustomGameMode,
     globalTurnNumber: savedData.globalTurnNumber,
     themeFacts: savedData.themeFacts,
+    worldFacts: savedData.worldFacts,
+    heroSheet: savedData.heroSheet,
+    heroBackstory: savedData.heroBackstory,
     debugLore: false,
     debugGoodFacts: [],
     debugBadFacts: [],
-    isAwaitingManualShiftThemeSelection: false,
     dialogueState: null,
+    isVictory: false,
     objectiveAnimationType: null,
     lastDebugPacket: null,
     lastTurnChanges: null,

@@ -51,6 +51,7 @@ export interface ModelDispatchOptions {
   jsonSchema?: unknown;
   label?: string;
   debugLog?: Array<MinimalModelCallRecord>;
+  maxOutputTokens?: number;
 }
 
 /**
@@ -102,6 +103,7 @@ export const dispatchAIRequest = async (
     const cfg: Record<string, unknown> = {};
     if (options.temperature !== undefined) cfg.temperature = options.temperature;
     if (options.responseMimeType && supportsSchema) cfg.responseMimeType = options.responseMimeType;
+    if (options.maxOutputTokens !== undefined) cfg.maxOutputTokens = options.maxOutputTokens;
     if (supportsThinking && (options.thinkingBudget !== undefined || options.includeThoughts)) {
       const thinkingCfg: { thinkingBudget?: number; includeThoughts?: boolean } = {};
       if (options.thinkingBudget !== undefined) {

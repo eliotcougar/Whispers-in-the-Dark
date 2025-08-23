@@ -5,7 +5,7 @@
 
 export const EXTRACT_SYSTEM_INSTRUCTION = `You are the Loremaster, collecting immutable facts about the game world from narrative context.
 Your sole task is to harvest immutable, setting-level facts from the surrounding narrative and return them as a JSON array of objects with "text" and "entities" fields.
-The "entities" array should list IDs of map nodes, NPCs or items referenced in the fact.
+The "entities" array must list IDs of map nodes, NPCs or items referenced in the fact, selected from the supplied node_, npc_, and item_ IDs. Use 'player' ID to reference the player character. Use 'universe' ID to reference the world in general.
 Each fact must aid long-term continuity and world-building.
 
 ## What is a valid fact? Think “map pins & rulebook notes”
@@ -17,7 +17,7 @@ Each fact must aid long-term continuity and world-building.
 
 ## What to reject outright:
 - Ephemeral or player-centric details;
-- Reference non-specific nondescript directions or locations - a tavern, a path, a road, a plain, a river, a forest, a mountain, a city, a kingdom, a continent, etc.;
+- Reference to non-specific nondescript directions or locations - a tavern, a path, a road, a plain, a river, a forest, a mountain, a city, a kingdom, a continent, etc.;
 - Current weather, smells, lighting, time of day;
 - Sensory “vibe” descriptions (“The market buzzes with chatter”);
 - Player inventory, position, quests, feelings, level, dialogue;
@@ -69,8 +69,37 @@ Each fact must aid long-term continuity and world-building.
 CRITICALLY IMPORTANT: DO NOT include bad quality and irrelevant facts.
 `;
 
-export const INTEGRATE_ADD_ONLY_SYSTEM_INSTRUCTION = `You are the Loremaster integrating newly discovered facts with existing lore, while avoiding overlaps and potential contradictions.
-In your JSON response, 'action' field MUST always be 'add'.`;
+export const INTEGRATE_SYSTEM_INSTRUCTION = `You are the Loremaster maintaining up-to-date set of facts about the game world.
+1. Compare Recent Events and Known Facts, then change or delete any Known Facts that are obsolete and no longer in effect based on the story developments described in Recent Events.
+2. Compare Candidate Facts with existing Known Facts, then add good Known Facts that don't lead to overlaps and potential contradictions with Known Facts.
+Known Facts are listed with their numeric IDs. Use these IDs when specifying which fact to change or delete.
+
+## Examples:
+"factsChange": [
+    {
+        "action": "delete",
+        "id": 13
+    },
+    {
+        "action": "add",
+        "entities": [
+            "node_Whisperwood_Jungle_38ax"
+        ],
+        "text": "The Whisperwood Jungle is a colossal green wall of ancient trees and tangled vines, characterized by oppressive humidity in its undergrowth and a high canopy with gaps allowing sunlight to filter through. It resonates with exotic bird calls and the distant roar of vast, unseen creatures."
+    },
+    {
+        "action": "change",
+        "entities": [
+            "node_Whisperwood_Jungle_38ax",
+            "node_Jagged_Peaks_44re",
+            "item_Ancient_Map_Fragment_mjdl"
+        ],
+        "id": 3
+        "text": "From the current location within the Whisperwood Jungle, the colossal green wall appears to stretch limitlessly to the north. To the east, a dip in the terrain suggests a watercourse, while a lone, massive flowering tree with vibrant red blossoms is visible to the south. To the west, a distant jagged peak is discernible, matching a feature marked on the Ancient Map Fragment.",
+        "tier": 2
+    }
+]
+`;
 
 export const COLLECT_SYSTEM_INSTRUCTION = `You are the Loremaster selecting relevant known facts.
 Relevant facts are those that directly inform the next scene: details the NPCs might reference, rules that shape the environment, or recent events likely to influence decisions.
@@ -78,11 +107,41 @@ Select the ten most important facts for the upcoming story turn.
 `;
 
 export const DISTILL_SYSTEM_INSTRUCTION = `You are the Loremaster refining and pruning accumulated facts.
+Consider the last 20 log entries supplied in the prompt. Remove or edit any facts that have been addressed and are no longer in effect.
 1. Look for statements that describe the same idea and merge them into a single, more specific fact. Keep the length of the merged fact under 200 words. Split any fact longer than 200 words into two non-overlapping facts.
 Increase the tier of the merged fact by one.
+When merging, combine the entity IDs from all merged facts into a single set with no duplicates.
 
 2. Prune facts that reference obsolete or irrelevant details, such as:
 - places that no longer exist;
 - items that no longer exist;
 - old quest and objective that is different from the current quest and objective.
+
+3. Edit or prune any facts facts that are obsolete and no longer in effect according to Recent Events.
+
+## Examples:
+"factsChange": [
+    {
+        "action": "delete",
+        "id": 13
+    },
+    {
+        "action": "add",
+        "entities": [
+            "node_Whisperwood_Jungle_38ax"
+        ],
+        "text": "The Whisperwood Jungle is a colossal green wall of ancient trees and tangled vines, characterized by oppressive humidity in its undergrowth and a high canopy with gaps allowing sunlight to filter through. It resonates with exotic bird calls and the distant roar of vast, unseen creatures."
+    },
+    {
+        "action": "change",
+        "entities": [
+            "node_Whisperwood_Jungle_38ax",
+            "node_Jagged_Peaks_44re",
+            "item_Ancient_Map_Fragment_mjdl"
+        ],
+        "id": 3,
+        "text": "From the current location within the Whisperwood Jungle, the colossal green wall appears to stretch limitlessly to the north. To the east, a dip in the terrain suggests a watercourse, while a lone, massive flowering tree with vibrant red blossoms is visible to the south. To the west, a distant jagged peak is discernible, matching a feature marked on the Ancient Map Fragment.",
+        "tier": 2
+    }
+]
 `;

@@ -5,14 +5,15 @@
  */
 
 import {
-  VALID_ITEM_TYPES_STRING,
+  REGULAR_ITEM_TYPES_STRING,
+  WRITTEN_ITEM_TYPES_STRING,
   DEDICATED_BUTTON_USES_STRING,
   MIN_BOOK_CHAPTERS,
   MAX_BOOK_CHAPTERS,
   TEXT_STYLE_TAGS_STRING
 } from '../constants';
 
-export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPES_STRING}.
+export const REGULAR_ITEM_TYPES_GUIDE = `Valid item "type" values are: ${REGULAR_ITEM_TYPES_STRING}.
 - "single-use": Consumed after one use (e.g., potion, one-shot scroll, stimpak, medicine pill, spare part). Assumed to be stored in player's pockets/bag/backpack. Excludes any written material. Cannot be worn on a person directly.
 - "multi-use": Can be used multiple times (e.g., lockpick set, toolkit, medkit). Can have limited number of uses, indicated in brackets after the name, or in the description. Assumed to be stored in player's pockets/bag/backpack. Cannot be worn on a person directly.
 - "equipment": Can be worn on a person, or wielded (e.g., armor, shield, helmet, lantern, flashlight, crowbar). Can have active/inactive states.
@@ -22,133 +23,137 @@ export const ITEM_TYPES_GUIDE = `Valid item "type" values are: ${VALID_ITEM_TYPE
 - "ammunition": For reloading specific ranged weapons, e.g., Arrows for Longbow, Rounds for firearms, Charges for energy weapons. Using weapon consumes ammo (handled by log/update).
 - "vehicle": Player's current transport (if isActive: true) or one they can enter if adjacent to it. Integral parts (mounted guns, cargo bays) are 'knownUses', NOT separate items unless detached. If player enters a vehicle, note in "playerItemsHint" that it becomes active. If they exit, note that it becomes inactive. Include the vehicle in "newItems" only when first introduced.
 - "immovable": Built-in or heavy feature at a location (e.g., control panel or machinery). Cannot be moved or stored. Interact using known uses or generic attempts.
-- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.
-Written items:
-- "page": Single sheet or scroll. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
-- "book": Multi-page text with "chapters". Journals are blank books that start with no chapters and gain new entries when the player writes. Each chapter MUST have {"heading", "description", "contentLength"}.
-- "picture": Single image such as a photograph, drawing, or painting. Use one chapter to describe what the image portrays in detail.
-- "map": Hand-drawn or printed diagram showing terrain, directions, floor plan, or schematic. Use one chapter to describe the layout and any notable markings.
-`;
+- "status effect": Temporary condition, positive or negative, generally gained and lost by eating, drinking, environmental exposure, impacts, and wounds. 'isActive: true' while affecting player. 'description' explains its effect, e.g., "Poisoned (move slower)", "Blessed (higher luck)", "Wounded (needs healing)". 'lost' when it expires.`;
+
+export const WRITTEN_ITEM_TYPES_GUIDE = `Written item types (${WRITTEN_ITEM_TYPES_STRING}):
+  - "page": Single sheet, scroll, or a digital device that can display some static text. Follows the same structure as a one-chapter "book". Always provide a numeric "contentLength" for the page text.
+  - "book": Multi-page text with "chapters", paper-based or digital. Each chapter MUST have {"heading", "description", "contentLength"}.
+  - "picture": Single image such as a photograph, drawing, or painting. Use ONE chapter to describe what the image portrays in detail.
+  - "map": Hand-drawn or printed diagram showing terrain, directions, floor plan, or schematic. Use ONE chapter to describe the layout and any notable markings.`;
+
+export const ITEM_TYPES_GUIDE = `${REGULAR_ITEM_TYPES_GUIDE}\n${WRITTEN_ITEM_TYPES_GUIDE}`;
 
 export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "playerItemsHint": short summary of gains, losses or state changes for the Player.
 - "worldItemsHint": short summary of items dropped or discovered in the environment.
 - "npcItemsHint": short summary of items held or used by NPCs.
-- "newItems": array of brand new items introduced this turn, or [] if none.
+- "librarianHint": short summary for written items (pages, books, pictures, maps). Do not mention the same items in playerItemsHint, worldItemsHint, or npcItemsHint if it is written items.
+- "newItems": array of brand new items (including written items) introduced this turn, or [] if none.
 
-Examples illustrating the hint style:
-- Example of creating a *new* item "Old Lantern" and placing it in player's inventory. Because "Old Lantern" is included in newItems, it means the item is not already present in the scene:
+## Examples illustrating the hint style:
+
+### Example of creating a *new* item "Old Lantern" and placing it in player's inventory. Because "Old Lantern" is included in newItems, it means the item is not already present in the scene:
 playerItemsHint: "Picked up Old Lantern."
 newItems:
 [
   {
-    "name": "Old Lantern",
-    "type": "equipment",
-    "description": "A dusty old lantern that still flickers faintly.",
     "activeDescription": "The lantern is lit and casts a warm glow.",
+    "description": "A dusty old lantern that still flickers faintly.",
     "isActive": false,
-    "knownUses":
-    [
+    "knownUses": [
       {
         "actionName": "Light the Lantern",
-        "promptEffect": "Light the lantern to illuminate the area.",
+        "appliesWhenInactive": true,
         "description": "Use this to light your way in dark places.",
-        "appliesWhenInactive": true
+        "promptEffect": "Light the lantern to illuminate the area."
       },
       {
         "actionName": "Extinguish the Lantern",
-        "promptEffect": "Extinguish the lantern.",
+        "appliesWhenActive": true,
         "description": "Extinguish the lantern and conserve fuel.",
-        "appliesWhenActive": true
+        "promptEffect": "Extinguish the lantern."
       }
-    ]
+    ],
+    "name": "Old Lantern",
+    "type": "equipment"
   }
 ]
 
-- Example for creating a *new* item "Rusty Key" inside npc_guard_4f3a inventory:
+### Example for creating a *new* item "Rusty Key" inside npc_guard_4f3a inventory:
 npcItemsHint: "Guard now carries a Rusty Key."
 newItems:
 [
   {
-    "name": "Rusty Key",
-    "type": "key",
     "description": "A key for the armory door.",
-    "holderId": "npc_guard_4f3a"
+    "holderId": "npc_guard_4f3a",
+    "name": "Rusty Key",
+    "type": "key"
   }
 ]
 
-- Example of creating a *new* 'page' written item and placing it in player's inventory (same structure for the 'map' and 'picture' types):
-playerItemsHint: "Found Smudged Note."
+### Example of creating a *new* 'page' written item and placing it in player's inventory (same structure for the 'map' and 'picture' types):
+librarianHint: "Found Smudged Note."
 newItems:
 [
   {
-    "name": "Smudged Note",
-    "type": "page",
-    "description": "A hastily scribbled message with a big smudge over it.",
-    "tags": ["typed", "smudged"],
-    "holderId": "player",
     "chapters": /* REQUIRED, because the type is 'page' */
     [ /* Only one chapter, because the type is 'page' */
       {
-        "heading": "string",
+        "contentLength": 50,
         "description": "A hastily scribbled message about the dangers of the sunken tunnel.",
-        "contentLength": 50
+        "heading": "string"
       }
-    ]
+    ],
+    "description": "A hastily scribbled message with a big smudge over it.",
+    "holderId": "player",
+    "name": "Smudged Note",
+    "tags": ["typed", "smudged"],
+    "type": "page"
   }
 ]
 
-- Example of creating a *new* 'book' written item and placing it in player's inventory:
-playerItemsHint: "Obtained the Explorer's Adventures."
+### Example of creating a *new* 'book' written item and placing it in player's inventory:
+librarianHint: "Obtained the Explorer's Adventures."
 newItems:
 [
   {
-    "name": "Explorer's Adventures",
-    "type": "book",
-    "description": "Weathered log of travels.",
-    "holderId": "player",
-    "tags": ["handwritten", "faded"],
     "chapters": /* REQUIRED, because the type is 'book' */
     [ /* Multiple chapters because the type it 'book' */
       {
-        "heading": "Preface",
+        "contentLength": 53,
         "description": "Introduction. Written by the author, explaining his decisions to start his travels.",
-        "contentLength": 53
+        "heading": "Preface"
       },
       {
-        "heading": "Journey One",
+        "contentLength": 246,
         "description": "First trip. The author travelled to Vibrant Isles in the search of the Endless Waterfall",
-        "contentLength": 246 
+        "heading": "Journey One"
       },
       {
-        "heading": "Journey Two",
-        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis", 
-        "contentLength": 312 
+        "contentLength": 312,
+        "description": "Second Trip. The author's adventure in Desolate Steppes in the search of Magnificent Oasis",
+        "heading": "Journey Two"
       },
       {
-        "heading": "Final Thoughts",
-        "description": "The author's contemplation about whether the journeys were worth it", 
-        "contentLength": 98 
+        "contentLength": 98,
+        "description": "The author's contemplation about whether the journeys were worth it",
+        "heading": "Final Thoughts"
       }
-    ]
-  }]
+    ],
+    "description": "Weathered log of travels.",
+    "holderId": "player",
+    "name": "Explorer's Adventures",
+    "tags": ["handwritten", "faded"],
+    "type": "book"
+  }
+]
 
-- Example for losing, destroying, completely removing the item:
+### Example for losing, destroying, completely removing the item:
 playerItemsHint: "Lost Old Lantern (flickering)."
 
-- Example for giving an *existing* item from one holder to another:
+### Example for giving an *existing* item from one holder to another:
 npcItemsHint: "Gave Iron Sword to Guard."
 
-- "take" is an alias for "give". Example:
+### "take" is an alias for "give". Example:
 playerItemsHint: "Took Coin Pouch from Bandit."
 
-- Example for simple update of *existing* item (only changing "isActive"):
+### Example for simple update of *existing* item (only changing "isActive"):
 playerItemsHint: "Plasma Torch is now active."
 
-- Example for transformation or crafting:
+### Example for transformation or crafting:
 playerItemsHint: "Scrap Metal transformed into Makeshift Shiv."
 
-- Example for adding a known use to an item without changing anything else:
+### Example for adding a known use to an item without changing anything else:
 playerItemsHint: "Mystic Orb can now 'Peer into the Orb'."
 
 - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
@@ -165,7 +170,6 @@ IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedi
 
 ${ITEM_TYPES_GUIDE}
 
-IMPORTANT GAME FEATURE - Anachronistic Items: If some items are CLEARLY anachronistic for the current theme (e.g., a high-tech device in a medieval fantasy setting), you MAY transform them. Mention the transformation in "playerItemsHint" and include the resulting item in "newItems" with its new "name", "type" and "description". Your "logMessage" must creatively explain this transformation. For example, a "Laser Pistol" (Sci-Fi item) in a "Classic Dungeon Delve" (Fantasy theme) might transform into a "Humming Metal Wand". The log message could be: "The strange metal device from another world shimmers and reshapes into a humming metal wand in your grasp!"
 `;
 
 export const MAP_NODE_TYPE_GUIDE = `Map Node Types:

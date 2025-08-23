@@ -7,20 +7,17 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
     const node = await ctx.resolveNodeReference(nodeUpdateOp.placeName);
 
     if (node) {
-      let resolvedParentIdOnUpdate: string | undefined | null = node.data.parentNodeId;
+      let resolvedParentIdOnUpdate: string | undefined = node.data.parentNodeId ?? undefined;
 
-      if (nodeUpdateOp.newData.parentNodeId !== undefined) {
-        const parentField = (nodeUpdateOp.newData as { parentNodeId?: string | null }).parentNodeId;
-        if (parentField === null) {
+      if (nodeUpdateOp.parentNodeId !== undefined) {
+        const parentField = nodeUpdateOp.parentNodeId;
+        if (parentField === 'Universe') {
           resolvedParentIdOnUpdate = undefined;
-        } else if (typeof parentField === 'string') {
-          if (parentField === 'Universe') {
-            resolvedParentIdOnUpdate = undefined;
-          } else {
+        } else {
           const parentNode = await ctx.resolveNodeReference(parentField);
           if (parentNode) {
             resolvedParentIdOnUpdate = parentNode.id;
-            let finalType = nodeUpdateOp.newData.nodeType ?? node.data.nodeType;
+            let finalType = nodeUpdateOp.nodeType ?? node.data.nodeType;
             if (parentNode.data.nodeType === finalType) {
               const downgraded = suggestNodeTypeDowngrade(
                 node,
@@ -37,47 +34,46 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
             node.data.nodeType = finalType;
           } else {
             console.warn(
-              `MapUpdate (nodesToUpdate): Feature node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.newData.parentNodeId}" which was not found.`
+              `MapUpdate (nodesToUpdate): Feature node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.parentNodeId}" which was not found.`
             );
             resolvedParentIdOnUpdate = undefined;
           }
-          }
         }
       }
-      if (nodeUpdateOp.newData.parentNodeId === undefined && nodeUpdateOp.newData.nodeType !== undefined) {
-        node.data.nodeType = nodeUpdateOp.newData.nodeType;
+      if (nodeUpdateOp.parentNodeId === undefined && nodeUpdateOp.nodeType !== undefined) {
+        node.data.nodeType = nodeUpdateOp.nodeType;
       }
 
-      if (nodeUpdateOp.newData.description !== undefined)
-        node.data.description = nodeUpdateOp.newData.description;
-      if (nodeUpdateOp.newData.aliases !== undefined) {
-        node.data.aliases = nodeUpdateOp.newData.aliases;
+      if (nodeUpdateOp.description !== undefined)
+        node.data.description = nodeUpdateOp.description;
+      if (nodeUpdateOp.aliases !== undefined) {
+        node.data.aliases = nodeUpdateOp.aliases;
         for (const [k, v] of Array.from(ctx.themeNodeAliasMap.entries())) {
           if (v.id === node.id) ctx.themeNodeAliasMap.delete(k);
         }
         node.data.aliases.forEach(a => ctx.themeNodeAliasMap.set(a.toLowerCase(), node));
       }
-      if (nodeUpdateOp.newData.status !== undefined) node.data.status = nodeUpdateOp.newData.status;
+      if (nodeUpdateOp.status !== undefined) node.data.status = nodeUpdateOp.status;
       node.data.parentNodeId = resolvedParentIdOnUpdate;
-      for (const key in nodeUpdateOp.newData) {
-        if (!['description', 'aliases', 'status', 'parentNodeId', 'nodeType', 'placeName', 'visited'].includes(key)) {
-          (node.data as Record<string, unknown>)[key] = (nodeUpdateOp.newData as Record<string, unknown>)[key];
+      for (const key in nodeUpdateOp) {
+        if (!['description', 'aliases', 'status', 'parentNodeId', 'nodeType', 'placeName', 'visited', 'newPlaceName'].includes(key)) {
+          (node.data as Record<string, unknown>)[key] = (nodeUpdateOp as unknown as Record<string, unknown>)[key];
         }
       }
-      if (nodeUpdateOp.newData.placeName && nodeUpdateOp.newData.placeName !== node.placeName) {
+      if (nodeUpdateOp.newPlaceName && nodeUpdateOp.newPlaceName !== node.placeName) {
         const oldBatchEntryKey = Object.keys(ctx.newNodesInBatchIdNameMap).find(
           key => ctx.newNodesInBatchIdNameMap[key].id === node.id
         );
         if (oldBatchEntryKey) {
           Reflect.deleteProperty(ctx.newNodesInBatchIdNameMap, oldBatchEntryKey);
-          ctx.newNodesInBatchIdNameMap[nodeUpdateOp.newData.placeName] = {
+          ctx.newNodesInBatchIdNameMap[nodeUpdateOp.newPlaceName] = {
             id: node.id,
-            name: nodeUpdateOp.newData.placeName,
+            name: nodeUpdateOp.newPlaceName,
           };
         }
         ctx.themeNodeNameMap.delete(node.placeName);
         const oldName = node.placeName;
-        node.placeName = nodeUpdateOp.newData.placeName;
+        node.placeName = nodeUpdateOp.newPlaceName;
         ctx.themeNodeNameMap.set(node.placeName, node);
         node.data.aliases ??= [];
         if (!node.data.aliases.includes(oldName)) node.data.aliases.push(oldName);

@@ -4,6 +4,7 @@
  */
 import { useCallback, useState, useRef } from 'react';
 import { clearProgress } from '../utils/loadingProgress';
+import type { AdventureTheme, WorldFacts, CharacterOption, HeroSheet, HeroBackstory, StoryArc } from '../types';
 
 export const useAppModals = () => {
   const [isVisualizerVisible, setIsVisualizerVisible] = useState(false);
@@ -15,20 +16,35 @@ export const useAppModals = () => {
   const [isMapVisible, setIsMapVisible] = useState(false);
   const [userRequestedTitleMenuOpen, setUserRequestedTitleMenuOpen] = useState(false);
   const [shouldReturnToTitleMenu, setShouldReturnToTitleMenu] = useState(false);
-  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [isDebugViewVisible, setIsDebugViewVisible] = useState(false);
   const [isCustomGameSetupVisible, setIsCustomGameSetupVisible] = useState(false);
-  const [isManualShiftThemeSelectionVisible, setIsManualShiftThemeSelectionVisible] = useState(false);
   const [shiftConfirmOpen, setShiftConfirmOpen] = useState(false);
   const [newGameFromMenuConfirmOpen, setNewGameFromMenuConfirmOpen] = useState(false);
   const [loadGameFromMenuConfirmOpen, setLoadGameFromMenuConfirmOpen] = useState(false);
-  const [newCustomGameConfirmOpen, setNewCustomGameConfirmOpen] = useState(false);
   const [pageItemId, setPageItemId] = useState<string | null>(null);
   const [pageStartChapterIndex, setPageStartChapterIndex] = useState<number>(0);
   const [isPageVisible, setIsPageVisible] = useState(false);
   const [isDebugLoreVisible, setIsDebugLoreVisible] = useState(false);
   const [debugLoreFacts, setDebugLoreFacts] = useState<Array<string>>([]);
   const debugLoreResolveRef = useRef<((good: Array<string>, bad: Array<string>, proceed: boolean) => void) | null>(null);
+  const [isGenderSelectVisible, setIsGenderSelectVisible] = useState(false);
+  const [genderSelectDefault, setGenderSelectDefault] = useState('Male');
+  const genderSelectResolveRef = useRef<((gender: string) => void) | null>(null);
+  const [isCharacterSelectVisible, setIsCharacterSelectVisible] = useState(false);
+  const [characterSelectData, setCharacterSelectData] = useState<{
+    theme: AdventureTheme;
+    heroGender: string;
+    worldFacts: WorldFacts;
+    options: Array<CharacterOption>;
+  } | null>(null);
+  const characterSelectResolveRef = useRef<(
+    (result: {
+      name: string;
+      heroSheet: HeroSheet | null;
+      heroBackstory: HeroBackstory | null;
+      storyArc: StoryArc | null;
+    }) => void
+  ) | null>(null);
 
   const openVisualizer = useCallback(() => { setIsVisualizerVisible(true); }, []);
   const closeVisualizer = useCallback(() => { setIsVisualizerVisible(false); }, []);
@@ -42,21 +58,15 @@ export const useAppModals = () => {
   const closeInfo = useCallback(() => { setIsInfoVisible(false); }, []);
   const openTitleMenu = useCallback(() => { setUserRequestedTitleMenuOpen(true); }, []);
   const closeTitleMenu = useCallback(() => { setUserRequestedTitleMenuOpen(false); }, []);
-  const openHistory = useCallback(() => { setIsHistoryVisible(true); }, []);
-  const closeHistory = useCallback(() => { setIsHistoryVisible(false); }, []);
   const closeDebugView = useCallback(() => { setIsDebugViewVisible(false); }, []);
   const openCustomGameSetup = useCallback(() => { setIsCustomGameSetupVisible(true); }, []);
   const closeCustomGameSetup = useCallback(() => { setIsCustomGameSetupVisible(false); }, []);
-  const openManualShiftThemeSelection = useCallback(() => { setIsManualShiftThemeSelectionVisible(true); }, []);
-  const closeManualShiftThemeSelection = useCallback(() => { setIsManualShiftThemeSelectionVisible(false); }, []);
   const openShiftConfirm = useCallback(() => { setShiftConfirmOpen(true); }, []);
   const closeShiftConfirm = useCallback(() => { setShiftConfirmOpen(false); }, []);
   const openNewGameFromMenuConfirm = useCallback(() => { setNewGameFromMenuConfirmOpen(true); }, []);
   const closeNewGameFromMenuConfirm = useCallback(() => { setNewGameFromMenuConfirmOpen(false); }, []);
   const openLoadGameFromMenuConfirm = useCallback(() => { setLoadGameFromMenuConfirmOpen(true); }, []);
   const closeLoadGameFromMenuConfirm = useCallback(() => { setLoadGameFromMenuConfirmOpen(false); }, []);
-  const openNewCustomGameConfirm = useCallback(() => { setNewCustomGameConfirmOpen(true); }, []);
-  const closeNewCustomGameConfirm = useCallback(() => { setNewCustomGameConfirmOpen(false); }, []);
   const openPageView = useCallback((id: string, startIndex = 0) => {
     setPageItemId(id);
     setPageStartChapterIndex(startIndex);
@@ -85,6 +95,43 @@ export const useAppModals = () => {
     setIsDebugLoreVisible(false);
   }, []);
 
+  const openGenderSelectModal = useCallback((defaultGender: string, resolve: (gender: string) => void) => {
+    setGenderSelectDefault(defaultGender);
+    genderSelectResolveRef.current = resolve;
+    setIsGenderSelectVisible(true);
+  }, []);
+
+  const submitGenderSelectModal = useCallback((gender: string) => {
+    genderSelectResolveRef.current?.(gender);
+    setIsGenderSelectVisible(false);
+  }, []);
+
+  const openCharacterSelectModal = useCallback(
+    (
+      data: {
+        theme: AdventureTheme;
+        heroGender: string;
+        worldFacts: WorldFacts;
+        options: Array<CharacterOption>;
+      },
+      resolve: (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null }) => void,
+    ) => {
+      setCharacterSelectData(data);
+      characterSelectResolveRef.current = resolve;
+      setIsCharacterSelectVisible(true);
+    },
+    []
+  );
+
+  const submitCharacterSelectModal = useCallback(
+    (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null }) => {
+      characterSelectResolveRef.current?.(result);
+      setIsCharacterSelectVisible(false);
+      setCharacterSelectData(null);
+    },
+    []
+  );
+
   return {
     // state
     isVisualizerVisible,
@@ -96,17 +143,16 @@ export const useAppModals = () => {
     isMapVisible,
     userRequestedTitleMenuOpen,
     shouldReturnToTitleMenu,
-    isHistoryVisible,
     isDebugViewVisible,
     isCustomGameSetupVisible,
-    isManualShiftThemeSelectionVisible,
     shiftConfirmOpen,
     newGameFromMenuConfirmOpen,
     loadGameFromMenuConfirmOpen,
-   newCustomGameConfirmOpen,
    pageItemId,
    pageStartChapterIndex,
    isPageVisible,
+    isCharacterSelectVisible,
+    characterSelectData,
    // setters used outside
     setVisualizerImageUrl,
     setVisualizerImageScene,
@@ -125,28 +171,28 @@ export const useAppModals = () => {
     closeInfo,
     openTitleMenu,
     closeTitleMenu,
-    openHistory,
-    closeHistory,
     closeDebugView,
     openCustomGameSetup,
     closeCustomGameSetup,
-    openManualShiftThemeSelection,
-    closeManualShiftThemeSelection,
     openShiftConfirm,
     closeShiftConfirm,
     openNewGameFromMenuConfirm,
     closeNewGameFromMenuConfirm,
     openLoadGameFromMenuConfirm,
    closeLoadGameFromMenuConfirm,
-   openNewCustomGameConfirm,
-   closeNewCustomGameConfirm,
    openPageView,
    closePageView,
    isDebugLoreVisible,
    debugLoreFacts,
-   openDebugLoreModal,
-   submitDebugLoreModal,
-   closeDebugLoreModal,
+    openDebugLoreModal,
+    submitDebugLoreModal,
+    closeDebugLoreModal,
+    isGenderSelectVisible,
+    genderSelectDefault,
+    openGenderSelectModal,
+    submitGenderSelectModal,
+    openCharacterSelectModal,
+    submitCharacterSelectModal,
   } as const;
 };
 

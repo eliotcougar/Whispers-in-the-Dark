@@ -11,7 +11,7 @@ import {
   TurnChanges,
 } from '../types';
 import { fetchCorrectedName_Service } from '../services/corrections';
-import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
+import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITTEN_ITEM_TYPES, REGULAR_ITEM_TYPES } from '../constants';
 import {
   addLogMessageToList,
   buildItemChangeRecords,
@@ -22,11 +22,18 @@ import { itemsToString } from '../utils/promptFormatters/inventory';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { applyInventoryHints_Service } from '../services/inventory';
+import { applyLibrarianHints_Service } from '../services/librarian';
 import { refineLore_Service } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
 import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
-import { findItemByIdentifier } from '../utils/entityUtils';
+import { generateNextStoryAct } from '../services/worldData';
+import {
+  findItemByIdentifier,
+  findMapNodeByIdentifier,
+  findNPCByIdentifier,
+} from '../utils/entityUtils';
+import { filterDuplicateCreates } from '../utils/itemChangeUtils';
 
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
@@ -50,8 +57,56 @@ const correctItemChanges = async ({
   if (!theme) return [...aiItemChanges];
 
   const result: Array<ItemChange> = [];
+
+  const resolveHolder = (holderId: string | undefined): string | undefined => {
+    if (!holderId) return undefined;
+    if (holderId === PLAYER_HOLDER_ID) return PLAYER_HOLDER_ID;
+    if (holderId.startsWith('node_')) {
+      const node = findMapNodeByIdentifier(
+        holderId,
+        baseState.mapData.nodes,
+        baseState.mapData,
+        baseState.currentMapNodeId,
+      );
+      return Array.isArray(node) ? node[0]?.id : node?.id;
+    }
+    if (holderId.startsWith('npc_')) {
+      const npc = findNPCByIdentifier(holderId, baseState.allNPCs);
+      return Array.isArray(npc) ? npc[0]?.id : npc?.id;
+    }
+    return undefined;
+  };
   for (const change of aiItemChanges) {
     let currentChange: ItemChange = { ...change };
+
+    if (currentChange.action === 'create') {
+      const item = currentChange.item;
+      const match = findItemByIdentifier(
+        [item.id, item.name],
+        baseState.inventory,
+        false,
+        true,
+      );
+      const existing = Array.isArray(match) ? null : match;
+      if (existing) {
+        currentChange = {
+          action: 'change',
+          item: { ...item, id: existing.id },
+        };
+      }
+      const corrected = resolveHolder(item.holderId);
+      if (corrected) item.holderId = corrected;
+    } else if (currentChange.action === 'move') {
+      const payload = currentChange.item as { newHolderId: string };
+      const corrected = resolveHolder(payload.newHolderId);
+      if (corrected) payload.newHolderId = corrected;
+    } else if (currentChange.action === 'change') {
+      const itm = currentChange.item as { holderId?: string };
+      if (itm.holderId) {
+        const corrected = resolveHolder(itm.holderId);
+        if (corrected) itm.holderId = corrected;
+      }
+    }
 
     if ('item' in currentChange && (currentChange.item as { type?: string }).type === 'immovable') {
       if (currentChange.action === 'create') {
@@ -199,11 +254,38 @@ const handleInventoryHints = async ({
     (npc) => npc.presenceStatus === 'nearby',
   );
 
-  const formatNPCInventoryList = (npcs: typeof companionNPCs): string => {
+  const filterItemsByType = (
+    items: Array<Item>,
+    allowed: ReadonlyArray<string>,
+  ): Array<Item> => items.filter(it => allowed.includes(it.type));
+
+  const regularPlayerInventory = filterItemsByType(
+    baseInventoryForPlayer,
+    REGULAR_ITEM_TYPES,
+  );
+  const regularLocationInventory = filterItemsByType(
+    locationInventory,
+    REGULAR_ITEM_TYPES,
+  );
+  const writtenPlayerInventory = filterItemsByType(
+    baseInventoryForPlayer,
+    WRITTEN_ITEM_TYPES,
+  );
+  const writtenLocationInventory = filterItemsByType(
+    locationInventory,
+    WRITTEN_ITEM_TYPES,
+  );
+
+  const formatNPCInventoryList = (
+    npcs: typeof companionNPCs,
+    allowedTypes: ReadonlyArray<string>,
+  ): string => {
     if (npcs.length === 0) return 'None.';
     return npcs
       .map((npc) => {
-        const items = baseState.inventory.filter((i) => i.holderId === npc.id);
+        const items = baseState.inventory.filter(
+          (i) => i.holderId === npc.id && allowedTypes.includes(i.type),
+        );
         return `ID: ${npc.id} - ${npc.name}: ${itemsToString(items, ' - ', true, true, false, true)}`;
       })
       .join('\n');
@@ -214,32 +296,91 @@ const handleInventoryHints = async ({
   if (theme) {
     const original = loadingReason;
     setLoadingReason('inventory');
-    const limitedMapContext = formatLimitedMapContextForPrompt(
+    const limitedMapContextRegular = formatLimitedMapContextForPrompt(
       draftState.mapData,
       draftState.currentMapNodeId,
-      baseState.inventory,
+      filterItemsByType(baseState.inventory, REGULAR_ITEM_TYPES),
     );
-    const invResult = await applyInventoryHints_Service(
-      'playerItemsHint' in aiData ? aiData.playerItemsHint : undefined,
-      'worldItemsHint' in aiData ? aiData.worldItemsHint : undefined,
-      'npcItemsHint' in aiData ? aiData.npcItemsHint : undefined,
-      'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [],
-      playerActionText ?? '',
-      itemsToString(baseInventoryForPlayer, ' - ', true, true, false, true),
-      itemsToString(locationInventory, ' - ', true, true, false, true),
-      baseState.currentMapNodeId ?? null,
-      formatNPCInventoryList(companionNPCs),
-      formatNPCInventoryList(nearbyNPCs),
-      'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
-      aiData.logMessage,
-      theme,
-      limitedMapContext,
+    const limitedMapContextWritten = formatLimitedMapContextForPrompt(
+      draftState.mapData,
+      draftState.currentMapNodeId,
+      filterItemsByType(baseState.inventory, WRITTEN_ITEM_TYPES),
     );
+    const allNewItems =
+      'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
+    const librarianNewItems = allNewItems.filter(it =>
+      WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
+    );
+    const inventoryNewItems = allNewItems.filter(
+      it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
+    );
+
+    const playerItemsHint =
+      'playerItemsHint' in aiData ? aiData.playerItemsHint?.trim() : '';
+    const worldItemsHint =
+      'worldItemsHint' in aiData ? aiData.worldItemsHint?.trim() : '';
+    const npcItemsHint =
+      'npcItemsHint' in aiData ? aiData.npcItemsHint?.trim() : '';
+    let invResult: Awaited<ReturnType<typeof applyInventoryHints_Service>> | null = null;
+    if (playerItemsHint || worldItemsHint || npcItemsHint || inventoryNewItems.length > 0) {
+      invResult = await applyInventoryHints_Service(
+        playerItemsHint,
+        worldItemsHint,
+        npcItemsHint,
+        inventoryNewItems,
+        playerActionText ?? '',
+        itemsToString(regularPlayerInventory, ' - ', true, true, false, true),
+        itemsToString(regularLocationInventory, ' - ', true, true, false, true),
+        baseState.currentMapNodeId ?? null,
+        formatNPCInventoryList(companionNPCs, REGULAR_ITEM_TYPES),
+        formatNPCInventoryList(nearbyNPCs, REGULAR_ITEM_TYPES),
+        'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
+        aiData.logMessage,
+        theme,
+        limitedMapContextRegular,
+      );
+    }
     setLoadingReason(original);
+
+    let librarianHint =
+      'librarianHint' in aiData ? aiData.librarianHint?.trim() : '';
+    if (!librarianHint && librarianNewItems.length > 0) {
+      const names = librarianNewItems.map(it => it.name).join(', ');
+      librarianHint = `Found ${names}.`;
+    }
+    let libResult: Awaited<ReturnType<typeof applyLibrarianHints_Service>> | null = null;
+    if (librarianHint) {
+      libResult = await applyLibrarianHints_Service(
+        librarianHint,
+        librarianNewItems,
+        playerActionText ?? '',
+        itemsToString(writtenPlayerInventory, ' - ', true, true, false, true),
+        itemsToString(writtenLocationInventory, ' - ', true, true, false, true),
+        baseState.currentMapNodeId ?? null,
+        formatNPCInventoryList(companionNPCs, WRITTEN_ITEM_TYPES),
+        formatNPCInventoryList(nearbyNPCs, WRITTEN_ITEM_TYPES),
+        limitedMapContextWritten,
+      );
+    }
+
+    if (invResult && libResult) {
+      invResult.itemChanges = filterDuplicateCreates(
+        invResult.itemChanges,
+        libResult.itemChanges,
+      );
+    }
+
     if (invResult) {
       combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
       if (draftState.lastDebugPacket) {
         draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
+      }
+    }
+
+    if (libResult) {
+      combinedItemChanges = combinedItemChanges.concat(libResult.itemChanges);
+      if (draftState.lastDebugPacket) {
+        draftState.lastDebugPacket.librarianDebugInfo = libResult.debugInfo;
       }
     }
   }
@@ -328,6 +469,7 @@ export const useProcessAiResponse = ({
         itemChanges: [],
         npcChanges: [],
         objectiveAchieved: false,
+        mainQuestAchieved: false,
         objectiveTextChanged: false,
         mainQuestTextChanged: false,
         localTimeChanged: false,
@@ -366,6 +508,7 @@ export const useProcessAiResponse = ({
         timestamp: new Date().toISOString(),
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        librarianDebugInfo: null,
         loremasterDebugInfo: draftState.lastDebugPacket?.loremasterDebugInfo ?? { collect: null, extract: null, integrate: null, distill: null, journal: null },
       };
 
@@ -409,6 +552,7 @@ export const useProcessAiResponse = ({
         draftState.objectiveAnimationType = null;
       }
       turnChanges.objectiveAchieved = aiData.objectiveAchieved ?? false;
+      turnChanges.mainQuestAchieved = aiData.mainQuestAchieved ?? false;
       if (aiData.objectiveAchieved) {
         draftState.score = draftState.score + 1;
         turnChanges.scoreChangedBy += 1;
@@ -488,12 +632,12 @@ export const useProcessAiResponse = ({
             if (!target) continue;
             const chapter = change.item.chapters?.[0];
             if (!chapter) continue;
-            const { name: themeName, systemInstructionModifier } = themeContextForResponse;
+            const { name: themeName, storyGuidance } = themeContextForResponse;
             const nodes = draftState.mapData.nodes.filter(
-              n => n.themeName === themeName && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+              n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
             );
             const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-            const npcs = draftState.allNPCs.filter(npc => npc.themeName === themeName);
+            const npcs = draftState.allNPCs;
             const knownNPCs = npcs.length > 0
               ? npcsToString(npcs, ' - ', false, false, false, true)
               : 'None specifically known in this theme yet.';
@@ -504,7 +648,7 @@ export const useProcessAiResponse = ({
               chapter.description,
               chapter.contentLength,
               themeName,
-              systemInstructionModifier,
+              storyGuidance,
               draftState.currentScene,
               thoughts,
               knownPlaces,
@@ -522,7 +666,7 @@ export const useProcessAiResponse = ({
                   chapter.description,
                   chapter.contentLength,
                   themeName,
-                  systemInstructionModifier,
+                  storyGuidance,
                   draftState.currentScene,
                   thoughts,
                   knownPlaces,
@@ -568,9 +712,9 @@ export const useProcessAiResponse = ({
               .join('\n');
 
         const nodesForTheme = draftState.mapData.nodes.filter(
-          n => n.themeName === themeContextForResponse.name && n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
+          n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
         );
-        const npcsForTheme = draftState.allNPCs.filter(npc => npc.themeName === themeContextForResponse.name);
+        const npcsForTheme = draftState.allNPCs;
         const itemsForTheme = draftState.inventory.filter(
           item =>
             item.holderId === PLAYER_HOLDER_ID ||
@@ -589,6 +733,8 @@ export const useProcessAiResponse = ({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
           existingFacts: draftState.themeFacts,
+          logMessage: aiData.logMessage ?? '',
+          currentScene: aiData.sceneDescription,
           onFactsExtracted: debugLore
             ? async (facts) =>
                 new Promise<{ proceed: boolean }>(resolve => {
@@ -615,13 +761,36 @@ export const useProcessAiResponse = ({
             draftState,
             refineResult.refinementResult.factsChange,
             draftState.globalTurnNumber,
-            themeContextForResponse.name,
           );
         }
         setLoadingReason(original);
       }
 
       updateDialogueState(draftState, aiData, isFromDialogueSummary);
+
+      if (
+        turnChanges.mainQuestAchieved &&
+        draftState.storyArc &&
+        draftState.currentTheme &&
+        draftState.worldFacts &&
+        draftState.heroSheet
+      ) {
+        const newAct = await generateNextStoryAct(
+          draftState.currentTheme,
+          draftState.worldFacts,
+          draftState.heroSheet,
+          draftState.storyArc,
+          draftState.gameLog,
+          draftState.currentScene,
+        );
+        if (newAct) {
+          const arc = draftState.storyArc;
+          arc.acts[arc.currentAct - 1].completed = true;
+          arc.acts.push(newAct);
+          arc.currentAct = newAct.actNumber;
+          turnChanges.mainQuestAchieved = false;
+        }
+      }
 
       draftState.lastTurnChanges = turnChanges;
     },

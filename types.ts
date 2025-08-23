@@ -21,6 +21,12 @@ export type ThemePackName = ThemePackNameConst;
 export type ItemTag = typeof VALID_TAGS[number];
 
 export type LoadingReason = typeof LOADING_REASONS[number] | null;
+export type ThinkingEffort = 'Low' | 'Medium' | 'High';
+
+export interface GameSettings {
+  enabledThemePacks: Array<ThemePackName>;
+  thinkingEffort: ThinkingEffort;
+}
 
 export type MapNodeStatus = typeof VALID_NODE_STATUS_VALUES[number];
 export type MapNodeType = typeof VALID_NODE_TYPE_VALUES[number];
@@ -141,7 +147,6 @@ export interface DialogueSummaryRecord {
 
 export interface NPC {
   id: string;
-  themeName: string;
   name: string;
   description: string;
   aliases?: Array<string>;
@@ -188,13 +193,14 @@ export interface DialogueTurnContext {
   currentQuest: string | null;
   currentObjective: string | null;
   currentScene: string;
+  storyArc?: StoryArc | null;
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null;
   knownMainMapNodesInTheme: Array<MapNode>;
   knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
-  playerGender: string;
+  heroSheet: HeroSheet | null;
   dialogueHistory: Array<DialogueHistoryEntry>;
   playerLastUtterance: string;
   dialogueParticipants: Array<string>;
@@ -205,24 +211,26 @@ export interface DialogueSummaryContext {
   mainQuest: string | null;
   currentObjective: string | null;
   currentScene: string;
+  storyArc?: StoryArc | null;
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null; // The free-text local place string
   mapDataForTheme: MapData; // Map data for the current theme (nodes and edges)
   knownNPCsInTheme: Array<NPC>;
   inventory: Array<Item>;
-  playerGender: string;
-  dialogueLog: Array<DialogueHistoryEntry>; 
+  dialogueLog: Array<DialogueHistoryEntry>;
   dialogueParticipants: Array<string>;
+  heroSheet: HeroSheet | null;
   themeName: string; // Retained for direct theme name access if needed
-  currentThemeObject: AdventureTheme | null; // Added for full theme object access
+  currentTheme: AdventureTheme | null; // Added for full theme object access
 }
 
 // New context type for detailed memory summarization
 export interface DialogueMemorySummaryContext {
   themeName: string; // Retained for direct theme name access if needed
-  currentThemeObject: AdventureTheme | null; // Added for full theme object access
+  currentTheme: AdventureTheme | null; // Added for full theme object access
   currentScene: string; // Scene at the START of the dialogue
+  storyArc?: StoryArc | null;
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null;
@@ -251,16 +259,17 @@ export interface GameStateFromAI {
     lastKnownLocation?: string | null; 
     preciseLocation?: string | null;
   }>; 
-  npcsUpdated?: Array<{ 
-    name: string; 
-    newDescription?: string; 
-    newAliases?: Array<string>; 
-    addAlias?: string; 
+  npcsUpdated?: Array<{
+    name: string;
+    newDescription?: string;
+    newAliases?: Array<string>;
+    addAlias?: string;
     newPresenceStatus?: NPC['presenceStatus'];
-    newLastKnownLocation?: string | null; 
+    newLastKnownLocation?: string | null;
     newPreciseLocation?: string | null;
   }>;
   objectiveAchieved?: boolean;
+  mainQuestAchieved?: boolean;
   localTime?: string;
   localEnvironment?: string;
   localPlace?: string;
@@ -271,29 +280,17 @@ export interface GameStateFromAI {
   playerItemsHint?: string;
   worldItemsHint?: string;
   npcItemsHint?: string;
+  librarianHint?: string;
   newItems?: Array<NewItemSuggestion>;
   // placesAdded and placesUpdated are removed from storyteller responsibility
 }
 
 export interface AdventureTheme {
   name: string;
-  systemInstructionModifier: string;
-  initialMainQuest: string;
-  initialCurrentObjective: string;
-  initialSceneDescriptionSeed: string;
-  initialItems: string;
+  storyGuidance: string;
   playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
 }
 
-export interface ThemeMemory {
-  summary: string;
-  mainQuest: string;
-  currentObjective: string;
-  placeNames: Array<string>; // These will be MapNode.placeName of main map nodes in the theme
-  npcNames: Array<string>;
-}
-
-export type ThemeHistoryState = Record<string, ThemeMemory>;
 
 export interface FactWithEntities {
   text: string;
@@ -304,16 +301,16 @@ export interface ThemeFact {
   id: number;
   text: string;
   entities: Array<string>;
-  themeName: string;
   createdTurn: number;
   tier: number;
 }
 
 export interface ThemeFactChange {
   action: 'add' | 'change' | 'delete';
-  fact?: Partial<Omit<ThemeFact, 'id' | 'createdTurn'>> & {
-    createdTurn?: number;
-  };
+  text?: string;
+  entities?: Array<string>;
+  tier?: number;
+  createdTurn?: number;
   id?: number;
 }
 
@@ -328,6 +325,58 @@ export interface LoreRefinementResult {
   observations?: string;
   rationale?: string;
 }
+
+export interface WorldFacts {
+  geography: string;
+  climate: string;
+  technologyLevel: string;
+  supernaturalElements: string;
+  majorFactions: Array<string>;
+  keyResources: Array<string>;
+  culturalNotes: Array<string>;
+  notableLocations: Array<string>;
+}
+
+export interface HeroSheet {
+  name: string;
+  gender: string;
+  occupation: string;
+  traits: Array<string>;
+  startingItems: Array<string>;
+}
+
+export interface HeroBackstory {
+  fiveYearsAgo: string;
+  oneYearAgo: string;
+  sixMonthsAgo: string;
+  oneMonthAgo: string;
+  oneWeekAgo: string;
+  yesterday: string;
+  now: string;
+}
+
+export interface CharacterOption {
+  name: string;
+  description: string;
+}
+
+export interface StoryAct {
+  actNumber: number;
+  title: string;
+  description: string;
+  mainObjective: string;
+  sideObjectives: Array<string>;
+  successCondition: string;
+  completed: boolean;
+}
+
+export interface StoryArc {
+  title: string;
+  overview: string;
+  acts: Array<StoryAct>;
+  currentAct: number;
+}
+
 
 export interface LoremasterModeDebugInfo {
   prompt: string;
@@ -370,6 +419,7 @@ export interface TurnChanges {
   itemChanges: Array<ItemChangeRecord>;
   npcChanges: Array<NPCChangeRecord>;
   objectiveAchieved: boolean;
+  mainQuestAchieved: boolean;
   objectiveTextChanged: boolean;
   mainQuestTextChanged: boolean;
   localTimeChanged: boolean;
@@ -407,7 +457,6 @@ export interface MapNodeData {
 
 export interface MapNode {
   id: string; // Unique identifier for the node
-  themeName: string;
   placeName: string; // User-facing name of the location/feature. Must be unique within its theme.
   position: { x: number; y: number }; // For map visualization
   data: MapNodeData;
@@ -435,16 +484,36 @@ export interface MapData {
 // --- End Map Data Structures ---
 
 // --- Map Update Service Payload ---
-export interface AIEdgeUpdate { 
-  sourcePlaceName: string; 
-  targetPlaceName: string; 
-  newData: MapEdge['data']; 
+export interface AIEdgeUpdate {
+  sourcePlaceName: string;
+  targetPlaceName: string;
+  description?: string;
+  status?: MapEdgeData['status'];
+  travelTime?: string;
+  type?: MapEdgeData['type'];
+}
+
+export interface AIEdgeAdd extends AIEdgeUpdate {
+  status: MapEdgeData['status'];
+  type: MapEdgeData['type'];
 }
 
 export interface AINodeUpdate {
-  placeName: string; // User-facing name to identify the node for update or to set for a new node.
-  data: Partial<MapNodeData> & { description?: string }; // 'description' mainly provided for feature-level nodes.
-  initialPosition?: { x: number; y: number };
+  placeName: string; // Existing node ID or name to identify it.
+  aliases?: Array<string>;
+  description?: string;
+  nodeType?: MapNodeData['nodeType'];
+  parentNodeId?: string;
+  status?: MapNodeData['status'];
+  newPlaceName?: string;
+}
+
+export interface AINodeAdd extends AINodeUpdate {
+  aliases: Array<string>;
+  description: string;
+  nodeType: MapNodeData['nodeType'];
+  parentNodeId: string;
+  status: MapNodeData['status'];
 }
 
 export interface AIMapUpdatePayload {
@@ -453,15 +522,10 @@ export interface AIMapUpdatePayload {
   // Description and aliases are required for all new nodes.
   observations?: string | null;
   rationale?: string | null;
-  nodesToAdd?: Array<AINodeUpdate & {
-    data: {
-      status: MapNodeData['status'];
-      parentNodeId: string;
-    } & Partial<Omit<MapNodeData, 'status' | 'parentNodeId'>>;
-  }> | null;
-  nodesToUpdate?: Array<{ placeName: string; newData: Partial<MapNodeData> & { placeName?: string }; }> | null; // Added placeName to newData for renaming
+  nodesToAdd?: Array<AINodeAdd> | null;
+  nodesToUpdate?: Array<AINodeUpdate> | null;
   nodesToRemove?: Array<{ nodeId: string; nodeName?: string; }> | null;
-  edgesToAdd?: Array<{ sourcePlaceName: string; targetPlaceName: string; data: MapEdge['data']; }> | null;
+  edgesToAdd?: Array<AIEdgeAdd> | null;
   edgesToUpdate?: Array<AIEdgeUpdate> | null;
   edgesToRemove?: Array<{ edgeId: string; sourceId?: string; targetId?: string; }> | null;
   suggestedCurrentMapNodeId?: string | null | undefined;
@@ -526,6 +590,16 @@ export interface DebugPacket {
     rationale?: string;
     thoughts?: Array<string>;
   } | null;
+  librarianDebugInfo?: {
+    prompt: string;
+    systemInstruction?: string;
+    jsonSchema?: unknown;
+    rawResponse?: string;
+    parsedItemChanges?: Array<ItemChange>;
+    observations?: string;
+    rationale?: string;
+    thoughts?: Array<string>;
+  } | null;
   loremasterDebugInfo?: {
     collect?: LoremasterModeDebugInfo | null;
     extract?: LoremasterModeDebugInfo | null;
@@ -545,9 +619,8 @@ export interface DebugPacket {
 
 
 export interface FullGameState {
-  saveGameVersion: string; 
-  currentThemeName: string | null; // Retained for quick access and backward compatibility
-  currentThemeObject: AdventureTheme | null; // Stores the full theme object
+  saveGameVersion: string;
+  currentTheme: AdventureTheme | null; // Stores the full theme object
   currentScene: string;
   actionOptions: Array<string>; 
   mainQuest: string | null;
@@ -559,9 +632,11 @@ export interface FullGameState {
   lastLoreDistillTurn: number;
   gameLog: Array<string>;
   lastActionLog: string | null;
-  themeHistory: ThemeHistoryState;
   themeFacts: Array<ThemeFact>;
-  pendingNewThemeNameAfterShift: string | null;
+  worldFacts: WorldFacts | null;
+  heroSheet: HeroSheet | null;
+  heroBackstory: HeroBackstory | null;
+  storyArc: StoryArc | null;
   allNPCs: Array<NPC>;
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
@@ -572,16 +647,13 @@ export interface FullGameState {
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null; // Free-text description, ideally aligns with a map node
-  turnsSinceLastShift: number;
   globalTurnNumber: number; // New field
   dialogueState: DialogueData | null;
-  isCustomGameMode: boolean; 
+  isVictory: boolean;
 
   // Configuration snapshot (remains part of FullGameState for runtime and saving)
-  playerGender: string;
   enabledThemePacks: Array<ThemePackName>;
-  stabilityLevel: number;
-  chaosLevel: number;
+  thinkingEffort: ThinkingEffort;
 
   debugLore: boolean;
   debugGoodFacts: Array<string>;
@@ -591,15 +663,13 @@ export interface FullGameState {
   objectiveAnimationType: 'success' | 'neutral' | null;
   lastDebugPacket: DebugPacket | null; 
   lastTurnChanges: TurnChanges | null; 
-  isAwaitingManualShiftThemeSelection?: boolean; // Transient: True if game is waiting for theme selection after manual shift in custom mode
 }
 
 // Defines the subset of FullGameState that is actually saved for V3.
 export type SavedGameDataShape = Pick<
   FullGameState,
   | 'saveGameVersion'
-  | 'currentThemeName' // Retained for backward compatibility and quick lookup
-  | 'currentThemeObject' // Added for full theme object persistence
+  | 'currentTheme' // Full theme object persistence
   | 'currentScene'
   | 'actionOptions'
   | 'mainQuest'
@@ -611,9 +681,11 @@ export type SavedGameDataShape = Pick<
   | 'lastLoreDistillTurn'
   | 'gameLog'
   | 'lastActionLog'
-  | 'themeHistory'
   | 'themeFacts'
-  | 'pendingNewThemeNameAfterShift'
+  | 'worldFacts'
+  | 'heroSheet'
+  | 'heroBackstory'
+  | 'storyArc'
   | 'allNPCs'
   | 'mapData'
   | 'currentMapNodeId'
@@ -624,13 +696,7 @@ export type SavedGameDataShape = Pick<
   | 'localTime'
   | 'localEnvironment'
   | 'localPlace'
-  | 'turnsSinceLastShift'
   | 'globalTurnNumber'
-  | 'playerGender'
-  | 'enabledThemePacks'
-  | 'stabilityLevel'
-  | 'chaosLevel'
-  | 'isCustomGameMode' 
 >;
 
 export type GameStateStack = [FullGameState, FullGameState?];

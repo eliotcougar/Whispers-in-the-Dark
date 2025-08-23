@@ -15,7 +15,7 @@ interface Net {
 }
 
 export async function resolveHierarchyConflicts(ctx: ApplyUpdatesContext): Promise<void> {
-  for (const node of ctx.newMapData.nodes.filter(n => n.themeName === ctx.currentTheme.name)) {
+  for (const node of ctx.newMapData.nodes) {
     const parentId = node.data.parentNodeId;
     if (!parentId || parentId === 'Universe') continue;
     const parent = ctx.themeNodeIdMap.get(parentId);

@@ -9,11 +9,19 @@ import {
   ThemePackName,
   LoadingReason,
   GameStateStack,
+  AdventureTheme,
+  WorldFacts,
+  CharacterOption,
+  HeroSheet,
+  HeroBackstory,
+  StoryArc,
+  ThinkingEffort,
 } from '../types';
 import {
   executeAIMainTurn,
   parseAIResponse,
 } from '../services/storyteller';
+import { getMaxOutputTokens } from '../services/thinkingConfig';
 import { SYSTEM_INSTRUCTION } from '../services/storyteller/systemPrompt';
 import { getThemesFromPacks } from '../themes';
 import { PLAYER_HOLDER_ID } from '../constants';
@@ -30,34 +38,49 @@ import { DEFAULT_VIEWBOX } from '../constants';
 import { ProcessAiResponseFn } from './useProcessAiResponse';
 import { repairFeatureHierarchy } from '../utils/mapHierarchyUpgradeUtils';
 import { clearAllImages } from '../services/imageDb';
+import {
+  generateWorldFacts,
+  generateCharacterNames,
+  generateCharacterDescriptions,
+} from '../services/worldData';
+import { extractInitialFacts_Service } from '../services/loremaster';
+import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import { isStoryArcValid } from '../utils/storyArcUtils';
 
 export interface LoadInitialGameOptions {
   isRestart?: boolean;
   explicitThemeName?: string | null;
-  isTransitioningFromShift?: boolean;
-  customGameFlag?: boolean;
   savedStateToLoad?: GameStateStack | null;
   clearImages?: boolean;
 }
 
 export interface UseGameInitializationProps {
-  playerGenderProp: string;
   enabledThemePacksProp: Array<ThemePackName>;
-  stabilityLevelProp: number;
-  chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
   setParseErrorCounter: (val: number) => void;
   setHasGameBeenInitialized: (val: boolean) => void;
-  onSettingsUpdateFromLoad: (
-    loaded: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>
-  ) => void;
+  thinkingEffortProp: ThinkingEffort;
   getCurrentGameState: () => FullGameState;
   commitGameState: (state: FullGameState) => void;
   resetGameStateStack: (state: FullGameState) => void;
   setGameStateStack: (stack: GameStateStack) => void;
   processAiResponse: ProcessAiResponseFn;
+  openCharacterSelectModal: (
+    data: {
+      theme: AdventureTheme;
+      heroGender: string;
+      worldFacts: WorldFacts;
+      options: Array<CharacterOption>;
+    },
+  ) => Promise<{
+    name: string;
+    heroSheet: HeroSheet | null;
+    heroBackstory: HeroBackstory | null;
+    storyArc: StoryArc | null;
+  }>;
+  openGenderSelectModal: (defaultGender: string) => Promise<string>;
 }
 
 /**
@@ -65,21 +88,20 @@ export interface UseGameInitializationProps {
  */
 export const useGameInitialization = (props: UseGameInitializationProps) => {
   const {
-    playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
     setIsLoading,
     setLoadingReason,
     setError,
     setParseErrorCounter,
     setHasGameBeenInitialized,
-    onSettingsUpdateFromLoad,
+    thinkingEffortProp,
     getCurrentGameState,
     commitGameState,
     resetGameStateStack,
     setGameStateStack,
     processAiResponse,
+    openCharacterSelectModal,
+    openGenderSelectModal,
   } = props;
 
 
@@ -91,14 +113,12 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       const {
         isRestart = false,
         explicitThemeName = null,
-        isTransitioningFromShift = false,
-        customGameFlag = false,
         savedStateToLoad = null,
         clearImages = false,
       } = options;
 
       setIsLoading(true);
-      setLoadingReason(isTransitioningFromShift ? 'reality_shift_load' : 'initial_load');
+      setLoadingReason('initial_load');
       setError(null);
       setParseErrorCounter(0);
 
@@ -108,12 +128,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       if (savedStateToLoad) {
         const [currentSaved, previousSaved] = savedStateToLoad;
-        let themeForLoadedState = currentSaved.currentThemeObject;
-        if (!themeForLoadedState && currentSaved.currentThemeName) {
-          themeForLoadedState = findThemeByName(currentSaved.currentThemeName);
+        let themeForLoadedState = currentSaved.currentTheme;
+        if (!themeForLoadedState) {
+          const legacyName = (currentSaved as { currentThemeName?: string | null }).currentThemeName;
+          if (legacyName) themeForLoadedState = findThemeByName(legacyName);
         }
-        if (currentSaved.currentThemeName && !themeForLoadedState) {
-          setError(`Failed to apply loaded state: Theme "${currentSaved.currentThemeName}" not found. Game state may be unstable.`);
+        if (!themeForLoadedState) {
+          const warnName = (currentSaved as { currentThemeName?: string | null }).currentThemeName;
+          if (warnName) setError(`Failed to apply loaded state: Theme "${warnName}" not found. Game state may be unstable.`);
         }
 
         let mapDataToApply = currentSaved.mapData;
@@ -135,25 +157,28 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
         const stateWithMapData = {
           ...currentSaved,
-          currentThemeObject: themeForLoadedState,
+          currentTheme: themeForLoadedState,
           mapData: mapDataToApply,
           currentMapNodeId: currentMapNodeIdToApply,
           destinationNodeId: destinationToApply,
           mapLayoutConfig: mapLayoutConfigToApply,
           mapViewBox: currentSaved.mapViewBox,
-          isCustomGameMode: currentSaved.isCustomGameMode,
-          isAwaitingManualShiftThemeSelection: currentSaved.isAwaitingManualShiftThemeSelection,
           globalTurnNumber: currentSaved.globalTurnNumber,
+          enabledThemePacks: enabledThemePacksProp,
+          thinkingEffort: thinkingEffortProp,
+          isVictory: false,
         } as FullGameState;
 
-        setGameStateStack([stateWithMapData, previousSaved ?? stateWithMapData]);
+        const prev = previousSaved
+          ? {
+              ...previousSaved,
+              enabledThemePacks: enabledThemePacksProp,
+              thinkingEffort: thinkingEffortProp,
+              isVictory: false,
+            }
+          : stateWithMapData;
 
-        onSettingsUpdateFromLoad({
-          stabilityLevel: stateWithMapData.stabilityLevel,
-          chaosLevel: stateWithMapData.chaosLevel,
-          enabledThemePacks: stateWithMapData.enabledThemePacks,
-          playerGender: stateWithMapData.playerGender,
-        });
+        setGameStateStack([stateWithMapData, prev]);
 
         setHasGameBeenInitialized(true);
         setIsLoading(false);
@@ -181,122 +206,169 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         return;
       }
 
+      const selectedGender = await openGenderSelectModal(
+        getCurrentGameState().heroSheet?.gender ?? 'Male',
+      );
+
       let draftState = getInitialGameStates();
-      draftState.playerGender = playerGenderProp;
       draftState.enabledThemePacks = enabledThemePacksProp;
-      draftState.stabilityLevel = stabilityLevelProp;
-      draftState.chaosLevel = chaosLevelProp;
       draftState.mapLayoutConfig = getDefaultMapLayoutConfig();
       draftState.mapViewBox = DEFAULT_VIEWBOX;
       draftState.globalTurnNumber = 0;
+      draftState.currentTheme = themeObjToLoad;
+      draftState.thinkingEffort = thinkingEffortProp;
 
-      draftState.isCustomGameMode = customGameFlag;
-      draftState.currentThemeName = themeObjToLoad.name;
-      draftState.currentThemeObject = themeObjToLoad;
-      draftState.turnsSinceLastShift = 0;
+      const worldFacts = await generateWorldFacts(themeObjToLoad);
+      draftState.worldFacts = worldFacts ?? null;
+      commitGameState(draftState);
 
-      if (isTransitioningFromShift) {
-        const previousState = getCurrentGameState();
-        draftState.inventory = previousState.inventory;
-        draftState.score = previousState.score;
-        draftState.themeHistory = previousState.themeHistory;
-        draftState.mapLayoutConfig = previousState.mapLayoutConfig;
-        draftState.mapViewBox = previousState.mapViewBox;
-        draftState.globalTurnNumber = previousState.globalTurnNumber;
-
-        draftState.mapData.nodes = previousState.mapData.nodes.filter((n) => n.themeName !== themeObjToLoad.name);
-          draftState.mapData.edges = previousState.mapData.edges.filter((e) => {
-            const sourceNode = previousState.mapData.nodes.find((n) => n.id === e.sourceNodeId);
-            const targetNode = previousState.mapData.nodes.find((n) => n.id === e.targetNodeId);
-            return (
-              (sourceNode?.themeName !== themeObjToLoad.name) ||
-              (targetNode?.themeName !== themeObjToLoad.name)
-            );
+      const names = await generateCharacterNames(
+        themeObjToLoad,
+        selectedGender,
+        worldFacts ?? { geography: '', climate: '', technologyLevel: '', supernaturalElements: '', majorFactions: [], keyResources: [], culturalNotes: [], notableLocations: [] },
+      );
+      let heroSheet: HeroSheet | null = null;
+      let heroBackstory: HeroBackstory | null = null;
+      if (names && names.length > 0) {
+        const shuffled = [...names].sort(() => Math.random() - 0.5).slice(0, 10);
+        const descriptions = await generateCharacterDescriptions(
+          themeObjToLoad,
+          selectedGender,
+          worldFacts ?? {
+            geography: '',
+            climate: '',
+            technologyLevel: '',
+            supernaturalElements: '',
+            majorFactions: [],
+            keyResources: [],
+            culturalNotes: [],
+            notableLocations: [],
+          },
+          shuffled,
+        );
+        if (descriptions) {
+          const result = await openCharacterSelectModal({
+            theme: themeObjToLoad,
+            heroGender: selectedGender,
+            worldFacts: worldFacts ?? {
+              geography: '',
+              climate: '',
+              technologyLevel: '',
+              supernaturalElements: '',
+              majorFactions: [],
+              keyResources: [],
+              culturalNotes: [],
+              notableLocations: [],
+            },
+            options: descriptions,
           });
-        draftState.allNPCs = previousState.allNPCs.filter((npc) => npc.themeName !== themeObjToLoad.name);
-      } else {
-        draftState.mapData = { nodes: [], edges: [] };
-        draftState.allNPCs = [];
-        draftState.themeHistory = {};
-        draftState.score = 0;
-        draftState.inventory = [];
-        draftState.mapViewBox = DEFAULT_VIEWBOX;
+          heroSheet = result.heroSheet;
+          heroBackstory = result.heroBackstory;
+          draftState.storyArc = result.storyArc;
+          draftState.heroSheet = heroSheet;
+          draftState.heroBackstory = heroBackstory;
+          if (!result.storyArc || !isStoryArcValid(result.storyArc)) {
+            setError('Failed to generate a valid story arc. Please retry.');
+            setIsLoading(false);
+            setLoadingReason(null);
+            return;
+          }
+          commitGameState(draftState);
+          if (worldFacts) {
+            const initialFacts = await extractInitialFacts_Service({
+              themeName: themeObjToLoad.name,
+              worldFacts,
+              heroSheet: heroSheet ?? undefined,
+              heroBackstory: heroBackstory ?? undefined,
+              onSetLoadingReason: setLoadingReason,
+            });
+            if (initialFacts) {
+              if (draftState.lastDebugPacket?.loremasterDebugInfo) {
+                draftState.lastDebugPacket.loremasterDebugInfo.extract =
+                  initialFacts.debugInfo.extract;
+              }
+              const changes = initialFacts.facts.map(f => ({
+                action: 'add' as const,
+                text: f.text,
+                entities: f.entities,
+              }));
+              applyThemeFactChanges(
+                draftState,
+                changes,
+                draftState.globalTurnNumber,
+              );
+            }
+          }
+        }
       }
 
-      const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
-      const hasExistingHistory = Object.prototype.hasOwnProperty.call(
-        draftState.themeHistory,
-        themeObjToLoad.name
-      );
-      const prompt = buildInitialGamePrompt({
-        theme: themeObjToLoad,
-        inventory: draftState.inventory,
-        playerGender: playerGenderProp,
-        isTransitioningFromShift,
-        themeMemory: hasExistingHistory ? draftState.themeHistory[themeObjToLoad.name] : undefined,
-        mapDataForTheme: draftState.mapData,
-        npcsForTheme: draftState.allNPCs.filter(npc => npc.themeName === themeObjToLoad.name),
-      });
-      draftState.lastDebugPacket = {
-        prompt,
-        systemInstruction: SYSTEM_INSTRUCTION,
-        jsonSchema: undefined,
-        rawResponseText: null,
-        parsedResponse: null,
-        timestamp: new Date().toISOString(),
-        storytellerThoughts: null,
-        mapUpdateDebugInfo: null,
-        inventoryDebugInfo: null,
-        loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
-        dialogueDebugInfo: null,
-      };
+      draftState.mapData = { nodes: [], edges: [] };
+      draftState.allNPCs = [];
+      draftState.score = 0;
+      draftState.inventory = [];
+      draftState.mapViewBox = DEFAULT_VIEWBOX;
 
+      const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
+      if (draftState.heroSheet) draftState.heroSheet.gender = selectedGender;
+      let prompt = '';
       try {
+        prompt = buildInitialGamePrompt({
+          theme: themeObjToLoad,
+          storyArc: draftState.storyArc ?? undefined,
+          worldFacts: draftState.worldFacts ?? undefined,
+          heroSheet: draftState.heroSheet ?? undefined,
+          heroBackstory: draftState.heroBackstory ?? undefined,
+        });
+        draftState.lastDebugPacket = {
+          prompt,
+          systemInstruction: SYSTEM_INSTRUCTION,
+          jsonSchema: undefined,
+          rawResponseText: null,
+          parsedResponse: null,
+          timestamp: new Date().toISOString(),
+          storytellerThoughts: null,
+          mapUpdateDebugInfo: null,
+          inventoryDebugInfo: null,
+          librarianDebugInfo: null,
+          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
+          dialogueDebugInfo: null,
+        };
+
         const {
           response,
           thoughts,
           systemInstructionUsed,
           jsonSchemaUsed,
           promptUsed,
-        } = await executeAIMainTurn(prompt);
+          } = await executeAIMainTurn(prompt, getMaxOutputTokens(4096));
         draftState.lastDebugPacket.rawResponseText = response.text ?? null;
         draftState.lastDebugPacket.storytellerThoughts = thoughts;
         draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
         draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
         draftState.lastDebugPacket.prompt = promptUsed;
 
-        const currentThemeMapDataForParse = {
-          nodes: draftState.mapData.nodes.filter((n) => n.themeName === themeObjToLoad.name),
-          edges: draftState.mapData.edges.filter((e) => {
-            const sourceNode = draftState.mapData.nodes.find((node) => node.id === e.sourceNodeId);
-            const targetNode = draftState.mapData.nodes.find((node) => node.id === e.targetNodeId);
-            return sourceNode?.themeName === themeObjToLoad.name && targetNode?.themeName === themeObjToLoad.name;
-          }),
-        };
+        const currentThemeMapDataForParse = draftState.mapData;
         const parsedData = await parseAIResponse(
           response.text ?? '',
-          playerGenderProp,
           themeObjToLoad,
+          draftState.heroSheet,
           () => { setParseErrorCounter(1); },
           undefined,
           undefined,
-          draftState.allNPCs.filter((npc) => npc.themeName === themeObjToLoad.name),
+          draftState.allNPCs,
           currentThemeMapDataForParse,
           draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
 
         await processAiResponse(parsedData, themeObjToLoad, draftState, {
           baseStateSnapshot: baseStateSnapshotForInitialTurn,
-          forceEmptyInventory: !isTransitioningFromShift && isRestart,
+          forceEmptyInventory: isRestart,
           playerActionText: undefined,
         });
 
 
         setHasGameBeenInitialized(true);
-        draftState.pendingNewThemeNameAfterShift = null;
-        if (!isTransitioningFromShift || draftState.globalTurnNumber === 0) {
-          draftState.globalTurnNumber = 1;
-        }
+        draftState.globalTurnNumber = 1;
       } catch (e: unknown) {
         console.error('Error loading initial game:', e);
           if (isServerOrClientError(e)) {
@@ -316,20 +388,19 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         setLoadingReason(null);
       }
     }, [
-      playerGenderProp,
       enabledThemePacksProp,
-      stabilityLevelProp,
-      chaosLevelProp,
+      thinkingEffortProp,
       setIsLoading,
       setLoadingReason,
       setError,
       setParseErrorCounter,
       setHasGameBeenInitialized,
-      onSettingsUpdateFromLoad,
-      getCurrentGameState,
       commitGameState,
       processAiResponse,
       setGameStateStack,
+      openCharacterSelectModal,
+      openGenderSelectModal,
+      getCurrentGameState,
     ]);
 
   /**
@@ -339,45 +410,37 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
    */
   const handleStartNewGameFromButton = useCallback(() => {
     const blankState = getInitialGameStatesWithSettings(
-      playerGenderProp,
-      enabledThemePacksProp,
-      stabilityLevelProp,
-      chaosLevelProp
+      enabledThemePacksProp
     );
+    blankState.thinkingEffort = thinkingEffortProp;
     resetGameStateStack(blankState);
     setHasGameBeenInitialized(false);
-    void loadInitialGame({ isRestart: true, customGameFlag: false });
+    void loadInitialGame({ isRestart: true });
   }, [
     loadInitialGame,
     setHasGameBeenInitialized,
     resetGameStateStack,
-    playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
+    thinkingEffortProp,
   ]);
 
-  /** Starts a custom game using the provided theme name. */
+  /** Starts a new game using the provided theme name. */
   const startCustomGame = useCallback(
     (themeName: string) => {
       const blankState = getInitialGameStatesWithSettings(
-        playerGenderProp,
-        enabledThemePacksProp,
-        stabilityLevelProp,
-        chaosLevelProp
+        enabledThemePacksProp
       );
+      blankState.thinkingEffort = thinkingEffortProp;
       resetGameStateStack(blankState);
       setHasGameBeenInitialized(false);
-      void loadInitialGame({ explicitThemeName: themeName, isRestart: true, customGameFlag: true });
+      void loadInitialGame({ explicitThemeName: themeName, isRestart: true });
     },
     [
       loadInitialGame,
       setHasGameBeenInitialized,
       resetGameStateStack,
-      playerGenderProp,
       enabledThemePacksProp,
-      stabilityLevelProp,
-      chaosLevelProp,
+      thinkingEffortProp,
     ]
   );
 
@@ -385,23 +448,19 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
   const executeRestartGame = useCallback(() => {
     setError(null);
     const blankState = getInitialGameStatesWithSettings(
-      playerGenderProp,
-      enabledThemePacksProp,
-      stabilityLevelProp,
-      chaosLevelProp
+      enabledThemePacksProp
     );
+    blankState.thinkingEffort = thinkingEffortProp;
     resetGameStateStack(blankState);
     setHasGameBeenInitialized(false);
-    void loadInitialGame({ isRestart: true, customGameFlag: false });
+    void loadInitialGame({ isRestart: true });
   }, [
     loadInitialGame,
     setError,
     setHasGameBeenInitialized,
     resetGameStateStack,
-    playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
+    thinkingEffortProp,
   ]);
 
   /** Retry helper used when an error occurred in the main logic. */
@@ -410,19 +469,18 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     const currentFullState = getCurrentGameState();
 
     // If no theme has been initialized yet, retry initial load
-    if (!currentFullState.currentThemeName) {
+    if (!currentFullState.currentTheme) {
       await loadInitialGame({
         isRestart: true,
-        customGameFlag: currentFullState.isCustomGameMode,
       });
       return;
     }
 
     const lastPrompt = currentFullState.lastDebugPacket?.prompt;
-    const currentThemeObj = currentFullState.currentThemeObject;
+    const currentThemeObj = currentFullState.currentTheme;
 
     // Fallback to generic retry if prompt or theme data is missing
-    if (!lastPrompt || !currentThemeObj) {
+    if (!lastPrompt) {
       const genericRetryState = {
         ...currentFullState,
         actionOptions: [
@@ -458,6 +516,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       storytellerThoughts: null,
       mapUpdateDebugInfo: null,
       inventoryDebugInfo: null,
+      librarianDebugInfo: null,
       loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
       dialogueDebugInfo: null,
     };
@@ -477,31 +536,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
       draftState.lastDebugPacket.prompt = promptUsed;
 
-      const currentThemeNPCs = draftState.allNPCs.filter(
-        (npc) => npc.themeName === currentThemeObj.name,
-      );
-      const currentThemeMapDataForParse = {
-        nodes: draftState.mapData.nodes.filter(
-          (node) => node.themeName === currentThemeObj.name,
-        ),
-        edges: draftState.mapData.edges.filter((e) => {
-          const sourceNode = draftState.mapData.nodes.find(
-            (node) => node.id === e.sourceNodeId,
-          );
-          const targetNode = draftState.mapData.nodes.find(
-            (node) => node.id === e.targetNodeId,
-          );
-          return (
-            sourceNode?.themeName === currentThemeObj.name &&
-            targetNode?.themeName === currentThemeObj.name
-          );
-        }),
-      };
+      const currentThemeNPCs = draftState.allNPCs;
+      const currentThemeMapDataForParse = draftState.mapData;
 
       const parsedData = await parseAIResponse(
         response.text ?? '',
-        playerGenderProp,
         currentThemeObj,
+        draftState.heroSheet,
         () => { setParseErrorCounter(1); },
         currentFullState.lastActionLog ?? undefined,
         currentFullState.currentScene,
@@ -516,7 +557,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         playerActionText: undefined,
       });
 
-      draftState.turnsSinceLastShift += 1;
       draftState.globalTurnNumber += 1;
     } catch (e: unknown) {
       console.error('Error retrying last main AI request:', e);
@@ -549,7 +589,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     setLoadingReason,
     setParseErrorCounter,
     processAiResponse,
-    playerGenderProp,
   ]);
 
   return {

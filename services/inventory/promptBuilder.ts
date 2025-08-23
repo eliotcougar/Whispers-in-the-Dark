@@ -7,6 +7,7 @@
  * Builds the prompt for requesting inventory changes.
  */
 import { NewItemSuggestion } from '../../types';
+import { REGULAR_ITEM_TYPES } from '../../constants';
 
 export const buildInventoryPrompt = (
   playerLastAction: string,
@@ -21,10 +22,10 @@ export const buildInventoryPrompt = (
   nearbyNpcsInventory: string,
   limitedMapContext: string,
 ): string => {
-  const newItemsJson =
-    newItems.length > 0
-      ? JSON.stringify(newItems, null, 2)
-      : '[]';
+  const filtered = newItems.filter(it =>
+    REGULAR_ITEM_TYPES.includes(it.type as (typeof REGULAR_ITEM_TYPES)[number]),
+  );
+  const newItemsJson = filtered.length > 0 ? JSON.stringify(filtered, null, 2) : '[]';
   return `- Player's Last Action: ${playerLastAction}
 - Player Items Hint: "${playerItemsHint}";
 - World Items Hint: "${worldItemsHint}";

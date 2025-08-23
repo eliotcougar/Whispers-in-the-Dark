@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import LocationItemsDisplay from '../components/inventory/LocationItemsDisplay';
+import { ACTION_POINTS_PER_TURN } from '../constants';
 import type { MapData, Item, MapEdgeStatus, MapNodeStatus } from '../types';
 
 const makeNode = (
@@ -11,7 +12,6 @@ const makeNode = (
   parent = 'universe',
 ): MapData['nodes'][number] => ({
   id,
-  themeName: 'theme',
   placeName: id,
   position: { x: 0, y: 0 },
   data: { description: '', status, nodeType: 'location', parentNodeId: parent },
@@ -68,7 +68,8 @@ describe('getAdjacentNodeIds for item reachability', () => {
         items: displayItems,
         mapNodes: mapData.nodes.map(n => ({ id: n.id, placeName: n.placeName })),
         onItemInteract: vi.fn(),
-        onTakeItem: vi.fn(),
+        queuedActionIds: new Set<string>(),
+        remainingActionPoints: ACTION_POINTS_PER_TURN,
       })
     );
     expect(html).toContain('Take');

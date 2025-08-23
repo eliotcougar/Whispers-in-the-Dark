@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers.ts';
 import { structuredCloneGameState } from '../utils/cloneUtils.ts';
-import type { AdventureTheme, FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig, ThemeHistoryState } from '../types';
+import type { AdventureTheme, FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig } from '../types';
 
 const theme: AdventureTheme = { name: 'Kaiju Defense Force' } as AdventureTheme;
 
@@ -9,35 +9,30 @@ const mapData: MapData = {
   nodes: [
     {
       id: 'node_rim_test',
-      themeName: theme.name,
       placeName: 'Neo-Atlantic Rim',
       position: { x: 0, y: 0 },
       data: { description: 'waters', aliases: ['Open Waters', "The Rim"], status: 'rumored', nodeType: 'region', parentNodeId: 'universe' }
     },
     {
       id: 'node_coast_test',
-      themeName: theme.name,
       placeName: 'Coast',
       position: { x: 0, y: 0 },
       data: { description: 'distant coast', aliases: ['Coast', "Outpost"], status: 'rumored', nodeType: 'location', parentNodeId: 'universe' }
     },
     {
       id: 'node_coastal_outpost_test',
-      themeName: theme.name,
       placeName: 'Coastal Outpost',
       position: { x: 0, y: 0 },
       data: { description: 'coastal outpost', aliases: ['Outer Base', "Outpost"], status: 'rumored', nodeType: 'exterior', parentNodeId: 'node_coast_test' }
     },
     {
       id: 'node_utility_entrance_test',
-      themeName: theme.name,
       placeName: 'Utility Entrance',
       position: { x: 0, y: 0 },
       data: { description: 'utility entrance', aliases: ['Utility Hatch', 'Metal Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_coastal_outpost_test' }
     },
     {
       id: 'node_main_entrance_test',
-      themeName: theme.name,
       placeName: 'Main Entrance',
       position: { x: 0, y: 0 },
       data: { description: 'utility entrance', aliases: ['Marked Door', 'Yellow Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_coastal_outpost_test' }
@@ -55,9 +50,8 @@ const mapData: MapData = {
 };
 
 const baseState: FullGameState = {
-  saveGameVersion: '7',
-  currentThemeName: theme.name,
-  currentThemeObject: theme,
+  saveGameVersion: '9',
+  currentTheme: theme,
   currentScene: '',
   actionOptions: [],
   mainQuest: null,
@@ -69,9 +63,11 @@ const baseState: FullGameState = {
   lastLoreDistillTurn: 0,
   gameLog: [],
   lastActionLog: null,
-  themeHistory: {} as ThemeHistoryState,
   themeFacts: [],
-  pendingNewThemeNameAfterShift: null,
+  worldFacts: null,
+  heroSheet: null,
+  heroBackstory: null,
+  storyArc: null,
   allNPCs: [],
   mapData: structuredCloneGameState(mapData),
   currentMapNodeId: 'universe',
@@ -90,14 +86,11 @@ const baseState: FullGameState = {
   localTime: null,
   localEnvironment: null,
   localPlace: null,
-  turnsSinceLastShift: 0,
   globalTurnNumber: 0,
   dialogueState: null,
-  isCustomGameMode: false,
-  playerGender: 'neutral',
+  isVictory: false,
   enabledThemePacks: [],
-  stabilityLevel: 0,
-  chaosLevel: 0,
+  thinkingEffort: 'Medium',
   debugLore: false,
   debugGoodFacts: [],
   debugBadFacts: [],
@@ -116,6 +109,7 @@ const turnChanges: TurnChanges = {
   itemChanges: [],
   npcChanges: [],
   objectiveAchieved: false,
+  mainQuestAchieved: false,
   objectiveTextChanged: false,
   mainQuestTextChanged: false,
   localTimeChanged: false,

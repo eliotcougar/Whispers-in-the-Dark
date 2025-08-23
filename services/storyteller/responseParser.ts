@@ -3,7 +3,7 @@
  * @description Utilities for validating and parsing AI storyteller responses.
  */
 
-import { GameStateFromAI, Item, NPC, MapData,
+import { GameStateFromAI, HeroSheet, Item, NPC, MapData,
     ValidNPCUpdatePayload, ValidNewNPCPayload as ValidNewNPCPayload, DialogueSetupPayload,
     MapNode, AdventureTheme } from '../../types';
 import { MAIN_TURN_OPTIONS_COUNT } from '../../constants';
@@ -24,11 +24,14 @@ import {
     safeParseJson,
     coerceNullToUndefined,
 } from '../../utils/jsonUtils';
-import { buildNPCId as buildNPCId } from '../../utils/entityUtils';
+import {
+    buildNPCId as buildNPCId,
+    findNPCByIdentifier,
+} from '../../utils/entityUtils';
 
 /** Interface describing contextual data required by the parsing helpers. */
 interface ParserContext {
-    playerGender: string;
+    heroGender: string;
     currentTheme: AdventureTheme;
     onParseAttemptFailed?: () => void;
     logMessageFromPayload?: string;
@@ -73,6 +76,7 @@ function validateBasicStructure(
         (data.npcsAdded === undefined || data.npcsAdded === null || Array.isArray(data.npcsAdded)) &&
         (data.npcsUpdated === undefined || data.npcsUpdated === null || Array.isArray(data.npcsUpdated)) &&
         (data.objectiveAchieved === undefined || data.objectiveAchieved === null || typeof data.objectiveAchieved === 'boolean') &&
+        (data.mainQuestAchieved === undefined || data.mainQuestAchieved === null || typeof data.mainQuestAchieved === 'boolean') &&
         (data.localTime === undefined || data.localTime === null || typeof data.localTime === 'string') &&
         (data.localEnvironment === undefined || data.localEnvironment === null || typeof data.localEnvironment === 'string') &&
         (data.localPlace === undefined || data.localPlace === null || typeof data.localPlace === 'string') &&
@@ -83,6 +87,7 @@ function validateBasicStructure(
         (data.playerItemsHint === undefined || data.playerItemsHint === null || typeof data.playerItemsHint === 'string') &&
         (data.worldItemsHint === undefined || data.worldItemsHint === null || typeof data.worldItemsHint === 'string') &&
         (data.npcItemsHint === undefined || data.npcItemsHint === null || typeof data.npcItemsHint === 'string') &&
+        (data.librarianHint === undefined || data.librarianHint === null || typeof data.librarianHint === 'string') &&
         (data.newItems === undefined || data.newItems === null || Array.isArray(data.newItems));
 
     if (!baseFieldsValid) {
@@ -116,7 +121,6 @@ async function handleDialogueSetup(
                     NPCsForDialogueContext.push({
                         ...npcAdd,
                         id: buildNPCId(npcAdd.name),
-                        themeName: '',
                           presenceStatus: npcAdd.presenceStatus ?? 'unknown',
                           lastKnownLocation: npcAdd.lastKnownLocation ?? null,
                           preciseLocation: npcAdd.preciseLocation ?? null,
@@ -131,7 +135,6 @@ async function handleDialogueSetup(
                         name: npcUpd.name,
                           description: npcUpd.newDescription ?? existing?.description ?? 'Updated NPC',
                           aliases: npcUpd.newAliases ?? existing?.aliases ?? [],
-                        themeName: '',
                           presenceStatus: npcUpd.newPresenceStatus ?? existing?.presenceStatus ?? 'unknown',
                           lastKnownLocation: npcUpd.newLastKnownLocation ?? (existing?.lastKnownLocation ?? null),
                           preciseLocation: npcUpd.newPreciseLocation ?? (existing?.preciseLocation ?? null),
@@ -146,7 +149,7 @@ async function handleDialogueSetup(
                 NPCsForDialogueContext,
                 context.allRelevantMainMapNodesForCorrection,
                 context.currentInventoryForCorrection,
-                context.playerGender,
+                context.heroGender,
                 dialogueSetup
             );
 
@@ -201,7 +204,6 @@ async function handleNPCChanges(
                     presenceStatus: originalNPCAdd.presenceStatus ?? 'unknown',
                     lastKnownLocation: originalNPCAdd.lastKnownLocation ?? null,
                     preciseLocation: originalNPCAdd.preciseLocation ?? null,
-                    themeName: '',
                 });
             } else {
                 console.warn(`parseAIResponse ('npcsAdded'): Invalid NPC structure for "${originalName ?? 'Unknown Name'}". Attempting correction.`);
@@ -223,7 +225,7 @@ async function handleNPCChanges(
                         preciseLocation: correctedDetails.preciseLocation,
                     };
                     if (isValidNewNPCPayload(correctedNPCAddPayload)) {
-                        finalNPCsAdded.push({ ...correctedNPCAddPayload, id: buildNPCId(correctedNPCAddPayload.name), themeName: '' } as NPC);
+                        finalNPCsAdded.push({ ...correctedNPCAddPayload, id: buildNPCId(correctedNPCAddPayload.name) } as NPC);
                         console.log(`parseAIResponse ('npcsAdded'): Successfully corrected NPC:`, correctedNPCAddPayload.name);
                     } else {
                         console.warn(`parseAIResponse ('npcsAdded'): Corrected NPC "${originalName ?? 'Unknown Name'}" still invalid. Discarding. Corrected Data:`, correctedNPCAddPayload);
@@ -252,34 +254,51 @@ async function handleNPCChanges(
                 ...(npcUpdate as Record<string, unknown>),
                 name: (npcUpdate as { name: string }).name,
             };
-            const payloadNameForLogs = currentNPCUpdatePayload.name;
-            const allKnownAndCurrentlyAddedNPCNames = new Set([
-                ...context.allRelevantNPCs.map(npc => npc.name),
-                ...finalNPCsAdded.map(npc => npc.name),
-            ]);
+            const payloadIdentifierForLogs = currentNPCUpdatePayload.name;
+            const knownNPCsForLookup: Array<NPC> = [
+                ...context.allRelevantNPCs,
+                ...finalNPCsAdded,
+            ];
+            const matchedNPC = findNPCByIdentifier(
+                currentNPCUpdatePayload.name,
+                knownNPCsForLookup,
+            ) as NPC | undefined;
 
-            if (!allKnownAndCurrentlyAddedNPCNames.has(currentNPCUpdatePayload.name)) {
-                console.warn(`parseAIResponse ('npcsUpdated'): Original target name "${payloadNameForLogs}" not found. Attempting name correction.`);
-                const correctedName = await fetchCorrectedName_Service(
-                    'NPC name',
-                    currentNPCUpdatePayload.name,
-                    context.logMessageFromPayload ?? baseData.logMessage,
-                    context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
-                    Array.from(allKnownAndCurrentlyAddedNPCNames),
-                    context.currentTheme
+            if (matchedNPC) {
+                currentNPCUpdatePayload.name = matchedNPC.name;
+            } else {
+                const allKnownNPCNames = new Set(
+                    knownNPCsForLookup.map(npc => npc.name),
                 );
-                if (correctedName && correctedName.trim() !== '') {
-                    currentNPCUpdatePayload.name = correctedName;
-                    console.log(`parseAIResponse ('npcsUpdated'): Corrected target name to "${correctedName}".`);
-                } else {
-                    console.warn(`parseAIResponse ('npcsUpdated'): Failed to correct target name for "${payloadNameForLogs}". Will attempt to process as is, may convert to 'add'.`);
+                if (!allKnownNPCNames.has(currentNPCUpdatePayload.name)) {
+                    console.warn(
+                        `parseAIResponse ('npcsUpdated'): Identifier "${payloadIdentifierForLogs}" not found. Attempting name correction.`,
+                    );
+                    const correctedName = await fetchCorrectedName_Service(
+                        'NPC name',
+                        currentNPCUpdatePayload.name,
+                        context.logMessageFromPayload ?? baseData.logMessage,
+                        context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
+                        Array.from(allKnownNPCNames),
+                        context.currentTheme,
+                    );
+                    if (correctedName && correctedName.trim() !== '') {
+                        currentNPCUpdatePayload.name = correctedName;
+                        console.log(
+                            `parseAIResponse ('npcsUpdated'): Corrected target name to "${correctedName}".`,
+                        );
+                    } else {
+                        console.warn(
+                            `parseAIResponse ('npcsUpdated'): Failed to correct identifier "${payloadIdentifierForLogs}". Will attempt to process as is, may convert to 'add'.`,
+                        );
+                    }
                 }
             }
 
             if (isValidNPCUpdate(currentNPCUpdatePayload)) {
                 tempFinalNPCsUpdatedPayloads.push(currentNPCUpdatePayload);
             } else {
-                console.warn(`parseAIResponse ('npcsUpdated'): Payload for "${payloadNameForLogs}" is invalid after potential name correction. Discarding. Payload:`, currentNPCUpdatePayload);
+                console.warn(`parseAIResponse ('npcsUpdated'): Payload for "${payloadIdentifierForLogs}" is invalid after potential name correction. Discarding. Payload:`, currentNPCUpdatePayload);
             }
         } else {
             console.warn("parseAIResponse ('npcsUpdated'): Update missing or has invalid 'name'. Discarding.", npcUpdate);
@@ -319,7 +338,6 @@ async function handleNPCChanges(
                     name: targetName,
                     description: npcUpdatePayload.newDescription ?? `Details for ${targetName} are emerging.`,
                     aliases: npcUpdatePayload.newAliases ?? (npcUpdatePayload.addAlias ? [npcUpdatePayload.addAlias] : []),
-                    themeName: '',
                     presenceStatus: npcUpdatePayload.newPresenceStatus ?? 'unknown',
                     lastKnownLocation: npcUpdatePayload.newLastKnownLocation ?? null,
                     preciseLocation: npcUpdatePayload.newPreciseLocation ?? null,
@@ -367,8 +385,8 @@ async function handleNPCChanges(
  */
 export async function parseAIResponse(
     responseText: string,
-    playerGender: string,
     currentTheme: AdventureTheme,
+    heroSheet: HeroSheet | null,
     onParseAttemptFailed?: () => void,
     logMessageFromPayload?: string,
     sceneDescriptionFromPayload?: string,
@@ -388,7 +406,7 @@ export async function parseAIResponse(
         if (!validated) return null;
 
         const context: ParserContext = {
-            playerGender,
+            heroGender: heroSheet?.gender ?? 'Male',
             currentTheme,
             onParseAttemptFailed,
             logMessageFromPayload,
@@ -412,31 +430,49 @@ export async function parseAIResponse(
         validated.npcsUpdated = npcResult.npcsUpdated;
 
         if (isDialogueTurn && validated.dialogueSetup) {
-            const allAvailableNPCNamesThisTurn = new Set([
-                ...allRelevantNPCs.map(npc => npc.name),
-                ...validated.npcsAdded.map(npc => npc.name),
-                ...validated.npcsUpdated.map(npcUpd => npcUpd.name)
+            const availableNPCObjectsThisTurn: Array<NPC> = [
+                ...allRelevantNPCs,
+                ...((validated.npcsAdded ?? []) as Array<NPC>),
+            ];
+            const availableNPCNamesThisTurn = new Set([
+                ...availableNPCObjectsThisTurn.map(npc => npc.name),
+                ...validated.npcsUpdated.map(npcUpd => npcUpd.name),
             ]);
 
             const finalValidParticipants: Array<string> = [];
             for (const participant of validated.dialogueSetup.participants) {
-                if (allAvailableNPCNamesThisTurn.has(participant)) {
+                const matchedNPC = findNPCByIdentifier(
+                    participant,
+                    availableNPCObjectsThisTurn,
+                ) as NPC | undefined;
+                if (matchedNPC) {
+                    finalValidParticipants.push(matchedNPC.name);
+                } else if (availableNPCNamesThisTurn.has(participant)) {
                     finalValidParticipants.push(participant);
                 } else {
-                    console.warn(`parseAIResponse: Dialogue participant "${participant}" is not among known or newly added/updated NPCs. Attempting name correction against this turn's NPCs.`);
+                    console.warn(
+                        `parseAIResponse: Dialogue participant "${participant}" is not among known or newly added/updated NPCs. Attempting name correction against this turn's NPCs.`,
+                    );
                     const correctedParticipantName = await fetchCorrectedName_Service(
                         'dialogue participant',
                         participant,
                         logMessageFromPayload ?? validated.logMessage,
                         sceneDescriptionFromPayload ?? validated.sceneDescription,
-                        Array.from(allAvailableNPCNamesThisTurn),
-                        currentTheme
+                        Array.from(availableNPCNamesThisTurn),
+                        currentTheme,
                     );
-                    if (correctedParticipantName && allAvailableNPCNamesThisTurn.has(correctedParticipantName)) {
+                    if (
+                        correctedParticipantName &&
+                        availableNPCNamesThisTurn.has(correctedParticipantName)
+                    ) {
                         finalValidParticipants.push(correctedParticipantName);
-                        console.log(`parseAIResponse: Corrected dialogue participant name from "${participant}" to "${correctedParticipantName}".`);
+                        console.log(
+                            `parseAIResponse: Corrected dialogue participant name from "${participant}" to "${correctedParticipantName}".`,
+                        );
                     } else {
-                        console.warn(`parseAIResponse: Dialogue participant "${participant}" could not be validated/corrected against this turn's NPCs. Discarding participant.`);
+                        console.warn(
+                            `parseAIResponse: Dialogue participant "${participant}" could not be validated/corrected against this turn's NPCs. Discarding participant.`,
+                        );
                     }
                 }
             }
@@ -467,6 +503,7 @@ export async function parseAIResponse(
         }
 
         validated.objectiveAchieved = validated.objectiveAchieved ?? false;
+        validated.mainQuestAchieved = validated.mainQuestAchieved ?? false;
         validated.localTime = validated.localTime?.trim() ?? 'Time Unknown';
         validated.localEnvironment = validated.localEnvironment?.trim() ?? 'Environment Undetermined';
         validated.localPlace = validated.localPlace?.trim() ?? 'Undetermined Location';

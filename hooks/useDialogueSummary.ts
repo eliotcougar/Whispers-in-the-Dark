@@ -26,7 +26,6 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
 export interface UseDialogueSummaryProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (newGameState: FullGameState) => void;
-  playerGenderProp: string;
   setError: (error: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
@@ -51,7 +50,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
   const {
     getCurrentGameState,
     commitGameState,
-    playerGenderProp,
     setError,
     setIsLoading,
     setLoadingReason,
@@ -66,7 +64,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
    * Finalizes a dialogue session and gathers summary updates.
    */
   const initiateDialogueExit = useCallback(async (stateAtDialogueConclusionStart: FullGameState) => {
-    const currentThemeObj = stateAtDialogueConclusionStart.currentThemeObject;
+    const currentThemeObj = stateAtDialogueConclusionStart.currentTheme;
     const finalHistory = stateAtDialogueConclusionStart.dialogueState?.history ?? [];
     const finalParticipants = stateAtDialogueConclusionStart.dialogueState?.participants ?? [];
 
@@ -94,7 +92,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setLoadingReason('dialogue_memory_creation');
     const memorySummaryContext: DialogueMemorySummaryContext = {
       themeName: currentThemeObj.name,
-      currentThemeObject: currentThemeObj,
+      currentTheme: currentThemeObj,
       currentScene: workingGameState.currentScene,
       localTime: workingGameState.localTime,
       localEnvironment: workingGameState.localEnvironment,
@@ -112,7 +110,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     };
 
     workingGameState.allNPCs = workingGameState.allNPCs.map((npc) => {
-      if (finalParticipants.includes(npc.name) && npc.themeName === currentThemeObj.name) {
+      if (finalParticipants.includes(npc.name)) {
         const newSummaries = [...(npc.dialogueSummaries ?? []), newSummaryRecord];
         if (newSummaries.length > MAX_DIALOGUE_SUMMARIES_PER_NPC) {
           newSummaries.shift();
@@ -123,29 +121,27 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     });
 
     setLoadingReason('dialogue_conclusion_summary');
-    const mapDataForSummary: MapData = {
-      nodes: workingGameState.mapData.nodes.filter((node) => node.themeName === currentThemeObj.name),
-      edges: workingGameState.mapData.edges.filter((edge) => {
-        const sourceNode = workingGameState.mapData.nodes.find((n) => n.id === edge.sourceNodeId);
-        const targetNode = workingGameState.mapData.nodes.find((n) => n.id === edge.targetNodeId);
-        return sourceNode?.themeName === currentThemeObj.name && targetNode?.themeName === currentThemeObj.name;
-      }),
-    };
+    const mapDataForSummary: MapData = workingGameState.mapData;
+    const act =
+      workingGameState.storyArc?.acts[
+        workingGameState.storyArc.currentAct - 1
+      ];
     const summaryContextForUpdates: DialogueSummaryContext = {
-      mainQuest: workingGameState.mainQuest,
+      mainQuest: act?.mainObjective ?? null,
       currentObjective: workingGameState.currentObjective,
       currentScene: workingGameState.currentScene,
       localTime: workingGameState.localTime,
       localEnvironment: workingGameState.localEnvironment,
       localPlace: workingGameState.localPlace,
       mapDataForTheme: mapDataForSummary,
-      knownNPCsInTheme: workingGameState.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
+      knownNPCsInTheme: workingGameState.allNPCs,
       inventory: workingGameState.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
-      playerGender: playerGenderProp,
       dialogueLog: finalHistory,
       dialogueParticipants: finalParticipants,
+      heroSheet: workingGameState.heroSheet,
       themeName: currentThemeObj.name,
-      currentThemeObject: currentThemeObj,
+      currentTheme: currentThemeObj,
+      storyArc: workingGameState.storyArc,
     };
     const {
       parsed: summaryUpdatePayload,
@@ -172,7 +168,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     );
     clearDialogueDebugLogs();
     setIsDialogueExiting(false);
-  }, [playerGenderProp, setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
+  }, [setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
 
 
   /**

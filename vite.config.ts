@@ -52,11 +52,8 @@ export default defineConfig(({ mode }: { mode: string }) => {
             if (id.includes('resources')) {
               return 'resources';
             }
-            if (id.includes('corrections')) {
-              return 'corrections';
-            }
-            if (id.includes('utils')) {
-              return 'utils';
+            if (id.includes('hooks')) {
+              return 'hooks';
             }
           },
         },

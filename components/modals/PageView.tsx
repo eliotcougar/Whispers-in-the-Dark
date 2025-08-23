@@ -142,7 +142,7 @@ function PageView({
     [unlockedChapterCount, isBook, isJournal]
   );
 
-  const { name: themeName, systemInstructionModifier: themeDescription } = currentTheme;
+  const { name: themeName, storyGuidance: themeDescription } = currentTheme;
 
   const handleToggleDecoded = useCallback(() => {
     setShowDecoded(prev => !prev);
@@ -204,19 +204,17 @@ function PageView({
   const knownPlaces = useMemo(() => {
     const nodes = mapData.nodes.filter(
       n =>
-        n.themeName === themeName &&
         n.data.nodeType !== 'feature' &&
         n.data.nodeType !== 'room',
     );
     return formatKnownPlacesForPrompt(nodes, true);
-  }, [mapData, themeName]);
+  }, [mapData]);
 
   const knownNPCs = useMemo(() => {
-    const npcs = allNPCs.filter(npc => npc.themeName === themeName);
-    return npcs.length > 0
-      ? npcsToString(npcs, ' - ', false, false, false, true)
+    return allNPCs.length > 0
+      ? npcsToString(allNPCs, ' - ', false, false, false, true)
       : 'None specifically known in this theme yet.';
-  }, [allNPCs, themeName]);
+  }, [allNPCs]);
 
   useEffect(() => {
     if (!isVisible || !item) {

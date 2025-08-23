@@ -11,6 +11,7 @@ import {
   FullGameState,
   GameStateStack,
   LoadingReason,
+  TurnChanges,
 } from '../types';
 import {
   executeAIMainTurn,
@@ -27,9 +28,13 @@ import {
   RECENT_LOG_COUNT_FOR_PROMPT,
   PLAYER_HOLDER_ID,
   DISTILL_LORE_INTERVAL,
+  RECENT_LOG_COUNT_FOR_DISTILL,
+  ACT_COMPLETION_SCORE,
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { resetInspectCooldowns } from '../utils/undoUtils';
+import { generateNextStoryAct } from '../services/worldData';
 import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
 import { distillFacts_Service } from '../services/loremaster';
@@ -39,16 +44,11 @@ export interface UsePlayerActionsProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (state: FullGameState) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
-  playerGenderProp: string;
-  stabilityLevelProp: number;
-  chaosLevelProp: number;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   loadingReasonRef: React.RefObject<LoadingReason | null>;
   setError: (err: string | null) => void;
   setParseErrorCounter: (val: number) => void;
-  triggerRealityShift: (isChaosShift?: boolean) => void;
-  executeManualRealityShift: () => void;
   freeFormActionText: string;
   setFreeFormActionText: (text: string) => void;
   isLoading: boolean;
@@ -68,15 +68,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     getCurrentGameState,
     commitGameState,
     setGameStateStack,
-    playerGenderProp,
-    stabilityLevelProp,
-    chaosLevelProp,
     setIsLoading,
     setLoadingReason,
     setError,
     setParseErrorCounter,
-    triggerRealityShift,
-    executeManualRealityShift,
     freeFormActionText,
     setFreeFormActionText,
     isLoading,
@@ -97,6 +92,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
   const {
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
@@ -113,16 +109,14 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
   const runDistillIfNeeded = useCallback(
     async (state: FullGameState) => {
-      const themeObj = state.currentThemeObject;
+      const themeObj = state.currentTheme;
       if (!themeObj) return;
       if (
         state.globalTurnNumber > 0 &&
         state.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
         state.lastLoreDistillTurn !== state.globalTurnNumber
       ) {
-        const currentThemeNodes = state.mapData.nodes.filter(
-          n => n.themeName === themeObj.name,
-        );
+        const currentThemeNodes = state.mapData.nodes;
         const inventoryItemNames = Array.from(
           new Set(
             state.inventory
@@ -130,7 +124,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
                 if (item.holderId === PLAYER_HOLDER_ID) return true;
                 if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
                 const holderNpc = state.allNPCs.find(
-                  npc => npc.id === item.holderId && npc.themeName === themeObj.name,
+                  npc => npc.id === item.holderId,
                 );
                 return Boolean(holderNpc);
               })
@@ -138,14 +132,18 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           ),
         );
         const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+        const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
         setLoadingReason('loremaster_refine');
+        const act =
+          state.storyArc?.acts[state.storyArc.currentAct - 1];
         const result = await distillFacts_Service({
           themeName: themeObj.name,
           facts: state.themeFacts,
-          currentQuest: state.mainQuest,
+          currentQuest: act?.mainObjective ?? null,
           currentObjective: state.currentObjective,
           inventoryItemNames,
           mapNodeNames,
+          recentLogEntries: recentLogs,
         });
         state.lastLoreDistillTurn = state.globalTurnNumber;
         state.lastDebugPacket ??= {
@@ -156,6 +154,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           storytellerThoughts: null,
           mapUpdateDebugInfo: null,
           inventoryDebugInfo: null,
+          librarianDebugInfo: null,
           loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
           dialogueDebugInfo: null,
         };
@@ -167,7 +166,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
             state,
             result.refinementResult.factsChange,
             state.globalTurnNumber,
-            themeObj.name,
           );
         }
       }
@@ -197,7 +195,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const baseStateSnapshot = structuredCloneGameState(currentFullState);
       const scoreChangeFromAction = isFreeForm ? -FREE_FORM_ACTION_COST : 0;
 
-      const currentThemeObj = currentFullState.currentThemeObject;
+      const currentThemeObj = currentFullState.currentTheme;
       if (!currentThemeObj) {
         setError('Critical error: Current theme object not found. Cannot proceed.');
         setIsLoading(false);
@@ -206,13 +204,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
 
       const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
-        const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter(
-          n =>
-            n.themeName === currentThemeObj.name &&
-            n.data.nodeType !== 'feature' &&
-            n.data.nodeType !== 'room'
-        );
-      const currentThemeNPCs = currentFullState.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name);
+      const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter(
+        n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+      );
+      const currentThemeNPCs = currentFullState.allNPCs;
       const currentMapNodeDetails = currentFullState.currentMapNodeId
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
         : null;
@@ -251,7 +246,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         action,
         currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
         locationItems,
-        currentFullState.mainQuest,
+        currentFullState.storyArc?.acts[
+          currentFullState.storyArc.currentAct - 1
+        ]?.mainObjective ?? null,
         currentFullState.currentObjective,
         currentThemeObj,
         recentLogs,
@@ -261,11 +258,27 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentFullState.localTime,
         currentFullState.localEnvironment,
         currentFullState.localPlace,
-        playerGenderProp,
-        currentFullState.themeHistory,
+        currentFullState.worldFacts ?? {
+          geography: '',
+          climate: '',
+          technologyLevel: '',
+          supernaturalElements: '',
+          majorFactions: [],
+          keyResources: [],
+          culturalNotes: [],
+          notableLocations: [],
+        },
+        currentFullState.heroSheet ?? {
+          name: 'Hero',
+          gender: 'Male',
+          occupation: '',
+          traits: [],
+          startingItems: [],
+        },
         currentMapNodeDetails,
         currentFullState.mapData,
-        currentFullState.destinationNodeId
+        currentFullState.destinationNodeId,
+        currentFullState.storyArc
       );
 
       let draftState = structuredCloneGameState(currentFullState);
@@ -279,6 +292,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         storytellerThoughts: null,
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
+        librarianDebugInfo: null,
         loremasterDebugInfo: {
           collect: collectResult?.debugInfo ?? null,
           extract: null,
@@ -310,19 +324,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           prompt: promptUsed,
         };
 
-        const currentThemeMapDataForParse = {
-          nodes: draftState.mapData.nodes.filter((n) => n.themeName === currentThemeObj.name),
-          edges: draftState.mapData.edges.filter((e) => {
-            const sourceNode = draftState.mapData.nodes.find((node) => node.id === e.sourceNodeId);
-            const targetNode = draftState.mapData.nodes.find((node) => node.id === e.targetNodeId);
-            return sourceNode?.themeName === currentThemeObj.name && targetNode?.themeName === currentThemeObj.name;
-          }),
-        };
+        const currentThemeMapDataForParse = draftState.mapData;
 
         const parsedData = await parseAIResponse(
           response.text ?? '',
-          playerGenderProp,
           currentThemeObj,
+          draftState.heroSheet,
           () => { setParseErrorCounter(1); },
           currentFullState.lastActionLog ?? undefined,
           currentFullState.currentScene,
@@ -356,7 +363,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         draftState.lastDebugPacket = { ...debugPacket, error: e instanceof Error ? e.message : String(e) };
       } finally {
         if (!encounteredError) {
-          draftState.turnsSinceLastShift += 1;
           draftState.globalTurnNumber += 1;
           await runDistillIfNeeded(draftState);
         }
@@ -364,22 +370,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         setIsLoading(false);
         setLoadingReason(null);
 
-        if (!draftState.isCustomGameMode && !draftState.dialogueState) {
-          const stabilityThreshold = currentThemeObj.name === draftState.pendingNewThemeNameAfterShift ? 0 : stabilityLevelProp;
-          if (draftState.turnsSinceLastShift > stabilityThreshold && Math.random() * 100 < chaosLevelProp) {
-            setError('CHAOS SHIFT! Reality fractures without warning!');
-            triggerRealityShift(true);
-          }
-        }
       }
     }, [
       getCurrentGameState,
       commitGameState,
       isLoading,
-      playerGenderProp,
-      stabilityLevelProp,
-      chaosLevelProp,
-      triggerRealityShift,
       setIsLoading,
       setLoadingReason,
       setError,
@@ -420,35 +415,21 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
 
         for (const item of matchedBooks) {
-          const showActual = item.tags?.includes('recovered');
-          const contents = (item.chapters ?? [])
-            .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
-            .join('\n\n');
-          finalAction += `\nThe contents of the ${item.name} follow:\n${contents}`;
-        }
-      }
-
-      if (action === 'Try to force your way back to the previous reality.') {
-        const previousThemeName = Object.keys(currentFullState.themeHistory).pop();
-        if (previousThemeName) {
-          const statePreparedForShift = {
-            ...currentFullState,
-            pendingNewThemeNameAfterShift: previousThemeName,
-          } as FullGameState;
-          setGameStateStack((prev) => [statePreparedForShift, prev[1]]);
-
-          if (currentFullState.isCustomGameMode) {
-            executeManualRealityShift();
-          } else {
-            triggerRealityShift();
+          const alreadyIncluded =
+            finalAction.includes(`Player reads the ${item.name}`) ||
+            finalAction.includes(`The contents of the ${item.name} follow:`);
+          if (!alreadyIncluded) {
+            const showActual = item.tags?.includes('recovered');
+            const contents = (item.chapters ?? [])
+              .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
+              .join('\n\n');
+            finalAction += `\nThe contents of the ${item.name} follow:\n${contents}`;
           }
-        } else {
-          setError('No previous reality to return to.');
         }
-      } else {
-        void executePlayerAction(finalAction);
       }
-    }, [getCurrentGameState, executePlayerAction, triggerRealityShift, setError, setGameStateStack, executeManualRealityShift]);
+
+      void executePlayerAction(finalAction);
+    }, [getCurrentGameState, executePlayerAction]);
 
   /**
    * Triggers an action based on the player's interaction with an item.
@@ -514,15 +495,90 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * Restores the previous turn's game state if available.
    */
   const handleUndoTurn = useCallback(() => {
-    setGameStateStack((prevStack) => {
+    setGameStateStack(prevStack => {
       const [current, previous] = prevStack;
       if (previous && current.globalTurnNumber > 0) {
         clearObjectiveAnimationTimer();
-        return [previous, current];
+        const cleanedPrev = resetInspectCooldowns(previous);
+        return [cleanedPrev, current];
       }
       return prevStack;
     });
   }, [setGameStateStack, clearObjectiveAnimationTimer]);
+
+  /**
+   * Forces the main quest completion procedure without AI involvement.
+   */
+  const triggerMainQuestAchieved = useCallback(async (
+    stateOverride?: FullGameState,
+  ): Promise<FullGameState | null> => {
+    const currentState = stateOverride ?? getCurrentGameState();
+    const {
+      currentTheme,
+      storyArc,
+      worldFacts,
+      heroSheet,
+    } = currentState;
+    if (!currentTheme || !storyArc || !worldFacts || !heroSheet) return null;
+
+    const draftState = structuredCloneGameState(currentState);
+    const newAct = await generateNextStoryAct(
+      currentTheme,
+      worldFacts,
+      heroSheet,
+      storyArc,
+      draftState.gameLog,
+      draftState.currentScene,
+    );
+
+    const turnChanges: TurnChanges = {
+      itemChanges: [],
+      npcChanges: [],
+      objectiveAchieved: false,
+      mainQuestAchieved: true,
+      objectiveTextChanged: false,
+      mainQuestTextChanged: false,
+      localTimeChanged: false,
+      localEnvironmentChanged: false,
+      localPlaceChanged: false,
+      currentMapNodeIdChanged: false,
+      scoreChangedBy: 0,
+      mapDataChanged: false,
+    };
+
+    if (draftState.storyArc) {
+      const arc = draftState.storyArc;
+      arc.acts[arc.currentAct - 1].completed = true;
+
+      draftState.score += ACT_COMPLETION_SCORE;
+      turnChanges.scoreChangedBy += ACT_COMPLETION_SCORE;
+
+      if (newAct) {
+        arc.acts.push(newAct);
+        arc.currentAct = newAct.actNumber;
+        turnChanges.mainQuestAchieved = false;
+      } else {
+        draftState.isVictory = true;
+      }
+    }
+
+    draftState.globalTurnNumber += 1;
+    draftState.lastTurnChanges = turnChanges;
+    commitGameState(draftState);
+    return draftState;
+  }, [getCurrentGameState, commitGameState]);
+
+  /**
+   * Sequentially completes all remaining acts to reach victory.
+   */
+  const simulateVictory = useCallback(async () => {
+    let state: FullGameState | null = getCurrentGameState();
+    let guard = 0;
+    while (state && !state.isVictory && guard < 10) {
+      state = await triggerMainQuestAchieved(state);
+      guard += 1;
+    }
+  }, [getCurrentGameState, triggerMainQuestAchieved]);
 
   return {
     processAiResponse,
@@ -530,6 +586,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleActionSelect,
     handleItemInteraction,
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
@@ -537,7 +594,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     updatePlayerJournalContent,
     handleStashToggle,
     recordPlayerJournalInspect,
+    recordInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
+    triggerMainQuestAchieved,
+    simulateVictory,
   };
 };

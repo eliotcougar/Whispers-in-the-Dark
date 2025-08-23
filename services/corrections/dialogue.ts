@@ -31,7 +31,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
   allRelevantNPCs: Array<NPC>,
   allRelevantMapNodes: Array<MapNode>,
   currentInventory: Array<Item>,
-  playerGender: string,
+  heroGender: string,
   malformedDialogueSetup: Partial<DialogueSetupPayload>
 ): Promise<DialogueSetupPayload | null> => {
   if (!isApiConfigured()) {
@@ -59,17 +59,17 @@ ${malformedString}
 Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.storyGuidance}"
 - Known/Available NPCs for Dialogue: ${npcContext}
 - Known Map Locations: ${placeContext}
 - Player Inventory: ${inventoryContext}
-- Player Gender: "${playerGender}"
+ - Player Gender: "${heroGender}"
 
 Required JSON Structure for corrected 'dialogueSetup':
 {
-  "participants": ["NPC Name 1", "NPC Name 2"?],
   "initialNpcResponses": [{ "speaker": "NPCr Name 1", "line": "Their first line." }],
-  "initialPlayerOptions": []
+  "initialPlayerOptions": [],
+  "participants": ["NPC Name 1", "NPC Name 2"?]
 }
 
 Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup'.`;
@@ -123,7 +123,7 @@ export const fetchCorrectedDialogueTurn_Service = async (
 
   const prompt = `Role: You fix malformed JSON for a dialogue turn in a text adventure game.
 
-Theme Guidance: "${currentTheme.systemInstructionModifier}"
+Theme Guidance: "${currentTheme.storyGuidance}"
 
 Malformed Dialogue Response:
 \`\`\`
@@ -134,9 +134,9 @@ Valid Participant Names: [${participantList}]
 
 Required JSON Structure:
 {
+  "dialogueEnds": boolean?,
   "npcResponses": [{ "speaker": "Name", "line": "text" }],
   "playerOptions": ["text"],
-  "dialogueEnds": boolean?,
   "updatedParticipants": ["Name"]?
 }
 

@@ -1,16 +1,21 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from '../elements/Button';
-import { INSPECT_COOLDOWN, PLAYER_JOURNAL_ID } from '../../constants';
+import {
+  INSPECT_COOLDOWN,
+  PLAYER_JOURNAL_ID,
+  KNOWN_USE_ACTION_COST,
+  GENERIC_USE_ACTION_COST,
+  INSPECT_ACTION_COST,
+} from '../../constants';
 import { FilterMode } from '../../hooks/useInventoryDisplay';
 
 interface InventoryItemProps {
   readonly item: Item;
   readonly isNew: boolean;
   readonly isStashing: boolean;
-  readonly isConfirmingDiscard: boolean;
   readonly applicableUses: Array<KnownUse>;
   readonly disabled: boolean;
   readonly currentTurn: number;
@@ -18,20 +23,20 @@ interface InventoryItemProps {
   readonly onInspect: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onGenericUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onVehicleToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  readonly onStartConfirmDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  readonly onConfirmDrop: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  readonly onCancelDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onDrop: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onStashToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly filterMode: FilterMode;
   readonly registerRef?: (el: HTMLLIElement | null) => void;
+  readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
 function InventoryItem({
   item,
   isNew,
   isStashing,
-  isConfirmingDiscard,
   applicableUses,
   disabled,
   currentTurn,
@@ -39,13 +44,14 @@ function InventoryItem({
   onInspect,
   onGenericUse,
   onVehicleToggle,
-  onStartConfirmDiscard,
-  onConfirmDrop,
-  onCancelDiscard,
+  onDrop,
+  onDiscard,
   onRead,
   onStashToggle,
   filterMode,
   registerRef,
+  queuedActionIds,
+  remainingActionPoints,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem =
@@ -62,33 +68,55 @@ function InventoryItem({
     item.type !== 'status effect';
   const showDropForWrittenItem =
     filterMode === 'stashed' && (Boolean(item.stashed) || isStashing);
-  const canShowDropNow =
-    canEverDrop &&
-    !isConfirmingDiscard &&
-    (!isWrittenItem || showDropForWrittenItem);
+  const canShowDropNow = canEverDrop && (!isWrittenItem || showDropForWrittenItem);
   const actionButtons: Array<React.ReactElement> = [];
+  const [isConfirmingDiscard, setIsConfirmingDiscard] = useState(false);
+
+  const handleDiscardClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      setIsConfirmingDiscard(true);
+      event.currentTarget.blur();
+    },
+    [],
+  );
+
+  const handleConfirmDiscard = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      onDiscard(event);
+      setIsConfirmingDiscard(false);
+    },
+    [onDiscard],
+  );
+
+  const handleCancelDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    setIsConfirmingDiscard(false);
+    event.currentTarget.blur();
+  }, []);
 
   applicableUses.forEach(knownUse => {
+    const isQueued = queuedActionIds.has(`${item.id}-specific-${knownUse.actionName}`);
     actionButtons.push(
       <Button
         ariaLabel={`${knownUse.actionName}${knownUse.description ? ': ' + knownUse.description : ''}`}
+        cost={KNOWN_USE_ACTION_COST}
         data-action-name={knownUse.actionName}
-        data-item-name={item.name}
+        data-item-id={item.id}
         data-prompt-effect={knownUse.promptEffect}
-        disabled={disabled || isConfirmingDiscard}
-        key={`${item.name}-knownuse-${knownUse.actionName}`}
+        disabled={disabled || (!isQueued && KNOWN_USE_ACTION_COST > remainingActionPoints)}
+        key={`${item.id}-knownuse-${knownUse.actionName}`}
         label={knownUse.actionName}
         onClick={onSpecificUse}
         preset="teal"
+        pressed={isQueued}
         size="sm"
         title={knownUse.description}
+        variant="toggleFull"
       />
     );
   });
 
   const inspectDisabled =
     disabled ||
-    isConfirmingDiscard ||
     (isWrittenItem
       ? item.id === PLAYER_JOURNAL_ID
         ? (item.chapters?.length ?? 0) === 0
@@ -98,31 +126,34 @@ function InventoryItem({
         : false) ||
     (item.lastInspectTurn !== undefined &&
       currentTurn - item.lastInspectTurn < INSPECT_COOLDOWN);
+  const inspectQueued = queuedActionIds.has(`${item.id}-inspect`);
 
   actionButtons.push(
     <Button
       ariaLabel={`Inspect ${item.name}`}
-      data-item-name={item.name}
-      disabled={inspectDisabled}
-      key={`${item.name}-inspect`}
-      label="Inspect"
-      onClick={onInspect}
-      preset="indigo"
-      size="sm"
-    />
+        cost={INSPECT_ACTION_COST}
+        data-item-id={item.id}
+        disabled={inspectDisabled || (!inspectQueued && INSPECT_ACTION_COST > remainingActionPoints)}
+        key={`${item.id}-inspect`}
+        label="Inspect"
+        onClick={onInspect}
+        preset="indigo"
+        pressed={inspectQueued}
+        size="sm"
+        variant="toggleFull"
+      />
   );
 
   if (item.type === 'page' || item.type === 'book' || item.type === 'picture' || item.type === 'map') {
     actionButtons.push(
       <Button
         ariaLabel={`Read ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={
           disabled ||
-          isConfirmingDiscard ||
           (item.id === PLAYER_JOURNAL_ID && (item.chapters?.length ?? 0) === 0)
         }
-        key={`${item.name}-read`}
+        key={`${item.id}-read`}
         label="Read"
         onClick={onRead}
         preset="teal"
@@ -132,71 +163,101 @@ function InventoryItem({
   }
 
 
-  if (canShowGenericUse) {
-    actionButtons.push(
-      <Button
-        ariaLabel={`Attempt to use ${item.name} (generic action)`}
-        data-item-name={item.name}
-        disabled={disabled || isConfirmingDiscard}
-        key={`${item.name}-generic-use`}
-        label="Attempt to Use (Generic)"
-        onClick={onGenericUse}
-        preset="sky"
-        size="sm"
-      />
-    );
-  }
+    if (canShowGenericUse) {
+      const genericQueued = queuedActionIds.has(`${item.id}-generic`);
+      actionButtons.push(
+        <Button
+          ariaLabel={`Attempt to use ${item.name} (generic action)`}
+          cost={GENERIC_USE_ACTION_COST}
+          data-item-id={item.id}
+          disabled={disabled || (!genericQueued && GENERIC_USE_ACTION_COST > remainingActionPoints)}
+          key={`${item.id}-generic-use`}
+          label="Attempt to Use (Generic)"
+          onClick={onGenericUse}
+          preset="sky"
+          pressed={genericQueued}
+          size="sm"
+          variant="toggleFull"
+        />
+      );
+    }
 
   if (item.type === 'vehicle') {
     actionButtons.push(
       <Button
         ariaLabel={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
-        data-item-name={item.name}
-        disabled={disabled || isConfirmingDiscard}
-        key={`${item.name}-vehicle-action`}
+        data-item-id={item.id}
+        disabled={disabled}
+        key={`${item.id}-vehicle-action`}
         label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
         onClick={onVehicleToggle}
         preset="sky"
+        pressed={queuedActionIds.has(`${item.id}-specific-${item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}`)}
         size="sm"
+        variant="toggleFull"
       />
     );
   }
 
-  if (item.tags?.includes('junk') && !isConfirmingDiscard) {
-    actionButtons.push(
-      <Button
-        ariaLabel={`Discard ${item.name}`}
-        data-item-name={item.name}
-        disabled={disabled}
-        icon={<Icon
-          color="white"
-          inline
-          marginRight={4}
-          name="trash"
-          size={16}
-        />}
-        key={`${item.name}-discard`}
-        label="Discard"
-        onClick={onStartConfirmDiscard}
-        preset="orange"
-        size="sm"
-      />
-    );
+  if (item.tags?.includes('junk')) {
+    if (isConfirmingDiscard) {
+      actionButtons.push(
+        <div className="grid grid-cols-2 gap-2 mt-2" key={`${item.id}-confirm-group`}>
+          <Button
+            ariaLabel={`Confirm discard of ${item.name}`}
+            data-item-id={item.id}
+            disabled={disabled}
+            key={`${item.id}-confirm-discard`}
+            label={
+              item.type === 'vehicle' && !item.isActive
+                ? 'Confirm Park'
+                : 'Confirm Discard'
+            }
+            onClick={handleConfirmDiscard}
+            preset="red"
+            size="sm"
+          />
+
+          <Button
+            ariaLabel="Cancel discard"
+            disabled={disabled}
+            key={`${item.id}-cancel-discard`}
+            label="Cancel"
+            onClick={handleCancelDiscard}
+            preset="slate"
+            size="sm"
+          />
+        </div>
+      );
+    } else {
+      actionButtons.push(
+        <Button
+          ariaLabel={`Discard ${item.name}`}
+          data-item-id={item.id}
+          disabled={disabled}
+          icon={<Icon color="white" inline marginRight={4} name="trash" size={16} />}
+          key={`${item.id}-discard`}
+          label="Discard"
+          onClick={handleDiscardClick}
+          preset="orange"
+          size="sm"
+        />
+      );
+    }
   }
 
   if (
-    (item.type === 'page' ||
-      item.type === 'book' ||
-      item.type === 'picture' ||
-      item.type === 'map') &&
-    !isConfirmingDiscard
+    item.type === 'page' ||
+    item.type === 'book' ||
+    item.type === 'picture' ||
+    item.type === 'map'
   ) {
     actionButtons.push(
       <Button
         ariaLabel={filterMode === 'stashed' ? `Retrieve ${item.name}` : `Stash ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
-        key={`${item.name}-stash`}
+        key={`${item.id}-stash`}
         label={filterMode === 'stashed' ? 'Retrieve' : 'Stash'}
         onClick={onStashToggle}
         preset="sky"
@@ -209,11 +270,11 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={`Drop ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
-        key={`${item.name}-drop`}
+        key={`${item.id}-drop`}
         label="Drop"
-        onClick={onStartConfirmDiscard}
+        onClick={onDrop}
         preset="sky"
         size="sm"
       />
@@ -224,73 +285,37 @@ function InventoryItem({
     actionButtons.push(
       <Button
         ariaLabel={`Drop ${item.name}`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
-        key={`${item.name}-drop`}
+        key={`${item.id}-drop`}
         label="Drop"
-        onClick={onStartConfirmDiscard}
+        onClick={onDrop}
         preset="sky"
         size="sm"
       />
     );
   }
 
-  if (!item.tags?.includes('junk') && !isConfirmingDiscard && item.type === 'vehicle' && !item.isActive) {
+  if (!item.tags?.includes('junk') && item.type === 'vehicle' && !item.isActive) {
     actionButtons.push(
       <Button
         ariaLabel={`Park ${item.name} here`}
-        data-item-name={item.name}
+        data-item-id={item.id}
         disabled={disabled}
-        key={`${item.name}-drop`}
+        key={`${item.id}-drop`}
         label="Park Here"
-        onClick={onStartConfirmDiscard}
+        onClick={onDrop}
         preset="sky"
         size="sm"
       />
-    );
-  }
-
-  if (isConfirmingDiscard) {
-    actionButtons.push(
-      <div
-        className="grid grid-cols-2 gap-2 mt-2"
-        key={`${item.name}-confirm-group`}
-      >
-        <Button
-          ariaLabel={`Confirm drop of ${item.name}`}
-          data-item-name={item.name}
-          disabled={disabled}
-          key={`${item.name}-confirm-drop`}
-          label={
-            item.type === 'vehicle' && !item.isActive
-              ? 'Confirm Park'
-              : item.tags?.includes('junk')
-                ? 'Confirm Discard'
-                : 'Confirm Drop'
-          }
-          onClick={onConfirmDrop}
-          preset="red"
-          size="sm"
-        />
-
-        <Button
-          ariaLabel="Cancel discard"
-          disabled={disabled}
-          key={`${item.name}-cancel-discard`}
-          label="Cancel"
-          onClick={onCancelDiscard}
-          preset="slate"
-          size="sm"
-        />
-      </div>
     );
   }
 
   return (
     <li
       className={`w-[270px] text-slate-300 bg-slate-700/60 p-4 rounded-md shadow border border-slate-600 ${isNew ? 'animate-new-item-pulse' : ''} ${isStashing ? 'animate-archive-fade-out' : ''} flex flex-col`}
-      data-item-name={item.name}
-      key={item.name}
+      data-item-id={item.id}
+      key={item.id}
       ref={registerRef}
     >
       <div className="flex justify-between items-center mb-1 text-xs">

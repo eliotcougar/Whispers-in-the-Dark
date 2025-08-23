@@ -19,7 +19,6 @@ import { DialogueTurnDebugEntry } from '../types';
 export interface UseDialogueTurnProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (newGameState: FullGameState) => void;
-  playerGenderProp: string;
   setError: (error: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
@@ -35,7 +34,6 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
   const {
     getCurrentGameState,
     commitGameState,
-    playerGenderProp,
     setError,
     setIsLoading,
     setLoadingReason,
@@ -46,7 +44,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
 
   const handleDialogueOptionSelect = useCallback(async (option: string) => {
     const currentFullState = getCurrentGameState();
-    const currentThemeObj = currentFullState.currentThemeObject;
+    const currentThemeObj = currentFullState.currentTheme;
 
     if (!currentThemeObj || !currentFullState.dialogueState || isDialogueExiting) return;
 
@@ -76,9 +74,9 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
 
       try {
         const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
-          node => node.themeName === currentThemeObj.name && node.data.nodeType !== 'feature'
+          node => node.data.nodeType !== 'feature'
         );
-        const currentThemeNPCs = stateAfterPlayerChoice.allNPCs.filter(npc => npc.themeName === currentThemeObj.name);
+        const currentThemeNPCs = stateAfterPlayerChoice.allNPCs;
         const recentLogs = stateAfterPlayerChoice.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
         const detailedContextForFacts = formatDetailedContextForMentionedEntities(
           currentThemeMapNodes,
@@ -103,6 +101,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         const relevantFacts = collectResult?.facts ?? [];
         const { parsed: turnData, prompt: turnPrompt, rawResponse, thoughts } = await executeDialogueTurn(
           currentThemeObj,
+          stateAfterPlayerChoice.storyArc,
           stateAfterPlayerChoice.mainQuest,
           stateAfterPlayerChoice.currentObjective,
           stateAfterPlayerChoice.currentScene,
@@ -110,9 +109,9 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.localEnvironment,
           stateAfterPlayerChoice.localPlace,
           currentThemeMapNodes,
-          stateAfterPlayerChoice.allNPCs.filter((npc) => npc.themeName === currentThemeObj.name),
+          stateAfterPlayerChoice.allNPCs,
           stateAfterPlayerChoice.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
-          playerGenderProp,
+          stateAfterPlayerChoice.heroSheet,
           historyWithPlayerChoice,
           option,
           (() => {
@@ -189,7 +188,6 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
   }, [
     getCurrentGameState,
     commitGameState,
-    playerGenderProp,
     isDialogueExiting,
     setError,
     setIsLoading,

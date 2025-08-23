@@ -3,7 +3,7 @@
  * @description Hook managing save/load operations and related state for App.
  */
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
-import { FullGameState, ThemePackName, GameStateStack, DebugPacketStack } from '../types';
+import { ThemePackName, GameStateStack, DebugPacketStack, ThinkingEffort } from '../types';
 import {
   saveGameStateToFile,
   loadGameStateFromFile,
@@ -16,13 +16,11 @@ import {
   loadDebugPacketStackFromLocalStorage,
   saveDebugLoreToLocalStorage,
   loadDebugLoreFromLocalStorage,
+  saveSettingsToLocalStorage,
+  loadSettingsFromLocalStorage,
 } from '../services/storage';
-import {
-  DEFAULT_PLAYER_GENDER,
-  DEFAULT_ENABLED_THEME_PACKS,
-  DEFAULT_STABILITY_LEVEL,
-  DEFAULT_CHAOS_LEVEL,
-} from '../constants';
+import { DEFAULT_ENABLED_THEME_PACKS } from '../constants';
+import { setThinkingEffortLevel } from '../services/thinkingConfig';
 
 export interface UseSaveLoadOptions {
   gatherGameStateStack?: () => GameStateStack;
@@ -50,10 +48,8 @@ export const useSaveLoad = ({
   dialogueState = null,
   hasGameBeenInitialized = false,
 }: UseSaveLoadOptions) => {
-  const [playerGender, setPlayerGender] = useState<string>(DEFAULT_PLAYER_GENDER);
   const [enabledThemePacks, setEnabledThemePacks] = useState<Array<ThemePackName>>([...DEFAULT_ENABLED_THEME_PACKS]);
-  const [stabilityLevel, setStabilityLevel] = useState<number>(DEFAULT_STABILITY_LEVEL);
-  const [chaosLevel, setChaosLevel] = useState<number>(DEFAULT_CHAOS_LEVEL);
+  const [thinkingEffort, setThinkingEffort] = useState<ThinkingEffort>('Medium');
   const [initialSavedState, setInitialSavedState] = useState<GameStateStack | null>(null);
   const [initialDebugStack, setInitialDebugStack] = useState<DebugPacketStack | null>(null);
   const [appReady, setAppReady] = useState(false);
@@ -63,6 +59,9 @@ export const useSaveLoad = ({
       const loadedState = await loadGameStateFromLocalStorageWithImages();
       const loadedDebug = loadDebugPacketStackFromLocalStorage();
       const loadedDebugLore = loadDebugLoreFromLocalStorage();
+      const loadedSettings = loadSettingsFromLocalStorage();
+      setEnabledThemePacks(loadedSettings.enabledThemePacks);
+      setThinkingEffort(loadedSettings.thinkingEffort);
       if (loadedState) {
         if (loadedDebug) setInitialDebugStack(loadedDebug);
         if (loadedDebugLore) {
@@ -70,11 +69,13 @@ export const useSaveLoad = ({
           loadedState[0].debugGoodFacts = loadedDebugLore.debugGoodFacts;
           loadedState[0].debugBadFacts = loadedDebugLore.debugBadFacts;
         }
-        const current = loadedState[0];
-        setPlayerGender(current.playerGender);
-        setEnabledThemePacks(current.enabledThemePacks);
-        setStabilityLevel(current.stabilityLevel);
-        setChaosLevel(current.chaosLevel);
+        const { thinkingEffort: effort, enabledThemePacks: packs } = loadedSettings;
+        loadedState[0].thinkingEffort = effort;
+        loadedState[0].enabledThemePacks = packs;
+        if (loadedState[1]) {
+          loadedState[1].thinkingEffort = effort;
+          loadedState[1].enabledThemePacks = packs;
+        }
         setInitialSavedState(loadedState);
       } else {
         setInitialSavedState(null);
@@ -83,12 +84,10 @@ export const useSaveLoad = ({
     })();
   }, []);
 
-  const updateSettingsFromLoad = useCallback((loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>) => {
-    if (loadedSettings.playerGender !== undefined) setPlayerGender(loadedSettings.playerGender);
-    if (loadedSettings.enabledThemePacks !== undefined) setEnabledThemePacks(loadedSettings.enabledThemePacks);
-    if (loadedSettings.stabilityLevel !== undefined) setStabilityLevel(loadedSettings.stabilityLevel);
-    if (loadedSettings.chaosLevel !== undefined) setChaosLevel(loadedSettings.chaosLevel);
-  }, []);
+  useEffect(() => {
+    setThinkingEffortLevel(thinkingEffort);
+    saveSettingsToLocalStorage({ enabledThemePacks, thinkingEffort });
+  }, [enabledThemePacks, thinkingEffort]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autosaveTimeoutRef = useRef<number | null>(null);
@@ -163,17 +162,23 @@ export const useSaveLoad = ({
       const loaded = await loadGameStateFromFile(file);
       if (loaded) {
         const { gameStateStack: loadedStack, debugPacketStack: loadedDebug } = loaded;
+        const mergedStack: GameStateStack = [
+          { ...loadedStack[0], enabledThemePacks, thinkingEffort },
+          loadedStack[1]
+            ? { ...loadedStack[1], enabledThemePacks, thinkingEffort }
+            : undefined,
+        ];
         const existingLore = loadDebugLoreFromLocalStorage();
         if (existingLore) {
-          loadedStack[0].debugLore = existingLore.debugLore;
-          loadedStack[0].debugGoodFacts = existingLore.debugGoodFacts;
-          loadedStack[0].debugBadFacts = existingLore.debugBadFacts;
+          mergedStack[0].debugLore = existingLore.debugLore;
+          mergedStack[0].debugGoodFacts = existingLore.debugGoodFacts;
+          mergedStack[0].debugBadFacts = existingLore.debugBadFacts;
         }
         if (applyLoadedGameState) {
-          await applyLoadedGameState({ savedStateToLoad: loadedStack });
+          await applyLoadedGameState({ savedStateToLoad: mergedStack });
         }
         saveGameStateToLocalStorage(
-          loadedStack,
+          mergedStack,
           setError ? (msg) => { setError(msg); } : undefined,
         );
         saveDebugPacketStackToLocalStorage(loadedDebug);
@@ -181,9 +186,9 @@ export const useSaveLoad = ({
           saveDebugLoreToLocalStorage(existingLore);
         } else {
           saveDebugLoreToLocalStorage({
-            debugLore: loadedStack[0].debugLore,
-            debugGoodFacts: loadedStack[0].debugGoodFacts,
-            debugBadFacts: loadedStack[0].debugBadFacts,
+            debugLore: mergedStack[0].debugLore,
+            debugGoodFacts: mergedStack[0].debugGoodFacts,
+            debugBadFacts: mergedStack[0].debugBadFacts,
           });
         }
       } else {
@@ -199,14 +204,10 @@ export const useSaveLoad = ({
   };
 
   return {
-    playerGender,
-    setPlayerGender,
     enabledThemePacks,
     setEnabledThemePacks,
-    stabilityLevel,
-    setStabilityLevel,
-    chaosLevel,
-    setChaosLevel,
+    thinkingEffort,
+    setThinkingEffort,
     initialSavedState,
     initialDebugStack,
     appReady,
@@ -214,6 +215,5 @@ export const useSaveLoad = ({
     handleSaveToFile,
     handleLoadFromFileClick,
     handleFileInputChange,
-    updateSettingsFromLoad,
   } as const;
 };

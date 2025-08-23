@@ -7,7 +7,7 @@
 
 // Using gemini-2.5-flash model specified by API guidelines for general text tasks.
 export const GEMINI_MODEL_NAME = "gemini-2.5-flash";
-export const GEMINI_LITE_MODEL_NAME = "gemini-2.5-flash-lite-preview-06-17"; // Updated for better capability
+export const GEMINI_LITE_MODEL_NAME = "gemini-2.5-flash-lite"; // Updated for better capability
 export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string outputs
 export const TINY_MODEL_NAME = "gemma-3n-e4b-it" // Fastest free model with 8000 input limit
 
@@ -36,26 +36,31 @@ export const MAX_CHAIN_REFINEMENT_ROUNDS = 3; // Max rounds for refining connect
 export const MAX_LOG_MESSAGES = 50; // Maximum number of messages to keep in the game log
 
 export const DEVELOPER = "Eliot the Cougar"
-export const CURRENT_GAME_VERSION = "1.4.0 (Ink and Quill)";
-export const CURRENT_SAVE_GAME_VERSION = "7";
+export const CURRENT_GAME_VERSION = "1.5.0 (Backstory)";
+export const CURRENT_SAVE_GAME_VERSION = "10";
 export const LOCAL_STORAGE_SAVE_KEY = "whispersInTheDark_gameState";
 export const LOCAL_STORAGE_DEBUG_KEY = "whispersInTheDark_debugPacket";
 export const LOCAL_STORAGE_DEBUG_LORE_KEY = "whispersInTheDark_debugLore";
 export const LOCAL_STORAGE_GEMINI_KEY = "whispersInTheDark_geminiApiKey";
+export const LOCAL_STORAGE_SETTINGS_KEY = "whispersInTheDark_settings";
 
-export const DEFAULT_STABILITY_LEVEL = 30; // Number of turns before chaos can occur
-export const DEFAULT_CHAOS_LEVEL = 5;   // Percentage chance of chaos shift
 export const DEFAULT_ENABLED_THEME_PACKS = ALL_THEME_PACK_NAMES_CONST.filter(
   name => name !== 'Testing'
 );
-export const DEFAULT_PLAYER_GENDER = "Male";
 export const PLAYER_HOLDER_ID = "player";
 export const PLAYER_JOURNAL_ID = "player_journal";
 
 export const MAIN_TURN_OPTIONS_COUNT = 6; // Number of action choices shown each main turn
 
 export const FREE_FORM_ACTION_MAX_LENGTH = 70;
-export const FREE_FORM_ACTION_COST = 5;
+export const FREE_FORM_ACTION_COST = 2;
+
+export const ACT_COMPLETION_SCORE = 5; // Score points awarded for completing an act
+
+export const ACTION_POINTS_PER_TURN = 3; // Points available each turn for item actions
+export const KNOWN_USE_ACTION_COST = 3;
+export const GENERIC_USE_ACTION_COST = 2;
+export const INSPECT_ACTION_COST = 1;
 
 export const JOURNAL_WRITE_COOLDOWN = 5; // Turns before a journal can be written again
 
@@ -66,7 +71,10 @@ export const DISTILL_LORE_INTERVAL = 10; // Turns between automatic lore distill
 export const MIN_BOOK_CHAPTERS = 4;
 export const MAX_BOOK_CHAPTERS = 10;
 
-export const VALID_ITEM_TYPES = [
+export const WRITTEN_ITEM_TYPES = ['page', 'book', 'picture', 'map'] as const;
+export const WRITTEN_ITEM_TYPES_STRING = WRITTEN_ITEM_TYPES.map(t => t).join(', ');
+
+export const REGULAR_ITEM_TYPES = [
   'single-use',
   'multi-use',
   'equipment',
@@ -77,12 +85,10 @@ export const VALID_ITEM_TYPES = [
   'vehicle',
   'immovable',
   'status effect',
-  'page',
-  'book',
-  'picture',
-  'map',
-] as const; // 'as const' makes it a tuple of string literals
+] as const;
+export const REGULAR_ITEM_TYPES_STRING = REGULAR_ITEM_TYPES.map(t => t).join(', ');
 
+export const VALID_ITEM_TYPES = [...REGULAR_ITEM_TYPES, ...WRITTEN_ITEM_TYPES] as const;
 export const VALID_ITEM_TYPES_STRING = VALID_ITEM_TYPES.map(type => type).join(', ');
 
 export const VALID_ACTIONS = [
@@ -120,14 +126,14 @@ export const TEXT_MOD_TAGS = [
   'recovered',
 ] as const;
 
-export const WRITING_TAGS = [...TEXT_STYLE_TAGS, ...TEXT_MOD_TAGS] as const;
+export const WRITTEN_TAGS = [...TEXT_STYLE_TAGS, ...TEXT_MOD_TAGS] as const;
 
-export const VALID_TAGS = [...COMMON_TAGS, ...INTERNAL_TAGS, ...WRITING_TAGS] as const;
+export const VALID_TAGS = [...COMMON_TAGS, ...INTERNAL_TAGS, ...WRITTEN_TAGS] as const;
 
 export const COMMON_TAGS_STRING = COMMON_TAGS.map(t => t).join(', ');
 export const TEXT_STYLE_TAGS_STRING = TEXT_STYLE_TAGS.map(t => t).join(', ');
 export const TEXT_MOD_TAGS_STRING = TEXT_MOD_TAGS.map(t => t).join(', ');
-export const WRITING_TAGS_STRING = WRITING_TAGS.map(t => t).join(', ');
+export const WRITTEN_TAGS_STRING = WRITTEN_TAGS.map(t => t).join(', ');
 export const VALID_TAGS_STRING = VALID_TAGS.map(t => t).join(', ');
 
 export const DEDICATED_BUTTON_USES = [
@@ -152,17 +158,25 @@ export const VALID_PRESENCE_STATUS_VALUES = [
 
 export const VALID_PRESENCE_STATUS_VALUES_STRING = VALID_PRESENCE_STATUS_VALUES.map(s => s).join(', ');
 
+export const ACT_NATURE_BY_NUMBER: Record<number, string> = {
+  1: 'exposition - Introduces the setting, central characters, and the primary conflict of the tale.',
+  2: 'rising action - Tension and complications mount as the protagonist pursues their goal.',
+  3: 'climax - The story reaches a turning point where the protagonist confronts the core challenge.',
+  4: 'falling action - The immediate consequences of the climax unfold and loose ends are addressed.',
+  5: 'resolution - Conflicts resolve and the narrative ties up remaining threads for closure.',
+};
+
 export const LOADING_REASONS = [
   'storyteller',
   'map',
   'correction',
   'inventory',
+  'librarian',
   'dialogue_turn',
   'dialogue_summary',
   'dialogue_memory_creation',
   'dialogue_conclusion_summary',
   'initial_load',
-  'reality_shift_load',
   'visualize',
   'page',
   'journal',
@@ -174,24 +188,24 @@ export const LOADING_REASONS = [
 ] as const;
 
 export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { text: string; icon: string }> = {
-  storyteller: { text: 'Dungeon Master thinks...', icon: '░░' },
-  map: { text: 'Cartographer draws the map...', icon: '░░' },
+  storyteller: { text: 'Dungeon Master thinks...', icon: '░' },
+  map: { text: 'Cartographer draws the map...', icon: '░' },
   correction: { text: 'Dungeon Master is fixing mistakes...', icon: '▓' },
-  inventory: { text: 'Dungeon Master handles items...', icon: '░░' },
-  dialogue_turn: { text: 'Conversation continues...', icon: '░░' },
-  dialogue_summary: { text: 'Dialogue concludes...', icon: '░░' },
-  dialogue_memory_creation: { text: 'Memories form...', icon: '░░' },
-  dialogue_conclusion_summary: { text: 'Returning to the world...', icon: '░░' },
-  initial_load: { text: 'Loading...', icon: '░░' },
-  reality_shift_load: { text: 'Reality shifts...', icon: '░░' },
-  visualize: { text: 'Visualizing the scene...', icon: '░░' },
-  page: { text: 'Reading...', icon: '░░' },
-  journal: { text: 'Writing...', icon: '░░' },
+  inventory: { text: 'Dungeon Master handles items...', icon: '░' },
+  librarian: { text: 'Dungeon Master handles books...', icon: '░' },
+  dialogue_turn: { text: 'Conversation continues...', icon: '░' },
+  dialogue_summary: { text: 'Dialogue concludes...', icon: '░' },
+  dialogue_memory_creation: { text: 'Memories form...', icon: '░' },
+  dialogue_conclusion_summary: { text: 'Returning to the world...', icon: '░' },
+  initial_load: { text: 'Loading...', icon: '░' },
+  visualize: { text: 'Visualizing the scene...', icon: '░' },
+  page: { text: 'Reading...', icon: '░' },
+  journal: { text: 'Writing...', icon: '░' },
   loremaster_collect: { text: 'Loremaster picks facts...', icon: '░' },
   loremaster_extract: { text: 'Loremaster extracts new lore...', icon: '░' },
   loremaster_write: { text: 'Loremaster writes down lore...', icon: '░' },
   loremaster_refine: { text: 'Loremaster refines lore...', icon: '░' },
-  book: { text: 'Reading...', icon: '░░' }
+  book: { text: 'Reading...', icon: '░' }
 };
 
 // Centralized map node/edge valid values
@@ -282,6 +296,7 @@ export const MAX_DIALOGUE_SUMMARIES_IN_PROMPT = 3;   // Max summaries to include
 export const MIN_DIALOGUE_TURN_OPTIONS = 4; // Minimum dialogue options per turn
 export const MAX_DIALOGUE_TURN_OPTIONS = 8; // Maximum dialogue options per turn
 export const RECENT_LOG_COUNT_FOR_PROMPT = 10; // Number of log messages to include in AI prompts
+export const RECENT_LOG_COUNT_FOR_DISTILL = 20; // Log entries for loremaster distill
 
 // Standard instructions for AI-generated text fields
 export const NODE_DESCRIPTION_INSTRUCTION =

@@ -3,14 +3,16 @@
  * @description Utilities for constructing storyteller prompts using named placeholders.
  */
 
-import {
+import type {
   AdventureTheme,
   Item,
   NPC,
   MapData,
   MapNode,
-  ThemeMemory,
-  ThemeHistoryState,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
+  StoryArc,
 } from '../../types';
 import {
   itemsToString,
@@ -20,128 +22,42 @@ import {
   formatRecentEventsForPrompt,
   formatDetailedContextForMentionedEntities,
   formatTravelPlanLine,
+  formatWorldFactsForPrompt,
+  formatHeroSheetForPrompt,
+  formatHeroBackstoryForPrompt,
+  formatStoryArcContext,
 } from '../../utils/promptFormatters';
 
 /**
  * Build the initial prompt for starting a new game.
  */
 export const buildNewGameFirstTurnPrompt = (
-
   theme: AdventureTheme,
-  playerGender: string
+  storyArc: StoryArc,
+  worldFacts: WorldFacts,
+  heroSheet: HeroSheet,
+  heroBackstory: HeroBackstory,
 ): string => {
-  const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.systemInstructionModifier}
-Player's Character Gender: "${playerGender}"
-Suggested Initial Scene: "${theme.initialSceneDescriptionSeed}" (adjust for variety)
-Suggested Initial Main Quest: "${theme.initialMainQuest}" (adjust for variety)
-Suggested Initial Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
-Suggested Initial New Items for the player: "${theme.initialItems}" (adjust names and descriptions for variety)
+  const worldInfo = formatWorldFactsForPrompt(worldFacts);
+  const heroDescription = formatHeroSheetForPrompt(heroSheet, true);
+  const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
+  const arcContext = formatStoryArcContext(storyArc);
+  const prompt = `Start a new adventure in the theme "${theme.name}". ${theme.storyGuidance}
 
-The player's last action was unremarkable—something common anyone would do in this situation.
+## Narrative Arc:
+${arcContext}
 
-Creatively generate variations of the main quest and current objective based on the suggestions, but make them noticeably different.
-Creatively generate the initial scene description, action options, and items (variations based on 'New Items for the player'), along with a logMessage.
+## World Details:
+${worldInfo}
+
+## Player Character Description:
+${heroDescription}
+
+## Player Character Backstory:
+${heroPast}
+
+Creatively generate the main quest, current objective, scene description, action options, and starting items using the world details and hero history for inspiration.
 Creatively add any important quest item(s), if any, based on your generated quest and objective.
-
-ALWAYS SET "mapUpdated": true.
-ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-`;
-  return prompt;
-};
-
-/**
- * Build the prompt for entering a completely new theme after a reality shift.
- */
-export const buildNewThemePostShiftPrompt = (
-
-  theme: AdventureTheme,
-  inventory: Array<Item>,
-  playerGender: string
-): string => {
-  const inventoryStrings = itemsToString(inventory, ' - ', true, true, false, false, true);
-  const prompt = `The player is entering a NEW theme "${theme.name}" after a reality shift.
-Player's Character Gender: "${playerGender}"
-Initial Scene: "${theme.initialSceneDescriptionSeed}" (adapt to an arrival scene describing the disorienting transition).
-Main Quest: "${theme.initialMainQuest}" (adjust for variety)
-Current Objective: "${theme.initialCurrentObjective}" (adjust for variety)
-
-Player's Current Inventory (brought from previous reality or last visit):
-${inventoryStrings}
-
-Generate the scene description for a disoriented arrival, and provide appropriate initial action options for the player to orient themselves.
-
-List anachronistic Player's Items in playerItemsHint.
-
-ALWAYS SET "mapUpdated": true.
-ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
-`;
-  return prompt;
-};
-
-/**
- * Build the prompt for returning to a previously visited theme after a shift.
- */
-export const buildReturnToThemePostShiftPrompt = (
-
-  theme: AdventureTheme,
-  inventory: Array<Item>,
-  playerGender: string,
-  themeMemory: ThemeMemory,
-  mapDataForTheme: MapData,
-  currentThemeNPCs: Array<NPC>
-): string => {
-  const inventoryPrompt = itemsToString(
-    inventory,
-    ' - ',
-    true,
-    true,
-    false,
-    false,
-    true,
-  );
-  const currentThemeMainMapNodes = mapDataForTheme.nodes.filter(
-    node => node.themeName === theme.name && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
-  );
-  const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, false);
-
-    // Filter NPCs that are companions, as they are traveling with the player
-  const companions = currentThemeNPCs.filter(npc => npc.presenceStatus === 'companion');
-  const companionStrings =
-    companions.length > 0 ? npcsToString(companions, ' - ', false, false, false, true) : 'None';
-  // Filter NPCs that are nearby, as they are currently present and can be interacted with
-  const nearbyNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'nearby');
-  const nearbyStrings =
-    nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, false, false, true) : 'None';
-  // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
-  const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
-  const npcsStrings =
-    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
-
-  const prompt = `The player is CONTINUING their adventure by re-entering the theme "${theme.name}" after a reality shift.
-Player's Character Gender: "${playerGender}"
-The Adventure Summary: "${themeMemory.summary}"
-Main Quest: "${themeMemory.mainQuest}"
-Current Objective: "${themeMemory.currentObjective}"
-
-## Player's Current Inventory (brought from previous reality or last visit):
-${inventoryPrompt}
-
-List anachronistic Player's Items in playerItemsHint.
-
-## Known Locations:
-${placesContext}
-
-## Known NPCs (including presence):
-${npcsStrings}
-
-## Companions traveling with the Player:
-${companionStrings}
-
-## NPCs Player can interact with (nearby):
-${nearbyStrings}
-
-Describe the scene as they re-enter, potentially in a state of confusion from the shift, making it feel like a continuation or a new starting point consistent with the Adventure Summary and current quest/objective.
-Provide appropriate action options for the player to orient themselves.
 
 ALWAYS SET "mapUpdated": true.
 ALWAYS REQUIRED: "mainQuest", "currentObjective", "localTime", "localEnvironment", and "localPlace".
@@ -167,11 +83,12 @@ export const buildMainGameTurnPrompt = (
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
-  playerGender: string,
-  themeHistory: ThemeHistoryState,
+  worldFacts: WorldFacts,
+  heroSheet: HeroSheet,
   currentMapNodeDetails: MapNode | null,
   fullMapData: MapData,
-  destinationNodeId: string | null
+  destinationNodeId: string | null,
+  storyArc?: StoryArc | null
 ): string => {
   const inventoryStrings =
     inventory.length > 0
@@ -201,15 +118,18 @@ export const buildMainGameTurnPrompt = (
   // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
   const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
   const NPCsStrings =
-    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known in this theme yet.';
+    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known yet.';
 
   const relevantFactsSection =
     relevantFacts.length > 0 ? relevantFacts.map(f => `- ${f}`).join('\n') : 'None';
 
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
+  const arcContext = storyArc ? formatStoryArcContext(storyArc) : '';
 
-  const allNodesForCurrentTheme = fullMapData.nodes.filter(node => node.themeName === currentTheme.name);
-  const allEdgesForCurrentTheme = fullMapData.edges.filter(edge => {
+  const mapData = fullMapData as Partial<MapData>;
+  const allNodesForCurrentTheme = Array.isArray(mapData.nodes) ? mapData.nodes : [];
+  const rawEdges = Array.isArray(mapData.edges) ? mapData.edges : [];
+  const allEdgesForCurrentTheme = rawEdges.filter(edge => {
     const sourceNode = allNodesForCurrentTheme.find(n => n.id === edge.sourceNodeId);
     const targetNode = allNodesForCurrentTheme.find(n => n.id === edge.targetNodeId);
     return sourceNode && targetNode;
@@ -251,15 +171,26 @@ export const buildMainGameTurnPrompt = (
     '### Details on relevant NPCs mentioned in current scene or action:'
   );
 
-  const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided context (including map context), generate the next scene description, options, item changes, log message, etc.
+  const worldInfo = formatWorldFactsForPrompt(worldFacts);
+  const heroDescription = formatHeroSheetForPrompt(heroSheet, false);
 
-## Context:
-Player's Character Gender: "${playerGender}"
+  const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided narrative arc guidance and context, generate the next scene description, options, item changes, log message, etc.
+
+## Narrative Arc:
+${arcContext}
+
+## Context that may or may not be relevant for this specific turn:
 Previous Local Time: "${localTime ?? 'Unknown'}"
 Previous Local Environment: "${localEnvironment ?? 'Undetermined'}"
 Previous Local Place: "${localPlace ?? 'Undetermined Location'}"
 Main Quest: "${mainQuest ?? 'Not set'}"
 Current Objective: "${currentObjective ?? 'Not set'}"
+
+### World Details:
+${worldInfo}
+
+### Player Character Description:
+${heroDescription}
 
 ### Player's Inventory:
 ${inventoryStrings}
@@ -284,7 +215,7 @@ ${mapContext}
 
 ${detailedEntityContext}
 
-### Relevant Facts about the world:
+### Relevant Facts at present moment:
 ${relevantFactsSection}
 
 ### Recent Events to keep in mind (for context and continuity):
@@ -294,9 +225,11 @@ IMPORTANT: Recent events are provided only for additional context. These actions
 
 ---
 
-Current Theme: "${currentTheme.name}"
-Previous Scene: "${currentScene}"
-Player Action: "${playerAction}"
+## Previous Scene:
+${currentScene}
+
+## Player Actions:
+${playerAction}
 ${travelPlanOrUnknown}`;
 
   return prompt;

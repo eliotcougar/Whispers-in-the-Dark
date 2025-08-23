@@ -5,6 +5,7 @@ import {
   MINIMAL_MODEL_NAME,
 } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
+import { getThinkingBudget } from '../thinkingConfig';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { isApiConfigured } from '../apiClient';
@@ -26,7 +27,7 @@ const buildJournalEntrySchema = (length: number) => ({
     },
     text: {
       type: 'string',
-      minLength: length - 10,
+      minLength: 100,
       description: `Approximately ${String(length)} words of the journal entry, starting with a Markup-formatted heading. Basic Markup syntax is allowed, such as **bold** and *italic*.`,
     },
   },
@@ -87,6 +88,7 @@ ${sceneDescription};
   return retryAiCall<GeneratedJournalEntryResult>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.journal.icon);
+      const thinkingBudget = getThinkingBudget(1024);
       const {
         response,
         systemInstructionUsed,
@@ -97,7 +99,7 @@ ${sceneDescription};
         prompt,
         systemInstruction,
         temperature: 1.0,
-        thinkingBudget: 1024,
+        thinkingBudget,
         includeThoughts: true,
         responseMimeType: 'application/json',
         jsonSchema: schema,

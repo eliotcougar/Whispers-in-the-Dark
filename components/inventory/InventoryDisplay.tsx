@@ -14,34 +14,33 @@ interface InventoryDisplayProps {
   readonly items: Array<Item>;
   readonly onItemInteract: (
     item: Item,
-    interactionType: 'generic' | 'specific' | 'inspect',
+    interactionType: 'generic' | 'specific' | 'inspect' | 'drop' | 'discard',
     knownUse?: KnownUse
   ) => void;
-  readonly onDropItem: (itemName: string) => void;
-  readonly onStashToggle: (itemName: string) => void;
+  readonly onStashToggle: (itemId: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly currentTurn: number;
   readonly disabled: boolean;
+  readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, onReadPage, currentTurn, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, currentTurn, disabled, queuedActionIds, remainingActionPoints }: InventoryDisplayProps) {
   const {
     displayedItems,
-    newlyAddedItemNames,
-    stashingItemNames,
-    confirmingDiscardItemName,
+    newlyAddedItemIds,
+    stashingItemIds,
     sortOrder,
     handleSortByName,
     handleSortByType,
     filterMode,
     handleFilterAll,
     handleFilterStashed,
-    handleStartConfirmDiscard,
-    handleConfirmDrop,
-    handleCancelDiscard,
     handleSpecificUse,
     handleInspect,
     handleGenericUse,
+    handleDrop,
+    handleDiscard,
     handleVehicleToggle,
     handleStashToggleInternal,
     handleRead,
@@ -49,7 +48,6 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
   } = useInventoryDisplay({
     items,
     onItemInteract,
-    onDropItem,
     onStashToggle,
     onReadPage,
   });
@@ -60,21 +58,30 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
 
   const registerItemRef = useCallback((el: HTMLLIElement | null) => {
     if (!el) return;
-    const name = el.dataset.itemName;
-    if (name) {
-      itemElementMap.current.set(name, el);
+    const id = el.dataset.itemId;
+    if (id) {
+      itemElementMap.current.set(id, el);
     }
   }, []);
 
   useLayoutEffect(() => {
     const newRects = new Map<string, DOMRect>();
-    itemElementMap.current.forEach((el, name) => {
+    itemElementMap.current.forEach((el, id) => {
       if (!el.isConnected) {
-        itemElementMap.current.delete(name);
-        prevRectsRef.current.delete(name);
+        itemElementMap.current.delete(id);
+        prevRectsRef.current.delete(id);
         return;
       }
-      newRects.set(name, el.getBoundingClientRect());
+      const rect = el.getBoundingClientRect();
+      newRects.set(
+        id,
+        new DOMRect(
+          rect.left + window.scrollX,
+          rect.top + window.scrollY,
+          rect.width,
+          rect.height,
+        ),
+      );
     });
 
     if (prevDisabledRef.current !== disabled) {
@@ -84,9 +91,9 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
     }
 
     if (!disabled) {
-      prevRectsRef.current.forEach((prevRect, name) => {
-        const newRect = newRects.get(name);
-        const el = itemElementMap.current.get(name);
+      prevRectsRef.current.forEach((prevRect, id) => {
+        const newRect = newRects.get(id);
+        const el = itemElementMap.current.get(id);
         if (!newRect || !el) return;
         const dx = Math.round(prevRect.left - newRect.left);
         const dy = Math.round(prevRect.top - newRect.top);
@@ -144,30 +151,29 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
         <ul className="flex flex-wrap justify-center gap-4 list-none p-0">
           {displayedItems.map(item => {
             const applicableUses = getApplicableKnownUses(item);
-            const isNew = newlyAddedItemNames.has(item.name);
-            const isStashing = stashingItemNames.has(item.name);
-            const isConfirmingDiscard = confirmingDiscardItemName === item.name;
+            const isNew = newlyAddedItemIds.has(item.id);
+            const isStashing = stashingItemIds.has(item.id);
             return (
               <InventoryItem
                 applicableUses={applicableUses}
                 currentTurn={currentTurn}
                 disabled={disabled}
                 filterMode={filterMode}
-                isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 isStashing={isStashing}
                 item={item}
-                key={item.name}
-                onCancelDiscard={handleCancelDiscard}
-                onConfirmDrop={handleConfirmDrop}
+                key={item.id}
                 onGenericUse={handleGenericUse}
+                onDrop={handleDrop}
+                onDiscard={handleDiscard}
                 onInspect={handleInspect}
                 onRead={handleRead}
                 onSpecificUse={handleSpecificUse}
-                onStartConfirmDiscard={handleStartConfirmDiscard}
                 onStashToggle={handleStashToggleInternal}
                 onVehicleToggle={handleVehicleToggle}
+                queuedActionIds={queuedActionIds}
                 registerRef={registerItemRef}
+                remainingActionPoints={remainingActionPoints}
               />
             );
           })}

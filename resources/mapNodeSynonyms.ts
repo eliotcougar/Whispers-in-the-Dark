@@ -46,6 +46,7 @@ const mapNodeSynonyms = {
     "blocked off": "blocked",
     "barricaded": "blocked",
     "barred": "blocked",
+    "closed": "blocked",
     "obstructed": "blocked",
     "impassable": "blocked"
   },
@@ -105,6 +106,7 @@ const mapNodeSynonyms = {
     "quarters": "room",
     "suite": "room",
     "compartment": "room",
+    "door": "feature",
     "landmark": "feature",
     "spot": "feature",
     "forest": "region",

@@ -7,7 +7,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { geminiClient as ai, isApiConfigured } from '../../services/apiClient';
-import type { Part } from '@google/genai';
 import { AdventureTheme, NPC, MapNode } from '../../types';
 import LoadingSpinner from '../LoadingSpinner';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';
@@ -187,7 +186,6 @@ function ImageVisualizer({
     const mentionedPlaces: Array<string> = [];
     // Derive places from mapData (main nodes)
     mapData
-      .filter(node => node.themeName === currentTheme.name)
       .forEach(node => {
         if (currentSceneDescription.toLowerCase().includes(node.placeName.toLowerCase())) {
           rawPrompt += ` The ${node.placeName} is prominent, described as: ${node.data.description || 'A notable location.'}.`;
@@ -197,7 +195,7 @@ function ImageVisualizer({
 
     const mentionedNPCs: Array<string> = [];
     allNPCs.forEach(npc => {
-      if (npc.themeName === currentTheme.name && currentSceneDescription.toLowerCase().includes(npc.name.toLowerCase())) {
+      if (currentSceneDescription.toLowerCase().includes(npc.name.toLowerCase())) {
         rawPrompt += ` ${npc.name} here, appearing as: ${npc.description}.`;
         mentionedNPCs.push(npc.name);
       }
@@ -224,9 +222,9 @@ function ImageVisualizer({
 
     try {
       const response = await ai.models.generateImages({
-        model: 'imagen-4.0-generate-preview-06-06',
+        model: 'imagen-4.0-generate-001',
         prompt: safePrompt,
-        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
+        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3', person_generation: "ALLOW_ALL", image_size: "1K" },
       });
 
       if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image?.imageBytes) {
@@ -251,46 +249,20 @@ function ImageVisualizer({
       
       if (isStatus400) {
         try {
-          const fallbackResp = await ai.models.generateContentStream({
-            model: 'gemini-2.0-flash-preview-image-generation',
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: safePrompt }],
-              },
-            ],
-            config: {
-              responseModalities: ['IMAGE', 'TEXT'],
-              responseMimeType: 'text/plain',
-            },
-          });
+          const fallbackResp = await ai.models.generateImages({
+          model: 'imagen-3.0-generate-002',
+          prompt: safePrompt,
+          config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
+        });
 
-          const isInlinePart = (part: unknown): part is Part =>
-            typeof part === 'object' && part !== null && 'inlineData' in part;
-
-          let finishReason: string | undefined;
-          for await (const chunk of fallbackResp) {
-            const candidate = chunk.candidates?.[0];
-            if (candidate?.finishReason) {
-              finishReason = candidate.finishReason;
-            }
-            const inlinePart = candidate?.content?.parts?.find(isInlinePart);
-            const inlineData = inlinePart?.inlineData;
-            if (inlineData?.data) {
-              const imageUrl = `data:${inlineData.mimeType ?? 'image/png'};base64,${inlineData.data}`;
-              setInternalImageUrl(imageUrl);
-              setGeneratedImage(imageUrl, currentSceneDescription);
-              setError(null);
-              return;
-            }
-          }
-
-          if (finishReason?.toUpperCase().includes('SAFETY')) {
-            setError(`Image blocked due to safety filter (${finishReason}).`);
-          } else {
-            setError('Fallback image generation failed to return image data.');
-          }
-
+        if (fallbackResp.generatedImages && fallbackResp.generatedImages.length > 0 && fallbackResp.generatedImages[0].image?.imageBytes) {
+          const base64ImageBytes = fallbackResp.generatedImages[0].image.imageBytes;
+          const imageUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
+          setInternalImageUrl(imageUrl);
+          setGeneratedImage(imageUrl, currentSceneDescription); 
+        } else {
+          throw new Error("No image data received from API.");
+        }
         } catch (fallbackErr: unknown) {
           console.error('Fallback image generation failed:', fallbackErr);
           setError('Fallback image generation failed.');

@@ -4,29 +4,46 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { ThemePackName, FullGameState, GameStateStack, DebugPacketStack, LoadingReason } from '../types';
+import {
+  ThemePackName,
+  FullGameState,
+  GameStateStack,
+  DebugPacketStack,
+  LoadingReason,
+  AdventureTheme,
+  WorldFacts,
+  CharacterOption,
+  HeroSheet,
+  HeroBackstory,
+  StoryArc,
+  ThinkingEffort,
+  Item,
+  KnownUse,
+} from '../types';
 import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingState';
 import { useLoadingReason } from './useLoadingReason';
 import { getInitialGameStates } from '../utils/initialStates';
 import { useDialogueManagement } from './useDialogueManagement';
-import { useRealityShift } from './useRealityShift';
 import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-import { PLAYER_HOLDER_ID, DISTILL_LORE_INTERVAL } from '../constants';
+  import {
+    PLAYER_HOLDER_ID,
+    DISTILL_LORE_INTERVAL,
+    RECENT_LOG_COUNT_FOR_DISTILL,
+    ACTION_POINTS_PER_TURN,
+    KNOWN_USE_ACTION_COST,
+    GENERIC_USE_ACTION_COST,
+    INSPECT_ACTION_COST,
+  } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 
 export interface UseGameLogicProps {
-  playerGenderProp: string;
   enabledThemePacksProp: Array<ThemePackName>;
-  stabilityLevelProp: number;
-  chaosLevelProp: number;
-  onSettingsUpdateFromLoad: (
-    loadedSettings: Partial<Pick<FullGameState, 'playerGender' | 'enabledThemePacks' | 'stabilityLevel' | 'chaosLevel'>>
-  ) => void;
+  thinkingEffortProp: ThinkingEffort;
   initialSavedStateFromApp: GameStateStack | null;
   initialDebugStackFromApp: DebugPacketStack | null;
   isAppReady: boolean;
@@ -34,20 +51,33 @@ export interface UseGameLogicProps {
     facts: Array<string>,
     resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
   ) => void;
+  openCharacterSelectModal: (
+    data: {
+      theme: AdventureTheme;
+      heroGender: string;
+      worldFacts: WorldFacts;
+      options: Array<CharacterOption>;
+    },
+  ) => Promise<{
+    name: string;
+    heroSheet: HeroSheet | null;
+    heroBackstory: HeroBackstory | null;
+    storyArc: StoryArc | null;
+  }>;
+  openGenderSelectModal: (defaultGender: string) => Promise<string>;
 }
 
 /** Manages overall game state and delegates to sub hooks. */
 export const useGameLogic = (props: UseGameLogicProps) => {
   const {
-    playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
-    onSettingsUpdateFromLoad,
+    thinkingEffortProp,
     initialSavedStateFromApp,
     initialDebugStackFromApp,
     isAppReady,
     openDebugLoreModal,
+    openCharacterSelectModal,
+    openGenderSelectModal,
   } = props;
 
   const [gameStateStack, setGameStateStack] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
@@ -66,6 +96,15 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   void parseErrorCounter;
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
+  const [queuedItemActions, setQueuedItemActions] = useState<
+    Array<{ id: string; displayText: string; promptText: string; cost: number; effect?: () => void }>
+  >([]);
+
+  const totalQueuedActionCost = useMemo(
+    () => queuedItemActions.reduce((sum, a) => sum + a.cost, 0),
+    [queuedItemActions],
+  );
+  const remainingActionPoints = ACTION_POINTS_PER_TURN - totalQueuedActionCost;
 
   // Tracks whether a saved game from app initialization has already been
   // applied to prevent re-loading it when starting a new game.
@@ -74,8 +113,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   // applied so it doesn't overwrite new data on subsequent renders.
   const hasLoadedInitialDebugStack = useRef<boolean>(false);
 
-  const triggerShiftRef = useRef<(c?: boolean) => void>(() => undefined);
-  const manualShiftRef = useRef<() => void>(() => undefined);
   const loadInitialGameRef = useRef<(opts: LoadInitialGameOptions) => Promise<void>>(
     () => Promise.resolve(),
   );
@@ -99,51 +136,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     return [
       buildSaveStateSnapshot({
         currentState: current,
-        playerGender: playerGenderProp,
-        enabledThemePacks: enabledThemePacksProp,
-        stabilityLevel: stabilityLevelProp,
-        chaosLevel: chaosLevelProp,
       }),
-      previous
-        ? buildSaveStateSnapshot({
-            currentState: previous,
-            playerGender: playerGenderProp,
-            enabledThemePacks: enabledThemePacksProp,
-            stabilityLevel: stabilityLevelProp,
-            chaosLevel: chaosLevelProp,
-          })
-        : undefined,
+      previous ? buildSaveStateSnapshot({ currentState: previous }) : undefined,
     ];
-  }, [
-    gameStateStack,
-    playerGenderProp,
-    enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
-  ]);
+  }, [gameStateStack]);
 
   const gatherDebugPacketStackForSave = useCallback((): DebugPacketStack => debugPacketStack, [debugPacketStack]);
 
-  const {
-    triggerRealityShift,
-    executeManualRealityShift,
-    completeManualShiftWithSelectedTheme,
-    cancelManualShiftThemeSelection,
-  } = useRealityShift({
-    getCurrentGameState,
-    setGameStateStack,
-    loadInitialGame: (opts) => { void loadInitialGameRef.current(opts); },
-    enabledThemePacksProp,
-    playerGenderProp,
-    stabilityLevelProp,
-    chaosLevelProp,
-    setError,
-    setLoadingReason: setLoadingReasonRef,
-    isLoading,
-  });
-
-  triggerShiftRef.current = triggerRealityShift;
-  manualShiftRef.current = executeManualRealityShift;
+  // Reality shift mechanics removed
 
   const currentSnapshot = getCurrentGameState();
 
@@ -169,8 +169,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleSelectDestinationNode,
     processAiResponse,
     handleActionSelect,
-    handleItemInteraction,
+    handleItemInteraction: executeItemInteraction,
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     handleStashToggle,
     updateItemContent,
@@ -178,21 +179,19 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     addPlayerJournalEntry,
     updatePlayerJournalContent,
     recordPlayerJournalInspect,
+    recordInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
+    triggerMainQuestAchieved,
+    simulateVictory,
   } = useGameTurn({
     getCurrentGameState,
     commitGameState,
     setGameStateStack,
-    playerGenderProp,
-    stabilityLevelProp,
-    chaosLevelProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
-    triggerRealityShift,
-    executeManualRealityShift,
     freeFormActionText,
     setFreeFormActionText,
     isLoading,
@@ -202,6 +201,99 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     openDebugLoreModal,
   });
 
+    const toggleQueuedAction = useCallback(
+      (action: { id: string; displayText: string; promptText: string; cost: number; effect?: () => void }) => {
+        setQueuedItemActions(prev => {
+          const exists = prev.some(a => a.id === action.id);
+          return exists ? prev.filter(a => a.id !== action.id) : [...prev, action];
+        });
+      },
+      [],
+    );
+
+  const clearQueuedItemActions = useCallback(() => {
+    setQueuedItemActions([]);
+  }, []);
+
+    const queueItemAction = useCallback(
+      (
+        item: Item,
+        interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop' | 'discard',
+        knownUse?: KnownUse,
+      ) => {
+        if (interactionType === 'take') {
+          handleTakeLocationItem(item.id);
+          return;
+        }
+        if (interactionType === 'drop') {
+          handleDropItem(item.id);
+          return;
+        }
+        if (interactionType === 'discard') {
+          handleDiscardItem(item.id);
+          return;
+        }
+
+        let id = '';
+        let displayText = '';
+        let promptText = '';
+        let effect: (() => void) | undefined;
+        let cost = 0;
+
+        switch (interactionType) {
+          case 'inspect': {
+            id = `${item.id}-inspect`;
+            displayText = `Inspect the ${item.name}`;
+            effect = () => {
+              recordInspect(item.id);
+            };
+            cost = INSPECT_ACTION_COST;
+            if (item.type === 'book' || item.type === 'page') {
+              const showActual = item.tags?.includes('recovered');
+              const contents = (item.chapters ?? [])
+                .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
+                .join('\n\n');
+              promptText = `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`;
+            } else {
+              promptText = `Player investigates the ${item.name} - ${item.description}.`;
+            }
+            break;
+          }
+          case 'generic':
+            id = `${item.id}-generic`;
+            displayText = `Attempt to use the ${item.name}`;
+            promptText = `Attempt to use: ${item.name}`;
+            cost = GENERIC_USE_ACTION_COST;
+            break;
+          case 'specific':
+            if (knownUse) {
+              id = `${item.id}-specific-${knownUse.actionName}`;
+              displayText = knownUse.actionName;
+              promptText = knownUse.promptEffect;
+              cost = KNOWN_USE_ACTION_COST;
+            }
+            break;
+          default:
+            break;
+        }
+
+        if (id && displayText && promptText) {
+          const isQueued = queuedItemActions.some(a => a.id === id);
+          if (!isQueued && cost > remainingActionPoints) return;
+          toggleQueuedAction({ id, displayText, promptText, cost, effect });
+        }
+      },
+      [
+        handleDropItem,
+        handleDiscardItem,
+        handleTakeLocationItem,
+        toggleQueuedAction,
+        recordInspect,
+        queuedItemActions,
+        remainingActionPoints,
+      ],
+    );
+
   const {
     loadInitialGame,
     handleStartNewGameFromButton,
@@ -209,35 +301,33 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     executeRestartGame,
     handleRetry,
   } = useGameInitialization({
-    playerGenderProp,
     enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
+    thinkingEffortProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     setHasGameBeenInitialized,
-    onSettingsUpdateFromLoad,
     getCurrentGameState,
     commitGameState,
     resetGameStateStack,
     setGameStateStack,
     processAiResponse,
+    openCharacterSelectModal,
+    openGenderSelectModal,
   });
   loadInitialGameRef.current = loadInitialGame;
 
 
-  const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue } = useDialogueManagement({
-    getCurrentGameState,
-    commitGameState,
-    playerGenderProp,
-    setError,
-    setIsLoading,
-    setLoadingReason: setLoadingReasonRef,
-    onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
+const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue } = useDialogueManagement({
+  getCurrentGameState,
+  commitGameState,
+  setError,
+  setIsLoading,
+  setLoadingReason: setLoadingReasonRef,
+  onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
-      return processAiResponse(summaryPayload, preparedGameState.currentThemeObject, draftState, {
+      return processAiResponse(summaryPayload, preparedGameState.currentTheme, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
         playerActionText: undefined,
@@ -253,6 +343,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
             storytellerThoughts: null,
             mapUpdateDebugInfo: null,
             inventoryDebugInfo: null,
+            librarianDebugInfo: null,
             loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
             dialogueDebugInfo: null,
           };
@@ -300,6 +391,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const currentFullState = getCurrentGameState();
 
+  // Keep current state's enabled theme packs in sync with user settings
   useEffect(() => {
     if (!hasGameBeenInitialized) return;
     setGameStateStack(prevStack => {
@@ -307,33 +399,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       const packsEqual =
         curr.enabledThemePacks.length === enabledThemePacksProp.length &&
         curr.enabledThemePacks.every((p, i) => p === enabledThemePacksProp[i]);
-
-      if (
-        curr.playerGender === playerGenderProp &&
-        packsEqual &&
-        curr.stabilityLevel === stabilityLevelProp &&
-        curr.chaosLevel === chaosLevelProp
-      ) {
-        return prevStack;
-      }
-
+      if (packsEqual) return prevStack;
       const updatedCurrent = {
         ...curr,
-        playerGender: playerGenderProp,
         enabledThemePacks: [...enabledThemePacksProp],
-        stabilityLevel: stabilityLevelProp,
-        chaosLevel: chaosLevelProp,
       } as FullGameState;
-
       return [updatedCurrent, prevStack[1]];
     });
-  }, [
-    playerGenderProp,
-    enabledThemePacksProp,
-    stabilityLevelProp,
-    chaosLevelProp,
-    hasGameBeenInitialized,
-  ]);
+  }, [enabledThemePacksProp, hasGameBeenInitialized]);
 
   const itemPresenceByNode = useMemo(() => {
     const map: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
@@ -351,13 +424,11 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const handleDistillFacts = useCallback(async () => {
     const currentFullState = getCurrentGameState();
-    const themeObj = currentFullState.currentThemeObject;
+    const themeObj = currentFullState.currentTheme;
     if (!themeObj) return;
     setIsLoading(true);
     setError(null);
-    const currentThemeNodes = currentFullState.mapData.nodes.filter(
-      n => n.themeName === themeObj.name,
-    );
+    const currentThemeNodes = currentFullState.mapData.nodes;
     const inventoryItemNames = Array.from(
       new Set(
         currentFullState.inventory
@@ -365,7 +436,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
             if (item.holderId === PLAYER_HOLDER_ID) return true;
             if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
             const holderNpc = currentFullState.allNPCs.find(
-              npc => npc.id === item.holderId && npc.themeName === themeObj.name,
+              npc => npc.id === item.holderId,
             );
             return Boolean(holderNpc);
           })
@@ -373,14 +444,21 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       ),
     );
     const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+    const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
     setLoadingReasonRef('loremaster_refine');
+    const act =
+      currentFullState.storyArc?.acts[
+        currentFullState.storyArc.currentAct - 1
+      ];
+    const actQuest = act?.mainObjective ?? null;
     const result = await distillFacts_Service({
       themeName: themeObj.name,
       facts: currentFullState.themeFacts,
-      currentQuest: currentFullState.mainQuest,
+      currentQuest: actQuest,
       currentObjective: currentFullState.currentObjective,
       inventoryItemNames,
       mapNodeNames,
+      recentLogEntries: recentLogs,
     });
     const draftState = structuredCloneGameState(currentFullState);
     draftState.lastLoreDistillTurn = currentFullState.globalTurnNumber;
@@ -392,6 +470,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       storytellerThoughts: null,
       mapUpdateDebugInfo: null,
       inventoryDebugInfo: null,
+      librarianDebugInfo: null,
       loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null },
       dialogueDebugInfo: null,
     };
@@ -403,7 +482,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         draftState,
         result.refinementResult.factsChange,
         draftState.globalTurnNumber,
-        themeObj.name,
       );
     }
     commitGameState(draftState);
@@ -435,11 +513,19 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     currentFullState.dialogueState,
   ]);
 
+  const currentAct =
+    currentFullState.storyArc?.acts[
+      currentFullState.storyArc.currentAct - 1
+    ];
+  const mainQuest = currentAct?.mainObjective ?? null;
+
   return {
-    currentTheme: currentFullState.currentThemeObject,
+    currentTheme: currentFullState.currentTheme,
     currentScene: currentFullState.currentScene,
     actionOptions: currentFullState.actionOptions,
-    mainQuest: currentFullState.mainQuest,
+    mainQuest,
+    storyArc: currentFullState.storyArc,
+    heroSheet: currentFullState.heroSheet,
     currentObjective: currentFullState.currentObjective,
     inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
     playerJournal: currentFullState.playerJournal,
@@ -474,7 +560,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),
     loadingReason,
     error,
-    themeHistory: currentFullState.themeHistory,
     allNPCs: currentFullState.allNPCs,
     mapData: currentFullState.mapData,
     currentMapNodeId: currentFullState.currentMapNodeId,
@@ -489,31 +574,27 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     localTime: currentFullState.localTime,
     localEnvironment: currentFullState.localEnvironment,
     localPlace: currentFullState.localPlace,
-    turnsSinceLastShift: currentFullState.turnsSinceLastShift,
     globalTurnNumber: currentFullState.globalTurnNumber,
-    isCustomGameMode: currentFullState.isCustomGameMode,
-    isAwaitingManualShiftThemeSelection: currentFullState.isAwaitingManualShiftThemeSelection,
 
     dialogueState: currentFullState.dialogueState,
     isDialogueExiting,
     handleDialogueOptionSelect,
     handleForceExitDialogue,
 
+    isVictory: currentFullState.isVictory,
     lastDebugPacket: debugPacketStack[0],
     lastTurnChanges: currentFullState.lastTurnChanges,
     gameStateStack,
     debugPacketStack,
 
     handleActionSelect,
-    handleItemInteraction,
+    executeItemInteraction,
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     handleRetry,
     executeRestartGame,
-    executeManualRealityShift,
-    completeManualShiftWithSelectedTheme,
-    cancelManualShiftThemeSelection,
     startCustomGame,
     gatherCurrentGameState: gatherGameStateStackForSave,
     gatherDebugPacketStack: gatherDebugPacketStackForSave,
@@ -527,6 +608,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleMapNodesPositionChange,
     handleSelectDestinationNode,
     handleUndoTurn,
+    triggerMainQuestAchieved,
+    simulateVictory,
     handleStashToggle,
     addJournalEntry,
     addPlayerJournalEntry,
@@ -539,5 +622,9 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     debugLore: currentFullState.debugLore,
     debugGoodFacts: currentFullState.debugGoodFacts,
     debugBadFacts: currentFullState.debugBadFacts,
+    queueItemAction,
+    queuedItemActions,
+    clearQueuedItemActions,
+    remainingActionPoints,
   };
 };

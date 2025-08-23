@@ -4,7 +4,6 @@ import type { MapData, MapEdgeStatus } from '../types';
 
 const makeNode = (id: string, parentId = 'universe'): MapData['nodes'][number] => ({
   id,
-  themeName: 'theme',
   placeName: id,
   position: { x: 0, y: 0 },
   data: { description: '', status: 'discovered', nodeType: 'location', parentNodeId: parentId }

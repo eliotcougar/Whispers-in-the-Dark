@@ -18,7 +18,6 @@ interface ConfirmationDialogProps {
   readonly confirmText?: string;
   readonly cancelText?: string;
   readonly confirmPreset?: ButtonProps['preset'];
-  readonly isCustomModeShift?: boolean; // New prop
 }
 
 /**
@@ -33,22 +32,13 @@ function ConfirmationDialog({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   confirmPreset = 'sky',
-  isCustomModeShift = false, // Destructure new prop with default
 }: ConfirmationDialogProps) {
   const stopPropagation = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
   }, []);
   if (!isOpen) return null;
 
-  let displayMessage = message;
-  if (title === "Confirm Reality Shift" && isCustomModeShift) {
-    displayMessage = (
-      <>
-        This will allow you to choose a new theme to shift to. 
-        The current adventure will be summarized. Are you sure you wish to proceed?
-      </>
-    );
-  }
+  const displayMessage = message;
 
 
   return (
@@ -118,7 +108,6 @@ ConfirmationDialog.defaultProps = {
   cancelText: 'Cancel',
   confirmPreset: 'sky',
   confirmText: 'Confirm',
-  isCustomModeShift: false,
 };
 
 export default ConfirmationDialog;

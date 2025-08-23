@@ -9,12 +9,9 @@ import {
   MapLayoutConfig,
   ThemePackName
 } from '../types';
-import { 
-    CURRENT_SAVE_GAME_VERSION, 
-    DEFAULT_PLAYER_GENDER, 
-    DEFAULT_ENABLED_THEME_PACKS, 
-    DEFAULT_STABILITY_LEVEL, 
-    DEFAULT_CHAOS_LEVEL 
+import {
+    CURRENT_SAVE_GAME_VERSION,
+    DEFAULT_ENABLED_THEME_PACKS
 } from '../constants';
 import {
   DEFAULT_IDEAL_EDGE_LENGTH,
@@ -47,8 +44,7 @@ const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
 export const getInitialGameStates = (): FullGameState => {
   return {
     saveGameVersion: CURRENT_SAVE_GAME_VERSION, 
-    currentThemeName: null,
-    currentThemeObject: null, // Initialize currentThemeObject
+    currentTheme: null, // Initialize currentTheme
     currentScene: "", 
     mainQuest: null, 
     currentObjective: null,
@@ -58,11 +54,13 @@ export const getInitialGameStates = (): FullGameState => {
     lastJournalWriteTurn: 0,
     lastJournalInspectTurn: 0,
     lastLoreDistillTurn: 0,
-    gameLog: ["Welcome to Whispers in the Dark!"],
+    gameLog: [],
     lastActionLog: null,
-    themeHistory: {},
     themeFacts: [],
-    pendingNewThemeNameAfterShift: null,
+    worldFacts: null,
+    heroSheet: null,
+    heroBackstory: null,
+    storyArc: null,
     allNPCs: [],
     mapData: { nodes: [], edges: [] },
     currentMapNodeId: null,
@@ -73,22 +71,18 @@ export const getInitialGameStates = (): FullGameState => {
     localTime: "Unknown",
     localEnvironment: "Unknown",
     localPlace: "Unknown",
-    turnsSinceLastShift: 0,
     globalTurnNumber: 0, // Initialized to 0
-    isCustomGameMode: false, // Initialize custom game mode
-    
-    dialogueState: null, 
+
+    dialogueState: null,
+    isVictory: false,
 
     // Transient/Debug fields initialized
     objectiveAnimationType: null,
     lastDebugPacket: null,
-    lastTurnChanges: null, 
-    isAwaitingManualShiftThemeSelection: false, // Initialized
+    lastTurnChanges: null,
     // Configuration snapshot
-    playerGender: DEFAULT_PLAYER_GENDER,
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
-    stabilityLevel: DEFAULT_STABILITY_LEVEL,
-    chaosLevel: DEFAULT_CHAOS_LEVEL,
+    thinkingEffort: 'Medium',
 
     debugLore: false,
     debugGoodFacts: [],
@@ -101,15 +95,9 @@ export const getInitialGameStates = (): FullGameState => {
  * Useful when starting a new game with user-supplied settings.
  */
 export const getInitialGameStatesWithSettings = (
-  playerGender: string,
   enabledThemePacks: Array<ThemePackName>,
-  stabilityLevel: number,
-  chaosLevel: number
 ): FullGameState => {
   const base = getInitialGameStates();
-  base.playerGender = playerGender;
   base.enabledThemePacks = [...enabledThemePacks];
-  base.stabilityLevel = stabilityLevel;
-  base.chaosLevel = chaosLevel;
   return base;
 };

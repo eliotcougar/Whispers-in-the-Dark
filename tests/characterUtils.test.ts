@@ -8,7 +8,7 @@ describe('npcUtils', () => {
       name: 'Alice',
       description: 'An adventurer',
     };
-    const result = applyAllNPCChanges([newNPC], [], 'theme', []);
+    const result = applyAllNPCChanges([newNPC], [], []);
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('Alice');
   });
@@ -18,7 +18,7 @@ describe('npcUtils', () => {
       name: 'Bob',
       description: 'NPC',
     };
-    const records = buildNPCChangeRecords([newNPC], [], 'theme', []);
+    const records = buildNPCChangeRecords([newNPC], [], []);
     expect(records[0].npcName).toBe('Bob');
     expect(records[0].type).toBe('add');
   });

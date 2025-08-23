@@ -61,23 +61,23 @@ export const fetchCorrectedItemPayload_Service = async (
 `;
 
   const baseItemStructureForPrompt = `{
-  "name": "string",
-  "type": "(${VALID_ITEM_TYPES_STRING})",
-  "description": "string",
   "activeDescription?": "string",
-  "holderId": "string",
-  "isActive?": boolean,
-  "tags?": ["junk"],
+  "addKnownUse?": { },
   "chapters"?: [
-    { 
-      "heading": "string",
+    {
+      "contentLength": number /* Range: 50-500 */,
       "description": "string",
-      "contentLength": number /* Range: 50-500 */
+      "heading": "string"
     }
   ]
+  "description": "string",
+  "holderId": "string",
+  "isActive?": boolean,
   "knownUses?": [ ],
+  "name": "string",
   "newName?": "string",
-  "addKnownUse?": { }
+  "tags?": ["junk"],
+  "type": "(${VALID_ITEM_TYPES_STRING})"
 }`;
 
   let itemContextDescription = '';
@@ -128,7 +128,7 @@ ${malformedPayloadString}
 ## Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.storyGuidance}"
 
 Required JSON Structure for the corrected 'item' field:
 ${baseItemStructureForPrompt}
@@ -206,7 +206,7 @@ ${malformedItemChangeString}
 Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
-- Theme Guidance: "${currentTheme.systemInstructionModifier}"
+- Theme Guidance: "${currentTheme.storyGuidance}"
 
 Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("create", "destroy", "change", "addDetails", or "move") that was intended.
 - "create": A new item appeared.
@@ -282,7 +282,7 @@ export const fetchCorrectedItemTag_Service = async (
 Candidate tag: "${proposedTag}"
 Item name: "${itemName}"
 Description: "${itemDescription}"
-Theme Guidance: "${currentTheme.systemInstructionModifier}"
+Theme Guidance: "${currentTheme.storyGuidance}"
 Valid tags: ${VALID_TAGS_STRING}
 Respond ONLY with the single best tag.`;
 
@@ -402,7 +402,7 @@ ${malformedPayloadString}
 
 Log Message: "${logMessage ?? 'Not specified'}"
 Scene Description: "${sceneDescription ?? 'Not specified'}"
-Theme Guidance: "${currentTheme.systemInstructionModifier}"
+Theme Guidance: "${currentTheme.storyGuidance}"
 
 Task: Provide ONLY the corrected JSON object with fields { "id": string, "name": string, "type": (${VALID_ITEM_TYPES_STRING}), "knownUses"?, "tags"?, "chapters"? }.`;
 

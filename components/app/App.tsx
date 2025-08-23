@@ -24,6 +24,10 @@ import SettingsDisplay from '../modals/SettingsDisplay';
 import InfoDisplay from '../modals/InfoDisplay';
 import DebugLoreModal from '../modals/DebugLoreModal';
 import GeminiKeyModal from '../modals/GeminiKeyModal';
+import CharacterSelectModal from '../modals/CharacterSelectModal';
+import GenderSelectModal from '../modals/GenderSelectModal';
+import ActIntroModal from '../modals/ActIntroModal';
+import VictoryScreen from '../modals/VictoryScreen';
 import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
@@ -48,7 +52,20 @@ import {
   JOURNAL_WRITE_COOLDOWN,
   INSPECT_COOLDOWN,
 } from '../../constants';
-import { ThemePackName, Item, ItemChapter, FullGameState } from '../../types';
+import {
+  ThemePackName,
+  Item,
+  ItemChapter,
+  FullGameState,
+  AdventureTheme,
+  WorldFacts,
+  CharacterOption,
+  HeroSheet,
+  HeroBackstory,
+  StoryAct,
+  StoryArc,
+  ThinkingEffort,
+} from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
 
 
@@ -62,14 +79,10 @@ function App() {
     return gameLogicRef.current;
   };
   const {
-    playerGender,
-    setPlayerGender,
     enabledThemePacks,
     setEnabledThemePacks,
-    stabilityLevel,
-    setStabilityLevel,
-    chaosLevel,
-    setChaosLevel,
+    thinkingEffort,
+    setThinkingEffort,
     initialSavedState,
     initialDebugStack,
     appReady,
@@ -77,7 +90,6 @@ function App() {
     handleSaveToFile,
     handleLoadFromFileClick,
     handleFileInputChange,
-    updateSettingsFromLoad,
   } = useSaveLoad({
     gatherGameStateStack: () => getGameLogic().gatherCurrentGameState(),
     gatherDebugPacketStack: () => getGameLogic().gatherDebugPacketStack(),
@@ -102,14 +114,10 @@ function App() {
     userRequestedTitleMenuOpen,
     setShouldReturnToTitleMenu,
     shouldReturnToTitleMenu,
-    isHistoryVisible,
     isDebugViewVisible,
     isCustomGameSetupVisible,
-    isManualShiftThemeSelectionVisible,
-    shiftConfirmOpen,
     newGameFromMenuConfirmOpen,
     loadGameFromMenuConfirmOpen,
-    newCustomGameConfirmOpen,
     openVisualizer,
     closeVisualizer,
     openKnowledgeBase,
@@ -122,22 +130,14 @@ function App() {
     closeInfo: closeInfoModal,
     openTitleMenu,
     closeTitleMenu,
-    openHistory,
-    closeHistory,
     closeDebugView,
     setIsDebugViewVisible,
     openCustomGameSetup,
     closeCustomGameSetup,
-    openManualShiftThemeSelection,
-    closeManualShiftThemeSelection,
-    openShiftConfirm,
-    closeShiftConfirm,
     openNewGameFromMenuConfirm,
     closeNewGameFromMenuConfirm,
     openLoadGameFromMenuConfirm,
     closeLoadGameFromMenuConfirm,
-    openNewCustomGameConfirm,
-    closeNewCustomGameConfirm,
     pageItemId,
     pageStartChapterIndex,
     isPageVisible,
@@ -146,9 +146,17 @@ function App() {
     isDebugLoreVisible,
     debugLoreFacts,
     openDebugLoreModal,
+    isGenderSelectVisible,
+    openGenderSelectModal,
+    submitGenderSelectModal,
+    openCharacterSelectModal,
+    isCharacterSelectVisible,
+    characterSelectData,
+    submitCharacterSelectModal,
+    genderSelectDefault,
     submitDebugLoreModal,
-  closeDebugLoreModal,
-} = useAppModals();
+    closeDebugLoreModal,
+  } = useAppModals();
 
   const [geminiKeyVisible, setGeminiKeyVisible] = useState<boolean>(false);
 
@@ -161,37 +169,67 @@ function App() {
   const openGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(true); }, []);
   const closeGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(false); }, []);
 
+  const openCharacterSelect = useCallback(
+    (data: {
+      theme: AdventureTheme;
+      heroGender: string;
+      worldFacts: WorldFacts;
+      options: Array<CharacterOption>;
+    }) =>
+      new Promise<{
+        name: string;
+        heroSheet: HeroSheet | null;
+        heroBackstory: HeroBackstory | null;
+        storyArc: StoryArc | null;
+      }>(resolve => {
+        openCharacterSelectModal(data, resolve);
+      }),
+    [openCharacterSelectModal],
+  );
+
+  const openGenderSelect = useCallback(
+    (defaultGender: string) =>
+      new Promise<string>(resolve => {
+        openGenderSelectModal(defaultGender, resolve);
+      }),
+    [openGenderSelectModal],
+  );
+
 
   const gameLogic = useGameLogic({
-    playerGenderProp: playerGender,
     enabledThemePacksProp: enabledThemePacks,
-    stabilityLevelProp: stabilityLevel,
-    chaosLevelProp: chaosLevel,
-    onSettingsUpdateFromLoad: updateSettingsFromLoad,
+    thinkingEffortProp: thinkingEffort,
     initialSavedStateFromApp: initialSavedState,
     initialDebugStackFromApp: initialDebugStack,
     isAppReady: appReady,
     openDebugLoreModal,
+    openCharacterSelectModal: openCharacterSelect,
+    openGenderSelectModal: openGenderSelect,
   });
   gameLogicRef.current = gameLogic;
 
+  const handleThinkingEffortChange = useCallback(
+    (value: ThinkingEffort) => {
+      setThinkingEffort(value);
+      const current = getGameLogic().gatherCurrentGameState()[0];
+      getGameLogic().commitGameState({ ...current, thinkingEffort: value });
+    },
+    [setThinkingEffort],
+  );
+
   const {
     currentTheme,
-    currentScene, mainQuest, currentObjective, actionOptions,
-    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, themeHistory, mapData,
+    currentScene, mainQuest, currentObjective, actionOptions, storyArc, heroSheet,
+    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, mapData,
     currentMapNodeId, mapLayoutConfig,
     allNPCs,
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    handleItemInteraction, handleTakeLocationItem, handleRetry, executeManualRealityShift,
-    completeManualShiftWithSelectedTheme,
-    cancelManualShiftThemeSelection,
-    isAwaitingManualShiftThemeSelection,
+    executeItemInteraction, handleRetry,
     startCustomGame,
     gatherCurrentGameState: gatherGameStateStack,
     gatherDebugPacketStack,
     hasGameBeenInitialized,
-    handleStartNewGameFromButton,
     localTime, localEnvironment, localPlace,
     dialogueState,
     handleDialogueOptionSelect,
@@ -199,13 +237,12 @@ function App() {
     isDialogueExiting,
     lastDebugPacket,
     lastTurnChanges,
-    turnsSinceLastShift,
     globalTurnNumber,
-    isCustomGameMode,
     gameStateStack,
     debugPacketStack,
     handleMapLayoutConfigChange,
     handleUndoTurn,
+    triggerMainQuestAchieved,
     destinationNodeId,
     handleSelectDestinationNode,
     mapViewBox,
@@ -223,14 +260,56 @@ function App() {
     toggleDebugLore,
     debugLore,
     debugGoodFacts,
-    debugBadFacts,
+      debugBadFacts,
+      isVictory,
+      simulateVictory,
+      queueItemAction,
+      queuedItemActions,
+    clearQueuedItemActions,
+    remainingActionPoints,
   } = gameLogic;
+
+  const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
+  const [lastShownAct, setLastShownAct] = useState(0);
+
+  const currentAct = storyArc?.currentAct ?? 0;
+  const actsLength = storyArc?.acts.length ?? 0;
+
+  useEffect(() => {
+    if (storyArc && currentAct !== lastShownAct && actsLength > currentAct - 1) {
+      setPendingAct(storyArc.acts[currentAct - 1]);
+      setLastShownAct(currentAct);
+    }
+  }, [storyArc, currentAct, actsLength, lastShownAct]);
+
+  useEffect(() => {
+    if (storyArc?.currentAct === 1) {
+      setLastShownAct(0);
+    }
+  }, [storyArc]);
+
+  const handleActContinue = useCallback(() => {
+    setPendingAct(null);
+  }, []);
 
 
   const handleApplyGameState = useCallback(
     (state: FullGameState) => { commitGameState(state); },
     [commitGameState]
   );
+
+  const handleTriggerMainQuestAchievedClick = useCallback(() => {
+    void triggerMainQuestAchieved();
+  }, [triggerMainQuestAchieved]);
+
+  const handleSimulateVictoryClick = useCallback(() => {
+    void simulateVictory();
+  }, [simulateVictory]);
+
+  const handleVictoryClose = useCallback(() => {
+    commitGameState({ ...gameStateStack[0], isVictory: false });
+    openTitleMenu();
+  }, [commitGameState, gameStateStack, openTitleMenu]);
 
   const handleSaveFacts = useCallback((data: string) => {
     const blob = new Blob([data], { type: 'application/json' });
@@ -263,7 +342,7 @@ function App() {
   const prevSceneRef = useRef(currentScene);
 
 
-  const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible && !isManualShiftThemeSelectionVisible);
+  const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible);
 
   const isAnyModalOrDialogueActive =
     isVisualizerVisible ||
@@ -271,18 +350,15 @@ function App() {
     isSettingsVisible ||
     isInfoVisible ||
     isMapVisible ||
-    isHistoryVisible ||
     isDebugViewVisible ||
     isPageVisible ||
     isDebugLoreVisible ||
     !!dialogueState ||
     effectiveIsTitleMenuOpen ||
-    shiftConfirmOpen ||
     newGameFromMenuConfirmOpen ||
     loadGameFromMenuConfirmOpen ||
     isCustomGameSetupVisible ||
-    newCustomGameConfirmOpen ||
-    isManualShiftThemeSelectionVisible;
+    pendingAct !== null;
 
 
   useEffect(() => {
@@ -326,10 +402,9 @@ function App() {
     setError: (msg) => { getGameLogic().setError(msg); },
     dependencies: [
       currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
-      inventory, gameLog, lastActionLog, themeHistory, mapData, currentMapNodeId,
+      inventory, gameLog, lastActionLog, mapData, currentMapNodeId,
       mapLayoutConfig, allNPCs, score, localTime, localEnvironment, localPlace,
-      playerGender, enabledThemePacks, stabilityLevel, chaosLevel, turnsSinceLastShift,
-      isCustomGameMode, isAwaitingManualShiftThemeSelection,
+      enabledThemePacks,
       debugLore, debugGoodFacts, debugBadFacts,
     ],
   });
@@ -349,10 +424,6 @@ function App() {
     setVisualizerImageScene(scene);
   }, [setVisualizerImageUrl, setVisualizerImageScene]);
 
-  const confirmShift = useCallback(() => {
-    executeManualRealityShift();
-    closeShiftConfirm();
-  }, [executeManualRealityShift, closeShiftConfirm]);
 
   const handleRetryClick = useCallback(() => {
     void handleRetry();
@@ -399,14 +470,13 @@ function App() {
     openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
     void (async () => {
       if (!currentTheme) { setIsPlayerJournalWriting(false); return; }
-      const { name: themeName, systemInstructionModifier } = currentTheme;
+      const { name: themeName, storyGuidance } = currentTheme;
       const nodes = mapData.nodes.filter(
-        node => node.themeName === themeName && node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
+        node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
       );
       const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-      const npcs = allNPCs.filter(npc => npc.themeName === themeName);
-      const knownNPCs = npcs.length > 0
-        ? npcsToString(npcs, ' - ', false, false, false, true)
+      const knownNPCs = allNPCs.length > 0
+        ? npcsToString(allNPCs, ' - ', false, false, false, true)
         : 'None specifically known in this theme yet.';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;
@@ -416,7 +486,7 @@ function App() {
         'Your own journal',
         prev,
         themeName,
-        systemInstructionModifier,
+        storyGuidance,
         currentScene,
         lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
         knownPlaces,
@@ -466,18 +536,18 @@ function App() {
           tags: [currentTheme?.playerJournalStyle ?? 'handwritten'],
         };
         const updatedState = recordPlayerJournalInspect();
-        handleItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
+        executeItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
         return;
       }
 
       const item = inventory.find(it => it.id === itemId);
       if (item) {
-        handleItemInteraction(item, 'inspect');
+        executeItemInteraction(item, 'inspect');
       }
     },
     [
       inventory,
-      handleItemInteraction,
+      executeItemInteraction,
       playerJournal,
       lastJournalWriteTurn,
       recordPlayerJournalInspect,
@@ -497,16 +567,6 @@ function App() {
     closeLoadGameFromMenuConfirm();
     openTitleMenu();
   }, [closeLoadGameFromMenuConfirm, openTitleMenu]);
-
-  const handleCancelShift = useCallback(
-    () => { closeShiftConfirm(); },
-    [closeShiftConfirm]
-  );
-
-  const handleCancelNewCustomGame = useCallback(() => {
-    closeNewCustomGameConfirm();
-    openTitleMenu();
-  }, [closeNewCustomGameConfirm, openTitleMenu]);
 
   const handleCancelNewGameFromMenu = useCallback(() => {
     closeNewGameFromMenuConfirm();
@@ -528,26 +588,6 @@ function App() {
     },
     [setEnabledThemePacks]
   );
-
-  useEffect(() => {
-    if (isAwaitingManualShiftThemeSelection && !isManualShiftThemeSelectionVisible) {
-      openManualShiftThemeSelection();
-    }
-  }, [isAwaitingManualShiftThemeSelection, isManualShiftThemeSelectionVisible, openManualShiftThemeSelection]);
-
-  const handleManualShiftThemeSelected = useCallback(
-    (themeName: string) => {
-      closeManualShiftThemeSelection();
-      completeManualShiftWithSelectedTheme(themeName);
-    },
-    [closeManualShiftThemeSelection, completeManualShiftWithSelectedTheme]
-  );
-
-  const handleCancelManualShiftThemeSelection = useCallback(() => {
-    closeManualShiftThemeSelection();
-    cancelManualShiftThemeSelection();
-  }, [closeManualShiftThemeSelection, cancelManualShiftThemeSelection]);
-
   /**
    * Wrapper ensuring lint compliance for the async dialogue option handler.
    */
@@ -564,14 +604,14 @@ function App() {
     if (hasGameBeenInitialized) {
       openNewGameFromMenuConfirm();
     } else {
-      handleStartNewGameFromButton();
+      openCustomGameSetup();
     }
-  }, [closeTitleMenu, hasGameBeenInitialized, handleStartNewGameFromButton, openNewGameFromMenuConfirm]);
+  }, [closeTitleMenu, hasGameBeenInitialized, openCustomGameSetup, openNewGameFromMenuConfirm]);
 
   const confirmNewGameFromMenu = useCallback(() => {
     closeNewGameFromMenuConfirm();
-    handleStartNewGameFromButton();
-  }, [closeNewGameFromMenuConfirm, handleStartNewGameFromButton]);
+    openCustomGameSetup();
+  }, [closeNewGameFromMenuConfirm, openCustomGameSetup]);
 
   const handleLoadGameFromMenu = useCallback(() => {
     closeTitleMenu();
@@ -621,19 +661,6 @@ function App() {
   }, [closeInfoModal, shouldReturnToTitleMenu, hasGameBeenInitialized, openTitleMenu, setShouldReturnToTitleMenu]);
 
 
-  const handleOpenCustomGameSetup = useCallback(() => {
-    closeTitleMenu();
-    if (hasGameBeenInitialized) {
-      openNewCustomGameConfirm();
-    } else {
-      openCustomGameSetup();
-    }
-  }, [closeTitleMenu, hasGameBeenInitialized, openCustomGameSetup, openNewCustomGameConfirm]);
-
-  const confirmNewCustomGame = useCallback(() => {
-    closeNewCustomGameConfirm();
-    openCustomGameSetup();
-  }, [closeNewCustomGameConfirm, openCustomGameSetup]);
 
   const handleCloseCustomGameSetup = useCallback(() => {
     closeCustomGameSetup();
@@ -669,7 +696,7 @@ function App() {
   useEffect(() => {
     if (isMapVisible && !prevMapVisibleRef.current) {
       const layoutNodes = applyNestedCircleLayout(
-        mapData.nodes.filter(n => n.themeName === currentTheme?.name).map(n => ({ ...n })),
+        mapData.nodes.map(n => ({ ...n })),
           {
             padding: mapLayoutConfig.NESTED_PADDING,
             anglePadding: mapLayoutConfig.NESTED_ANGLE_PADDING,
@@ -724,7 +751,6 @@ function App() {
         <AppHeader
           currentTheme={currentTheme}
           hasGameBeenInitialized={hasGameBeenInitialized}
-          isCustomGameMode={isCustomGameMode}
         />
 
         {error && !isLoading && !dialogueState && hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
@@ -747,14 +773,11 @@ function App() {
               currentSceneExists={!!currentScene}
               currentThemeName={currentTheme ? currentTheme.name : null}
               isLoading={isLoading || !!dialogueState}
-              onManualRealityShift={openShiftConfirm}
-              onOpenHistory={openHistory}
               onOpenKnowledgeBase={openKnowledgeBase}
               onOpenMap={openMap}
               onOpenTitleMenu={openTitleMenu}
               onOpenVisualizer={openVisualizer}
               score={score}
-              turnsSinceLastShift={turnsSinceLastShift}
             />
               
             <ModelUsageIndicators />
@@ -768,7 +791,6 @@ function App() {
                   <div className="relative">
                     <SceneDisplay
                       allNPCs={allNPCs}
-                      currentThemeName={currentTheme ? currentTheme.name : null}
                       description={currentScene}
                       inventory={inventory}
                       lastActionLog={lastActionLog}
@@ -778,7 +800,7 @@ function App() {
                       mapData={mapData.nodes}
                     />
 
-                    {isLoading && !dialogueState && !isDialogueExiting && Boolean(hasGameBeenInitialized) ? (
+                    {isLoading && !dialogueState && !isDialogueExiting ? (
                       <div className="absolute inset-0 flex items-center justify-center bg-slate-900/75 rounded-lg">
                         <LoadingSpinner />
                       </div>
@@ -787,12 +809,13 @@ function App() {
 
                   <ActionOptions
                     allNPCs={allNPCs}
-                    currentThemeName={currentTheme ? currentTheme.name : null}
                     disabled={isLoading || !!dialogueState}
                     inventory={inventory}
                     mapData={mapData.nodes}
                     onActionSelect={handleActionSelect}
                     options={actionOptions}
+                    queuedActions={queuedItemActions}
+                    onClearQueuedActions={clearQueuedItemActions}
                   />
 
                   <FreeActionInput
@@ -812,23 +835,22 @@ function App() {
                 allNPCs={allNPCs}
                 currentMapNodeId={currentMapNodeId}
                 currentObjective={currentObjective}
-                currentThemeName={currentTheme ? currentTheme.name : null}
                 disabled={isLoading || isAnyModalOrDialogueActive}
                 enableMobileTap={enableMobileTap}
                 globalTurnNumber={globalTurnNumber}
                 inventory={inventory}
                 itemsHere={itemsHere}
-                mainQuest={mainQuest}
+                storyArc={storyArc}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
-                onDropItem={gameLogic.handleDropItem}
-                onItemInteract={handleItemInteraction}
-                onReadPage={handleReadPage}
-                onReadPlayerJournal={handleReadPlayerJournal}
-                onStashToggle={gameLogic.handleStashToggle}
-                onTakeItem={handleTakeLocationItem}
-              />
-            )}
+                onItemInteract={queueItemAction}
+                  onReadPage={handleReadPage}
+                  onReadPlayerJournal={handleReadPlayerJournal}
+                  onStashToggle={gameLogic.handleStashToggle}
+                  queuedActionIds={new Set(queuedItemActions.map(a => a.id))}
+                  remainingActionPoints={remainingActionPoints}
+                />
+              )}
           </div>
         </main>
 
@@ -855,7 +877,6 @@ function App() {
 
       <DialogueDisplay
         allNPCs={allNPCs}
-        currentThemeName={currentTheme ? currentTheme.name : null}
         history={dialogueState?.history ?? []}
         inventory={inventory}
         isDialogueExiting={isDialogueExiting}
@@ -880,7 +901,9 @@ function App() {
         onClose={closeDebugView}
         onDistillFacts={handleDistillClick}
         onSaveFacts={handleSaveFacts}
+        onSimulateVictory={handleSimulateVictoryClick}
         onToggleDebugLore={toggleDebugLore}
+        onTriggerMainQuestAchieved={handleTriggerMainQuestAchievedClick}
         onUndoTurn={handleUndoTurn}
         travelPath={travelPath}
       />
@@ -889,12 +912,11 @@ function App() {
         isGameActive={hasGameBeenInitialized}
         isVisible={effectiveIsTitleMenuOpen}
         onClose={closeTitleMenu}
-        onCustomGame={handleOpenCustomGameSetup}
         onLoadGame={handleLoadGameFromMenu}
         onNewGame={handleNewGameFromMenu}
+        onOpenGeminiKeyModal={openGeminiKeyModal}
         onOpenInfo={openInfoFromMenu}
         onOpenSettings={openSettingsFromMenu}
-        onOpenGeminiKeyModal={openGeminiKeyModal}
         onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
       />
 
@@ -904,27 +926,14 @@ function App() {
         onThemeSelected={handleCustomThemeSelectedForNewGame}
       />
 
-      <CustomGameSetupScreen
-        descriptionText="Choose the theme you wish to manually shift your reality to. The current theme is disabled."
-        disabledThemeName={currentTheme ? currentTheme.name : null}
-        isVisible={isManualShiftThemeSelectionVisible}
-        onClose={handleCancelManualShiftThemeSelection}
-        onThemeSelected={handleManualShiftThemeSelected}
-        titleText="Select Destination Theme"
-      />
 
       <SettingsDisplay
-        chaosLevel={chaosLevel}
         enabledThemePacks={enabledThemePacks}
-        isCustomGameMode={isCustomGameMode}
         isVisible={isSettingsVisible}
-        onChaosChange={setChaosLevel}
+        onChangeThinkingEffort={handleThinkingEffortChange}
         onClose={closeSettings}
-        onPlayerGenderChange={setPlayerGender}
-        onStabilityChange={setStabilityLevel}
         onToggleThemePack={handleToggleThemePackStable}
-        playerGender={playerGender}
-        stabilityLevel={stabilityLevel}
+        thinkingEffort={thinkingEffort}
       />
 
       <InfoDisplay
@@ -944,6 +953,38 @@ function App() {
         onClose={closeGeminiKeyModal}
       />
 
+      <GenderSelectModal
+        defaultGender={genderSelectDefault}
+        isVisible={isGenderSelectVisible}
+        onSubmit={submitGenderSelectModal}
+      />
+
+      {pendingAct ? (
+        <ActIntroModal
+          act={pendingAct}
+          onContinue={handleActContinue}
+        />
+      ) : null}
+
+      {isVictory && heroSheet && storyArc ? (
+        <VictoryScreen
+          heroSheet={heroSheet}
+          onClose={handleVictoryClose}
+          storyArc={storyArc}
+        />
+      ) : null}
+
+      {characterSelectData ? (
+        <CharacterSelectModal
+          isVisible={isCharacterSelectVisible}
+          onComplete={submitCharacterSelectModal}
+          options={characterSelectData.options}
+          heroGender={characterSelectData.heroGender}
+          theme={characterSelectData.theme}
+          worldFacts={characterSelectData.worldFacts}
+        />
+      ) : null}
+
       {hasGameBeenInitialized && currentTheme ? <AppModals
         allNPCs={allNPCs}
         canInspectJournal={canInspectPlayerJournal}
@@ -954,20 +995,13 @@ function App() {
         currentTheme={currentTheme}
         currentThemeName={currentTheme.name}
         destinationNodeId={destinationNodeId}
-        gameLog={gameLog}
         handleCancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
-        handleCancelNewCustomGame={handleCancelNewCustomGame}
         handleCancelNewGameFromMenu={handleCancelNewGameFromMenu}
-        handleCancelShift={handleCancelShift}
         handleConfirmLoadGameFromMenu={confirmLoadGameFromMenu}
-        handleConfirmNewCustomGame={confirmNewCustomGame}
         handleConfirmNewGameFromMenu={confirmNewGameFromMenu}
-        handleConfirmShift={confirmShift}
         initialLayoutConfig={mapLayoutConfig}
         initialViewBox={mapInitialViewBox}
         inventory={inventory}
-        isCustomGameModeShift={isCustomGameMode}
-        isHistoryVisible={isHistoryVisible}
         isKnowledgeBaseVisible={isKnowledgeBaseVisible}
         isMapVisible={isMapVisible}
         isPageVisible={isPageVisible}
@@ -980,9 +1014,7 @@ function App() {
         localPlace={localPlace}
         localTime={localTime}
         mapData={mapData}
-        newCustomGameConfirmOpen={newCustomGameConfirmOpen}
         newGameFromMenuConfirmOpen={newGameFromMenuConfirmOpen}
-        onCloseHistory={closeHistory}
         onCloseKnowledgeBase={closeKnowledgeBase}
         onCloseMap={closeMap}
         onClosePage={closePageView}
@@ -997,9 +1029,7 @@ function App() {
         pageStartChapterIndex={pageStartChapterIndex}
         playerJournal={playerJournal}
         setGeneratedImage={setGeneratedImageCache}
-        shiftConfirmOpen={shiftConfirmOpen}
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
-        themeHistory={themeHistory}
         updateItemContent={updateItemContent}
         updatePlayerJournalContent={updatePlayerJournalContent}
         visualizerImageScene={visualizerImageScene}

@@ -10,6 +10,7 @@ import { MAIN_TURN_OPTIONS_COUNT, LOCAL_STORAGE_SAVE_KEY } from '../constants';
 import { saveGameStateToLocalStorage } from '../services/storage';
 import { getInitialGameStates } from '../utils/initialStates';
 import type { GenerateContentResponse } from '@google/genai';
+import type { WorldFacts, HeroSheet, HeroBackstory, StoryArc } from '../types';
 
 vi.mock('../services/storyteller/api', () => ({
   executeAIMainTurn: vi.fn(),
@@ -38,6 +39,52 @@ const fakeAiJson = JSON.stringify({
   currentMapNodeId: 'cell_1',
 });
 
+const dummyWorldFacts: WorldFacts = {
+  geography: 'Mountains',
+  climate: 'Mild',
+  technologyLevel: 'Medieval',
+  supernaturalElements: 'Low magic',
+  majorFactions: ['Guild'],
+  keyResources: ['Iron'],
+  culturalNotes: ['Honor bound'],
+  notableLocations: ['Great Forge'],
+};
+
+const dummyHeroSheet: HeroSheet = {
+  name: 'Aron',
+  gender: 'Male',
+  occupation: 'Warrior',
+  traits: ['Brave'],
+  startingItems: ['Sword', 'Shield'],
+};
+
+const dummyHeroBackstory: HeroBackstory = {
+  fiveYearsAgo: 'Trained as a squire.',
+  oneYearAgo: 'Swore an oath.',
+  sixMonthsAgo: 'Defeated a bandit leader.',
+  oneMonthAgo: 'Was betrayed by a friend.',
+  oneWeekAgo: 'Left home seeking adventure.',
+  yesterday: 'Arrived at the new town.',
+  now: 'Standing in the town square.',
+};
+
+const dummyArc: StoryArc = {
+  title: 'Heroic Trials',
+  overview: 'A journey of hardship and triumph.',
+  acts: [
+    {
+      actNumber: 1,
+      title: 'Call to Adventure',
+      description: 'The hero faces the first challenge.',
+      mainObjective: 'Escape the cell.',
+      sideObjectives: ['Find equipment'],
+      successCondition: 'Reach freedom',
+      completed: false,
+    },
+  ],
+  currentAct: 1,
+};
+
 describe('game start sequence', () => {
   it('generates a valid initial scene', async () => {
     mockedExecute.mockResolvedValue({
@@ -49,13 +96,19 @@ describe('game start sequence', () => {
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
-    const prompt = buildNewGameFirstTurnPrompt(theme, 'Male');
+    const prompt = buildNewGameFirstTurnPrompt(
+      theme,
+      dummyArc,
+      dummyWorldFacts,
+      dummyHeroSheet,
+      dummyHeroBackstory,
+    );
 
     const { response } = await executeAIMainTurn(prompt);
     const parsed = await parseAIResponse(
       response.text ?? '',
-      'Male',
       theme,
+      dummyHeroSheet,
       undefined,
       undefined,
       undefined,
@@ -107,12 +160,18 @@ describe('game start sequence', () => {
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
-    const prompt = buildNewGameFirstTurnPrompt(theme, 'Male');
+    const prompt = buildNewGameFirstTurnPrompt(
+      theme,
+      dummyArc,
+      dummyWorldFacts,
+      dummyHeroSheet,
+      dummyHeroBackstory,
+    );
     const { response } = await executeAIMainTurn(prompt);
     const parsed = await parseAIResponse(
       response.text ?? '',
-      'Male',
       theme,
+      dummyHeroSheet,
       undefined,
       undefined,
       undefined,
@@ -125,9 +184,8 @@ describe('game start sequence', () => {
     if (!parsed) return;
 
     const state = getInitialGameStates();
-    state.playerGender = 'Male';
-    state.currentThemeName = theme.name;
-    state.currentThemeObject = theme;
+    state.heroSheet = { ...dummyHeroSheet, gender: 'Male' };
+    state.currentTheme = theme;
     state.currentScene = parsed.sceneDescription;
     state.actionOptions = parsed.options;
     state.mainQuest = parsed.mainQuest ?? null;
@@ -148,7 +206,7 @@ describe('game start sequence', () => {
     const savedString = saved[LOCAL_STORAGE_SAVE_KEY];
     const parsedSaved = JSON.parse(savedString) as Record<string, unknown>;
     const current = parsedSaved.current as Record<string, unknown>;
-    expect(current.currentThemeName).toBe(theme.name);
+    expect((current.currentTheme as { name: string }).name).toBe(theme.name);
     expect(current.currentScene).toBe(parsed.sceneDescription);
     expect(Array.isArray(current.actionOptions)).toBe(true);
   });

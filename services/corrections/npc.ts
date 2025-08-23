@@ -57,15 +57,15 @@ Context:
 - Log Message (how they appeared/what they're doing): "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description (where they appeared/are relevant): "${sceneDescription ?? 'Not specified, infer from log.'}"
 - ${knownPlacesString}
-- Theme Guidance (influences NPC style/role): "${currentTheme.systemInstructionModifier}"
+- Theme Guidance (influences NPC style/role): "${currentTheme.storyGuidance}"
 
 Respond ONLY in JSON format with the following structure:
 {
-  "description": "string (A detailed, engaging description fitting the scene and theme. MUST be non-empty.)",
   "aliases": ["string"],
-  "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING},
+  "description": "string (A detailed, engaging description fitting the scene and theme. MUST be non-empty.)",
   "lastKnownLocation": "string | null",
-  "preciseLocation": "string | null"
+  "preciseLocation": "string | null",
+  "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}
 }
 
 Constraints:
@@ -168,7 +168,7 @@ Example Response: "near you"
 Example Response: If unclear from context, respond with a generic but plausible short phrase like "observing the surroundings" or "standing nearby".
 `;
 
-  const systemInstruction = `Infer or correct the NPC's "preciseLocation" (a short phrase, max ~50-60 chars, describing their in-scene activity/position) from narrative context and potentially malformed input. Respond ONLY with the string value. Adhere to theme context: ${currentTheme.systemInstructionModifier}`;
+  const systemInstruction = `Infer or correct the NPC's "preciseLocation" (a short phrase, max ~50-60 chars, describing their in-scene activity/position) from narrative context and potentially malformed input. Respond ONLY with the string value. Adhere to theme context: ${currentTheme.storyGuidance}`;
 
   return retryAiCall<string>(async attempt => {
     try {

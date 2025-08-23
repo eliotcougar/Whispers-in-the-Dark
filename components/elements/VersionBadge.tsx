@@ -6,11 +6,15 @@ interface VersionBadgeProps {
 function VersionBadge({ version, sourceInfo }: VersionBadgeProps) {
   return (
     <p className='text-sm text-slate-300 absolute bottom-4 right-4'>
-      <span>{'Version: ' + version}</span>
+      <span>
+        {'Version: ' + version}
+      </span>
 
       <br />
 
-      <span>{sourceInfo ?? null}</span>
+      <span>
+        {sourceInfo ?? null}
+      </span>
     </p>
   );
 }

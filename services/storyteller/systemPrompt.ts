@@ -30,6 +30,8 @@ If a Companion leaves the Player, or the Player leaves a Companion, their presen
 - If the narrative implies any changes to the map (new details, locations, connections, status changes), set "mapUpdated": true and write about it in mapHint.
 - If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, mention it in playerItemsHint.
 - If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, mention the new knownUse in playerItemsHint.
+- Summarize any discoveries or updates to books, pages or maps in librarianHint.
+- Compare the current events with the story arc's success condition for the active act. When it is undoubtedly fulfilled, set "mainQuestAchieved": true in your response.
 
 CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" implies items were gained, lost, moved, or changed, you MUST summarize these changes using "playerItemsHint", "worldItemsHint", and "npcItemsHint" and list new items in "newItems".
 CRITICALLY IMPORTANT: Names and Aliases (of items, places, NPCs, etc) cannot contain a comma.

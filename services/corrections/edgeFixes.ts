@@ -28,6 +28,7 @@ import { LOADING_REASON_UI_MAP } from "../../constants";
 import { retryAiCall } from "../../utils/retry";
 import { isApiConfigured } from "../apiClient";
 import { extractJsonFromFence, safeParseJson } from "../../utils/jsonUtils";
+import { getThinkingBudget } from '../thinkingConfig';
 import {
   EDGE_TYPE_SYNONYMS,
   createHeuristicRegexes,
@@ -147,12 +148,29 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
     observations: {
       type: "string",
       minLength: 1500,
-      description: "Contextually relevant observations about the chains and map graph."
+      description: "Contextually relevant observations about the chains and map graph.",
     },
     rationale: {
       type: "string",
       minLength: 1000,
-      description: "Explain the reasoning behind your chain fixes and refinement suggestions."
+      description: "Explain the reasoning behind your chain fixes and refinement suggestions.",
+    },
+    edgesToAdd: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          description: { type: "string", minLength: 30, description: EDGE_DESCRIPTION_INSTRUCTION },
+          sourcePlaceName: { type: "string", description: "Name of the source feature node. MUST be a feature type node." },
+          status: { enum: VALID_EDGE_STATUS_VALUES },
+          targetPlaceName: { type: "string", description: "Name of the target feature node. MUST be a feature type node." },
+          travelTime: { type: "string" },
+          type: { enum: VALID_EDGE_TYPE_VALUES },
+        },
+        propertyOrdering: ["description", "sourcePlaceName", "status", "targetPlaceName", "travelTime", "type"],
+        required: ["sourcePlaceName", "status", "targetPlaceName", "type"],
+        additionalProperties: false,
+      },
     },
     nodesToAdd: {
       type: "array",
@@ -161,58 +179,31 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
       items: {
         type: "object",
         properties: {
+          aliases: {
+            type: "array",
+            description: ALIAS_INSTRUCTION,
+            minItems: 2,
+            items: { type: "string" },
+          },
+          description: { type: "string", minLength: 30, description: NODE_DESCRIPTION_INSTRUCTION },
+          nodeType: { enum: ["feature"] },
+          parentNodeId: { type: "string", description: "Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent" },
           placeName: { type: "string", description: "A contextually relevant location name, based on Theme and Scene Description" },
-          data: {
-            type: "object",
-            properties: {
-              description: { type: "string", minLength: 30, description: NODE_DESCRIPTION_INSTRUCTION },
-              aliases: {
-                type: "array",
-                description: ALIAS_INSTRUCTION,
-                minItems: 2,
-                items: { type: "string" } },
-              status: { enum: VALID_NODE_STATUS_VALUES },
-              nodeType: { enum: ["feature"] },
-              parentNodeId: { type: "string", description: "Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent" },
-            },
-            required: [
-              "description",
-              "aliases",
-              "status",
-              "nodeType",
-              "parentNodeId",
-            ],
-            additionalProperties: false,
-          },
+          status: { enum: VALID_NODE_STATUS_VALUES },
         },
-        required: ["placeName", "data"],
-        additionalProperties: false,
-      },
-    },
-    edgesToAdd: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          sourcePlaceName: { type: "string", description: "Name of the source feature node. MUST be a feature type node." },
-          targetPlaceName: { type: "string", description: "Name of the target feature node. MUST be a feature type node." },
-          data: {
-            type: "object",
-            properties: {
-              type: { enum: VALID_EDGE_TYPE_VALUES },
-              status: { enum: VALID_EDGE_STATUS_VALUES },
-              description: { type: "string", minLength: 30, description: EDGE_DESCRIPTION_INSTRUCTION},
-            },
-            required: ["type", "status", "description"],
-            additionalProperties: false,
-          },
-        },
-        required: ["sourcePlaceName", "targetPlaceName", "data"],
+        propertyOrdering: ["aliases", "description", "nodeType", "parentNodeId", "placeName", "status"],
+        required: ["aliases", "description", "nodeType", "parentNodeId", "placeName", "status"],
         additionalProperties: false,
       },
     },
   },
-  required: ["observations", "rationale", "nodesToAdd", "edgesToAdd"],
+  required: ["observations", "rationale", "edgesToAdd", "nodesToAdd"],
+  propertyOrdering: [
+    "observations",
+    "rationale",
+    "edgesToAdd",
+    "nodesToAdd",
+  ],
   additionalProperties: false,
 } as const;
 
@@ -303,7 +294,7 @@ export const fetchConnectorChains_Service = async (
   const prompt = `Suggest chains of locations (feature nodes) to connect distant map nodes in a text adventure.
 ** Context: **
 Scene Description: "${context.sceneDescription}"
-Theme: "${context.currentTheme.name}" (${context.currentTheme.systemInstructionModifier})
+Theme: "${context.currentTheme.name}" (${context.currentTheme.storyGuidance})
 
 ---
 
@@ -331,11 +322,12 @@ ${MAP_NODE_HIERARCHY_GUIDE}
         `fetchConnectorChains_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      const thinkingBudget = getThinkingBudget(2048);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
         systemInstruction: systemInstruction,
-        thinkingBudget: 2048,
+        thinkingBudget,
         includeThoughts: true,
         responseMimeType: "application/json",
         jsonSchema: CONNECTOR_CHAINS_JSON_SCHEMA,

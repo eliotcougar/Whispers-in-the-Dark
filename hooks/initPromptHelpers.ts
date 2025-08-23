@@ -2,60 +2,58 @@
  * @file initPromptHelpers.ts
  * @description Helper for constructing initial game prompts.
  */
-import { AdventureTheme, NPC, MapData, ThemeMemory, Item } from '../types';
-import { PLAYER_HOLDER_ID } from '../constants';
 import {
-  buildNewGameFirstTurnPrompt,
-  buildNewThemePostShiftPrompt,
-  buildReturnToThemePostShiftPrompt,
-} from '../services/storyteller';
+  AdventureTheme,
+  WorldFacts,
+  HeroSheet,
+  HeroBackstory,
+  StoryArc,
+} from '../types';
+import { buildNewGameFirstTurnPrompt } from '../services/storyteller';
+import { isStoryArcValid } from '../utils/storyArcUtils';
 
 export interface BuildInitialGamePromptOptions {
   theme: AdventureTheme;
-  inventory: Array<Item>;
-  playerGender: string;
-  isTransitioningFromShift: boolean;
-  themeMemory?: ThemeMemory;
-  mapDataForTheme?: MapData;
-  npcsForTheme?: Array<NPC>;
+  storyArc?: StoryArc | null;
+  worldFacts?: WorldFacts;
+  heroSheet?: HeroSheet;
+  heroBackstory?: HeroBackstory;
 }
 
 /**
- * Build the storyteller prompt used when starting or resuming a theme.
+ * Build the storyteller prompt used when starting a new game.
  */
 export const buildInitialGamePrompt = (
   options: BuildInitialGamePromptOptions,
 ): string => {
-  const {
-    theme,
-    inventory,
-    playerGender,
-    isTransitioningFromShift,
-    themeMemory,
-    mapDataForTheme,
-    npcsForTheme,
-  } = options;
-
-  const inventoryForPrompt = inventory.filter(i => i.holderId === PLAYER_HOLDER_ID);
-
-  let prompt = '';
-  if (isTransitioningFromShift && themeMemory && mapDataForTheme && npcsForTheme) {
-    prompt = buildReturnToThemePostShiftPrompt(
-      theme,
-      inventoryForPrompt,
-      playerGender,
-      themeMemory,
-      mapDataForTheme,
-      npcsForTheme,
-    );
-  } else if (isTransitioningFromShift) {
-    prompt = buildNewThemePostShiftPrompt(
-      theme,
-      inventoryForPrompt,
-      playerGender,
-    );
-  } else {
-    prompt = buildNewGameFirstTurnPrompt(theme, playerGender);
+  const { theme, storyArc, worldFacts, heroSheet, heroBackstory } = options;
+  if (!storyArc || !isStoryArcValid(storyArc)) {
+    throw new Error('buildInitialGamePrompt: missing or invalid story arc');
   }
+
+  const prompt = buildNewGameFirstTurnPrompt(
+    theme,
+    storyArc,
+    worldFacts ?? {
+      geography: '',
+      climate: '',
+      technologyLevel: '',
+      supernaturalElements: '',
+      majorFactions: [],
+      keyResources: [],
+      culturalNotes: [],
+      notableLocations: [],
+    },
+    heroSheet ?? { name: 'Hero', gender: 'Male', occupation: '', traits: [], startingItems: [] },
+    heroBackstory ?? {
+      fiveYearsAgo: '',
+      oneYearAgo: '',
+      sixMonthsAgo: '',
+      oneMonthAgo: '',
+      oneWeekAgo: '',
+      yesterday: '',
+      now: '',
+    },
+  );
   return prompt;
 };
