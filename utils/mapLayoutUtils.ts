@@ -4,7 +4,9 @@
  * @description Utilities for computing a nested circle layout for map nodes.
  * The algorithm allocates extra padding so that child node circles and labels
  * fit comfortably inside their parent. Angle padding shrinks for groups with
- * many children to keep large maps compact.
+ * many children to keep large maps compact. After placement, child groups are
+ * recentred around their bounds so parents shrink to the tightest circle that
+ * encloses all children.
 */
 
 import { MapNode } from '../types';
@@ -110,7 +112,14 @@ export const applyNestedCircleLayout = (
       R += INCREMENT;
     }
 
-    let currentAngle = 0;
+    let totalAngleUsed = 0;
+    for (let i = 0; i < children.length; i++) {
+      const r1 = children[i].data.visualRadius ?? BASE_FEATURE_RADIUS;
+      const r2 = children[(i + 1) % children.length].data.visualRadius ?? BASE_FEATURE_RADIUS;
+      totalAngleUsed += 2 * Math.asin((r1 + r2 + PADDING) / (2 * R)) + anglePadding;
+    }
+
+    let currentAngle = Math.max(0, (2 * Math.PI - totalAngleUsed) / 2);
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       const rCurr = child.data.visualRadius ?? BASE_FEATURE_RADIUS;
@@ -122,8 +131,32 @@ export const applyNestedCircleLayout = (
       currentAngle += 2 * Math.asin((rCurr + rNext + PADDING) / (2 * R)) + anglePadding;
     }
 
-    const maxChildRadius = Math.max(...children.map(child => child.data.visualRadius ?? BASE_FEATURE_RADIUS));
-    node.data.visualRadius = R + maxChildRadius + PADDING;
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    children.forEach(child => {
+      const r = child.data.visualRadius ?? BASE_FEATURE_RADIUS;
+      minX = Math.min(minX, child.position.x - r);
+      maxX = Math.max(maxX, child.position.x + r);
+      minY = Math.min(minY, child.position.y - r);
+      maxY = Math.max(maxY, child.position.y + r);
+    });
+    const offsetX = (minX + maxX) / 2;
+    const offsetY = (minY + maxY) / 2;
+    children.forEach(child => {
+      child.position.x -= offsetX;
+      child.position.y -= offsetY;
+    });
+
+    const radius =
+      Math.max(
+        ...children.map(child => {
+          const r = child.data.visualRadius ?? BASE_FEATURE_RADIUS;
+          return Math.hypot(child.position.x, child.position.y) + r;
+        })
+      ) + PADDING;
+    node.data.visualRadius = radius;
     node.position = { x: 0, y: 0 };
     return node.data.visualRadius;
   };
