@@ -133,7 +133,7 @@ export const generateChapterImage = async (
       try {
         addProgressSymbol(LOADING_REASON_UI_MAP.visualize.icon);
         const response = await client.models.generateImages({
-          model: 'imagen-4.0-generate-preview-06-06',
+          model: 'imagen-4.0-generate-001',
           prompt: safePrompt,
           config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
         });
