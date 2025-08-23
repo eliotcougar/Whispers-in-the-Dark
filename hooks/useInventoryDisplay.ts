@@ -11,7 +11,7 @@ interface UseInventoryDisplayProps {
   readonly items: Array<Item>;
   readonly onItemInteract: (
     item: Item,
-    type: 'generic' | 'specific' | 'inspect' | 'drop',
+    type: 'generic' | 'specific' | 'inspect' | 'drop' | 'discard',
     knownUse?: KnownUse
   ) => void;
   readonly onStashToggle: (itemId: string) => void;
@@ -147,6 +147,18 @@ export const useInventoryDisplay = ({
     [items, onItemInteract],
   );
 
+  const handleDiscard = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const id = event.currentTarget.dataset.itemId;
+      if (!id) return;
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      onItemInteract(item, 'discard');
+      event.currentTarget.blur();
+    },
+    [items, onItemInteract],
+  );
+
   const handleVehicleToggle = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const id = event.currentTarget.dataset.itemId;
@@ -269,6 +281,7 @@ export const useInventoryDisplay = ({
     handleInspect,
     handleGenericUse,
     handleDrop,
+    handleDiscard,
     handleVehicleToggle,
     handleStashToggleInternal,
     handleRead,

@@ -18,6 +18,7 @@ interface InventoryItemProps {
   readonly onGenericUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onVehicleToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onDrop: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onStashToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly filterMode: FilterMode;
@@ -37,6 +38,7 @@ function InventoryItem({
   onGenericUse,
   onVehicleToggle,
   onDrop,
+  onDiscard,
   onRead,
   onStashToggle,
   filterMode,
@@ -176,7 +178,7 @@ function InventoryItem({
         />}
         key={`${item.id}-discard`}
         label="Discard"
-        onClick={onDrop}
+        onClick={onDiscard}
         preset="orange"
         size="sm"
       />

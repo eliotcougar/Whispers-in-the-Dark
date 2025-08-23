@@ -14,7 +14,7 @@ interface InventoryDisplayProps {
   readonly items: Array<Item>;
   readonly onItemInteract: (
     item: Item,
-    interactionType: 'generic' | 'specific' | 'inspect' | 'drop',
+    interactionType: 'generic' | 'specific' | 'inspect' | 'drop' | 'discard',
     knownUse?: KnownUse
   ) => void;
   readonly onStashToggle: (itemId: string) => void;
@@ -39,6 +39,7 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
     handleInspect,
     handleGenericUse,
     handleDrop,
+    handleDiscard,
     handleVehicleToggle,
     handleStashToggleInternal,
     handleRead,
@@ -154,6 +155,7 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
                 key={item.id}
                 onGenericUse={handleGenericUse}
                 onDrop={handleDrop}
+                onDiscard={handleDiscard}
                 onInspect={handleInspect}
                 onRead={handleRead}
                 onSpecificUse={handleSpecificUse}

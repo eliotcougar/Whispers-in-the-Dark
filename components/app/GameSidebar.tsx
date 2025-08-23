@@ -26,7 +26,7 @@ interface GameSidebarProps {
   readonly onStashToggle: (itemId: string) => void;
   readonly onItemInteract: (
     item: Item,
-    interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop',
+    interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop' | 'discard',
     knownUse?: KnownUse,
   ) => void;
   readonly onReadPage: (item: Item) => void;

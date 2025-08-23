@@ -97,6 +97,46 @@ export const useInventoryActions = ({
     [getCurrentGameState, commitGameState, isLoading],
   );
 
+  const handleDiscardItem = useCallback(
+    (itemId: string) => {
+      const currentFullState = getCurrentGameState();
+      if (isLoading || currentFullState.dialogueState) return;
+
+      const itemToDiscard = currentFullState.inventory.find(
+        item => item.id === itemId && item.holderId === PLAYER_HOLDER_ID,
+      );
+      if (!itemToDiscard) return;
+
+      const draftState = structuredCloneGameState(currentFullState);
+      draftState.inventory = draftState.inventory.filter(
+        item => !(item.id === itemId && item.holderId === PLAYER_HOLDER_ID),
+      );
+
+      const itemChangeRecord: ItemChangeRecord = { type: 'loss', lostItem: { ...itemToDiscard } };
+      const turnChangesForDiscard: TurnChanges = {
+        itemChanges: [itemChangeRecord],
+        npcChanges: [],
+        objectiveAchieved: false,
+        mainQuestAchieved: false,
+        objectiveTextChanged: false,
+        mainQuestTextChanged: false,
+        localTimeChanged: false,
+        localEnvironmentChanged: false,
+        localPlaceChanged: false,
+        currentMapNodeIdChanged: false,
+        scoreChangedBy: 0,
+        mapDataChanged: false,
+      };
+      draftState.lastTurnChanges = turnChangesForDiscard;
+
+      const logMessage = `You discarded the ${itemToDiscard.name}.`;
+      draftState.gameLog = addLogMessageToList(draftState.gameLog, logMessage, MAX_LOG_MESSAGES);
+      draftState.lastActionLog = logMessage;
+      commitGameState(draftState);
+    },
+    [getCurrentGameState, commitGameState, isLoading],
+  );
+
   const handleTakeLocationItem = useCallback(
     (itemId: string) => {
       const currentFullState = getCurrentGameState();
@@ -307,6 +347,7 @@ export const useInventoryActions = ({
 
   return {
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,

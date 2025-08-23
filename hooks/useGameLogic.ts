@@ -161,6 +161,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleActionSelect,
     handleItemInteraction: executeItemInteraction,
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     handleStashToggle,
     updateItemContent,
@@ -207,7 +208,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const queueItemAction = useCallback(
     (
       item: Item,
-      interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop',
+      interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop' | 'discard',
       knownUse?: KnownUse,
     ) => {
       if (interactionType === 'take') {
@@ -215,7 +216,15 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         return;
       }
       if (interactionType === 'drop') {
-        handleDropItem(item.id);
+        if (window.confirm(`Drop ${item.name}?`)) {
+          handleDropItem(item.id);
+        }
+        return;
+      }
+      if (interactionType === 'discard') {
+        if (window.confirm(`Discard ${item.name}? This cannot be undone.`)) {
+          handleDiscardItem(item.id);
+        }
         return;
       }
 
@@ -262,7 +271,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         toggleQueuedAction({ id, displayText, promptText, effect });
       }
     },
-    [handleDropItem, handleTakeLocationItem, toggleQueuedAction, recordInspect],
+    [handleDropItem, handleDiscardItem, handleTakeLocationItem, toggleQueuedAction, recordInspect],
   );
 
   const {
@@ -561,6 +570,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     handleActionSelect,
     executeItemInteraction,
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     handleRetry,

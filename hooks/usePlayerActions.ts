@@ -91,6 +91,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
   const {
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
@@ -581,6 +582,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleActionSelect,
     handleItemInteraction,
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
