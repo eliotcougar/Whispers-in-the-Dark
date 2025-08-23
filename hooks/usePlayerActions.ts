@@ -502,7 +502,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   /**
    * Forces the main quest completion procedure without AI involvement.
    */
-  const triggerMainQuestAchieved = useCallback(async () => {
+  const triggerMainQuestAchieved = useCallback(async (): Promise<FullGameState | null> => {
     const currentState = getCurrentGameState();
     const {
       currentTheme,
@@ -510,7 +510,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       worldFacts,
       heroSheet,
     } = currentState;
-    if (!currentTheme || !storyArc || !worldFacts || !heroSheet) return;
+    if (!currentTheme || !storyArc || !worldFacts || !heroSheet) return null;
 
     const draftState = structuredCloneGameState(currentState);
     const newAct = await generateNextStoryAct(
@@ -553,17 +553,17 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     draftState.globalTurnNumber += 1;
     draftState.lastTurnChanges = turnChanges;
     commitGameState(draftState);
+    return draftState;
   }, [getCurrentGameState, commitGameState]);
 
   /**
    * Sequentially completes all remaining acts to reach victory.
    */
   const simulateVictory = useCallback(async () => {
-    let state = getCurrentGameState();
+    let state: FullGameState | null = getCurrentGameState();
     let guard = 0;
-    while (!state.isVictory && guard < 10) {
-      await triggerMainQuestAchieved();
-      state = getCurrentGameState();
+    while (state && !state.isVictory && guard < 10) {
+      state = await triggerMainQuestAchieved();
       guard += 1;
     }
   }, [getCurrentGameState, triggerMainQuestAchieved]);
