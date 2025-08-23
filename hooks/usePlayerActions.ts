@@ -537,18 +537,36 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       mapDataChanged: false,
     };
 
-    if (newAct && draftState.storyArc) {
+    if (draftState.storyArc) {
       const arc = draftState.storyArc;
       arc.acts[arc.currentAct - 1].completed = true;
-      arc.acts.push(newAct);
-      arc.currentAct = newAct.actNumber;
-      turnChanges.mainQuestAchieved = false;
+
+      if (newAct) {
+        arc.acts.push(newAct);
+        arc.currentAct = newAct.actNumber;
+        turnChanges.mainQuestAchieved = false;
+      } else {
+        draftState.isVictory = true;
+      }
     }
 
     draftState.globalTurnNumber += 1;
     draftState.lastTurnChanges = turnChanges;
     commitGameState(draftState);
   }, [getCurrentGameState, commitGameState]);
+
+  /**
+   * Sequentially completes all remaining acts to reach victory.
+   */
+  const simulateVictory = useCallback(async () => {
+    let state = getCurrentGameState();
+    let guard = 0;
+    while (!state.isVictory && guard < 10) {
+      await triggerMainQuestAchieved();
+      state = getCurrentGameState();
+      guard += 1;
+    }
+  }, [getCurrentGameState, triggerMainQuestAchieved]);
 
   return {
     processAiResponse,
@@ -566,5 +584,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleFreeFormActionSubmit,
     handleUndoTurn,
     triggerMainQuestAchieved,
+    simulateVictory,
   };
 };

@@ -426,6 +426,11 @@ export const generateNextStoryAct = async (
 
   const logLines = gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT).join('\n');
 
+  const finalNote =
+    nextActNumber === 5
+      ? ' This is the final act of the game. Provide a successCondition that clearly ends the entire story.'
+      : '';
+
   const prompt = `Using the theme "${theme.name}" continue the narrative.\n\n` +
     `World Facts:\n${JSON.stringify(worldFacts)}\n\n` +
     `Player Character:\n${JSON.stringify(heroSheet)}\n\n` +
@@ -433,7 +438,7 @@ export const generateNextStoryAct = async (
     `Completed Acts:\n${completedActs}\n\n` +
     `Last Scene:\n${lastScene}\n\n` +
     `Recent Log:\n${logLines}\n\n` +
-    `Generate full details for Act ${String(nextActNumber)} (${nature}).`;
+    `Generate full details for Act ${String(nextActNumber)} (${nature}).${finalNote}`;
 
     const request = async () => {
       const thinkingBudget = getThinkingBudget(1024);

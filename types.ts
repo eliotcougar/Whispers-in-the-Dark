@@ -649,6 +649,7 @@ export interface FullGameState {
   localPlace: string | null; // Free-text description, ideally aligns with a map node
   globalTurnNumber: number; // New field
   dialogueState: DialogueData | null;
+  isVictory: boolean;
 
   // Configuration snapshot (remains part of FullGameState for runtime and saving)
   enabledThemePacks: Array<ThemePackName>;
