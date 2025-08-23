@@ -233,6 +233,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         const shuffled = [...names].sort(() => Math.random() - 0.5).slice(0, 10);
         const descriptions = await generateCharacterDescriptions(
           themeObjToLoad,
+          selectedGender,
           worldFacts ?? {
             geography: '',
             climate: '',
