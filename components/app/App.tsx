@@ -272,15 +272,21 @@ function App() {
   const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
   const [lastShownAct, setLastShownAct] = useState(0);
 
+  const currentAct = storyArc?.currentAct ?? 0;
+  const actsLength = storyArc?.acts.length ?? 0;
+
   useEffect(() => {
-    if (storyArc && storyArc.currentAct !== lastShownAct) {
-      const index = storyArc.currentAct - 1;
-      if (storyArc.acts.length > index) {
-        setPendingAct(storyArc.acts[index]);
-        setLastShownAct(storyArc.currentAct);
-      }
+    if (storyArc && currentAct !== lastShownAct && actsLength > currentAct - 1) {
+      setPendingAct(storyArc.acts[currentAct - 1]);
+      setLastShownAct(currentAct);
     }
-  }, [storyArc?.currentAct, storyArc, lastShownAct]);
+  }, [storyArc, currentAct, actsLength, lastShownAct]);
+
+  useEffect(() => {
+    if (storyArc?.currentAct === 1) {
+      setLastShownAct(0);
+    }
+  }, [storyArc]);
 
   const handleActContinue = useCallback(() => {
     setPendingAct(null);
