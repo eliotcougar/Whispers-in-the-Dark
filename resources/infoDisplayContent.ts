@@ -57,7 +57,8 @@ const infoDisplayContent = {
         "Removed Reality Shift game mechanic - it no longer fits nicely into the overall game progression.",
         "Custom Mode is now the main game mode.",
         "Reworked the AI response JSON structures based on new knowledge about Gemini quirks.",
-        "Implemented Thinking Effort setting."
+        "Implemented Thinking Effort setting.",
+        "Improved the map layout."
       ]
     },
     {
