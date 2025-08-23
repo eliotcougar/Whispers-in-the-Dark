@@ -97,10 +97,7 @@ Recent Log:
   ${detailedContext}
 
   ## Player Actions:
-  ${playerAction
-    .split('\n')
-    .map(a => `- ${a}`)
-    .join('\n')}
+${playerAction}
 
   ------
   

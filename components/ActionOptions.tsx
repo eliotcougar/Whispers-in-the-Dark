@@ -45,7 +45,9 @@ function ActionOptions({
 
 
   const queuedDisplayText = queuedActions.map(a => a.displayText).join(', ');
-  const queuedPromptText = queuedActions.map(a => a.promptText).join('\n');
+  const queuedPromptText = queuedActions
+    .map(a => `  - ${a.promptText}`)
+    .join('\n');
 
   const executeQueuedOnly = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -59,7 +61,9 @@ function ActionOptions({
 
   const handleOptionClick = useCallback(
     (action: string) => (event: React.MouseEvent<HTMLButtonElement>) => {
-      const combined = queuedPromptText ? `${queuedPromptText}\n${action}` : action;
+      const combined = queuedPromptText
+        ? `${queuedPromptText}\n  - ${action}`
+        : `  - ${action}`;
       queuedActions.forEach(a => a.effect?.());
       onActionSelect(combined);
       onClearQueuedActions();

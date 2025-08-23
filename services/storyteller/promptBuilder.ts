@@ -229,10 +229,7 @@ IMPORTANT: Recent events are provided only for additional context. These actions
 ${currentScene}
 
 ## Player Actions:
-${playerAction
-    .split('\n')
-    .map(a => `- ${a}`)
-    .join('\n')}
+${playerAction}
 ${travelPlanOrUnknown}`;
 
   return prompt;
