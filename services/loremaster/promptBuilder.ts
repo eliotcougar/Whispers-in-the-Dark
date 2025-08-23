@@ -93,12 +93,13 @@ export const buildCollectRelevantFactsPrompt = (
 Theme: ${themeName}
 Last Scene: "${lastScene}"
 Recent Log:
-${logLines}
-${detailedContext}
+  ${logLines}
+  ${detailedContext}
 
-Player Action: "${playerAction}"
-  
-------
+  ## Player Actions:
+${playerAction}
+
+  ------
   
 Select the 10 most relevant facts from the list of Known Facts:
 ${factLines}

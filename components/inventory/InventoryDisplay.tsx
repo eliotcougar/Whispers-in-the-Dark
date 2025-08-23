@@ -14,34 +14,32 @@ interface InventoryDisplayProps {
   readonly items: Array<Item>;
   readonly onItemInteract: (
     item: Item,
-    interactionType: 'generic' | 'specific' | 'inspect',
+    interactionType: 'generic' | 'specific' | 'inspect' | 'drop' | 'discard',
     knownUse?: KnownUse
   ) => void;
-  readonly onDropItem: (itemId: string) => void;
   readonly onStashToggle: (itemId: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly currentTurn: number;
   readonly disabled: boolean;
+  readonly queuedActionIds: Set<string>;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, onReadPage, currentTurn, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, currentTurn, disabled, queuedActionIds }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemIds,
     stashingItemIds,
-    confirmingDiscardItemId,
     sortOrder,
     handleSortByName,
     handleSortByType,
     filterMode,
     handleFilterAll,
     handleFilterStashed,
-    handleStartConfirmDiscard,
-    handleConfirmDrop,
-    handleCancelDiscard,
     handleSpecificUse,
     handleInspect,
     handleGenericUse,
+    handleDrop,
+    handleDiscard,
     handleVehicleToggle,
     handleStashToggleInternal,
     handleRead,
@@ -49,7 +47,6 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
   } = useInventoryDisplay({
     items,
     onItemInteract,
-    onDropItem,
     onStashToggle,
     onReadPage,
   });
@@ -146,27 +143,25 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
             const applicableUses = getApplicableKnownUses(item);
             const isNew = newlyAddedItemIds.has(item.id);
             const isStashing = stashingItemIds.has(item.id);
-            const isConfirmingDiscard = confirmingDiscardItemId === item.id;
             return (
               <InventoryItem
                 applicableUses={applicableUses}
                 currentTurn={currentTurn}
                 disabled={disabled}
                 filterMode={filterMode}
-                isConfirmingDiscard={isConfirmingDiscard}
                 isNew={isNew}
                 isStashing={isStashing}
                 item={item}
                 key={item.id}
-                onCancelDiscard={handleCancelDiscard}
-                onConfirmDrop={handleConfirmDrop}
                 onGenericUse={handleGenericUse}
+                onDrop={handleDrop}
+                onDiscard={handleDiscard}
                 onInspect={handleInspect}
                 onRead={handleRead}
                 onSpecificUse={handleSpecificUse}
-                onStartConfirmDiscard={handleStartConfirmDiscard}
                 onStashToggle={handleStashToggleInternal}
                 onVehicleToggle={handleVehicleToggle}
+                queuedActionIds={queuedActionIds}
                 registerRef={registerItemRef}
               />
             );

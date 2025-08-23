@@ -91,6 +91,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
   const {
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
@@ -413,11 +414,16 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
 
         for (const item of matchedBooks) {
-          const showActual = item.tags?.includes('recovered');
-          const contents = (item.chapters ?? [])
-            .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
-            .join('\n\n');
-          finalAction += `\nThe contents of the ${item.name} follow:\n${contents}`;
+          const alreadyIncluded =
+            finalAction.includes(`Player reads the ${item.name}`) ||
+            finalAction.includes(`The contents of the ${item.name} follow:`);
+          if (!alreadyIncluded) {
+            const showActual = item.tags?.includes('recovered');
+            const contents = (item.chapters ?? [])
+              .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
+              .join('\n\n');
+            finalAction += `\nThe contents of the ${item.name} follow:\n${contents}`;
+          }
         }
       }
 
@@ -576,6 +582,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleActionSelect,
     handleItemInteraction,
     handleDropItem,
+    handleDiscardItem,
     handleTakeLocationItem,
     updateItemContent,
     addJournalEntry,
@@ -583,6 +590,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     updatePlayerJournalContent,
     handleStashToggle,
     recordPlayerJournalInspect,
+    recordInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
     triggerMainQuestAchieved,
