@@ -11,10 +11,9 @@ interface UseInventoryDisplayProps {
   readonly items: Array<Item>;
   readonly onItemInteract: (
     item: Item,
-    type: 'generic' | 'specific' | 'inspect',
+    type: 'generic' | 'specific' | 'inspect' | 'drop',
     knownUse?: KnownUse
   ) => void;
-  readonly onDropItem: (itemId: string) => void;
   readonly onStashToggle: (itemId: string) => void;
   readonly onReadPage: (item: Item) => void;
 }
@@ -23,7 +22,6 @@ export type FilterMode = 'all' | 'stashed';
 export const useInventoryDisplay = ({
   items,
   onItemInteract,
-  onDropItem,
   onStashToggle,
   onReadPage,
 }: UseInventoryDisplayProps) => {
@@ -56,25 +54,12 @@ export const useInventoryDisplay = ({
 
   const handleStartConfirmDiscard = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const id = event.currentTarget.dataset.itemId;
-    if (id) {
-      setConfirmingDiscardItemId(id);
-      event.currentTarget.blur();
-    }
-  }, []);
-
-  const handleConfirmDrop = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      const id = event.currentTarget.dataset.itemId;
-      if (!id) return;
-      const item = items.find(i => i.id === id);
-      if (!item) return;
-      onDropItem(id);
-
-      setConfirmingDiscardItemId(null);
-      event.currentTarget.blur();
-    },
-    [items, onDropItem]
-  );
+    if (!id) return;
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    onItemInteract(item, 'drop');
+    event.currentTarget.blur();
+  }, [items, onItemInteract]);
 
 
   const handleStashToggleInternal = useCallback(
@@ -285,7 +270,6 @@ export const useInventoryDisplay = ({
     handleFilterAll,
     handleFilterStashed,
     handleStartConfirmDiscard,
-    handleConfirmDrop,
     handleCancelDiscard,
     handleSpecificUse,
     handleInspect,

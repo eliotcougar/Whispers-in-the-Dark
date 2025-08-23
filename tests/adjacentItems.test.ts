@@ -67,7 +67,7 @@ describe('getAdjacentNodeIds for item reachability', () => {
         items: displayItems,
         mapNodes: mapData.nodes.map(n => ({ id: n.id, placeName: n.placeName })),
         onItemInteract: vi.fn(),
-        onTakeItem: vi.fn(),
+        queuedActionIds: new Set<string>(),
       })
     );
     expect(html).toContain('Take');

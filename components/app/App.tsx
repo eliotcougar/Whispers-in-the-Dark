@@ -223,7 +223,7 @@ function App() {
     allNPCs,
     score, freeFormActionText, setFreeFormActionText,
     handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    handleItemInteraction, handleTakeLocationItem, handleRetry,
+    executeItemInteraction, handleRetry,
     startCustomGame,
     gatherCurrentGameState: gatherGameStateStack,
     gatherDebugPacketStack,
@@ -261,6 +261,9 @@ function App() {
     debugBadFacts,
     isVictory,
     simulateVictory,
+    queueItemAction,
+    queuedItemActions,
+    clearQueuedItemActions,
   } = gameLogic;
 
 
@@ -506,18 +509,18 @@ function App() {
           tags: [currentTheme?.playerJournalStyle ?? 'handwritten'],
         };
         const updatedState = recordPlayerJournalInspect();
-        handleItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
+        executeItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
         return;
       }
 
       const item = inventory.find(it => it.id === itemId);
       if (item) {
-        handleItemInteraction(item, 'inspect');
+        executeItemInteraction(item, 'inspect');
       }
     },
     [
       inventory,
-      handleItemInteraction,
+      executeItemInteraction,
       playerJournal,
       lastJournalWriteTurn,
       recordPlayerJournalInspect,
@@ -784,6 +787,8 @@ function App() {
                     mapData={mapData.nodes}
                     onActionSelect={handleActionSelect}
                     options={actionOptions}
+                    queuedActions={queuedItemActions}
+                    onClearQueuedActions={clearQueuedItemActions}
                   />
 
                   <FreeActionInput
@@ -811,12 +816,11 @@ function App() {
                 storyArc={storyArc}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
-                onDropItem={gameLogic.handleDropItem}
-                onItemInteract={handleItemInteraction}
+                onItemInteract={queueItemAction}
                 onReadPage={handleReadPage}
                 onReadPlayerJournal={handleReadPlayerJournal}
                 onStashToggle={gameLogic.handleStashToggle}
-                onTakeItem={handleTakeLocationItem}
+                queuedActionIds={new Set(queuedItemActions.map(a => a.id))}
               />
             )}
           </div>

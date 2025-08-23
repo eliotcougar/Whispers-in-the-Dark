@@ -14,17 +14,17 @@ interface InventoryDisplayProps {
   readonly items: Array<Item>;
   readonly onItemInteract: (
     item: Item,
-    interactionType: 'generic' | 'specific' | 'inspect',
+    interactionType: 'generic' | 'specific' | 'inspect' | 'drop',
     knownUse?: KnownUse
   ) => void;
-  readonly onDropItem: (itemId: string) => void;
   readonly onStashToggle: (itemId: string) => void;
   readonly onReadPage: (item: Item) => void;
   readonly currentTurn: number;
   readonly disabled: boolean;
+  readonly queuedActionIds: Set<string>;
 }
 
-function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, onReadPage, currentTurn, disabled }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, currentTurn, disabled, queuedActionIds }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemIds,
@@ -37,7 +37,6 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
     handleFilterAll,
     handleFilterStashed,
     handleStartConfirmDiscard,
-    handleConfirmDrop,
     handleCancelDiscard,
     handleSpecificUse,
     handleInspect,
@@ -49,7 +48,6 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
   } = useInventoryDisplay({
     items,
     onItemInteract,
-    onDropItem,
     onStashToggle,
     onReadPage,
   });
@@ -159,7 +157,6 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
                 item={item}
                 key={item.id}
                 onCancelDiscard={handleCancelDiscard}
-                onConfirmDrop={handleConfirmDrop}
                 onGenericUse={handleGenericUse}
                 onInspect={handleInspect}
                 onRead={handleRead}
@@ -167,6 +164,7 @@ function InventoryDisplay({ items, onItemInteract, onDropItem, onStashToggle, on
                 onStartConfirmDiscard={handleStartConfirmDiscard}
                 onStashToggle={handleStashToggleInternal}
                 onVehicleToggle={handleVehicleToggle}
+                queuedActionIds={queuedActionIds}
                 registerRef={registerItemRef}
               />
             );

@@ -583,6 +583,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     updatePlayerJournalContent,
     handleStashToggle,
     recordPlayerJournalInspect,
+    recordInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
     triggerMainQuestAchieved,

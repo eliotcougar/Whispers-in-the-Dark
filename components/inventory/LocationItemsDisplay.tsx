@@ -7,27 +7,28 @@ import Button from '../elements/Button';
 
 interface LocationItemsDisplayProps {
   readonly items: Array<Item>;
-  readonly onTakeItem: (itemId: string) => void;
   readonly onItemInteract: (
     item: Item,
-    type: 'generic' | 'specific' | 'inspect',
+    type: 'generic' | 'specific' | 'inspect' | 'take',
     knownUse?: KnownUse,
   ) => void;
   readonly disabled: boolean;
   readonly currentNodeId: string | null;
   readonly mapNodes: Array<{ id: string; placeName: string }>;
+  readonly queuedActionIds: Set<string>;
 }
 
-function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, currentNodeId, mapNodes }: LocationItemsDisplayProps) {
+function LocationItemsDisplay({ items, onItemInteract, disabled, currentNodeId, mapNodes, queuedActionIds }: LocationItemsDisplayProps) {
   const handleTakeItem = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const itemId = event.currentTarget.dataset.itemId;
-      if (itemId) {
-        onTakeItem(itemId);
-        event.currentTarget.blur();
-      }
+      if (!itemId) return;
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      onItemInteract(item, 'take');
+      event.currentTarget.blur();
     },
-    [onTakeItem]
+    [items, onItemInteract]
   );
 
   const handleInspect = useCallback(
@@ -153,6 +154,7 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
                         label={ku.actionName}
                         onClick={handleSpecificUse}
                         preset="teal"
+                        pressed={queuedActionIds.has(`${item.id}-specific-${ku.actionName}`)}
                         size="sm"
                         title={ku.description}
                       />
@@ -165,6 +167,7 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
                       label="Inspect"
                       onClick={handleInspect}
                       preset="indigo"
+                      pressed={queuedActionIds.has(`${item.id}-inspect`)}
                       size="sm"
                     />
 
@@ -175,20 +178,21 @@ function LocationItemsDisplay({ items, onTakeItem, onItemInteract, disabled, cur
                       label="Attempt to Use (Generic)"
                       onClick={handleGenericUse}
                       preset="sky"
+                      pressed={queuedActionIds.has(`${item.id}-generic`)}
                       size="sm"
                     />
                   </>
                 ) : (
-                  <button
-                    aria-label={item.type === 'vehicle' ? `Enter ${item.name}` : `Take ${item.name}`}
-                    className="w-full text-sm bg-green-700 hover:bg-green-600 text-white font-medium py-1.5 px-3 rounded shadow disabled:bg-slate-600 disabled:text-slate-300 disabled:cursor-not-allowed transition-colors duration-150 ease-in-out"
+                  <Button
+                    ariaLabel={item.type === 'vehicle' ? `Enter ${item.name}` : `Take ${item.name}`}
                     data-item-id={item.id}
                     disabled={disabled}
+                    label={item.type === 'vehicle' ? 'Enter Vehicle' : 'Take'}
                     onClick={handleTakeItem}
-                    type="button"
-                  >
-                    {item.type === 'vehicle' ? 'Enter Vehicle' : 'Take'}
-                  </button>
+                    preset="green"
+                    pressed={queuedActionIds.has(`${item.id}-take`)}
+                    size="sm"
+                  />
                 )}
               </div>
             </li>

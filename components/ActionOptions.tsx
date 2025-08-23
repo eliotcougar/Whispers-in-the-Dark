@@ -19,6 +19,8 @@ interface ActionOptionsProps {
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
   readonly allNPCs: Array<NPC>;
+  readonly queuedActions: Array<{ id: string; text: string; effect?: () => void }>;
+  readonly onClearQueuedActions: () => void;
 }
 
 /**
@@ -32,6 +34,8 @@ function ActionOptions({
   inventory,
   mapData,
   allNPCs,
+  queuedActions,
+  onClearQueuedActions,
 }: ActionOptionsProps) {
 
   const entitiesForHighlighting = useMemo(
@@ -40,26 +44,51 @@ function ActionOptions({
   );
 
 
-  const handleOptionClick = useCallback(
-    (action: string) => (event: React.MouseEvent<HTMLButtonElement>) => {
-      onActionSelect(action);
+  const queuedText = queuedActions.map(a => a.text).join(', ');
+
+  const executeQueuedOnly = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      queuedActions.forEach(a => a.effect?.());
+      onActionSelect(queuedText);
+      onClearQueuedActions();
       event.currentTarget.blur();
     },
-    [onActionSelect]
+    [queuedActions, onActionSelect, onClearQueuedActions, queuedText]
+  );
+
+  const handleOptionClick = useCallback(
+    (action: string) => (event: React.MouseEvent<HTMLButtonElement>) => {
+      const combined = queuedText ? `${queuedText}, and ${action}` : action;
+      queuedActions.forEach(a => a.effect?.());
+      onActionSelect(combined);
+      onClearQueuedActions();
+      event.currentTarget.blur();
+    },
+    [queuedActions, onActionSelect, onClearQueuedActions, queuedText]
   );
 
   return (
     <div className="mt-6">
+      {queuedActions.length > 0 ? (
+        <div className="mb-3">
+          <Button
+            ariaLabel={queuedText}
+            disabled={disabled}
+            label={<>{highlightEntitiesInText(queuedText, entitiesForHighlighting)}</>}
+            onClick={executeQueuedOnly}
+            preset="teal"
+            size="lg"
+            variant="standard"
+          />
+        </div>
+      ) : null}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {options.map((option) => (
+        {options.map(option => (
           <Button
             ariaLabel={option}
             disabled={disabled || option === '...'}
             key={option}
-            label={<>
-
-              {highlightEntitiesInText(option, entitiesForHighlighting)}
-            </>}
+            label={<>{highlightEntitiesInText(option, entitiesForHighlighting)}</>}
             onClick={handleOptionClick(option)}
             preset="sky"
             size="lg"

@@ -19,12 +19,12 @@ interface InventoryItemProps {
   readonly onGenericUse: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onVehicleToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onStartConfirmDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  readonly onConfirmDrop: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onCancelDiscard: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onRead: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly onStashToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
   readonly filterMode: FilterMode;
   readonly registerRef?: (el: HTMLLIElement | null) => void;
+  readonly queuedActionIds: Set<string>;
 }
 
 function InventoryItem({
@@ -40,12 +40,12 @@ function InventoryItem({
   onGenericUse,
   onVehicleToggle,
   onStartConfirmDiscard,
-  onConfirmDrop,
   onCancelDiscard,
   onRead,
   onStashToggle,
   filterMode,
   registerRef,
+  queuedActionIds,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
   const isWrittenItem =
@@ -80,6 +80,7 @@ function InventoryItem({
         label={knownUse.actionName}
         onClick={onSpecificUse}
         preset="teal"
+        pressed={queuedActionIds.has(`${item.id}-specific-${knownUse.actionName}`)}
         size="sm"
         title={knownUse.description}
       />
@@ -104,10 +105,11 @@ function InventoryItem({
       ariaLabel={`Inspect ${item.name}`}
       data-item-id={item.id}
       disabled={inspectDisabled}
-        key={`${item.id}-inspect`}
+      key={`${item.id}-inspect`}
       label="Inspect"
       onClick={onInspect}
       preset="indigo"
+      pressed={queuedActionIds.has(`${item.id}-inspect`)}
       size="sm"
     />
   );
@@ -142,6 +144,7 @@ function InventoryItem({
         label="Attempt to Use (Generic)"
         onClick={onGenericUse}
         preset="sky"
+        pressed={queuedActionIds.has(`${item.id}-generic`)}
         size="sm"
       />
     );
@@ -157,6 +160,7 @@ function InventoryItem({
         label={item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}
         onClick={onVehicleToggle}
         preset="sky"
+        pressed={queuedActionIds.has(`${item.id}-specific-${item.isActive ? `Exit ${item.name}` : `Enter ${item.name}`}`)}
         size="sm"
       />
     );
@@ -179,6 +183,7 @@ function InventoryItem({
         label="Discard"
         onClick={onStartConfirmDiscard}
         preset="orange"
+        pressed={queuedActionIds.has(`${item.id}-drop`)}
         size="sm"
       />
     );
@@ -215,6 +220,7 @@ function InventoryItem({
         label="Drop"
         onClick={onStartConfirmDiscard}
         preset="sky"
+        pressed={queuedActionIds.has(`${item.id}-drop`)}
         size="sm"
       />
     );
@@ -230,6 +236,7 @@ function InventoryItem({
         label="Drop"
         onClick={onStartConfirmDiscard}
         preset="sky"
+        pressed={queuedActionIds.has(`${item.id}-drop`)}
         size="sm"
       />
     );
@@ -245,6 +252,7 @@ function InventoryItem({
         label="Park Here"
         onClick={onStartConfirmDiscard}
         preset="sky"
+        pressed={queuedActionIds.has(`${item.id}-drop`)}
         size="sm"
       />
     );
@@ -256,23 +264,6 @@ function InventoryItem({
         className="grid grid-cols-2 gap-2 mt-2"
         key={`${item.id}-confirm-group`}
       >
-        <Button
-          ariaLabel={`Confirm drop of ${item.name}`}
-          data-item-id={item.id}
-          disabled={disabled}
-          key={`${item.id}-confirm-drop`}
-          label={
-            item.type === 'vehicle' && !item.isActive
-              ? 'Confirm Park'
-              : item.tags?.includes('junk')
-                ? 'Confirm Discard'
-                : 'Confirm Drop'
-          }
-          onClick={onConfirmDrop}
-          preset="red"
-          size="sm"
-        />
-
         <Button
           ariaLabel="Cancel discard"
           disabled={disabled}

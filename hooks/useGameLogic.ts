@@ -17,6 +17,8 @@ import {
   HeroBackstory,
   StoryArc,
   ThinkingEffort,
+  Item,
+  KnownUse,
 } from '../types';
 import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingState';
 import { useLoadingReason } from './useLoadingReason';
@@ -90,6 +92,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   void parseErrorCounter;
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
+  const [queuedItemActions, setQueuedItemActions] = useState<Array<{ id: string; text: string; effect?: () => void }>>([]);
 
   // Tracks whether a saved game from app initialization has already been
   // applied to prevent re-loading it when starting a new game.
@@ -154,7 +157,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     handleSelectDestinationNode,
     processAiResponse,
     handleActionSelect,
-    handleItemInteraction,
+    handleItemInteraction: executeItemInteraction,
     handleDropItem,
     handleTakeLocationItem,
     handleStashToggle,
@@ -163,6 +166,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     addPlayerJournalEntry,
     updatePlayerJournalContent,
     recordPlayerJournalInspect,
+    recordInspect,
     handleFreeFormActionSubmit,
     handleUndoTurn,
     triggerMainQuestAchieved,
@@ -183,6 +187,58 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     debugLore: currentSnapshot.debugLore,
     openDebugLoreModal,
   });
+
+  const toggleQueuedAction = useCallback((action: { id: string; text: string; effect?: () => void }) => {
+    setQueuedItemActions(prev => {
+      const exists = prev.some(a => a.id === action.id);
+      return exists ? prev.filter(a => a.id !== action.id) : [...prev, action];
+    });
+  }, []);
+
+  const clearQueuedItemActions = useCallback(() => {
+    setQueuedItemActions([]);
+  }, []);
+
+  const queueItemAction = useCallback(
+    (item: Item, interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop', knownUse?: KnownUse) => {
+      let id = '';
+      let text = '';
+      let effect: (() => void) | undefined;
+      switch (interactionType) {
+        case 'inspect':
+          id = `${item.id}-inspect`;
+          text = `Inspect the ${item.name}`;
+          effect = () => { recordInspect(item.id); };
+          break;
+        case 'generic':
+          id = `${item.id}-generic`;
+          text = `Attempt to use the ${item.name}`;
+          break;
+        case 'specific':
+          if (knownUse) {
+            id = `${item.id}-specific-${knownUse.actionName}`;
+            text = `${knownUse.actionName} the ${item.name}`;
+          }
+          break;
+        case 'take':
+          id = `${item.id}-take`;
+          text = `Take the ${item.name}`;
+          effect = () => { handleTakeLocationItem(item.id); };
+          break;
+        case 'drop':
+          id = `${item.id}-drop`;
+          text = `Drop the ${item.name}`;
+          effect = () => { handleDropItem(item.id); };
+          break;
+        default:
+          break;
+      }
+      if (id && text) {
+        toggleQueuedAction({ id, text, effect });
+      }
+    },
+    [handleDropItem, handleTakeLocationItem, toggleQueuedAction, recordInspect]
+  );
 
   const {
     loadInitialGame,
@@ -478,7 +534,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     debugPacketStack,
 
     handleActionSelect,
-    handleItemInteraction,
+    executeItemInteraction,
     handleDropItem,
     handleTakeLocationItem,
     updateItemContent,
@@ -511,5 +567,8 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     debugLore: currentFullState.debugLore,
     debugGoodFacts: currentFullState.debugGoodFacts,
     debugBadFacts: currentFullState.debugBadFacts,
+    queueItemAction,
+    queuedItemActions,
+    clearQueuedItemActions,
   };
 };
