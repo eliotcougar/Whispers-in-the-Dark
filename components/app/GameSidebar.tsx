@@ -34,6 +34,7 @@ interface GameSidebarProps {
   readonly globalTurnNumber: number;
   readonly disabled: boolean;
   readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
 function GameSidebar({
@@ -53,6 +54,7 @@ function GameSidebar({
   globalTurnNumber,
   disabled,
   queuedActionIds,
+  remainingActionPoints,
 }: GameSidebarProps) {
   const questHighlightEntities = useMemo(
     () => buildHighlightableEntities(inventory, mapNodes, allNPCs),
@@ -128,16 +130,18 @@ function GameSidebar({
         mapNodes={mapNodes}
         onItemInteract={onItemInteract}
         queuedActionIds={queuedActionIds}
+        remainingActionPoints={remainingActionPoints}
       />
 
       <InventoryDisplay
         currentTurn={globalTurnNumber}
         disabled={disabled}
         items={inventory}
-                onItemInteract={onItemInteract}
+        onItemInteract={onItemInteract}
         onReadPage={onReadPage}
         onStashToggle={onStashToggle}
         queuedActionIds={queuedActionIds}
+        remainingActionPoints={remainingActionPoints}
       />
     </>
   );

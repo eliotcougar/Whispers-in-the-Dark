@@ -22,9 +22,10 @@ interface InventoryDisplayProps {
   readonly currentTurn: number;
   readonly disabled: boolean;
   readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
-function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, currentTurn, disabled, queuedActionIds }: InventoryDisplayProps) {
+function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, currentTurn, disabled, queuedActionIds, remainingActionPoints }: InventoryDisplayProps) {
   const {
     displayedItems,
     newlyAddedItemIds,
@@ -71,7 +72,16 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
         prevRectsRef.current.delete(id);
         return;
       }
-      newRects.set(id, el.getBoundingClientRect());
+      const rect = el.getBoundingClientRect();
+      newRects.set(
+        id,
+        new DOMRect(
+          rect.left + window.scrollX,
+          rect.top + window.scrollY,
+          rect.width,
+          rect.height,
+        ),
+      );
     });
 
     if (prevDisabledRef.current !== disabled) {
@@ -163,6 +173,7 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
                 onVehicleToggle={handleVehicleToggle}
                 queuedActionIds={queuedActionIds}
                 registerRef={registerItemRef}
+                remainingActionPoints={remainingActionPoints}
               />
             );
           })}

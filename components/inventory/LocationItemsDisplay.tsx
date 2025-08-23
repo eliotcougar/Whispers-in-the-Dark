@@ -4,6 +4,11 @@ import { Item, KnownUse } from '../../types';
 import { Icon } from '../elements/icons';
 import ItemTypeDisplay from './ItemTypeDisplay';
 import Button from '../elements/Button';
+import {
+  KNOWN_USE_ACTION_COST,
+  GENERIC_USE_ACTION_COST,
+  INSPECT_ACTION_COST,
+} from '../../constants';
 
 interface LocationItemsDisplayProps {
   readonly items: Array<Item>;
@@ -16,9 +21,10 @@ interface LocationItemsDisplayProps {
   readonly currentNodeId: string | null;
   readonly mapNodes: Array<{ id: string; placeName: string }>;
   readonly queuedActionIds: Set<string>;
+  readonly remainingActionPoints: number;
 }
 
-function LocationItemsDisplay({ items, onItemInteract, disabled, currentNodeId, mapNodes, queuedActionIds }: LocationItemsDisplayProps) {
+function LocationItemsDisplay({ items, onItemInteract, disabled, currentNodeId, mapNodes, queuedActionIds, remainingActionPoints }: LocationItemsDisplayProps) {
   const handleTakeItem = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       const itemId = event.currentTarget.dataset.itemId;
@@ -143,48 +149,65 @@ function LocationItemsDisplay({ items, onItemInteract, disabled, currentNodeId, 
               <div className="mt-auto space-y-2">
                 {item.type === 'immovable' ? (
                   <>
-                    {getApplicableKnownUses(item).map(ku => (
-                      <Button
-                        ariaLabel={`${ku.actionName}${ku.description ? ': ' + ku.description : ''}`}
-                        data-action-name={ku.actionName}
-                        data-item-id={item.id}
-                        data-prompt-effect={ku.promptEffect}
-                        disabled={disabled}
-                        key={`${item.id}-ku-${ku.actionName}`}
-                        label={ku.actionName}
-                        onClick={handleSpecificUse}
-                        preset="teal"
-                        pressed={queuedActionIds.has(`${item.id}-specific-${ku.actionName}`)}
-                        size="sm"
-                        title={ku.description}
-                        variant="toggleFull"
-                      />
-                    ))}
-                    <Button
-                      ariaLabel={`Inspect ${item.name}`}
-                      data-item-id={item.id}
-                      disabled={disabled}
-                      label="Inspect"
-                      onClick={handleInspect}
-                      preset="indigo"
-                      pressed={queuedActionIds.has(`${item.id}-inspect`)}
-                      size="sm"
-                      variant="toggleFull"
-                    />
+                    {getApplicableKnownUses(item).map(ku => {
+                      const isQueued = queuedActionIds.has(`${item.id}-specific-${ku.actionName}`);
+                      return (
+                        <Button
+                          ariaLabel={`${ku.actionName}${ku.description ? ': ' + ku.description : ''}`}
+                          cost={KNOWN_USE_ACTION_COST}
+                          data-action-name={ku.actionName}
+                          data-item-id={item.id}
+                          data-prompt-effect={ku.promptEffect}
+                          disabled={disabled || (!isQueued && KNOWN_USE_ACTION_COST > remainingActionPoints)}
+                          key={`${item.id}-ku-${ku.actionName}`}
+                          label={ku.actionName}
+                          onClick={handleSpecificUse}
+                          preset="teal"
+                          pressed={isQueued}
+                          size="sm"
+                          title={ku.description}
+                          variant="toggleFull"
+                        />
+                      );
+                    })}
 
-                    <Button
-                      ariaLabel={`Attempt to use ${item.name}`}
-                      data-item-id={item.id}
-                      disabled={disabled}
-                      label="Attempt to Use (Generic)"
-                      onClick={handleGenericUse}
-                      preset="sky"
-                      pressed={queuedActionIds.has(`${item.id}-generic`)}
-                      size="sm"
-                      variant="toggleFull"
-                    />
-                </>
-              ) : (
+                    {(() => {
+                      const inspectQueued = queuedActionIds.has(`${item.id}-inspect`);
+                      return (
+                        <Button
+                          ariaLabel={`Inspect ${item.name}`}
+                          cost={INSPECT_ACTION_COST}
+                          data-item-id={item.id}
+                          disabled={disabled || (!inspectQueued && INSPECT_ACTION_COST > remainingActionPoints)}
+                          label="Inspect"
+                          onClick={handleInspect}
+                          preset="indigo"
+                          pressed={inspectQueued}
+                          size="sm"
+                          variant="toggleFull"
+                        />
+                      );
+                    })()}
+
+                    {(() => {
+                      const genericQueued = queuedActionIds.has(`${item.id}-generic`);
+                      return (
+                        <Button
+                          ariaLabel={`Attempt to use ${item.name}`}
+                          cost={GENERIC_USE_ACTION_COST}
+                          data-item-id={item.id}
+                          disabled={disabled || (!genericQueued && GENERIC_USE_ACTION_COST > remainingActionPoints)}
+                          label="Attempt to Use (Generic)"
+                          onClick={handleGenericUse}
+                          preset="sky"
+                          pressed={genericQueued}
+                          size="sm"
+                          variant="toggleFull"
+                        />
+                      );
+                    })()}
+                  </>
+                ) : (
                   <Button
                     ariaLabel={item.type === 'vehicle' ? `Enter ${item.name}` : `Take ${item.name}`}
                     data-item-id={item.id}

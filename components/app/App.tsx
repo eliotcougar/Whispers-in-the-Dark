@@ -258,13 +258,14 @@ function App() {
     toggleDebugLore,
     debugLore,
     debugGoodFacts,
-    debugBadFacts,
-    isVictory,
-    simulateVictory,
-    queueItemAction,
-    queuedItemActions,
-    clearQueuedItemActions,
-  } = gameLogic;
+      debugBadFacts,
+      isVictory,
+      simulateVictory,
+      queueItemAction,
+      queuedItemActions,
+      clearQueuedItemActions,
+      remainingActionPoints,
+    } = gameLogic;
 
 
   const handleApplyGameState = useCallback(
@@ -817,12 +818,13 @@ function App() {
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
                 onItemInteract={queueItemAction}
-                onReadPage={handleReadPage}
-                onReadPlayerJournal={handleReadPlayerJournal}
-                onStashToggle={gameLogic.handleStashToggle}
-                queuedActionIds={new Set(queuedItemActions.map(a => a.id))}
-              />
-            )}
+                  onReadPage={handleReadPage}
+                  onReadPlayerJournal={handleReadPlayerJournal}
+                  onStashToggle={gameLogic.handleStashToggle}
+                  queuedActionIds={new Set(queuedItemActions.map(a => a.id))}
+                  remainingActionPoints={remainingActionPoints}
+                />
+              )}
           </div>
         </main>
 

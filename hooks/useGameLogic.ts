@@ -28,11 +28,15 @@ import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-import {
-  PLAYER_HOLDER_ID,
-  DISTILL_LORE_INTERVAL,
-  RECENT_LOG_COUNT_FOR_DISTILL,
-} from '../constants';
+  import {
+    PLAYER_HOLDER_ID,
+    DISTILL_LORE_INTERVAL,
+    RECENT_LOG_COUNT_FOR_DISTILL,
+    ACTION_POINTS_PER_TURN,
+    KNOWN_USE_ACTION_COST,
+    GENERIC_USE_ACTION_COST,
+    INSPECT_ACTION_COST,
+  } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
@@ -93,8 +97,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
   const [queuedItemActions, setQueuedItemActions] = useState<
-    Array<{ id: string; displayText: string; promptText: string; effect?: () => void }>
+    Array<{ id: string; displayText: string; promptText: string; cost: number; effect?: () => void }>
   >([]);
+
+  const totalQueuedActionCost = useMemo(
+    () => queuedItemActions.reduce((sum, a) => sum + a.cost, 0),
+    [queuedItemActions],
+  );
+  const remainingActionPoints = ACTION_POINTS_PER_TURN - totalQueuedActionCost;
 
   // Tracks whether a saved game from app initialization has already been
   // applied to prevent re-loading it when starting a new game.
@@ -191,84 +201,98 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     openDebugLoreModal,
   });
 
-  const toggleQueuedAction = useCallback(
-    (action: { id: string; displayText: string; promptText: string; effect?: () => void }) => {
-      setQueuedItemActions(prev => {
-        const exists = prev.some(a => a.id === action.id);
-        return exists ? prev.filter(a => a.id !== action.id) : [...prev, action];
-      });
-    },
-    [],
-  );
+    const toggleQueuedAction = useCallback(
+      (action: { id: string; displayText: string; promptText: string; cost: number; effect?: () => void }) => {
+        setQueuedItemActions(prev => {
+          const exists = prev.some(a => a.id === action.id);
+          return exists ? prev.filter(a => a.id !== action.id) : [...prev, action];
+        });
+      },
+      [],
+    );
 
   const clearQueuedItemActions = useCallback(() => {
     setQueuedItemActions([]);
   }, []);
 
-  const queueItemAction = useCallback(
-    (
-      item: Item,
-      interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop' | 'discard',
-      knownUse?: KnownUse,
-    ) => {
-      if (interactionType === 'take') {
-        handleTakeLocationItem(item.id);
-        return;
-      }
-      if (interactionType === 'drop') {
-        handleDropItem(item.id);
-        return;
-      }
-      if (interactionType === 'discard') {
-        handleDiscardItem(item.id);
-        return;
-      }
-
-      let id = '';
-      let displayText = '';
-      let promptText = '';
-      let effect: (() => void) | undefined;
-
-      switch (interactionType) {
-        case 'inspect': {
-          id = `${item.id}-inspect`;
-          displayText = `Inspect the ${item.name}`;
-          effect = () => {
-            recordInspect(item.id);
-          };
-          if (item.type === 'book' || item.type === 'page') {
-            const showActual = item.tags?.includes('recovered');
-            const contents = (item.chapters ?? [])
-              .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
-              .join('\n\n');
-            promptText = `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`;
-          } else {
-            promptText = `Player investigates the ${item.name} - ${item.description}.`;
-          }
-          break;
+    const queueItemAction = useCallback(
+      (
+        item: Item,
+        interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop' | 'discard',
+        knownUse?: KnownUse,
+      ) => {
+        if (interactionType === 'take') {
+          handleTakeLocationItem(item.id);
+          return;
         }
-        case 'generic':
-          id = `${item.id}-generic`;
-          displayText = `Attempt to use the ${item.name}`;
-          promptText = `Attempt to use: ${item.name}`;
-          break;
-        case 'specific':
-          if (knownUse) {
-            id = `${item.id}-specific-${knownUse.actionName}`;
-            displayText = knownUse.actionName;
-            promptText = knownUse.promptEffect;
-          }
-          break;
-        default:
-          break;
-      }
+        if (interactionType === 'drop') {
+          handleDropItem(item.id);
+          return;
+        }
+        if (interactionType === 'discard') {
+          handleDiscardItem(item.id);
+          return;
+        }
 
-      if (id && displayText && promptText) {
-        toggleQueuedAction({ id, displayText, promptText, effect });
-      }
-    },
-    [handleDropItem, handleDiscardItem, handleTakeLocationItem, toggleQueuedAction, recordInspect],
-  );
+        let id = '';
+        let displayText = '';
+        let promptText = '';
+        let effect: (() => void) | undefined;
+        let cost = 0;
+
+        switch (interactionType) {
+          case 'inspect': {
+            id = `${item.id}-inspect`;
+            displayText = `Inspect the ${item.name}`;
+            effect = () => {
+              recordInspect(item.id);
+            };
+            cost = INSPECT_ACTION_COST;
+            if (item.type === 'book' || item.type === 'page') {
+              const showActual = item.tags?.includes('recovered');
+              const contents = (item.chapters ?? [])
+                .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
+                .join('\n\n');
+              promptText = `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`;
+            } else {
+              promptText = `Player investigates the ${item.name} - ${item.description}.`;
+            }
+            break;
+          }
+          case 'generic':
+            id = `${item.id}-generic`;
+            displayText = `Attempt to use the ${item.name}`;
+            promptText = `Attempt to use: ${item.name}`;
+            cost = GENERIC_USE_ACTION_COST;
+            break;
+          case 'specific':
+            if (knownUse) {
+              id = `${item.id}-specific-${knownUse.actionName}`;
+              displayText = knownUse.actionName;
+              promptText = knownUse.promptEffect;
+              cost = KNOWN_USE_ACTION_COST;
+            }
+            break;
+          default:
+            break;
+        }
+
+        if (id && displayText && promptText) {
+          const isQueued = queuedItemActions.some(a => a.id === id);
+          if (!isQueued && cost > remainingActionPoints) return;
+          toggleQueuedAction({ id, displayText, promptText, cost, effect });
+        }
+      },
+      [
+        handleDropItem,
+        handleDiscardItem,
+        handleTakeLocationItem,
+        toggleQueuedAction,
+        recordInspect,
+        queuedItemActions,
+        remainingActionPoints,
+      ],
+    );
 
   const {
     loadInitialGame,
@@ -601,5 +625,6 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     queueItemAction,
     queuedItemActions,
     clearQueuedItemActions,
+    remainingActionPoints,
   };
 };

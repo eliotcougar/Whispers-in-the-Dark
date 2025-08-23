@@ -19,7 +19,13 @@ interface ActionOptionsProps {
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
   readonly allNPCs: Array<NPC>;
-  readonly queuedActions: Array<{ id: string; displayText: string; promptText: string; effect?: () => void }>;
+  readonly queuedActions: Array<{
+    id: string;
+    displayText: string;
+    promptText: string;
+    cost: number;
+    effect?: () => void;
+  }>;
   readonly onClearQueuedActions: () => void;
 }
 
@@ -75,17 +81,27 @@ function ActionOptions({
   return (
     <div className="mt-6">
       {queuedActions.length > 0 ? (
-        <div className="mb-3">
-          <Button
-            ariaLabel={queuedDisplayText}
-            disabled={disabled}
-            label={<>{highlightEntitiesInText(queuedDisplayText, entitiesForHighlighting)}</>}
-            onClick={executeQueuedOnly}
-            preset="teal"
-            size="lg"
-            variant="standard"
-          />
-        </div>
+        <>
+          <div className="mb-3">
+            <Button
+              ariaLabel={queuedDisplayText}
+              disabled={disabled}
+              label={<>{highlightEntitiesInText(queuedDisplayText, entitiesForHighlighting)}</>}
+              onClick={executeQueuedOnly}
+              preset="teal"
+              size="lg"
+              variant="standard"
+            />
+          </div>
+
+          <div className="mb-3 flex items-center" role="separator">
+            <span className="flex-grow border-b border-slate-500" />
+
+            <span className="px-2 text-slate-300">AND</span>
+
+            <span className="flex-grow border-b border-slate-500" />
+          </div>
+        </>
       ) : null}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {options.map(option => (
