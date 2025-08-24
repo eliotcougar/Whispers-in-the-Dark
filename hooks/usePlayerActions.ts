@@ -355,7 +355,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           scoreChangeFromAction,
           setIsLoading,
           setIsTurnProcessing,
-          shouldRunDistill: willRunDistill,
         });
       } catch (e: unknown) {
         encounteredError = true;

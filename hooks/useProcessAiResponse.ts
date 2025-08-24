@@ -415,7 +415,6 @@ export interface ProcessAiResponseOptions {
   scoreChangeFromAction?: number;
   setIsLoading?: (val: boolean) => void;
   setIsTurnProcessing?: (val: boolean) => void;
-  shouldRunDistill?: boolean;
 }
 
 export type ProcessAiResponseFn = (
@@ -772,10 +771,6 @@ export const useProcessAiResponse = ({
           );
         }
         setLoadingReason(original);
-      }
-
-      if (options.shouldRunDistill === false) {
-        options.setIsTurnProcessing?.(false);
       }
 
       updateDialogueState(draftState, aiData, isFromDialogueSummary);
