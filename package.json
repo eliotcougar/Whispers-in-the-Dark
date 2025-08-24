@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@google/genai": "^1.7.0",
+    "@google/genai": "^1.15.0",
     "idb": "^8.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
