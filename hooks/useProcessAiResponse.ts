@@ -9,6 +9,7 @@ import {
   ItemChange,
   LoadingReason,
   TurnChanges,
+  StoryAct,
 } from '../types';
 import { fetchCorrectedName_Service } from '../services/corrections';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITTEN_ITEM_TYPES, REGULAR_ITEM_TYPES } from '../constants';
@@ -434,6 +435,8 @@ export interface UseProcessAiResponseProps {
     facts: Array<string>,
     resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
   ) => void;
+  actIntroRef: React.RefObject<StoryAct | null>;
+  onActIntro: (act: StoryAct) => void;
 }
 
 export const useProcessAiResponse = ({
@@ -443,6 +446,8 @@ export const useProcessAiResponse = ({
   setGameStateStack,
   debugLore,
   openDebugLoreModal,
+  actIntroRef,
+  onActIntro,
 }: UseProcessAiResponseProps) => {
   const { processMapUpdates } = useMapUpdateProcessor({
     loadingReasonRef,
@@ -735,6 +740,10 @@ export const useProcessAiResponse = ({
         ].join('\n');
 
         const contextParts = `${baseContext}\n${idsContext}`;
+        if (actIntroRef.current) {
+          onActIntro(actIntroRef.current);
+          actIntroRef.current = null;
+        }
         const original = loadingReasonRef.current;
         const refineResult = await refineLore_Service({
           themeName: themeContextForResponse.name,
@@ -786,6 +795,8 @@ export const useProcessAiResponse = ({
       clearObjectiveAnimationTimer,
       debugLore,
       openDebugLoreModal,
+      actIntroRef,
+      onActIntro,
     ],
   );
 

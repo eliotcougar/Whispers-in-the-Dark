@@ -15,6 +15,7 @@ import {
   HeroSheet,
   HeroBackstory,
   StoryArc,
+  StoryAct,
   ThinkingEffort,
 } from '../types';
 import {
@@ -82,6 +83,7 @@ export interface UseGameInitializationProps {
     }) => Promise<void>,
   ) => Promise<void>;
   openGenderSelectModal: (defaultGender: string) => Promise<string>;
+  onActIntro: (act: StoryAct) => void;
 }
 
 /**
@@ -103,6 +105,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     processAiResponse,
     openCharacterSelectModal,
     openGenderSelectModal,
+    onActIntro,
   } = props;
 
 
@@ -180,6 +183,9 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           : stateWithMapData;
 
         setGameStateStack([stateWithMapData, prev]);
+        const arc = stateWithMapData.storyArc;
+        const act = arc ? arc.acts[arc.currentAct - 1] : null;
+        if (act) onActIntro(act);
 
         setHasGameBeenInitialized(true);
         setIsLoading(false);
@@ -420,6 +426,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       openCharacterSelectModal,
       openGenderSelectModal,
       getCurrentGameState,
+      onActIntro,
     ]);
 
   /**

@@ -15,6 +15,7 @@ import {
   CharacterOption,
   HeroSheet,
   HeroBackstory,
+  StoryAct,
   StoryArc,
   ThinkingEffort,
   Item,
@@ -66,6 +67,7 @@ export interface UseGameLogicProps {
     }) => Promise<void>,
   ) => Promise<void>;
   openGenderSelectModal: (defaultGender: string) => Promise<string>;
+  onActIntro: (act: StoryAct) => void;
 }
 
 /** Manages overall game state and delegates to sub hooks. */
@@ -79,6 +81,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     openDebugLoreModal,
     openCharacterSelectModal,
     openGenderSelectModal,
+    onActIntro,
   } = props;
 
   const [gameStateStack, setGameStateStack] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
@@ -118,6 +121,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const loadInitialGameRef = useRef<(opts: LoadInitialGameOptions) => Promise<void>>(
     () => Promise.resolve(),
   );
+
+  const actIntroRef = useRef<StoryAct | null>(null);
 
   const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
   const commitGameState = useCallback((newGameState: FullGameState) => {
@@ -203,6 +208,8 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     loadingReasonRef,
     debugLore: currentSnapshot.debugLore,
     openDebugLoreModal,
+    actIntroRef,
+    onActIntro,
   });
 
     const toggleQueuedAction = useCallback(
@@ -319,6 +326,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     processAiResponse,
     openCharacterSelectModal,
     openGenderSelectModal,
+    onActIntro,
   });
   loadInitialGameRef.current = loadInitialGame;
 
