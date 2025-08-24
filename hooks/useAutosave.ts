@@ -13,24 +13,26 @@ import {
 export const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 export interface UseAutosaveOptions {
-  readonly gatherGameStateStack: () => GameStateStack;
-  readonly gatherDebugPacketStack: () => DebugPacketStack;
-  readonly isLoading: boolean;
-  readonly hasGameBeenInitialized: boolean;
   readonly appReady: boolean;
-  readonly dialogueState: unknown;
   readonly dependencies: Array<unknown>;
+  readonly dialogueState: unknown;
+  readonly gatherDebugPacketStack: () => DebugPacketStack;
+  readonly gatherGameStateStack: () => GameStateStack;
+  readonly hasGameBeenInitialized: boolean;
+  readonly isLoading: boolean;
+  readonly isTurnProcessing: boolean;
   readonly setError?: (msg: string | null) => void;
 }
 
 export function useAutosave({
-  gatherGameStateStack,
-  gatherDebugPacketStack,
-  isLoading,
-  hasGameBeenInitialized,
   appReady,
-  dialogueState,
   dependencies,
+  dialogueState,
+  gatherDebugPacketStack,
+  gatherGameStateStack,
+  hasGameBeenInitialized,
+  isLoading,
+  isTurnProcessing,
   setError,
 }: UseAutosaveOptions) {
   const autosaveTimeoutRef = useRef<number | null>(null);
@@ -38,7 +40,7 @@ export function useAutosave({
   const dependenciesKey = JSON.stringify(dependencies);
 
   useEffect(() => {
-    if (isLoading || !hasGameBeenInitialized || !appReady || !!dialogueState) {
+    if (isLoading || isTurnProcessing || !hasGameBeenInitialized || !appReady || !!dialogueState) {
       return;
     }
     if (autosaveTimeoutRef.current) {
@@ -72,6 +74,7 @@ export function useAutosave({
     appReady,
     dialogueState,
     dependenciesKey,
+    isTurnProcessing,
     setError,
   ]);
 }
