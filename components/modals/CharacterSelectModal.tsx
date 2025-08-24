@@ -1,5 +1,13 @@
 import { useCallback, useState } from 'react';
-import type { AdventureTheme, WorldFacts, CharacterOption, HeroSheet, HeroBackstory, StoryArc } from '../../types';
+import type {
+  AdventureTheme,
+  CharacterOption,
+  HeroBackstory,
+  HeroSheet,
+  StoryArc,
+  WorldFacts,
+} from '../../types';
+import BackstoryItem from '../elements/BackstoryItem';
 import Button from '../elements/Button';
 import CharacterCard from '../elements/CharacterCard';
 import LoadingSpinner from '../LoadingSpinner';
@@ -137,61 +145,21 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
                 </h3>
 
                 <div className="space-y-2 whitespace-pre-line">
-                  <p>
-                    <span className="font-semibold text-sky-300">
-                      5 years ago:
-                    </span> 
-                    {' '}
-                    {heroBackstory.fiveYearsAgo}
-                  </p>
-
-                  <p>
-                    <span className="font-semibold text-sky-300">
-                      1 year ago:
-                    </span> 
-                    {' '}
-                    {heroBackstory.oneYearAgo}
-                  </p>
-
-                  <p>
-                    <span className="font-semibold text-sky-300">
-                      6 months ago:
-                    </span> 
-                    {' '}
-                    {heroBackstory.sixMonthsAgo}
-                  </p>
-
-                  <p>
-                    <span className="font-semibold text-sky-300">
-                      1 month ago:
-                    </span> 
-                    {' '}
-                    {heroBackstory.oneMonthAgo}
-                  </p>
-
-                  <p>
-                    <span className="font-semibold text-sky-300">
-                      1 week ago:
-                    </span> 
-                    {' '}
-                    {heroBackstory.oneWeekAgo}
-                  </p>
-
-                  <p>
-                    <span className="font-semibold text-sky-300">
-                      Yesterday:
-                    </span> 
-                    {' '}
-                    {heroBackstory.yesterday}
-                  </p>
-
-                  <p>
-                    <span className="font-semibold text-sky-300">
-                      Now:
-                    </span> 
-                    {' '}
-                    {heroBackstory.now}
-                  </p>
+                  {[
+                    { label: '5 years ago', text: heroBackstory.fiveYearsAgo },
+                    { label: '1 year ago', text: heroBackstory.oneYearAgo },
+                    { label: '6 months ago', text: heroBackstory.sixMonthsAgo },
+                    { label: '1 month ago', text: heroBackstory.oneMonthAgo },
+                    { label: '1 week ago', text: heroBackstory.oneWeekAgo },
+                    { label: 'Yesterday', text: heroBackstory.yesterday },
+                    { label: 'Now', text: heroBackstory.now },
+                  ].map(({ label, text }) => (
+                    <BackstoryItem
+                      key={label}
+                      label={label}
+                      text={text}
+                    />
+                  ))}
                 </div>
               </section>
 

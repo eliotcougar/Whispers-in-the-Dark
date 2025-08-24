@@ -224,7 +224,12 @@ function ImageVisualizer({
       const response = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: safePrompt,
-        config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3', person_generation: "ALLOW_ALL", image_size: "1K" },
+        config: {
+          aspectRatio: '4:3',
+          imageSize: '1K',
+          numberOfImages: 1,
+          outputMimeType: 'image/jpeg',
+        },
       });
 
       if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image?.imageBytes) {
