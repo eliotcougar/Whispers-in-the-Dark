@@ -35,7 +35,6 @@ function ActIntroModal({ act, isTurnGenerating, onContinue }: ActIntroModalProps
         <div className="mt-8 flex items-center space-x-4 self-center">
           <Button
             ariaLabel="Continue"
-            disabled={isTurnGenerating}
             label="Continue"
             onClick={onContinue}
             preset="blue"

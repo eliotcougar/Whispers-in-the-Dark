@@ -280,6 +280,12 @@ function App() {
 
   const isActTurnGenerating = pendingAct !== null && isLoading;
 
+  const handleActionSelectRef = useRef(handleActionSelect);
+
+  useEffect(() => {
+    handleActionSelectRef.current = handleActionSelect;
+  }, [handleActionSelect]);
+
   useEffect(() => {
     if (storyArc && currentAct !== lastShownAct && actsLength > currentAct - 1) {
       setPendingAct(storyArc.acts[currentAct - 1]);
@@ -295,9 +301,9 @@ function App() {
 
   useEffect(() => {
     if (pendingAct && pendingAct.actNumber > 1 && !isVictory) {
-      void handleActionSelect('Look around.');
+      void handleActionSelectRef.current('Look around.');
     }
-  }, [pendingAct, handleActionSelect, isVictory]);
+  }, [pendingAct, isVictory]);
 
   useEffect(() => {
     if (isVictory) {
