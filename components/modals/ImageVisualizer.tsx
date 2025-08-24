@@ -229,7 +229,7 @@ function ImageVisualizer({
           imageSize: '1K',
           numberOfImages: 1,
           outputMimeType: 'image/jpeg',
-          person_generation: "ALLOW_ALL",
+          personGeneration: "ALLOW_ALL",
         },
       });
 

@@ -140,7 +140,7 @@ export const generateChapterImage = async (
             imageSize: '1K',
             numberOfImages: 1,
             outputMimeType: 'image/jpeg',
-            person_generation: "ALLOW_ALL",
+            personGeneration: "ALLOW_ALL",
           },
         });
         const bytes = response.generatedImages?.[0]?.image?.imageBytes;
