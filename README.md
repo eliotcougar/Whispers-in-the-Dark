@@ -39,7 +39,7 @@ Vibe-coding excels at creative exploration but still relies on human judgment to
 ## Play the Latest Stable Release
 
 - **GitHub Pages** – Fast loading but you must enter your API key manually and Imagen 4 images are disabled: <https://eliotcougar.github.io/Whispers-in-the-Dark/>
-- **Google AI Studio** – Uses your account's key automatically so Imagen 4 works, but page loads are slower: <https://ai.studio/apps/drive/1x10wUcr6y8oMHaCPaZ4RDyAuP3ITLnw0>
+- **Google AI Studio** – Uses your account's key automatically so Imagen 4 works, but page loads are slower: <https://ai.studio/apps/drive/1CMEcImNGuJk8DsEUjEftUpkrpatEZcdb>
 
 ## Features
 
