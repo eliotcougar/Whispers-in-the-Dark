@@ -559,6 +559,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         turnChanges.mainQuestAchieved = false;
       } else {
         draftState.isVictory = true;
+        turnChanges.mainQuestAchieved = false;
       }
     }
 

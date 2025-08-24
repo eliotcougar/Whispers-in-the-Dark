@@ -27,7 +27,6 @@ import { refineLore_Service } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
 import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
-import { generateNextStoryAct } from '../services/worldData';
 import {
   findItemByIdentifier,
   findMapNodeByIdentifier,
@@ -767,30 +766,6 @@ export const useProcessAiResponse = ({
       }
 
       updateDialogueState(draftState, aiData, isFromDialogueSummary);
-
-      if (
-        turnChanges.mainQuestAchieved &&
-        draftState.storyArc &&
-        draftState.currentTheme &&
-        draftState.worldFacts &&
-        draftState.heroSheet
-      ) {
-        const newAct = await generateNextStoryAct(
-          draftState.currentTheme,
-          draftState.worldFacts,
-          draftState.heroSheet,
-          draftState.storyArc,
-          draftState.gameLog,
-          draftState.currentScene,
-        );
-        if (newAct) {
-          const arc = draftState.storyArc;
-          arc.acts[arc.currentAct - 1].completed = true;
-          arc.acts.push(newAct);
-          arc.currentAct = newAct.actNumber;
-          turnChanges.mainQuestAchieved = false;
-        }
-      }
 
       draftState.lastTurnChanges = turnChanges;
     },

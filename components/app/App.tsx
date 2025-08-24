@@ -300,6 +300,12 @@ function App() {
     }
   }, [isVictory]);
 
+  useEffect(() => {
+    if (lastTurnChanges?.mainQuestAchieved) {
+      void triggerMainQuestAchieved();
+    }
+  }, [lastTurnChanges?.mainQuestAchieved, triggerMainQuestAchieved]);
+
   const handleActContinue = useCallback(() => {
     setPendingAct(null);
   }, []);
