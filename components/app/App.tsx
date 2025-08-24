@@ -4,7 +4,7 @@
  * @description Main application component wiring together UI and game logic.
  */
 
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import * as React from 'react';
 import { useGameLogic } from '../../hooks/useGameLogic';
@@ -280,12 +280,6 @@ function App() {
 
   const isActTurnGenerating = pendingAct !== null && isLoading;
 
-  const handleActionSelectRef = useRef(handleActionSelect);
-
-  useEffect(() => {
-    handleActionSelectRef.current = handleActionSelect;
-  }, [handleActionSelect]);
-
   useEffect(() => {
     if (storyArc && currentAct !== lastShownAct && actsLength > currentAct - 1) {
       setPendingAct(storyArc.acts[currentAct - 1]);
@@ -299,11 +293,6 @@ function App() {
     }
   }, [storyArc]);
 
-  useEffect(() => {
-    if (pendingAct && pendingAct.actNumber > 1 && !isVictory) {
-      void handleActionSelectRef.current('Look around.');
-    }
-  }, [pendingAct, isVictory]);
 
   useEffect(() => {
     if (isVictory) {

@@ -565,8 +565,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     draftState.globalTurnNumber += 1;
     draftState.lastTurnChanges = turnChanges;
     commitGameState(draftState);
+
+    if (!stateOverride && newAct) {
+      void handleActionSelect('Look around.');
+    }
+
     return draftState;
-  }, [getCurrentGameState, commitGameState]);
+  }, [getCurrentGameState, commitGameState, handleActionSelect]);
 
   /**
    * Sequentially completes all remaining acts to reach victory.
