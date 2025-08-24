@@ -296,10 +296,10 @@ function App() {
   }, [storyArc, currentAct, actsLength, lastShownAct]);
 
   useEffect(() => {
-    if (storyArc?.currentAct === 1) {
+    if (storyArc?.currentAct === 1 && lastShownAct !== 0) {
       setLastShownAct(0);
     }
-  }, [storyArc]);
+  }, [storyArc?.currentAct, lastShownAct]);
 
 
   useEffect(() => {
