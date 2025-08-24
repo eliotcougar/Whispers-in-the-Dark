@@ -287,9 +287,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       );
 
       let draftState = structuredCloneGameState(currentFullState);
-      const willRunDistill =
-        (currentFullState.globalTurnNumber + 1) % DISTILL_LORE_INTERVAL === 0 &&
-        currentFullState.lastLoreDistillTurn !== currentFullState.globalTurnNumber + 1;
       const debugPacket = {
         prompt,
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -355,7 +352,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           scoreChangeFromAction,
           setIsLoading,
           setIsTurnProcessing,
-          shouldRunDistill: willRunDistill,
         });
       } catch (e: unknown) {
         encounteredError = true;
@@ -382,9 +378,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       } finally {
         if (!encounteredError) {
           draftState.globalTurnNumber += 1;
-          if (willRunDistill) {
-            await runDistillIfNeeded(draftState);
-          }
+          await runDistillIfNeeded(draftState);
         }
         commitGameState(draftState);
         setIsTurnProcessing(false);
