@@ -283,6 +283,7 @@ function App() {
 
   const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
   const [lastShownAct, setLastShownAct] = useState(0);
+  const lastStoryArcRef = useRef<StoryArc | null>(null);
   const currentAct = storyArc?.currentAct ?? 0;
   const actsLength = storyArc?.acts.length ?? 0;
 
@@ -296,10 +297,11 @@ function App() {
   }, [storyArc, currentAct, actsLength, lastShownAct]);
 
   useEffect(() => {
-    if (storyArc?.currentAct === 1 && lastShownAct !== 0) {
+    if (storyArc !== lastStoryArcRef.current) {
       setLastShownAct(0);
+      lastStoryArcRef.current = storyArc;
     }
-  }, [storyArc?.currentAct, lastShownAct]);
+  }, [storyArc]);
 
 
   useEffect(() => {
