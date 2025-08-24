@@ -389,8 +389,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * @param action - The action string chosen by the player.
    */
   const handleActionSelect = useCallback(
-    (action: string): Promise<void> => {
-      const currentFullState = getCurrentGameState();
+    (action: string, stateOverride?: FullGameState): Promise<void> => {
+      const currentFullState = stateOverride ?? getCurrentGameState();
       let finalAction = action;
 
       const highlightMatcher = buildHighlightRegex(
@@ -428,7 +428,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
       }
 
-      return executePlayerAction(finalAction);
+      return executePlayerAction(finalAction, false, currentFullState);
     }, [getCurrentGameState, executePlayerAction]);
 
   /**
@@ -567,7 +567,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     commitGameState(draftState);
 
     if (!stateOverride && newAct) {
-      void handleActionSelect('Look around.');
+      void handleActionSelect('Look around.', draftState);
     }
 
     return draftState;
