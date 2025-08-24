@@ -161,6 +161,8 @@ function App() {
 
   const [geminiKeyVisible, setGeminiKeyVisible] = useState<boolean>(false);
 
+  const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
+
   useEffect(() => {
     if (!isApiConfigured()) {
       setGeminiKeyVisible(true);
@@ -209,6 +211,7 @@ function App() {
     openDebugLoreModal,
     openCharacterSelectModal: openCharacterSelect,
     openGenderSelectModal: openGenderSelect,
+    onActIntro: setPendingAct,
   });
   gameLogicRef.current = gameLogic;
 
@@ -281,32 +284,7 @@ function App() {
     remainingActionPoints,
   } = gameLogic;
 
-  const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
-  const [lastShownAct, setLastShownAct] = useState(0);
-  const lastStoryArcTitleRef = useRef<string | null>(null);
-  const currentAct = storyArc?.currentAct ?? 0;
-  const actsLength = storyArc?.acts.length ?? 0;
-  const storyArcTitle = storyArc?.title ?? null;
-
   const isActTurnGenerating = pendingAct !== null && (isLoading || isTurnProcessing);
-
-  useEffect(() => {
-    if (storyArc && currentAct !== lastShownAct && actsLength > currentAct - 1) {
-      setPendingAct(storyArc.acts[currentAct - 1]);
-      setLastShownAct(currentAct);
-    }
-  }, [storyArc, currentAct, actsLength, lastShownAct]);
-
-  useEffect(() => {
-    if (storyArcTitle) {
-      if (lastStoryArcTitleRef.current && storyArcTitle !== lastStoryArcTitleRef.current) {
-        setLastShownAct(0);
-      }
-      lastStoryArcTitleRef.current = storyArcTitle;
-    } else {
-      lastStoryArcTitleRef.current = null;
-    }
-  }, [storyArcTitle]);
 
 
   useEffect(() => {

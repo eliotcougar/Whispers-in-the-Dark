@@ -12,6 +12,7 @@ import {
   GameStateStack,
   LoadingReason,
   TurnChanges,
+  StoryAct,
 } from '../types';
 import {
   executeAIMainTurn,
@@ -60,6 +61,8 @@ export interface UsePlayerActionsProps {
     facts: Array<string>,
     resolve: (good: Array<string>, bad: Array<string>, proceed: boolean) => void,
   ) => void;
+  actIntroRef: React.RefObject<StoryAct | null>;
+  onActIntro: (act: StoryAct) => void;
 }
 
 /**
@@ -83,6 +86,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     loadingReasonRef,
     debugLore,
     openDebugLoreModal,
+    actIntroRef,
+    onActIntro,
   } = props;
 
   const { processAiResponse, clearObjectiveAnimationTimer } = useProcessAiResponse({
@@ -92,6 +97,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     setGameStateStack,
     debugLore,
     openDebugLoreModal,
+    actIntroRef,
+    onActIntro,
   });
 
   const {
@@ -581,6 +588,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         arc.acts.push(newAct);
         arc.currentAct = newAct.actNumber;
         turnChanges.mainQuestAchieved = false;
+        actIntroRef.current = newAct;
       } else {
         draftState.isVictory = true;
         turnChanges.mainQuestAchieved = false;
@@ -596,7 +604,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     }
 
     return draftState;
-  }, [getCurrentGameState, commitGameState, handleActionSelect]);
+  }, [getCurrentGameState, commitGameState, handleActionSelect, actIntroRef]);
 
   /**
    * Sequentially completes all remaining acts to reach victory.
