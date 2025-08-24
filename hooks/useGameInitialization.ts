@@ -74,12 +74,13 @@ export interface UseGameInitializationProps {
       worldFacts: WorldFacts;
       options: Array<CharacterOption>;
     },
-  ) => Promise<{
-    name: string;
-    heroSheet: HeroSheet | null;
-    heroBackstory: HeroBackstory | null;
-    storyArc: StoryArc | null;
-  }>;
+    onHeroData: (result: {
+      name: string;
+      heroSheet: HeroSheet | null;
+      heroBackstory: HeroBackstory | null;
+      storyArc: StoryArc | null;
+    }) => Promise<void>,
+  ) => Promise<void>;
   openGenderSelectModal: (defaultGender: string) => Promise<string>;
 }
 
@@ -265,134 +266,146 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         setLoadingReason(null);
         return;
       }
-      const result = await openCharacterSelectModal({
-        theme: themeObjToLoad,
-        heroGender: selectedGender,
-        worldFacts: safeWorldFacts,
-        options: descriptions,
-      });
-      heroSheet = result.heroSheet;
-      heroBackstory = result.heroBackstory;
-      draftState.storyArc = result.storyArc;
-      draftState.heroSheet = heroSheet;
-      draftState.heroBackstory = heroBackstory;
-      if (!result.storyArc || !isStoryArcValid(result.storyArc)) {
-        setError('Failed to generate a valid story arc. Please retry.');
-        setIsLoading(false);
-        setLoadingReason(null);
-        return;
-      }
-      commitGameState(draftState);
-      if (worldFacts) {
-        const initialFacts = await extractInitialFacts_Service({
-          themeName: themeObjToLoad.name,
-          worldFacts: safeWorldFacts,
-          heroSheet: heroSheet ?? undefined,
-          heroBackstory: heroBackstory ?? undefined,
-          onSetLoadingReason: setLoadingReason,
-        });
-        if (initialFacts) {
-          if (draftState.lastDebugPacket?.loremasterDebugInfo) {
-            draftState.lastDebugPacket.loremasterDebugInfo.extract =
-              initialFacts.debugInfo.extract;
-          }
-          const changes = initialFacts.facts.map(f => ({
-            action: 'add' as const,
-            text: f.text,
-            entities: f.entities,
-          }));
-          applyThemeFactChanges(
-            draftState,
-            changes,
-            draftState.globalTurnNumber,
-          );
-        }
-      }
-
-      draftState.mapData = { nodes: [], edges: [] };
-      draftState.allNPCs = [];
-      draftState.score = 0;
-      draftState.inventory = [];
-
-      if (draftState.heroSheet) draftState.heroSheet.gender = selectedGender;
-      const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
-      let prompt = '';
-      try {
-        prompt = buildInitialGamePrompt({
+      let initialTurnPromise: Promise<void> = Promise.resolve();
+      const waitForBegin = openCharacterSelectModal(
+        {
           theme: themeObjToLoad,
-          storyArc: draftState.storyArc ?? undefined,
-          worldFacts: draftState.worldFacts ?? undefined,
-          heroSheet: draftState.heroSheet ?? undefined,
-          heroBackstory: draftState.heroBackstory ?? undefined,
-        });
-        draftState.lastDebugPacket = {
-          prompt,
-          systemInstruction: SYSTEM_INSTRUCTION,
-          jsonSchema: undefined,
-          rawResponseText: null,
-          parsedResponse: null,
-          timestamp: new Date().toISOString(),
-          storytellerThoughts: null,
-          mapUpdateDebugInfo: null,
-          inventoryDebugInfo: null,
-          librarianDebugInfo: null,
-          loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
-          dialogueDebugInfo: null,
-        };
-
-        const {
-          response,
-          thoughts,
-          systemInstructionUsed,
-          jsonSchemaUsed,
-          promptUsed,
-          } = await executeAIMainTurn(prompt, getMaxOutputTokens(4096));
-        draftState.lastDebugPacket.rawResponseText = response.text ?? null;
-        draftState.lastDebugPacket.storytellerThoughts = thoughts;
-        draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
-        draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
-        draftState.lastDebugPacket.prompt = promptUsed;
-
-        const currentThemeMapDataForParse = draftState.mapData;
-        const parsedData = await parseAIResponse(
-          response.text ?? '',
-          themeObjToLoad,
-          draftState.heroSheet,
-          () => { setParseErrorCounter(1); },
-          undefined,
-          undefined,
-          draftState.allNPCs,
-          currentThemeMapDataForParse,
-          draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
-        );
-
-        await processAiResponse(parsedData, themeObjToLoad, draftState, {
-          baseStateSnapshot: baseStateSnapshotForInitialTurn,
-          forceEmptyInventory: isRestart,
-          playerActionText: undefined,
-        });
-
-
-        setHasGameBeenInitialized(true);
-        draftState.globalTurnNumber = 1;
-      } catch (e: unknown) {
-        console.error('Error loading initial game:', e);
-          if (isServerOrClientError(e)) {
-            draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
-            const status = extractStatusFromError(e);
-            setError(`AI service error (${String(status ?? 'unknown')}). Please retry.`);
-          } else {
-            const errorMessage = e instanceof Error ? e.message : String(e);
-            setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage}`);
+          heroGender: selectedGender,
+          worldFacts: safeWorldFacts,
+          options: descriptions,
+        },
+        result => {
+          heroSheet = result.heroSheet;
+          heroBackstory = result.heroBackstory;
+          draftState.storyArc = result.storyArc;
+          draftState.heroSheet = heroSheet;
+          draftState.heroBackstory = heroBackstory;
+          if (!result.storyArc || !isStoryArcValid(result.storyArc)) {
+            setError('Failed to generate a valid story arc. Please retry.');
+            setIsLoading(false);
+            setLoadingReason(null);
+            return Promise.resolve();
           }
-        if (draftState.lastDebugPacket) {
-          draftState.lastDebugPacket.error = e instanceof Error ? e.message : String(e);
-        }
-      } finally {
-        commitGameState(draftState);
-        setIsLoading(false);
-        setLoadingReason(null);
-      }
+          initialTurnPromise = (async () => {
+            if (worldFacts) {
+              const initialFacts = await extractInitialFacts_Service({
+                themeName: themeObjToLoad.name,
+                worldFacts: safeWorldFacts,
+                heroSheet: heroSheet ?? undefined,
+                heroBackstory: heroBackstory ?? undefined,
+                onSetLoadingReason: setLoadingReason,
+              });
+              if (initialFacts) {
+                if (draftState.lastDebugPacket?.loremasterDebugInfo) {
+                  draftState.lastDebugPacket.loremasterDebugInfo.extract =
+                    initialFacts.debugInfo.extract;
+                }
+                const changes = initialFacts.facts.map(f => ({
+                  action: 'add' as const,
+                  text: f.text,
+                  entities: f.entities,
+                }));
+                applyThemeFactChanges(
+                  draftState,
+                  changes,
+                  draftState.globalTurnNumber,
+                );
+              }
+            }
+
+            draftState.mapData = { nodes: [], edges: [] };
+            draftState.allNPCs = [];
+            draftState.score = 0;
+            draftState.inventory = [];
+
+            if (draftState.heroSheet) draftState.heroSheet.gender = selectedGender;
+            const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
+            let prompt = '';
+            try {
+              prompt = buildInitialGamePrompt({
+                theme: themeObjToLoad,
+                storyArc: draftState.storyArc ?? undefined,
+                worldFacts: draftState.worldFacts ?? undefined,
+                heroSheet: draftState.heroSheet ?? undefined,
+                heroBackstory: draftState.heroBackstory ?? undefined,
+              });
+              draftState.lastDebugPacket = {
+                prompt,
+                systemInstruction: SYSTEM_INSTRUCTION,
+                jsonSchema: undefined,
+                rawResponseText: null,
+                parsedResponse: null,
+                timestamp: new Date().toISOString(),
+                storytellerThoughts: null,
+                mapUpdateDebugInfo: null,
+                inventoryDebugInfo: null,
+                librarianDebugInfo: null,
+                loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
+                dialogueDebugInfo: null,
+              };
+
+              const {
+                response,
+                thoughts,
+                systemInstructionUsed,
+                jsonSchemaUsed,
+                promptUsed,
+              } = await executeAIMainTurn(prompt, getMaxOutputTokens(4096));
+              draftState.lastDebugPacket.rawResponseText = response.text ?? null;
+              draftState.lastDebugPacket.storytellerThoughts = thoughts;
+              draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
+              draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
+              draftState.lastDebugPacket.prompt = promptUsed;
+
+              const currentThemeMapDataForParse = draftState.mapData;
+              const parsedData = await parseAIResponse(
+                response.text ?? '',
+                themeObjToLoad,
+                draftState.heroSheet,
+                () => {
+                  setParseErrorCounter(1);
+                },
+                undefined,
+                undefined,
+                draftState.allNPCs,
+                currentThemeMapDataForParse,
+                draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
+              );
+
+              await processAiResponse(parsedData, themeObjToLoad, draftState, {
+                baseStateSnapshot: baseStateSnapshotForInitialTurn,
+                forceEmptyInventory: isRestart,
+                playerActionText: undefined,
+              });
+
+              setHasGameBeenInitialized(true);
+              draftState.globalTurnNumber = 1;
+            } catch (e: unknown) {
+              console.error('Error loading initial game:', e);
+              if (isServerOrClientError(e)) {
+                draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
+                const status = extractStatusFromError(e);
+                setError(`AI service error (${String(status ?? 'unknown')}). Please retry.`);
+              } else {
+                const errorMessage = e instanceof Error ? e.message : String(e);
+                setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage}`);
+              }
+              if (draftState.lastDebugPacket) {
+                draftState.lastDebugPacket.error = e instanceof Error ? e.message : String(e);
+              }
+            } finally {
+              commitGameState(draftState);
+              setIsLoading(false);
+              setLoadingReason(null);
+            }
+          })();
+          return initialTurnPromise;
+        },
+      );
+
+      await waitForBegin;
+      await initialTurnPromise;
+      return;
     }, [
       enabledThemePacksProp,
       thinkingEffortProp,

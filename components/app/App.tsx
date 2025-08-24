@@ -4,7 +4,7 @@
  * @description Main application component wiring together UI and game logic.
  */
 
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import * as React from 'react';
 import { useGameLogic } from '../../hooks/useGameLogic';
@@ -153,6 +153,7 @@ function App() {
     isCharacterSelectVisible,
     characterSelectData,
     submitCharacterSelectModal,
+    submitCharacterSelectHeroData,
     genderSelectDefault,
     submitDebugLoreModal,
     closeDebugLoreModal,
@@ -170,19 +171,22 @@ function App() {
   const closeGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(false); }, []);
 
   const openCharacterSelect = useCallback(
-    (data: {
-      theme: AdventureTheme;
-      heroGender: string;
-      worldFacts: WorldFacts;
-      options: Array<CharacterOption>;
-    }) =>
-      new Promise<{
+    (
+      data: {
+        theme: AdventureTheme;
+        heroGender: string;
+        worldFacts: WorldFacts;
+        options: Array<CharacterOption>;
+      },
+      onHeroData: (result: {
         name: string;
         heroSheet: HeroSheet | null;
         heroBackstory: HeroBackstory | null;
         storyArc: StoryArc | null;
-      }>(resolve => {
-        openCharacterSelectModal(data, resolve);
+      }) => Promise<void>,
+    ) =>
+      new Promise<void>(resolve => {
+        openCharacterSelectModal(data, onHeroData, resolve);
       }),
     [openCharacterSelectModal],
   );
@@ -271,9 +275,10 @@ function App() {
 
   const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
   const [lastShownAct, setLastShownAct] = useState(0);
-
   const currentAct = storyArc?.currentAct ?? 0;
   const actsLength = storyArc?.acts.length ?? 0;
+
+  const isActTurnGenerating = pendingAct !== null && isLoading;
 
   useEffect(() => {
     if (storyArc && currentAct !== lastShownAct && actsLength > currentAct - 1) {
@@ -287,6 +292,19 @@ function App() {
       setLastShownAct(0);
     }
   }, [storyArc]);
+
+
+  useEffect(() => {
+    if (isVictory) {
+      setPendingAct(null);
+    }
+  }, [isVictory]);
+
+  useEffect(() => {
+    if (lastTurnChanges?.mainQuestAchieved) {
+      void triggerMainQuestAchieved();
+    }
+  }, [lastTurnChanges?.mainQuestAchieved, triggerMainQuestAchieved]);
 
   const handleActContinue = useCallback(() => {
     setPendingAct(null);
@@ -962,6 +980,7 @@ function App() {
       {pendingAct ? (
         <ActIntroModal
           act={pendingAct}
+          isTurnGenerating={isActTurnGenerating}
           onContinue={handleActContinue}
         />
       ) : null}
@@ -979,6 +998,7 @@ function App() {
           heroGender={characterSelectData.heroGender}
           isVisible={isCharacterSelectVisible}
           onComplete={submitCharacterSelectModal}
+          onHeroData={submitCharacterSelectHeroData}
           options={characterSelectData.options}
           theme={characterSelectData.theme}
           worldFacts={characterSelectData.worldFacts}

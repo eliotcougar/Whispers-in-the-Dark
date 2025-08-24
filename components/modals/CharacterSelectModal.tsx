@@ -20,22 +20,29 @@ interface CharacterSelectModalProps {
   readonly heroGender: string;
   readonly worldFacts: WorldFacts;
   readonly options: Array<CharacterOption>;
-  readonly onComplete: (
-    result: {
-      name: string;
-      heroSheet: HeroSheet | null;
-      heroBackstory: HeroBackstory | null;
-      storyArc: StoryArc | null;
-    }
-  ) => void;
+  readonly onHeroData: (result: {
+    name: string;
+    heroSheet: HeroSheet | null;
+    heroBackstory: HeroBackstory | null;
+    storyArc: StoryArc | null;
+  }) => Promise<void>;
+  readonly onComplete: () => void;
 }
 
-function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, options, onComplete }: CharacterSelectModalProps) {
+function CharacterSelectModal({
+  isVisible,
+  theme,
+  heroGender,
+  worldFacts,
+  options,
+  onHeroData,
+  onComplete,
+}: CharacterSelectModalProps) {
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [heroSheet, setHeroSheet] = useState<HeroSheet | null>(null);
   const [heroBackstory, setHeroBackstory] = useState<HeroBackstory | null>(null);
-  const [storyArc, setStoryArc] = useState<StoryArc | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isTurnGenerating, setIsTurnGenerating] = useState(false);
 
   const handleSelect = useCallback(
     (option: CharacterOption) => {
@@ -49,19 +56,28 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
           option.name,
           option.description,
         );
-        setHeroSheet(result?.heroSheet ?? null);
-        setHeroBackstory(result?.heroBackstory ?? null);
-        setStoryArc(result?.storyArc ?? null);
+        const heroData = {
+          name: option.name,
+          heroSheet: result?.heroSheet ?? null,
+          heroBackstory: result?.heroBackstory ?? null,
+          storyArc: result?.storyArc ?? null,
+        };
+        setHeroSheet(heroData.heroSheet);
+        setHeroBackstory(heroData.heroBackstory);
         setIsGenerating(false);
+        setIsTurnGenerating(true);
+        void onHeroData(heroData).finally(() => {
+          setIsTurnGenerating(false);
+        });
       })();
     },
-    [theme, heroGender, worldFacts]
+    [theme, heroGender, worldFacts, onHeroData]
   );
 
   const handleBegin = useCallback(() => {
     if (!selectedName) return;
-    onComplete({ name: selectedName, heroSheet, heroBackstory, storyArc });
-  }, [selectedName, heroSheet, heroBackstory, storyArc, onComplete]);
+    onComplete();
+  }, [selectedName, onComplete]);
 
   const renderOption = useCallback(
     (opt: CharacterOption) => (
@@ -234,7 +250,7 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
               </section>
             </div>
 
-            <div className="mt-8 self-center">
+            <div className="mt-8 flex items-center justify-center space-x-4">
               <Button
                 ariaLabel="Begin the adventure"
                 icon={
@@ -248,6 +264,13 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
                 preset="green"
                 size="lg"
               />
+
+              {isTurnGenerating ? (
+                <LoadingSpinner
+                  showText={false}
+                  size="sm"
+                />
+              ) : null}
             </div>
           </>
         ) : (

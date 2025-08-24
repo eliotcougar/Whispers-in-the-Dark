@@ -389,8 +389,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * @param action - The action string chosen by the player.
    */
   const handleActionSelect = useCallback(
-    (action: string) => {
-      const currentFullState = getCurrentGameState();
+    (action: string, stateOverride?: FullGameState): Promise<void> => {
+      const currentFullState = stateOverride ?? getCurrentGameState();
       let finalAction = action;
 
       const highlightMatcher = buildHighlightRegex(
@@ -428,7 +428,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
       }
 
-      void executePlayerAction(finalAction);
+      return executePlayerAction(finalAction, false, currentFullState);
     }, [getCurrentGameState, executePlayerAction]);
 
   /**
@@ -559,14 +559,20 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         turnChanges.mainQuestAchieved = false;
       } else {
         draftState.isVictory = true;
+        turnChanges.mainQuestAchieved = false;
       }
     }
 
     draftState.globalTurnNumber += 1;
     draftState.lastTurnChanges = turnChanges;
     commitGameState(draftState);
+
+    if (!stateOverride && newAct) {
+      void handleActionSelect('Look around.', draftState);
+    }
+
     return draftState;
-  }, [getCurrentGameState, commitGameState]);
+  }, [getCurrentGameState, commitGameState, handleActionSelect]);
 
   /**
    * Sequentially completes all remaining acts to reach victory.

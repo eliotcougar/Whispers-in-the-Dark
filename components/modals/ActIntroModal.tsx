@@ -1,12 +1,14 @@
 import Button from '../elements/Button';
+import LoadingSpinner from '../LoadingSpinner';
 import type { StoryAct } from '../../types';
 
 interface ActIntroModalProps {
   readonly act: StoryAct;
+  readonly isTurnGenerating: boolean;
   readonly onContinue: () => void;
 }
 
-function ActIntroModal({ act, onContinue }: ActIntroModalProps) {
+function ActIntroModal({ act, isTurnGenerating, onContinue }: ActIntroModalProps) {
   return (
     <div
       aria-labelledby="act-intro-heading"
@@ -30,7 +32,7 @@ function ActIntroModal({ act, onContinue }: ActIntroModalProps) {
           </section>
         </div>
 
-        <div className="mt-8 self-center">
+        <div className="mt-8 flex items-center space-x-4 self-center">
           <Button
             ariaLabel="Continue"
             label="Continue"
@@ -38,6 +40,13 @@ function ActIntroModal({ act, onContinue }: ActIntroModalProps) {
             preset="blue"
             size="lg"
           />
+
+          {isTurnGenerating ? (
+            <LoadingSpinner
+              showText={false}
+              size="sm"
+            />
+          ) : null}
         </div>
       </div>
     </div>

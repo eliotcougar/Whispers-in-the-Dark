@@ -14,7 +14,7 @@ import Button from './elements/Button';
 
 interface ActionOptionsProps {
   readonly options: Array<string>;
-  readonly onActionSelect: (action: string) => void;
+  readonly onActionSelect: (action: string) => void | Promise<void>;
   readonly disabled: boolean;
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
@@ -58,7 +58,7 @@ function ActionOptions({
   const executeQueuedOnly = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       queuedActions.forEach(a => a.effect?.());
-      onActionSelect(queuedPromptText);
+      void onActionSelect(queuedPromptText);
       onClearQueuedActions();
       event.currentTarget.blur();
     },
@@ -71,7 +71,7 @@ function ActionOptions({
         ? `${queuedPromptText}\n  - ${action}`
         : `  - ${action}`;
       queuedActions.forEach(a => a.effect?.());
-      onActionSelect(combined);
+      void onActionSelect(combined);
       onClearQueuedActions();
       event.currentTarget.blur();
     },

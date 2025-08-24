@@ -38,12 +38,15 @@ export const useAppModals = () => {
     options: Array<CharacterOption>;
   } | null>(null);
   const characterSelectResolveRef = useRef<(
+    () => void
+  ) | null>(null);
+  const characterSelectHeroDataRef = useRef<(
     (result: {
       name: string;
       heroSheet: HeroSheet | null;
       heroBackstory: HeroBackstory | null;
       storyArc: StoryArc | null;
-    }) => void
+    }) => Promise<void>
   ) | null>(null);
 
   const openVisualizer = useCallback(() => { setIsVisualizerVisible(true); }, []);
@@ -114,23 +117,37 @@ export const useAppModals = () => {
         worldFacts: WorldFacts;
         options: Array<CharacterOption>;
       },
-      resolve: (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null }) => void,
+      onHeroData: (result: {
+        name: string;
+        heroSheet: HeroSheet | null;
+        heroBackstory: HeroBackstory | null;
+        storyArc: StoryArc | null;
+      }) => Promise<void>,
+      resolve: () => void,
     ) => {
       setCharacterSelectData(data);
+      characterSelectHeroDataRef.current = onHeroData;
       characterSelectResolveRef.current = resolve;
       setIsCharacterSelectVisible(true);
     },
     []
   );
 
-  const submitCharacterSelectModal = useCallback(
-    (result: { name: string; heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null }) => {
-      characterSelectResolveRef.current?.(result);
-      setIsCharacterSelectVisible(false);
-      setCharacterSelectData(null);
-    },
-    []
+  const submitCharacterSelectHeroData = useCallback(
+    (result: {
+      name: string;
+      heroSheet: HeroSheet | null;
+      heroBackstory: HeroBackstory | null;
+      storyArc: StoryArc | null;
+    }) => characterSelectHeroDataRef.current?.(result) ?? Promise.resolve(),
+    [],
   );
+
+  const submitCharacterSelectModal = useCallback(() => {
+    characterSelectResolveRef.current?.();
+    setIsCharacterSelectVisible(false);
+    setCharacterSelectData(null);
+  }, []);
 
   return {
     // state
@@ -193,6 +210,7 @@ export const useAppModals = () => {
     submitGenderSelectModal,
     openCharacterSelectModal,
     submitCharacterSelectModal,
+    submitCharacterSelectHeroData,
   } as const;
 };
 
