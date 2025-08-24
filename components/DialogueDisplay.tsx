@@ -59,7 +59,7 @@ function DialogueDisplay({
     const frame = dialogueFrameRef.current;
     if (frame) {
         const shouldScrollToBottom = isLoading &&
-            (Boolean(isDialogueExiting) || options.length === 0);
+            (isDialogueExiting === true || options.length === 0);
 
         if (shouldScrollToBottom) {
             frame.scrollTo({ top: frame.scrollHeight, behavior: 'smooth' });
