@@ -275,10 +275,10 @@ function App() {
 
   const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
   const [lastShownAct, setLastShownAct] = useState(0);
-  const [isActTurnGenerating, setIsActTurnGenerating] = useState(false);
-
   const currentAct = storyArc?.currentAct ?? 0;
   const actsLength = storyArc?.acts.length ?? 0;
+
+  const isActTurnGenerating = pendingAct !== null && isLoading;
 
   useEffect(() => {
     if (storyArc && currentAct !== lastShownAct && actsLength > currentAct - 1) {
@@ -294,13 +294,16 @@ function App() {
   }, [storyArc]);
 
   useEffect(() => {
-    if (pendingAct && pendingAct.actNumber > 1) {
-      setIsActTurnGenerating(true);
-      void handleActionSelect('Look around.').finally(() => {
-        setIsActTurnGenerating(false);
-      });
+    if (pendingAct && pendingAct.actNumber > 1 && !isVictory) {
+      void handleActionSelect('Look around.');
     }
-  }, [pendingAct, handleActionSelect]);
+  }, [pendingAct, handleActionSelect, isVictory]);
+
+  useEffect(() => {
+    if (isVictory) {
+      setPendingAct(null);
+    }
+  }, [isVictory]);
 
   const handleActContinue = useCallback(() => {
     setPendingAct(null);
