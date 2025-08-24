@@ -3,12 +3,14 @@
  * @file MainToolbar.tsx
  * @description Top-level toolbar with action buttons.
  */
-import { Icon } from './elements/icons';
 import Button from './elements/Button';
+import { Icon } from './elements/icons';
+import LoadingSpinner from './LoadingSpinner';
 
 interface MainToolbarProps {
   readonly score: number;
   readonly isLoading: boolean;
+  readonly isTurnProcessing: boolean;
   readonly currentThemeName: string | null;
   readonly currentSceneExists: boolean;
   readonly onOpenVisualizer: () => void;
@@ -23,6 +25,7 @@ interface MainToolbarProps {
 function MainToolbar({
   score,
   isLoading,
+  isTurnProcessing,
   currentThemeName,
   currentSceneExists,
   onOpenVisualizer,
@@ -52,6 +55,13 @@ function MainToolbar({
           </span>
         </div>
 
+        {isTurnProcessing ? (
+          <LoadingSpinner
+            showText={false}
+            size="sm"
+          />
+        ) : null}
+
         {/* Turns counter removed */}
       </div>
 
@@ -60,7 +70,7 @@ function MainToolbar({
       <div className="flex space-x-2">
         <Button
           ariaLabel="Visualize Scene"
-          disabled={isLoading || !currentThemeName || !currentSceneExists}
+          disabled={isLoading || isTurnProcessing || !currentThemeName || !currentSceneExists}
           icon={<Icon
             inline
             name="visualize"
@@ -75,7 +85,7 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open Knowledge Base"
-          disabled={isLoading || !currentThemeName}
+          disabled={isLoading || isTurnProcessing || !currentThemeName}
           icon={<Icon
             inline
             name="bookOpen"
@@ -91,7 +101,7 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open Map"
-          disabled={isLoading || !currentThemeName}
+          disabled={isLoading || isTurnProcessing || !currentThemeName}
           icon={<Icon
             inline
             name="map"
@@ -106,7 +116,7 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open Title Menu"
-          disabled={isLoading}
+          disabled={isLoading || isTurnProcessing}
           icon={<Icon
             inline
             name="menu"

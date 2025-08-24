@@ -224,7 +224,15 @@ function App() {
   const {
     currentTheme,
     currentScene, mainQuest, currentObjective, actionOptions, storyArc, heroSheet,
-    inventory, itemsHere, itemPresenceByNode, gameLog, isLoading, error, lastActionLog, mapData,
+    inventory,
+    itemsHere,
+    itemPresenceByNode,
+    gameLog,
+    isLoading,
+    isTurnProcessing,
+    error,
+    lastActionLog,
+    mapData,
     currentMapNodeId, mapLayoutConfig,
     allNPCs,
     score, freeFormActionText, setFreeFormActionText,
@@ -278,7 +286,7 @@ function App() {
   const currentAct = storyArc?.currentAct ?? 0;
   const actsLength = storyArc?.acts.length ?? 0;
 
-  const isActTurnGenerating = pendingAct !== null && isLoading;
+  const isActTurnGenerating = pendingAct !== null && (isLoading || isTurnProcessing);
 
   useEffect(() => {
     if (storyArc && currentAct !== lastShownAct && actsLength > currentAct - 1) {
@@ -411,26 +419,47 @@ function App() {
   }, [currentScene, setVisualizerImageUrl, setVisualizerImageScene]);
 
   useAutosave({
-    gatherGameStateStack,
-    gatherDebugPacketStack,
-    isLoading,
-    hasGameBeenInitialized,
     appReady,
-    dialogueState,
-    setError: (msg) => { getGameLogic().setError(msg); },
     dependencies: [
-      currentTheme, currentScene, actionOptions, mainQuest, currentObjective,
-      inventory, gameLog, lastActionLog, mapData, currentMapNodeId,
-      mapLayoutConfig, allNPCs, score, localTime, localEnvironment, localPlace,
+      currentTheme,
+      currentScene,
+      actionOptions,
+      mainQuest,
+      currentObjective,
+      inventory,
+      gameLog,
+      lastActionLog,
+      mapData,
+      currentMapNodeId,
+      mapLayoutConfig,
+      allNPCs,
+      score,
+      localTime,
+      localEnvironment,
+      localPlace,
       enabledThemePacks,
-      debugLore, debugGoodFacts, debugBadFacts,
+      debugLore,
+      debugGoodFacts,
+      debugBadFacts,
     ],
+    dialogueState,
+    gatherDebugPacketStack,
+    gatherGameStateStack,
+    hasGameBeenInitialized,
+    isLoading,
+    isTurnProcessing,
+    setError: (msg) => { getGameLogic().setError(msg); },
   });
 
 
 
 
-  const canPerformFreeAction = score >= FREE_FORM_ACTION_COST && !isLoading && hasGameBeenInitialized && !dialogueState;
+  const canPerformFreeAction =
+    score >= FREE_FORM_ACTION_COST &&
+    !isLoading &&
+    !isTurnProcessing &&
+    hasGameBeenInitialized &&
+    !dialogueState;
 
 
   const enableMobileTap =
@@ -790,7 +819,8 @@ function App() {
             <MainToolbar
               currentSceneExists={!!currentScene}
               currentThemeName={currentTheme ? currentTheme.name : null}
-              isLoading={isLoading || !!dialogueState}
+              isLoading={isLoading || !!dialogueState || isTurnProcessing}
+              isTurnProcessing={isTurnProcessing}
               onOpenKnowledgeBase={openKnowledgeBase}
               onOpenMap={openMap}
               onOpenTitleMenu={openTitleMenu}
@@ -827,7 +857,7 @@ function App() {
 
                   <ActionOptions
                     allNPCs={allNPCs}
-                    disabled={isLoading || !!dialogueState}
+                    disabled={isLoading || isTurnProcessing || !!dialogueState}
                     inventory={inventory}
                     mapData={mapData.nodes}
                     onActionSelect={handleActionSelect}
@@ -853,7 +883,7 @@ function App() {
                 allNPCs={allNPCs}
                 currentMapNodeId={currentMapNodeId}
                 currentObjective={currentObjective}
-                disabled={isLoading || isAnyModalOrDialogueActive}
+                disabled={isLoading || isTurnProcessing || isAnyModalOrDialogueActive}
                 enableMobileTap={enableMobileTap}
                 globalTurnNumber={globalTurnNumber}
                 inventory={inventory}
@@ -873,7 +903,7 @@ function App() {
         </main>
 
         <ItemChangeAnimator
-          isGameBusy={isAnyModalOrDialogueActive || isLoading}
+          isGameBusy={isAnyModalOrDialogueActive || isLoading || isTurnProcessing}
           lastTurnChanges={lastTurnChanges}
         />
 

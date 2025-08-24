@@ -45,6 +45,7 @@ export interface UsePlayerActionsProps {
   commitGameState: (state: FullGameState) => void;
   setGameStateStack: React.Dispatch<React.SetStateAction<GameStateStack>>;
   setIsLoading: (val: boolean) => void;
+  setIsTurnProcessing: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   loadingReasonRef: React.RefObject<LoadingReason | null>;
   setError: (err: string | null) => void;
@@ -52,6 +53,7 @@ export interface UsePlayerActionsProps {
   freeFormActionText: string;
   setFreeFormActionText: (text: string) => void;
   isLoading: boolean;
+  isTurnProcessing: boolean;
   hasGameBeenInitialized: boolean;
   debugLore: boolean;
   openDebugLoreModal: (
@@ -69,12 +71,14 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     commitGameState,
     setGameStateStack,
     setIsLoading,
+    setIsTurnProcessing,
     setLoadingReason,
     setError,
     setParseErrorCounter,
     freeFormActionText,
     setFreeFormActionText,
     isLoading,
+    isTurnProcessing,
     hasGameBeenInitialized,
     loadingReasonRef,
     debugLore,
@@ -104,7 +108,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   } = useInventoryActions({
     getCurrentGameState,
     commitGameState,
-    isLoading,
+    isLoading: isLoading || isTurnProcessing,
   });
 
   const runDistillIfNeeded = useCallback(
@@ -185,9 +189,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       overrideState?: FullGameState,
     ) => {
       const currentFullState = overrideState ?? getCurrentGameState();
-      if (isLoading || currentFullState.dialogueState) return;
+      if (isLoading || isTurnProcessing || currentFullState.dialogueState) return;
 
       setIsLoading(true);
+      setIsTurnProcessing(false);
       setError(null);
       setParseErrorCounter(0);
       setFreeFormActionText('');
@@ -338,7 +343,16 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
 
-        await processAiResponse(parsedData, currentThemeObj, draftState, { baseStateSnapshot, scoreChangeFromAction, playerActionText: action });
+        await processAiResponse(parsedData, currentThemeObj, draftState, {
+          baseStateSnapshot,
+          onBeforeRefine: state => {
+            commitGameState(state);
+          },
+          playerActionText: action,
+          scoreChangeFromAction,
+          setIsLoading,
+          setIsTurnProcessing,
+        });
       } catch (e: unknown) {
         encounteredError = true;
         console.error('Error executing player action:', e);
@@ -367,15 +381,17 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           await runDistillIfNeeded(draftState);
         }
         commitGameState(draftState);
+        setIsTurnProcessing(false);
         setIsLoading(false);
         setLoadingReason(null);
-
       }
     }, [
       getCurrentGameState,
       commitGameState,
       isLoading,
+      isTurnProcessing,
       setIsLoading,
+      setIsTurnProcessing,
       setLoadingReason,
       setError,
       setParseErrorCounter,
@@ -484,12 +500,20 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       freeFormActionText.trim() &&
       currentFullState.score >= FREE_FORM_ACTION_COST &&
       !isLoading &&
+      !isTurnProcessing &&
       hasGameBeenInitialized &&
       !currentFullState.dialogueState
     ) {
       void executePlayerAction(freeFormActionText.trim(), true);
     }
-  }, [freeFormActionText, getCurrentGameState, isLoading, hasGameBeenInitialized, executePlayerAction]);
+  }, [
+    freeFormActionText,
+    getCurrentGameState,
+    isLoading,
+    isTurnProcessing,
+    hasGameBeenInitialized,
+    executePlayerAction,
+  ]);
 
   /**
    * Restores the previous turn's game state if available.

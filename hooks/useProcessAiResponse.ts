@@ -27,6 +27,7 @@ import { refineLore_Service } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
 import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
+import { structuredCloneGameState } from '../utils/cloneUtils';
 import {
   findItemByIdentifier,
   findMapNodeByIdentifier,
@@ -405,12 +406,15 @@ const updateDialogueState = (
 };
 
 export interface ProcessAiResponseOptions {
-  forceEmptyInventory?: boolean;
   baseStateSnapshot: FullGameState;
-  isFromDialogueSummary?: boolean;
-  scoreChangeFromAction?: number;
-  playerActionText?: string;
   dialogueTranscript?: string;
+  forceEmptyInventory?: boolean;
+  isFromDialogueSummary?: boolean;
+  onBeforeRefine?: (state: FullGameState) => void;
+  playerActionText?: string;
+  scoreChangeFromAction?: number;
+  setIsLoading?: (val: boolean) => void;
+  setIsTurnProcessing?: (val: boolean) => void;
 }
 
 export type ProcessAiResponseFn = (
@@ -696,6 +700,10 @@ export const useProcessAiResponse = ({
       }
 
       if (themeContextForResponse) {
+        options.onBeforeRefine?.(structuredCloneGameState(draftState));
+        options.setIsLoading?.(false);
+        options.setIsTurnProcessing?.(true);
+
         const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
         const baseContext = isFromDialogueSummary
           ? [options.dialogueTranscript ?? '', thoughts ? `\n  ## Storyteller's Thoughts:\n${thoughts}\n------` : '']

@@ -86,6 +86,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     () => initialDebugStackFromApp ?? [null, null],
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isTurnProcessing, setIsTurnProcessing] = useState<boolean>(false);
   const loadingReason = useLoadingReason();
   const loadingReasonRef = useRef<LoadingReason | null>(loadingReason);
   const setLoadingReasonRef = useCallback((reason: LoadingReason | null) => {
@@ -190,12 +191,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     commitGameState,
     setGameStateStack,
     setIsLoading,
+    setIsTurnProcessing,
     setLoadingReason: setLoadingReasonRef,
     setError,
     setParseErrorCounter,
     freeFormActionText,
     setFreeFormActionText,
     isLoading,
+    isTurnProcessing,
     hasGameBeenInitialized,
     loadingReasonRef,
     debugLore: currentSnapshot.debugLore,
@@ -559,6 +562,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,
     isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),
+    isTurnProcessing,
     loadingReason,
     error,
     allNPCs: currentFullState.allNPCs,
