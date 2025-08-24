@@ -217,88 +217,95 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.globalTurnNumber = 0;
       draftState.currentTheme = themeObjToLoad;
       draftState.thinkingEffort = thinkingEffortProp;
+      draftState.heroSheet = {
+        name: 'Hero',
+        gender: selectedGender,
+        occupation: '',
+        traits: [],
+        startingItems: [],
+      };
 
       const worldFacts = await generateWorldFacts(themeObjToLoad);
+      const safeWorldFacts = worldFacts ?? {
+        geography: '',
+        climate: '',
+        technologyLevel: '',
+        supernaturalElements: '',
+        majorFactions: [],
+        keyResources: [],
+        culturalNotes: [],
+        notableLocations: [],
+      };
       draftState.worldFacts = worldFacts ?? null;
       commitGameState(draftState);
 
       const names = await generateCharacterNames(
         themeObjToLoad,
         selectedGender,
-        worldFacts ?? { geography: '', climate: '', technologyLevel: '', supernaturalElements: '', majorFactions: [], keyResources: [], culturalNotes: [], notableLocations: [] },
+        safeWorldFacts,
       );
+      if (!names || names.length === 0) {
+        setError('Failed to generate character options. Please retry.');
+        setIsLoading(false);
+        setLoadingReason(null);
+        return;
+      }
       let heroSheet: HeroSheet | null = null;
       let heroBackstory: HeroBackstory | null = null;
-      if (names && names.length > 0) {
-        const shuffled = [...names].sort(() => Math.random() - 0.5).slice(0, 10);
-        const descriptions = await generateCharacterDescriptions(
-          themeObjToLoad,
-          selectedGender,
-          worldFacts ?? {
-            geography: '',
-            climate: '',
-            technologyLevel: '',
-            supernaturalElements: '',
-            majorFactions: [],
-            keyResources: [],
-            culturalNotes: [],
-            notableLocations: [],
-          },
-          shuffled,
-        );
-        if (descriptions) {
-          const result = await openCharacterSelectModal({
-            theme: themeObjToLoad,
-            heroGender: selectedGender,
-            worldFacts: worldFacts ?? {
-              geography: '',
-              climate: '',
-              technologyLevel: '',
-              supernaturalElements: '',
-              majorFactions: [],
-              keyResources: [],
-              culturalNotes: [],
-              notableLocations: [],
-            },
-            options: descriptions,
-          });
-          heroSheet = result.heroSheet;
-          heroBackstory = result.heroBackstory;
-          draftState.storyArc = result.storyArc;
-          draftState.heroSheet = heroSheet;
-          draftState.heroBackstory = heroBackstory;
-          if (!result.storyArc || !isStoryArcValid(result.storyArc)) {
-            setError('Failed to generate a valid story arc. Please retry.');
-            setIsLoading(false);
-            setLoadingReason(null);
-            return;
+      const shuffled = [...names].sort(() => Math.random() - 0.5).slice(0, 10);
+      const descriptions = await generateCharacterDescriptions(
+        themeObjToLoad,
+        selectedGender,
+        safeWorldFacts,
+        shuffled,
+      );
+      if (!descriptions) {
+        setError('Failed to generate character descriptions. Please retry.');
+        setIsLoading(false);
+        setLoadingReason(null);
+        return;
+      }
+      const result = await openCharacterSelectModal({
+        theme: themeObjToLoad,
+        heroGender: selectedGender,
+        worldFacts: safeWorldFacts,
+        options: descriptions,
+      });
+      heroSheet = result.heroSheet;
+      heroBackstory = result.heroBackstory;
+      draftState.storyArc = result.storyArc;
+      draftState.heroSheet = heroSheet;
+      draftState.heroBackstory = heroBackstory;
+      if (!result.storyArc || !isStoryArcValid(result.storyArc)) {
+        setError('Failed to generate a valid story arc. Please retry.');
+        setIsLoading(false);
+        setLoadingReason(null);
+        return;
+      }
+      commitGameState(draftState);
+      if (worldFacts) {
+        const initialFacts = await extractInitialFacts_Service({
+          themeName: themeObjToLoad.name,
+          worldFacts: safeWorldFacts,
+          heroSheet: heroSheet ?? undefined,
+          heroBackstory: heroBackstory ?? undefined,
+          onSetLoadingReason: setLoadingReason,
+        });
+        if (initialFacts) {
+          if (draftState.lastDebugPacket?.loremasterDebugInfo) {
+            draftState.lastDebugPacket.loremasterDebugInfo.extract =
+              initialFacts.debugInfo.extract;
           }
-          commitGameState(draftState);
-          if (worldFacts) {
-            const initialFacts = await extractInitialFacts_Service({
-              themeName: themeObjToLoad.name,
-              worldFacts,
-              heroSheet: heroSheet ?? undefined,
-              heroBackstory: heroBackstory ?? undefined,
-              onSetLoadingReason: setLoadingReason,
-            });
-            if (initialFacts) {
-              if (draftState.lastDebugPacket?.loremasterDebugInfo) {
-                draftState.lastDebugPacket.loremasterDebugInfo.extract =
-                  initialFacts.debugInfo.extract;
-              }
-              const changes = initialFacts.facts.map(f => ({
-                action: 'add' as const,
-                text: f.text,
-                entities: f.entities,
-              }));
-              applyThemeFactChanges(
-                draftState,
-                changes,
-                draftState.globalTurnNumber,
-              );
-            }
-          }
+          const changes = initialFacts.facts.map(f => ({
+            action: 'add' as const,
+            text: f.text,
+            entities: f.entities,
+          }));
+          applyThemeFactChanges(
+            draftState,
+            changes,
+            draftState.globalTurnNumber,
+          );
         }
       }
 
@@ -306,10 +313,9 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.allNPCs = [];
       draftState.score = 0;
       draftState.inventory = [];
-      draftState.mapViewBox = DEFAULT_VIEWBOX;
 
-      const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
       if (draftState.heroSheet) draftState.heroSheet.gender = selectedGender;
+      const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
       let prompt = '';
       try {
         prompt = buildInitialGamePrompt({

@@ -103,7 +103,7 @@ function PageView({
   }, [chapters, item]);
 
   const allChaptersGenerated = useMemo(
-    () => chapters.every(ch => Boolean(ch.actualContent)),
+    () => chapters.every(ch => !!ch.actualContent),
     [chapters]
   );
 
@@ -172,7 +172,7 @@ function PageView({
     const idx = item?.type === 'book' && !isJournal ? chapterIndex - 1 : chapterIndex;
     const chapterValid = idx >= 0 && idx < chapters.length;
     const chapter: ItemChapter | undefined = chapterValid ? chapters[idx] : undefined;
-    const showActual = showDecoded && Boolean(chapter?.actualContent);
+    const showActual = showDecoded && !!chapter?.actualContent;
     const hasForeign = !showActual && tags.includes('foreign');
 
     if (tags.includes('handwritten')) {

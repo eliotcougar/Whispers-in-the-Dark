@@ -67,7 +67,7 @@ function InventoryItem({
     item.type !== 'vehicle' &&
     item.type !== 'status effect';
   const showDropForWrittenItem =
-    filterMode === 'stashed' && (Boolean(item.stashed) || isStashing);
+    filterMode === 'stashed' && (item.stashed === true || isStashing);
   const canShowDropNow = canEverDrop && (!isWrittenItem || showDropForWrittenItem);
   const actionButtons: Array<React.ReactElement> = [];
   const [isConfirmingDiscard, setIsConfirmingDiscard] = useState(false);

@@ -171,13 +171,12 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
       } finally {
         const latestState = getCurrentGameState();
         const { dialogueState } = latestState;
-        const exitInProgress = Boolean(
-          dialogueState &&
-            dialogueState.options.length === 0 &&
-            dialogueState.history.length > 0
-        );
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (exitInProgress || isDialogueExiting) {
+        const exitInProgress =
+          dialogueState != null &&
+          dialogueState.options.length === 0 &&
+          dialogueState.history.length > 0;
+        const keepSpinner = exitInProgress || isDialogueExiting;
+        if (keepSpinner) {
           // keep spinner until exit completes
         } else {
           setIsLoading(false);
