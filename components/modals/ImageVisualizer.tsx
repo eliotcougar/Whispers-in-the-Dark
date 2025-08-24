@@ -15,6 +15,7 @@ import { MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME } from '../../constants';
 import { setLoadingReason } from '../../utils/loadingState';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
+import { PersonGeneration } from '@google/genai';
 
 const THEME_STYLE_PROMPTS: Record<string, string> = {
   dungeon: 'a dark, gritty medieval fantasy style, dungeons and dragons concept art',
@@ -226,10 +227,11 @@ function ImageVisualizer({
         prompt: safePrompt,
         config: {
           aspectRatio: '4:3',
+          enhancePrompt: true,
           imageSize: '1K',
           numberOfImages: 1,
           outputMimeType: 'image/jpeg',
-          personGeneration: "ALLOW_ALL",
+          personGeneration: 'ALLOW_ALL' as PersonGeneration,
         },
       });
 

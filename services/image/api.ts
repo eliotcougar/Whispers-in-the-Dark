@@ -9,6 +9,7 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';
+import { PersonGeneration } from '@google/genai';
 
 const inFlightGenerations: Record<string, Promise<string> | undefined> = {};
 
@@ -137,10 +138,11 @@ export const generateChapterImage = async (
           prompt: safePrompt,
           config: {
             aspectRatio: '4:3',
+            enhancePrompt: true,
             imageSize: '1K',
             numberOfImages: 1,
             outputMimeType: 'image/jpeg',
-            personGeneration: "ALLOW_ALL",
+            personGeneration: 'ALLOW_ALL' as PersonGeneration,
           },
         });
         const bytes = response.generatedImages?.[0]?.image?.imageBytes;
