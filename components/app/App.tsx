@@ -153,6 +153,7 @@ function App() {
     isCharacterSelectVisible,
     characterSelectData,
     submitCharacterSelectModal,
+    submitCharacterSelectHeroData,
     genderSelectDefault,
     submitDebugLoreModal,
     closeDebugLoreModal,
@@ -170,19 +171,22 @@ function App() {
   const closeGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(false); }, []);
 
   const openCharacterSelect = useCallback(
-    (data: {
-      theme: AdventureTheme;
-      heroGender: string;
-      worldFacts: WorldFacts;
-      options: Array<CharacterOption>;
-    }) =>
-      new Promise<{
+    (
+      data: {
+        theme: AdventureTheme;
+        heroGender: string;
+        worldFacts: WorldFacts;
+        options: Array<CharacterOption>;
+      },
+      onHeroData: (result: {
         name: string;
         heroSheet: HeroSheet | null;
         heroBackstory: HeroBackstory | null;
         storyArc: StoryArc | null;
-      }>(resolve => {
-        openCharacterSelectModal(data, resolve);
+      }) => Promise<void>,
+    ) =>
+      new Promise<void>(resolve => {
+        openCharacterSelectModal(data, onHeroData, resolve);
       }),
     [openCharacterSelectModal],
   );
@@ -979,6 +983,7 @@ function App() {
           heroGender={characterSelectData.heroGender}
           isVisible={isCharacterSelectVisible}
           onComplete={submitCharacterSelectModal}
+          onHeroData={submitCharacterSelectHeroData}
           options={characterSelectData.options}
           theme={characterSelectData.theme}
           worldFacts={characterSelectData.worldFacts}

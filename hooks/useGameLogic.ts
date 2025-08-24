@@ -58,12 +58,13 @@ export interface UseGameLogicProps {
       worldFacts: WorldFacts;
       options: Array<CharacterOption>;
     },
-  ) => Promise<{
-    name: string;
-    heroSheet: HeroSheet | null;
-    heroBackstory: HeroBackstory | null;
-    storyArc: StoryArc | null;
-  }>;
+    onHeroData: (result: {
+      name: string;
+      heroSheet: HeroSheet | null;
+      heroBackstory: HeroBackstory | null;
+      storyArc: StoryArc | null;
+    }) => Promise<void>,
+  ) => Promise<void>;
   openGenderSelectModal: (defaultGender: string) => Promise<string>;
 }
 
