@@ -82,6 +82,7 @@ function SettingsDisplay({
           >
             Game Settings
           </h1>
+
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
               Thinking Effort

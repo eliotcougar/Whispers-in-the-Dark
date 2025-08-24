@@ -163,9 +163,9 @@ function InventoryDisplay({ items, onItemInteract, onStashToggle, onReadPage, cu
                 isStashing={isStashing}
                 item={item}
                 key={item.id}
-                onGenericUse={handleGenericUse}
-                onDrop={handleDrop}
                 onDiscard={handleDiscard}
+                onDrop={handleDrop}
+                onGenericUse={handleGenericUse}
                 onInspect={handleInspect}
                 onRead={handleRead}
                 onSpecificUse={handleSpecificUse}

@@ -86,7 +86,9 @@ function ActionOptions({
             <Button
               ariaLabel={queuedDisplayText}
               disabled={disabled}
-              label={<>{highlightEntitiesInText(queuedDisplayText, entitiesForHighlighting)}</>}
+              label={<>
+                {highlightEntitiesInText(queuedDisplayText, entitiesForHighlighting)}
+              </>}
               onClick={executeQueuedOnly}
               preset="teal"
               size="lg"
@@ -94,22 +96,30 @@ function ActionOptions({
             />
           </div>
 
-          <div className="mb-3 flex items-center" role="separator">
+          <div
+            className="mb-3 flex items-center"
+            role="separator"
+          >
             <span className="flex-grow border-b border-slate-500" />
 
-            <span className="px-2 text-slate-300">AND</span>
+            <span className="px-2 text-slate-300">
+              AND
+            </span>
 
             <span className="flex-grow border-b border-slate-500" />
           </div>
         </>
       ) : null}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {options.map(option => (
           <Button
             ariaLabel={option}
             disabled={disabled || option === '...'}
             key={option}
-            label={<>{highlightEntitiesInText(option, entitiesForHighlighting)}</>}
+            label={<>
+              {highlightEntitiesInText(option, entitiesForHighlighting)}
+            </>}
             onClick={handleOptionClick(option)}
             preset="sky"
             size="lg"

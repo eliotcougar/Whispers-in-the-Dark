@@ -813,9 +813,9 @@ function App() {
                     inventory={inventory}
                     mapData={mapData.nodes}
                     onActionSelect={handleActionSelect}
+                    onClearQueuedActions={clearQueuedItemActions}
                     options={actionOptions}
                     queuedActions={queuedItemActions}
-                    onClearQueuedActions={clearQueuedItemActions}
                   />
 
                   <FreeActionInput
@@ -840,16 +840,16 @@ function App() {
                 globalTurnNumber={globalTurnNumber}
                 inventory={inventory}
                 itemsHere={itemsHere}
-                storyArc={storyArc}
                 mapNodes={mapData.nodes}
                 objectiveAnimationType={objectiveAnimationType}
                 onItemInteract={queueItemAction}
-                  onReadPage={handleReadPage}
-                  onReadPlayerJournal={handleReadPlayerJournal}
-                  onStashToggle={gameLogic.handleStashToggle}
-                  queuedActionIds={new Set(queuedItemActions.map(a => a.id))}
-                  remainingActionPoints={remainingActionPoints}
-                />
+                onReadPage={handleReadPage}
+                onReadPlayerJournal={handleReadPlayerJournal}
+                onStashToggle={gameLogic.handleStashToggle}
+                queuedActionIds={new Set(queuedItemActions.map(a => a.id))}
+                remainingActionPoints={remainingActionPoints}
+                storyArc={storyArc}
+              />
               )}
           </div>
         </main>
@@ -976,10 +976,10 @@ function App() {
 
       {characterSelectData ? (
         <CharacterSelectModal
+          heroGender={characterSelectData.heroGender}
           isVisible={isCharacterSelectVisible}
           onComplete={submitCharacterSelectModal}
           options={characterSelectData.options}
-          heroGender={characterSelectData.heroGender}
           theme={characterSelectData.theme}
           worldFacts={characterSelectData.worldFacts}
         />

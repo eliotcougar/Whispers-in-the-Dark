@@ -62,7 +62,10 @@ function KnowledgeBase({
 
           {isVisible ? (
             <section className="mb-8">
-              <h2 className="kb-theme-group-title">NPCs</h2>
+              <h2 className="kb-theme-group-title">
+                NPCs
+              </h2>
+
               {sortedNPCs.length > 0 && (
                 <div className="kb-card-grid">
                   {sortedNPCs.map(npc => {

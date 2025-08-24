@@ -85,8 +85,13 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
         </h1>
 
         <p className="mb-6 max-w-2xl text-center text-sm text-slate-300">
-          Explore the world of{' '}
-          <span className="font-semibold">{theme.name}</span>
+          Explore the world of
+          {' '}
+
+          <span className="font-semibold">
+            {theme.name}
+          </span>
+
           {'. '}
           Select a character to begin your adventure.
         </p>
@@ -102,15 +107,27 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
                 </h2>
 
                 <p className="text-center">
-                  <span className="font-semibold text-amber-300">Occupation:</span> {heroSheet.occupation}
+                  <span className="font-semibold text-amber-300">
+                    Occupation:
+                  </span> 
+                  {' '}
+                  {heroSheet.occupation}
                 </p>
 
                 <p className="text-center">
-                  <span className="font-semibold text-amber-300">Traits:</span> {heroSheet.traits.join(', ')}
+                  <span className="font-semibold text-amber-300">
+                    Traits:
+                  </span> 
+                  {' '}
+                  {heroSheet.traits.join(', ')}
                 </p>
 
                 <p className="text-center">
-                  <span className="font-semibold text-amber-300">Starting Items:</span> {heroSheet.startingItems.join(', ')}
+                  <span className="font-semibold text-amber-300">
+                    Starting Items:
+                  </span> 
+                  {' '}
+                  {heroSheet.startingItems.join(', ')}
                 </p>
               </section>
 
@@ -121,31 +138,59 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
 
                 <div className="space-y-2 whitespace-pre-line">
                   <p>
-                    <span className="font-semibold text-sky-300">5 years ago:</span> {heroBackstory.fiveYearsAgo}
+                    <span className="font-semibold text-sky-300">
+                      5 years ago:
+                    </span> 
+                    {' '}
+                    {heroBackstory.fiveYearsAgo}
                   </p>
 
                   <p>
-                    <span className="font-semibold text-sky-300">1 year ago:</span> {heroBackstory.oneYearAgo}
+                    <span className="font-semibold text-sky-300">
+                      1 year ago:
+                    </span> 
+                    {' '}
+                    {heroBackstory.oneYearAgo}
                   </p>
 
                   <p>
-                    <span className="font-semibold text-sky-300">6 months ago:</span> {heroBackstory.sixMonthsAgo}
+                    <span className="font-semibold text-sky-300">
+                      6 months ago:
+                    </span> 
+                    {' '}
+                    {heroBackstory.sixMonthsAgo}
                   </p>
 
                   <p>
-                    <span className="font-semibold text-sky-300">1 month ago:</span> {heroBackstory.oneMonthAgo}
+                    <span className="font-semibold text-sky-300">
+                      1 month ago:
+                    </span> 
+                    {' '}
+                    {heroBackstory.oneMonthAgo}
                   </p>
 
                   <p>
-                    <span className="font-semibold text-sky-300">1 week ago:</span> {heroBackstory.oneWeekAgo}
+                    <span className="font-semibold text-sky-300">
+                      1 week ago:
+                    </span> 
+                    {' '}
+                    {heroBackstory.oneWeekAgo}
                   </p>
 
                   <p>
-                    <span className="font-semibold text-sky-300">Yesterday:</span> {heroBackstory.yesterday}
+                    <span className="font-semibold text-sky-300">
+                      Yesterday:
+                    </span> 
+                    {' '}
+                    {heroBackstory.yesterday}
                   </p>
 
                   <p>
-                    <span className="font-semibold text-sky-300">Now:</span> {heroBackstory.now}
+                    <span className="font-semibold text-sky-300">
+                      Now:
+                    </span> 
+                    {' '}
+                    {heroBackstory.now}
                   </p>
                 </div>
               </section>
@@ -156,35 +201,67 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
                 </h3>
 
                 <p>
-                  <span className="font-semibold text-sky-300">Geography:</span> {worldFacts.geography}
+                  <span className="font-semibold text-sky-300">
+                    Geography:
+                  </span> 
+                  {' '}
+                  {worldFacts.geography}
                 </p>
 
                 <p>
-                  <span className="font-semibold text-sky-300">Climate:</span> {worldFacts.climate}
+                  <span className="font-semibold text-sky-300">
+                    Climate:
+                  </span> 
+                  {' '}
+                  {worldFacts.climate}
                 </p>
 
                 <p>
-                  <span className="font-semibold text-sky-300">Technology Level:</span> {worldFacts.technologyLevel}
+                  <span className="font-semibold text-sky-300">
+                    Technology Level:
+                  </span> 
+                  {' '}
+                  {worldFacts.technologyLevel}
                 </p>
 
                 <p>
-                  <span className="font-semibold text-sky-300">Supernatural Elements:</span> {worldFacts.supernaturalElements}
+                  <span className="font-semibold text-sky-300">
+                    Supernatural Elements:
+                  </span> 
+                  {' '}
+                  {worldFacts.supernaturalElements}
                 </p>
 
                 <p className="whitespace-pre-line">
-                  <span className="font-semibold text-sky-300">Major Factions:</span> {worldFacts.majorFactions.join('\n')}
+                  <span className="font-semibold text-sky-300">
+                    Major Factions:
+                  </span> 
+                  {' '}
+                  {worldFacts.majorFactions.join('\n')}
                 </p>
 
                 <p className="whitespace-pre-line">
-                  <span className="font-semibold text-sky-300">Key Resources:</span> {worldFacts.keyResources.join('\n')}
+                  <span className="font-semibold text-sky-300">
+                    Key Resources:
+                  </span> 
+                  {' '}
+                  {worldFacts.keyResources.join('\n')}
                 </p>
 
                 <p className="whitespace-pre-line">
-                  <span className="font-semibold text-sky-300">Cultural Notes:</span> {worldFacts.culturalNotes.join('\n')}
+                  <span className="font-semibold text-sky-300">
+                    Cultural Notes:
+                  </span> 
+                  {' '}
+                  {worldFacts.culturalNotes.join('\n')}
                 </p>
 
                 <p className="whitespace-pre-line">
-                  <span className="font-semibold text-sky-300">Notable Locations:</span> {worldFacts.notableLocations.join('\n')}
+                  <span className="font-semibold text-sky-300">
+                    Notable Locations:
+                  </span> 
+                  {' '}
+                  {worldFacts.notableLocations.join('\n')}
                 </p>
               </section>
             </div>
@@ -193,7 +270,10 @@ function CharacterSelectModal({ isVisible, theme, heroGender, worldFacts, option
               <Button
                 ariaLabel="Begin the adventure"
                 icon={
-                  <Icon name="bookOpen" size={20} />
+                  <Icon
+                    name="bookOpen"
+                    size={20}
+                  />
                 }
                 label="Begin the Journey"
                 onClick={handleBegin}

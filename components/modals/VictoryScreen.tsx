@@ -16,7 +16,10 @@ function VictoryScreen({ heroSheet, storyArc, onClose }: VictoryScreenProps) {
       role="dialog"
     >
       <div className="animated-frame-content flex max-h-[80vh] w-full flex-col items-center p-8 text-center">
-        <h2 id="victory-heading" className="text-2xl font-bold">
+        <h2
+          className="text-2xl font-bold"
+          id="victory-heading"
+        >
           Victory!
         </h2>
 

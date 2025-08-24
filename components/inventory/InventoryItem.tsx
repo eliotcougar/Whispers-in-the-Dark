@@ -131,17 +131,17 @@ function InventoryItem({
   actionButtons.push(
     <Button
       ariaLabel={`Inspect ${item.name}`}
-        cost={INSPECT_ACTION_COST}
-        data-item-id={item.id}
-        disabled={inspectDisabled || (!inspectQueued && INSPECT_ACTION_COST > remainingActionPoints)}
-        key={`${item.id}-inspect`}
-        label="Inspect"
-        onClick={onInspect}
-        preset="indigo"
-        pressed={inspectQueued}
-        size="sm"
-        variant="toggleFull"
-      />
+      cost={INSPECT_ACTION_COST}
+      data-item-id={item.id}
+      disabled={inspectDisabled || (!inspectQueued && INSPECT_ACTION_COST > remainingActionPoints)}
+      key={`${item.id}-inspect`}
+      label="Inspect"
+      onClick={onInspect}
+      preset="indigo"
+      pressed={inspectQueued}
+      size="sm"
+      variant="toggleFull"
+    />
   );
 
   if (item.type === 'page' || item.type === 'book' || item.type === 'picture' || item.type === 'map') {
@@ -202,7 +202,10 @@ function InventoryItem({
   if (item.tags?.includes('junk')) {
     if (isConfirmingDiscard) {
       actionButtons.push(
-        <div className="grid grid-cols-2 gap-2 mt-2" key={`${item.id}-confirm-group`}>
+        <div
+          className="grid grid-cols-2 gap-2 mt-2"
+          key={`${item.id}-confirm-group`}
+        >
           <Button
             ariaLabel={`Confirm discard of ${item.name}`}
             data-item-id={item.id}
@@ -235,7 +238,13 @@ function InventoryItem({
           ariaLabel={`Discard ${item.name}`}
           data-item-id={item.id}
           disabled={disabled}
-          icon={<Icon color="white" inline marginRight={4} name="trash" size={16} />}
+          icon={<Icon
+            color="white"
+            inline
+            marginRight={4}
+            name="trash"
+            size={16}
+          />}
           key={`${item.id}-discard`}
           label="Discard"
           onClick={handleDiscardClick}

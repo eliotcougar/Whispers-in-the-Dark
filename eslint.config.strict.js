@@ -17,7 +17,7 @@ const compat = new FlatCompat({
 
 // Explicitly ignore generated and dependency directories.
 const ignoreConfig = {
-  ignores: ['node_modules', 'dist', 'build']
+  ignores: ['node_modules', 'dist', 'build', 'release']
 };
 
 const tsCompat = compat.config({
@@ -79,6 +79,7 @@ const tsCompat = compat.config({
     'react/jsx-max-depth': [ 'warn', { max: 4 }],
     'react/jsx-indent-props': ['warn', 2],
     'react/jsx-indent': ['warn', 2],
+    'react/jsx-newline': ['off'],
     'react/jsx-closing-tag-location': ['warn', 'line-aligned'],
     'react/jsx-closing-bracket-location': ['warn', 'line-aligned'],
   }

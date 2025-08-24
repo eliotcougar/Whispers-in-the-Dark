@@ -126,8 +126,8 @@ function DebugView({
           <GameStateTab
             currentState={currentState}
             onApplyGameState={onApplyGameState}
-            onUndoTurn={onUndoTurn}
             onTriggerMainQuestAchieved={onTriggerMainQuestAchieved}
+            onUndoTurn={onUndoTurn}
             previousState={previousState}
           />
         );

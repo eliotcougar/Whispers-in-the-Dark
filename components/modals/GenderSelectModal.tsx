@@ -26,7 +26,10 @@ function GenderSelectModal({ isVisible, defaultGender, onSubmit }: GenderSelectM
       role="dialog"
     >
       <div className="animated-frame-content flex flex-col items-center">
-        <h1 className="text-2xl font-bold text-sky-300 mb-4" id="gender-select-title">
+        <h1
+          className="text-2xl font-bold text-sky-300 mb-4"
+          id="gender-select-title"
+        >
           Choose Your Character&apos;s Gender
         </h1>
 
@@ -43,7 +46,10 @@ function GenderSelectModal({ isVisible, defaultGender, onSubmit }: GenderSelectM
 
         <Button
           ariaLabel="Confirm gender"
-          icon={<Icon name="bookOpen" size={20} />}
+          icon={<Icon
+            name="bookOpen"
+            size={20}
+          />}
           label="Continue"
           onClick={handleSubmit}
           preset="green"
