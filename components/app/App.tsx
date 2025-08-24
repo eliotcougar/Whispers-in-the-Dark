@@ -275,6 +275,7 @@ function App() {
 
   const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
   const [lastShownAct, setLastShownAct] = useState(0);
+  const [isActTurnGenerating, setIsActTurnGenerating] = useState(false);
 
   const currentAct = storyArc?.currentAct ?? 0;
   const actsLength = storyArc?.acts.length ?? 0;
@@ -291,6 +292,15 @@ function App() {
       setLastShownAct(0);
     }
   }, [storyArc]);
+
+  useEffect(() => {
+    if (pendingAct && pendingAct.actNumber > 1) {
+      setIsActTurnGenerating(true);
+      void handleActionSelect('Look around.').finally(() => {
+        setIsActTurnGenerating(false);
+      });
+    }
+  }, [pendingAct, handleActionSelect]);
 
   const handleActContinue = useCallback(() => {
     setPendingAct(null);
@@ -966,6 +976,7 @@ function App() {
       {pendingAct ? (
         <ActIntroModal
           act={pendingAct}
+          isTurnGenerating={isActTurnGenerating}
           onContinue={handleActContinue}
         />
       ) : null}

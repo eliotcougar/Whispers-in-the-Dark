@@ -389,7 +389,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
    * @param action - The action string chosen by the player.
    */
   const handleActionSelect = useCallback(
-    (action: string) => {
+    (action: string): Promise<void> => {
       const currentFullState = getCurrentGameState();
       let finalAction = action;
 
@@ -428,7 +428,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         }
       }
 
-      void executePlayerAction(finalAction);
+      return executePlayerAction(finalAction);
     }, [getCurrentGameState, executePlayerAction]);
 
   /**
