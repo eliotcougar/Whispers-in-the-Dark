@@ -283,9 +283,10 @@ function App() {
 
   const [pendingAct, setPendingAct] = useState<StoryAct | null>(null);
   const [lastShownAct, setLastShownAct] = useState(0);
-  const lastStoryArcRef = useRef<StoryArc | null>(null);
+  const lastStoryArcTitleRef = useRef<string | null>(null);
   const currentAct = storyArc?.currentAct ?? 0;
   const actsLength = storyArc?.acts.length ?? 0;
+  const storyArcTitle = storyArc?.title ?? null;
 
   const isActTurnGenerating = pendingAct !== null && (isLoading || isTurnProcessing);
 
@@ -297,11 +298,11 @@ function App() {
   }, [storyArc, currentAct, actsLength, lastShownAct]);
 
   useEffect(() => {
-    if (storyArc !== lastStoryArcRef.current) {
+    if (storyArcTitle !== lastStoryArcTitleRef.current) {
       setLastShownAct(0);
-      lastStoryArcRef.current = storyArc;
+      lastStoryArcTitleRef.current = storyArcTitle;
     }
-  }, [storyArc]);
+  }, [storyArcTitle]);
 
 
   useEffect(() => {
