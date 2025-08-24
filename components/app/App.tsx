@@ -298,9 +298,11 @@ function App() {
   }, [storyArc, currentAct, actsLength, lastShownAct]);
 
   useEffect(() => {
-    if (storyArcTitle !== lastStoryArcTitleRef.current) {
+    if (storyArcTitle && storyArcTitle !== lastStoryArcTitleRef.current) {
       setLastShownAct(0);
       lastStoryArcTitleRef.current = storyArcTitle;
+    } else if (!storyArcTitle) {
+      lastStoryArcTitleRef.current = null;
     }
   }, [storyArcTitle]);
 
