@@ -30,10 +30,11 @@ export const retryAiCall = async <T>(
       transient = isTransientNetworkError(error);
       if (!isServerOrClientError(error) && !transient) throw error;
     }
-    if (attempt === MAX_RETRIES) break;
-    incrementRetryCount();
-    const wait = transient ? Math.max(delayMs, 5000) : delayMs;
-    await new Promise(res => setTimeout(res, wait));
+    if (attempt < MAX_RETRIES) {
+      incrementRetryCount();
+      const wait = transient ? Math.max(delayMs, 5000) : delayMs;
+      await new Promise(res => setTimeout(res, wait));
+    }
   }
   clearRetryCount();
   return null;
