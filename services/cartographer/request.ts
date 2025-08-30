@@ -303,7 +303,7 @@ export const fetchMapUpdatePayload = async (
   };
   let validParsedPayload: AIMapUpdatePayload | null = null;
 
-  for (let attempt = 0; attempt < MAX_RETRIES; ) {
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       console.log(`Map Update Service: Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}`);
       if (attempt > 0 && debugInfo.validationError) {
@@ -352,15 +352,10 @@ export const fetchMapUpdatePayload = async (
       if (attempt === MAX_RETRIES - 1) {
         console.error('Map Update Service: Failed to get valid map update payload after all retries.');
       }
-      attempt++;
     } catch (error: unknown) {
       console.error(`Error in map update request (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}):`, error);
       debugInfo.rawResponse = `Error: ${error instanceof Error ? error.message : String(error)}`;
       debugInfo.validationError = `Processing error: ${error instanceof Error ? error.message : String(error)}`;
-      if (attempt === MAX_RETRIES - 1) {
-        break;
-      }
-      attempt++;
     }
   }
 
