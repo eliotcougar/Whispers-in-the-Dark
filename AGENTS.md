@@ -15,6 +15,8 @@ Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
 - `npm run typecheck` — strict TypeScript checks (no emit).
 - `npm run lint` — lint code; fails on errors, warns on style issues.
 - `npm run lint:fix` — auto-fixable lint issues.
+- `npm run lint-strict` — strict lint code; fails on errors, warns on style issues.
+- `npm run lint-strict:fix` — auto-fixable strict lint issues.
 - `npm run build` — production build (TypeScript + bundling).
 - `npm run test:unit` — run unit tests (Vitest).
 

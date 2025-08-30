@@ -189,7 +189,8 @@ function DialogueDisplay({
 }
 
 DialogueDisplay.defaultProps = {
-  isDialogueExiting: false
+  heroShortName: undefined,
+  isDialogueExiting: false,
 };
 
 export default DialogueDisplay;

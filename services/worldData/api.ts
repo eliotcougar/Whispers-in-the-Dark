@@ -304,7 +304,7 @@ export const generateHeroData = async (
       if (parsedSheet) {
         parsedSheet.gender = heroGender;
         // Ensure heroShortName exists and is sanitized
-        const baseFromName = (parsedSheet.name ?? '').split(/\s+/)[0] || 'Hero';
+        const baseFromName = parsedSheet.name.split(/\s+/)[0] || 'Hero';
         const candidate = (parsedSheet.heroShortName && parsedSheet.heroShortName.trim().length > 0)
           ? parsedSheet.heroShortName
           : baseFromName;

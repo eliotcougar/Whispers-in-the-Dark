@@ -896,9 +896,9 @@ function App() {
 
         <ItemChangeAnimator
           // Pause animations during turn processing and initial new-game modals
+          currentTurnNumber={globalTurnNumber}
           isGameBusy={isLoading || isTurnProcessing || isCharacterSelectVisible || pendingAct !== null}
           lastTurnChanges={lastTurnChanges}
-          currentTurnNumber={globalTurnNumber}
         />
 
         <Footer
@@ -919,8 +919,8 @@ function App() {
 
       <DialogueDisplay
         allNPCs={allNPCs}
-        history={dialogueState?.history ?? []}
         heroShortName={heroSheet?.heroShortName}
+        history={dialogueState?.history ?? []}
         inventory={inventory}
         isDialogueExiting={isDialogueExiting}
         isLoading={isLoading}
@@ -972,8 +972,8 @@ function App() {
 
       <SettingsDisplay
         enabledThemePacks={enabledThemePacks}
-        onChangePreferredPlayerName={handlePreferredPlayerNameChange}
         isVisible={isSettingsVisible}
+        onChangePreferredPlayerName={handlePreferredPlayerNameChange}
         onChangeThinkingEffort={handleThinkingEffortChange}
         onClose={closeSettings}
         onToggleThemePack={handleToggleThemePackStable}
