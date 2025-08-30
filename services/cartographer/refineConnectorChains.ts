@@ -77,7 +77,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           return;
         }
 
-        const newId = generateUniqueId(`node_${nAdd.placeName}_`);
+        const newId = generateUniqueId(`node-${nAdd.placeName}-`);
         const node: MapNode = {
           id: newId,
           placeName: nAdd.placeName,

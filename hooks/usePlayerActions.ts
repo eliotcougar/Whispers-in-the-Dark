@@ -283,6 +283,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentFullState.heroSheet ?? {
           name: 'Hero',
           gender: 'Male',
+          heroShortName: 'Hero',
           occupation: '',
           traits: [],
           startingItems: [],
@@ -599,12 +600,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     draftState.lastTurnChanges = turnChanges;
     commitGameState(draftState);
 
-    if (!stateOverride && newAct) {
-      void handleActionSelect('Look around.', draftState);
-    }
+    // Do not auto-trigger a new scene when switching acts.
+    // We only display the New Act modal while Loremaster refines in the background.
 
     return draftState;
-  }, [getCurrentGameState, commitGameState, handleActionSelect, actIntroRef]);
+  }, [getCurrentGameState, commitGameState, actIntroRef]);
 
   /**
    * Sequentially completes all remaining acts to reach victory.

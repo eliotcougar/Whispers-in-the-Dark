@@ -5,7 +5,7 @@
 
 export const EXTRACT_SYSTEM_INSTRUCTION = `You are the Loremaster, collecting immutable facts about the game world from narrative context.
 Your sole task is to harvest immutable, setting-level facts from the surrounding narrative and return them as a JSON array of objects with "text" and "entities" fields.
-The "entities" array must list IDs of map nodes, NPCs or items referenced in the fact, selected from the supplied node_, npc_, and item_ IDs. Use 'player' ID to reference the player character. Use 'universe' ID to reference the world in general.
+The "entities" array must list IDs of map nodes, NPCs or items referenced in the fact, selected from the supplied node-, npc-, and item- IDs. Use 'player' ID to reference the player character. Use 'universe' ID to reference the world in general.
 Each fact must aid long-term continuity and world-building.
 
 ## What is a valid fact? Think “map pins & rulebook notes”
@@ -83,16 +83,16 @@ Known Facts are listed with their numeric IDs. Use these IDs when specifying whi
     {
         "action": "add",
         "entities": [
-            "node_Whisperwood_Jungle_38ax"
+            "node-Whisperwood-Jungle-38ax"
         ],
         "text": "The Whisperwood Jungle is a colossal green wall of ancient trees and tangled vines, characterized by oppressive humidity in its undergrowth and a high canopy with gaps allowing sunlight to filter through. It resonates with exotic bird calls and the distant roar of vast, unseen creatures."
     },
     {
         "action": "change",
         "entities": [
-            "node_Whisperwood_Jungle_38ax",
-            "node_Jagged_Peaks_44re",
-            "item_Ancient_Map_Fragment_mjdl"
+            "node-Whisperwood-Jungle-38ax",
+            "node-Jagged-Peaks-44re",
+            "item-Ancient-Map-Fragment-mjdl"
         ],
         "id": 3
         "text": "From the current location within the Whisperwood Jungle, the colossal green wall appears to stretch limitlessly to the north. To the east, a dip in the terrain suggests a watercourse, while a lone, massive flowering tree with vibrant red blossoms is visible to the south. To the west, a distant jagged peak is discernible, matching a feature marked on the Ancient Map Fragment.",
@@ -128,16 +128,16 @@ When merging, combine the entity IDs from all merged facts into a single set wit
     {
         "action": "add",
         "entities": [
-            "node_Whisperwood_Jungle_38ax"
+            "node-Whisperwood-Jungle-38ax"
         ],
         "text": "The Whisperwood Jungle is a colossal green wall of ancient trees and tangled vines, characterized by oppressive humidity in its undergrowth and a high canopy with gaps allowing sunlight to filter through. It resonates with exotic bird calls and the distant roar of vast, unseen creatures."
     },
     {
         "action": "change",
         "entities": [
-            "node_Whisperwood_Jungle_38ax",
-            "node_Jagged_Peaks_44re",
-            "item_Ancient_Map_Fragment_mjdl"
+            "node-Whisperwood-Jungle-38ax",
+            "node-Jagged-Peaks-44re",
+            "item-Ancient-Map-Fragment-mjdl"
         ],
         "id": 3,
         "text": "From the current location within the Whisperwood Jungle, the colossal green wall appears to stretch limitlessly to the north. To the east, a dip in the terrain suggests a watercourse, while a lone, massive flowering tree with vibrant red blossoms is visible to the south. To the west, a distant jagged peak is discernible, matching a feature marked on the Ancient Map Fragment.",

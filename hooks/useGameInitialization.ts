@@ -227,6 +227,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.heroSheet = {
         name: 'Hero',
         gender: selectedGender,
+        heroShortName: 'Hero',
         occupation: '',
         traits: [],
         startingItems: [],

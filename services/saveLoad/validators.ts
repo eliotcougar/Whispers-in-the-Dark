@@ -135,6 +135,7 @@ export function isValidHeroSheet(data: unknown): data is HeroSheet {
   return (
     typeof maybe.name === 'string' &&
     typeof maybe.occupation === 'string' &&
+    typeof maybe.heroShortName === 'string' &&
     Array.isArray(maybe.traits) && maybe.traits.every((v: unknown) => typeof v === 'string') &&
     Array.isArray(maybe.startingItems) && maybe.startingItems.every((v: unknown) => typeof v === 'string')
   );

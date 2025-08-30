@@ -37,7 +37,7 @@ const ITEM_CHANGE_SCHEMA = {
           isActive: { type: 'boolean' },
           holderId: {
             type: 'string',
-            description: 'ID of current holder such as player, node_* or npc_*',
+            description: 'ID of current holder such as player, node-* or npc-*',
           },
           newHolderId: {
             type: 'string',
@@ -162,22 +162,22 @@ Valid item types: ${VALID_ITEM_TYPES_STRING}.
   { // Example for destroying an existing item
     "action": "destroy",
     "item": {
-      "id": "item_old_lantern_7fr4",
+      "id": "item-old-lantern-7fr4",
       "name": "Old Lantern (flickering)"
     }
   },
   { // Example for moving an item to a new holder
     "action": "move",
     "item": {
-      "id": "item_iron_sword_ab12",
+      "id": "item-iron-sword-ab12",
       "name": "Iron Sword",
-      "newHolderId": "npc_guard_4f3a"
+      "newHolderId": "npc-guard-4f3a"
     }
   },
   { // Example for toggling state on an existing item
     "action": "change",
     "item": {
-      "id": "item_plasma_torch_7fr4",
+      "id": "item-plasma-torch-7fr4",
       "name": "Plasma Torch",
       "isActive": true
     }
@@ -185,7 +185,7 @@ Valid item types: ${VALID_ITEM_TYPES_STRING}.
   { // Example for adding new details to an existing item
     "action": "addDetails",
     "item": {
-      "id": "item_mystic_orb_7fr4",
+      "id": "item-mystic-orb-7fr4",
       "name": "Mystic Orb",
       "type": "single-use",
       "knownUses": [

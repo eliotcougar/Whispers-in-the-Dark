@@ -45,7 +45,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
     dialogueEnds: {
       type: 'boolean',
       description:
-        'Set true when the NPCs indicate the conversation is over or naturally concludes.',
+        'Set true if the conversation is logically over or naturally concludes.',
     },
     npcResponses: {
       type: 'array',
@@ -79,7 +79,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
       items: { type: 'string' },
     },
   },
-  required: ['npcResponses', 'playerOptions'],
+  required: ['dialogueEnds', 'npcResponses', 'playerOptions'],
   propertyOrdering: ['dialogueEnds', 'npcResponses', 'playerOptions', 'updatedParticipants'],
   additionalProperties: false,
 } as const;

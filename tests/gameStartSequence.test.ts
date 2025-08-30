@@ -53,6 +53,7 @@ const dummyWorldFacts: WorldFacts = {
 const dummyHeroSheet: HeroSheet = {
   name: 'Aron',
   gender: 'Male',
+  heroShortName: 'Aron',
   occupation: 'Warrior',
   traits: ['Brave'],
   startingItems: ['Sword', 'Shield'],

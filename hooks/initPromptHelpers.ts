@@ -44,7 +44,7 @@ export const buildInitialGamePrompt = (
       culturalNotes: [],
       notableLocations: [],
     },
-    heroSheet ?? { name: 'Hero', gender: 'Male', occupation: '', traits: [], startingItems: [] },
+    heroSheet ?? { name: 'Hero', gender: 'Male', heroShortName: 'Hero', occupation: '', traits: [], startingItems: [] },
     heroBackstory ?? {
       fiveYearsAgo: '',
       oneYearAgo: '',

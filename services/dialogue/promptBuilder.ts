@@ -64,10 +64,12 @@ export const buildDialogueTurnPrompt = (
     }
   }
 
+  const playerName = heroSheet?.heroShortName ?? 'Player';
   const historyString = trimmedHistory
     .map(entry => {
       const thought = entry.thought ? `Narrator THOUGHTS: "${entry.thought}"\n` : '';
-      return `${thought}${entry.speaker}: "${entry.line}"`;
+      const speaker = entry.speaker.toLowerCase() === 'player' ? playerName : entry.speaker;
+      return `${thought}${speaker}: "${entry.line}"`;
     })
     .join('\n');
 
@@ -161,7 +163,10 @@ Provide new dialogue options, ensuring the last one is a way to end the dialogue
 export const buildDialogueSummaryPrompt = (
   summaryContext: DialogueSummaryContext,
 ): string => {
-  const dialogueLogString = summaryContext.dialogueLog.map(entry => `${entry.speaker}: "${entry.line}"`).join('\n');
+  const playerName = summaryContext.heroSheet?.heroShortName ?? 'Player';
+  const dialogueLogString = summaryContext.dialogueLog
+    .map(entry => `${entry.speaker.toLowerCase() === 'player' ? playerName : entry.speaker}: "${entry.line}"`)
+    .join('\n');
   const inventoryString =
     summaryContext.inventory.length > 0
       ? summaryContext.inventory.map(item => `${item.name} (Type: ${item.type})`).join(', ')
@@ -227,12 +232,15 @@ If the dialogue revealed new map information (new locations, changed accessibili
 export const buildDialogueMemorySummaryPrompts = (
   context: DialogueMemorySummaryContext,
 ): { systemInstructionPart: string; userPromptPart: string } => {
-  const dialogueLogString = context.dialogueLog.map(entry => `  ${entry.speaker}: ${entry.line}`).join('\n');
+  const playerName = context.heroShortName ?? 'Player';
+  const dialogueLogString = context.dialogueLog
+    .map(entry => `  ${(entry.speaker.toLowerCase() === 'player' ? playerName : entry.speaker)}: ${entry.line}`)
+    .join('\n');
 
   const systemInstructionPart = `You are an AI assistant creating a detailed memory of a conversation. This memory will be remembered by the NPCs who participated.
 Your task is to write a concise yet detailed summary of the conversation.
 The summary should be between 500 and 1500 characters. It should be written from the point of view of the Conversation Participants other than the Player.
-The summary should ALWAYS mention all names and the "Player" explicitly without pronouns.
+The summary should ALWAYS mention all names and the player (named "${playerName}") explicitly without pronouns.
 It should capture:
 - Key topics discussed.
 - Important information revealed or exchanged by any participant.

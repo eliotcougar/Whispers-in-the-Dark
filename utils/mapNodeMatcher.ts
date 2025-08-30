@@ -300,7 +300,7 @@ export const attemptMatchAndSetNode = (
     const lowerId = suggestedIdentifier.toLowerCase();
     let partialIdMatch = currentThemeNodesFromDraft.find(n => n.id.toLowerCase().includes(lowerId));
 
-    const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
+    const idPattern = /^(.*)-([a-zA-Z0-9]{4})$/;
     let extractedBase: string | null = null;
     if (!partialIdMatch) {
       const m = idPattern.exec(suggestedIdentifier);

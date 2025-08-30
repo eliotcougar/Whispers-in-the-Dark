@@ -99,6 +99,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       localPlace: workingGameState.localPlace,
       dialogueParticipants: finalParticipants,
       dialogueLog: finalHistory,
+      heroShortName: workingGameState.heroSheet?.heroShortName ?? 'Player',
     };
     const npcMemoryText = await executeMemorySummary(memorySummaryContext);
 

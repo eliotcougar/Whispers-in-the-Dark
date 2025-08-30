@@ -53,7 +53,7 @@ export const INVENTORY_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'string', description: 'ID of the item like item_* .' },
+          id: { type: 'string', description: 'ID of the item like item-* .' },
           knownUses: {
             type: 'array',
             description: 'Additional Known Uses to be added to the item.',
@@ -158,7 +158,7 @@ export const INVENTORY_JSON_SCHEMA = {
           description: { type: 'string', description: 'Concise explanation of what the item is.' },
           holderId: {
             type: 'string',
-            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*', depending on Item Hints.`,
+            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*', depending on Item Hints.`,
           },
           isActive: { type: 'boolean', description: 'True if the item is active, worn, wielded right now.' },
           knownUses: {
@@ -227,7 +227,7 @@ export const INVENTORY_JSON_SCHEMA = {
           name: { type: 'string' },
           newHolderId: {
             type: 'string',
-            description: `ID of the new location or holder of the Item. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
+            description: `ID of the new location or holder of the Item. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*'.`,
           },
         },
         propertyOrdering: ['id', 'name', 'newHolderId'],

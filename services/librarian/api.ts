@@ -56,7 +56,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
               additionalProperties: false,
             },
           },
-          id: { type: 'string', description: 'ID of the item like item_* .' },
+          id: { type: 'string', description: 'ID of the item like item-* .' },
           knownUses: {
             type: 'array',
             items: {
@@ -153,7 +153,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
           description: { type: 'string', description: 'Concise explanation of what the item is.' },
           holderId: {
             type: 'string',
-            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*', depending on Librarian Hints.`,
+            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*', depending on Librarian Hints.`,
           },
           knownUses: {
             type: 'array',
@@ -212,7 +212,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
           name: { type: 'string' },
           newHolderId: {
             type: 'string',
-            description: `ID of the new location or holder of the Item. Use '${PLAYER_HOLDER_ID}', 'npc_*' or 'node_*'.`,
+            description: `ID of the new location or holder of the Item. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*'.`,
           },
         },
         propertyOrdering: ['id', 'name', 'newHolderId'],

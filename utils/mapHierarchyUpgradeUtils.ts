@@ -126,7 +126,7 @@ export const upgradeFeatureToRegion = (
   featureNode.data.nodeType = 'region';
 
   // Create connector feature as child of new region
-  const connectorId = generateUniqueId(`node_${connectorName}_`);
+  const connectorId = generateUniqueId(`node-${connectorName}-`);
   const connectorNode: MapNode = {
     id: connectorId,
     placeName: connectorName,
@@ -155,7 +155,7 @@ export const upgradeFeatureToRegion = (
   const createdEdges: Array<MapEdge> = [];
 
   childNodes.forEach(child => {
-    const edgeId = generateUniqueId(`edge_${connectorId}_to_${child.id}`);
+    const edgeId = generateUniqueId(`edge-${connectorId}-to-${child.id}`);
     const newEdge: MapEdge = {
       id: edgeId,
       sourceNodeId: connectorId,

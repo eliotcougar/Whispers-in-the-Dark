@@ -59,7 +59,7 @@ export function addEdgeWithTracking(
       e.data.type === data.type,
   );
   if (existing) return existing;
-  const id = generateUniqueId(`edge_${a.id}_to_${b.id}_`);
+  const id = generateUniqueId(`edge-${a.id}-to-${b.id}-`);
   const edge: MapEdge = { id, sourceNodeId: a.id, targetNodeId: b.id, data };
   edges.push(edge);
   let arrA = edgeLookup.get(a.id);

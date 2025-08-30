@@ -25,6 +25,7 @@ interface DialogueDisplayProps {
   readonly inventory: Array<Item>;
   readonly mapData: Array<MapNode>;
   readonly allNPCs: Array<NPC>;
+  readonly heroShortName?: string;
 }
 
 /**
@@ -42,6 +43,7 @@ function DialogueDisplay({
   inventory,
   mapData,
   allNPCs: allNPCs,
+  heroShortName,
 }: DialogueDisplayProps) {
   const dialogueFrameRef = useRef<HTMLDivElement | null>(null); 
   const lastHistoryEntryRef = useRef<HTMLDivElement | null>(null);
@@ -152,6 +154,7 @@ function DialogueDisplay({
         <div className="dialogue-log-area flex-grow mb-4 pr-2 min-h-[200px] overflow-y-auto"> 
           {history.map((entry, index) => {
             const isPlayer = entry.speaker.toLowerCase() === 'player';
+            const speakerLabel = isPlayer ? (heroShortName ?? 'Player') : entry.speaker;
             return (
               <div
                 className={`mb-3 p-3 rounded-lg animate-dialogue-new-entry ${isPlayer ? 'bg-slate-700 ml-auto w-11/12 text-right' : 'bg-slate-600 mr-auto w-11/12'}`}
@@ -159,7 +162,7 @@ function DialogueDisplay({
                 ref={index === history.length - 1 ? lastHistoryEntryRef : null}
               >
                 <strong className={isPlayer ? 'text-amber-400' : 'text-emerald-400'}>
-                  {entry.speaker}
+                  {speakerLabel}
                   :
                 </strong>
 

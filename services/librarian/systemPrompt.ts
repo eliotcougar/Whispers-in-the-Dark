@@ -48,23 +48,23 @@ rationale: "",
 ],
 "destroy": [
     { // Example for losing, destroying, completely removing an *existing* written item from the world:
-        "id": "item_smudged_note_7fr4",
+        "id": "item-smudged-note-7fr4",
         "name": "Smudged Note"
     }
 ],
 "move": [
-    { // Example for giving an *existing* item item_old_map_ab12 from player to npc_guard_4f3a, or for placing it in the current location:
-        "id": "item_old_map_ab12",
+    { // Example for giving an *existing* item item-old-map-ab12 from player to npc-guard-4f3a, or for placing it in the current location:
+        "id": "item-old-map-ab12",
         "name": "Old Map",
-        "newHolderId": "npc_guard_4f3a"
+        "newHolderId": "npc-guard-4f3a"
     },
-    { // Example of taking an *existing* item item_family_portrait_8f2c from npc_bandit_1wrc and putting it in player's inventory:
-        "id": "item_family_portrait_8f2c",
+    { // Example of taking an *existing* item item-family-portrait-8f2c from npc-bandit-1wrc and putting it in player's inventory:
+        "id": "item-family-portrait-8f2c",
         "name": "Family Portrait",
         "newHolderId": "player"
     },
-    { // Example of picking up an *existing* item item_cryptic_page_55nf from node_rubble_pile_f4s3 and putting it in player's inventory:
-        "id": "item_cryptic_page_55nf",
+    { // Example of picking up an *existing* item item-cryptic-page-55nf from node-rubble-pile-f4s3 and putting it in player's inventory:
+        "id": "item-cryptic-page-55nf",
         "name": "Cryptic Page",
         "newHolderId": "player"
     }
@@ -76,7 +76,7 @@ rationale: "",
             "description": "Attempt to decipher the foreign notes.",
             "promptEffect": "Study the map to translate its markings."
         },
-        "id": "item_ancient_map_7fr4",
+        "id": "item-ancient-map-7fr4",
         "name": "Ancient Map"
     }
 ],
@@ -89,12 +89,12 @@ rationale: "",
             "heading": "The Sacrifice of Silence"
             }
         ],
-        "id": "item_codex_of_whispering_echoes_8g3c",
+        "id": "item-codex-of-whispering-echoes-8g3c",
         "name": "The Codex of Whispering Echoes"
     }
 ]
 
-- CRITICALLY IMPORTANT: holderId and newHolderId can only be 'node_*', 'npc_*' or 'player'. NEVER put an item inside another item!
+- CRITICALLY IMPORTANT: holderId and newHolderId can only be 'node-*', 'npc-*' or 'player'. NEVER put an item inside another item!
 - Use "addDetails" to reveal new chapters only when Librarian Hint directly instructs you to, for example when missing pages of a book are found and incorporated into the partial book, or some natural or magical process adds the text onto previously blank pages, or if a book equivalent digital device receives an additional fragment of text.
 - Make sure that 'page', 'map' and 'picture' type items have exactly ONE chapter.
 - Make sure that 'book' type items have between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.

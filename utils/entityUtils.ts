@@ -2,11 +2,12 @@ import { MapNode, MapData, NPC, Item, FullGameState } from '../types';
 import { findTravelPath, buildTravelAdjacency, TravelAdjacency } from './mapPathfinding';
 
 export const generateUniqueId = (base: string): string => {
-  const sanitized = base.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-  // ensure we never have more than one underscore before the random suffix
-  const trimmed = sanitized.replace(/_+$/, '');
+  // Replace spaces and underscores with hyphen; remove non-alphanumeric/hyphen
+  const sanitized = base.replace(/[\s_]+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+  // ensure no trailing hyphens
+  const trimmed = sanitized.replace(/-+$/, '');
   const unique = Math.random().toString(36).substring(2,6);
-  return `${trimmed}_${unique}`;
+  return `${trimmed}-${unique}`;
 };
 
 export const stripBracketText = (name: string): string =>
@@ -82,7 +83,7 @@ export const findMapNodeByIdentifier = (
   const lowerId = identifier.toLowerCase();
   let partialMatch = nodes.find(node => node.id.toLowerCase().includes(lowerId));
 
-  const idPattern = /^(.*)_([a-zA-Z0-9]{4})$/;
+  const idPattern = /^(.*)-([a-zA-Z0-9]{4})$/;
   let base: string | null = null;
   if (!partialMatch) {
     const m = idPattern.exec(identifier);
@@ -90,7 +91,7 @@ export const findMapNodeByIdentifier = (
       const baseStr = m[1];
       base = baseStr;
       const baseCandidates = nodes.filter(n =>
-        n.id.toLowerCase().startsWith(`${baseStr.toLowerCase()}_`)
+        n.id.toLowerCase().startsWith(`${baseStr.toLowerCase()}-`)
       );
       if (baseCandidates.length === 1) {
         partialMatch = baseCandidates[0];
@@ -100,7 +101,7 @@ export const findMapNodeByIdentifier = (
 
   if (partialMatch) return partialMatch;
 
-  const normalizedBase = sanitize((base ?? identifier).replace(/_/g, ' '));
+  const normalizedBase = sanitize((base ?? identifier).replace(/-/g, ' '));
   const byName = nodes.find(node => sanitize(node.placeName) === normalizedBase);
   if (byName) return byName;
   const byAlias = nodes.find(
@@ -206,13 +207,13 @@ export const getEntityById = (
 ): MapNode | NPC | Item | undefined => {
   if (!id) return undefined;
 
-  if (id.startsWith('node_')) {
+  if (id.startsWith('node-')) {
     return state.mapData.nodes.find(node => node.id === id);
   }
-  if (id.startsWith('npc_')) {
+  if (id.startsWith('npc-')) {
     return state.allNPCs.find(npc => npc.id === id);
   }
-  if (id.startsWith('item_')) {
+  if (id.startsWith('item-')) {
     return state.inventory.find(item => item.id === id);
   }
 
@@ -229,22 +230,22 @@ export const extractRandomSuffix = (id: string): string | null => {
 };
 
 export const buildNodeId = (placeName: string): string => {
-  return generateUniqueId(`node_${placeName}`);
+  return generateUniqueId(`node-${placeName}`);
 };
 
 export const buildEdgeId = (
   sourceNodeId: string,
   targetNodeId: string,
 ): string => {
-  return generateUniqueId(`${sourceNodeId}_to_${targetNodeId}`);
+  return generateUniqueId(`${sourceNodeId}-to-${targetNodeId}`);
 };
 
 export const buildNPCId = (npcName: string): string => {
-  return generateUniqueId(`npc_${npcName}`);
+  return generateUniqueId(`npc-${npcName}`);
 };
 
 export const buildItemId = (itemName: string): string => {
   const core = stripBracketText(itemName);
-  return generateUniqueId(`item_${core}`);
+  return generateUniqueId(`item-${core}`);
 };
 

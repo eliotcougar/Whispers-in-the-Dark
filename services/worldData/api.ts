@@ -65,11 +65,12 @@ const heroSheetSchema = {
   type: 'object',
   properties: {
     name: { type: 'string' },
+    heroShortName: { type: 'string', description: 'Single-word name for UI; only alphanumeric and hyphen.' },
     occupation: { type: 'string' },
     traits: { type: 'array', items: { type: 'string' } },
     startingItems: { type: 'array', items: { type: 'string' } },
   },
-  required: ['name', 'occupation', 'traits', 'startingItems'],
+  required: ['name', 'heroShortName', 'occupation', 'traits', 'startingItems'],
   additionalProperties: false,
 } as const;
 
@@ -182,8 +183,14 @@ export const generateCharacterNames = async (
     `Using this world description:
     ${JSON.stringify(worldFacts)}
     Generate 50 strictly ${gender} full names with occasional optional nicknames appropriate for the theme "${theme.name}".
-    The names shouls follow 'First Name Last Name' or 'First Name "Nickname" Last Name' or 'Prefix First Name Last Name' template.
-    You MUST guarantee name variety! Every individual First Name, Last Name, and Nickname MUST appear only once throughout the whole list. They all should be unique.`;
+    Allowed templates: 'FirstName LastName', 'FirstName "Nickname" LastName', or 'Prefix FirstName LastName'.
+    UNIQUENESS REQUIREMENTS (very important):
+    - Each FirstName must be unique across the entire list (no repeats or trivial variants).
+    - Each LastName must be unique across the entire list (no repeats or trivial variants).
+    - Each Nickname (if present) must be unique across the entire list.
+    - Avoid minor spelling variants or simple diacritic tweaks; use genuinely different names.
+    - Aim for diverse cultural origins to maximize variety.
+    Respond ONLY with a JSON array of 50 distinct strings.`;
   const request = async () => {
       const thinkingBudget = getThinkingBudget(1024);
       const maxOutputTokens = getMaxOutputTokens(1024);
@@ -271,7 +278,8 @@ export const generateHeroData = async (
     The player's character gender is ${heroGender}.` +
     (heroName ? ` Their name is ${heroName}.` : '') +
     (heroDescription ? ` Here is a short description of the hero: ${heroDescription}.` : '') +
-    ' Create a brief character sheet including occupation, notable traits, and starting items.';
+    ' Create a brief character sheet including occupation, notable traits, and starting items.' +
+    ' Also include "heroShortName": a single-word short name used in UI and dialogue, composed only of alphanumeric characters and hyphens (no underscores). Strongly PREFER using the exact FirstName part of the full name for "heroShortName"; choose a different single-word alias only if the FirstName would be ambiguous in this world/context.';
     const request = async (prompt: string, schema: unknown, label: string) => {
       const thinkingBudget = getThinkingBudget(1024);
       const maxOutputTokens = getMaxOutputTokens(1024);
@@ -293,7 +301,19 @@ export const generateHeroData = async (
       addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
       const sheetText = await request(heroSheetPrompt, heroSheetSchema, 'HeroSheet');
       const parsedSheet = sheetText ? safeParseJson<HeroSheet>(extractJsonFromFence(sheetText)) : null;
-      if (parsedSheet) parsedSheet.gender = heroGender;
+      if (parsedSheet) {
+        parsedSheet.gender = heroGender;
+        // Ensure heroShortName exists and is sanitized
+        const baseFromName = (parsedSheet.name ?? '').split(/\s+/)[0] || 'Hero';
+        const candidate = (parsedSheet.heroShortName && parsedSheet.heroShortName.trim().length > 0)
+          ? parsedSheet.heroShortName
+          : baseFromName;
+        parsedSheet.heroShortName = (candidate
+          .replace(/[ _]+/g, '-')
+          .replace(/[^a-zA-Z0-9-]/g, '')
+          .replace(/-+/g, '-')
+          .replace(/^-+|-+$/g, '')) || 'Hero';
+      }
       const finalHeroName = heroName ?? parsedSheet?.name ?? 'the hero';
       const backstoryPrompt =
         `Using these world details:

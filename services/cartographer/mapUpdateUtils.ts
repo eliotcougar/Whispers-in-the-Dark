@@ -115,7 +115,7 @@ export function normalizeStatusAndTypeSynonyms(payload: AIMapUpdatePayload): Arr
  * Heuristic fix for mis-specified delete operations.
  * If a nodesToRemove entry has an ID beginning with "edge_" it is moved to
  * edgesToRemove. Likewise, any edgesToRemove entry with an ID beginning with
- * "node_" is converted into a node removal.
+ * "node-" is converted into a node removal.
  */
 export function fixDeleteIdMixups(payload: AIMapUpdatePayload): void {
   const correctedNodes: NonNullable<AIMapUpdatePayload['nodesToRemove']> = [];
@@ -130,7 +130,7 @@ export function fixDeleteIdMixups(payload: AIMapUpdatePayload): void {
   }
 
     for (const edgeDel of payload.edgesToRemove ?? []) {
-    if (/^node_/i.test(edgeDel.edgeId)) {
+  if (/^node-/i.test(edgeDel.edgeId)) {
       correctedNodes.push({ nodeId: edgeDel.edgeId, nodeName: edgeDel.edgeId });
     } else {
       correctedEdges.push(edgeDel);

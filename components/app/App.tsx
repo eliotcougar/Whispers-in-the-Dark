@@ -911,6 +911,7 @@ function App() {
       <DialogueDisplay
         allNPCs={allNPCs}
         history={dialogueState?.history ?? []}
+        heroShortName={heroSheet?.heroShortName}
         inventory={inventory}
         isDialogueExiting={isDialogueExiting}
         isLoading={isLoading}

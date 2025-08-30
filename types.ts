@@ -236,6 +236,7 @@ export interface DialogueMemorySummaryContext {
   localPlace: string | null;
   dialogueParticipants: Array<string>;
   dialogueLog: Array<DialogueHistoryEntry>;
+  heroShortName?: string;
 }
 
 
@@ -340,6 +341,7 @@ export interface WorldFacts {
 export interface HeroSheet {
   name: string;
   gender: string;
+  heroShortName: string; // Single-word UI name; only alphanumeric and hyphen
   occupation: string;
   traits: Array<string>;
   startingItems: Array<string>;

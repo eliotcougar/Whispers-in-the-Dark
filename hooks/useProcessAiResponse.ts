@@ -62,7 +62,7 @@ const correctItemChanges = async ({
   const resolveHolder = (holderId: string | undefined): string | undefined => {
     if (!holderId) return undefined;
     if (holderId === PLAYER_HOLDER_ID) return PLAYER_HOLDER_ID;
-    if (holderId.startsWith('node_')) {
+    if (holderId.startsWith('node-')) {
       const node = findMapNodeByIdentifier(
         holderId,
         baseState.mapData.nodes,
@@ -71,7 +71,7 @@ const correctItemChanges = async ({
       );
       return Array.isArray(node) ? node[0]?.id : node?.id;
     }
-    if (holderId.startsWith('npc_')) {
+    if (holderId.startsWith('npc-')) {
       const npc = findNPCByIdentifier(holderId, baseState.allNPCs);
       return Array.isArray(npc) ? npc[0]?.id : npc?.id;
     }
@@ -112,12 +112,12 @@ const correctItemChanges = async ({
     if ('item' in currentChange && (currentChange.item as { type?: string }).type === 'immovable') {
       if (currentChange.action === 'create') {
         const itm = currentChange.item;
-        if (!itm.holderId.startsWith('node_')) {
+        if (!itm.holderId.startsWith('node-')) {
           itm.holderId = baseState.currentMapNodeId ?? 'unknown';
         }
       } else if (currentChange.action === 'move') {
         const payload = currentChange.item;
-        if (!payload.newHolderId.startsWith('node_')) {
+        if (!payload.newHolderId.startsWith('node-')) {
           payload.newHolderId = baseState.currentMapNodeId ?? 'unknown';
         }
       }
