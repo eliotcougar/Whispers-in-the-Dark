@@ -45,6 +45,7 @@ import { applyThemeFactChanges } from '../utils/gameLogicUtils';
 export interface UseGameLogicProps {
   enabledThemePacksProp: Array<ThemePackName>;
   thinkingEffortProp: ThinkingEffort;
+  preferredPlayerNameProp?: string;
   initialSavedStateFromApp: GameStateStack | null;
   initialDebugStackFromApp: DebugPacketStack | null;
   isAppReady: boolean;
@@ -75,6 +76,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const {
     enabledThemePacksProp,
     thinkingEffortProp,
+    preferredPlayerNameProp,
     initialSavedStateFromApp,
     initialDebugStackFromApp,
     isAppReady,
@@ -314,6 +316,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   } = useGameInitialization({
     enabledThemePacksProp,
     thinkingEffortProp,
+    preferredPlayerNameProp,
     setIsLoading,
     setLoadingReason: setLoadingReasonRef,
     setError,

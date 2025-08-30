@@ -102,6 +102,7 @@ export const loadSettingsFromLocalStorage = (): GameSettings => {
   const defaults: GameSettings = {
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
     thinkingEffort: 'Medium',
+    preferredPlayerName: '',
   };
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_SETTINGS_KEY);
@@ -131,6 +132,14 @@ export const loadSettingsFromLocalStorage = (): GameSettings => {
       merged.thinkingEffort = (parsed as {
         thinkingEffort: ThinkingEffort;
       }).thinkingEffort;
+    }
+    const rawPref = (parsed as { preferredPlayerName?: unknown }).preferredPlayerName;
+    if (typeof rawPref === 'string') {
+      const sanitized = rawPref
+        .replace(/[^a-zA-Z0-9\s\-"']/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      merged.preferredPlayerName = sanitized;
     }
     return merged;
   } catch (error: unknown) {

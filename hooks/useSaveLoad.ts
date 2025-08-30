@@ -50,6 +50,7 @@ export const useSaveLoad = ({
 }: UseSaveLoadOptions) => {
   const [enabledThemePacks, setEnabledThemePacks] = useState<Array<ThemePackName>>([...DEFAULT_ENABLED_THEME_PACKS]);
   const [thinkingEffort, setThinkingEffort] = useState<ThinkingEffort>('Medium');
+  const [preferredPlayerName, setPreferredPlayerName] = useState<string>('');
   const [initialSavedState, setInitialSavedState] = useState<GameStateStack | null>(null);
   const [initialDebugStack, setInitialDebugStack] = useState<DebugPacketStack | null>(null);
   const [appReady, setAppReady] = useState(false);
@@ -62,6 +63,7 @@ export const useSaveLoad = ({
       const loadedSettings = loadSettingsFromLocalStorage();
       setEnabledThemePacks(loadedSettings.enabledThemePacks);
       setThinkingEffort(loadedSettings.thinkingEffort);
+      setPreferredPlayerName(loadedSettings.preferredPlayerName ?? '');
       if (loadedState) {
         if (loadedDebug) setInitialDebugStack(loadedDebug);
         if (loadedDebugLore) {
@@ -86,8 +88,12 @@ export const useSaveLoad = ({
 
   useEffect(() => {
     setThinkingEffortLevel(thinkingEffort);
-    saveSettingsToLocalStorage({ enabledThemePacks, thinkingEffort });
-  }, [enabledThemePacks, thinkingEffort]);
+    const sanitized = preferredPlayerName
+      .replace(/[^a-zA-Z0-9\s\-"']/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    saveSettingsToLocalStorage({ enabledThemePacks, thinkingEffort, preferredPlayerName: sanitized });
+  }, [enabledThemePacks, thinkingEffort, preferredPlayerName]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autosaveTimeoutRef = useRef<number | null>(null);
@@ -208,6 +214,8 @@ export const useSaveLoad = ({
     setEnabledThemePacks,
     thinkingEffort,
     setThinkingEffort,
+    preferredPlayerName,
+    setPreferredPlayerName,
     initialSavedState,
     initialDebugStack,
     appReady,

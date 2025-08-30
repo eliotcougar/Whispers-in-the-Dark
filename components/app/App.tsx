@@ -83,6 +83,8 @@ function App() {
     setEnabledThemePacks,
     thinkingEffort,
     setThinkingEffort,
+    preferredPlayerName,
+    setPreferredPlayerName,
     initialSavedState,
     initialDebugStack,
     appReady,
@@ -205,6 +207,7 @@ function App() {
   const gameLogic = useGameLogic({
     enabledThemePacksProp: enabledThemePacks,
     thinkingEffortProp: thinkingEffort,
+    preferredPlayerNameProp: preferredPlayerName,
     initialSavedStateFromApp: initialSavedState,
     initialDebugStackFromApp: initialDebugStack,
     isAppReady: appReady,
@@ -223,6 +226,10 @@ function App() {
     },
     [setThinkingEffort],
   );
+
+  const handlePreferredPlayerNameChange = useCallback((value: string) => {
+    setPreferredPlayerName(value);
+  }, [setPreferredPlayerName]);
 
   const {
     currentTheme,
@@ -963,10 +970,12 @@ function App() {
 
       <SettingsDisplay
         enabledThemePacks={enabledThemePacks}
+        onChangePreferredPlayerName={handlePreferredPlayerNameChange}
         isVisible={isSettingsVisible}
         onChangeThinkingEffort={handleThinkingEffortChange}
         onClose={closeSettings}
         onToggleThemePack={handleToggleThemePackStable}
+        preferredPlayerName={preferredPlayerName}
         thinkingEffort={thinkingEffort}
       />
 

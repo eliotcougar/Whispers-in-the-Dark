@@ -26,6 +26,7 @@ export type ThinkingEffort = 'Low' | 'Medium' | 'High';
 export interface GameSettings {
   enabledThemePacks: Array<ThemePackName>;
   thinkingEffort: ThinkingEffort;
+  preferredPlayerName?: string;
 }
 
 export type MapNodeStatus = typeof VALID_NODE_STATUS_VALUES[number];

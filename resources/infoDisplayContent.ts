@@ -49,6 +49,16 @@ const infoDisplayContent = {
   ],
   "changelog": [
     {
+      "title": "Version 1.5.1 (bugfix)",
+      "items": [
+        "Some stages of turn generation now proceed in the background.",
+        "You can now set your desired character name in Settings. One of the characters in the list will assume that name.",
+        "Restored the fallback image generation.",
+        "Dialogue mode and NPC memories of the player now refer to player by their name instead of just Player.",
+        "Loremaster Distill now uses Gemini-2.5-pro. It happens in the background, so the long wait time doesn't interfere with gameplay."
+      ]
+    },
+    {
       "title": "Version 1.5 (Backstory Update)",
       "items": [
         "Major new features - World backstory and Protagonist backstory.",

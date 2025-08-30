@@ -57,6 +57,7 @@ export interface LoadInitialGameOptions {
 
 export interface UseGameInitializationProps {
   enabledThemePacksProp: Array<ThemePackName>;
+  preferredPlayerNameProp?: string;
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
@@ -92,6 +93,7 @@ export interface UseGameInitializationProps {
 export const useGameInitialization = (props: UseGameInitializationProps) => {
   const {
     enabledThemePacksProp,
+    preferredPlayerNameProp,
     setIsLoading,
     setLoadingReason,
     setError,
@@ -260,7 +262,14 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       }
       let heroSheet: HeroSheet | null = null;
       let heroBackstory: HeroBackstory | null = null;
-      const shuffled = [...names].sort(() => Math.random() - 0.5).slice(0, 10);
+      const shuffledBase = [...names].sort(() => Math.random() - 0.5).slice(0, 10);
+      const sanitizedPref = (preferredPlayerNameProp ?? '')
+        .replace(/[^a-zA-Z0-9\s\-"']/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const shuffled = sanitizedPref && sanitizedPref.length > 0
+        ? [sanitizedPref, ...shuffledBase.filter(n => n !== sanitizedPref)].slice(0, 10)
+        : shuffledBase;
       const descriptions = await generateCharacterDescriptions(
         themeObjToLoad,
         selectedGender,
@@ -428,6 +437,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       openGenderSelectModal,
       getCurrentGameState,
       onActIntro,
+      preferredPlayerNameProp,
     ]);
 
   /**

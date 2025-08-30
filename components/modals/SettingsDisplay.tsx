@@ -16,8 +16,10 @@ interface SettingsDisplayProps {
   readonly enabledThemePacks: Array<ThemePackName>;
   readonly isVisible: boolean;
   readonly onChangeThinkingEffort: (value: ThinkingEffort) => void;
+  readonly onChangePreferredPlayerName: (value: string) => void;
   readonly onClose: () => void;
   readonly onToggleThemePack: (packName: ThemePackName) => void;
+  readonly preferredPlayerName: string;
   readonly thinkingEffort: ThinkingEffort;
 }
 
@@ -28,8 +30,10 @@ function SettingsDisplay({
   enabledThemePacks,
   isVisible,
   onChangeThinkingEffort,
+  onChangePreferredPlayerName,
   onClose,
   onToggleThemePack,
+  preferredPlayerName,
   thinkingEffort,
 }: SettingsDisplayProps) {
 
@@ -54,6 +58,13 @@ function SettingsDisplay({
     },
     [onChangeThinkingEffort]
   );
+
+  const handlePreferredNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    // Allow letters, numbers, spaces, hyphen, single-quote and double-quote; defer trimming/collapsing to save stage
+    const filtered = raw.replace(/[^a-zA-Z0-9\s\-"']/g, '');
+    onChangePreferredPlayerName(filtered);
+  }, [onChangePreferredPlayerName]);
 
 
   return (
@@ -83,6 +94,23 @@ function SettingsDisplay({
             Game Settings
           </h1>
 
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
+              Preferred Player Name
+            </h2>
+            <p className="settings-explanation mb-3">
+              Optional: if set, this name appears as the first option when choosing your character. Disallowed characters are removed automatically.
+            </p>
+            <input
+              aria-label="Preferred player name"
+              className="w-full p-2 bg-slate-700 text-slate-200 border border-slate-600 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500"
+              onChange={handlePreferredNameChange}
+              placeholder="e.g., Morgan"
+              type="text"
+              value={preferredPlayerName}
+            />
+          </div>
+          
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
               Thinking Effort
