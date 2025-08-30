@@ -107,16 +107,30 @@ export const buildMainGameTurnPrompt = (
         )}`
       : `There are no visible items at this location.`;
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
-  // Filter NPCs that are companions, as they are traveling with the player
-  const companions = currentThemeNPCs.filter(npc => npc.presenceStatus === 'companion');
+  // Categorize NPCs in a single pass for efficiency
+  const companions: Array<NPC> = [];
+  const nearbyNPCs: Array<NPC> = [];
+  const knownNPCs: Array<NPC> = [];
+  for (const npc of currentThemeNPCs) {
+    switch (npc.presenceStatus) {
+      case 'companion':
+        companions.push(npc);
+        break;
+      case 'nearby':
+        nearbyNPCs.push(npc);
+        break;
+      case 'distant':
+      case 'unknown':
+        knownNPCs.push(npc);
+        break;
+      default:
+        break;
+    }
+  }
   const companionStrings =
     companions.length > 0 ? npcsToString(companions, ' - ', false, false, false, true) : 'None';
-  // Filter NPCs that are nearby, as they are currently present and can be interacted with
-  const nearbyNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'nearby');
   const nearbyStrings =
     nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, false, false, true) : 'None';
-  // Filter NPCs that are distant or unknown, as they are not currently present but may be relevant
-  const knownNPCs = currentThemeNPCs.filter(npc => npc.presenceStatus === 'distant' || npc.presenceStatus === 'unknown');
   const NPCsStrings =
     knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known yet.';
 
@@ -129,11 +143,11 @@ export const buildMainGameTurnPrompt = (
   const mapData = fullMapData as Partial<MapData>;
   const allNodesForCurrentTheme = Array.isArray(mapData.nodes) ? mapData.nodes : [];
   const rawEdges = Array.isArray(mapData.edges) ? mapData.edges : [];
-  const allEdgesForCurrentTheme = rawEdges.filter(edge => {
-    const sourceNode = allNodesForCurrentTheme.find(n => n.id === edge.sourceNodeId);
-    const targetNode = allNodesForCurrentTheme.find(n => n.id === edge.targetNodeId);
-    return sourceNode && targetNode;
-  });
+  // Precompute node id set for O(1) membership checks
+  const nodeIdsForTheme = new Set(allNodesForCurrentTheme.map(n => n.id));
+  const allEdgesForCurrentTheme = rawEdges.filter(
+    edge => nodeIdsForTheme.has(edge.sourceNodeId) && nodeIdsForTheme.has(edge.targetNodeId)
+  );
   const mapContext = formatMapContextForPrompt(
     fullMapData,
     currentMapNodeDetails?.id ?? null,
@@ -152,12 +166,14 @@ export const buildMainGameTurnPrompt = (
   if (travelPlanLine) {
     travelPlanOrUnknown = travelPlanLine;
   } else if (destinationNodeId) {
-    const destNode = fullMapData.nodes.find(n => n.id === destinationNodeId);
+    // Build a quick lookup map to avoid repeated linear searches
+    const nodeById = new Map(fullMapData.nodes.map(n => [n.id, n]));
+    const destNode = nodeById.get(destinationNodeId);
     const placeName = destNode?.placeName ?? destinationNodeId;
     const destParentId = destNode?.data.parentNodeId;
     const destParent =
       destParentId && destParentId !== 'Universe'
-        ? fullMapData.nodes.find(n => n.id === destParentId)?.placeName ?? destParentId
+        ? nodeById.get(destParentId)?.placeName ?? destParentId
         : null;
     const displayName = destParent ? `${placeName} in ${destParent}` : placeName;
     travelPlanOrUnknown = `Player wants to reach ${displayName}, but does not know how to get there.`;

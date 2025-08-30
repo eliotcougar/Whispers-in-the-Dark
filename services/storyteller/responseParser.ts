@@ -116,6 +116,7 @@ async function handleDialogueSetup(
         if (!dialogueSetupIsValid) {
             console.warn("parseAIResponse: 'dialogueSetup' is present but malformed. Attempting correction.");
             const NPCsForDialogueContext: Array<NPC> = [...context.allRelevantNPCs];
+            const existingByName = new Map(context.allRelevantNPCs.map(n => [n.name, n]));
               (data.npcsAdded ?? []).forEach(npcAdd => {
                 if (isValidNewNPCPayload(npcAdd)) {
                     NPCsForDialogueContext.push({
@@ -129,7 +130,7 @@ async function handleDialogueSetup(
             });
               (data.npcsUpdated ?? []).forEach(npcUpd => {
                 if (isValidNPCUpdate(npcUpd)) {
-                    const existing = context.allRelevantNPCs.find(ex => ex.name === npcUpd.name);
+                    const existing = existingByName.get(npcUpd.name);
                     NPCsForDialogueContext.push({
                         id: buildNPCId(npcUpd.name),
                         name: npcUpd.name,
@@ -242,6 +243,13 @@ async function handleNPCChanges(
     const rawNPCUpdates: Array<unknown> = Array.isArray(rawUpdated) ? rawUpdated : [];
     const tempFinalNPCsUpdatedPayloads: Array<ValidNPCUpdatePayload> = [];
 
+    // Precompute lookup collections for name resolution
+    const knownNPCsForLookup: Array<NPC> = [
+        ...context.allRelevantNPCs,
+        ...finalNPCsAdded,
+    ];
+    const allKnownNPCNames = new Set(knownNPCsForLookup.map(npc => npc.name));
+
     for (const npcUpdate of rawNPCUpdates) {
         if (
             typeof npcUpdate === 'object' &&
@@ -255,10 +263,6 @@ async function handleNPCChanges(
                 name: (npcUpdate as { name: string }).name,
             };
             const payloadIdentifierForLogs = currentNPCUpdatePayload.name;
-            const knownNPCsForLookup: Array<NPC> = [
-                ...context.allRelevantNPCs,
-                ...finalNPCsAdded,
-            ];
             const matchedNPC = findNPCByIdentifier(
                 currentNPCUpdatePayload.name,
                 knownNPCsForLookup,
@@ -267,9 +271,6 @@ async function handleNPCChanges(
             if (matchedNPC) {
                 currentNPCUpdatePayload.name = matchedNPC.name;
             } else {
-                const allKnownNPCNames = new Set(
-                    knownNPCsForLookup.map(npc => npc.name),
-                );
                 if (!allKnownNPCNames.has(currentNPCUpdatePayload.name)) {
                     console.warn(
                         `parseAIResponse ('npcsUpdated'): Identifier "${payloadIdentifierForLogs}" not found. Attempting name correction.`,
@@ -306,30 +307,32 @@ async function handleNPCChanges(
     }
 
     const finalNPCUpdateInstructions: Array<ValidNPCUpdatePayload> = [];
+    // Precompute name sets/maps for O(1) checks and updates
+    const knownNames = new Set(context.allRelevantNPCs.map(npc => npc.name));
+    const addedIndexByName = new Map(finalNPCsAdded.map((npc, i) => [npc.name, i] as const));
     for (const npcUpdatePayload of tempFinalNPCsUpdatedPayloads) {
         const targetName = npcUpdatePayload.name;
-        const isAlreadyKnownFromPreviousTurns = context.allRelevantNPCs.some(npc => npc.name === targetName);
-        const npcAddedThisTurnIndex = finalNPCsAdded.findIndex(npcAdded => npcAdded.name === targetName);
-        const isBeingAddedThisTurn = npcAddedThisTurnIndex !== -1;
+        const isAlreadyKnownFromPreviousTurns = knownNames.has(targetName);
+        const npcAddedThisTurnIndex = addedIndexByName.get(targetName);
 
-        if (isAlreadyKnownFromPreviousTurns || isBeingAddedThisTurn) {
+        if (isAlreadyKnownFromPreviousTurns) {
             finalNPCUpdateInstructions.push(npcUpdatePayload);
-            if (isBeingAddedThisTurn) {
-                const npcInAddedList = finalNPCsAdded[npcAddedThisTurnIndex];
-                if (npcUpdatePayload.newDescription !== undefined) npcInAddedList.description = npcUpdatePayload.newDescription;
-                if (npcUpdatePayload.newAliases !== undefined) npcInAddedList.aliases = npcUpdatePayload.newAliases;
-                if (npcUpdatePayload.addAlias) npcInAddedList.aliases = Array.from(new Set([...(npcInAddedList.aliases ?? []), npcUpdatePayload.addAlias]));
-                if (npcUpdatePayload.newPresenceStatus !== undefined) npcInAddedList.presenceStatus = npcUpdatePayload.newPresenceStatus;
-                if (npcUpdatePayload.newLastKnownLocation !== undefined) npcInAddedList.lastKnownLocation = npcUpdatePayload.newLastKnownLocation;
-                if (npcUpdatePayload.newPreciseLocation !== undefined) npcInAddedList.preciseLocation = npcUpdatePayload.newPreciseLocation;
+        } else if (npcAddedThisTurnIndex !== undefined) {
+            finalNPCUpdateInstructions.push(npcUpdatePayload);
+            const npcInAddedList = finalNPCsAdded[npcAddedThisTurnIndex];
+            if (npcUpdatePayload.newDescription !== undefined) npcInAddedList.description = npcUpdatePayload.newDescription;
+            if (npcUpdatePayload.newAliases !== undefined) npcInAddedList.aliases = npcUpdatePayload.newAliases;
+            if (npcUpdatePayload.addAlias) npcInAddedList.aliases = Array.from(new Set([...(npcInAddedList.aliases ?? []), npcUpdatePayload.addAlias]));
+            if (npcUpdatePayload.newPresenceStatus !== undefined) npcInAddedList.presenceStatus = npcUpdatePayload.newPresenceStatus;
+            if (npcUpdatePayload.newLastKnownLocation !== undefined) npcInAddedList.lastKnownLocation = npcUpdatePayload.newLastKnownLocation;
+            if (npcUpdatePayload.newPreciseLocation !== undefined) npcInAddedList.preciseLocation = npcUpdatePayload.newPreciseLocation;
 
-                if (npcInAddedList.presenceStatus === 'distant' || npcInAddedList.presenceStatus === 'unknown') {
-                    npcInAddedList.preciseLocation = null;
-                } else {
-                    npcInAddedList.preciseLocation ??= npcInAddedList.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
-                }
-                finalNPCsAdded[npcAddedThisTurnIndex] = npcInAddedList;
+            if (npcInAddedList.presenceStatus === 'distant' || npcInAddedList.presenceStatus === 'unknown') {
+                npcInAddedList.preciseLocation = null;
+            } else {
+                npcInAddedList.preciseLocation ??= npcInAddedList.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
             }
+            finalNPCsAdded[npcAddedThisTurnIndex] = npcInAddedList;
         } else {
             console.warn(`parseAIResponse ('npcsUpdated'): Target NPC "${targetName}" for update not found. Converting to an add operation.`);
 
@@ -368,9 +371,10 @@ async function handleNPCChanges(
                 newNPCDataFromUpdate.preciseLocation ??= newNPCDataFromUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
             }
 
-            const existingIndexInAdded = finalNPCsAdded.findIndex(npc => npc.name === newNPCDataFromUpdate.name);
-            if (existingIndexInAdded === -1) {
+            const existingIndexInAdded = addedIndexByName.get(newNPCDataFromUpdate.name);
+            if (existingIndexInAdded === undefined) {
                 finalNPCsAdded.push(newNPCDataFromUpdate);
+                addedIndexByName.set(newNPCDataFromUpdate.name, finalNPCsAdded.length - 1);
             } else {
                 finalNPCsAdded[existingIndexInAdded] = { ...finalNPCsAdded[existingIndexInAdded], ...newNPCDataFromUpdate };
             }

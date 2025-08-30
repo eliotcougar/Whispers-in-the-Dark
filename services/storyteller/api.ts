@@ -27,6 +27,7 @@ import { getThinkingBudget, getMaxOutputTokens } from '../thinkingConfig';
 import { isApiConfigured } from '../apiClient';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
+import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 
 const STORYTELLER_VALID_TAGS = (VALID_TAGS).filter(
   tag => tag !== 'recovered' && tag !== 'stashed'
@@ -442,6 +443,19 @@ export const executeAIMainTurn = async (
       const thoughts = parts
         .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
         .map(p => p.text);
+
+      // Validate the non-thought text as JSON. Attempt a light, in-place fix (fence extraction)
+      // before triggering a retry via throw if still invalid.
+      const nonThoughtTextParts = parts.filter(
+        (p): p is { text: string; thought?: boolean } => p.thought !== true && typeof p.text === 'string'
+      );
+      const nonThoughtText = nonThoughtTextParts.map(p => p.text).join('\n');
+      const jsonCandidate = extractJsonFromFence(nonThoughtText);
+      const parsed = safeParseJson<unknown>(jsonCandidate);
+      if (parsed === null) {
+        console.warn('executeAIMainTurn: Malformed JSON from AI after in-place fence extraction. Will retry.');
+        throw new Error('Malformed AI JSON response');
+      }
       return {
         result: { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed },
       };
