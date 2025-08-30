@@ -121,7 +121,7 @@ export const dispatchAIRequest = async (
       cfg.responseJsonSchema = options.jsonSchema;
     }
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; ) {
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       const extraDelay = getDelayUntilUnderLimit(model, rateLimits[model] ?? 1);
       if (extraDelay > 0 || attempt > 1) {
         const delay = 5000 + extraDelay;
@@ -182,7 +182,6 @@ export const dispatchAIRequest = async (
         console.warn(
           `dispatchAIRequest: Model ${model} failed with ${statusInfo}. Retry ${String(attempt)}/${String(MAX_RETRIES)}`
         );
-        attempt += 1;
       }
     }
 

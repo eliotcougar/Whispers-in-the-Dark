@@ -22,7 +22,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
   while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
     chainRequests = filterEdgeChainRequests(chainRequests);
     let chainResult: ConnectorChainsServiceResult | null = null;
-    for (let attempt = 0; attempt < MAX_RETRIES; ) {
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       console.log(
         `Connector Chains Refinement: Round ${String(refineAttempts + 1)}/${String(
           MAX_CHAIN_REFINEMENT_ROUNDS
@@ -43,7 +43,6 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           attempt + 1
         )}): invalid or empty response. Retrying.`
       );
-      attempt++;
     }
     if (chainResult?.payload) {
       chainRequests = [];
