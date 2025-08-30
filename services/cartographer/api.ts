@@ -17,10 +17,7 @@ import { fetchMapUpdatePayload } from './request';
 import { applyMapUpdates } from './applyUpdates';
 import type { MapUpdateServiceResult } from './types';
 import { isApiConfigured } from '../apiClient';
-import {
-  formatNodesAsTree,
-  formatEdgeLine,
-} from '../../utils/promptFormatters/map';
+import { formatMapDataForAI } from '../../utils/promptFormatters/map';
 
 /**
  * Combines prompt creation, AI request and payload application.
@@ -48,27 +45,16 @@ export const updateMapFromAIData_Service = async (
       ? aiData.currentMapNodeId
       : previousMapNodeId;
 
-  const currentThemeNodesFromMapData = currentMapData.nodes;
-  const currentThemeNodeIdsSet = new Set(currentThemeNodesFromMapData.map(n => n.id));
-  const currentThemeEdgesFromMapData = currentMapData.edges.filter(e =>
-    currentThemeNodeIdsSet.has(e.sourceNodeId) &&
-    currentThemeNodeIdsSet.has(e.targetNodeId),
-  );
+  // edges are captured by formatMapDataForAI directly
 
   const minimalModelCalls: Array<MinimalModelCallRecord> = [];
 
   const previousMapNodeContext =
     referenceMapNodeId ?? "Player's Previous Map Node: Unknown or N/A.";
 
-  const existingMapContext = `Current Map Nodes (for your reference):\n${
-    currentThemeNodesFromMapData.length > 0
-      ? formatNodesAsTree(currentThemeNodesFromMapData)
-      : 'None exist yet.'
-  }\n\nCurrent Map Edges (for your reference):\n${
-    currentThemeEdgesFromMapData.length > 0
-      ? currentThemeEdgesFromMapData.map(e => formatEdgeLine(e)).join('\n')
-      : 'None exist yet.'
-  }`;
+  const existingMapContext = currentMapData.nodes.length > 0
+    ? formatMapDataForAI(currentMapData)
+    : 'No map data exists yet.';
 
   const allKnownMainPlacesString =
     allKnownMainMapNodesForTheme.length > 0

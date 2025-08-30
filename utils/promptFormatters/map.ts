@@ -162,6 +162,58 @@ export const formatNodesAsTree = (
   return lines.join('\n');
 };
 
+/**
+ * Formats the entire map data in a normalized, line‑based representation that is easy for AIs to ingest.
+ * Each node and edge is represented on a single line with explicit labeled fields to reduce ambiguity.
+ * This avoids tree glyphs/indentation and focuses on concrete, machine-like descriptors.
+ */
+export const formatMapDataForAI = (mapData: MapData): string => {
+  const nodes = mapData.nodes;
+  const edges = mapData.edges;
+
+  const nodeById = new Map(nodes.map(n => [n.id, n] as const));
+
+  const sanitize = (s: string | null | undefined): string =>
+    (s ?? '').replace(/\s+/g, ' ').trim();
+
+  const aliasList = (arr: Array<string> | null | undefined): string =>
+    arr && arr.length > 0 ? `[${arr.map(a => `"${a}"`).join(', ')}]` : '[]';
+
+  const resolveArea = (nodeId: string): { area: string; feature: string } => {
+    const n = nodeById.get(nodeId);
+    if (!n) return { area: 'Unknown', feature: nodeId };
+    if (n.data.nodeType === 'feature') {
+      const parent = n.data.parentNodeId && n.data.parentNodeId !== 'Universe'
+        ? n.data.parentNodeId
+        : 'Universe';
+      return { area: parent, feature: n.id };
+    }
+    return { area: n.id, feature: n.id };
+  };
+
+  const nodeLines = nodes.map(n =>
+    `NODE id=${n.id}; name="${n.placeName}"; type=${n.data.nodeType}; parent=${n.data.parentNodeId ?? 'Universe'}; status=${n.data.status}; visited=${String(Boolean(n.data.visited))}; aliases=${aliasList(n.data.aliases)}; desc="${sanitize(n.data.description)}"`
+  );
+
+  const edgeLines = edges
+    .filter(e => nodeById.has(e.sourceNodeId) && nodeById.has(e.targetNodeId))
+    .filter(e => !(e.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(e.data.status)))
+    .map(e => {
+      const from = resolveArea(e.sourceNodeId);
+      const to = resolveArea(e.targetNodeId);
+      const travel = e.data.travelTime ?? '';
+      return `EDGE id=${e.id}; type=${e.data.type ?? 'path'}; status=${e.data.status ?? 'open'}; fromFeature=${from.feature}; fromArea=${from.area}; toFeature=${to.feature}; toArea=${to.area}; travelTime=${travel}; desc="${sanitize(e.data.description)}"`;
+    });
+
+  return [
+    'MAP SNAPSHOT (normalized, line-based)',
+    'NODES:',
+    ...nodeLines,
+    'EDGES:',
+    ...edgeLines,
+  ].join('\n');
+};
+
 const formatConnectionToNode = (edge: MapEdge, otherNode: MapNode): string => {
   const statusText = edge.data.status ?? 'open';
   const typeText = edge.data.type ?? 'path';
