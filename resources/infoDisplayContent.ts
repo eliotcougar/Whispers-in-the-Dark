@@ -12,7 +12,7 @@ const infoDisplayContent = {
       "text": [
         "Core Gameplay Loop: Read the scene description, then choose one of the provided action options, or use any of your items. Your actions determine the story's progression.",
         "Inventory: You'll acquire items throughout your adventure. Items can be gained, lost, or used. Some items have specific \"Known Uses\" that unlock as you interact with them or the environment. You can \"Inspect\" items for more details or \"Attempt to Use\" them in a generic way if no specific use is known or applicable. Item types include single-use, multi-use, equipment, containers, keys, weapons, ammunition, vehicles, immovable features, and status effects.",
-        "Quests & Objectives: Each theme typically has an \"Overarching Quest\" (a long-term goal) and a \"Current Objective\" (a short-term task). Completing objectives grants Score points and advances the story. The win/lose conditions are not implemented yet, and completing the main quest does not do much.",
+        "Quests & Objectives: Each theme typically has an \"Overarching Quest\" (a long-term goal) and a \"Current Objective\" (a short-term task). Completing objectives grants Score points and advances the story. The game follows a five-act story arc. Completing the final act finishes the game.",
         "Local Context: The game tracks \"Local Time,\" \"Local Environment,\" and \"Local Place.\" These details are influenced by your actions and the AI's narrative, providing a more immersive experience. The AI uses this context to generate scenes and the Image Visualizer uses it to create more accurate pictures.",
         "Score & Custom Actions: You earn Score points primarily by completing objectives. These points can be spent to perform \"Custom Actions\" by typing your desired action into the input field. Custom actions cost points and have a character limit.",
         "Starting Theme: At the beginning of each adventure, you choose which theme to play in, setting the tone for your journey."
@@ -22,7 +22,7 @@ const infoDisplayContent = {
       "header": "Notable Features",
       "text": [
         "Image Visualizer: Click the \"eye\" icon to generate an AI-powered image representing the current scene. It uses Imagen 4, and the daily quota is not very big. If you use it up, it will fall back to Gemini 2.0 Image Generation Preview",
-        "Knowledge Base: Click the \"book\" icon to view details about all Places and NPCs you've discovered across different themes.",
+        "Knowledge Base: Click the \"book\" icon to view details about all NPCs you've discovered across different themes.",
         "Map Display: Use the map icon to view a dynamic graph of locations within the current theme, showing connections and your current position."
       ]
     },
@@ -37,9 +37,11 @@ const infoDisplayContent = {
     {
       "header": "AI Models & Disclaimers",
       "text": [
-        "This game is powered by Google's Gemini large language models:",
-        "Text Generation: {{GEMINI_MODEL_NAME}}",
-        "Image Generation: imagen-4.0",
+        "This game uses Google AI models:",
+        "Main Storyteller/Text: {{GEMINI_MODEL_NAME}} (fallback: {{GEMINI_LITE_MODEL_NAME}})",
+        "Lore Distillation (sparingly): {{GEMINI_PRO_MODEL_NAME}} (very limited RPM)",
+        "Prompt Utilities/Light rewrites: {{MINIMAL_MODEL_NAME}}",
+        "Image Generation: Primary imagen-4.0-generate-001; fallback gemini-2.0-flash-preview-image-generation",
         "AI Unpredictability: As with any generative AI, the responses can sometimes be unpredictable, creative in unexpected ways, or may not perfectly adhere to all instructions or context. This is part of the charm and challenge of an AI-driven adventure!",
         "API Quotas: The use of these AI models is subject to API call limits and quotas. If you (or the environment this app is running in) exceed these daily quotas, the game's AI features (text generation, image visualization) may temporarily stop working until the quota resets."
       ]

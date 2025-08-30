@@ -7,6 +7,7 @@
 
 // Using gemini-2.5-flash model specified by API guidelines for general text tasks.
 export const GEMINI_MODEL_NAME = "gemini-2.5-flash";
+export const GEMINI_PRO_MODEL_NAME = "gemini-2.5-pro"; // High quality, expensive; use sparingly
 export const GEMINI_LITE_MODEL_NAME = "gemini-2.5-flash-lite"; // Updated for better capability
 export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string outputs
 export const TINY_MODEL_NAME = "gemma-3n-e4b-it" // Fastest free model with 8000 input limit
@@ -17,6 +18,7 @@ export const CORRECTION_TEMPERATURE = 0.8;
 // Per-minute rate limits for each model
 export const GEMINI_MODEL_RPM = 10;
 export const GEMINI_LITE_MODEL_RPM = 15;
+export const GEMINI_PRO_MODEL_RPM = 2; // Very limited; only for key tasks
 export const MINIMAL_MODEL_RPM = 30;
 export const TINY_MODEL_RPM = 30;
 

@@ -12,6 +12,9 @@ import infoContentRaw from '../../resources/infoDisplayContent';
 import {
   CURRENT_SAVE_GAME_VERSION,
   GEMINI_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
+  GEMINI_PRO_MODEL_NAME,
+  MINIMAL_MODEL_NAME,
 } from '../../constants';
 
 interface InfoSection {
@@ -36,7 +39,10 @@ const infoContent = infoContentRaw as InfoContent;
 function replacePlaceholders(text: string): string {
   return text
     .replace(/\{\{CURRENT_SAVE_GAME_VERSION\}\}/g, CURRENT_SAVE_GAME_VERSION)
-    .replace(/\{\{GEMINI_MODEL_NAME\}\}/g, GEMINI_MODEL_NAME);
+    .replace(/\{\{GEMINI_MODEL_NAME\}\}/g, GEMINI_MODEL_NAME)
+    .replace(/\{\{GEMINI_LITE_MODEL_NAME\}\}/g, GEMINI_LITE_MODEL_NAME)
+    .replace(/\{\{GEMINI_PRO_MODEL_NAME\}\}/g, GEMINI_PRO_MODEL_NAME)
+    .replace(/\{\{MINIMAL_MODEL_NAME\}\}/g, MINIMAL_MODEL_NAME);
 }
 
 const infoSections = infoContent.sections.map(section => (
