@@ -10,24 +10,12 @@ import { geminiClient as ai, isApiConfigured } from '../../services/apiClient';
 import { AdventureTheme, NPC, MapNode } from '../../types';
 import LoadingSpinner from '../LoadingSpinner';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';
-import { dispatchAIRequest } from '../../services/modelDispatcher';
-import { MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME } from '../../constants';
+// Prompt sanitization and image generation handled by shared helpers
 import { setLoadingReason } from '../../utils/loadingState';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
+import { generateImageWithFallback, getThemeStylePrompt, sanitizeVisualPrompt } from '../../services/image/common';
 
-const THEME_STYLE_PROMPTS: Record<string, string> = {
-  dungeon: 'a dark, gritty medieval fantasy style, dungeons and dragons concept art',
-  cyberpunk: 'a neon-drenched, futuristic cyberpunk cityscape style, Blade Runner aesthetic',
-  eldritch: 'a Lovecraftian horror style, cosmic dread, 1920s period',
-  'post-apocalyptic': 'a desolate, rusty post-apocalyptic wasteland style, Mad Max aesthetic',
-  steampunk: 'a steampunk style with clockwork machines and airships, Victorian era',
-  'victorian mansion': 'a haunted Victorian mansion style, gothic horror, moody and atmospheric',
-  'deep space': 'a deep space sci-fi style, cosmic anomaly, advanced technology',
-  'lost world': 'a prehistoric lost world style, lush jungles, dinosaurs, ancient ruins',
-  'greek hero': 'a mythic Greek hero style, classical art, epic battles',
-  'wild west': 'a Wild West outlaw style, dusty frontier, cinematic western',
-};
 
 if (!isApiConfigured()) {
   console.error('Gemini API key is not set. Image visualization will not work.');
@@ -149,18 +137,8 @@ function ImageVisualizer({
   }, [internalImageUrl]);
 
   /**
-   * Maps the current theme to a concise style string for the prompt.
-   */
-  const getThemeStylePrompt = (theme: AdventureTheme | null): string => {
-    if (!theme) return 'a general fantasy style';
-    const lowerName = theme.name.toLowerCase();
-    for (const keyword in THEME_STYLE_PROMPTS) {
-      if (lowerName.includes(keyword)) {
-        return THEME_STYLE_PROMPTS[keyword];
-      }
-    }
-    return `a style fitting for ${theme.name}`;
-  };
+  * Maps the current theme to a concise style string for the prompt.
+  */
   
   /**
    * Calls the AI service to generate an image of the current scene.
@@ -205,40 +183,21 @@ function ImageVisualizer({
 
     console.log("Original Scene: ", rawPrompt);
     // Ask a minimal model to rewrite the prompt to avoid unsafe elements
-    let safePrompt = rawPrompt;
-    try {
-      const { response: safeResp } = await dispatchAIRequest({
-        modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
-        prompt: `Rewrite the following scene description into a safe and aestetic visual depiction suitable for highly censored image generation. Only include the elements that are definitely present in the scene and omit anything non-visual, that is mentioned only for unrelated context. Preserve all details of the landscape or environment. Mention time, weather, mood of the environment. Preserve small details. Avoid any depressing, explicit or unsafe elements. Absolutely avoid nudity or corpses.\n\nScene:\n${rawPrompt}`,
-        systemInstruction: 'Respond ONLY with the visual description of the scene.',
-        temperature: 1,
-        label: 'ImagePromptSanitizer',
-      });
-      safePrompt = prefix + (safeResp.text?.trim() ?? rawPrompt);
-      console.log("Sanitized prompt: ", safePrompt);
-    } catch (safeErr: unknown) {
-      console.warn('Prompt sanitization failed, using raw prompt.', safeErr);
-    }
+    const safePrompt = await sanitizeVisualPrompt(
+      `Rewrite the following scene description into a safe and aestetic visual depiction suitable for highly censored image generation. Only include the elements that are definitely present in the scene and omit anything non-visual, that is mentioned only for unrelated context. Preserve all details of the landscape or environment. Mention time, weather, mood of the environment. Preserve small details. Avoid any depressing, explicit or unsafe elements. Absolutely avoid nudity or corpses.\n\nScene:\n${rawPrompt}`,
+      prefix,
+      'Respond ONLY with the visual description of the scene.',
+      'ImagePromptSanitizer',
+    );
 
     try {
-      const response = await ai.models.generateImages({
-        model: 'imagen-4.0-generate-001',
-        prompt: safePrompt,
-        config: {
-          aspectRatio: '4:3',
-          imageSize: '1K',
-          numberOfImages: 1,
-          outputMimeType: 'image/jpeg',
-        },
-      });
-
-      if (response.generatedImages && response.generatedImages.length > 0 && response.generatedImages[0].image?.imageBytes) {
-        const base64ImageBytes = response.generatedImages[0].image.imageBytes;
+      const base64ImageBytes = await generateImageWithFallback(safePrompt, '4:3');
+      if (base64ImageBytes) {
         const imageUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
         setInternalImageUrl(imageUrl);
-        setGeneratedImage(imageUrl, currentSceneDescription); 
+        setGeneratedImage(imageUrl, currentSceneDescription);
       } else {
-        throw new Error("No image data received from API.");
+        throw new Error('No image data received from API.');
       }
     } catch (err: unknown) {
       console.error("Error generating image:", err);
@@ -253,25 +212,8 @@ function ImageVisualizer({
 
       
       if (isStatus400) {
-        try {
-          const fallbackResp = await ai.models.generateImages({
-          model: 'imagen-3.0-generate-002',
-          prompt: safePrompt,
-          config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio: '4:3' },
-        });
-
-        if (fallbackResp.generatedImages && fallbackResp.generatedImages.length > 0 && fallbackResp.generatedImages[0].image?.imageBytes) {
-          const base64ImageBytes = fallbackResp.generatedImages[0].image.imageBytes;
-          const imageUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
-          setInternalImageUrl(imageUrl);
-          setGeneratedImage(imageUrl, currentSceneDescription); 
-        } else {
-          throw new Error("No image data received from API.");
-        }
-        } catch (fallbackErr: unknown) {
-          console.error('Fallback image generation failed:', fallbackErr);
-          setError('Fallback image generation failed.');
-        }
+        // generateImageWithFallback already attempted fallback; just update error
+        setError('Fallback image generation failed.');
       }
 
       if (errorMessage.includes("quota") || errorMessage.includes("billing")) {
