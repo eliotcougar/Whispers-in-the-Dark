@@ -101,24 +101,53 @@ export const generateImageWithFallback = async (
     if (bytes) return bytes;
     throw new Error('No image data received from API.');
   } catch (err: unknown) {
-    const status = extractStatusFromError(err);
-    if (status === 400) {
-      try {
-        const fallbackResp = await ai.models.generateImages({
-          model: 'imagen-3.0-generate-002',
-          prompt,
-          config: { numberOfImages: 1, outputMimeType: 'image/jpeg', aspectRatio },
-        });
-        const bytes = fallbackResp.generatedImages?.[0]?.image?.imageBytes;
-        if (bytes) return bytes;
-        throw new Error('No image data received from fallback API.');
-      } catch (fallbackErr: unknown) {
-        console.error('generateImageWithFallback: fallback generation failed:', fallbackErr);
+    // Try Gemini image generation fallback (streaming inline image data)
+    try {
+      const stream = await ai.models.generateContentStream({
+        model: 'gemini-2.0-flash-preview-image-generation',
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
+        config: {
+          responseModalities: ['IMAGE', 'TEXT'],
+          responseMimeType: 'text/plain',
+        },
+      });
+
+      interface InlineData { data?: string; mimeType?: string }
+      interface InlinePart { inlineData?: InlineData }
+      interface CandidateContent { parts?: Array<InlinePart> }
+      interface Candidate { finishReason?: string; content?: CandidateContent }
+      interface StreamChunk { candidates?: Array<Candidate> }
+
+      const gotBytes = async (): Promise<string> => {
+        for await (const chunk of stream as AsyncIterable<StreamChunk>) {
+          const candidate = chunk.candidates?.[0];
+          const parts = candidate?.content?.parts;
+          if (Array.isArray(parts)) {
+            const inline = parts.find(p => !!p.inlineData);
+            const data = inline?.inlineData?.data;
+            if (data) {
+              // Return raw base64 bytes. Caller prefixes data URL if needed.
+              return data;
+            }
+          }
+        }
+        return '';
+      };
+      const bytes = await gotBytes();
+      return bytes;
+    } catch (fallbackErr: unknown) {
+      console.error('generateImageWithFallback: Gemini fallback failed:', fallbackErr);
+      const status = extractStatusFromError(err);
+      if (status === 400) {
+        // Maintain previous semantics: treat 400 specially but still end gracefully
         return '';
       }
+      return '';
     }
-    console.error('generateImageWithFallback: generation failed:', err);
-    return '';
   }
 };
-
