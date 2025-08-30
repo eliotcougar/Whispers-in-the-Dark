@@ -420,6 +420,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       );
 
       await waitForBegin;
+
+      // After player closes character select, always show Act 1 intro
+      if (draftState.storyArc) {
+        const actIdx = Math.max(0, (draftState.storyArc.currentAct ?? 1) - 1);
+        const firstAct = draftState.storyArc.acts[actIdx];
+        if (firstAct) onActIntro(firstAct);
+      }
       await initialTurnPromise;
       return;
     }, [

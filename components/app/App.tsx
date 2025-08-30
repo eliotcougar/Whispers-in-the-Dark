@@ -895,8 +895,10 @@ function App() {
         </main>
 
         <ItemChangeAnimator
-          isGameBusy={isAnyModalOrDialogueActive || isLoading || isTurnProcessing}
+          // Pause animations during turn processing and initial new-game modals
+          isGameBusy={isLoading || isTurnProcessing || isCharacterSelectVisible || pendingAct !== null}
           lastTurnChanges={lastTurnChanges}
+          currentTurnNumber={globalTurnNumber}
         />
 
         <Footer

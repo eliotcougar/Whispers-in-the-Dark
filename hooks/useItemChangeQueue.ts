@@ -26,6 +26,7 @@ export interface DisplayableItems {
 export interface UseItemChangeQueueProps {
   readonly lastTurnChanges: TurnChanges | null;
   readonly isGameBusy: boolean;
+  readonly currentTurnNumber: number;
 }
 
 const ANIMATION_TRANSITION_DURATION_MS = 600;
@@ -66,6 +67,7 @@ const areItemsEffectivelyIdentical = (
     item1.name !== item2.name ||
     item1.type !== item2.type ||
     item1.description !== item2.description ||
+    item1.holderId !== item2.holderId ||
     (item1.activeDescription ?? '') !== (item2.activeDescription ?? '') ||
     (item1.isActive ?? false) !== (item2.isActive ?? false) ||
     JSON.stringify(item1.tags ?? []) !== JSON.stringify(item2.tags ?? [])
@@ -75,7 +77,7 @@ const areItemsEffectivelyIdentical = (
   return areKnownUsesEffectivelyIdentical(item1.knownUses, item2.knownUses);
 };
 
-export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChangeQueueProps) => {
+export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNumber }: UseItemChangeQueueProps) => {
   const [animationQueue, setAnimationQueue] = useState<Array<AnimationQueueItem>>([]);
   const [currentAnimatingItem, setCurrentAnimatingItem] = useState<AnimationQueueItem | null>(null);
   const [animationStep, setAnimationStep] = useState<AnimationStep>('idle');
@@ -90,6 +92,10 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
   const [animatedTurnChangesRef, setAnimatedTurnChangesRef] = useState<TurnChanges | null>(null);
   const [currentProcessingChanges, setCurrentProcessingChanges] = useState<TurnChanges | null>(null);
   const activeTimeoutRef = useRef<number | null>(null);
+  const deferredTurnChangesRef = useRef<TurnChanges | null>(null);
+  const lastAnimatedTurnRef = useRef<number | null>(null);
+  // Note: we intentionally avoid hashing/"signatures" of changes now.
+  // We rely on reference + queue boundaries to avoid duplicates.
 
   const clearActiveTimeout = useCallback(() => {
     if (activeTimeoutRef.current) {
@@ -112,11 +118,13 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
 
   useEffect(() => {
     if (isGameBusy) {
+      // While busy, remember the latest unanimated changes so we can animate after unpause.
+      if (lastTurnChanges && lastTurnChanges !== animatedTurnChangesRef) {
+        deferredTurnChangesRef.current = lastTurnChanges;
+      }
+      // Clear any in-flight animation state so we can replay once unpaused.
       if (currentProcessingChanges) {
-        setAnimatedTurnChangesRef(currentProcessingChanges);
         setCurrentProcessingChanges(null);
-      } else if (lastTurnChanges && lastTurnChanges !== animatedTurnChangesRef) {
-        setAnimatedTurnChangesRef(lastTurnChanges);
       }
       resetAnimationState();
     }
@@ -124,24 +132,46 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
     isGameBusy,
     resetAnimationState,
     currentProcessingChanges,
-    animatedTurnChangesRef,
     lastTurnChanges,
+    animatedTurnChangesRef,
   ]);
 
+  // On turn advance: if no item changes this turn, explicitly mark as processed
+  // and clear any deferred changes from a previous turn to avoid replays.
   useEffect(() => {
-    if (isGameBusy || !lastTurnChanges) {
-      if (!isGameBusy && animationQueue.length > 0) {
-        setAnimationQueue([]);
-      }
+    if (!isGameBusy && lastTurnChanges && lastTurnChanges.itemChanges.length === 0) {
+      // New turn with no animations: clear leftovers and mark this turn as handled
+      deferredTurnChangesRef.current = null;
+      setAnimationQueue([]);
+      setCurrentProcessingChanges(null);
+      setIsVisibleOverlay(false);
+      setAnimatedTurnChangesRef(lastTurnChanges);
+      lastAnimatedTurnRef.current = currentTurnNumber;
+    }
+  }, [currentTurnNumber, isGameBusy, lastTurnChanges]);
+
+  useEffect(() => {
+    if (isGameBusy) {
+      if (animationQueue.length > 0) setAnimationQueue([]);
       return;
     }
-    if (lastTurnChanges === animatedTurnChangesRef || lastTurnChanges === currentProcessingChanges) return;
+    const candidate = deferredTurnChangesRef.current ?? lastTurnChanges;
+    if (!candidate) return;
+    // If we've already animated for this turn, ignore busy/idle cycles until turn advances
+    if (lastAnimatedTurnRef.current !== null && currentTurnNumber === lastAnimatedTurnRef.current) {
+      deferredTurnChangesRef.current = null;
+      return;
+    }
+    if (candidate === animatedTurnChangesRef || candidate === currentProcessingChanges) return;
     if (currentProcessingChanges && currentAnimatingItem) return;
 
-    setCurrentProcessingChanges(lastTurnChanges);
+    setCurrentProcessingChanges(candidate);
+    // Mark this turn's changes as being processed/animated immediately to prevent replays
+    setAnimatedTurnChangesRef(candidate);
+    lastAnimatedTurnRef.current = currentTurnNumber;
 
     const newAnimationQueue: Array<AnimationQueueItem> = [];
-    for (const change of lastTurnChanges.itemChanges) {
+    for (const change of candidate.itemChanges) {
       if (change.type === 'acquire' && change.acquiredItem) {
         newAnimationQueue.push({ type: 'acquire', item: change.acquiredItem });
       } else if (change.type === 'loss' && change.lostItem) {
@@ -161,11 +191,12 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
       setAnimationQueue(newAnimationQueue);
     } else {
       setAnimationQueue([]);
-      setAnimatedTurnChangesRef(lastTurnChanges);
+      setAnimatedTurnChangesRef(candidate);
       setCurrentProcessingChanges(null);
       setIsVisibleOverlay(false);
+      if (deferredTurnChangesRef.current === candidate) deferredTurnChangesRef.current = null;
     }
-  }, [lastTurnChanges, isGameBusy, animatedTurnChangesRef, currentProcessingChanges, currentAnimatingItem, animationQueue]);
+  }, [lastTurnChanges, isGameBusy, animatedTurnChangesRef, currentProcessingChanges, currentAnimatingItem, animationQueue, currentTurnNumber]);
 
   const processNextAnimation = useCallback(() => {
     clearActiveTimeout();
@@ -200,6 +231,9 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
           setAnimatedTurnChangesRef(currentProcessingChanges);
         }
         setCurrentProcessingChanges(null);
+        if (deferredTurnChangesRef.current === currentProcessingChanges) {
+          deferredTurnChangesRef.current = null;
+        }
       }
     }
   }, [animationStep, animationQueue, currentAnimatingItem, processNextAnimation, isGameBusy, currentProcessingChanges, animatedTurnChangesRef]);
@@ -263,10 +297,12 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy }: UseItemChang
     if (currentProcessingChanges) {
       setAnimatedTurnChangesRef(currentProcessingChanges);
       setCurrentProcessingChanges(null);
+      lastAnimatedTurnRef.current = currentTurnNumber;
     } else if (lastTurnChanges && lastTurnChanges !== animatedTurnChangesRef) {
       setAnimatedTurnChangesRef(lastTurnChanges);
+      lastAnimatedTurnRef.current = currentTurnNumber;
     }
-  }, [isGameBusy, resetAnimationState, lastTurnChanges, animatedTurnChangesRef, currentProcessingChanges]);
+  }, [isGameBusy, resetAnimationState, lastTurnChanges, animatedTurnChangesRef, currentProcessingChanges, currentTurnNumber]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {

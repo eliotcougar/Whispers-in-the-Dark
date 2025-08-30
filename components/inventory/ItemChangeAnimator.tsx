@@ -12,9 +12,10 @@ const noop = () => undefined;
 interface ItemChangeAnimatorProps {
   readonly lastTurnChanges: TurnChanges | null;
   readonly isGameBusy: boolean;
+  readonly currentTurnNumber: number;
 }
 
-function ItemChangeAnimator({ lastTurnChanges, isGameBusy }: ItemChangeAnimatorProps) {
+function ItemChangeAnimator({ lastTurnChanges, isGameBusy, currentTurnNumber }: ItemChangeAnimatorProps) {
   const {
     itemForCardDisplay,
     currentAnimatingItem,
@@ -24,7 +25,7 @@ function ItemChangeAnimator({ lastTurnChanges, isGameBusy }: ItemChangeAnimatorP
     activeGlowType,
     handleSkipAnimations,
     handleKeyDown,
-  } = useItemChangeQueue({ lastTurnChanges, isGameBusy });
+  } = useItemChangeQueue({ lastTurnChanges, isGameBusy, currentTurnNumber });
 
   const renderCardContent = (item: Item) => (
     <>
