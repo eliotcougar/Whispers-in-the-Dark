@@ -143,10 +143,16 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
 
 1.  **`Initializing`**: Application startup, loads local storage.
 2.  **`TitleScreen`**: Active if no game is initialized.
-3.  **`Gameplay_MainLoop`**: Core gameplay.
-    *   The storyteller AI response's `mapUpdated: true` flag or a significant change in `localPlace` triggers the cartographer service.
+3.  **`Gameplay_MainLoop`**: Core gameplay (Finite State Machine).
+    *   Turn states: `player_action_prompt` → `loremaster_collect` → `storyteller` → [`map_updates`?] → [`inventory_updates`?] → [`librarian_updates`?] → `lore_refine` → `awaiting_input`.
+    *   Optional stages only run when flagged and always in that order. The storyteller AI response's `dialogueSetup` short-circuits optional stages and branches to Dialogue.
+    *   The storyteller AI response's `mapUpdated: true` flag or a significant change in `localPlace` triggers the cartographer service during `map_updates`.
+    *   Every 10 turns, the Loremaster performs a background distillation after the turn is committed.
     *   `currentMapNodeId` is updated based on the cartographer service's suggestions, explicit AI storyteller suggestions, or `selectBestMatchingMapNode`.
-4.  **`Gameplay_Dialogue`**: Player in conversation. Map context provided to dialogue AI is derived from `MapData`.
+    *   If the storyteller returns a `dialogueSetup` payload, the FSM branches to the Dialogue flow (see below).
+4.  **`Gameplay_Dialogue`**: Player in conversation (FSM branch).
+    *   States: `dialogue_turn` (loop in the Dialogue modal) → `dialogue_memory` (NPC memory formation) → `dialogue_summary` (next-scene generation) → [`map_updates`?] → [`inventory_updates`?] → [`librarian_updates`?] → `lore_refine` → `awaiting_input`.
+    *   Dialogue Summary replaces the storyteller step for this branch; the cartographer runs against the summary payload just like a regular storyteller turn if `mapUpdated` or `localPlace` implies a change.
 5.  **`ModalView_X`**: Full-screen modals (MapDisplay, Settings, etc.).
 6.  **`ErrorState`**: Handles errors.
 

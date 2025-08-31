@@ -214,7 +214,15 @@ const applyMapUpdatesFromAi = async ({
   processMapUpdates,
 }: ApplyMapUpdatesParams) => {
   if (theme) {
-    await processMapUpdates(aiData, draftState, baseState, theme, turnChanges);
+    // Only run Cartographer when storyteller indicates map updates or
+    // when the location changed.
+    const shouldRunMap = Boolean(
+      ('mapUpdated' in aiData && aiData.mapUpdated) ||
+      (draftState.localPlace !== baseState.localPlace)
+    );
+    if (shouldRunMap) {
+      await processMapUpdates(aiData, draftState, baseState, theme, turnChanges);
+    }
   }
 };
 
@@ -351,6 +359,9 @@ const handleInventoryHints = async ({
     }
     let libResult: Awaited<ReturnType<typeof applyLibrarianHints_Service>> | null = null;
     if (librarianHint) {
+      // Reflect librarian stage in FSM and loading indicator
+      draftState.turnState = 'librarian_updates';
+      setLoadingReason('librarian');
       libResult = await applyLibrarianHints_Service(
         librarianHint,
         librarianNewItems,
@@ -362,6 +373,7 @@ const handleInventoryHints = async ({
         formatNPCInventoryList(nearbyNPCs, WRITTEN_ITEM_TYPES),
         limitedMapContextWritten,
       );
+      setLoadingReason(original);
     }
 
     if (invResult && libResult) {
@@ -583,6 +595,14 @@ export const useProcessAiResponse = ({
         ];
       }
 
+      // Early branch: if storyteller indicated a dialogue starts, skip optional
+      // stages (map/inventory/librarian/lore_refine) and enter dialogue loop.
+      if (aiData.dialogueSetup) {
+        updateDialogueState(draftState, aiData, false);
+        draftState.lastTurnChanges = turnChanges;
+        return;
+      }
+
       const aiItemChangesFromParser = aiData.itemChange;
       const correctedAndVerifiedItemChanges = await correctItemChanges({
         aiItemChanges: aiItemChangesFromParser,
@@ -594,19 +614,35 @@ export const useProcessAiResponse = ({
         setLoadingReason,
       });
 
-      draftState.turnState = 'map_updates';
-      await applyMapUpdatesFromAi({
-        aiData,
-        theme: themeContextForResponse,
-        draftState,
-        baseState: baseStateSnapshot,
-        turnChanges,
-        processMapUpdates,
-      });
+      // Map updates run only if flagged
+      const shouldRunMap = Boolean(
+        ('mapUpdated' in aiData && aiData.mapUpdated) ||
+        (draftState.localPlace !== baseStateSnapshot.localPlace)
+      );
+      if (shouldRunMap) {
+        draftState.turnState = 'map_updates';
+        await applyMapUpdatesFromAi({
+          aiData,
+          theme: themeContextForResponse,
+          draftState,
+          baseState: baseStateSnapshot,
+          turnChanges,
+          processMapUpdates,
+        });
+      }
 
-      draftState.turnState = 'inventory_updates';
-      const { combinedItemChanges, baseInventoryForPlayer } =
-        await handleInventoryHints({
+      // Inventory/librarian updates: only when flags present
+      const allNewItems =
+        'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
+      const hasLibrarianNew = allNewItems.some(it => WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]));
+      const hasInventoryNew = allNewItems.some(it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]));
+      const hasInventoryHints = Boolean(aiData.playerItemsHint || aiData.worldItemsHint || aiData.npcItemsHint || hasInventoryNew);
+      const hasLibrarianHints = Boolean(aiData.librarianHint || hasLibrarianNew);
+      let combinedItemChanges: Array<ItemChange> = correctedAndVerifiedItemChanges;
+      let baseInventoryForPlayer: Array<Item> = baseStateSnapshot.inventory.filter(it => it.holderId === PLAYER_HOLDER_ID);
+      if (hasInventoryHints || hasLibrarianHints) {
+        if (hasInventoryHints) draftState.turnState = 'inventory_updates';
+        const result = await handleInventoryHints({
           aiData,
           theme: themeContextForResponse,
           draftState,
@@ -616,6 +652,9 @@ export const useProcessAiResponse = ({
           loadingReason: loadingReasonRef.current,
           setLoadingReason,
         });
+        combinedItemChanges = result.combinedItemChanges;
+        baseInventoryForPlayer = result.baseInventoryForPlayer;
+      }
 
       turnChanges.itemChanges = buildItemChangeRecords(
         combinedItemChanges,
@@ -708,6 +747,7 @@ export const useProcessAiResponse = ({
       }
 
       if (themeContextForResponse) {
+        // Proceed to lore refinement (dialogue summary refinement when applicable)
         draftState.turnState = options.isFromDialogueSummary ? 'dialogue_summary' : 'lore_refine';
         options.onBeforeRefine?.(structuredCloneGameState(draftState));
         options.setIsLoading?.(false);

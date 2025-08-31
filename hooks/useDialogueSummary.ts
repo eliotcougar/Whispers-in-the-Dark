@@ -88,6 +88,9 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setError(null);
 
     const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
+    // Enter dialogue memory creation phase in the FSM.
+    workingGameState.turnState = 'dialogue_memory';
+    commitGameState(workingGameState);
 
     setLoadingReason('dialogue_memory_creation');
     const memorySummaryContext: DialogueMemorySummaryContext = {

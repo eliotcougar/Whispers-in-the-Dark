@@ -348,6 +348,12 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
         playerActionText: undefined,
         dialogueTranscript:
           preparedGameState.gameLog[preparedGameState.gameLog.length - 1] ?? '',
+        onBeforeRefine: (state) => {
+          // Show the new scene and any applied map/inventory changes
+          commitGameState(state);
+        },
+        setIsLoading: setIsLoading,
+        setIsTurnProcessing: setIsTurnProcessing,
       })
         .then(() => {
           // After summary is applied, return to awaiting input
@@ -370,6 +376,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
           draftState.lastDebugPacket.parsedResponse = summaryPayload;
           draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
           commitGameState(draftState);
+          setIsTurnProcessing(false);
           setIsLoading(false);
           setLoadingReasonRef(null);
         })
@@ -378,6 +385,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
           setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
           preparedGameState.turnState = 'awaiting_input';
           commitGameState(preparedGameState);
+          setIsTurnProcessing(false);
           setIsLoading(false);
           setLoadingReasonRef(null);
         });

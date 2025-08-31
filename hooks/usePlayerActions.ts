@@ -242,6 +242,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
         .map(f => ({ text: f.text, tier: f.tier }));
 
+      // Enter Loremaster collection stage in FSM before storyteller call
+      {
+        const beforeCollect = structuredCloneGameState(currentFullState);
+        beforeCollect.turnState = 'loremaster_collect';
+        commitGameState(beforeCollect);
+      }
       setLoadingReason('loremaster_collect');
       const collectResult = await collectRelevantFacts_Service({
         themeName: currentThemeObj.name,

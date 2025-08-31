@@ -39,9 +39,12 @@ export type GameTurnState =
   | 'awaiting_input'       // waiting for player
   | 'player_action_prompt' // building prompt/context for action
   | 'storyteller'          // storyteller call in-flight
+  | 'loremaster_collect'   // loremaster selecting relevant facts before storyteller
   | 'map_updates'          // applying map updates
   | 'inventory_updates'    // applying inventory/librarian hints
+  | 'librarian_updates'    // applying librarian (written items) hints
   | 'lore_refine'          // loremaster refinement
+  | 'dialogue_memory'      // creating NPC memories from dialogue
   | 'dialogue_turn'        // in-dialogue per-turn
   | 'dialogue_summary'     // summarizing dialogue outcome
   | 'act_transition'       // act intro/transition handling
