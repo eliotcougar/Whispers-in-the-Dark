@@ -6,25 +6,25 @@ const theme: AdventureTheme = { name: 'TestTheme' } as AdventureTheme;
 
 const nodes: Array<MapNode> = [
   {
-    id: 'node_area',
+    id: 'node-area',
     placeName: 'Coast',
     position: { x: 0, y: 0 },
     data: { description: '', aliases: ['Sea Side'], status: 'rumored', nodeType: 'location', parentNodeId: 'universe' }
   },
   {
-    id: 'node_feature',
+    id: 'node-feature',
     placeName: 'Utility Entrance',
     position: { x: 0, y: 0 },
-    data: { description: '', aliases: ['Utility Hatch'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_area' }
+    data: { description: '', aliases: ['Utility Hatch'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node-area' }
   },
   {
-    id: 'node_alt_feature',
+    id: 'node-alt-feature',
     placeName: 'Narrow Passage',
     position: { x: 0, y: 0 },
-    data: { description: '', aliases: [], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_area' }
+    data: { description: '', aliases: [], status: 'rumored', nodeType: 'feature', parentNodeId: 'node-area' }
   },
   {
-    id: 'node_location_same_name',
+    id: 'node-location-same-name',
     placeName: 'Narrow Passage',
     position: { x: 0, y: 0 },
     data: { description: '', aliases: [], status: 'rumored', nodeType: 'location', parentNodeId: 'universe' }
@@ -38,16 +38,16 @@ const themeNodes = nodes;
 describe('selectBestMatchingMapNode', () => {
   it('matches exact name', () => {
     const result = selectBestMatchingMapNode('Utility Entrance', theme, mapData, themeNodes, null);
-    expect(result).toBe('node_feature');
+    expect(result).toBe('node-feature');
   });
 
   it('matches alias', () => {
     const result = selectBestMatchingMapNode('Utility Hatch', theme, mapData, themeNodes, null);
-    expect(result).toBe('node_feature');
+    expect(result).toBe('node-feature');
   });
 
   it('prefers feature node when names tie', () => {
     const result = selectBestMatchingMapNode('Narrow Passage', theme, mapData, themeNodes, null);
-    expect(result).toBe('node_alt_feature');
+    expect(result).toBe('node-alt-feature');
   });
 });

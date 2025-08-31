@@ -137,8 +137,22 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
               );
             }
           } else {
-            nextQueue.push(nodeAddOp);
-            continue;
+            // Fallback: resolve pseudo IDs like "node-side-tunnel-fake" to newly created IDs
+            const m = /^(.*)_([a-zA-Z0-9]{4})$/.exec(nodeAddOp.parentNodeId);
+            if (m) {
+              const rawBase = m[1].toLowerCase();
+              const baseHyphen = rawBase.replace(/_/g, '-');
+              const candidates = Object.values(context.newNodesInBatchIdNameMap).filter(entry =>
+                entry.id.toLowerCase().startsWith(`${baseHyphen}-`)
+              );
+              if (candidates.length === 1) {
+                resolvedParentId = candidates[0].id;
+              }
+            }
+            if (resolvedParentId === undefined) {
+              nextQueue.push(nodeAddOp);
+              continue;
+            }
           }
         }
       }

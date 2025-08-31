@@ -216,10 +216,10 @@ const applyMapUpdatesFromAi = async ({
   if (theme) {
     // Only run Cartographer when storyteller indicates map updates or
     // when the location changed.
-    const shouldRunMap = Boolean(
-      ('mapUpdated' in aiData && aiData.mapUpdated) ||
-      (draftState.localPlace !== baseState.localPlace)
-    );
+    let shouldRunMap = false;
+    if ((('mapUpdated' in aiData) && aiData.mapUpdated) || (draftState.localPlace !== baseState.localPlace)) {
+      shouldRunMap = true;
+    }
     if (shouldRunMap) {
       await processMapUpdates(aiData, draftState, baseState, theme, turnChanges);
     }
@@ -615,10 +615,10 @@ export const useProcessAiResponse = ({
       });
 
       // Map updates run only if flagged
-      const shouldRunMap = Boolean(
-        ('mapUpdated' in aiData && aiData.mapUpdated) ||
-        (draftState.localPlace !== baseStateSnapshot.localPlace)
-      );
+      let shouldRunMap = false;
+      if ((('mapUpdated' in aiData) && aiData.mapUpdated) || (draftState.localPlace !== baseStateSnapshot.localPlace)) {
+        shouldRunMap = true;
+      }
       if (shouldRunMap) {
         draftState.turnState = 'map_updates';
         await applyMapUpdatesFromAi({
@@ -636,8 +636,8 @@ export const useProcessAiResponse = ({
         'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
       const hasLibrarianNew = allNewItems.some(it => WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]));
       const hasInventoryNew = allNewItems.some(it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]));
-      const hasInventoryHints = Boolean(aiData.playerItemsHint || aiData.worldItemsHint || aiData.npcItemsHint || hasInventoryNew);
-      const hasLibrarianHints = Boolean(aiData.librarianHint || hasLibrarianNew);
+      const hasInventoryHints = !!aiData.playerItemsHint || !!aiData.worldItemsHint || !!aiData.npcItemsHint || hasInventoryNew;
+      const hasLibrarianHints = !!aiData.librarianHint || hasLibrarianNew;
       let combinedItemChanges: Array<ItemChange> = correctedAndVerifiedItemChanges;
       let baseInventoryForPlayer: Array<Item> = baseStateSnapshot.inventory.filter(it => it.holderId === PLAYER_HOLDER_ID);
       if (hasInventoryHints || hasLibrarianHints) {

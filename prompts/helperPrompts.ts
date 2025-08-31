@@ -69,13 +69,13 @@ newItems:
   }
 ]
 
-### Example for creating a *new* item "Rusty Key" inside npc_guard_4f3a inventory:
+### Example for creating a *new* item "Rusty Key" inside npc-guard-4f3a inventory:
 npcItemsHint: "Guard now carries a Rusty Key."
 newItems:
 [
   {
     "description": "A key for the armory door.",
-    "holderId": "npc_guard_4f3a",
+    "holderId": "npc-guard-4f3a",
     "name": "Rusty Key",
     "type": "key"
   }

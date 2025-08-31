@@ -49,7 +49,7 @@ export const EXTRACT_FACTS_JSON_SCHEMA = {
     required: ['entities', 'text'],
     additionalProperties: false,
     description:
-      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact. Entities array must include at least one relevant node_*, npc_*, or item_* ID from the supplied list of IDs, or the IDs "player" or "universe".',
+      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact. Entities array must include at least one relevant node-*, npc-*, or item-* ID from the supplied list of IDs, or the IDs "player" or "universe".',
   },
 } as const;
 

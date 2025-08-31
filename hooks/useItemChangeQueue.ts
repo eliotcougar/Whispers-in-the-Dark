@@ -166,7 +166,7 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
         deferredTurnChangesRef.current = null;
       }
     }
-    if (!candidate) candidate = lastTurnChanges;
+    candidate = candidate ?? lastTurnChanges;
     if (!candidate) return;
     // If we've already animated for this turn, ignore busy/idle cycles until turn advances
     if (lastAnimatedTurnRef.current !== null && currentTurnNumber === lastAnimatedTurnRef.current) {
@@ -205,7 +205,9 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
       setAnimatedTurnChangesRef(candidate);
       setCurrentProcessingChanges(null);
       setIsVisibleOverlay(false);
-      if (deferredTurnChangesRef.current === candidate) deferredTurnChangesRef.current = null;
+      if (deferredTurnChangesRef.current && deferredTurnChangesRef.current.changes === candidate) {
+        deferredTurnChangesRef.current = null;
+      }
     }
   }, [lastTurnChanges, isGameBusy, animatedTurnChangesRef, currentProcessingChanges, currentAnimatingItem, animationQueue, currentTurnNumber]);
 

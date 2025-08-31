@@ -171,7 +171,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     );
     clearDialogueDebugLogs();
     setIsDialogueExiting(false);
-  }, [setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
+  }, [setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs, commitGameState]);
 
 
   /**
