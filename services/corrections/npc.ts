@@ -78,7 +78,7 @@ Constraints:
 
   return retryAiCall<CorrectedNPCDetails>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -172,7 +172,7 @@ Example Response: If unclear from context, respond with a generic but plausible 
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

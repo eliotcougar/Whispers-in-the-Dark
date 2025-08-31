@@ -82,7 +82,7 @@ Respond ONLY with the single edge type.`;
   const systemInstruction = `Infer a map edge's type. Answer with one of: ${VALID_EDGE_TYPE_VALUES.join(", ")}.`;
   return retryAiCall<MapEdgeData["type"]>(async (attempt) => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [
           MINIMAL_MODEL_NAME,
@@ -321,7 +321,7 @@ ${MAP_NODE_HIERARCHY_GUIDE}
       console.log(
         `fetchConnectorChains_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
       );
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const thinkingBudget = getThinkingBudget(2048);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],

@@ -252,7 +252,7 @@ export const executeMapUpdateRequest = async (
     jsonSchemaUsed?: unknown;
     promptUsed: string;
   }>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.map.icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.map_updates.icon);
     const thinkingBudget = getThinkingBudget(4096);
     const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
       modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME, MINIMAL_MODEL_NAME],

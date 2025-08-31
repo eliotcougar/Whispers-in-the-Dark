@@ -87,7 +87,7 @@ ${sceneDescription};
 
   return retryAiCall<GeneratedJournalEntryResult>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.journal.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.write_journal.icon);
       const thinkingBudget = getThinkingBudget(1024);
       const {
         response,

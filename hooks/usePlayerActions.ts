@@ -144,7 +144,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         );
         const mapNodeNames = currentThemeNodes.map(n => n.placeName);
         const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
-        setLoadingReason('loremaster_refine');
+        setLoadingReason('loremaster_distill');
         const act =
           state.storyArc?.acts[state.storyArc.currentAct - 1];
         const result = await distillFacts_Service({

@@ -484,7 +484,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     );
     const mapNodeNames = currentThemeNodes.map(n => n.placeName);
     const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
-    setLoadingReasonRef('loremaster_refine');
+    setLoadingReasonRef('loremaster_distill');
     const act =
       currentFullState.storyArc?.acts[
         currentFullState.storyArc.currentAct - 1

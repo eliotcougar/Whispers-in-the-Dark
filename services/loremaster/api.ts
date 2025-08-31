@@ -380,8 +380,8 @@ export const refineLore_Service = async (
     jsonSchemaUsed?: unknown;
     promptUsed: string;
   } | null>(async () => {
-    params.onSetLoadingReason?.('loremaster_write');
-    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_write.icon);
+    params.onSetLoadingReason?.('loremaster_integrate');
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_integrate.icon);
     const thinkingBudget = getThinkingBudget(1024);
     const {
       response,
@@ -601,7 +601,7 @@ export const distillFacts_Service = async (
     jsonSchemaUsed?: unknown;
     promptUsed: string;
   } | null>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_refine.icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_distill.icon);
     const thinkingBudget = getThinkingBudget(4096);
     const {
       response,

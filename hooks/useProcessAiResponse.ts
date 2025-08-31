@@ -135,7 +135,7 @@ const correctItemChanges = async ({
         });
       if (!exactMatchInInventory) {
         const original = loadingReason;
-        setLoadingReason('correction');
+        setLoadingReason('corrections');
         const correctedName = await fetchCorrectedName_Service(
           'item',
           itemNameFromAI ?? '',
@@ -304,7 +304,7 @@ const handleInventoryHints = async ({
 
   if (theme) {
     const original = loadingReason;
-    setLoadingReason('inventory');
+    setLoadingReason('inventory_updates');
     const limitedMapContextRegular = formatLimitedMapContextForPrompt(
       draftState.mapData,
       draftState.currentMapNodeId,
@@ -361,7 +361,7 @@ const handleInventoryHints = async ({
     if (librarianHint) {
       // Reflect librarian stage in FSM and loading indicator
       draftState.turnState = 'librarian_updates';
-      setLoadingReason('librarian');
+      setLoadingReason('librarian_updates');
       libResult = await applyLibrarianHints_Service(
         librarianHint,
         librarianNewItems,
@@ -747,8 +747,8 @@ export const useProcessAiResponse = ({
       }
 
       if (themeContextForResponse) {
-        // Proceed to lore refinement (dialogue summary refinement when applicable)
-        draftState.turnState = options.isFromDialogueSummary ? 'dialogue_summary' : 'lore_refine';
+        // Proceed to loremaster extract (dialogue summary -> summary stage)
+        draftState.turnState = options.isFromDialogueSummary ? 'dialogue_summary' : 'loremaster_extract';
         options.onBeforeRefine?.(structuredCloneGameState(draftState));
         options.setIsLoading?.(false);
         options.setIsTurnProcessing?.(true);

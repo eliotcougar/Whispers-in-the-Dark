@@ -253,7 +253,7 @@ export const executeLibrarianRequest = async (
     jsonSchemaUsed?: unknown;
     promptUsed: string;
   }>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.librarian.icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.librarian_updates.icon);
     const thinkingBudget = getThinkingBudget(1024);
     const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } =
       await dispatchAIRequest({

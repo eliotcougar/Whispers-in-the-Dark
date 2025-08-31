@@ -91,7 +91,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     workingGameState.turnState = 'dialogue_memory';
     commitGameState(workingGameState);
 
-    setLoadingReason('dialogue_memory_creation');
+    setLoadingReason('dialogue_memory');
     const memorySummaryContext: DialogueMemorySummaryContext = {
       themeName: currentThemeObj.name,
       currentTheme: currentThemeObj,
@@ -123,7 +123,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       return npc;
     });
 
-    setLoadingReason('dialogue_conclusion_summary');
+    setLoadingReason('dialogue_summary');
     const mapDataForSummary: MapData = workingGameState.mapData;
     const act =
       workingGameState.storyArc?.acts[

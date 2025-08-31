@@ -90,7 +90,7 @@ export const generateImageWithFallback = async (
     console.error('generateImageWithFallback: API key not configured.');
     return '';
   }
-  addProgressSymbol(LOADING_REASON_UI_MAP.visualize.icon);
+  addProgressSymbol(LOADING_REASON_UI_MAP.visualize_scene.icon);
   try {
     const response = await ai.models.generateImages({
       model: 'imagen-4.0-generate-001',

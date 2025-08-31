@@ -72,7 +72,7 @@ Respond ONLY with the inferred "localPlace" as a single string.`;
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -160,7 +160,7 @@ Respond ONLY with the single, complete, corrected JSON object.`;
   return retryAiCall<{ name: string; description: string; aliases?: Array<string> }>(
     async attempt => {
       try {
-        addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+        addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
         const { response } = await dispatchAIRequest({
           modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt,
@@ -236,7 +236,7 @@ Respond ONLY with the single, complete JSON object.`;
   return retryAiCall<{ name: string; description: string; aliases?: Array<string> }>(
     async attempt => {
       try {
-        addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+        addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
         const { response } = await dispatchAIRequest({
           modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
           prompt,
@@ -319,7 +319,7 @@ Respond ONLY with the single node type.`;
   const systemInstruction = `Infer a map node's type. Answer with one of: ${VALID_NODE_TYPE_VALUES.join(', ')}.`;
   return retryAiCall<NonNullable<MapNodeData['nodeType']>>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -418,7 +418,7 @@ Respond ONLY with the name or id of the best parent node, or "Universe" if none.
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -464,7 +464,7 @@ Known map nodes in the current theme:\n${nodeList}\nChoose the most likely inten
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

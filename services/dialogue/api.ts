@@ -297,7 +297,7 @@ export const executeMemorySummary = async (
           attempt + 1,
         )}/${String(MAX_RETRIES + 1)})`,
       );
-      addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_memory_creation.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_memory.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
         prompt: userPromptPart,

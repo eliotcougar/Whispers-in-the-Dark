@@ -279,7 +279,7 @@ export const executeInventoryRequest = async (
       console.log(
         `Executing inventory request (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
       );
-      addProgressSymbol(LOADING_REASON_UI_MAP.inventory.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.inventory_updates.icon);
       const thinkingBudget = getThinkingBudget(1024);
       const {
         response,

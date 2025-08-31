@@ -46,7 +46,7 @@ export const handleMapUpdates = async (
 
   if ('mapUpdated' in aiData && aiData.mapUpdated || (draftState.localPlace !== baseStateSnapshot.localPlace)) {
     const originalLoadingReason = loadingReason;
-    setLoadingReason('map');
+    setLoadingReason('map_updates');
     const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
       node => node.data.nodeType !== 'feature'
     );
@@ -95,7 +95,7 @@ export const handleMapUpdates = async (
                 newlyAddedNodeInDraft.data.description.startsWith('Description missing'))
             ) {
               const originalLoadingReasonCorrection = loadingReason;
-              setLoadingReason('correction');
+              setLoadingReason('corrections');
               const placeDetails = await fetchFullPlaceDetailsForNewMapNode_Service(
                 added.placeName,
                 aiData.logMessage,

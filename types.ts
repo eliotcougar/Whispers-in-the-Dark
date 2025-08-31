@@ -31,7 +31,7 @@ export type GameStartState =
   | 'character_select'  // character selection modal active
   | 'seeding_facts'     // loremaster initial facts extraction
   | 'first_turn_ai'     // storyteller first turn request in-flight
-  | 'refine_lore'       // initial lore refinement after first turn
+  | 'loremaster_extract' // initial lore refinement after first turn
   | 'ready';            // game is initialized and awaiting input
 
 export type GameTurnState =
@@ -43,7 +43,7 @@ export type GameTurnState =
   | 'map_updates'          // applying map updates
   | 'inventory_updates'    // applying inventory/librarian hints
   | 'librarian_updates'    // applying librarian (written items) hints
-  | 'lore_refine'          // loremaster refinement
+  | 'loremaster_extract'    // loremaster refinement main step (extract)
   | 'dialogue_memory'      // creating NPC memories from dialogue
   | 'dialogue_turn'        // in-dialogue per-turn
   | 'dialogue_summary'     // summarizing dialogue outcome

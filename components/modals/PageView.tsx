@@ -249,7 +249,7 @@ function PageView({
     }
 
     setIsTextLoading(true);
-    setLoadingReason(item.type === 'book' ? 'book' : 'page');
+    setLoadingReason(item.type === 'book' ? 'read_book' : 'read_page');
     void (async () => {
       const length = chapter.contentLength;
       const actual = await generatePageText(
@@ -360,7 +360,7 @@ function PageView({
       if (isGeneratingImageRef.current) return;
       isGeneratingImageRef.current = true;
       setIsImageLoading(true);
-      setLoadingReason(item.type === 'book' ? 'book' : 'page');
+      setLoadingReason(item.type === 'book' ? 'read_book' : 'read_page');
       const img = await generateChapterImage(item, currentTheme, idx);
       if (img) {
         await saveChapterImage(item.id, idx, img);
@@ -406,7 +406,7 @@ function PageView({
 
   useEffect(() => {
     if (!pendingWrite) return undefined;
-    setLoadingReason('journal');
+    setLoadingReason('write_journal');
     return () => {
       setLoadingReason(null);
     };

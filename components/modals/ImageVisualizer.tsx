@@ -152,7 +152,7 @@ function ImageVisualizer({
     }
 
     setIsLoading(true);
-    setLoadingReason('visualize');
+    setLoadingReason('visualize_scene');
     setError(null);
     setInternalImageUrl(null);
 
