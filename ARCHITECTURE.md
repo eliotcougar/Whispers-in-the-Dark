@@ -144,14 +144,23 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
 1.  **`Initializing`**: Application startup, loads local storage.
 2.  **`TitleScreen`**: Active if no game is initialized.
 3.  **`Gameplay_MainLoop`**: Core gameplay (Finite State Machine).
-    *   Turn states: `player_action_prompt` → `loremaster_collect` → `storyteller` → [`map_updates`?] → [`inventory_updates`?] → [`librarian_updates`?] → `lore_refine` → `awaiting_input`.
+    *   Turn states: `player_action_prompt` → `loremaster_collect` → `storyteller` → [`map_updates`?] → [`inventory_updates`?] → [`librarian_updates`?] → `loremaster_extract` → `awaiting_input`.
     *   Optional stages only run when flagged and always in that order. The storyteller AI response's `dialogueSetup` short-circuits optional stages and branches to Dialogue.
     *   The storyteller AI response's `mapUpdated: true` flag or a significant change in `localPlace` triggers the cartographer service during `map_updates`.
-    *   Every 10 turns, the Loremaster performs a background distillation after the turn is committed.
+    *   Every 10 turns, the Loremaster performs a background distillation (`loremaster_distill`) after the turn is committed.
     *   `currentMapNodeId` is updated based on the cartographer service's suggestions, explicit AI storyteller suggestions, or `selectBestMatchingMapNode`.
     *   If the storyteller returns a `dialogueSetup` payload, the FSM branches to the Dialogue flow (see below).
+    *   Loremaster AI modes and loading reasons:
+        - `loremaster_collect`: selects 10 most relevant facts for next turn. Loading reason: `loremaster_collect`.
+        - `loremaster_extract`: extracts new candidate facts from current context. Stage used after storyteller. Loading reason: `loremaster_extract`.
+        - `loremaster_integrate`: integrates/merges candidate facts into long-term lore. Loading reason: `loremaster_integrate`.
+        - `loremaster_distill`: periodic consolidation (dedupe/prune/clarify). Loading reason: `loremaster_distill`.
+    *   Other unified loading reasons:
+        - Map: `map_updates` (map service), `corrections` (auxiliary fix-ups).
+        - Inventory: `inventory_updates`; Librarian (written items): `librarian_updates`.
+        - Media and text: `visualize_scene`, `read_page`, `read_book`, `write_journal`.
 4.  **`Gameplay_Dialogue`**: Player in conversation (FSM branch).
-    *   States: `dialogue_turn` (loop in the Dialogue modal) → `dialogue_memory` (NPC memory formation) → `dialogue_summary` (next-scene generation) → [`map_updates`?] → [`inventory_updates`?] → [`librarian_updates`?] → `lore_refine` → `awaiting_input`.
+    *   States: `dialogue_turn` (loop in the Dialogue modal) → `dialogue_memory` (NPC memory formation) → `dialogue_summary` (next-scene generation) → [`map_updates`?] → [`inventory_updates`?] → [`librarian_updates`?] → `loremaster_extract` → `awaiting_input`.
     *   Dialogue Summary replaces the storyteller step for this branch; the cartographer runs against the summary payload just like a regular storyteller turn if `mapUpdated` or `localPlace` implies a change.
 5.  **`ModalView_X`**: Full-screen modals (MapDisplay, Settings, etc.).
 6.  **`ErrorState`**: Handles errors.
