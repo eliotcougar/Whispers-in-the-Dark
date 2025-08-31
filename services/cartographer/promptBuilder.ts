@@ -76,7 +76,7 @@ export const buildSimplifiedNavigationPrompt = (
     .join('\n');
 
   const logMsg = (context.logMessage ?? '').trim() || 'None';
-  const scene = context.currentScene?.trim() || 'Unknown';
+  const scene = context.currentScene.trim() || 'Unknown';
   const prevLP = context.previousLocalPlace ?? 'Unknown';
   const currLP = context.currentLocalPlace ?? 'Unknown';
   const prevNode = context.previousMapNodeName ?? 'Unknown or N/A';
