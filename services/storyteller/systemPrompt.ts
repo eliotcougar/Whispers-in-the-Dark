@@ -34,5 +34,7 @@ If a Companion leaves the Player, or the Player leaves a Companion, their presen
 - Compare the current events with the story arc's success condition for the active act. When it is undoubtedly fulfilled, set "mainQuestAchieved": true in your response.
 
 CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" implies items were gained, lost, moved, or changed, you MUST summarize these changes using "playerItemsHint", "worldItemsHint", and "npcItemsHint" and list new items in "newItems".
+If a new item is mentioned in any hint, also include it exactly once in newItems.
+Mention each new item in exactly one hint: player → playerItemsHint; NPC-held → npcItemsHint; on ground/location → worldItemsHint; written items/revealed pages → librarianHint.
 CRITICALLY IMPORTANT: Names and Aliases (of items, places, NPCs, etc) cannot contain a comma.
 `;
