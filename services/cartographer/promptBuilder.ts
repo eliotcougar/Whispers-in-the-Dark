@@ -56,3 +56,45 @@ ${existingMapContext}
 Based on the Narrative Context and existing map context, provide a JSON response strongly adhering to the System Instructions.
 
 `;
+
+/**
+ * Builds a minimal prompt for quick navigation suggestion (no map edits).
+ */
+export const buildSimplifiedNavigationPrompt = (
+  currentTheme: AdventureTheme,
+  mapData: MapData,
+  context: {
+    logMessage?: string;
+    currentScene: string;
+    previousLocalPlace: string | null;
+    currentLocalPlace: string | null;
+    previousMapNodeName: string | null;
+  },
+): string => {
+  const nodesList = mapData.nodes
+    .map(n => `- id: ${n.id}; name: "${n.placeName}"; type: ${n.data.nodeType}`)
+    .join('\n');
+
+  const logMsg = (context.logMessage ?? '').trim() || 'None';
+  const scene = context.currentScene?.trim() || 'Unknown';
+  const prevLP = context.previousLocalPlace ?? 'Unknown';
+  const currLP = context.currentLocalPlace ?? 'Unknown';
+  const prevNode = context.previousMapNodeName ?? 'Unknown or N/A';
+
+  return `## Goal
+Pick the single best existing node that matches the Player's current position.
+
+## Theme
+- Name: "${currentTheme.name}"
+
+## Player Context
+- Log Message: ${logMsg}
+- Current Scene: "${scene}"
+- Previous Map Node: ${prevNode}
+- localPlace change: "${prevLP}" → "${currLP}"
+
+## Known Nodes (existing map)
+${nodesList}
+
+Respond ONLY with a JSON object: { "suggestedCurrentMapNodeId": "<existing id or name>" }`;
+};

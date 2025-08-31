@@ -11,9 +11,9 @@ import type {
   NPC,
   MinimalModelCallRecord,
 } from '../../types';
-import { CARTOGRAPHER_SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION } from './systemPrompt';
-import { buildMapUpdatePrompt } from './promptBuilder';
-import { fetchMapUpdatePayload } from './request';
+import { CARTOGRAPHER_SYSTEM_INSTRUCTION as MAP_UPDATE_SYSTEM_INSTRUCTION, CARTOGRAPHER_SIMPLIFIED_SYSTEM_INSTRUCTION } from './systemPrompt';
+import { buildMapUpdatePrompt, buildSimplifiedNavigationPrompt } from './promptBuilder';
+import { fetchMapUpdatePayload, fetchNavigationOnlySuggestion } from './request';
 import { applyMapUpdates } from './applyUpdates';
 import type { MapUpdateServiceResult } from './types';
 import { isApiConfigured } from '../apiClient';
@@ -134,4 +134,43 @@ export const updateMapFromAIData_Service = async (
   });
 
   return applyResult;
+};
+
+/**
+ * Lightweight suggestion-only flow used when only the player's location text changes.
+ */
+export const suggestNodeFromLocationChange_Service = async (
+  aiData: GameStateFromAI,
+  currentMapData: MapData,
+  currentTheme: AdventureTheme,
+  previousMapNodeName: string | null,
+  previousLocalPlace: string | null,
+  currentLocalPlace: string | null,
+): Promise<{ suggested: string | null; debugInfo: import('./types').MapUpdateDebugInfo } | null> => {
+  if (!isApiConfigured()) {
+    console.error('API Key not configured for Map Update Service.');
+    return null;
+  }
+
+  const sceneDesc = 'sceneDescription' in aiData ? aiData.sceneDescription : '';
+  const logMsg = aiData.logMessage ?? '';
+
+  const basePrompt = buildSimplifiedNavigationPrompt(
+    currentTheme,
+    currentMapData,
+    {
+      logMessage: logMsg,
+      currentScene: sceneDesc,
+      previousLocalPlace,
+      currentLocalPlace,
+      previousMapNodeName,
+    },
+  );
+
+  const { suggestedCurrentMapNodeId, debugInfo } = await fetchNavigationOnlySuggestion(
+    basePrompt,
+    CARTOGRAPHER_SIMPLIFIED_SYSTEM_INSTRUCTION,
+  );
+
+  return { suggested: suggestedCurrentMapNodeId, debugInfo };
 };

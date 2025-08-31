@@ -41,6 +41,7 @@ import type {
   AdventureTheme,
 } from '../../types';
 import type { MapUpdateDebugInfo } from './types';
+import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
 
 export const MAP_UPDATE_JSON_SCHEMA = {
   type: 'object',
@@ -228,6 +229,19 @@ export const MAP_UPDATE_JSON_SCHEMA = {
   additionalProperties: false,
 } as const;
 
+// Simplified JSON schema for quick navigation only.
+export const MAP_NAVIGATION_ONLY_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    suggestedCurrentMapNodeId: {
+      type: 'string',
+      description: 'Existing node id or placeName representing the player\'s new location.',
+    },
+  },
+  required: ['suggestedCurrentMapNodeId'],
+  additionalProperties: false,
+} as const;
+
 /**
  * Executes the cartographer AI request with model fallback.
  */
@@ -275,6 +289,99 @@ export const executeMapUpdateRequest = async (
     throw new Error('Failed to execute map update request.');
   }
   return result;
+};
+
+/**
+ * Executes the simplified cartographer request (navigation suggestion only).
+ */
+export const executeNavigationOnlyRequest = async (
+  prompt: string,
+  systemInstruction: string,
+): Promise<{
+  response: GenerateContentResponse;
+  thoughts: Array<string>;
+  systemInstructionUsed: string;
+  jsonSchemaUsed?: unknown;
+  promptUsed: string;
+}> => {
+  if (!isApiConfigured()) {
+    console.error('API Key not configured for Map Update Service.');
+    throw new Error('API Key not configured.');
+  }
+  const result = await retryAiCall<{
+    response: GenerateContentResponse;
+    thoughts: Array<string>;
+    systemInstructionUsed: string;
+    jsonSchemaUsed?: unknown;
+    promptUsed: string;
+  }>(async () => {
+    addProgressSymbol(LOADING_REASON_UI_MAP.map_updates.icon);
+    const thinkingBudget = getThinkingBudget(1024);
+    const { response, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await dispatchAIRequest({
+      modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME, MINIMAL_MODEL_NAME],
+      prompt,
+      systemInstruction,
+      thinkingBudget,
+      includeThoughts: true,
+      responseMimeType: 'application/json',
+      jsonSchema: MAP_NAVIGATION_ONLY_JSON_SCHEMA,
+      temperature: 0.7,
+      label: 'Cartographer (Quick)',
+    });
+    const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
+    const thoughtParts = parts
+      .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
+      .map(p => p.text);
+    return { result: { response, thoughts: thoughtParts, systemInstructionUsed, jsonSchemaUsed, promptUsed } };
+  });
+  if (!result) {
+    throw new Error('Failed to execute navigation-only request.');
+  }
+  return result;
+};
+
+/**
+ * Parses simplified response to extract only the suggested node id.
+ */
+export const parseNavigationOnlyResponse = (responseText: string): string | null => {
+  const jsonStr = extractJsonFromFence(responseText);
+  const parsed = safeParseJson<unknown>(jsonStr);
+  if (parsed && typeof parsed === 'object' && 'suggestedCurrentMapNodeId' in parsed) {
+    const value = (parsed as { suggestedCurrentMapNodeId?: unknown }).suggestedCurrentMapNodeId;
+    return typeof value === 'string' && value.trim() !== '' ? value : null;
+  }
+  return null;
+};
+
+export interface NavigationOnlyRequestResult {
+  suggestedCurrentMapNodeId: string | null;
+  debugInfo: MapUpdateDebugInfo;
+}
+
+/**
+ * Requests only a suggested node id (no map edits) and returns debug info.
+ */
+export const fetchNavigationOnlySuggestion = async (
+  basePrompt: string,
+  systemInstruction: string,
+): Promise<NavigationOnlyRequestResult> => {
+  const { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await executeNavigationOnlyRequest(
+    basePrompt,
+    systemInstruction,
+  );
+  const rawText = response.text ?? '';
+  const debugInfo: MapUpdateDebugInfo = {
+    prompt: promptUsed,
+    systemInstruction: systemInstructionUsed,
+    jsonSchema: jsonSchemaUsed ?? MAP_NAVIGATION_ONLY_JSON_SCHEMA,
+    rawResponse: rawText,
+    observations: undefined,
+    rationale: undefined,
+    thoughts: thoughts.length > 0 ? thoughts : undefined,
+    connectorChainsDebugInfo: [],
+  };
+  const suggested = parseNavigationOnlyResponse(rawText);
+  return { suggestedCurrentMapNodeId: suggested, debugInfo };
 };
 
 export interface MapUpdateRequestResult {

@@ -45,3 +45,17 @@ CRITICAL INSTRUCTIONS:
 - CRITICALLY IMPORTANT: Delete Nodes ONLY in EXTREME CASES when the Scene unambiguously implies that they will no longer ever be relevant to the Player.
 - CRITICALLY IMPORTANT: Delete edges ONLY in EXTREME CASES when the Scene description mentions an absolutely certain destruction of the path. In all  other cases, avoid deleting edges and nodes.
 `;
+
+// Simplified navigation-only mode
+// Goal: choose the most plausible existing map node for the player's current position.
+// Do NOT propose map edits. Only return suggestedCurrentMapNodeId.
+export const CARTOGRAPHER_SIMPLIFIED_SYSTEM_INSTRUCTION = `You are an AI assistant helping to locate the Player on an existing game map.
+Your ONLY task is to review the provided context and pick the single most plausible existing map node (by id or placeName) that represents where the Player is now.
+
+Rules:
+- Consider only the provided list of known nodes. Do NOT invent new nodes, edges, or descriptions.
+- Prefer a specific sub-location (feature/room/interior) when the context clearly implies it; otherwise choose the closest higher-level location that fits.
+- Use the change in the player's local position (localPlace: from → to), the log message, and the current scene to infer movement.
+- If the best choice is the same as before, pick that node.
+- Response MUST be a JSON object with only one field: "suggestedCurrentMapNodeId" whose value is an existing node id or placeName.
+`;
