@@ -45,7 +45,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
     dialogueEnds: {
       type: 'boolean',
       description:
-        'Set true if the conversation is logically over or naturally concludes.',
+        'Set to true if any of the dialogue participants signal the end of the conversation, or if the conversation obviously reached its logical conclusion.',
     },
     npcResponses: {
       type: 'array',
@@ -68,7 +68,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
       minItems: MIN_DIALOGUE_TURN_OPTIONS,
       maxItems: MAX_DIALOGUE_TURN_OPTIONS,
       description:
-        'Possible player replies. The last option must politely or firmly end the conversation.',
+        'Possible player replies. The last option must contextually appropriately end the conversation.',
       items: { type: 'string' },
     },
     updatedParticipants: {

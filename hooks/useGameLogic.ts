@@ -596,7 +596,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     itemPresenceByNode,
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,
-    isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),
+    isLoading: isLoading,
     isTurnProcessing,
     loadingReason,
     error,

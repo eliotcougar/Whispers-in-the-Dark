@@ -383,18 +383,6 @@ function App() {
     isVictoryModalVisible ||
     pendingAct !== null;
 
-  // Blocking modals stop background turn generation
-  const isAnyBlockingModalActive =
-    effectiveIsTitleMenuOpen ||
-    newGameFromMenuConfirmOpen ||
-    loadGameFromMenuConfirmOpen ||
-    isCustomGameSetupVisible ||
-    geminiKeyVisible ||
-    isGenderSelectVisible ||
-    isCharacterSelectVisible ||
-    isVictoryModalVisible ||
-    isDebugLoreVisible; // requires user confirmation
-
   // For UI blur we also blur during dialogue
   const isAnyModalOrDialogueActive = isAnyModalActive || !!dialogueState;
 

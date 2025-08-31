@@ -83,7 +83,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     }
 
     setIsLoading(true);
-    setLoadingReason('dialogue_summary');
     setIsDialogueExiting(true);
     setError(null);
 
