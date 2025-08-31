@@ -75,6 +75,8 @@ export const getInitialGameStates = (): FullGameState => {
 
     dialogueState: null,
     isVictory: false,
+    startState: 'idle',
+    turnState: 'idle',
 
     // Transient/Debug fields initialized
     objectiveAnimationType: null,

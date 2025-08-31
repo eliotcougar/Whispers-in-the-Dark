@@ -215,6 +215,12 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         return;
       }
 
+      // Enter gender selection stage
+      {
+        const s = getCurrentGameState();
+        const draft = { ...s, startState: 'gender_select' } as FullGameState;
+        commitGameState(draft);
+      }
       const selectedGender = await openGenderSelectModal(
         getCurrentGameState().heroSheet?.gender ?? 'Male',
       );
@@ -234,6 +240,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         traits: [],
         startingItems: [],
       };
+      draftState.startState = 'seeding_facts';
 
       const worldFacts = await generateWorldFacts(themeObjToLoad);
       const safeWorldFacts = worldFacts ?? {
@@ -270,6 +277,9 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       const shuffled = sanitizedPref && sanitizedPref.length > 0
         ? [sanitizedPref, ...shuffledBase.filter(n => n !== sanitizedPref)].slice(0, 10)
         : shuffledBase;
+      // Move to character selection stage
+      draftState.startState = 'character_select';
+      commitGameState(draftState);
       const descriptions = await generateCharacterDescriptions(
         themeObjToLoad,
         selectedGender,
@@ -303,6 +313,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
             return Promise.resolve();
           }
           initialTurnPromise = (async () => {
+            draftState.startState = 'seeding_facts';
             if (worldFacts) {
               const initialFacts = await extractInitialFacts_Service({
                 themeName: themeObjToLoad.name,
@@ -359,7 +370,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                 loremasterDebugInfo: { collect: null, extract: null, integrate: null, distill: null, journal: null },
                 dialogueDebugInfo: null,
               };
-
+              draftState.startState = 'first_turn_ai';
               const {
                 response,
                 thoughts,
@@ -396,6 +407,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
               setHasGameBeenInitialized(true);
               draftState.globalTurnNumber = 1;
+              draftState.startState = 'ready';
+              draftState.turnState = 'awaiting_input';
             } catch (e: unknown) {
               console.error('Error loading initial game:', e);
               if (isServerOrClientError(e)) {
@@ -550,6 +563,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
     const baseStateSnapshot = structuredCloneGameState(currentFullState);
     let draftState = structuredCloneGameState(currentFullState);
+    draftState.turnState = 'storyteller';
     const debugPacket = {
       prompt: lastPrompt,
       systemInstruction: SYSTEM_INSTRUCTION,
@@ -602,11 +616,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       });
 
       draftState.globalTurnNumber += 1;
+      draftState.turnState = 'awaiting_input';
     } catch (e: unknown) {
       console.error('Error retrying last main AI request:', e);
       const errMsg = e instanceof Error ? e.message : String(e);
       setError(`Retry failed: ${errMsg}.`);
       draftState = structuredCloneGameState(baseStateSnapshot);
+      draftState.turnState = 'error';
       draftState.lastActionLog =
         'Retry failed. The outcome remains uncertain.';
       draftState.actionOptions = [

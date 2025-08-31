@@ -362,7 +362,9 @@ function App() {
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible);
 
-  const isAnyModalOrDialogueActive =
+  // Modal visibility (non-blocking and blocking classification)
+  const isVictoryModalVisible = Boolean(gameLogic.isVictory && gameLogic.heroSheet && gameLogic.storyArc);
+  const isAnyModalActive =
     isVisualizerVisible ||
     isKnowledgeBaseVisible ||
     isSettingsVisible ||
@@ -371,12 +373,30 @@ function App() {
     isDebugViewVisible ||
     isPageVisible ||
     isDebugLoreVisible ||
-    !!dialogueState ||
     effectiveIsTitleMenuOpen ||
     newGameFromMenuConfirmOpen ||
     loadGameFromMenuConfirmOpen ||
     isCustomGameSetupVisible ||
+    geminiKeyVisible ||
+    isGenderSelectVisible ||
+    isCharacterSelectVisible ||
+    isVictoryModalVisible ||
     pendingAct !== null;
+
+  // Blocking modals stop background turn generation
+  const isAnyBlockingModalActive =
+    effectiveIsTitleMenuOpen ||
+    newGameFromMenuConfirmOpen ||
+    loadGameFromMenuConfirmOpen ||
+    isCustomGameSetupVisible ||
+    geminiKeyVisible ||
+    isGenderSelectVisible ||
+    isCharacterSelectVisible ||
+    isVictoryModalVisible ||
+    isDebugLoreVisible; // requires user confirmation
+
+  // For UI blur we also blur during dialogue
+  const isAnyModalOrDialogueActive = isAnyModalActive || !!dialogueState;
 
 
   useEffect(() => {
@@ -895,9 +915,9 @@ function App() {
         </main>
 
         <ItemChangeAnimator
-          // Pause animations during turn processing and initial new-game modals
+          // Pause animations during turn processing or while ANY modal is active
           currentTurnNumber={globalTurnNumber}
-          isGameBusy={isLoading || isTurnProcessing || isCharacterSelectVisible || pendingAct !== null}
+          isGameBusy={isLoading || isTurnProcessing || isAnyModalActive}
           lastTurnChanges={lastTurnChanges}
         />
 

@@ -350,6 +350,8 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
           preparedGameState.gameLog[preparedGameState.gameLog.length - 1] ?? '',
       })
         .then(() => {
+          // After summary is applied, return to awaiting input
+          draftState.turnState = 'awaiting_input';
           draftState.lastDebugPacket ??= {
             prompt: '',
             rawResponseText: null,
@@ -374,6 +376,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
         .catch((e: unknown) => {
           console.error('Error in post-dialogue processAiResponse:', e);
           setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
+          preparedGameState.turnState = 'awaiting_input';
           commitGameState(preparedGameState);
           setIsLoading(false);
           setLoadingReasonRef(null);
@@ -405,6 +408,19 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
   }, [isAppReady, initialDebugStackFromApp]);
 
   const currentFullState = getCurrentGameState();
+
+  // Keep startState at 'title' while app ready but game not initialized
+  useEffect(() => {
+    if (isAppReady && !hasGameBeenInitialized) {
+      setGameStateStack(prev => {
+        const curr = prev[0];
+        if (curr.startState !== 'title') {
+          return [{ ...curr, startState: 'title' } as FullGameState, prev[1]];
+        }
+        return prev;
+      });
+    }
+  }, [isAppReady, hasGameBeenInitialized]);
 
   // Keep current state's enabled theme packs in sync with user settings
   useEffect(() => {

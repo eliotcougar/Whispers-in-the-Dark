@@ -401,6 +401,7 @@ const updateDialogueState = (
       history: aiData.dialogueSetup.initialNpcResponses,
       options: aiData.dialogueSetup.initialPlayerOptions,
     };
+    draftState.turnState = 'dialogue_turn';
   } else if (isFromDialogueSummary) {
     draftState.dialogueState = null;
   }
@@ -593,6 +594,7 @@ export const useProcessAiResponse = ({
         setLoadingReason,
       });
 
+      draftState.turnState = 'map_updates';
       await applyMapUpdatesFromAi({
         aiData,
         theme: themeContextForResponse,
@@ -602,6 +604,7 @@ export const useProcessAiResponse = ({
         processMapUpdates,
       });
 
+      draftState.turnState = 'inventory_updates';
       const { combinedItemChanges, baseInventoryForPlayer } =
         await handleInventoryHints({
           aiData,
@@ -705,6 +708,7 @@ export const useProcessAiResponse = ({
       }
 
       if (themeContextForResponse) {
+        draftState.turnState = options.isFromDialogueSummary ? 'dialogue_summary' : 'lore_refine';
         options.onBeforeRefine?.(structuredCloneGameState(draftState));
         options.setIsLoading?.(false);
         options.setIsTurnProcessing?.(true);
@@ -785,6 +789,9 @@ export const useProcessAiResponse = ({
       updateDialogueState(draftState, aiData, isFromDialogueSummary);
 
       draftState.lastTurnChanges = turnChanges;
+      if (!options.isFromDialogueSummary) {
+        draftState.turnState = 'awaiting_input';
+      }
     },
     [
       loadingReasonRef,
