@@ -80,7 +80,7 @@ export const generateChapterImage = async (
   const generationPromise = (async () => {
     const result = await retryAiCall<string>(async attempt => {
       try {
-        addProgressSymbol(LOADING_REASON_UI_MAP.visualize.icon);
+        addProgressSymbol(LOADING_REASON_UI_MAP.visualize_scene.icon);
         const bytes = await generateImageWithFallback(safePrompt, '4:3');
         if (bytes) return { result: bytes };
       } catch (err: unknown) {

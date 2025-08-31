@@ -38,7 +38,7 @@ export const ITEMS_GUIDE = `Generate inventory hints using these fields:
 - "worldItemsHint": short summary of items dropped or discovered in the environment.
 - "npcItemsHint": short summary of items held or used by NPCs.
 - "librarianHint": short summary for written items (pages, books, pictures, maps). Do not mention the same items in playerItemsHint, worldItemsHint, or npcItemsHint if it is written items.
-- "newItems": array of brand new items (including written items) introduced this turn, or [] if none.
+- "newItems": array of brand new items (including written items) introduced this turn, or [] if no new items introduced.
 
 ## Examples illustrating the hint style:
 
@@ -69,13 +69,13 @@ newItems:
   }
 ]
 
-### Example for creating a *new* item "Rusty Key" inside npc_guard_4f3a inventory:
+### Example for creating a *new* item "Rusty Key" inside npc-guard-4f3a inventory:
 npcItemsHint: "Guard now carries a Rusty Key."
 newItems:
 [
   {
     "description": "A key for the armory door.",
-    "holderId": "npc_guard_4f3a",
+    "holderId": "npc-guard-4f3a",
     "name": "Rusty Key",
     "type": "key"
   }
@@ -166,6 +166,7 @@ IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light source
   - The knownUse to turn on, light, or otherwise enable the item should ALWAYS have "appliesWhenInactive": true (and typically "appliesWhenActive": false or undefined).
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
   - ALWAYS provide these actions in pairs, e.g. turn on/turn off, wield/put away, wear/take off, light/extinguish, activate/deactivate, start/stop, etc.
+IMPORTANT: NEVER add people, NPCs, or map locations as items.
 IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedicated buttons for those in the game.
 
 ${ITEM_TYPES_GUIDE}

@@ -362,7 +362,9 @@ function App() {
 
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible);
 
-  const isAnyModalOrDialogueActive =
+  // Modal visibility (non-blocking and blocking classification)
+  const isVictoryModalVisible = Boolean(gameLogic.isVictory && gameLogic.heroSheet && gameLogic.storyArc);
+  const isAnyModalActive =
     isVisualizerVisible ||
     isKnowledgeBaseVisible ||
     isSettingsVisible ||
@@ -371,12 +373,18 @@ function App() {
     isDebugViewVisible ||
     isPageVisible ||
     isDebugLoreVisible ||
-    !!dialogueState ||
     effectiveIsTitleMenuOpen ||
     newGameFromMenuConfirmOpen ||
     loadGameFromMenuConfirmOpen ||
     isCustomGameSetupVisible ||
+    geminiKeyVisible ||
+    isGenderSelectVisible ||
+    isCharacterSelectVisible ||
+    isVictoryModalVisible ||
     pendingAct !== null;
+
+  // For UI blur we also blur during dialogue
+  const isAnyModalOrDialogueActive = isAnyModalActive || !!dialogueState;
 
 
   useEffect(() => {
@@ -840,7 +848,7 @@ function App() {
                       mapData={mapData.nodes}
                     />
 
-                    {isLoading && !dialogueState && !isDialogueExiting ? (
+                    {isLoading && !dialogueState ? (
                       <div className="absolute inset-0 flex items-center justify-center bg-slate-900/75 rounded-lg">
                         <LoadingSpinner />
                       </div>
@@ -895,9 +903,9 @@ function App() {
         </main>
 
         <ItemChangeAnimator
-          // Pause animations during turn processing and initial new-game modals
+          // Pause animations during turn processing or while ANY modal is active
           currentTurnNumber={globalTurnNumber}
-          isGameBusy={isLoading || isTurnProcessing || isCharacterSelectVisible || pendingAct !== null}
+          isGameBusy={isLoading || isTurnProcessing || isAnyModalActive}
           lastTurnChanges={lastTurnChanges}
         />
 

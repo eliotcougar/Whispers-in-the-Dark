@@ -49,7 +49,7 @@ export const EXTRACT_FACTS_JSON_SCHEMA = {
     required: ['entities', 'text'],
     additionalProperties: false,
     description:
-      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact. Entities array must include at least one relevant node_*, npc_*, or item_* ID from the supplied list of IDs, or the IDs "player" or "universe".',
+      'A fact extracted from the context that satisfies the requirement for the *good* quality fact and does not show signs of a *bad* quality fact. Entities array must include at least one relevant node-*, npc-*, or item-* ID from the supplied list of IDs, or the IDs "player" or "universe".',
   },
 } as const;
 
@@ -380,8 +380,8 @@ export const refineLore_Service = async (
     jsonSchemaUsed?: unknown;
     promptUsed: string;
   } | null>(async () => {
-    params.onSetLoadingReason?.('loremaster_write');
-    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_write.icon);
+    params.onSetLoadingReason?.('loremaster_integrate');
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_integrate.icon);
     const thinkingBudget = getThinkingBudget(1024);
     const {
       response,
@@ -601,7 +601,7 @@ export const distillFacts_Service = async (
     jsonSchemaUsed?: unknown;
     promptUsed: string;
   } | null>(async () => {
-    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_refine.icon);
+    addProgressSymbol(LOADING_REASON_UI_MAP.loremaster_distill.icon);
     const thinkingBudget = getThinkingBudget(4096);
     const {
       response,

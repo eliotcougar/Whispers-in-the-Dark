@@ -23,7 +23,7 @@ import { fetchCorrectedNodeIdentifier_Service } from '../services/corrections/pl
 const theme: AdventureTheme = { name: 'TestTheme' } as AdventureTheme;
 
 const existingFeature: MapNode = {
-  id: 'node_gate_real1',
+  id: 'node-gate-real1',
   placeName: 'Ancient Gate',
   position: { x: 0, y: 0 },
   data: {
@@ -55,14 +55,14 @@ const payload: AIMapUpdatePayload = {
       description: '',
       aliases: [],
       status: 'rumored',
-      parentNodeId: 'node_side_tunnel_fake',
+      parentNodeId: 'node-side-tunnel-fake',
       nodeType: 'feature',
     },
   ],
   edgesToAdd: [
     {
       sourcePlaceName: existingFeature.id,
-      targetPlaceName: 'node_hidden_door_fake',
+      targetPlaceName: 'node-hidden-door-fake',
       type: 'path',
       status: 'rumored',
       description: '',

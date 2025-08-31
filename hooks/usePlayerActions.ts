@@ -144,7 +144,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         );
         const mapNodeNames = currentThemeNodes.map(n => n.placeName);
         const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
-        setLoadingReason('loremaster_refine');
+        setLoadingReason('loremaster_distill');
         const act =
           state.storyArc?.acts[state.storyArc.currentAct - 1];
         const result = await distillFacts_Service({
@@ -242,6 +242,12 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
         .map(f => ({ text: f.text, tier: f.tier }));
 
+      // Enter Loremaster collection stage in FSM before storyteller call
+      {
+        const beforeCollect = structuredCloneGameState(currentFullState);
+        beforeCollect.turnState = 'loremaster_collect';
+        commitGameState(beforeCollect);
+      }
       setLoadingReason('loremaster_collect');
       const collectResult = await collectRelevantFacts_Service({
         themeName: currentThemeObj.name,
@@ -295,6 +301,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       );
 
       let draftState = structuredCloneGameState(currentFullState);
+      draftState.turnState = 'player_action_prompt';
       const debugPacket = {
         prompt,
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -321,6 +328,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       let encounteredError = false;
       try {
         setLoadingReason('storyteller');
+        draftState.turnState = 'storyteller';
         const {
           response,
           thoughts,
@@ -387,6 +395,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         if (!encounteredError) {
           draftState.globalTurnNumber += 1;
           await runDistillIfNeeded(draftState);
+          draftState.turnState = 'awaiting_input';
+        } else {
+          draftState.turnState = 'error';
         }
         commitGameState(draftState);
         setIsTurnProcessing(false);
@@ -554,6 +565,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     if (!currentTheme || !storyArc || !worldFacts || !heroSheet) return null;
 
     const draftState = structuredCloneGameState(currentState);
+    draftState.turnState = 'act_transition';
     const newAct = await generateNextStoryAct(
       currentTheme,
       worldFacts,

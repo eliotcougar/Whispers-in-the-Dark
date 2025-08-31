@@ -83,13 +83,15 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     }
 
     setIsLoading(true);
-    setLoadingReason('dialogue_summary');
     setIsDialogueExiting(true);
     setError(null);
 
     const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
+    // Enter dialogue memory creation phase in the FSM.
+    workingGameState.turnState = 'dialogue_memory';
+    commitGameState(workingGameState);
 
-    setLoadingReason('dialogue_memory_creation');
+    setLoadingReason('dialogue_memory');
     const memorySummaryContext: DialogueMemorySummaryContext = {
       themeName: currentThemeObj.name,
       currentTheme: currentThemeObj,
@@ -121,7 +123,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       return npc;
     });
 
-    setLoadingReason('dialogue_conclusion_summary');
+    setLoadingReason('dialogue_summary');
     const mapDataForSummary: MapData = workingGameState.mapData;
     const act =
       workingGameState.storyArc?.acts[
@@ -169,7 +171,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     );
     clearDialogueDebugLogs();
     setIsDialogueExiting(false);
-  }, [setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs]);
+  }, [setError, setIsLoading, setLoadingReason, onDialogueConcluded, getDialogueDebugLogs, clearDialogueDebugLogs, commitGameState]);
 
 
   /**

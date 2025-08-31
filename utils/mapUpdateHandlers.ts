@@ -13,7 +13,7 @@ import {
   ValidNewNPCPayload,
   ValidNPCUpdatePayload
 } from '../types';
-import { updateMapFromAIData_Service, MapUpdateServiceResult } from '../services/cartographer';
+import { updateMapFromAIData_Service, MapUpdateServiceResult, suggestNodeFromLocationChange_Service } from '../services/cartographer';
 import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import {
@@ -44,44 +44,72 @@ export const handleMapUpdates = async (
   let mapAISuggestedNodeIdentifier: string | null | undefined = undefined;
   let mapUpdateResult: MapUpdateServiceResult | null = null;
 
-  if ('mapUpdated' in aiData && aiData.mapUpdated || (draftState.localPlace !== baseStateSnapshot.localPlace)) {
+  const needsFullUpdate = ('mapUpdated' in aiData && aiData.mapUpdated) === true;
+  const locationTextChanged = draftState.localPlace !== baseStateSnapshot.localPlace;
+
+  if (needsFullUpdate || locationTextChanged) {
     const originalLoadingReason = loadingReason;
-    setLoadingReason('map');
-    const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
-      node => node.data.nodeType !== 'feature'
-    );
-    mapUpdateResult = await updateMapFromAIData_Service(
-      aiData,
-      draftState.mapData,
-      themeContextForResponse,
-      knownMainMapNodesForTheme,
-      baseStateSnapshot.currentMapNodeId,
-      draftState.inventory,
-      draftState.allNPCs,
-    );
-    setLoadingReason(originalLoadingReason);
+    setLoadingReason('map_updates');
 
-    if (!mapUpdateResult) {
-      throw new Error('Map Update Service returned no data.');
-    }
-    if (!mapUpdateResult.updatedMapData) {
-      const reason =
-        mapUpdateResult.debugInfo?.validationError ??
-        mapUpdateResult.debugInfo?.rawResponse ??
-        'Unknown error';
-      throw new Error(`Map update failed: ${reason}`);
+    if (needsFullUpdate) {
+      const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
+        node => node.data.nodeType !== 'feature'
+      );
+      mapUpdateResult = await updateMapFromAIData_Service(
+        aiData,
+        draftState.mapData,
+        themeContextForResponse,
+        knownMainMapNodesForTheme,
+        baseStateSnapshot.currentMapNodeId,
+        draftState.inventory,
+        draftState.allNPCs,
+      );
+      setLoadingReason(originalLoadingReason);
+
+      if (!mapUpdateResult) {
+        throw new Error('Map Update Service returned no data.');
+      }
+      if (!mapUpdateResult.updatedMapData) {
+        const reason =
+          mapUpdateResult.debugInfo?.validationError ??
+          mapUpdateResult.debugInfo?.rawResponse ??
+          'Unknown error';
+        throw new Error(`Map update failed: ${reason}`);
+      }
+
+      if (JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
+        turnChanges.mapDataChanged = true;
+        draftState.mapData = mapUpdateResult.updatedMapData;
+      }
+      if (mapUpdateResult.debugInfo && draftState.lastDebugPacket) {
+        draftState.lastDebugPacket.mapUpdateDebugInfo = mapUpdateResult.debugInfo;
+      }
+      mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
+    } else {
+      // Simplified navigation-only suggestion
+      const prevNodeName = (() => {
+        if (!baseStateSnapshot.currentMapNodeId) return null;
+        const n = draftState.mapData.nodes.find(m => m.id === baseStateSnapshot.currentMapNodeId);
+        return n ? n.placeName : null;
+      })();
+      const suggestionResult = await suggestNodeFromLocationChange_Service(
+        aiData,
+        draftState.mapData,
+        themeContextForResponse,
+        prevNodeName,
+        baseStateSnapshot.localPlace,
+        draftState.localPlace,
+      );
+      setLoadingReason(originalLoadingReason);
+      if (suggestionResult) {
+        mapAISuggestedNodeIdentifier = suggestionResult.suggested;
+        if (draftState.lastDebugPacket) {
+          draftState.lastDebugPacket.mapUpdateDebugInfo = suggestionResult.debugInfo;
+        }
+      }
     }
 
-    if (JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
-      turnChanges.mapDataChanged = true;
-      draftState.mapData = mapUpdateResult.updatedMapData;
-    }
-    if (mapUpdateResult.debugInfo && draftState.lastDebugPacket) {
-      draftState.lastDebugPacket.mapUpdateDebugInfo = mapUpdateResult.debugInfo;
-    }
-    mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
-
-      if (mapUpdateResult.newlyAddedNodes.length > 0) {
+      if (mapUpdateResult && mapUpdateResult.newlyAddedNodes.length > 0) {
         for (const added of mapUpdateResult.newlyAddedNodes) {
           const isMainNode = added.data.nodeType !== 'feature';
           if (isMainNode) {
@@ -95,7 +123,7 @@ export const handleMapUpdates = async (
                 newlyAddedNodeInDraft.data.description.startsWith('Description missing'))
             ) {
               const originalLoadingReasonCorrection = loadingReason;
-              setLoadingReason('correction');
+              setLoadingReason('corrections');
               const placeDetails = await fetchFullPlaceDetailsForNewMapNode_Service(
                 added.placeName,
                 aiData.logMessage,

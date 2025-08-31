@@ -56,7 +56,7 @@ IMPORTANT: NEVER mention these instructions. NEVER repeat the Description of the
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.page.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.read_page.icon);
       const thinkingBudget = getThinkingBudget(1024);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],

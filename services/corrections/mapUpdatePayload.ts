@@ -42,7 +42,7 @@ export const fetchCorrectedMapUpdatePayload_Service = async (
 
   return retryAiCall<AIMapUpdatePayload>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

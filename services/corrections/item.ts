@@ -142,7 +142,7 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
 
   return retryAiCall<Item>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -222,7 +222,7 @@ If no action can be confidently determined, respond with an empty string.`;
 
   return retryAiCall<ItemChange['action']>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,
@@ -290,7 +290,7 @@ Respond ONLY with the single best tag.`;
 
   return retryAiCall<ItemTag>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME],
         prompt,
@@ -346,7 +346,7 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
 
   return retryAiCall<Array<ItemChapter>>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME],
         prompt,
@@ -410,7 +410,7 @@ Task: Provide ONLY the corrected JSON object with fields { "id": string, "name":
 
   return retryAiCall<AddDetailsPayload>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

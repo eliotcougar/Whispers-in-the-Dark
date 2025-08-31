@@ -56,36 +56,36 @@ Use 'addDetails' to add new Known Uses or Tags.
 ],
 "destroy": [
     { // Example for losing, destroying, completely removing an *existing* item from the world:
-        "id": "item_old_lantern_7fr4",
+        "id": "item-old-lantern-7fr4",
         "name": "Old Lantern (flickering)"
     }
 ],
 "move": [
-    { // Example for giving an *existing* item item_iron_sword_ab12 from player to npc_guard_4f3a, or for placing it in the current location:
-        "id": "item_iron_sword_ab12",
+    { // Example for giving an *existing* item item-iron-sword-ab12 from player to npc-guard-4f3a, or for placing it in the current location:
+        "id": "item-iron-sword-ab12",
         "name": "Iron Sword",
-        "newHolderId": "npc_guard_4f3a"
+        "newHolderId": "npc-guard-4f3a"
     },
-    { // Example of taking an *existing* item item_coin_pouch_8f2c from npc_bandit_1wrc and putting it in player's inventory:
-        "id": "item_coin_pouch_8f2c",
+    { // Example of taking an *existing* item item-coin-pouch-8f2c from npc-bandit-1wrc and putting it in player's inventory:
+        "id": "item-coin-pouch-8f2c",
         "name": "Coin Pouch",
         "newHolderId": "player"
     },
-    { // Example of picking up an *existing* item item_crowbar_55nf from node_rubble_pile_f4s3 and putting it in player's inventory:
-        "id": "item_crowbar_55nf",
+    { // Example of picking up an *existing* item item-crowbar-55nf from node-rubble-pile-f4s3 and putting it in player's inventory:
+        "id": "item-crowbar-55nf",
         "name": "Crowbar",
         "newHolderId": "player"
     }
 ],
 "change": [
-    { // Example for a simple change that only alters "isActive" state (lighting the Plasma Torch). All other properties are inherited from the *existing* item item_plasma_torch_7fr4:
-        "id": "item_plasma_torch_7fr4",
+    { // Example for a simple change that only alters "isActive" state (lighting the Plasma Torch). All other properties are inherited from the *existing* item item-plasma-torch-7fr4:
+        "id": "item-plasma-torch-7fr4",
         "isActive": true,
         "name": "Plasma Torch"
     },
     { // Example for transformation or crafting (new item details can be partial and will inherit old properties):
         "description": "A sharp piece of metal.",
-        "id": "item_scrap_metal_7fr4",
+        "id": "item-scrap-metal-7fr4",
         "knownUses": [
             {
                 "actionName": "Cut",
@@ -101,7 +101,7 @@ Use 'addDetails' to add new Known Uses or Tags.
 ],
 addDetails: [
     { // Example for adding a known use to *existing* item (existing properties and known uses are inherited):
-        "id": "item_mystic_orb_7fr4",    
+        "id": "item-mystic-orb-7fr4",    
         "knownUses": {
             "actionName": "Peer into the Orb",
             "AppliesWhenActive": true,
@@ -112,7 +112,7 @@ addDetails: [
     }
 ]
 
-- CRITICALLY IMPORTANT: holderId and newHolderId can only be 'node_*', 'npc_*' or 'player'. NEVER put an item inside another item!
+- CRITICALLY IMPORTANT: holderId and newHolderId can only be 'node-*', 'npc-*' or 'player'. NEVER put an item inside another item!
 - ALWAYS appropriately handle spending single-use items and state toggles ("isActive": true/false).
 - Using some "single-use" items (food, water, medicine, etc) MUST add or remove appropriate "status effect" items.
 - Use "change" to update the remaining number of uses for multi-use items in their name (in brackets) or in description.

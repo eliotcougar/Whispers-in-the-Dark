@@ -8,42 +8,42 @@ const theme: AdventureTheme = { name: 'Kaiju Defense Force' } as AdventureTheme;
 const mapData: MapData = {
   nodes: [
     {
-      id: 'node_rim_test',
+      id: 'node-rim-test',
       placeName: 'Neo-Atlantic Rim',
       position: { x: 0, y: 0 },
       data: { description: 'waters', aliases: ['Open Waters', "The Rim"], status: 'rumored', nodeType: 'region', parentNodeId: 'universe' }
     },
     {
-      id: 'node_coast_test',
+      id: 'node-coast-test',
       placeName: 'Coast',
       position: { x: 0, y: 0 },
       data: { description: 'distant coast', aliases: ['Coast', "Outpost"], status: 'rumored', nodeType: 'location', parentNodeId: 'universe' }
     },
     {
-      id: 'node_coastal_outpost_test',
+      id: 'node-coastal-outpost-test',
       placeName: 'Coastal Outpost',
       position: { x: 0, y: 0 },
-      data: { description: 'coastal outpost', aliases: ['Outer Base', "Outpost"], status: 'rumored', nodeType: 'exterior', parentNodeId: 'node_coast_test' }
+      data: { description: 'coastal outpost', aliases: ['Outer Base', "Outpost"], status: 'rumored', nodeType: 'exterior', parentNodeId: 'node-coast-test' }
     },
     {
-      id: 'node_utility_entrance_test',
+      id: 'node-utility-entrance-test',
       placeName: 'Utility Entrance',
       position: { x: 0, y: 0 },
-      data: { description: 'utility entrance', aliases: ['Utility Hatch', 'Metal Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_coastal_outpost_test' }
+      data: { description: 'utility entrance', aliases: ['Utility Hatch', 'Metal Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node-coastal-outpost-test' }
     },
     {
-      id: 'node_main_entrance_test',
+      id: 'node-main-entrance-test',
       placeName: 'Main Entrance',
       position: { x: 0, y: 0 },
-      data: { description: 'utility entrance', aliases: ['Marked Door', 'Yellow Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node_coastal_outpost_test' }
+      data: { description: 'utility entrance', aliases: ['Marked Door', 'Yellow Door'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node-coastal-outpost-test' }
     }
     
   ],
   edges: [
     {
-      id: 'edge_node_rim_test_to_node_utility_entrance_test_test',
-      sourceNodeId: 'node_utility_entrance_test',
-      targetNodeId: 'node_rim_test',
+      id: 'edge-node-rim-test-to-node-utility-entrance-test-test',
+      sourceNodeId: 'node-utility-entrance-test',
+      targetNodeId: 'node-rim-test',
       data: { description: 'to the rim', type: 'path', status: 'rumored' }
     }
   ]
@@ -120,8 +120,8 @@ const turnChanges: TurnChanges = {
 
 await handleMapUpdates(aiData, draftState, baseState, theme, null, () => undefined, turnChanges);
 
-const updatedMaybe = draftState.mapData.nodes.find(n => n.id === 'node_rim_test');
-if (!updatedMaybe) throw new Error('node_rim_test not found');
+const updatedMaybe = draftState.mapData.nodes.find(n => n.id === 'node-rim-test');
+if (!updatedMaybe) throw new Error('node-rim-test not found');
 const updated = updatedMaybe;
 describe('Update Visited Node by Name', () => {
     it('current mapNodeName should become discovered and visited', () => {
@@ -131,15 +131,15 @@ describe('Update Visited Node by Name', () => {
 });
 
 const aiData2 = {
-  currentMapNodeId: 'node_utility_entrance_test'
+  currentMapNodeId: 'node-utility-entrance-test'
 } as Partial<GameStateFromAI> as GameStateFromAI;
 
 await handleMapUpdates(aiData2, draftState, baseState, theme, null, () => undefined, turnChanges);
 
-const updated2Maybe = draftState.mapData.nodes.find(n => n.id === 'node_utility_entrance_test');
-const updated3Maybe = draftState.mapData.edges.find(n => n.id === 'edge_node_rim_test_to_node_utility_entrance_test_test');
-const updated4Maybe = draftState.mapData.nodes.find(n => n.id === 'node_coastal_outpost_test');
-const updated5Maybe = draftState.mapData.nodes.find(n => n.id === 'node_coast_test');
+const updated2Maybe = draftState.mapData.nodes.find(n => n.id === 'node-utility-entrance-test');
+const updated3Maybe = draftState.mapData.edges.find(n => n.id === 'edge-node-rim-test-to-node-utility-entrance-test-test');
+const updated4Maybe = draftState.mapData.nodes.find(n => n.id === 'node-coastal-outpost-test');
+const updated5Maybe = draftState.mapData.nodes.find(n => n.id === 'node-coast-test');
 if (!updated2Maybe || !updated3Maybe || !updated4Maybe || !updated5Maybe) throw new Error('Updated nodes not found');
 const updated2 = updated2Maybe;
 const updated3 = updated3Maybe;
@@ -169,8 +169,8 @@ const aiData3 = {
 
 await handleMapUpdates(aiData3, draftState, baseState, theme, null, () => undefined, turnChanges);
 
-const updated6Maybe = draftState.mapData.nodes.find(n => n.id === 'node_main_entrance_test');
-if (!updated6Maybe) throw new Error('node_main_entrance_test not found');
+const updated6Maybe = draftState.mapData.nodes.find(n => n.id === 'node-main-entrance-test');
+if (!updated6Maybe) throw new Error('node-main-entrance-test not found');
 const updated6 = updated6Maybe;
 describe('Update Visited Node by Alias', () => {
     it('current mapNode Alias should become discovered and visited', () => {

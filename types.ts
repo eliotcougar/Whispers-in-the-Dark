@@ -23,6 +23,34 @@ export type ItemTag = typeof VALID_TAGS[number];
 export type LoadingReason = typeof LOADING_REASONS[number] | null;
 export type ThinkingEffort = 'Low' | 'Medium' | 'High';
 
+// Explicit UI/logic states for app boot and turn loop
+export type GameStartState =
+  | 'idle'              // app not ready yet or no decision
+  | 'title'             // title menu shown, waiting for user
+  | 'gender_select'     // gender selection modal active
+  | 'character_select'  // character selection modal active
+  | 'seeding_facts'     // loremaster initial facts extraction
+  | 'first_turn_ai'     // storyteller first turn request in-flight
+  | 'loremaster_extract' // initial lore refinement after first turn
+  | 'ready';            // game is initialized and awaiting input
+
+export type GameTurnState =
+  | 'idle'                 // not yet started
+  | 'awaiting_input'       // waiting for player
+  | 'player_action_prompt' // building prompt/context for action
+  | 'storyteller'          // storyteller call in-flight
+  | 'loremaster_collect'   // loremaster selecting relevant facts before storyteller
+  | 'map_updates'          // applying map updates
+  | 'inventory_updates'    // applying inventory/librarian hints
+  | 'librarian_updates'    // applying librarian (written items) hints
+  | 'loremaster_extract'    // loremaster refinement main step (extract)
+  | 'dialogue_memory'      // creating NPC memories from dialogue
+  | 'dialogue_turn'        // in-dialogue per-turn
+  | 'dialogue_summary'     // summarizing dialogue outcome
+  | 'act_transition'       // act intro/transition handling
+  | 'victory'              // victory screen
+  | 'error';               // error handling state
+
 export interface GameSettings {
   enabledThemePacks: Array<ThemePackName>;
   thinkingEffort: ThinkingEffort;
@@ -653,6 +681,10 @@ export interface FullGameState {
   globalTurnNumber: number; // New field
   dialogueState: DialogueData | null;
   isVictory: boolean;
+
+  // Explicit state machines (transient; not persisted in save subset)
+  startState?: GameStartState;
+  turnState?: GameTurnState;
 
   // Configuration snapshot (remains part of FullGameState for runtime and saving)
   enabledThemePacks: Array<ThemePackName>;

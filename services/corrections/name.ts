@@ -57,7 +57,7 @@ If no suitable match can be confidently made, respond with an empty string.`;
 
   return retryAiCall<string>(async attempt => {
     try {
-      addProgressSymbol(LOADING_REASON_UI_MAP.correction.icon);
+      addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
         prompt,

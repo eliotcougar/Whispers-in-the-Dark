@@ -348,8 +348,16 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
         playerActionText: undefined,
         dialogueTranscript:
           preparedGameState.gameLog[preparedGameState.gameLog.length - 1] ?? '',
+        onBeforeRefine: (state) => {
+          // Show the new scene and any applied map/inventory changes
+          commitGameState(state);
+        },
+        setIsLoading: setIsLoading,
+        setIsTurnProcessing: setIsTurnProcessing,
       })
         .then(() => {
+          // After summary is applied, return to awaiting input
+          draftState.turnState = 'awaiting_input';
           draftState.lastDebugPacket ??= {
             prompt: '',
             rawResponseText: null,
@@ -368,13 +376,16 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
           draftState.lastDebugPacket.parsedResponse = summaryPayload;
           draftState.lastDebugPacket.dialogueDebugInfo = debugInfo;
           commitGameState(draftState);
+          setIsTurnProcessing(false);
           setIsLoading(false);
           setLoadingReasonRef(null);
         })
         .catch((e: unknown) => {
           console.error('Error in post-dialogue processAiResponse:', e);
           setError('Failed to fully process dialogue conclusion. Game state might be inconsistent.');
+          preparedGameState.turnState = 'awaiting_input';
           commitGameState(preparedGameState);
+          setIsTurnProcessing(false);
           setIsLoading(false);
           setLoadingReasonRef(null);
         });
@@ -405,6 +416,19 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
   }, [isAppReady, initialDebugStackFromApp]);
 
   const currentFullState = getCurrentGameState();
+
+  // Keep startState at 'title' while app ready but game not initialized
+  useEffect(() => {
+    if (isAppReady && !hasGameBeenInitialized) {
+      setGameStateStack(prev => {
+        const curr = prev[0];
+        if (curr.startState !== 'title') {
+          return [{ ...curr, startState: 'title' } as FullGameState, prev[1]];
+        }
+        return prev;
+      });
+    }
+  }, [isAppReady, hasGameBeenInitialized]);
 
   // Keep current state's enabled theme packs in sync with user settings
   useEffect(() => {
@@ -460,7 +484,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     );
     const mapNodeNames = currentThemeNodes.map(n => n.placeName);
     const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
-    setLoadingReasonRef('loremaster_refine');
+    setLoadingReasonRef('loremaster_distill');
     const act =
       currentFullState.storyArc?.acts[
         currentFullState.storyArc.currentAct - 1
@@ -572,7 +596,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     itemPresenceByNode,
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,
-    isLoading: isLoading || (currentFullState.dialogueState !== null && isDialogueExiting),
+    isLoading: isLoading,
     isTurnProcessing,
     loadingReason,
     error,

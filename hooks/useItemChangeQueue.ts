@@ -92,7 +92,7 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
   const [animatedTurnChangesRef, setAnimatedTurnChangesRef] = useState<TurnChanges | null>(null);
   const [currentProcessingChanges, setCurrentProcessingChanges] = useState<TurnChanges | null>(null);
   const activeTimeoutRef = useRef<number | null>(null);
-  const deferredTurnChangesRef = useRef<TurnChanges | null>(null);
+  const deferredTurnChangesRef = useRef<{ changes: TurnChanges; turn: number } | null>(null);
   const lastAnimatedTurnRef = useRef<number | null>(null);
   // Note: we intentionally avoid hashing/"signatures" of changes now.
   // We rely on reference + queue boundaries to avoid duplicates.
@@ -118,9 +118,9 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
 
   useEffect(() => {
     if (isGameBusy) {
-      // While busy, remember the latest unanimated changes so we can animate after unpause.
+      // While busy, remember the latest unanimated changes so we can animate after unpause (for this turn only).
       if (lastTurnChanges && lastTurnChanges !== animatedTurnChangesRef) {
-        deferredTurnChangesRef.current = lastTurnChanges;
+        deferredTurnChangesRef.current = { changes: lastTurnChanges, turn: currentTurnNumber };
       }
       // Clear any in-flight animation state so we can replay once unpaused.
       if (currentProcessingChanges) {
@@ -134,6 +134,7 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
     currentProcessingChanges,
     lastTurnChanges,
     animatedTurnChangesRef,
+    currentTurnNumber,
   ]);
 
   // On turn advance: if no item changes this turn, explicitly mark as processed
@@ -155,7 +156,17 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
       if (animationQueue.length > 0) setAnimationQueue([]);
       return;
     }
-    const candidate = deferredTurnChangesRef.current ?? lastTurnChanges;
+    // Prefer deferred only if it belongs to the current turn; otherwise drop it
+    let candidate: TurnChanges | null = null;
+    if (deferredTurnChangesRef.current) {
+      if (deferredTurnChangesRef.current.turn === currentTurnNumber) {
+        candidate = deferredTurnChangesRef.current.changes;
+      } else {
+        // Stale deferred from previous turn; drop it
+        deferredTurnChangesRef.current = null;
+      }
+    }
+    candidate = candidate ?? lastTurnChanges;
     if (!candidate) return;
     // If we've already animated for this turn, ignore busy/idle cycles until turn advances
     if (lastAnimatedTurnRef.current !== null && currentTurnNumber === lastAnimatedTurnRef.current) {
@@ -194,7 +205,9 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
       setAnimatedTurnChangesRef(candidate);
       setCurrentProcessingChanges(null);
       setIsVisibleOverlay(false);
-      if (deferredTurnChangesRef.current === candidate) deferredTurnChangesRef.current = null;
+      if (deferredTurnChangesRef.current && deferredTurnChangesRef.current.changes === candidate) {
+        deferredTurnChangesRef.current = null;
+      }
     }
   }, [lastTurnChanges, isGameBusy, animatedTurnChangesRef, currentProcessingChanges, currentAnimatingItem, animationQueue, currentTurnNumber]);
 
@@ -231,7 +244,7 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
           setAnimatedTurnChangesRef(currentProcessingChanges);
         }
         setCurrentProcessingChanges(null);
-        if (deferredTurnChangesRef.current === currentProcessingChanges) {
+        if (deferredTurnChangesRef.current && deferredTurnChangesRef.current.changes === currentProcessingChanges) {
           deferredTurnChangesRef.current = null;
         }
       }
