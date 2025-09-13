@@ -103,7 +103,8 @@ This layer abstracts external interactions and complex data processing.
    *   `utils/highlightHelper.tsx`: Builds highlight information for entity names in text.
    *   `utils/initialStates.ts`: Produces the default `FullGameState` objects.
    *   `utils/jsonUtils.ts`: Extracts JSON from AI responses and provides safe parsing.
-   *   `utils/loadingProgress.ts`: Tracks progress text for asynchronous operations.
+   *   `utils/loadingProgress.ts`: Tracks progress text for asynchronous operations. Internally uses the shared `utils/observable.ts` helper for a consistent subscribe/emit pattern.
+   *   `utils/loadingState.ts`: Global loading reason pub-sub built on the same `utils/observable.ts`.
    *   `constants.ts`: Map rendering constants like `NODE_RADIUS` and `DEFAULT_VIEWBOX`.
    *   `utils/mapGraphUtils.ts`: Helpers for navigating the map hierarchy.
    *   `utils/mapHierarchyUpgradeUtils.ts`: Upgrades feature nodes with children into regions and inserts connector nodes.

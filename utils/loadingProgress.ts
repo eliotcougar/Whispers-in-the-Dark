@@ -1,59 +1,22 @@
-let progressString = '';
-const listeners: Array<(s: string) => void> = [];
-let retryCount = 0;
-const retryListeners: Array<(c: number) => void> = [];
+/**
+ * @file loadingProgress.ts
+ * @description Tracks progress UI signals and retry counts for async operations.
+ * Built on the shared observable helper in `utils/observable.ts`.
+ */
+import { createObservable } from './observable';
 
-const emitRetry = () => {
-  retryListeners.forEach(fn => {
-    fn(retryCount);
-  });
-};
+const progress = createObservable<string>('');
+const retries = createObservable<number>(0);
 
-const emit = () => {
-  listeners.forEach(fn => { fn(progressString); });
-};
+export const onProgress = (fn: (s: string) => void): void => { progress.on(fn); };
+export const offProgress = (fn: (s: string) => void): void => { progress.off(fn); };
+export const getProgress = (): string => progress.get();
+export const addProgressSymbol = (sym: string): void => { progress.set(sym + progress.get()); };
+export const clearProgress = (): void => { progress.set(''); };
 
-export const onProgress = (fn: (s: string) => void): void => {
-  listeners.push(fn);
-  fn(progressString);
-};
-
-export const onRetryCount = (fn: (c: number) => void): void => {
-  retryListeners.push(fn);
-  fn(retryCount);
-};
-
-export const offProgress = (fn: (s: string) => void): void => {
-  const idx = listeners.indexOf(fn);
-  if (idx !== -1) listeners.splice(idx, 1);
-};
-
-export const offRetryCount = (fn: (c: number) => void): void => {
-  const idx = retryListeners.indexOf(fn);
-  if (idx !== -1) retryListeners.splice(idx, 1);
-};
-
-export const addProgressSymbol = (sym: string): void => {
-  progressString = sym + progressString;
-  emit();
-};
-
-export const incrementRetryCount = (): void => {
-  retryCount += 1;
-  emitRetry();
-};
-
-export const clearProgress = (): void => {
-  progressString = '';
-  emit();
-};
-
-export const clearRetryCount = (): void => {
-  retryCount = 0;
-  emitRetry();
-};
-
-export const getProgress = () => progressString;
-
-export const getRetryCount = () => retryCount;
+export const onRetryCount = (fn: (c: number) => void): void => { retries.on(fn); };
+export const offRetryCount = (fn: (c: number) => void): void => { retries.off(fn); };
+export const getRetryCount = (): number => retries.get();
+export const incrementRetryCount = (): void => { retries.set(retries.get() + 1); };
+export const clearRetryCount = (): void => { retries.set(0); };
 

@@ -32,7 +32,7 @@ if (!geminiApiKey) {
     const readFromImportMeta = (): string | undefined => {
       try {
         const meta = import.meta as unknown as { env?: Record<string, string | undefined> };
-        return meta?.env?.GEMINI_API_KEY ?? meta?.env?.API_KEY;
+        return meta.env?.GEMINI_API_KEY ?? meta.env?.API_KEY;
       } catch {
         return undefined;
       }
@@ -40,7 +40,8 @@ if (!geminiApiKey) {
     const readFromProcess = (): string | undefined => {
       try {
         const p = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process;
-        return p?.env?.GEMINI_API_KEY ?? p?.env?.API_KEY;
+        if (!p) return undefined;
+        return p.env?.GEMINI_API_KEY ?? p.env?.API_KEY;
       } catch {
         return undefined;
       }

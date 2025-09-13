@@ -1,32 +1,20 @@
+/**
+ * @file loadingState.ts
+ * @description Global loading reason pub-sub for UI. Uses `utils/observable.ts`.
+ */
 import { LoadingReason } from '../types';
+import { createObservable } from './observable';
 
-let currentReason: LoadingReason | null = null;
-const listeners: Array<(val: LoadingReason | null) => void> = [];
+const reason = createObservable<LoadingReason | null>(null);
 
-export const setLoadingReason = (reason: LoadingReason | null): void => {
-  if (reason === null) {
-    setTimeout(() => {
-      currentReason = null;
-      listeners.forEach(fn => {
-        fn(currentReason);
-      });
-    }, 0);
+export const setLoadingReason = (val: LoadingReason | null): void => {
+  if (val === null) {
+    setTimeout(() => { reason.set(null); }, 0);
   } else {
-    currentReason = reason;
-    listeners.forEach(fn => {
-      fn(currentReason);
-    });
+    reason.set(val);
   }
 };
 
-export const onLoadingReason = (fn: (val: LoadingReason | null) => void): void => {
-  listeners.push(fn);
-  fn(currentReason);
-};
-
-export const offLoadingReason = (fn: (val: LoadingReason | null) => void): void => {
-  const idx = listeners.indexOf(fn);
-  if (idx !== -1) listeners.splice(idx, 1);
-};
-
-export const getLoadingReason = (): LoadingReason | null => currentReason;
+export const onLoadingReason = (fn: (val: LoadingReason | null) => void): void => { reason.on(fn); };
+export const offLoadingReason = (fn: (val: LoadingReason | null) => void): void => { reason.off(fn); };
+export const getLoadingReason = (): LoadingReason | null => reason.get();
