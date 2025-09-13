@@ -1,5 +1,5 @@
 import { geminiClient as ai, isApiConfigured } from '../geminiClient';
-import { AdventureTheme, Item, ItemChapter } from '../../types';
+import { AdventureTheme, Item } from '../../types';
 import {
   GEMINI_LITE_MODEL_NAME,
   LOADING_REASON_UI_MAP,
@@ -9,31 +9,11 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { convertToJpeg, generateImageWithFallback, getThemeStylePrompt } from './common';
+import { getChapter as getNormalizedChapter } from '../../utils/writtenItemChapters';
 
 const inFlightGenerations: Record<string, Promise<string> | undefined> = {};
 
-const getChapterData = (
-  item: Item,
-  index: number,
-): ItemChapter | null => {
-  const chapter = item.chapters?.[index];
-  if (chapter) return chapter;
-  if (index === 0) {
-    const legacy = item as Item & {
-      contentLength?: number;
-      actualContent?: string;
-      visibleContent?: string;
-    };
-    return {
-      heading: item.name,
-      description: item.description,
-      contentLength: legacy.contentLength ?? 30,
-      actualContent: legacy.actualContent,
-      visibleContent: legacy.visibleContent,
-    };
-  }
-  return null;
-};
+const getChapterData = (item: Item, index: number) => getNormalizedChapter(item, index);
 
 // theme style selection is provided by common.getThemeStylePrompt
 

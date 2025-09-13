@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Item, ItemChapter, MapData, NPC, AdventureTheme } from '../../types';
 import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
 import { PLAYER_JOURNAL_ID } from '../../constants';
+import { normalizeChapters } from '../../utils/writtenItemChapters';
 import { rot13, toRunic, tornVisibleText } from '../../utils/textTransforms';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
@@ -74,22 +75,7 @@ function PageView({
 
   const chapters = useMemo(() => {
     if (!item) return [];
-    if (item.id === PLAYER_JOURNAL_ID) return item.chapters ?? [];
-    if (item.chapters && item.chapters.length > 0) return item.chapters;
-    const legacy = item as Item & {
-      contentLength?: number;
-      actualContent?: string;
-      visibleContent?: string;
-    };
-    return [
-      {
-        heading: item.name,
-        description: item.description,
-        contentLength: legacy.contentLength ?? 30,
-        actualContent: legacy.actualContent,
-        visibleContent: legacy.visibleContent,
-      },
-    ];
+    return normalizeChapters(item);
   }, [item]);
 
   const unlockedChapterCount = useMemo(() => {
