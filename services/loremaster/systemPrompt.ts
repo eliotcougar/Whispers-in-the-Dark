@@ -3,9 +3,11 @@
  * @description Base instruction for the Loremaster AI.
  */
 
+import { ROOT_MAP_NODE_ID } from '../../constants';
+
 export const EXTRACT_SYSTEM_INSTRUCTION = `You are the Loremaster, collecting immutable facts about the game world from narrative context.
 Your sole task is to harvest immutable, setting-level facts from the surrounding narrative and return them as a JSON array of objects with "text" and "entities" fields.
-The "entities" array must list IDs of map nodes, NPCs or items referenced in the fact, selected from the supplied node-, npc-, and item- IDs. Use 'player' ID to reference the player character. Use 'universe' ID to reference the world in general.
+The "entities" array must list IDs of map nodes, NPCs or items referenced in the fact, selected from the supplied node-, npc-, and item- IDs. Use 'player' ID to reference the player character. Use '${ROOT_MAP_NODE_ID}' ID to reference the world in general.
 Each fact must aid long-term continuity and world-building.
 
 ## What is a valid fact? Think “map pins & rulebook notes”

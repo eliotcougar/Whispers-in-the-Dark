@@ -4,6 +4,7 @@
  */
 
 import { MAP_NODE_TYPE_GUIDE, MAP_EDGE_TYPE_GUIDE, MAP_NODE_HIERARCHY_GUIDE } from '../../prompts/helperPrompts';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 
 export const CARTOGRAPHER_SYSTEM_INSTRUCTION = `You are an AI assistant specializing in updating a game map based on narrative events.
 Your task is to analyze the provided game context and determine what changes should be made to the map data.
@@ -23,13 +24,13 @@ CRITICAL INSTRUCTIONS:
 - When considering a new location, check existing item and NPC names (including aliases). If the name matches or closely resembles one, SKIP adding that node and omit any edges that would connect to it.
 - Node Fields for "nodesToAdd":
     - "aliases", "description", and "status" are ALWAYS REQUIRED for ALL added nodes.
-    - You MUST provide "parentNodeId" of a node higher in the hierarchy for every node. Top level nodes should be assigned 'Universe' as their parentNodeId.
+    - You MUST provide "parentNodeId" of a node higher in the hierarchy for every node. Top level nodes should be assigned '${ROOT_MAP_NODE_ID}' as their parentNodeId.
 - Node Fields for "nodesToUpdate":
     - "aliases" and "description" can be optionally provided to update ANY node.
     - When adding a new main location via "nodesToAdd", the "placeName" MUST correspond to a location name that the Storyteller AI has indicated as significant.
     - You MUST include "parentNodeId" of a node higher in the hierarchy for every node.
 - Node "placeName" (both for identifying nodes and for new names) should be unique within their theme. NEVER create duplicates of existing nodes or edges.
-- NEVER add a node named "Universe" or create edges that reference a place named "Universe". That name is reserved for the root and already exists.
+- NEVER add a node named "${ROOT_MAP_NODE_ID}" or create edges that reference a place named "${ROOT_MAP_NODE_ID}". That name is reserved for the root and already exists.
 - Edges only allowed to connect nodes of type='feature' that have the same parent (siblings), that have the same grandparent (grandchildren), or where one feature's parent is the grandparent of the other (child-grandchild), or edges of type='shortcut'.
 - Edges of type 'shortcut' are exempt from these hierarchy restrictions but still must connect feature nodes.
 - When you add intermediate feature nodes to satisfy hierarchy rules, ALWAYS assign to them the same status as their parent node. Any edges created to replace a prior connection should keep that connection's status unless explicitly updated.

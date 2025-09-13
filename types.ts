@@ -549,7 +549,7 @@ export interface AINodeAdd extends AINodeUpdate {
 
 export interface AIMapUpdatePayload {
   // parentNodeId is mandatory for each entry in nodesToAdd. The value is a NAME
-  // of the intended parent node (use "Universe" for the root node).
+  // of the intended parent node (use ROOT_MAP_NODE_ID for the root node).
   // Description and aliases are required for all new nodes.
   observations?: string | null;
   rationale?: string | null;

@@ -3,6 +3,7 @@ import { findMapNodeByIdentifier, buildNodeId } from '../../utils/entityUtils';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
 import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 import { buildChainRequest } from './connectorChains';
 import { fetchLikelyParentNode_Service } from '../corrections/placeDetails';
 import type { ApplyUpdatesContext } from './updateContext';
@@ -91,7 +92,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
       let resolvedParentId: string | undefined = undefined;
       let sameTypeParent: MapNode | null = null;
       if (nodeAddOp.parentNodeId) {
-        if (nodeAddOp.parentNodeId === 'Universe') {
+        if (nodeAddOp.parentNodeId === ROOT_MAP_NODE_ID) {
           resolvedParentId = undefined;
         } else {
           const parent = findMapNodeByIdentifier(
@@ -258,7 +259,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
             },
             context.minimalModelCalls
           );
-          unresolved.parentNodeId = guessed ?? 'Universe';
+          unresolved.parentNodeId = guessed ?? ROOT_MAP_NODE_ID;
         }
         triedParentInference = true;
         unresolvedQueue = nextQueue;

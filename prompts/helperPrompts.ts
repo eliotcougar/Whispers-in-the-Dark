@@ -10,7 +10,8 @@ import {
   DEDICATED_BUTTON_USES_STRING,
   MIN_BOOK_CHAPTERS,
   MAX_BOOK_CHAPTERS,
-  TEXT_STYLE_TAGS_STRING
+  TEXT_STYLE_TAGS_STRING,
+  ROOT_MAP_NODE_ID,
 } from '../constants';
 
 export const REGULAR_ITEM_TYPES_GUIDE = `Valid item "type" values are: ${REGULAR_ITEM_TYPES_STRING}.
@@ -203,7 +204,7 @@ export const MAP_NODE_HIERARCHY_GUIDE = `Map Node Hierarchy:
 - An "exterior" can contain "interiors".
 - An "interior" can contain "rooms".
 - A "room" can contain "features".
-- The "Universe" is the root node, it can contain any other nodes.
+- The "${ROOT_MAP_NODE_ID}" is the root node, it can contain any other nodes.
 - A "feature" can be placed anywhere in the hierarchy, but can never be a parent to any other node.
 - Only "feature" nodes can be connected to each other with edges.`;
 

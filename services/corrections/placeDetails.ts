@@ -15,6 +15,7 @@ import {
   MAX_RETRIES,
   NODE_DESCRIPTION_INSTRUCTION,
   ALIAS_INSTRUCTION,
+  ROOT_MAP_NODE_ID,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
@@ -412,9 +413,9 @@ ${nodeLines}
 ## Edges:
 ${edgeLines}
 
-Respond ONLY with the name or id of the best parent node, or "Universe" if none.`;
+Respond ONLY with the name or id of the best parent node, or "${ROOT_MAP_NODE_ID}" if none.`;
 
-  const systemInstruction = `Choose the most logical parent node name or id for the provided Map Node. If none is suitable use "Universe".`;
+  const systemInstruction = `Choose the most logical parent node name or id for the provided Map Node. If none is suitable use "${ROOT_MAP_NODE_ID}".`;
 
   return retryAiCall<string>(async attempt => {
     try {

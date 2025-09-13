@@ -1,4 +1,5 @@
 import type { MapNode, MapEdge, MapEdgeData } from '../../types';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 import { generateUniqueId } from '../../utils/entityUtils';
 
 /**
@@ -16,29 +17,29 @@ export function isEdgeConnectionAllowed(
   if (edgeType === 'shortcut') return true;
 
   const lookup = nodeLookup ?? new Map<string, MapNode>();
-  const parentAId = nodeA.data.parentNodeId ?? 'Universe';
-  const parentBId = nodeB.data.parentNodeId ?? 'Universe';
-  const parentA = parentAId === 'Universe' ? null : lookup.get(parentAId);
-  const parentB = parentBId === 'Universe' ? null : lookup.get(parentBId);
+  const parentAId = nodeA.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+  const parentBId = nodeB.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+  const parentA = parentAId === ROOT_MAP_NODE_ID ? null : lookup.get(parentAId);
+  const parentB = parentBId === ROOT_MAP_NODE_ID ? null : lookup.get(parentBId);
 
-  if (!parentA && parentAId !== 'Universe') return false;
-  if (!parentB && parentBId !== 'Universe') return false;
+  if (!parentA && parentAId !== ROOT_MAP_NODE_ID) return false;
+  if (!parentB && parentBId !== ROOT_MAP_NODE_ID) return false;
   if (parentAId === parentBId) return true;
 
-  const grandAId = parentAId === 'Universe' ? 'Universe' : lookup.get(parentAId)?.data.parentNodeId ?? 'Universe';
-  const grandBId = parentBId === 'Universe' ? 'Universe' : lookup.get(parentBId)?.data.parentNodeId ?? 'Universe';
+  const grandAId = parentAId === ROOT_MAP_NODE_ID ? ROOT_MAP_NODE_ID : lookup.get(parentAId)?.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+  const grandBId = parentBId === ROOT_MAP_NODE_ID ? ROOT_MAP_NODE_ID : lookup.get(parentBId)?.data.parentNodeId ?? ROOT_MAP_NODE_ID;
 
   if (grandAId && grandBId && grandAId === grandBId) return true;
   if (grandAId && parentBId === grandAId) return true;
   if (grandBId && parentAId === grandBId) return true;
 
-  if (parentAId !== 'Universe' && parentBId !== 'Universe') {
-    const parentAParent = lookup.get(parentAId)?.data.parentNodeId ?? 'Universe';
-    const parentBParent = lookup.get(parentBId)?.data.parentNodeId ?? 'Universe';
-    if (parentAParent === 'Universe' && parentBParent === 'Universe') return true;
+  if (parentAId !== ROOT_MAP_NODE_ID && parentBId !== ROOT_MAP_NODE_ID) {
+    const parentAParent = lookup.get(parentAId)?.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+    const parentBParent = lookup.get(parentBId)?.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+    if (parentAParent === ROOT_MAP_NODE_ID && parentBParent === ROOT_MAP_NODE_ID) return true;
   }
-  if (parentAId === 'Universe' && grandBId === 'Universe') return true;
-  if (parentBId === 'Universe' && grandAId === 'Universe') return true;
+  if (parentAId === ROOT_MAP_NODE_ID && grandBId === ROOT_MAP_NODE_ID) return true;
+  if (parentBId === ROOT_MAP_NODE_ID && grandAId === ROOT_MAP_NODE_ID) return true;
 
   return false;
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildNonRumoredAdjacencyMap, existsNonRumoredPath } from '../utils/mapGraphUtils';
 import type { MapData, MapEdgeStatus } from '../types';
+import { ROOT_MAP_NODE_ID } from '../constants';
 
 const makeEdge = (
   id: string,
@@ -20,7 +21,7 @@ const makeNode = (id: string): Node => ({
   id,
   placeName: id,
   position: { x: 0, y: 0 },
-  data: { description: '', status: 'discovered', nodeType: 'location', parentNodeId: 'universe' },
+  data: { description: '', status: 'discovered', nodeType: 'location', parentNodeId: ROOT_MAP_NODE_ID },
 });
 
 const mapData: MapData = {

@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { buildTravelAdjacency, findTravelPath } from '../utils/mapPathfinding';
 import type { MapData, MapEdgeStatus } from '../types';
+import { ROOT_MAP_NODE_ID } from '../constants';
 
-const makeNode = (id: string, parentId = 'universe'): MapData['nodes'][number] => ({
+const makeNode = (id: string, parentId = ROOT_MAP_NODE_ID): MapData['nodes'][number] => ({
   id,
   placeName: id,
   position: { x: 0, y: 0 },

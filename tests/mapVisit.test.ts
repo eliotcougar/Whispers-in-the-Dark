@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers.ts';
 import { structuredCloneGameState } from '../utils/cloneUtils.ts';
 import type { AdventureTheme, FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig } from '../types';
+import { ROOT_MAP_NODE_ID } from '../constants';
 
 const theme: AdventureTheme = { name: 'Kaiju Defense Force' } as AdventureTheme;
 
@@ -11,13 +12,13 @@ const mapData: MapData = {
       id: 'node-rim-test',
       placeName: 'Neo-Atlantic Rim',
       position: { x: 0, y: 0 },
-      data: { description: 'waters', aliases: ['Open Waters', "The Rim"], status: 'rumored', nodeType: 'region', parentNodeId: 'universe' }
+      data: { description: 'waters', aliases: ['Open Waters', "The Rim"], status: 'rumored', nodeType: 'region', parentNodeId: ROOT_MAP_NODE_ID }
     },
     {
       id: 'node-coast-test',
       placeName: 'Coast',
       position: { x: 0, y: 0 },
-      data: { description: 'distant coast', aliases: ['Coast', "Outpost"], status: 'rumored', nodeType: 'location', parentNodeId: 'universe' }
+      data: { description: 'distant coast', aliases: ['Coast', "Outpost"], status: 'rumored', nodeType: 'location', parentNodeId: ROOT_MAP_NODE_ID }
     },
     {
       id: 'node-coastal-outpost-test',
@@ -70,7 +71,7 @@ const baseState: FullGameState = {
   storyArc: null,
   allNPCs: [],
   mapData: structuredCloneGameState(mapData),
-  currentMapNodeId: 'universe',
+  currentMapNodeId: ROOT_MAP_NODE_ID,
   destinationNodeId: null,
   mapLayoutConfig: {
     IDEAL_EDGE_LENGTH: 50,

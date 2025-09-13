@@ -3,13 +3,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import LocationItemsDisplay from '../components/inventory/LocationItemsDisplay';
-import { ACTION_POINTS_PER_TURN } from '../constants';
+import { ACTION_POINTS_PER_TURN, ROOT_MAP_NODE_ID } from '../constants';
 import type { MapData, Item, MapEdgeStatus, MapNodeStatus } from '../types';
 
 const makeNode = (
   id: string,
   status: MapNodeStatus = 'discovered',
-  parent = 'universe',
+  parent = ROOT_MAP_NODE_ID,
 ): MapData['nodes'][number] => ({
   id,
   placeName: id,

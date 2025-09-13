@@ -24,6 +24,7 @@ import {
 import { dispatchAIRequest } from "../modelDispatcher";
 import { CORRECTION_TEMPERATURE } from "../../constants";
 import { addProgressSymbol } from "../../utils/loadingProgress";
+import { ROOT_MAP_NODE_ID } from "../../constants";
 import { LOADING_REASON_UI_MAP } from "../../constants";
 import { retryAiCall } from "../../utils/retry";
 import { isApiConfigured } from "../geminiClient";
@@ -187,7 +188,7 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
           },
           description: { type: "string", minLength: 30, description: NODE_DESCRIPTION_INSTRUCTION },
           nodeType: { enum: ["feature"] },
-          parentNodeId: { type: "string", description: "Name of the Parent Node this feature belongs to, or 'Universe' (keyword for root node) if it has no parent" },
+          parentNodeId: { type: "string", description: `Name of the Parent Node this feature belongs to, or '${ROOT_MAP_NODE_ID}' (keyword for root node) if it has no parent` },
           placeName: { type: "string", description: "A contextually relevant location name, based on Theme and Scene Description" },
           status: { enum: VALID_NODE_STATUS_VALUES },
         },

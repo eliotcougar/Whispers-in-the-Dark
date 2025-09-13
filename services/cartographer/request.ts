@@ -24,6 +24,7 @@ import {
 import { dispatchAIRequest } from '../modelDispatcher';
 import { isApiConfigured } from '../geminiClient';
 import { addProgressSymbol } from '../../utils/loadingProgress';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 import { retryAiCall } from '../../utils/retry';
 import {
   parseAIMapUpdateResponse,
@@ -147,7 +148,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
           nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
           parentNodeId: {
             type: 'string',
-            description: 'Parent Node ID, or "Universe" for top-level nodes. Use placeName when referencing other nodes in this response.',
+            description: `Parent Node ID, or "${ROOT_MAP_NODE_ID}" for top-level nodes. Use placeName when referencing other nodes in this response.`,
           },
           placeName: {
             type: 'string',
@@ -190,7 +191,7 @@ export const MAP_UPDATE_JSON_SCHEMA = {
           parentNodeId: {
             type: 'string',
             description:
-              'Parent Node ID, or "Universe" for top-level nodes. Parent can not be a feature node. Use placeName when referencing other nodes in this response.',
+              `Parent Node ID, or "${ROOT_MAP_NODE_ID}" for top-level nodes. Parent can not be a feature node. Use placeName when referencing other nodes in this response.`,
           },
           placeName: { type: 'string', description: 'Existing node ID or name to identify it.' },
           status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },

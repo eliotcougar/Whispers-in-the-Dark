@@ -27,6 +27,7 @@ import {
   formatHeroBackstoryForPrompt,
   formatStoryArcContext,
 } from '../../utils/promptFormatters';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 
 /**
  * Build the initial prompt for starting a new game.
@@ -171,8 +172,8 @@ export const buildMainGameTurnPrompt = (
     const destNode = nodeById.get(destinationNodeId);
     const placeName = destNode?.placeName ?? destinationNodeId;
     const destParentId = destNode?.data.parentNodeId;
-    const destParent =
-      destParentId && destParentId !== 'Universe'
+  const destParent =
+      destParentId && destParentId !== ROOT_MAP_NODE_ID
         ? nodeById.get(destParentId)?.placeName ?? destParentId
         : null;
     const displayName = destParent ? `${placeName} in ${destParent}` : placeName;

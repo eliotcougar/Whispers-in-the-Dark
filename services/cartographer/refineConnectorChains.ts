@@ -2,7 +2,7 @@ import { generateUniqueId, findMapNodeByIdentifier } from '../../utils/entityUti
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest, filterEdgeChainRequests } from './connectorChains';
 import { fetchConnectorChains_Service } from '../corrections/edgeFixes';
-import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS } from '../../constants';
+import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS, ROOT_MAP_NODE_ID } from '../../constants';
 import type { MapNode, AINodeAdd, AIEdgeAdd } from '../../types';
 import type { ConnectorChainsServiceResult, EdgeChainRequest } from '../corrections/edgeFixes';
 import type { ApplyUpdatesContext } from './updateContext';
@@ -49,7 +49,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
       (chainResult.payload.nodesToAdd ?? []).forEach(nAdd => {
         const nodeData = nAdd as Partial<AINodeAdd>;
         const parent =
-          nodeData.parentNodeId && nodeData.parentNodeId !== 'Universe'
+          nodeData.parentNodeId && nodeData.parentNodeId !== ROOT_MAP_NODE_ID
             ? (findMapNodeByIdentifier(
                 nodeData.parentNodeId,
                 ctx.newMapData.nodes,

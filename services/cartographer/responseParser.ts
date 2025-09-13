@@ -7,6 +7,7 @@ import { safeParseJson } from '../../utils/jsonUtils';
 import { isValidAIMapUpdatePayload } from './mapUpdateValidation';
 import { normalizeStatusAndTypeSynonyms } from './mapUpdateUtils';
 import { fetchCorrectedMapUpdatePayload_Service } from '../corrections';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 
 /**
  * Attempts to parse the AI response text into an AIMapUpdatePayload.
@@ -93,24 +94,24 @@ export const parseAIMapUpdateResponse = async (
     } else if (parsed && typeof parsed === 'object') {
       payload = parsed as AIMapUpdatePayload;
     }
-    // Drop any illegal attempts to reference the root node "Universe" before validation.
+    // Drop any illegal attempts to reference the root node before validation.
     if (payload && typeof payload === 'object') {
-      const nameIsUniverse = (n: unknown): boolean =>
-        typeof n === 'string' && n.trim().toLowerCase() === 'universe';
+      const nodeIsRoot = (n: unknown): boolean =>
+        typeof n === 'string' && n.trim().toLowerCase() === ROOT_MAP_NODE_ID;
       if (Array.isArray(payload.nodesToAdd)) {
-        payload.nodesToAdd = payload.nodesToAdd.filter(n => !nameIsUniverse(n.placeName));
+        payload.nodesToAdd = payload.nodesToAdd.filter(n => !nodeIsRoot(n.placeName));
       }
       if (Array.isArray(payload.nodesToUpdate)) {
-        payload.nodesToUpdate = payload.nodesToUpdate.filter(n => !nameIsUniverse(n.placeName));
+        payload.nodesToUpdate = payload.nodesToUpdate.filter(n => !nodeIsRoot(n.placeName));
       }
       if (Array.isArray(payload.nodesToRemove)) {
-        payload.nodesToRemove = payload.nodesToRemove.filter(n => !nameIsUniverse(n.nodeName));
+        payload.nodesToRemove = payload.nodesToRemove.filter(n => !nodeIsRoot(n.nodeName));
       }
       const filterEdgeArray = <T extends { sourcePlaceName: string; targetPlaceName: string }>(
         arr: Array<T> | undefined,
       ): Array<T> =>
         (arr ?? []).filter(
-          e => !nameIsUniverse(e.sourcePlaceName) && !nameIsUniverse(e.targetPlaceName),
+          e => !nodeIsRoot(e.sourcePlaceName) && !nodeIsRoot(e.targetPlaceName),
         );
       if (Array.isArray(payload.edgesToAdd)) {
         payload.edgesToAdd = filterEdgeArray(payload.edgesToAdd);
@@ -119,7 +120,7 @@ export const parseAIMapUpdateResponse = async (
         payload.edgesToUpdate = filterEdgeArray(payload.edgesToUpdate);
       }
       if (Array.isArray(payload.edgesToRemove)) {
-        // edgesToRemove now uses IDs; no Universe filtering needed
+        // edgesToRemove now uses IDs; no root-name filtering needed
       }
 
       // Normalize any synonym values before validation so parsing succeeds

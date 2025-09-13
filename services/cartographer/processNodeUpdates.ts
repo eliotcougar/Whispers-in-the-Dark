@@ -1,6 +1,7 @@
 import type { Item, MapEdge } from '../../types';
 import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import type { ApplyUpdatesContext } from './updateContext';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 
 export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void> {
   for (const nodeUpdateOp of ctx.payload.nodesToUpdate ?? []) {
@@ -11,7 +12,7 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
 
       if (nodeUpdateOp.parentNodeId !== undefined) {
         const parentField = nodeUpdateOp.parentNodeId;
-        if (parentField === 'Universe') {
+        if (parentField === ROOT_MAP_NODE_ID) {
           resolvedParentIdOnUpdate = undefined;
         } else {
           const parentNode = await ctx.resolveNodeReference(parentField);

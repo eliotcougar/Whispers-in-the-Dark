@@ -11,7 +11,7 @@
 
 import { MapNode } from '../types';
 import { structuredCloneGameState } from './cloneUtils';
-import { NODE_RADIUS } from '../constants';
+import { NODE_RADIUS, ROOT_MAP_NODE_ID } from '../constants';
 
 export const DEFAULT_IDEAL_EDGE_LENGTH = 140;
 export const DEFAULT_NESTED_PADDING = 10;
@@ -41,7 +41,7 @@ export const applyNestedCircleLayout = (
   const nodeMap = new Map(nodes.map(n => [n.id, structuredCloneGameState(n)]));
   const childrenByParent = new Map<string, Array<string>>();
   nodeMap.forEach(node => {
-    const pid = node.data.parentNodeId && node.data.parentNodeId !== 'Universe' ? node.data.parentNodeId : undefined;
+    const pid = node.data.parentNodeId && node.data.parentNodeId !== ROOT_MAP_NODE_ID ? node.data.parentNodeId : undefined;
     if (pid) {
       if (!childrenByParent.has(pid)) childrenByParent.set(pid, []);
       const arr = childrenByParent.get(pid);
@@ -162,7 +162,7 @@ export const applyNestedCircleLayout = (
   };
 
   const rootIds = Array.from(nodeMap.values())
-    .filter(n => !n.data.parentNodeId || n.data.parentNodeId === 'Universe')
+    .filter(n => !n.data.parentNodeId || n.data.parentNodeId === ROOT_MAP_NODE_ID)
     .map(n => n.id);
 
   const pseudoRootId = '__root__';

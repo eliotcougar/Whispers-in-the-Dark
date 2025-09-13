@@ -12,7 +12,7 @@ import {
   AdventureTheme,
   MapNodeType,
 } from '../types';
-import { NODE_TYPE_LEVELS } from '../constants';
+import { NODE_TYPE_LEVELS, ROOT_MAP_NODE_ID } from '../constants';
 import { structuredCloneGameState } from './cloneUtils';
 import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/hierarchyUpgrade';
 import { generateUniqueId } from './entityUtils';
@@ -77,7 +77,7 @@ export const mapHasHierarchyConflict = (nodes: Array<MapNode>): boolean => {
   const lookup = new Map(nodes.map(n => [n.id, n]));
   for (const node of nodes) {
     const parentId = node.data.parentNodeId;
-    if (!parentId || parentId === 'Universe') continue;
+    if (!parentId || parentId === ROOT_MAP_NODE_ID) continue;
     const parent = lookup.get(parentId);
     if (!parent) continue;
     if (NODE_TYPE_LEVELS[parent.data.nodeType] >= NODE_TYPE_LEVELS[node.data.nodeType]) {

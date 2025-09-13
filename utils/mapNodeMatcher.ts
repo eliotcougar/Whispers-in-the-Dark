@@ -5,6 +5,7 @@
  */
 
 import { AdventureTheme, MapData, MapNode } from '../types'; // Removed Place
+import { ROOT_MAP_NODE_ID } from '../constants';
 
 import {
   PREPOSITIONS,
@@ -244,7 +245,7 @@ const selectFeatureChildIfMentioned = (
   const bestNode = nodes.find(n => n.id === bestNodeId);
   if (!bestNode) return bestNodeId;
   if (bestNode.data.nodeType === 'feature') return bestNodeId;
-  if (bestNode.data.parentNodeId && bestNode.data.parentNodeId !== 'Universe') return bestNodeId;
+  if (bestNode.data.parentNodeId && bestNode.data.parentNodeId !== ROOT_MAP_NODE_ID) return bestNodeId;
   const featureChildren = nodes.filter(child => child.data.nodeType === 'feature' && child.data.parentNodeId === bestNode.id);
   for (const featureChild of featureChildren) {
     const featureName = featureChild.placeName;

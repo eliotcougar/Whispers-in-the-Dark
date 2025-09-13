@@ -4,7 +4,7 @@
  */
 
 import { MapNode, MapData, MapEdgeStatus } from '../types';
-import { NODE_TYPE_LEVELS } from '../constants';
+import { NODE_TYPE_LEVELS, ROOT_MAP_NODE_ID } from '../constants';
 import { buildTravelAdjacency } from './mapPathfinding';
 
 /**
@@ -18,7 +18,7 @@ export const getParent = (
   node: MapNode,
   nodeMap: Map<string, MapNode>
 ): MapNode | undefined => {
-  if (!node.data.parentNodeId || node.data.parentNodeId === 'Universe') return undefined;
+  if (!node.data.parentNodeId || node.data.parentNodeId === ROOT_MAP_NODE_ID) return undefined;
   return nodeMap.get(node.data.parentNodeId);
 };
 
@@ -52,7 +52,7 @@ export const getAncestors = (
   let current: MapNode | undefined = nodeMap.get(node.data.parentNodeId ?? '');
   while (current) {
     ancestors.push(current);
-    if (!current.data.parentNodeId || current.data.parentNodeId === 'Universe') break;
+    if (!current.data.parentNodeId || current.data.parentNodeId === ROOT_MAP_NODE_ID) break;
     current = nodeMap.get(current.data.parentNodeId);
   }
   return ancestors;
@@ -68,7 +68,7 @@ export const isDescendantOf = (
   nodeMap: Map<string, MapNode>
 ): boolean => {
   let current: MapNode | undefined = possibleDescendant;
-  while (current?.data.parentNodeId && current.data.parentNodeId !== 'Universe') {
+  while (current?.data.parentNodeId && current.data.parentNodeId !== ROOT_MAP_NODE_ID) {
     if (current.data.parentNodeId === possibleAncestor.id) return true;
     current = nodeMap.get(current.data.parentNodeId);
   }

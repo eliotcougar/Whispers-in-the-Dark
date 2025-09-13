@@ -19,6 +19,7 @@ import type {
   GameStateFromAI,
 } from '../types';
 import { fetchCorrectedNodeIdentifier_Service } from '../services/corrections/placeDetails';
+import { ROOT_MAP_NODE_ID } from '../constants';
 
 const theme: AdventureTheme = { name: 'TestTheme' } as AdventureTheme;
 
@@ -31,7 +32,7 @@ const existingFeature: MapNode = {
     aliases: [],
     status: 'discovered',
     nodeType: 'feature',
-    parentNodeId: 'Universe',
+    parentNodeId: ROOT_MAP_NODE_ID,
   },
 };
 
@@ -47,7 +48,7 @@ const payload: AIMapUpdatePayload = {
       description: '',
       aliases: [],
       status: 'rumored',
-      parentNodeId: 'Universe',
+      parentNodeId: ROOT_MAP_NODE_ID,
       nodeType: 'location',
     },
     {

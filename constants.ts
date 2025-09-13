@@ -305,3 +305,6 @@ export const NODE_DESCRIPTION_INSTRUCTION =
 export const EDGE_DESCRIPTION_INSTRUCTION =
   'a short creative description, focusing of travel conditions of the path';
 export const ALIAS_INSTRUCTION = 'alternative names, partial names, shorthands. Avoid generic common terms.';
+
+// Map root node identifier used across the app and AI prompts
+export const ROOT_MAP_NODE_ID = 'universe';

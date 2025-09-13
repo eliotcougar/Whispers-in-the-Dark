@@ -1,4 +1,5 @@
 import type { MapNode } from '../../types';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
 import {
   suggestNodeTypeDowngrade,
@@ -17,7 +18,7 @@ interface Net {
 export async function resolveHierarchyConflicts(ctx: ApplyUpdatesContext): Promise<void> {
   for (const node of ctx.newMapData.nodes) {
     const parentId = node.data.parentNodeId;
-    if (!parentId || parentId === 'Universe') continue;
+    if (!parentId || parentId === ROOT_MAP_NODE_ID) continue;
     const parent = ctx.themeNodeIdMap.get(parentId);
     if (!parent) continue;
     if (parent.data.nodeType !== node.data.nodeType) continue;
@@ -41,7 +42,7 @@ async function resolvePair(ctx: ApplyUpdatesContext, child: MapNode, parent: Map
 
   if (parent.data.parentNodeId !== undefined) {
     const candidateParentId = findClosestAllowedParent(
-      parent.data.parentNodeId === 'Universe' ? undefined : ctx.themeNodeIdMap.get(parent.data.parentNodeId),
+      parent.data.parentNodeId === ROOT_MAP_NODE_ID ? undefined : ctx.themeNodeIdMap.get(parent.data.parentNodeId),
       child.data.nodeType,
       ctx.themeNodeIdMap,
     );

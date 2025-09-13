@@ -4,6 +4,7 @@
  */
 
 import { MapData, MapEdgeStatus } from '../types';
+import { ROOT_MAP_NODE_ID } from '../constants';
 import { createMinHeap } from './priorityQueue';
 
 /** Travel costs for edges by status. */
@@ -73,7 +74,7 @@ export const buildTravelAdjacency = (mapData: MapData): TravelAdjacency => {
 
   for (const node of mapData.nodes) {
     const parentId = node.data.parentNodeId;
-    if (!parentId || parentId === 'Universe') continue;
+    if (!parentId || parentId === ROOT_MAP_NODE_ID) continue;
     if (!isTraversable(node.id) || !isTraversable(parentId)) continue;
     const siblings = childrenByParent.get(parentId) ?? [];
     const hasOtherChild = siblings.some(id => id !== node.id && isTraversable(id));

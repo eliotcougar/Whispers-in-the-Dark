@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { ROOT_MAP_NODE_ID } from '../constants';
 import { selectBestMatchingMapNode } from '../utils/mapNodeMatcher';
 import type { AdventureTheme, MapData, MapNode } from '../types';
 
@@ -9,7 +10,7 @@ const nodes: Array<MapNode> = [
     id: 'node-area',
     placeName: 'Coast',
     position: { x: 0, y: 0 },
-    data: { description: '', aliases: ['Sea Side'], status: 'rumored', nodeType: 'location', parentNodeId: 'universe' }
+    data: { description: '', aliases: ['Sea Side'], status: 'rumored', nodeType: 'location', parentNodeId: ROOT_MAP_NODE_ID }
   },
   {
     id: 'node-feature',
@@ -27,7 +28,7 @@ const nodes: Array<MapNode> = [
     id: 'node-location-same-name',
     placeName: 'Narrow Passage',
     position: { x: 0, y: 0 },
-    data: { description: '', aliases: [], status: 'rumored', nodeType: 'location', parentNodeId: 'universe' }
+    data: { description: '', aliases: [], status: 'rumored', nodeType: 'location', parentNodeId: ROOT_MAP_NODE_ID }
   }
 ];
 

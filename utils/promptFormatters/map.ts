@@ -11,7 +11,7 @@ import {
   MapEdge,
   Item,
 } from '../../types';
-import { NON_DISPLAYABLE_EDGE_STATUSES } from '../../constants';
+import { NON_DISPLAYABLE_EDGE_STATUSES, ROOT_MAP_NODE_ID } from '../../constants';
 import { extractJsonFromFence } from '../jsonUtils';
 
 /**
@@ -21,7 +21,7 @@ export const formatNodeLine = (
   node: MapNode,
   inventory: Array<Item> = [],
 ): string => {
-  const parent = node.data.parentNodeId ?? 'Universe';
+  const parent = node.data.parentNodeId ?? ROOT_MAP_NODE_ID;
   const desc = node.data.description;
   const itemsAtNode = inventory.filter(item => item.holderId === node.id);
   const itemsStr =
@@ -120,9 +120,9 @@ export const formatNodesAsTree = (
   const childMap = new Map<string, Array<MapNode>>();
   nodes.forEach(node => {
     const parent =
-      node.data.parentNodeId && node.data.parentNodeId !== 'Universe'
+      node.data.parentNodeId && node.data.parentNodeId !== ROOT_MAP_NODE_ID
         ? node.data.parentNodeId
-        : 'Universe';
+        : ROOT_MAP_NODE_ID;
     const list = childMap.get(parent);
     if (list) {
       list.push(node);
@@ -154,7 +154,7 @@ export const formatNodesAsTree = (
     });
   };
 
-  const roots = childMap.get('Universe') ?? [];
+  const roots = childMap.get(ROOT_MAP_NODE_ID) ?? [];
   roots.forEach((rootNode, idx) => {
     traverse(rootNode, '', idx === roots.length - 1);
   });
@@ -183,16 +183,16 @@ export const formatMapDataForAI = (mapData: MapData): string => {
     const n = nodeById.get(nodeId);
     if (!n) return { area: 'Unknown', feature: nodeId };
     if (n.data.nodeType === 'feature') {
-      const parent = n.data.parentNodeId && n.data.parentNodeId !== 'Universe'
+      const parent = n.data.parentNodeId && n.data.parentNodeId !== ROOT_MAP_NODE_ID
         ? n.data.parentNodeId
-        : 'Universe';
+        : ROOT_MAP_NODE_ID;
       return { area: parent, feature: n.id };
     }
     return { area: n.id, feature: n.id };
   };
 
   const nodeLines = nodes.map(n =>
-    `NODE id=${n.id}; name="${n.placeName}"; type=${n.data.nodeType}; parent=${n.data.parentNodeId ?? 'Universe'}; status=${n.data.status}; visited=${String(Boolean(n.data.visited))}; aliases=${aliasList(n.data.aliases)}; desc="${sanitize(n.data.description)}"`
+    `NODE id=${n.id}; name="${n.placeName}"; type=${n.data.nodeType}; parent=${n.data.parentNodeId ?? ROOT_MAP_NODE_ID}; status=${n.data.status}; visited=${String(Boolean(n.data.visited))}; aliases=${aliasList(n.data.aliases)}; desc="${sanitize(n.data.description)}"`
   );
 
   const edgeLines = edges
@@ -474,7 +474,7 @@ export const formatMapContextForPrompt = (
   }
 
   const parentNodeForCurrent =
-    currentNode.data.nodeType === 'feature' && currentNode.data.parentNodeId && currentNode.data.parentNodeId !== 'Universe'
+    currentNode.data.nodeType === 'feature' && currentNode.data.parentNodeId && currentNode.data.parentNodeId !== ROOT_MAP_NODE_ID
       ? allNodesForTheme.find(n => n.id === currentNode.data.parentNodeId)
       : null;
 
@@ -489,7 +489,7 @@ export const formatMapContextForPrompt = (
 
   const areaMainNodeId =
     currentNode.data.nodeType === 'feature'
-      ? (currentNode.data.parentNodeId && currentNode.data.parentNodeId !== 'Universe' ? currentNode.data.parentNodeId : undefined)
+      ? (currentNode.data.parentNodeId && currentNode.data.parentNodeId !== ROOT_MAP_NODE_ID ? currentNode.data.parentNodeId : undefined)
       : currentNode.id;
   let exitsContext = '';
   if (areaMainNodeId) {
@@ -512,7 +512,7 @@ export const formatMapContextForPrompt = (
               entryFeature.data.nodeType === 'feature' &&
               entryFeature.data.parentNodeId &&
               entryFeature.data.parentNodeId !== areaMainNode.id &&
-              entryFeature.data.parentNodeId !== 'Universe'
+              entryFeature.data.parentNodeId !== ROOT_MAP_NODE_ID
             ) {
               const otherAreaMainNode = allNodesForTheme.find(
                 node => node.id === entryFeature.data.parentNodeId && !(node.data.nodeType === "feature")

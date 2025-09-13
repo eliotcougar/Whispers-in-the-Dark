@@ -16,6 +16,7 @@ import {
 import { isStoryArcValid } from '../storyArcUtils';
 import { formatKnownPlacesForPrompt } from './map';
 import { findTravelPath, buildTravelAdjacency } from '../mapPathfinding';
+import { ROOT_MAP_NODE_ID } from '../../constants';
 
 /**
  * Formats a list of known NPCs for AI prompts.
@@ -130,7 +131,7 @@ export const formatTravelPlanLine = (
   const destName = destination?.placeName ?? destinationNodeId;
   const destParentId = destination?.data.parentNodeId;
   const destParentName =
-    destParentId && destParentId !== 'Universe'
+    destParentId && destParentId !== ROOT_MAP_NODE_ID
       ? mapData.nodes.find(n => n.id === destParentId)?.placeName ?? destParentId
       : null;
   const destDisplay = destParentName ? `${destName} in ${destParentName}` : destName;
