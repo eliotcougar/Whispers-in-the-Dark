@@ -47,10 +47,11 @@ export const LOCAL_STORAGE_GEMINI_KEY = "whispersInTheDark_geminiApiKey";
 export const LOCAL_STORAGE_SETTINGS_KEY = "whispersInTheDark_settings";
 
 export const DEFAULT_ENABLED_THEME_PACKS = ALL_THEME_PACK_NAMES_CONST.filter(
-  name => name !== 'Testing'
+  name => name !== "Testing"
 );
 export const PLAYER_HOLDER_ID = "player";
 export const PLAYER_JOURNAL_ID = "player_journal";
+export const ROOT_MAP_NODE_ID = "universe";
 
 export const MAIN_TURN_OPTIONS_COUNT = 6; // Number of action choices shown each main turn
 
@@ -173,9 +174,9 @@ export const ACT_NATURE_BY_NUMBER: Record<number, string> = {
 export const LOADING_REASON_UI_MAP = {
   initial_load: { text: 'Loading...', icon: '░' },
   storyteller: { text: 'Dungeon Master thinks...', icon: '░' },
-  loremaster_collect: { text: 'Loremaster picks facts...', icon: '░' },
+  loremaster_collect: { text: 'Loremaster picks relevant facts...', icon: '░' },
   loremaster_extract: { text: 'Loremaster extracts new lore...', icon: '░' },
-  loremaster_integrate: { text: 'Loremaster integrates new lore...', icon: '░' },
+  loremaster_integrate: { text: 'Loremaster adds relevant lore...', icon: '░' },
   loremaster_distill: { text: 'Loremaster distills the lore...', icon: '░' },
   map_updates: { text: 'Cartographer draws the map...', icon: '░' },
   corrections: { text: 'Dungeon Master is fixing mistakes...', icon: '▓' },
@@ -288,6 +289,3 @@ export const NODE_DESCRIPTION_INSTRUCTION =
 export const EDGE_DESCRIPTION_INSTRUCTION =
   'a short creative description, focusing of travel conditions of the path';
 export const ALIAS_INSTRUCTION = 'alternative names, partial names, shorthands. Avoid generic common terms.';
-
-// Map root node identifier used across the app and AI prompts
-export const ROOT_MAP_NODE_ID = 'universe';
