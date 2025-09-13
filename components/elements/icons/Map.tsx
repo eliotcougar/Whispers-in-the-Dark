@@ -1,29 +1,24 @@
-import type { SVGProps } from "react";
+import type { SVGProps } from 'react';
+
 function SvgMap({ height = '1em', width = '1em' }: SVGProps<SVGSVGElement>) {
-  return (<svg
-    fill="none"
-    height={height}
-    viewBox="0 0 24 24"
-    width={width}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M3 20V5l6-2v15zM9 18V3l6 2v15zM15 20V5l6 2v15z"
+  return (
+    <svg
+      fill="none"
+      height={height}
       stroke="currentColor"
-      strokeWidth={1.2}
-    />
-
-    <path
-      d="M9 3v15M15 5v15"
-      stroke="#b6c2d1"
-      strokeWidth={0.8}
-    />
-
-    <path
-      d="M3 20V5l6-2 6 2 6 2v15l-6-2-6-2-6 2"
-      stroke="currentColor"
-      strokeWidth={1.2}
-    />
-  </svg>)
+      strokeWidth={1.5}
+      viewBox="0 0 24 24"
+      width={width}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
+
 export default SvgMap;
+
