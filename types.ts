@@ -11,7 +11,7 @@ import {
   VALID_EDGE_TYPE_VALUES,
   VALID_EDGE_STATUS_VALUES,
   VALID_TAGS,
-  LOADING_REASONS,
+  LOADING_REASON_UI_MAP,
   ThemePackNameConst,
 } from './constants';
 
@@ -20,7 +20,7 @@ export type PresenceStatus = typeof VALID_PRESENCE_STATUS_VALUES[number];
 export type ThemePackName = ThemePackNameConst;
 export type ItemTag = typeof VALID_TAGS[number];
 
-export type LoadingReason = typeof LOADING_REASONS[number] | null;
+export type LoadingReason = keyof typeof LOADING_REASON_UI_MAP | null;
 export type ThinkingEffort = 'Low' | 'Medium' | 'High';
 
 // Explicit UI/logic states for app boot and turn loop

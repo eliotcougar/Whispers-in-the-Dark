@@ -169,27 +169,8 @@ export const ACT_NATURE_BY_NUMBER: Record<number, string> = {
 };
 
 // Unified, unambiguous loading reasons. Snake_case and aligned with FSM where applicable.
-export const LOADING_REASONS = [
-  'initial_load',
-  'storyteller',
-  'loremaster_collect',
-  'loremaster_extract',
-  'loremaster_integrate',
-  'loremaster_distill',
-  'map_updates',
-  'corrections',
-  'inventory_updates',
-  'librarian_updates',
-  'dialogue_turn',
-  'dialogue_summary',
-  'dialogue_memory',
-  'visualize_scene',
-  'read_page',
-  'write_journal',
-  'read_book',
-] as const;
-
-export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { text: string; icon: string }> = {
+// Single source of truth: UI map. The reasons array is derived to avoid drift.
+export const LOADING_REASON_UI_MAP = {
   initial_load: { text: 'Loading...', icon: '░' },
   storyteller: { text: 'Dungeon Master thinks...', icon: '░' },
   loremaster_collect: { text: 'Loremaster picks facts...', icon: '░' },
@@ -207,7 +188,9 @@ export const LOADING_REASON_UI_MAP: Record<(typeof LOADING_REASONS)[number], { t
   read_page: { text: 'Reading...', icon: '░' },
   write_journal: { text: 'Writing...', icon: '░' },
   read_book: { text: 'Reading...', icon: '░' },
-};
+} as const;
+
+export const LOADING_REASONS = Object.keys(LOADING_REASON_UI_MAP) as Array<keyof typeof LOADING_REASON_UI_MAP>;
 
 // Centralized map node/edge valid values
 
