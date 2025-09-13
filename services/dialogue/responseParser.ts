@@ -3,15 +3,14 @@
  * @description Helpers for parsing dialogue-related AI responses.
  */
 import { DialogueAIResponse, DialogueSummaryResponse } from '../../types';
-import { extractJsonFromFence, safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
+import { safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
 import { trimDialogueHints } from '../../utils/dialogueParsing';
 
 const parseDialogueResponse = (
   responseText: string,
   thoughts?: Array<string>,
 ): DialogueAIResponse | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<Partial<DialogueAIResponse>>(jsonStr);
+  const parsed = safeParseJson<Partial<DialogueAIResponse>>(responseText);
   try {
     if (!parsed) throw new Error('JSON parse failed');
     if (
@@ -63,8 +62,7 @@ export const parseDialogueTurnResponse = (
 export const parseDialogueSummaryResponse = (
   responseText: string,
 ): DialogueSummaryResponse | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<Partial<DialogueSummaryResponse>>(jsonStr);
+  const parsed = safeParseJson<Partial<DialogueSummaryResponse>>(responseText);
   try {
     if (!parsed) throw new Error('JSON parse failed');
 

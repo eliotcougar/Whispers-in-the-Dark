@@ -19,15 +19,17 @@ export const extractJsonFromFence = (raw: string): string => {
 };
 
 /**
- * Attempts to parse the provided JSON string. Returns the parsed object
- * or `null` if parsing fails.
+ * Attempts to parse the provided text into JSON. By default, it first strips a
+ * ```json ... ``` fenced block if present, then parses. Returns the parsed
+ * object or `null` if parsing (or optional validation) fails.
  */
 export function safeParseJson<T>(
-  jsonStr: string,
+  raw: string,
   validate?: (data: unknown) => data is T,
 ): T | null {
   try {
-    const parsed = JSON.parse(jsonStr) as unknown;
+    const jsonCandidate = extractJsonFromFence(raw);
+    const parsed = JSON.parse(jsonCandidate) as unknown;
     if (validate && !validate(parsed)) {
       return null;
     }

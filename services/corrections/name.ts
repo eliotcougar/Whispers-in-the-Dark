@@ -13,7 +13,7 @@ import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { retryAiCall } from '../../utils/retry';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 
 /**
  * Attempts to match a malformed name against a list of valid names.

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
-import { getApiKey, setApiKey } from '../../services/apiClient';
+import { getApiKey, setApiKey } from '../../services/geminiClient';
 
 interface GeminiKeyModalProps {
   readonly isVisible: boolean;

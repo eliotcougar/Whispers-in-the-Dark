@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { geminiClient as ai, isApiConfigured } from '../../services/apiClient';
+import { geminiClient as ai, isApiConfigured } from '../../services/geminiClient';
 import { AdventureTheme, NPC, MapNode } from '../../types';
 import LoadingSpinner from '../LoadingSpinner';
 import { extractStatusFromError } from '../../utils/aiErrorUtils';

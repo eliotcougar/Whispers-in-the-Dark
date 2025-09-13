@@ -22,7 +22,7 @@ import {
   MINIMAL_MODEL_NAME,
 } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { retryAiCall } from '../../utils/retry';
 import {
@@ -41,7 +41,7 @@ import type {
   AdventureTheme,
 } from '../../types';
 import type { MapUpdateDebugInfo } from './types';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 
 export const MAP_UPDATE_JSON_SCHEMA = {
   type: 'object',
@@ -344,8 +344,7 @@ export const executeNavigationOnlyRequest = async (
  * Parses simplified response to extract only the suggested node id.
  */
 export const parseNavigationOnlyResponse = (responseText: string): string | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<unknown>(jsonStr);
+  const parsed = safeParseJson<unknown>(responseText);
   if (parsed && typeof parsed === 'object' && 'suggestedCurrentMapNodeId' in parsed) {
     const value = (parsed as { suggestedCurrentMapNodeId?: unknown }).suggestedCurrentMapNodeId;
     return typeof value === 'string' && value.trim() !== '' ? value : null;

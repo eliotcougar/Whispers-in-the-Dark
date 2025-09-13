@@ -3,7 +3,7 @@
  * @description Shared helpers for building safe visual prompts and generating images.
  */
 
-import { geminiClient as ai, isApiConfigured } from '../apiClient';
+import { geminiClient as ai, isApiConfigured } from '../geminiClient';
 import { AdventureTheme } from '../../types';
 import { GEMINI_LITE_MODEL_NAME, LOADING_REASON_UI_MAP, MINIMAL_MODEL_NAME } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -104,7 +104,7 @@ export const generateImageWithFallback = async (
     // Try Gemini image generation fallback (streaming inline image data)
     try {
       const stream = await ai.models.generateContentStream({
-        model: 'gemini-2.5-flash-image-preview',
+        model: 'gemini-2.0-flash-preview-image-generation',
         contents: [
           {
             role: 'user',

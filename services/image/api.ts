@@ -1,4 +1,4 @@
-import { geminiClient as ai, isApiConfigured } from '../apiClient';
+import { geminiClient as ai, isApiConfigured } from '../geminiClient';
 import { AdventureTheme, Item, ItemChapter } from '../../types';
 import {
   GEMINI_LITE_MODEL_NAME,

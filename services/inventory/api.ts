@@ -19,7 +19,7 @@ import {
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { getThinkingBudget } from '../thinkingConfig';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import {
   AdventureTheme,
   ItemChange,

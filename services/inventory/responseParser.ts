@@ -10,7 +10,7 @@ import {
   KnownUse,
   AddDetailsPayload,
 } from '../../types';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 import { isValidItem, isValidItemReference, isValidAddDetailsPayload } from '../parsers/validation';
 import { filterBlockedKnownUses } from '../../utils/knownUseUtils';
 import { PLAYER_HOLDER_ID } from '../../constants';
@@ -99,8 +99,7 @@ const parseItemChange = (
 export const parseInventoryResponse = (
   responseText: string,
 ): InventoryAIPayload | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<unknown>(jsonStr);
+  const parsed = safeParseJson<unknown>(responseText);
   if (!parsed) return null;
 
   let payload: InventoryAIPayload | null = null;

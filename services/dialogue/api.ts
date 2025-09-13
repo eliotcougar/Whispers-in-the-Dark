@@ -31,7 +31,7 @@ import { fetchCorrectedDialogueTurn_Service } from '../corrections';
 import { CORRECTION_TEMPERATURE } from '../../constants';
 import { MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import { buildDialogueTurnPrompt, buildDialogueSummaryPrompt, buildDialogueMemorySummaryPrompts } from './promptBuilder';
 import {
   parseDialogueTurnResponse,

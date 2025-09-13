@@ -15,7 +15,7 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 
 import { retryAiCall } from '../../utils/retry';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 
 export const decideFeatureHierarchyUpgrade_Service = async (
   parentFeature: MapNode,

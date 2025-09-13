@@ -8,8 +8,8 @@ import {
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { retryAiCall } from '../../utils/retry';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isApiConfigured } from '../apiClient';
+import { safeParseJson } from '../../utils/jsonUtils';
+import { isApiConfigured } from '../geminiClient';
 import { getThinkingBudget, getMaxOutputTokens } from '../thinkingConfig';
 import type {
   AdventureTheme,
@@ -166,7 +166,7 @@ export const generateWorldFacts = async (
   return retryAiCall<WorldFacts>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
     const text = await request();
-    return { result: text ? safeParseJson<WorldFacts>(extractJsonFromFence(text)) : null };
+    return { result: text ? safeParseJson<WorldFacts>(text) : null };
   });
 };
 
@@ -210,7 +210,7 @@ export const generateCharacterNames = async (
   return retryAiCall<Array<string>>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
     const text = await request();
-    return { result: text ? safeParseJson<Array<string>>(extractJsonFromFence(text)) : null };
+    return { result: text ? safeParseJson<Array<string>>(text) : null };
   });
 };
 
@@ -257,7 +257,7 @@ export const generateCharacterDescriptions = async (
   return retryAiCall<Array<CharacterOption>>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
     const text = await request();
-    return { result: text ? safeParseJson<Array<CharacterOption>>(extractJsonFromFence(text)) : null };
+    return { result: text ? safeParseJson<Array<CharacterOption>>(text) : null };
   });
 };
 
@@ -300,7 +300,7 @@ export const generateHeroData = async (
     async () => {
       addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
       const sheetText = await request(heroSheetPrompt, heroSheetSchema, 'HeroSheet');
-      const parsedSheet = sheetText ? safeParseJson<HeroSheet>(extractJsonFromFence(sheetText)) : null;
+      const parsedSheet = sheetText ? safeParseJson<HeroSheet>(sheetText) : null;
       if (parsedSheet) {
         parsedSheet.gender = heroGender;
         // Ensure heroShortName exists and is sanitized
@@ -326,9 +326,7 @@ export const generateHeroData = async (
         ' Provide details only for Act 1 (exposition) including a description of at least 3000 characters, the main objective, two side quests, and the success condition to proceed to the next act (rising action).';
       const backstoryText = await request(backstoryPrompt, heroBackstorySchema, 'HeroBackstory');
       const parsedData = backstoryText
-        ? safeParseJson<HeroBackstory & { storyArc: StoryArcData }>(
-            extractJsonFromFence(backstoryText),
-          )
+        ? safeParseJson<HeroBackstory & { storyArc: StoryArcData }>(backstoryText)
         : null;
       let storyArc: StoryArc | null = null;
       let heroBackstory: HeroBackstory | null = null;
@@ -397,7 +395,7 @@ export const generateWorldData = async (
   return retryAiCall<WorldDataResult>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
     const factsText = await request(worldFactsPrompt, worldFactsSchema, 'WorldFacts');
-    const parsedFacts = factsText ? safeParseJson<WorldFacts>(extractJsonFromFence(factsText)) : null;
+    const parsedFacts = factsText ? safeParseJson<WorldFacts>(factsText) : null;
 
     const heroData = await generateHeroData(theme, heroGender, parsedFacts ?? {
       geography: '',
@@ -482,7 +480,7 @@ export const generateNextStoryAct = async (
     addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
     const text = await request();
     const parsed = text
-      ? safeParseJson<StoryActData>(extractJsonFromFence(text))
+      ? safeParseJson<StoryActData>(text)
       : null;
     if (!parsed) return { result: null };
     const newAct: StoryAct = {

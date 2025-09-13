@@ -3,7 +3,7 @@
  * @description Parsing helpers for cartographer AI responses.
  */
 import { AIMapUpdatePayload, AdventureTheme } from '../../types';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 import { isValidAIMapUpdatePayload } from './mapUpdateValidation';
 import { normalizeStatusAndTypeSynonyms } from './mapUpdateUtils';
 import { fetchCorrectedMapUpdatePayload_Service } from '../corrections';
@@ -14,8 +14,7 @@ import { fetchCorrectedMapUpdatePayload_Service } from '../corrections';
 export const parseCartographerResponse = (
   responseText: string,
 ): AIMapUpdatePayload | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<AIMapUpdatePayload>(jsonStr);
+  const parsed = safeParseJson<AIMapUpdatePayload>(responseText);
   return isValidAIMapUpdatePayload(parsed) ? parsed : null;
 };
 
@@ -32,8 +31,7 @@ export const parseAIMapUpdateResponse = async (
   responseText: string,
   currentTheme: AdventureTheme,
 ): Promise<ParsedMapUpdateResult> => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed: unknown = safeParseJson(jsonStr);
+  const parsed: unknown = safeParseJson(responseText);
   try {
     if (parsed === null) throw new Error('JSON parse failed');
     let payload: AIMapUpdatePayload | null = null;
@@ -147,7 +145,7 @@ export const parseAIMapUpdateResponse = async (
       parsed,
     );
     const corrected = await fetchCorrectedMapUpdatePayload_Service(
-      jsonStr,
+      responseText,
       validationError,
       currentTheme,
     );
@@ -159,7 +157,7 @@ export const parseAIMapUpdateResponse = async (
     console.error('Failed to parse map update JSON response from AI:', e);
     console.debug('Original map update response text:', responseText);
     const corrected = await fetchCorrectedMapUpdatePayload_Service(
-      jsonStr,
+      responseText,
       e instanceof Error ? e.message : String(e),
       currentTheme,
     );

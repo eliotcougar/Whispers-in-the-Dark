@@ -41,7 +41,7 @@ import { useAutosave } from '../../hooks/useAutosave';
 import { findTravelPath, buildTravelAdjacency, TravelStep, TravelAdjacency } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
 import { applyNestedCircleLayout } from '../../utils/mapLayoutUtils';
-import { isApiConfigured } from '../../services/apiClient';
+import { isApiConfigured } from '../../services/geminiClient';
 
 
 import {

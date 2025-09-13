@@ -18,7 +18,7 @@ import {
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { retryAiCall } from '../../utils/retry';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 
 export interface NodeRenameResult {
   nodeId: string;

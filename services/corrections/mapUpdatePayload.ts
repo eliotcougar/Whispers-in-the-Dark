@@ -19,9 +19,9 @@ import {
 } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 import { retryAiCall } from '../../utils/retry';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import { isValidAIMapUpdatePayload } from '../cartographer/mapUpdateValidation';
 import { normalizeStatusAndTypeSynonyms } from '../cartographer/mapUpdateUtils';
 
@@ -51,7 +51,7 @@ export const fetchCorrectedMapUpdatePayload_Service = async (
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
       });
-      const aiResponse = safeParseJson<AIMapUpdatePayload>(extractJsonFromFence(response.text ?? ''));
+      const aiResponse = safeParseJson<AIMapUpdatePayload>(response.text ?? '');
       if (aiResponse) {
         normalizeStatusAndTypeSynonyms(aiResponse);
         const valid = isValidAIMapUpdatePayload(aiResponse);

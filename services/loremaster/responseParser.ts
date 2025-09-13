@@ -3,7 +3,7 @@
  * @description Parses Loremaster AI responses.
  */
 import { LoreRefinementResult, ThemeFactChange, FactWithEntities } from '../../types';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 
 const isThemeFactChange = (value: unknown): value is ThemeFactChange => {
   if (!value || typeof value !== 'object') return false;
@@ -22,8 +22,7 @@ const isThemeFactChange = (value: unknown): value is ThemeFactChange => {
 export const parseExtractFactsResponse = (
   responseText: string,
 ): Array<FactWithEntities> | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<unknown>(jsonStr);
+  const parsed = safeParseJson<unknown>(responseText);
   if (!parsed) return null;
   if (
     Array.isArray(parsed) &&
@@ -46,8 +45,7 @@ export const parseIntegrationResponse = (
   responseText: string,
   existingFacts: Array<{ id: number }> = [],
 ): LoreRefinementResult | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<unknown>(jsonStr);
+  const parsed = safeParseJson<unknown>(responseText);
   if (!parsed || typeof parsed !== 'object') return null;
   const obj = parsed as Partial<LoreRefinementResult> & { factsChange?: unknown };
   const factsArr: Array<ThemeFactChange> = [];
@@ -84,8 +82,7 @@ export const parseIntegrationResponse = (
 export const parseCollectFactsResponse = (
   responseText: string,
 ): Array<string> | null => {
-  const jsonStr = extractJsonFromFence(responseText);
-  const parsed = safeParseJson<unknown>(jsonStr);
+  const parsed = safeParseJson<unknown>(responseText);
   if (!parsed) return null;
   if (Array.isArray(parsed) && parsed.every(f => typeof f === 'string')) {
     return parsed;

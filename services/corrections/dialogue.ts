@@ -16,8 +16,8 @@ import { CORRECTION_TEMPERATURE } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { LOADING_REASON_UI_MAP } from '../../constants';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isApiConfigured } from '../apiClient';
+import { safeParseJson } from '../../utils/jsonUtils';
+import { isApiConfigured } from '../geminiClient';
 import { retryAiCall } from '../../utils/retry';
 import { parseDialogueTurnResponse } from '../dialogue/responseParser';
 
@@ -87,7 +87,7 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
       });
-      const aiResponse = safeParseJson<DialogueSetupPayload>(extractJsonFromFence(response.text ?? ''));
+      const aiResponse = safeParseJson<DialogueSetupPayload>(response.text ?? '');
       if (aiResponse && isDialogueSetupPayloadStructurallyValid(aiResponse)) {
         return { result: aiResponse };
       }

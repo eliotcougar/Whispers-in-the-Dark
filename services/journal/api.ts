@@ -8,9 +8,9 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { getThinkingBudget } from '../thinkingConfig';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import { formatRecentEventsForPrompt } from '../../utils/promptFormatters';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 import type { LoremasterModeDebugInfo, GeneratedJournalEntry } from '../../types';
 
 export interface GeneratedJournalEntryResult {
@@ -36,8 +36,7 @@ const buildJournalEntrySchema = (length: number) => ({
 } as const);
 
 const parseJournalEntry = (raw: string): GeneratedJournalEntry | null => {
-  const jsonStr = extractJsonFromFence(raw);
-  return safeParseJson<GeneratedJournalEntry>(jsonStr, (data): data is GeneratedJournalEntry =>
+  return safeParseJson<GeneratedJournalEntry>(raw, (data): data is GeneratedJournalEntry =>
     !!data && typeof data === 'object' && typeof (data as GeneratedJournalEntry).heading === 'string' && typeof (data as GeneratedJournalEntry).text === 'string');
 };
 

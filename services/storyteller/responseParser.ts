@@ -19,11 +19,7 @@ import {
     fetchCorrectedDialogueSetup_Service,
 } from '../corrections';
 
-import {
-    extractJsonFromFence,
-    safeParseJson,
-    coerceNullToUndefined,
-} from '../../utils/jsonUtils';
+import { safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
 import {
     buildNPCId as buildNPCId,
     findNPCByIdentifier,
@@ -398,7 +394,7 @@ export async function parseAIResponse(
     currentThemeMapData: MapData = { nodes: [], edges: [] },
     currentInventoryForCorrection: Array<Item> = []
 ): Promise<GameStateFromAI | null> {
-    const jsonStr = extractJsonFromFence(responseText);
+    const jsonStr = responseText;
 
     const allRelevantMainMapNodesForCorrection: Array<MapNode> = currentThemeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
 

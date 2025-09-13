@@ -5,7 +5,7 @@
  */
 import { useCallback } from 'react';
 import { CURRENT_GAME_VERSION } from '../../constants';
-import { isApiConfigured, isApiKeyFromEnv } from '../../services/apiClient';
+import { isApiConfigured, isApiKeyFromEnv } from '../../services/geminiClient';
 import AppHeader from '../app/AppHeader';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';

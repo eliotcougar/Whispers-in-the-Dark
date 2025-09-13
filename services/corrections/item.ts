@@ -16,8 +16,8 @@ import { isValidItem } from '../parsers/validation';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isApiConfigured } from '../apiClient';
+import { safeParseJson } from '../../utils/jsonUtils';
+import { isApiConfigured } from '../geminiClient';
 import { retryAiCall } from '../../utils/retry';
 import {
   TAG_SYNONYMS,
@@ -152,7 +152,7 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
         label: 'Corrections',
       });
       const jsonStr = response.text ?? '';
-      const aiResponse = safeParseJson<Item>(extractJsonFromFence(jsonStr));
+      const aiResponse = safeParseJson<Item>(jsonStr);
       if (aiResponse && isValidItem(aiResponse, actionType === 'create' ? 'create' : 'change')) {
         return { result: aiResponse };
       }
@@ -356,7 +356,7 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
         label: 'Corrections',
       });
       const jsonStr = response.text ?? '';
-      const parsed = safeParseJson<Array<ItemChapter>>(extractJsonFromFence(jsonStr));
+      const parsed = safeParseJson<Array<ItemChapter>>(jsonStr);
       if (Array.isArray(parsed) && parsed.every(ch => typeof ch.heading === 'string')) {
         return { result: parsed };
       }
@@ -420,7 +420,7 @@ Task: Provide ONLY the corrected JSON object with fields { "id": string, "name":
         label: 'Corrections',
       });
       const jsonStr = response.text ?? '';
-      const parsed = safeParseJson<AddDetailsPayload>(extractJsonFromFence(jsonStr));
+      const parsed = safeParseJson<AddDetailsPayload>(jsonStr);
       if (parsed && isValidAddDetailsPayload(parsed)) {
         return { result: parsed };
       }

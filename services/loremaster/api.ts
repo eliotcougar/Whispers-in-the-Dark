@@ -5,7 +5,7 @@
 import { GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME, GEMINI_PRO_MODEL_NAME, MINIMAL_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { getThinkingBudget, getMaxOutputTokens } from '../thinkingConfig';
 import {

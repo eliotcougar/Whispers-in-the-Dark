@@ -4,8 +4,7 @@
  */
 
 import { GenerateContentResponse } from '@google/genai';
-import { ai } from './geminiClient';
-import { isApiConfigured } from './apiClient';
+import { geminiClient as ai, isApiConfigured } from './geminiClient';
 import {
   isServerOrClientError,
   extractStatusFromError,

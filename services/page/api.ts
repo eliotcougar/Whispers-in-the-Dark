@@ -3,7 +3,7 @@ import { dispatchAIRequest } from '../modelDispatcher';
 import { getThinkingBudget } from '../thinkingConfig';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 
 export const generatePageText = async (
   itemName: string,

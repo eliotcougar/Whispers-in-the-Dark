@@ -16,7 +16,7 @@ import { buildMapUpdatePrompt, buildSimplifiedNavigationPrompt } from './promptB
 import { fetchMapUpdatePayload, fetchNavigationOnlySuggestion } from './request';
 import { applyMapUpdates } from './applyUpdates';
 import type { MapUpdateServiceResult } from './types';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import { formatMapDataForAI } from '../../utils/promptFormatters/map';
 
 /**

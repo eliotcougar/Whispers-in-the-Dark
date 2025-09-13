@@ -20,9 +20,9 @@ import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 import { retryAiCall } from '../../utils/retry';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import {
   VALID_NODE_TYPE_VALUES,
   NODE_TYPE_LEVELS,
@@ -173,7 +173,7 @@ Respond ONLY with the single, complete, corrected JSON object.`;
           name: string;
           description: string;
           aliases?: Array<string>;
-        }>(extractJsonFromFence(response.text ?? ''));
+        }>(response.text ?? '');
         if (
           aiResponse &&
           typeof aiResponse.name === 'string' &&
@@ -249,7 +249,7 @@ Respond ONLY with the single, complete JSON object.`;
           name: string;
           description: string;
           aliases?: Array<string>;
-        }>(extractJsonFromFence(response.text ?? ''));
+        }>(response.text ?? '');
         if (
           aiResponse &&
           typeof aiResponse.name === 'string' &&

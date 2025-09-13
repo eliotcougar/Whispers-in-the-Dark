@@ -15,8 +15,8 @@ import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
-import { isApiConfigured } from '../apiClient';
+import { safeParseJson } from '../../utils/jsonUtils';
+import { isApiConfigured } from '../geminiClient';
 import { retryAiCall } from '../../utils/retry';
 
 /** Structure returned when correcting NPC details. */
@@ -87,7 +87,7 @@ Constraints:
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
       });
-      const aiResponse = safeParseJson<CorrectedNPCDetails>(extractJsonFromFence(response.text ?? ''));
+      const aiResponse = safeParseJson<CorrectedNPCDetails>(response.text ?? '');
       if (
         aiResponse &&
         typeof aiResponse.description === 'string' &&

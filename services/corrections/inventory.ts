@@ -15,10 +15,10 @@ import {
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import { retryAiCall } from '../../utils/retry';
 import { parseInventoryResponse } from '../inventory/responseParser';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 
 const ITEM_CHANGE_SCHEMA = {
   type: 'array',
@@ -263,7 +263,7 @@ Respond ONLY with the corrected JSON array.`;
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
       });
-      const aiResponse = safeParseJson<Array<ItemChange>>(extractJsonFromFence(response.text ?? ''));
+      const aiResponse = safeParseJson<Array<ItemChange>>(response.text ?? '');
       const parsedResult = aiResponse ? parseInventoryResponse(JSON.stringify(aiResponse)) : null;
       const validatedChanges = parsedResult ? parsedResult.itemChanges : null;
       if (validatedChanges) {

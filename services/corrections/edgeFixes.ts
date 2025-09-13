@@ -26,8 +26,8 @@ import { CORRECTION_TEMPERATURE } from "../../constants";
 import { addProgressSymbol } from "../../utils/loadingProgress";
 import { LOADING_REASON_UI_MAP } from "../../constants";
 import { retryAiCall } from "../../utils/retry";
-import { isApiConfigured } from "../apiClient";
-import { extractJsonFromFence, safeParseJson } from "../../utils/jsonUtils";
+import { isApiConfigured } from "../geminiClient";
+import { safeParseJson } from "../../utils/jsonUtils";
 import { getThinkingBudget } from '../thinkingConfig';
 import {
   EDGE_TYPE_SYNONYMS,
@@ -355,8 +355,7 @@ ${MAP_NODE_HIERARCHY_GUIDE}
         thoughts: thoughtParts.length > 0 ? thoughtParts : undefined,
       };
 
-      const jsonStr = extractJsonFromFence(response.text ?? "");
-      const parsed: unknown = safeParseJson(jsonStr);
+      const parsed: unknown = safeParseJson(response.text ?? "");
       if (!parsed) {
         debugInfo.validationError = "Failed to parse JSON";
         return { result: { payload: null, debugInfo } };

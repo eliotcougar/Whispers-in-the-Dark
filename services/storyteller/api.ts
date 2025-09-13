@@ -24,10 +24,10 @@ import {
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { getThinkingBudget, getMaxOutputTokens } from '../thinkingConfig';
-import { isApiConfigured } from '../apiClient';
+import { isApiConfigured } from '../geminiClient';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { extractJsonFromFence, safeParseJson } from '../../utils/jsonUtils';
+import { safeParseJson } from '../../utils/jsonUtils';
 
 const STORYTELLER_VALID_TAGS = (VALID_TAGS).filter(
   tag => tag !== 'recovered' && tag !== 'stashed'
@@ -450,8 +450,7 @@ export const executeAIMainTurn = async (
         (p): p is { text: string; thought?: boolean } => p.thought !== true && typeof p.text === 'string'
       );
       const nonThoughtText = nonThoughtTextParts.map(p => p.text).join('\n');
-      const jsonCandidate = extractJsonFromFence(nonThoughtText);
-      const parsed = safeParseJson<unknown>(jsonCandidate);
+      const parsed = safeParseJson<unknown>(nonThoughtText);
       if (parsed === null) {
         console.warn('executeAIMainTurn: Malformed JSON from AI after in-place fence extraction. Will retry.');
         throw new Error('Malformed AI JSON response');
