@@ -21,6 +21,8 @@ Player Input and Contextual Information:
 - If "sceneDescription" or "logMessage" mentions a new significant NAMED location or feature that is NOT in 'Known Locations' list (nor by one of its aliases), describe it in "mapHint", and set "mapUpdated": true. The map service will handle adding it.
 - If new distant quest-related and objective-related locations are mentioned but don't exist on the map, provide a short description of them, their surroundings, and how to reach them in "mapHint" for the Map AI.
 - If "sceneDescription" or "logMessage" mentions a new NPC (i.e., not in 'Known NPCs in Current Theme' list), you MUST add it using "npcsAdded". If an existing NPC's description, aliases, or presence change significantly, use "npcsUpdated".
+- When adding or updating NPCs, always track their current attitude toward the player (hostile, wary, neutral, friendly, allied). Provide this via 'attitudeTowardPlayer' for new entries or 'newAttitudeTowardPlayer' for updates.
+- Also record the specific name or alias the NPC uses for the player. Set 'knownPlayerNames' when adding an NPC and update with 'newKnownPlayerNames' if it changes; use an empty array if they do not know or forget the name.
 - Pay close attention to 'Active: true' items and their available actions.
 - Compare the new Local Place of the Player to the precise locations of relevant NPCs, and update their presence state accordingly.
 For example, leaving NPC's location makes them "distant", entering NPC's location makes them 'nearby' if they are still there, or 'unknown', is they moved while the player was not there.

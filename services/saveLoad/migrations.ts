@@ -9,7 +9,7 @@ import {
   GameStateStack,
   SavedGameStack,
 } from '../../types';
-import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID, DEFAULT_ENABLED_THEME_PACKS } from '../../constants';
+import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_NPC_ATTITUDE } from '../../constants';
 import { findThemeByName } from '../../utils/themeUtils';
 import {
   ensureCompleteMapLayoutConfig,
@@ -17,6 +17,19 @@ import {
   validateSavedGameState,
   postProcessValidatedData,
 } from './validators';
+
+const sanitizeKnownPlayerNames = (value?: Array<string> | string | null): Array<string> => {
+  if (value === undefined || value === null) return [];
+  const values = Array.isArray(value) ? value : [value];
+  const sanitized: Array<string> = [];
+  for (const entry of values) {
+    if (typeof entry !== 'string') continue;
+    const trimmed = entry.trim();
+    if (trimmed.length === 0) continue;
+    if (!sanitized.includes(trimmed)) sanitized.push(trimmed);
+  }
+  return sanitized;
+};
 
 export function normalizeLoadedSaveData(
   parsedObj: Record<string, unknown>,
@@ -124,6 +137,8 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
         ...npc,
         aliases: npc.aliases ?? [],
         presenceStatus: npc.presenceStatus,
+        attitudeTowardPlayer: npc.attitudeTowardPlayer ?? DEFAULT_NPC_ATTITUDE,
+        knownPlayerNames: sanitizeKnownPlayerNames(npc.knownPlayerNames ?? null),
         lastKnownLocation: npc.lastKnownLocation,
         preciseLocation: npc.preciseLocation,
         dialogueSummaries: npc.dialogueSummaries ?? [],
@@ -177,6 +192,8 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     thinkingEffort: 'Medium',
     allNPCs: savedData.allNPCs.map(npc => ({
       ...npc,
+      attitudeTowardPlayer: npc.attitudeTowardPlayer ?? DEFAULT_NPC_ATTITUDE,
+      knownPlayerNames: sanitizeKnownPlayerNames(npc.knownPlayerNames ?? null),
       dialogueSummaries: npc.dialogueSummaries ?? [],
     })),
     mapData: mapDataFromLoad,

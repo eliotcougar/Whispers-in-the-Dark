@@ -9,7 +9,29 @@ import {
   ValidNPCUpdatePayload,
   ValidNewNPCPayload,
 } from '../types';
+import { DEFAULT_NPC_ATTITUDE } from '../constants';
 import { buildNPCId } from './entityUtils';
+
+const normalizeAttitude = (attitude?: string | null): string => {
+  const trimmed = (attitude ?? '').trim();
+  if (trimmed.length === 0) return DEFAULT_NPC_ATTITUDE;
+  return trimmed;
+};
+
+const normalizeKnownPlayerNames = (names?: Array<string> | string | null): Array<string> => {
+  if (names === undefined || names === null) return [];
+  const source = Array.isArray(names) ? names : [names];
+  const sanitized: Array<string> = [];
+  for (const entry of source) {
+    if (typeof entry !== 'string') continue;
+    const trimmed = entry.trim();
+    if (trimmed.length === 0) continue;
+    if (!sanitized.includes(trimmed)) {
+      sanitized.push(trimmed);
+    }
+  }
+  return sanitized;
+};
 
 export const buildNPCChangeRecords = (
   npcsAddedFromAI: Array<ValidNewNPCPayload>,
@@ -23,6 +45,8 @@ export const buildNPCChangeRecords = (
       id: buildNPCId(npcAdd.name),
       aliases: npcAdd.aliases ?? [],
       presenceStatus: npcAdd.presenceStatus ?? 'unknown',
+      attitudeTowardPlayer: normalizeAttitude(npcAdd.attitudeTowardPlayer),
+      knownPlayerNames: normalizeKnownPlayerNames(npcAdd.knownPlayerNames),
       lastKnownLocation: npcAdd.lastKnownLocation ?? null,
       preciseLocation: npcAdd.preciseLocation ?? null,
       dialogueSummaries: [],
@@ -42,6 +66,8 @@ export const buildNPCChangeRecords = (
         newNPCData.aliases = Array.from(new Set([...(newNPCData.aliases ?? []), npcUpdate.addAlias]));
       }
       if (npcUpdate.newPresenceStatus !== undefined) newNPCData.presenceStatus = npcUpdate.newPresenceStatus;
+      if (npcUpdate.newAttitudeTowardPlayer !== undefined) newNPCData.attitudeTowardPlayer = normalizeAttitude(npcUpdate.newAttitudeTowardPlayer);
+      if (npcUpdate.newKnownPlayerNames !== undefined) newNPCData.knownPlayerNames = normalizeKnownPlayerNames(npcUpdate.newKnownPlayerNames);
       if (npcUpdate.newLastKnownLocation !== undefined) newNPCData.lastKnownLocation = npcUpdate.newLastKnownLocation;
       if (npcUpdate.newPreciseLocation !== undefined) newNPCData.preciseLocation = npcUpdate.newPreciseLocation;
 
@@ -75,6 +101,8 @@ export const applyAllNPCChanges = (
         id: buildNPCId(npcAdd.name),
         aliases: npcAdd.aliases ?? [],
         presenceStatus: npcAdd.presenceStatus ?? 'unknown',
+        attitudeTowardPlayer: normalizeAttitude(npcAdd.attitudeTowardPlayer),
+        knownPlayerNames: normalizeKnownPlayerNames(npcAdd.knownPlayerNames),
         lastKnownLocation: npcAdd.lastKnownLocation ?? null,
         preciseLocation: npcAdd.preciseLocation ?? null,
         dialogueSummaries: [],
@@ -103,6 +131,8 @@ export const applyAllNPCChanges = (
         );
       }
       if (npcUpdate.newPresenceStatus !== undefined) npcToUpdate.presenceStatus = npcUpdate.newPresenceStatus;
+      if (npcUpdate.newAttitudeTowardPlayer !== undefined) npcToUpdate.attitudeTowardPlayer = normalizeAttitude(npcUpdate.newAttitudeTowardPlayer);
+      if (npcUpdate.newKnownPlayerNames !== undefined) npcToUpdate.knownPlayerNames = normalizeKnownPlayerNames(npcUpdate.newKnownPlayerNames);
       if (npcUpdate.newLastKnownLocation !== undefined) npcToUpdate.lastKnownLocation = npcUpdate.newLastKnownLocation;
       if (npcUpdate.newPreciseLocation !== undefined) npcToUpdate.preciseLocation = npcUpdate.newPreciseLocation;
 

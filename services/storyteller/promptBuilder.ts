@@ -129,11 +129,11 @@ export const buildMainGameTurnPrompt = (
     }
   }
   const companionStrings =
-    companions.length > 0 ? npcsToString(companions, ' - ', false, false, false, true) : 'None';
+    companions.length > 0 ? npcsToString(companions, ' - ', false, true, false, true) : 'None';
   const nearbyStrings =
-    nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, false, false, true) : 'None';
+    nearbyNPCs.length > 0 ? npcsToString(nearbyNPCs, ' - ', false, true, false, true) : 'None';
   const NPCsStrings =
-    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, false, false, true) : 'None specifically known yet.';
+    knownNPCs.length > 0 ? npcsToString(knownNPCs, ' - ', false, true, false, true) : 'None specifically known yet.';
 
   const relevantFactsSection =
     relevantFacts.length > 0 ? relevantFacts.map(f => `- ${f}`).join('\n') : 'None';

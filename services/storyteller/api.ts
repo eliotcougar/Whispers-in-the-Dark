@@ -11,6 +11,7 @@ import {
   LOADING_REASON_UI_MAP,
   MAIN_TURN_OPTIONS_COUNT,
   VALID_PRESENCE_STATUS_VALUES,
+
   VALID_ITEM_TYPES,
   VALID_ITEM_TYPES_STRING,
   VALID_TAGS,
@@ -237,6 +238,16 @@ export const STORYTELLER_JSON_SCHEMA = {
             description:
               'Concise NPC description including role, appearance and personality.',
           },
+          attitudeTowardPlayer: {
+            type: 'string',
+            maxLength: 100,
+            description: 'Initial attitude toward the player character (free-form text up to 100 characters).',
+          },
+          knownPlayerNames: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Names or aliases this NPC uses for the player. Provide an empty array if they do not know any name yet.',
+          },
           lastKnownLocation: {
             type: 'string',
             description: 'General location when presenceStatus is distant or unknown.',
@@ -257,6 +268,8 @@ export const STORYTELLER_JSON_SCHEMA = {
         propertyOrdering: [
           'aliases',
           'description',
+          'attitudeTowardPlayer',
+          'knownPlayerNames',
           'lastKnownLocation',
           'name',
           'preciseLocation',
@@ -265,6 +278,8 @@ export const STORYTELLER_JSON_SCHEMA = {
         required: [
           'aliases',
           'description',
+          'attitudeTowardPlayer',
+          'knownPlayerNames',
           'lastKnownLocation',
           'name',
           'presenceStatus',
@@ -296,6 +311,16 @@ export const STORYTELLER_JSON_SCHEMA = {
             minLength: 100,
             description: 'Expanded or revised description for the NPC.',
           },
+          newAttitudeTowardPlayer: {
+            type: 'string',
+            maxLength: 100,
+            description: 'Updated attitude toward the player character (free-form text up to 100 characters).',
+          },
+          newKnownPlayerNames: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Updated list of names or aliases this NPC uses for the player. Provide an empty array if none.',
+          },
           newLastKnownLocation: {
             type: 'string',
             description: 'Updated general location if the NPC is away.',
@@ -314,6 +339,8 @@ export const STORYTELLER_JSON_SCHEMA = {
           'name',
           'newAliases',
           'newDescription',
+          'newAttitudeTowardPlayer',
+          'newKnownPlayerNames',
           'newLastKnownLocation',
           'newPreciseLocation',
           'newPresenceStatus',
@@ -322,6 +349,7 @@ export const STORYTELLER_JSON_SCHEMA = {
         additionalProperties: false,
       },
     },
+
     objectiveAchieved: {
       type: 'boolean',
       description: 'True when the current objective was successfully completed this turn.',

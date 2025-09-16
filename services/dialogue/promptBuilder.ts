@@ -94,6 +94,8 @@ export const buildDialogueTurnPrompt = (
           } else {
             npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
           }
+          const knownPlayerLabel = npc.knownPlayerNames && npc.knownPlayerNames.length > 0 ? npc.knownPlayerNames.join(', ') : 'Unknown';
+          npcStr += `; Attitude: ${npc.attitudeTowardPlayer}; Knows player as: ${knownPlayerLabel}`;
           npcStr += ')';
           return npcStr;
         })
@@ -190,6 +192,8 @@ export const buildDialogueSummaryPrompt = (
           } else {
             npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
           }
+          const knownPlayerLabel = npc.knownPlayerNames && npc.knownPlayerNames.length > 0 ? npc.knownPlayerNames.join(', ') : 'Unknown';
+          npcStr += `; Attitude: ${npc.attitudeTowardPlayer}; Knows player as: ${knownPlayerLabel}`;
           npcStr += ')';
           return npcStr;
         })
@@ -222,6 +226,8 @@ The "logMessage" field in your response should be a concise summary suitable for
 Provide the next scene description and ${String(MAIN_TURN_OPTIONS_COUNT)} action options for the player as you would for a normal game turn.
 If the dialogue revealed a new alias for an existing NPC, use "npcsUpdated" with "addAlias".
 If the dialogue changed some NPC's general whereabouts, use "newLastKnownLocation" in "npcsUpdated".
+If the dialogue shifts an NPC's feelings toward the player, set "newAttitudeTowardPlayer".
+If an NPC learns, confirms, or forgets the player's name, set "newKnownPlayerName" (use null if they no longer know a name).
 If the dialogue revealed new map information (new locations, changed accessibility, etc.), or if Player's own location changed over the course of the dialogue, then set "mapUpdated": true.
 `;
 };

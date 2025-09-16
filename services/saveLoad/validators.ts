@@ -25,6 +25,8 @@ import {
   CURRENT_SAVE_GAME_VERSION,
   VALID_ITEM_TYPES,
   VALID_PRESENCE_STATUS_VALUES,
+
+  DEFAULT_NPC_ATTITUDE,
   PLAYER_HOLDER_ID,
 } from '../../constants';
 import { ALL_THEME_PACK_NAMES } from '../../themes';
@@ -155,6 +157,20 @@ export function isValidHeroBackstory(data: unknown): data is HeroBackstory {
   );
 }
 
+
+const sanitizeKnownPlayerNames = (value?: Array<string> | string | null): Array<string> => {
+  if (value === undefined || value === null) return [];
+  const values = Array.isArray(value) ? value : [value];
+  const sanitized: Array<string> = [];
+  for (const entry of values) {
+    if (typeof entry !== 'string') continue;
+    const trimmed = entry.trim();
+    if (trimmed.length === 0) continue;
+    if (!sanitized.includes(trimmed)) sanitized.push(trimmed);
+  }
+  return sanitized;
+};
+
 export function isValidNPCForSave(npc: unknown): npc is NPC {
   if (!npc || typeof npc !== 'object') return false;
   const maybe = npc as Partial<NPC>;
@@ -170,6 +186,9 @@ export function isValidNPCForSave(npc: unknown): npc is NPC {
         maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) &&
     (maybe.presenceStatus === undefined ||
       VALID_PRESENCE_STATUS_VALUES.includes(maybe.presenceStatus)) &&
+    (maybe.attitudeTowardPlayer === undefined || typeof maybe.attitudeTowardPlayer === 'string') &&
+    (maybe.knownPlayerNames === undefined ||
+      (Array.isArray(maybe.knownPlayerNames) && maybe.knownPlayerNames.every((name: unknown) => typeof name === 'string'))) &&
     (maybe.lastKnownLocation === undefined ||
       maybe.lastKnownLocation === null ||
       typeof maybe.lastKnownLocation === 'string') &&
@@ -442,6 +461,10 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
       id: oneNpc.id ?? buildNPCId(oneNpc.name ?? ''),
       aliases: oneNpc.aliases ?? [],
       presenceStatus: oneNpc.presenceStatus ?? 'unknown',
+      attitudeTowardPlayer: typeof oneNpc.attitudeTowardPlayer === 'string' && oneNpc.attitudeTowardPlayer.trim().length > 0
+        ? oneNpc.attitudeTowardPlayer
+        : DEFAULT_NPC_ATTITUDE,
+      knownPlayerNames: sanitizeKnownPlayerNames(oneNpc.knownPlayerNames ?? []),
       lastKnownLocation: oneNpc.lastKnownLocation ?? null,
       preciseLocation: oneNpc.preciseLocation ?? null,
       dialogueSummaries: oneNpc.dialogueSummaries ?? [],

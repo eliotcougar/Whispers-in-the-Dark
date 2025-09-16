@@ -348,6 +348,13 @@ export function isValidNPCUpdate(obj: unknown): obj is ValidNPCUpdatePayload {
     if (maybe.newAliases !== undefined && !(Array.isArray(maybe.newAliases) && maybe.newAliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (maybe.addAlias !== undefined && typeof maybe.addAlias !== 'string') return false;
     if (maybe.newPresenceStatus !== undefined && !VALID_PRESENCE_STATUS_VALUES.includes(maybe.newPresenceStatus)) return false;
+    if (maybe.newAttitudeTowardPlayer !== undefined) {
+      if (typeof maybe.newAttitudeTowardPlayer !== 'string') return false;
+    }
+    if (maybe.newKnownPlayerNames !== undefined) {
+      if (!Array.isArray(maybe.newKnownPlayerNames) ||
+        !maybe.newKnownPlayerNames.every((name: unknown) => typeof name === 'string')) return false;
+    }
     if (maybe.newLastKnownLocation !== undefined && maybe.newLastKnownLocation != null && typeof maybe.newLastKnownLocation !== 'string') return false;
     if (maybe.newPreciseLocation !== undefined && maybe.newPreciseLocation != null && typeof maybe.newPreciseLocation !== 'string') return false;
     
@@ -368,6 +375,10 @@ export function isValidNewNPCPayload(obj: unknown): obj is ValidNewNPCPayload {
     if (typeof maybe.description !== 'string' || maybe.description.trim() === '') return false;
     if (maybe.aliases !== undefined && !(Array.isArray(maybe.aliases) && maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (maybe.presenceStatus !== undefined && !VALID_PRESENCE_STATUS_VALUES.includes(maybe.presenceStatus)) return false;
+    if (maybe.attitudeTowardPlayer !== undefined && typeof maybe.attitudeTowardPlayer !== 'string') return false;
+    if (maybe.knownPlayerNames !== undefined) {
+      if (!Array.isArray(maybe.knownPlayerNames) || maybe.knownPlayerNames.some((name: unknown) => typeof name !== 'string')) return false;
+    }
     if (maybe.lastKnownLocation !== undefined && maybe.lastKnownLocation != null && typeof maybe.lastKnownLocation !== 'string') return false;
     if (maybe.preciseLocation !== undefined && maybe.preciseLocation != null && typeof maybe.preciseLocation !== 'string') return false;
 

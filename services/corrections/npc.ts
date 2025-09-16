@@ -7,6 +7,7 @@ import {
   MAX_RETRIES,
   VALID_PRESENCE_STATUS_VALUES,
   VALID_PRESENCE_STATUS_VALUES_STRING,
+  DEFAULT_NPC_ATTITUDE,
   MINIMAL_MODEL_NAME,
   GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
@@ -26,6 +27,8 @@ export interface CorrectedNPCDetails {
   presenceStatus: NPC['presenceStatus'];
   lastKnownLocation: string | null;
   preciseLocation: string | null;
+  attitudeTowardPlayer?: string | null;
+  knownPlayerNames?: Array<string>;
 }
 
 /**
@@ -65,16 +68,19 @@ Respond ONLY in JSON format with the following structure:
   "description": "string (A detailed, engaging description fitting the scene and theme. MUST be non-empty.)",
   "lastKnownLocation": "string | null",
   "preciseLocation": "string | null",
-  "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING}
+  "presenceStatus": ${VALID_PRESENCE_STATUS_VALUES_STRING},
+  "attitudeTowardPlayer": "string",
+  "knownPlayerNames": { "type": "array", "items": { "type": "string" } }
 }
 
 Constraints:
-- 'description' and 'presenceStatus' are REQUIRED and must be non-empty.
+- 'description', 'presenceStatus', and 'attitudeTowardPlayer' are REQUIRED and must be non-empty.
 - If 'presenceStatus' is 'nearby' or 'companion', 'preciseLocation' MUST be a descriptive string derived from context; 'lastKnownLocation' can be null or a broader area.
 - If 'presenceStatus' is 'distant' or 'unknown', 'preciseLocation' MUST be null; 'lastKnownLocation' should describe general whereabouts or be 'Unknown' if context doesn't specify.
+- Provide all names or aliases the NPC uses for the player in 'knownPlayerNames'. Use an empty array if none are known.
 `;
 
-  const systemInstruction = `You generate detailed JSON objects for new NPCs based on narrative context. Provide description, aliases, presenceStatus, lastKnownLocation, and preciseLocation. Adhere strictly to the JSON format and field requirements. Derive all information strictly from the provided context.`;
+  const systemInstruction = `You generate detailed JSON objects for new NPCs based on narrative context. Provide description, aliases, presenceStatus, attitudeTowardPlayer, knownPlayerNames, lastKnownLocation, and preciseLocation. Adhere strictly to the JSON format and field requirements. Derive all information strictly from the provided context.`;
 
   return retryAiCall<CorrectedNPCDetails>(async attempt => {
     try {
@@ -96,6 +102,8 @@ Constraints:
         aiResponse.aliases.every((a): a is string => typeof a === 'string') &&
         typeof aiResponse.presenceStatus === 'string' &&
         VALID_PRESENCE_STATUS_VALUES.includes(aiResponse.presenceStatus) &&
+        (aiResponse.attitudeTowardPlayer === undefined || (typeof aiResponse.attitudeTowardPlayer === "string" && aiResponse.attitudeTowardPlayer.trim().length > 0 && aiResponse.attitudeTowardPlayer.trim().length <= 100)) &&
+        (aiResponse.knownPlayerNames === undefined || Array.isArray(aiResponse.knownPlayerNames)) &&
         (aiResponse.lastKnownLocation === null || typeof aiResponse.lastKnownLocation === 'string') &&
         (aiResponse.preciseLocation === null || typeof aiResponse.preciseLocation === 'string') &&
         !(
@@ -107,7 +115,11 @@ Constraints:
           aiResponse.preciseLocation !== null
         )
       ) {
-        return { result: aiResponse };
+        return { result: {
+          ...aiResponse,
+          attitudeTowardPlayer: aiResponse.attitudeTowardPlayer ?? DEFAULT_NPC_ATTITUDE,
+          knownPlayerNames: Array.isArray(aiResponse.knownPlayerNames) ? aiResponse.knownPlayerNames : [],
+        } };
       }
       console.warn(
         `fetchCorrectedNPCDetails_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected details for "${npcName}" invalid or incomplete. Response:`,

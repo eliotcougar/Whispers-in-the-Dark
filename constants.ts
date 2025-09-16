@@ -161,6 +161,8 @@ export const VALID_PRESENCE_STATUS_VALUES = [
 
 export const VALID_PRESENCE_STATUS_VALUES_STRING = VALID_PRESENCE_STATUS_VALUES.map(s => s).join(', ');
 
+export const DEFAULT_NPC_ATTITUDE = 'neutral';
+
 export const ACT_NATURE_BY_NUMBER: Record<number, string> = {
   1: 'exposition - Introduces the setting, central characters, and the primary conflict of the tale.',
   2: 'rising action - Tension and complications mount as the protagonist pursues their goal.',

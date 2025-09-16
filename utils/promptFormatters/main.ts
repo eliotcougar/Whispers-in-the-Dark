@@ -50,6 +50,10 @@ export const npcsToString = (
         }
         str += ')';
       }
+      const knownNames = npc.knownPlayerNames && npc.knownPlayerNames.length > 0
+        ? npc.knownPlayerNames.join(', ')
+        : 'Unknown';
+      str += `, Attitude: ${npc.attitudeTowardPlayer}, Knows player as: ${knownNames}`;
       if (addDescription) {
         str += `, "${npc.description}"`;
       }
@@ -59,6 +63,7 @@ export const npcsToString = (
 
   return result + '.';
 };
+
 
 
 /**
