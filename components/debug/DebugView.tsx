@@ -24,7 +24,7 @@ import {
   LoremasterAITab,
   MiscStateTab,
   TravelPathTab,
-  SettingsTab,
+  ToolsTab,
 } from './tabs';
 
 interface DebugViewProps {
@@ -36,6 +36,12 @@ interface DebugViewProps {
   readonly onApplyGameState: (state: FullGameState) => void;
   readonly onTriggerMainQuestAchieved: () => void;
   readonly onSimulateVictory: () => void;
+  readonly onSpawnNpcAtLocation: () => void;
+  readonly onSpawnBook: () => void;
+  readonly onSpawnMap: () => void;
+  readonly onSpawnPicture: () => void;
+  readonly onSpawnPage: () => void;
+  readonly onSpawnVehicle: () => void;
   readonly travelPath: Array<TravelStep> | null;
   readonly onDistillFacts: () => void;
   readonly debugLore: boolean;
@@ -62,7 +68,7 @@ type DebugTab =
   | "TravelPath"
   | "MiscState"
   | "Playground"
-  | "Settings";
+  | "Tools";
 
 /**
  * Developer-only panel for inspecting and manipulating game state.
@@ -76,6 +82,12 @@ function DebugView({
   onApplyGameState,
   onTriggerMainQuestAchieved,
   onSimulateVictory,
+  onSpawnNpcAtLocation,
+  onSpawnBook,
+  onSpawnMap,
+  onSpawnPicture,
+  onSpawnPage,
+  onSpawnVehicle,
   travelPath,
   onDistillFacts,
   debugLore,
@@ -113,7 +125,7 @@ function DebugView({
     { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
     { name: "Playground", label: "Playground" },
-    { name: "Settings", label: "Settings" },
+    { name: "Tools", label: "Tools" },
   ];
 
   /**
@@ -126,7 +138,6 @@ function DebugView({
           <GameStateTab
             currentState={currentState}
             onApplyGameState={onApplyGameState}
-            onTriggerMainQuestAchieved={onTriggerMainQuestAchieved}
             onUndoTurn={onUndoTurn}
             previousState={previousState}
           />
@@ -173,9 +184,9 @@ function DebugView({
         return <MiscStateTab currentState={currentState} />;
       case 'Playground':
         return <PlaygroundTab />;
-      case 'Settings':
+      case 'Tools':
         return (
-          <SettingsTab
+          <ToolsTab
             badFacts={badFacts}
             debugLore={debugLore}
             goodFacts={goodFacts}
@@ -183,6 +194,13 @@ function DebugView({
             onSaveFacts={onSaveFacts}
             onSimulateVictory={onSimulateVictory}
             onToggleDebugLore={onToggleDebugLore}
+            onTriggerMainQuestAchieved={onTriggerMainQuestAchieved}
+            onSpawnBook={onSpawnBook}
+            onSpawnMap={onSpawnMap}
+            onSpawnPicture={onSpawnPicture}
+            onSpawnPage={onSpawnPage}
+            onSpawnVehicle={onSpawnVehicle}
+            onSpawnNpcAtLocation={onSpawnNpcAtLocation}
           />
         );
       default:

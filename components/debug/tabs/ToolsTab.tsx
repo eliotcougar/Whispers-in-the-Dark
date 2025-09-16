@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 
-interface SettingsTabProps {
+interface ToolsTabProps {
   readonly badFacts: Array<string>;
   readonly debugLore: boolean;
   readonly goodFacts: Array<string>;
@@ -10,9 +10,16 @@ interface SettingsTabProps {
   readonly onSaveFacts: (data: string) => void;
   readonly onSimulateVictory: () => void;
   readonly onToggleDebugLore: () => void;
+  readonly onTriggerMainQuestAchieved: () => void;
+  readonly onSpawnNpcAtLocation: () => void;
+  readonly onSpawnBook: () => void;
+  readonly onSpawnMap: () => void;
+  readonly onSpawnPicture: () => void;
+  readonly onSpawnPage: () => void;
+  readonly onSpawnVehicle: () => void;
 }
 
-function SettingsTab({
+function ToolsTab({
   badFacts,
   debugLore,
   goodFacts,
@@ -20,7 +27,14 @@ function SettingsTab({
   onSaveFacts,
   onSimulateVictory,
   onToggleDebugLore,
-}: SettingsTabProps) {
+  onTriggerMainQuestAchieved,
+  onSpawnNpcAtLocation,
+  onSpawnBook,
+  onSpawnMap,
+  onSpawnPicture,
+  onSpawnPage,
+  onSpawnVehicle,
+}: ToolsTabProps) {
   const [showFacts, setShowFacts] = useState(false);
 
   const handleToggleView = useCallback(() => {
@@ -39,8 +53,93 @@ function SettingsTab({
   return (
     <div>
       <h2 className="text-lg font-semibold text-sky-300 mb-2">
-        Debug Lore
+        Tools
       </h2>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Button
+          ariaLabel="Trigger main quest achieved"
+          label="Main Quest Achieved"
+          onClick={onTriggerMainQuestAchieved}
+          preset="purple"
+          size="sm"
+          variant="compact"
+        />
+
+        <Button
+          ariaLabel="Simulate victory"
+          label="Simulate Victory"
+          onClick={onSimulateVictory}
+          preset="green"
+          size="sm"
+          variant="compact"
+        />
+
+      </div>
+
+      <h3 className="text-base font-semibold text-amber-200 mb-2">
+        Spawn
+      </h3>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Button
+          ariaLabel="Spawn NPC at current location"
+          label="Spawn NPC (Here)"
+          onClick={onSpawnNpcAtLocation}
+          preset="orange"
+          size="sm"
+          variant="compact"
+        />
+
+        <Button
+          ariaLabel="Spawn book in inventory"
+          label="Spawn Book"
+          onClick={onSpawnBook}
+          preset="sky"
+          size="sm"
+          variant="compact"
+        />
+
+        <Button
+          ariaLabel="Spawn map in inventory"
+          label="Spawn Map"
+          onClick={onSpawnMap}
+          preset="sky"
+          size="sm"
+          variant="compact"
+        />
+
+        <Button
+          ariaLabel="Spawn picture in inventory"
+          label="Spawn Picture"
+          onClick={onSpawnPicture}
+          preset="sky"
+          size="sm"
+          variant="compact"
+        />
+
+        <Button
+          ariaLabel="Spawn page in inventory"
+          label="Spawn Page"
+          onClick={onSpawnPage}
+          preset="sky"
+          size="sm"
+          variant="compact"
+        />
+
+        <Button
+          ariaLabel="Spawn vehicle in inventory"
+          label="Spawn Vehicle"
+          onClick={onSpawnVehicle}
+          preset="sky"
+          size="sm"
+          variant="compact"
+        />
+      </div>
+
+      <h3 className="text-base font-semibold text-sky-200 mb-2">
+        Debug Lore
+      </h3>
 
       <div className="flex flex-wrap gap-2 mb-4">
         <Button
@@ -51,15 +150,6 @@ function SettingsTab({
           pressed={debugLore}
           size="sm"
           variant="toggle"
-        />
-
-        <Button
-          ariaLabel="Simulate victory"
-          label="Simulate Victory"
-          onClick={onSimulateVictory}
-          preset="green"
-          size="sm"
-          variant="compact"
         />
 
         <Button
@@ -104,4 +194,4 @@ function SettingsTab({
   );
 }
 
-export default SettingsTab;
+export default ToolsTab;

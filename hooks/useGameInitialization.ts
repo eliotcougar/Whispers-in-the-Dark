@@ -377,7 +377,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                 systemInstructionUsed,
                 jsonSchemaUsed,
                 promptUsed,
-              } = await executeAIMainTurn(prompt, getMaxOutputTokens(4096));
+              } = await executeAIMainTurn(prompt, { maxOutputTokensOverride: getMaxOutputTokens(4096) });
               draftState.lastDebugPacket.rawResponseText = response.text ?? null;
               draftState.lastDebugPacket.storytellerThoughts = thoughts;
               draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;

@@ -13,5 +13,5 @@ export { default as LoremasterAITab } from './LoremasterAITab';
 export { default as MiscStateTab } from './MiscStateTab';
 export { default as TravelPathTab } from './TravelPathTab';
 export { default as PlaygroundTab } from './PlaygroundTab';
-export { default as SettingsTab } from './SettingsTab';
+export { default as ToolsTab } from './ToolsTab';
 export * from './tabUtils';

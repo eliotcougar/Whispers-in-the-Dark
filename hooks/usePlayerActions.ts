@@ -19,7 +19,7 @@ import {
   parseAIResponse,
   buildMainGameTurnPrompt
 } from '../services/storyteller';
-import { SYSTEM_INSTRUCTION } from '../services/storyteller/systemPrompt';
+import { buildSystemInstructionWithDebug } from '../services/storyteller/systemPrompt';
 import { collectRelevantFacts_Service } from '../services/loremaster';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { buildHighlightRegex } from '../utils/highlightHelper';
@@ -194,6 +194,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       action: string,
       isFreeForm = false,
       overrideState?: FullGameState,
+      debugToolDirective?: string,
     ) => {
       const currentFullState = overrideState ?? getCurrentGameState();
       if (isLoading || isTurnProcessing || currentFullState.dialogueState) return;
@@ -259,6 +260,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       });
       const relevantFacts = collectResult?.facts ?? [];
 
+      const debugDirective = debugToolDirective?.trim() ?? '';
       const prompt = buildMainGameTurnPrompt(
         currentFullState.currentScene,
         action,
@@ -297,14 +299,17 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentMapNodeDetails,
         currentFullState.mapData,
         currentFullState.destinationNodeId,
-        currentFullState.storyArc
+        currentFullState.storyArc,
+        debugDirective ? debugDirective : undefined
       );
+
+      const systemInstructionForTurn = buildSystemInstructionWithDebug(debugDirective);
 
       let draftState = structuredCloneGameState(currentFullState);
       draftState.turnState = 'player_action_prompt';
       const debugPacket = {
         prompt,
-        systemInstruction: SYSTEM_INSTRUCTION,
+        systemInstruction: systemInstructionForTurn,
         jsonSchema: undefined,
         rawResponseText: null,
         parsedResponse: null,
@@ -335,7 +340,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           systemInstructionUsed,
           jsonSchemaUsed,
           promptUsed,
-        } = await executeAIMainTurn(prompt);
+        } = await executeAIMainTurn(prompt, { systemInstructionOverride: systemInstructionForTurn });
         draftState.lastDebugPacket = {
           ...draftState.lastDebugPacket,
           rawResponseText: response.text ?? null,
@@ -630,6 +635,87 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     }
   }, [getCurrentGameState, triggerMainQuestAchieved]);
 
+  const spawnItemForPlayer = useCallback(
+    (
+      itemType: Item['type'],
+      itemLabel: string,
+      extraInstructions: string,
+    ) => {
+      if (isLoading || isTurnProcessing || !hasGameBeenInitialized) return;
+      const currentFullState = getCurrentGameState();
+      if (currentFullState.dialogueState) return;
+
+      const debugDirective = `Spawn exactly one ${itemLabel} directly into the player's inventory this turn.\n- Include the full item in "newItems" with type "${itemType}" and holderId "${PLAYER_HOLDER_ID}".\n- Provide a vivid description and all required fields for this type.\n- Summarize the gain in "playerItemsHint" so downstream systems pick it up.\n${extraInstructions}\n- Avoid unrelated story or world changes.`;
+
+      void executePlayerAction('[DEBUG TOOL INVOCATION]', false, currentFullState, debugDirective);
+    },
+    [
+      executePlayerAction,
+      getCurrentGameState,
+      hasGameBeenInitialized,
+      isLoading,
+      isTurnProcessing,
+    ],
+  );
+
+  const spawnNpcAtPlayerLocation = useCallback(() => {
+    if (isLoading || isTurnProcessing || !hasGameBeenInitialized) return;
+    const currentFullState = getCurrentGameState();
+    if (currentFullState.dialogueState) return;
+
+    const shouldBeCompanion = Math.random() < 0.3;
+    const presenceStatus = shouldBeCompanion ? 'companion' : 'nearby';
+    const debugDirective = `Spawn a single new NPC directly at the player's current location.\n- presenceStatus must be "${presenceStatus}" with a fitting preciseLocation.\n- Provide a concise description, attitudeTowardPlayer, and at least one knownPlayerName when sensible.\n- Update newItems only if the NPC brings items, otherwise avoid unrelated world changes.\n- Do NOT initiate dialogue, simply add the NPC to the state.`;
+
+    void executePlayerAction('[DEBUG TOOL INVOCATION]', false, currentFullState, debugDirective);
+  }, [
+    executePlayerAction,
+    getCurrentGameState,
+    hasGameBeenInitialized,
+    isLoading,
+    isTurnProcessing,
+  ]);
+
+  const spawnBookForPlayer = useCallback(() => {
+    spawnItemForPlayer(
+      'book',
+      'book of written lore',
+      '- Provide between 2 and 4 concise chapters in "chapters" so the Librarian can parse it.\n- Mention the new book in "librarianHint" as well.',
+    );
+  }, [spawnItemForPlayer]);
+
+  const spawnMapForPlayer = useCallback(() => {
+    spawnItemForPlayer(
+      'map',
+      'map with useful annotations',
+      '- Supply exactly one chapter entry describing the map contents.\n- Mention the new map in "librarianHint".',
+    );
+  }, [spawnItemForPlayer]);
+
+  const spawnPictureForPlayer = useCallback(() => {
+    spawnItemForPlayer(
+      'picture',
+      'illustrated picture or photograph',
+      '- Include a single chapter entry describing what the picture shows.\n- Mention the new picture in "librarianHint".',
+    );
+  }, [spawnItemForPlayer]);
+
+  const spawnPageForPlayer = useCallback(() => {
+    spawnItemForPlayer(
+      'page',
+      'loose written page',
+      '- Include exactly one chapter entry capturing the page contents.\n- Mention the new page in "librarianHint".',
+    );
+  }, [spawnItemForPlayer]);
+
+  const spawnVehicleForPlayer = useCallback(() => {
+    spawnItemForPlayer(
+      'vehicle',
+      'vehicle the player can operate',
+      '- Specify whether it is active via the "isActive" flag and list any knownUses that make sense.',
+    );
+  }, [spawnItemForPlayer]);
+
   return {
     processAiResponse,
     executePlayerAction,
@@ -649,5 +735,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     handleUndoTurn,
     triggerMainQuestAchieved,
     simulateVictory,
+    spawnBookForPlayer,
+    spawnMapForPlayer,
+    spawnPictureForPlayer,
+    spawnPageForPlayer,
+    spawnVehicleForPlayer,
+    spawnNpcAtPlayerLocation,
   };
 };

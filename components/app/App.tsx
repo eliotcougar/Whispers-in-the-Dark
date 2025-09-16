@@ -285,6 +285,12 @@ function App() {
       debugBadFacts,
       isVictory,
       simulateVictory,
+      spawnBookForPlayer,
+      spawnMapForPlayer,
+      spawnPictureForPlayer,
+      spawnPageForPlayer,
+      spawnVehicleForPlayer,
+      spawnNpcAtPlayerLocation,
       queueItemAction,
       queuedItemActions,
     clearQueuedItemActions,
@@ -323,6 +329,30 @@ function App() {
   const handleSimulateVictoryClick = useCallback(() => {
     void simulateVictory();
   }, [simulateVictory]);
+
+  const handleSpawnNpcAtLocation = useCallback(() => {
+    void spawnNpcAtPlayerLocation();
+  }, [spawnNpcAtPlayerLocation]);
+
+  const handleSpawnBook = useCallback(() => {
+    void spawnBookForPlayer();
+  }, [spawnBookForPlayer]);
+
+  const handleSpawnMap = useCallback(() => {
+    void spawnMapForPlayer();
+  }, [spawnMapForPlayer]);
+
+  const handleSpawnPicture = useCallback(() => {
+    void spawnPictureForPlayer();
+  }, [spawnPictureForPlayer]);
+
+  const handleSpawnPage = useCallback(() => {
+    void spawnPageForPlayer();
+  }, [spawnPageForPlayer]);
+
+  const handleSpawnVehicle = useCallback(() => {
+    void spawnVehicleForPlayer();
+  }, [spawnVehicleForPlayer]);
 
   const handleVictoryClose = useCallback(() => {
     commitGameState({ ...gameStateStack[0], isVictory: false });
@@ -953,6 +983,12 @@ function App() {
         onDistillFacts={handleDistillClick}
         onSaveFacts={handleSaveFacts}
         onSimulateVictory={handleSimulateVictoryClick}
+        onSpawnNpcAtLocation={handleSpawnNpcAtLocation}
+        onSpawnBook={handleSpawnBook}
+        onSpawnMap={handleSpawnMap}
+        onSpawnPicture={handleSpawnPicture}
+        onSpawnPage={handleSpawnPage}
+        onSpawnVehicle={handleSpawnVehicle}
         onToggleDebugLore={toggleDebugLore}
         onTriggerMainQuestAchieved={handleTriggerMainQuestAchievedClick}
         onUndoTurn={handleUndoTurn}

@@ -420,7 +420,10 @@ export const STORYTELLER_JSON_SCHEMA = {
 // This function is now the primary way gameAIService interacts with Gemini for main game turns. It takes a fully constructed prompt.
 export const executeAIMainTurn = async (
   fullPrompt: string,
-  maxOutputTokensOverride?: number,
+  options?: {
+    maxOutputTokensOverride?: number;
+    systemInstructionOverride?: string;
+  },
 ): Promise<{
   response: GenerateContentResponse;
   thoughts: Array<string>;
@@ -446,7 +449,8 @@ export const executeAIMainTurn = async (
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
       const thinkingBudget = getThinkingBudget(4096);
-      const maxOutputTokens = maxOutputTokensOverride ?? getMaxOutputTokens(4096);
+      const maxOutputTokens = options?.maxOutputTokensOverride ?? getMaxOutputTokens(4096);
+      const systemInstructionToUse = options?.systemInstructionOverride ?? SYSTEM_INSTRUCTION;
       const {
         response,
         systemInstructionUsed,
@@ -455,7 +459,7 @@ export const executeAIMainTurn = async (
       } = await dispatchAIRequest({
         modelNames: [GEMINI_MODEL_NAME],
         prompt: fullPrompt,
-        systemInstruction: SYSTEM_INSTRUCTION,
+        systemInstruction: systemInstructionToUse,
         temperature: 1.0,
         thinkingBudget,
         includeThoughts: true,

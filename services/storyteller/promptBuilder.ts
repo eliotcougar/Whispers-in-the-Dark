@@ -89,7 +89,8 @@ export const buildMainGameTurnPrompt = (
   currentMapNodeDetails: MapNode | null,
   fullMapData: MapData,
   destinationNodeId: string | null,
-  storyArc?: StoryArc | null
+  storyArc?: StoryArc | null,
+  debugToolDirective?: string,
 ): string => {
   const inventoryStrings =
     inventory.length > 0
@@ -191,7 +192,11 @@ export const buildMainGameTurnPrompt = (
   const worldInfo = formatWorldFactsForPrompt(worldFacts);
   const heroDescription = formatHeroSheetForPrompt(heroSheet, false);
 
-  const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided narrative arc guidance and context, generate the next scene description, options, item changes, log message, etc.
+  const debugToolSection = debugToolDirective
+    ? `\n### DEBUG TOOL DIRECTIVE (Developer Override)\n${debugToolDirective}\n`
+    : '';
+
+  const prompt = `Based on the Previous Scene and Player Action, and taking into account the provided narrative arc guidance and context, generate the next scene description, options, item changes, log message, etc.${debugToolSection}
 
 ## Narrative Arc:
 ${arcContext}

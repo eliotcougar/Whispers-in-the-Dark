@@ -12,6 +12,7 @@ const mapNodeSynonyms = {
     "unexplored zone": "undiscovered",
     "unexplored territory": "undiscovered",
     "not explored": "undiscovered",
+    "inactive": "undiscovered",
     "found": "discovered",
     "opened": "discovered",
     "known": "discovered",
