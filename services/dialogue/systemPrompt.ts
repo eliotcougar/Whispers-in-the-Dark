@@ -28,6 +28,10 @@ Respond ONLY in JSON format with the following structure:
   "updatedParticipants"?: ["NPCName1", "NewNPCJoining", ...], /* Optional. Cannot be empty. Provide the new full list of participants if someone joins or leaves the conversation. If omitted, participants remain the same. DO NOT add Player's Character to the list. */
   "npcAttitudeUpdates"?: [ /* Optional. Use when an NPC's attitude toward the player changes during this exchange. */
     { "name": "NPCName1", "newAttitudeTowardPlayer": "How this NPC now feels." }
+  ],
+  "npcKnownNameUpdates"?: [ /* Optional. Use when an NPC learns, forgets, or changes the name they use for the player. */
+    { "name": "NPCName1", "newKnownPlayerNames": ["Name they now use", "Additional alias"] },
+    { "name": "NPCName2", "addKnownPlayerName": "New nickname" }
   ]
 }
 
@@ -38,6 +42,7 @@ Instructions:
 - If the Player's or NPC's latest response suggests that the conversation is over, provide the final NPC responses and set "dialogueEnds" true.
 - If "updatedParticipants" is provided, the dialogue continues with the new set of participants.
 - Use "npcAttitudeUpdates" sparingly and only when the conversation genuinely shifts how an NPC feels toward the player. Describe the new outlook in plain language.
+- Use "npcKnownNameUpdates" when an NPC gains, changes, or forgets the name they use for the player. Provide "newKnownPlayerNames" (array, empty to clear) to replace all names, or "addKnownPlayerName" to append a new one.
 - Maintain thematic consistency based on the theme provided in the prompt.
 - Consider the player's gender subtly if it makes sense for the interactions, but don't make it overt.
 `;

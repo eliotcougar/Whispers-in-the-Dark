@@ -199,6 +199,12 @@ export interface DialogueNpcAttitudeUpdate {
   newAttitudeTowardPlayer: string;
 }
 
+export interface DialogueNpcKnownNameUpdate {
+  name: string;
+  newKnownPlayerNames?: Array<string>;
+  addKnownPlayerName?: string;
+}
+
 // Alias used throughout the codebase for clarity in dialogue history arrays.
 export type DialogueHistoryEntry = DialogueTurnResponsePart;
 
@@ -222,6 +228,7 @@ export interface DialogueAIResponse { // AI response for a single turn *during* 
   dialogueEnds?: boolean;
   updatedParticipants?: Array<string>;
   npcAttitudeUpdates?: Array<DialogueNpcAttitudeUpdate>;
+  npcKnownNameUpdates?: Array<DialogueNpcKnownNameUpdate>;
 }
 
 // Context object for building a dialogue turn prompt

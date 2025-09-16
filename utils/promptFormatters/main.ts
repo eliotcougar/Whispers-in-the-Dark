@@ -52,7 +52,7 @@ export const npcsToString = (
       }
       const knownNames = npc.knownPlayerNames.length > 0
         ? npc.knownPlayerNames.join(', ')
-        : 'Unknown';
+        : 'ATTENTION! NPC does not know the player\'s name.';
       str += `, Attitude: ${npc.attitudeTowardPlayer}, Knows player as: ${knownNames}`;
       if (addDescription) {
         str += `, "${npc.description}"`;

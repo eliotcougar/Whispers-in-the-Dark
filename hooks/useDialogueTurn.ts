@@ -149,6 +149,9 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           const filteredAttitudeUpdates = (turnData.npcAttitudeUpdates ?? []).filter(update =>
             unionParticipantSet.has(update.name) && knownNpcNames.has(update.name),
           );
+          const filteredKnownNameUpdates = (turnData.npcKnownNameUpdates ?? []).filter(update =>
+            unionParticipantSet.has(update.name) && knownNpcNames.has(update.name),
+          );
           if (filteredAttitudeUpdates.length > 0) {
             const attitudePayloads: Array<ValidNPCUpdatePayload> = filteredAttitudeUpdates.map(
               ({ name, newAttitudeTowardPlayer }) => ({
@@ -157,6 +160,26 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
               }),
             );
             updatedAllNPCs = applyAllNPCChanges([], attitudePayloads, latestStateAfterFetch.allNPCs);
+          }
+          if (filteredKnownNameUpdates.length > 0) {
+            const namePayloads: Array<ValidNPCUpdatePayload> = [];
+            filteredKnownNameUpdates.forEach(update => {
+              const target = updatedAllNPCs.find(npc => npc.name === update.name);
+              if (!target) return;
+              if (update.newKnownPlayerNames !== undefined) {
+                namePayloads.push({ name: update.name, newKnownPlayerNames: update.newKnownPlayerNames });
+              } else if (update.addKnownPlayerName) {
+                const existingNames = target.knownPlayerNames ?? [];
+                const trimmedAdd = update.addKnownPlayerName.trim();
+                if (trimmedAdd.length === 0) return;
+                const namesSet = new Set(existingNames);
+                namesSet.add(trimmedAdd);
+                namePayloads.push({ name: update.name, newKnownPlayerNames: Array.from(namesSet) });
+              }
+            });
+            if (namePayloads.length > 0) {
+              updatedAllNPCs = applyAllNPCChanges([], namePayloads, updatedAllNPCs);
+            }
           }
 
           const stateWithNpcResponse: FullGameState = {

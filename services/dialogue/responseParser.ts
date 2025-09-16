@@ -2,7 +2,7 @@
  * @file responseParser.ts
  * @description Helpers for parsing dialogue-related AI responses.
  */
-import { DialogueAIResponse, DialogueSummaryResponse, DialogueNpcAttitudeUpdate } from '../../types';
+import { DialogueAIResponse, DialogueSummaryResponse, DialogueNpcAttitudeUpdate, DialogueNpcKnownNameUpdate } from '../../types';
 import { safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
 import { trimDialogueHints } from '../../utils/dialogueParsing';
 
@@ -27,6 +27,7 @@ const parseDialogueResponse = (
       return null;
     }
     let sanitizedAttitudeUpdates: Array<DialogueNpcAttitudeUpdate> | undefined;
+    let sanitizedKnownNameUpdates: Array<DialogueNpcKnownNameUpdate> | undefined;
     if (parsed.npcAttitudeUpdates !== undefined) {
       if (!Array.isArray(parsed.npcAttitudeUpdates)) {
         console.warn('Parsed dialogue JSON has invalid npcAttitudeUpdates:', parsed.npcAttitudeUpdates);
@@ -60,12 +61,83 @@ const parseDialogueResponse = (
         });
       }
     }
+    if (parsed.npcKnownNameUpdates !== undefined) {
+      if (!Array.isArray(parsed.npcKnownNameUpdates)) {
+        console.warn('Parsed dialogue JSON has invalid npcKnownNameUpdates:', parsed.npcKnownNameUpdates);
+        return null;
+      }
+      sanitizedKnownNameUpdates = [];
+      for (const entry of parsed.npcKnownNameUpdates) {
+        if (!entry || typeof entry !== 'object') {
+          console.warn('npcKnownNameUpdates entry is not an object:', entry);
+          return null;
+        }
+        const nameRaw = (entry as { name?: unknown }).name;
+        const replaceRaw = (entry as { newKnownPlayerNames?: unknown }).newKnownPlayerNames;
+        const addRaw = (entry as { addKnownPlayerName?: unknown }).addKnownPlayerName;
+        if (typeof nameRaw !== 'string') {
+          console.warn('npcKnownNameUpdates entry has invalid name:', entry);
+          return null;
+        }
+        const trimmedName = nameRaw.trim();
+        if (trimmedName.length === 0) {
+          console.warn('npcKnownNameUpdates entry has empty name:', entry);
+          return null;
+        }
+        let newKnownPlayerNames: Array<string> | undefined;
+        let addKnownPlayerName: string | undefined;
+        if (replaceRaw !== undefined) {
+          if (!Array.isArray(replaceRaw)) {
+            console.warn('npcKnownNameUpdates entry has invalid newKnownPlayerNames:', entry);
+            return null;
+          }
+          const trimmedList: Array<string> = [];
+          for (const val of replaceRaw) {
+            if (typeof val !== 'string') {
+              console.warn('npcKnownNameUpdates entry has non-string newKnownPlayerNames value:', entry);
+              return null;
+            }
+            const trimmedVal = val.trim();
+            if (trimmedVal.length === 0) {
+              console.warn('npcKnownNameUpdates entry has empty string in newKnownPlayerNames:', entry);
+              return null;
+            }
+            trimmedList.push(trimmedVal);
+          }
+          newKnownPlayerNames = trimmedList;
+        }
+        if (addRaw !== undefined) {
+          if (typeof addRaw !== 'string') {
+            console.warn('npcKnownNameUpdates entry has invalid addKnownPlayerName:', entry);
+            return null;
+          }
+          const trimmedAdd = addRaw.trim();
+          if (trimmedAdd.length === 0) {
+            console.warn('npcKnownNameUpdates entry has empty addKnownPlayerName:', entry);
+            return null;
+          }
+          addKnownPlayerName = trimmedAdd;
+        }
+        if (newKnownPlayerNames === undefined && addKnownPlayerName === undefined) {
+          console.warn('npcKnownNameUpdates entry missing updates:', entry);
+          return null;
+        }
+        sanitizedKnownNameUpdates.push({
+          name: trimmedName,
+          ...(newKnownPlayerNames !== undefined ? { newKnownPlayerNames } : {}),
+          ...(addKnownPlayerName !== undefined ? { addKnownPlayerName } : {}),
+        });
+      }
+    }
     if (parsed.playerOptions.length === 0) {
       parsed.playerOptions = ['End Conversation.'];
     }
     const validated = parsed as DialogueAIResponse;
     if (sanitizedAttitudeUpdates !== undefined) {
       validated.npcAttitudeUpdates = sanitizedAttitudeUpdates;
+    }
+    if (sanitizedKnownNameUpdates !== undefined) {
+      validated.npcKnownNameUpdates = sanitizedKnownNameUpdates;
     }
     if (thoughts && thoughts.length > 0) {
       validated.npcResponses.forEach((r, idx) => {

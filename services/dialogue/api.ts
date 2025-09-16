@@ -91,9 +91,26 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
         additionalProperties: false,
       },
     },
+    npcKnownNameUpdates: {
+      type: 'array',
+      description: 'Describe any change in the name or nickname an NPC uses for the player.',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          newKnownPlayerNames: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+          addKnownPlayerName: { type: 'string' },
+        },
+        required: ['name'],
+        additionalProperties: false,
+      },
+    },
   },
   required: ['dialogueEnds', 'npcResponses', 'playerOptions'],
-  propertyOrdering: ['dialogueEnds', 'npcResponses', 'playerOptions', 'updatedParticipants', 'npcAttitudeUpdates'],
+  propertyOrdering: ['dialogueEnds', 'npcResponses', 'playerOptions', 'updatedParticipants', 'npcAttitudeUpdates', 'npcKnownNameUpdates'],
   additionalProperties: false,
 } as const;
 

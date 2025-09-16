@@ -19,6 +19,27 @@ describe('parseDialogueTurnResponse', () => {
     ]);
   });
 
+  it('captures known player name updates when provided', () => {
+    const response = JSON.stringify({
+      dialogueEnds: false,
+      npcResponses: [{ speaker: 'Marla', line: 'So you are called Dawn?' }],
+      playerOptions: ['Smile.', 'End conversation.'],
+      npcKnownNameUpdates: [
+        { name: 'Marla', newKnownPlayerNames: [' Dawn ', 'Hero'], addKnownPlayerName: ' Star ' },
+        { name: 'Jorin', newKnownPlayerNames: [] },
+        { name: 'Sera', newKnownPlayerNames: [], addKnownPlayerName: ' Friend ' },
+      ],
+    });
+
+    const parsed = parseDialogueTurnResponse(response);
+
+    expect(parsed?.npcKnownNameUpdates).toEqual([
+      { name: 'Marla', newKnownPlayerNames: ['Dawn', 'Hero'], addKnownPlayerName: 'Star' },
+      { name: 'Jorin', newKnownPlayerNames: [] },
+      { name: 'Sera', newKnownPlayerNames: [], addKnownPlayerName: 'Friend' },
+    ]);
+  });
+
   it('leaves previous attitudes untouched when npcAttitudeUpdates is omitted', () => {
     const response = JSON.stringify({
       dialogueEnds: false,
@@ -65,6 +86,19 @@ describe('parseDialogueTurnResponse', () => {
       playerOptions: ['Wait.', 'End conversation.'],
       npcAttitudeUpdates: [
         { name: 'Farlan' },
+      ],
+    });
+
+    expect(parseDialogueTurnResponse(response)).toBeNull();
+  });
+
+  it('rejects known name payloads with invalid data', () => {
+    const response = JSON.stringify({
+      dialogueEnds: false,
+      npcResponses: [{ speaker: 'Lysa', line: 'I forget your name.' }],
+      playerOptions: ['Remind her.', 'End conversation.'],
+      npcKnownNameUpdates: [
+        { name: '   ', addKnownPlayerName: 'Hero' },
       ],
     });
 

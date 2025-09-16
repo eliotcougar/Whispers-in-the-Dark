@@ -93,7 +93,7 @@ export const buildDialogueTurnPrompt = (
           } else {
             npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
           }
-          const knownPlayerLabel = npc.knownPlayerNames.length > 0 ? npc.knownPlayerNames.join(', ') : 'Unknown';
+          const knownPlayerLabel = npc.knownPlayerNames.length > 0 ? npc.knownPlayerNames.join(', ') : 'ATTENTION! NPC does not know the player\'s name.';
           npcStr += `; Attitude: ${npc.attitudeTowardPlayer}; Knows player as: ${knownPlayerLabel}`;
           npcStr += ')';
           return npcStr;
@@ -192,7 +192,7 @@ export const buildDialogueSummaryPrompt = (
           } else {
             npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
           }
-          const knownPlayerLabel = npc.knownPlayerNames.length > 0 ? npc.knownPlayerNames.join(', ') : 'Unknown';
+          const knownPlayerLabel = npc.knownPlayerNames.length > 0 ? npc.knownPlayerNames.join(', ') : 'ATTENTION! NPC does not know the player\'s name.';
           npcStr += `; Attitude: ${npc.attitudeTowardPlayer}; Knows player as: ${knownPlayerLabel}`;
           npcStr += ')';
           return npcStr;
@@ -227,7 +227,7 @@ Provide the next scene description and ${String(MAIN_TURN_OPTIONS_COUNT)} action
 If the dialogue revealed a new alias for an existing NPC, use "npcsUpdated" with "addAlias".
 If the dialogue changed some NPC's general whereabouts, use "newLastKnownLocation" in "npcsUpdated".
 If the dialogue shifts an NPC's feelings toward the player, set "newAttitudeTowardPlayer".
-If an NPC learns, confirms, or forgets the player's name, set "newKnownPlayerName" (use null if they no longer know a name).
+If an NPC learns, confirms, or forgets the player's name, use "npcKnownNameUpdates" with either "newKnownPlayerNames" (replace list; empty array means they know none) or "addKnownPlayerName" to append a single new nickname.
 If the dialogue revealed new map information (new locations, changed accessibility, etc.), or if Player's own location changed over the course of the dialogue, then set "mapUpdated": true.
 `;
 };
