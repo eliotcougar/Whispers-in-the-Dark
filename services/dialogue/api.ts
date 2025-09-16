@@ -78,9 +78,22 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
         "Provide the new full list of participants if it changes. Don't include the player.",
       items: { type: 'string' },
     },
+    npcAttitudeUpdates: {
+      type: 'array',
+      description: 'Describe any change in an NPC\'s attitude toward the player during this turn.',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          newAttitudeTowardPlayer: { type: 'string' },
+        },
+        required: ['name', 'newAttitudeTowardPlayer'],
+        additionalProperties: false,
+      },
+    },
   },
   required: ['dialogueEnds', 'npcResponses', 'playerOptions'],
-  propertyOrdering: ['dialogueEnds', 'npcResponses', 'playerOptions', 'updatedParticipants'],
+  propertyOrdering: ['dialogueEnds', 'npcResponses', 'playerOptions', 'updatedParticipants', 'npcAttitudeUpdates'],
   additionalProperties: false,
 } as const;
 

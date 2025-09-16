@@ -137,14 +137,15 @@ Required JSON Structure:
   "dialogueEnds": boolean?,
   "npcResponses": [{ "speaker": "Name", "line": "text" }],
   "playerOptions": ["text"],
-  "updatedParticipants": ["Name"]?
+  "updatedParticipants": ["Name"]?,
+  "npcAttitudeUpdates": [{ "name": "Name", "newAttitudeTowardPlayer": "text" }]?
 }
 
 Do NOT change the text of any npcResponses.line or playerOptions.
 Ensure each "speaker" value is one of the valid participant names.
 Respond ONLY with the corrected JSON object.`;
 
-  const systemInstruction = `Correct a malformed dialogue turn JSON object without altering the dialogue text. Speaker names must be among: ${participantList}. Adhere strictly to JSON format.`;
+  const systemInstruction = `Correct a malformed dialogue turn JSON object without altering the dialogue text. Speaker names must be among: ${participantList}. Preserve any npcAttitudeUpdates entries if present. Adhere strictly to JSON format.`;
 
   return retryAiCall<DialogueAIResponse>(async attempt => {
     try {

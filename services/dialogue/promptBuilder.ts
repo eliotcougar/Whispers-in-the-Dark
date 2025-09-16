@@ -67,9 +67,8 @@ export const buildDialogueTurnPrompt = (
   const playerName = heroSheet?.heroShortName ?? 'Player';
   const historyString = trimmedHistory
     .map(entry => {
-      const thought = entry.thought ? `Narrator THOUGHTS: "${entry.thought}"\n` : '';
       const speaker = entry.speaker.toLowerCase() === 'player' ? playerName : entry.speaker;
-      return `${thought}${speaker}: "${entry.line}"`;
+      return `${speaker}: "${entry.line}"`;
     })
     .join('\n');
 
@@ -148,7 +147,7 @@ ${npcContextString}
 - Current Dialogue Participants: ${dialogueParticipants.join(', ')};
 ${pastDialogueSummariesContext.trim() ? pastDialogueSummariesContext : '\n- No specific past dialogue summaries available for current participants.'}
 
-- Dialogue History (most recent last; lines starting with THOUGHT describe internal thoughts):
+- Dialogue History (most recent last):
 ${historyString}
 
 - Player's Last Utterance/Choice: "${playerLastUtterance}"
@@ -156,6 +155,7 @@ ${historyString}
 Based on this context, provide the next part of the dialogue according to the DIALOGUE_SYSTEM_INSTRUCTION.
 The NPC(s) should respond to the player's last utterance, taking into account any relevant past conversation summaries.
 Provide new dialogue options, ensuring the last one is a way to end the dialogue.
+If an NPC's attitude toward the player changes during this exchange, include "npcAttitudeUpdates" with one entry per NPC describing their new attitude.
 `;
 };
 

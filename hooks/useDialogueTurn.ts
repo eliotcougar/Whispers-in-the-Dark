@@ -9,12 +9,14 @@ import {
   FullGameState,
   DialogueData,
   LoadingReason,
+  ValidNPCUpdatePayload,
 } from '../types';
 import { executeDialogueTurn } from '../services/dialogue';
 import { collectRelevantFacts_Service } from '../services/loremaster';
 import { PLAYER_HOLDER_ID, RECENT_LOG_COUNT_FOR_PROMPT } from '../constants';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { DialogueTurnDebugEntry } from '../types';
+import { applyAllNPCChanges } from '../utils/npcUtils';
 
 export interface UseDialogueTurnProps {
   getCurrentGameState: () => FullGameState;
@@ -138,9 +140,29 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
             nextDialogueStateData.options = [];
           }
 
+          let updatedAllNPCs = latestStateAfterFetch.allNPCs;
+          const unionParticipantSet = new Set<string>([
+            ...latestStateAfterFetch.dialogueState.participants,
+            ...(turnData.updatedParticipants ?? latestStateAfterFetch.dialogueState.participants),
+          ]);
+          const knownNpcNames = new Set(latestStateAfterFetch.allNPCs.map(npc => npc.name));
+          const filteredAttitudeUpdates = (turnData.npcAttitudeUpdates ?? []).filter(update =>
+            unionParticipantSet.has(update.name) && knownNpcNames.has(update.name),
+          );
+          if (filteredAttitudeUpdates.length > 0) {
+            const attitudePayloads: Array<ValidNPCUpdatePayload> = filteredAttitudeUpdates.map(
+              ({ name, newAttitudeTowardPlayer }) => ({
+                name,
+                newAttitudeTowardPlayer,
+              }),
+            );
+            updatedAllNPCs = applyAllNPCChanges([], attitudePayloads, latestStateAfterFetch.allNPCs);
+          }
+
           const stateWithNpcResponse: FullGameState = {
             ...latestStateAfterFetch,
             dialogueState: nextDialogueStateData,
+            allNPCs: updatedAllNPCs,
             lastTurnChanges: null,
           };
           commitGameState(stateWithNpcResponse);

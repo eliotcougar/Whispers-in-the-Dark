@@ -2,7 +2,7 @@
  * @file responseParser.ts
  * @description Helpers for parsing dialogue-related AI responses.
  */
-import { DialogueAIResponse, DialogueSummaryResponse } from '../../types';
+import { DialogueAIResponse, DialogueSummaryResponse, DialogueNpcAttitudeUpdate } from '../../types';
 import { safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
 import { trimDialogueHints } from '../../utils/dialogueParsing';
 
@@ -26,10 +26,47 @@ const parseDialogueResponse = (
       console.warn('Parsed dialogue JSON does not match DialogueAIResponse structure:', parsed);
       return null;
     }
+    let sanitizedAttitudeUpdates: Array<DialogueNpcAttitudeUpdate> | undefined;
+    if (parsed.npcAttitudeUpdates !== undefined) {
+      if (!Array.isArray(parsed.npcAttitudeUpdates)) {
+        console.warn('Parsed dialogue JSON has invalid npcAttitudeUpdates:', parsed.npcAttitudeUpdates);
+        return null;
+      }
+      sanitizedAttitudeUpdates = [];
+      for (const entry of parsed.npcAttitudeUpdates) {
+        if (!entry || typeof entry !== 'object') {
+          console.warn('npcAttitudeUpdates entry is not an object:', entry);
+          return null;
+        }
+        const nameRaw = (entry as { name?: unknown }).name;
+        const attitudeRaw = (entry as { newAttitudeTowardPlayer?: unknown }).newAttitudeTowardPlayer;
+        if (typeof nameRaw !== 'string' || typeof attitudeRaw !== 'string') {
+          console.warn('npcAttitudeUpdates entry has invalid fields:', entry);
+          return null;
+        }
+        const trimmedName = nameRaw.trim();
+        if (trimmedName.length === 0) {
+          console.warn('npcAttitudeUpdates entry has empty name:', entry);
+          return null;
+        }
+        const trimmedAttitude = attitudeRaw.trim();
+        if (trimmedAttitude.length === 0) {
+          console.warn('npcAttitudeUpdates entry has empty attitude:', entry);
+          return null;
+        }
+        sanitizedAttitudeUpdates.push({
+          name: trimmedName,
+          newAttitudeTowardPlayer: trimmedAttitude,
+        });
+      }
+    }
     if (parsed.playerOptions.length === 0) {
       parsed.playerOptions = ['End Conversation.'];
     }
     const validated = parsed as DialogueAIResponse;
+    if (sanitizedAttitudeUpdates !== undefined) {
+      validated.npcAttitudeUpdates = sanitizedAttitudeUpdates;
+    }
     if (thoughts && thoughts.length > 0) {
       validated.npcResponses.forEach((r, idx) => {
         if (thoughts[idx]) {
