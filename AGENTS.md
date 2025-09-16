@@ -15,6 +15,7 @@ Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
 - `fd` 10.3.0 installed via winget; use for fast file discovery.
 - `fzf` 0.65.1 installed via winget; use for fuzzy file/pattern selection.
 - `rg` 14.1.1 installed system-wide; use for fast text searching with `.rgignore` defaults.
+- When piping Windows paths into POSIX tools, translate backslashes (e.g., `tr '\\' '/'`) or use fd's `--path-separator '//'` to avoid escape parsing.
 
 ## Build, Test, and Development Commands
 - `npm run typecheck` — strict TypeScript checks (no emit).
