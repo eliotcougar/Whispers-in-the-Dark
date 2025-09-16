@@ -1,7 +1,2 @@
-import { useDialogueFlow, type UseDialogueFlowProps } from './useDialogueFlow';
-
-export type UseDialogueManagementProps = UseDialogueFlowProps;
-
-export const useDialogueManagement = (props: UseDialogueManagementProps) => {
-  return useDialogueFlow(props);
-};
+export type { UseDialogueFlowProps as UseDialogueManagementProps } from './useDialogueFlow';
+export { useDialogueFlow as useDialogueManagement } from './useDialogueFlow';

@@ -51,7 +51,7 @@ export function useAutosave({
       const debugStack = gatherDebugPacketStack();
       saveGameStateToLocalStorage(
         gameStateStack,
-        setError ? (msg) => { setError(msg); } : undefined,
+        setError,
       );
       saveDebugPacketStackToLocalStorage(debugStack);
       saveDebugLoreToLocalStorage({

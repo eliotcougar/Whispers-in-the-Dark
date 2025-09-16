@@ -20,12 +20,5 @@ export const buildSaveStateSnapshot = (
   return {
     ...currentState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
-    mapData: currentState.mapData,
-    currentMapNodeId: currentState.currentMapNodeId,
-    destinationNodeId: currentState.destinationNodeId,
-    mapLayoutConfig: currentState.mapLayoutConfig,
-    mapViewBox: currentState.mapViewBox,
-    globalTurnNumber: currentState.globalTurnNumber,
-    currentTheme: currentState.currentTheme,
   };
 };

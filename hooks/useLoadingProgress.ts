@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import {
   onProgress,
   offProgress,
@@ -22,9 +22,5 @@ export const useLoadingProgress = () => {
     };
   }, []);
 
-  const clearProgress = useCallback(() => {
-    clearFn();
-  }, []);
-
-  return { progress, retryCount: retryCountState, clearProgress };
+  return { progress, retryCount: retryCountState, clearProgress: clearFn };
 };
