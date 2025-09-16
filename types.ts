@@ -288,7 +288,7 @@ export interface GameStateFromAI {
     description: string; 
     aliases?: Array<string>; 
     presenceStatus?: NPC['presenceStatus'];
-    attitudeTowardPlayer?: string;
+    attitudeTowardPlayer: string;
     knownPlayerNames?: Array<string>;
     lastKnownLocation?: string | null; 
     preciseLocation?: string | null;
@@ -772,7 +772,7 @@ export interface ValidNewNPCPayload {
   description: string;
   aliases?: Array<string>;
   presenceStatus?: NPC['presenceStatus'];
-  attitudeTowardPlayer?: string;
+  attitudeTowardPlayer: string;
   knownPlayerNames?: Array<string>;
   lastKnownLocation?: string | null;
   preciseLocation?: string | null;

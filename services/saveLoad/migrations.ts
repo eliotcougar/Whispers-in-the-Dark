@@ -9,7 +9,7 @@ import {
   GameStateStack,
   SavedGameStack,
 } from '../../types';
-import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID, DEFAULT_ENABLED_THEME_PACKS, DEFAULT_NPC_ATTITUDE } from '../../constants';
+import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID, DEFAULT_ENABLED_THEME_PACKS } from '../../constants';
 import { findThemeByName } from '../../utils/themeUtils';
 import {
   ensureCompleteMapLayoutConfig,
@@ -137,8 +137,8 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
         ...npc,
         aliases: npc.aliases ?? [],
         presenceStatus: npc.presenceStatus,
-        attitudeTowardPlayer: npc.attitudeTowardPlayer ?? DEFAULT_NPC_ATTITUDE,
-        knownPlayerNames: sanitizeKnownPlayerNames(npc.knownPlayerNames ?? null),
+        attitudeTowardPlayer: npc.attitudeTowardPlayer,
+        knownPlayerNames: sanitizeKnownPlayerNames(npc.knownPlayerNames),
         lastKnownLocation: npc.lastKnownLocation,
         preciseLocation: npc.preciseLocation,
         dialogueSummaries: npc.dialogueSummaries ?? [],
@@ -192,8 +192,8 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     thinkingEffort: 'Medium',
     allNPCs: savedData.allNPCs.map(npc => ({
       ...npc,
-      attitudeTowardPlayer: npc.attitudeTowardPlayer ?? DEFAULT_NPC_ATTITUDE,
-      knownPlayerNames: sanitizeKnownPlayerNames(npc.knownPlayerNames ?? null),
+      attitudeTowardPlayer: npc.attitudeTowardPlayer,
+      knownPlayerNames: sanitizeKnownPlayerNames(npc.knownPlayerNames),
       dialogueSummaries: npc.dialogueSummaries ?? [],
     })),
     mapData: mapDataFromLoad,
@@ -272,3 +272,7 @@ export function normalizeLoadedSaveDataStack(
   }
   return { current, previous };
 }
+
+
+
+

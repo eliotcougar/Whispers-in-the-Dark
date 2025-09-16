@@ -50,7 +50,7 @@ export const npcsToString = (
         }
         str += ')';
       }
-      const knownNames = npc.knownPlayerNames && npc.knownPlayerNames.length > 0
+      const knownNames = npc.knownPlayerNames.length > 0
         ? npc.knownPlayerNames.join(', ')
         : 'Unknown';
       str += `, Attitude: ${npc.attitudeTowardPlayer}, Knows player as: ${knownNames}`;
@@ -247,3 +247,4 @@ export const formatStoryArcContext = (arc: StoryArc): string => {
     `Success Condition: ${act.successCondition}`,
   ].join('\n');
 };
+

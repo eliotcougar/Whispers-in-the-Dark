@@ -30,7 +30,7 @@ const infoDisplayContent = {
       "header": "Save Game Functionality & Game Updates",
       "text": [
         "Autosave: The game automatically saves your progress to your browser's local storage periodically. However, this save can be lost if the current version of the game you play is updated. Please, do a manual save to a file before closing the game.",
-        "Manual Save/Load: You can manually save your game to a file (`.json`) and load it later using the dedicated toolbar buttons. This is useful for backups or transferring saves between devices.",
+        "Manual Save/Load: You can manually save your game to a file (.json) and load it later using the dedicated toolbar buttons. This is useful for backups or transferring saves between devices.",
         "Game Updates & Save Compatibility: \"Whispers in the Dark\" is an evolving game. While we strive for backward compatibility with save files, significant updates that change the game's data structure might affect older saves. The game tracks a `saveGameVersion` (currently: {{CURRENT_SAVE_GAME_VERSION}}). If you load a save from an older version, the game will attempt to adapt it. For example, if a new field like \"Local Place\" is added, the game might infer its value or use a default for older saves. However, very old or structurally incompatible saves might not load correctly or could lead to unexpected behavior. It's always a good idea to manually save your game before major updates if you wish to preserve a specific state."
       ]
     },
@@ -56,7 +56,8 @@ const infoDisplayContent = {
         "Restored the fallback image generation",
         "Dialogue mode and NPC memories of the player now refer the player by their name instead of just Player.",
         "Loremaster Distill now uses Gemini-2.5-pro. It happens in the background, so the long wait time doesn't interfere with gameplay.",
-        "Implemented quick version of Cartographer AI when only the current node changes and no changes to the map graph are needed."
+        "Implemented quick version of Cartographer AI when only the current node changes and no changes to the map graph are needed.",
+        "Implemented tracking of attitude towards player for NPCs."
       ]
     },
     {

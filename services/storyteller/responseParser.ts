@@ -142,18 +142,23 @@ async function handleDialogueSetup(
             const NPCsForDialogueContext: Array<NPC> = [...context.allRelevantNPCs];
             const existingByName = new Map(context.allRelevantNPCs.map(n => [n.name, n]));
               (data.npcsAdded ?? []).forEach(npcAdd => {
-                if (isValidNewNPCPayload(npcAdd)) {
-                    NPCsForDialogueContext.push({
-                        ...npcAdd,
-                        id: buildNPCId(npcAdd.name),
-                          presenceStatus: npcAdd.presenceStatus ?? 'unknown',
-                          attitudeTowardPlayer: toAttitude((npcAdd as { attitudeTowardPlayer?: unknown }).attitudeTowardPlayer),
-                          knownPlayerNames: toKnownNames((npcAdd as { knownPlayerNames?: unknown; knownPlayerName?: unknown }).knownPlayerNames ?? (npcAdd as { knownPlayerName?: unknown }).knownPlayerName),
-                          lastKnownLocation: npcAdd.lastKnownLocation ?? null,
-                          preciseLocation: npcAdd.preciseLocation ?? null,
-                    } as NPC);
+                const normalized = {
+                  ...npcAdd,
+                  attitudeTowardPlayer: toAttitude((npcAdd as { attitudeTowardPlayer?: unknown }).attitudeTowardPlayer),
+                } as unknown;
+                if (isValidNewNPCPayload(normalized)) {
+                  const add = normalized;
+                  NPCsForDialogueContext.push({
+                    ...add,
+                    id: buildNPCId(add.name),
+                    presenceStatus: add.presenceStatus ?? 'unknown',
+                    attitudeTowardPlayer: add.attitudeTowardPlayer,
+                    knownPlayerNames: toKnownNames((add as { knownPlayerNames?: unknown; knownPlayerName?: unknown }).knownPlayerNames ?? (add as { knownPlayerName?: unknown }).knownPlayerName),
+                    lastKnownLocation: add.lastKnownLocation ?? null,
+                    preciseLocation: add.preciseLocation ?? null,
+                  } as NPC);
                 }
-            });
+              });
               (data.npcsUpdated ?? []).forEach(npcUpd => {
                 if (isValidNPCUpdate(npcUpd)) {
                     const existing = existingByName.get(npcUpd.name);
@@ -226,16 +231,20 @@ async function handleNPCChanges(
             const originalName = (typeof originalNPCAdd === 'object' && originalNPCAdd !== null && 'name' in originalNPCAdd)
                 ? (originalNPCAdd as { name?: unknown }).name as string | undefined
                 : undefined;
-            if (isValidNewNPCPayload(originalNPCAdd)) {
+            const candidate = (typeof originalNPCAdd === 'object' && originalNPCAdd !== null)
+                ? (originalNPCAdd as Partial<ValidNewNPCPayload>)
+                : null;
+            if (candidate && isValidNewNPCPayload({ ...candidate, attitudeTowardPlayer: toAttitude(candidate.attitudeTowardPlayer) } as unknown)) {
+                const add = { ...candidate, attitudeTowardPlayer: toAttitude(candidate.attitudeTowardPlayer) } as ValidNewNPCPayload;
                 finalNPCsAdded.push({
-                    ...(originalNPCAdd as NPC),
-                    id: buildNPCId(originalNPCAdd.name),
-                    aliases: originalNPCAdd.aliases ?? [],
-                    presenceStatus: originalNPCAdd.presenceStatus ?? 'unknown',
-                    attitudeTowardPlayer: toAttitude((originalNPCAdd as { attitudeTowardPlayer?: unknown }).attitudeTowardPlayer),
-                    knownPlayerNames: toKnownNames((originalNPCAdd as { knownPlayerNames?: unknown; knownPlayerName?: unknown }).knownPlayerNames ?? (originalNPCAdd as { knownPlayerName?: unknown }).knownPlayerName),
-                    lastKnownLocation: originalNPCAdd.lastKnownLocation ?? null,
-                    preciseLocation: originalNPCAdd.preciseLocation ?? null,
+                    ...add,
+                    id: buildNPCId(add.name),
+                    aliases: add.aliases ?? [],
+                    presenceStatus: add.presenceStatus ?? 'unknown',
+                    attitudeTowardPlayer: add.attitudeTowardPlayer,
+                    knownPlayerNames: toKnownNames(((add as { knownPlayerNames?: unknown; knownPlayerName?: unknown }).knownPlayerNames) ?? (add as { knownPlayerName?: unknown }).knownPlayerName),
+                    lastKnownLocation: add.lastKnownLocation ?? null,
+                    preciseLocation: add.preciseLocation ?? null,
                     dialogueSummaries: [],
                 });
             } else {
@@ -403,10 +412,10 @@ async function handleNPCChanges(
                         new Set([...(newNPCDataFromUpdate.aliases ?? []), ...correctedDetails.aliases])
                     );
                     newNPCDataFromUpdate.presenceStatus = correctedDetails.presenceStatus;
-                    newNPCDataFromUpdate.attitudeTowardPlayer = toAttitude(correctedDetails.attitudeTowardPlayer ?? newNPCDataFromUpdate.attitudeTowardPlayer);
+                    if (typeof (correctedDetails as { attitudeTowardPlayer?: unknown }).attitudeTowardPlayer === 'string') { newNPCDataFromUpdate.attitudeTowardPlayer = toAttitude((correctedDetails as { attitudeTowardPlayer?: string }).attitudeTowardPlayer); }
                     const correctedNames = toKnownNames(((correctedDetails as { knownPlayerNames?: unknown }).knownPlayerNames) ?? (correctedDetails as { knownPlayerName?: unknown }).knownPlayerName);
                     if (correctedNames.length > 0) {
-                        newNPCDataFromUpdate.knownPlayerNames = Array.from(new Set([...(newNPCDataFromUpdate.knownPlayerNames ?? []), ...correctedNames]));
+                        newNPCDataFromUpdate.knownPlayerNames = Array.from(new Set([...(newNPCDataFromUpdate.knownPlayerNames), ...correctedNames]));
                     }
                     newNPCDataFromUpdate.lastKnownLocation = correctedDetails.lastKnownLocation;
                     newNPCDataFromUpdate.preciseLocation = correctedDetails.preciseLocation;
@@ -574,5 +583,9 @@ export async function parseAIResponse(
         return null;
     }
 }
+
+
+
+
 
 
