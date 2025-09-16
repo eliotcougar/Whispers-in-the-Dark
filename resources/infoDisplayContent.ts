@@ -57,7 +57,8 @@ const infoDisplayContent = {
         "Dialogue mode and NPC memories of the player now refer the player by their name instead of just Player.",
         "Loremaster Distill now uses Gemini-2.5-pro. It happens in the background, so the long wait time doesn't interfere with gameplay.",
         "Implemented quick version of Cartographer AI when only the current node changes and no changes to the map graph are needed.",
-        "Implemented tracking of attitude towards player for NPCs."
+        "NPCs track their attitude towards player.",
+        "The world is pre-populated with NPCs mentioned in the backstory."
       ]
     },
     {

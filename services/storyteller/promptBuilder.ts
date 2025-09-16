@@ -57,6 +57,11 @@ ${heroDescription}
 ## Player Character Backstory:
 ${heroPast}
 
+### NPC Seeding Requirements:
+- Carefully examine the narrative arc, world details, and backstory. Identify **every** named individual other than the protagonist.
+- For each named NPC, add a detailed entry to "npcsAdded" with attitudeTowardPlayer, presenceStatus, lastKnownLocation, preciseLocation (if nearby), and the name(s) they know protagonist by.
+- Do not omit or rename any referenced character. If a figure is clearly named or title-referenced, include them. If only referenced by title or occupation - creatively invent their name.
+
 Creatively generate the main quest, current objective, scene description, action options, and starting items using the world details and hero history for inspiration.
 Creatively add any important quest item(s), if any, based on your generated quest and objective.
 
