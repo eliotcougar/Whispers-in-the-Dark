@@ -18,7 +18,7 @@ describe('NPC attitude update with existing dialogue memories', () => {
       aliases: [],
       presenceStatus: 'nearby',
       attitudeTowardPlayer: 'neutral',
-      knownPlayerNames: [],
+      knowsPlayerAs: [],
       lastKnownLocation: null,
       preciseLocation: null,
       dialogueSummaries: [existingSummary],

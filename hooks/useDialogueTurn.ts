@@ -171,7 +171,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
               if (update.newKnownPlayerNames !== undefined) {
                 namePayloads.push({ name: update.name, newKnownPlayerNames: update.newKnownPlayerNames });
               } else if (update.addKnownPlayerName) {
-                const existingNames = target.knownPlayerNames;
+                const existingNames = target.knowsPlayerAs;
                 const trimmedAdd = update.addKnownPlayerName.trim();
                 if (trimmedAdd.length === 0) return;
                 const namesSet = new Set(existingNames);

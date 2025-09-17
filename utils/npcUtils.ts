@@ -46,7 +46,7 @@ export const buildNPCChangeRecords = (
       aliases: npcAdd.aliases ?? [],
       presenceStatus: npcAdd.presenceStatus ?? 'unknown',
       attitudeTowardPlayer: normalizeAttitude(npcAdd.attitudeTowardPlayer),
-      knownPlayerNames: normalizeKnownPlayerNames(npcAdd.knownPlayerNames),
+      knowsPlayerAs: normalizeKnownPlayerNames(npcAdd.knowsPlayerAs),
       lastKnownLocation: npcAdd.lastKnownLocation ?? null,
       preciseLocation: npcAdd.preciseLocation ?? null,
       dialogueSummaries: [],
@@ -67,7 +67,7 @@ export const buildNPCChangeRecords = (
       }
       if (npcUpdate.newPresenceStatus !== undefined) newNPCData.presenceStatus = npcUpdate.newPresenceStatus;
       if (npcUpdate.newAttitudeTowardPlayer !== undefined) newNPCData.attitudeTowardPlayer = normalizeAttitude(npcUpdate.newAttitudeTowardPlayer);
-      if (npcUpdate.newKnownPlayerNames !== undefined) newNPCData.knownPlayerNames = normalizeKnownPlayerNames(npcUpdate.newKnownPlayerNames);
+      if (npcUpdate.newKnownPlayerNames !== undefined) newNPCData.knowsPlayerAs = normalizeKnownPlayerNames(npcUpdate.newKnownPlayerNames);
       if (npcUpdate.newLastKnownLocation !== undefined) newNPCData.lastKnownLocation = npcUpdate.newLastKnownLocation;
       if (npcUpdate.newPreciseLocation !== undefined) newNPCData.preciseLocation = npcUpdate.newPreciseLocation;
 
@@ -102,7 +102,7 @@ export const applyAllNPCChanges = (
         aliases: npcAdd.aliases ?? [],
         presenceStatus: npcAdd.presenceStatus ?? 'unknown',
         attitudeTowardPlayer: normalizeAttitude(npcAdd.attitudeTowardPlayer),
-        knownPlayerNames: normalizeKnownPlayerNames(npcAdd.knownPlayerNames),
+        knowsPlayerAs: normalizeKnownPlayerNames(npcAdd.knowsPlayerAs),
         lastKnownLocation: npcAdd.lastKnownLocation ?? null,
         preciseLocation: npcAdd.preciseLocation ?? null,
         dialogueSummaries: [],
@@ -132,7 +132,7 @@ export const applyAllNPCChanges = (
       }
       if (npcUpdate.newPresenceStatus !== undefined) npcToUpdate.presenceStatus = npcUpdate.newPresenceStatus;
       if (npcUpdate.newAttitudeTowardPlayer !== undefined) npcToUpdate.attitudeTowardPlayer = normalizeAttitude(npcUpdate.newAttitudeTowardPlayer);
-      if (npcUpdate.newKnownPlayerNames !== undefined) npcToUpdate.knownPlayerNames = normalizeKnownPlayerNames(npcUpdate.newKnownPlayerNames);
+      if (npcUpdate.newKnownPlayerNames !== undefined) npcToUpdate.knowsPlayerAs = normalizeKnownPlayerNames(npcUpdate.newKnownPlayerNames);
       if (npcUpdate.newLastKnownLocation !== undefined) npcToUpdate.lastKnownLocation = npcUpdate.newLastKnownLocation;
       if (npcUpdate.newPreciseLocation !== undefined) npcToUpdate.preciseLocation = npcUpdate.newPreciseLocation;
 

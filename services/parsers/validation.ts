@@ -376,8 +376,8 @@ export function isValidNewNPCPayload(obj: unknown): obj is ValidNewNPCPayload {
     if (maybe.aliases !== undefined && !(Array.isArray(maybe.aliases) && maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) return false;
     if (maybe.presenceStatus !== undefined && !VALID_PRESENCE_STATUS_VALUES.includes(maybe.presenceStatus)) return false;
     if (typeof maybe.attitudeTowardPlayer !== 'string') return false;
-    if (maybe.knownPlayerNames !== undefined) {
-      if (!Array.isArray(maybe.knownPlayerNames) || maybe.knownPlayerNames.some((name: unknown) => typeof name !== 'string')) return false;
+    if (maybe.knowsPlayerAs !== undefined) {
+      if (!Array.isArray(maybe.knowsPlayerAs) || maybe.knowsPlayerAs.some((name: unknown) => typeof name !== 'string')) return false;
     }
     if (maybe.lastKnownLocation !== undefined && maybe.lastKnownLocation != null && typeof maybe.lastKnownLocation !== 'string') return false;
     if (maybe.preciseLocation !== undefined && maybe.preciseLocation != null && typeof maybe.preciseLocation !== 'string') return false;

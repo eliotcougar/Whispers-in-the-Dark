@@ -194,8 +194,8 @@ export function isValidNPCForSave(npc: unknown): npc is NPC {
     (maybe.presenceStatus === undefined ||
       VALID_PRESENCE_STATUS_VALUES.includes(maybe.presenceStatus)) &&
     (maybe.attitudeTowardPlayer === undefined || typeof maybe.attitudeTowardPlayer === 'string') &&
-    (maybe.knownPlayerNames === undefined ||
-      (Array.isArray(maybe.knownPlayerNames) && maybe.knownPlayerNames.every((name: unknown) => typeof name === 'string'))) &&
+    (maybe.knowsPlayerAs === undefined ||
+      (Array.isArray(maybe.knowsPlayerAs) && maybe.knowsPlayerAs.every((name: unknown) => typeof name === 'string'))) &&
     (maybe.lastKnownLocation === undefined ||
       maybe.lastKnownLocation === null ||
       typeof maybe.lastKnownLocation === 'string') &&
@@ -480,7 +480,7 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
       attitudeTowardPlayer: typeof oneNpc.attitudeTowardPlayer === 'string' && oneNpc.attitudeTowardPlayer.trim().length > 0
         ? oneNpc.attitudeTowardPlayer
         : DEFAULT_NPC_ATTITUDE,
-      knownPlayerNames: sanitizeKnownPlayerNames(oneNpc.knownPlayerNames ?? []),
+      knowsPlayerAs: sanitizeKnownPlayerNames(oneNpc.knowsPlayerAs ?? []),
       lastKnownLocation: oneNpc.lastKnownLocation ?? null,
       preciseLocation: oneNpc.preciseLocation ?? null,
       dialogueSummaries: oneNpc.dialogueSummaries ?? [],

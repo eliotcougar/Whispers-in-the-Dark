@@ -181,7 +181,7 @@ export interface NPC {
   aliases?: Array<string>;
   presenceStatus: PresenceStatus;
   attitudeTowardPlayer: string;
-  knownPlayerNames: Array<string>;
+  knowsPlayerAs: Array<string>;
   lastKnownLocation: string | null; // General location when not 'nearby' or 'companion', can be a MapNode.placeName or descriptive
   preciseLocation: string | null;    // Specific location in scene if 'nearby' or 'companion'
   dialogueSummaries?: Array<DialogueSummaryRecord>; // Stores summaries of past dialogues
@@ -302,7 +302,7 @@ export interface GameStateFromAI {
     aliases?: Array<string>; 
     presenceStatus?: NPC['presenceStatus'];
     attitudeTowardPlayer: string;
-    knownPlayerNames?: Array<string>;
+    knowsPlayerAs?: Array<string>;
     lastKnownLocation?: string | null; 
     preciseLocation?: string | null;
   }>; 
@@ -786,7 +786,7 @@ export interface ValidNewNPCPayload {
   aliases?: Array<string>;
   presenceStatus?: NPC['presenceStatus'];
   attitudeTowardPlayer: string;
-  knownPlayerNames?: Array<string>;
+  knowsPlayerAs?: Array<string>;
   lastKnownLocation?: string | null;
   preciseLocation?: string | null;
 }

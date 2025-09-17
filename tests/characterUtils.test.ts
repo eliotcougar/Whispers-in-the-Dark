@@ -8,13 +8,13 @@ describe('npcUtils', () => {
       name: 'Alice',
       description: 'An adventurer',
       attitudeTowardPlayer: 'neutral',
-      knownPlayerNames: [],
+      knowsPlayerAs: [],
     };
     const result = applyAllNPCChanges([newNPC], [], []);
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('Alice');
     expect(result[0].attitudeTowardPlayer).toBe('neutral');
-    expect(result[0].knownPlayerNames).toEqual([]);
+    expect(result[0].knowsPlayerAs).toEqual([]);
   });
 
   it('buildNPCChangeRecords returns add record', () => {
@@ -22,12 +22,12 @@ describe('npcUtils', () => {
       name: 'Bob',
       description: 'NPC',
       attitudeTowardPlayer: 'wary',
-      knownPlayerNames: ['Traveler'],
+      knowsPlayerAs: ['Traveler'],
     };
     const records = buildNPCChangeRecords([newNPC], [], []);
     expect(records[0].npcName).toBe('Bob');
     expect(records[0].type).toBe('add');
     expect(records[0].addedNPC?.attitudeTowardPlayer).toBe('wary');
-    expect(records[0].addedNPC?.knownPlayerNames).toEqual(['Traveler']);
+    expect(records[0].addedNPC?.knowsPlayerAs).toEqual(['Traveler']);
   });
 });

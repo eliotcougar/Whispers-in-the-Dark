@@ -22,7 +22,7 @@ const STRING_TEMPLATE_TOKEN = /\{([a-zA-Z0-9_]+)\}/g;
 
 const stringifyNpcValue = (npc: NPC, key: keyof NPC): string => {
   const value = npc[key];
-  if (key === 'knownPlayerNames') {
+  if (key === 'knowsPlayerAs') {
     if (Array.isArray(value) && value.length === 0) {
       return 'ATTENTION! NPC does not know the player\'s name.';
     }

@@ -566,7 +566,7 @@ function App() {
       const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
       const knownNPCs =
         npcsToString(allNPCs, '- <ID: {id}> - {name}\n') ||
-        'None specifically known in this theme yet.';
+        'None specifically known in this theme yet.\n';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;
       const journalResult = await generateJournalEntry( /* TODO: Somewhere around here we need to sanitize Chapter heading to remove any HTML or Markup formatting */

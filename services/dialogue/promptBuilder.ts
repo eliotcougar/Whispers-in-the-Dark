@@ -93,7 +93,7 @@ export const buildDialogueTurnPrompt = (
           } else {
             npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
           }
-          const knownPlayerLabel = npc.knownPlayerNames.length > 0 ? npc.knownPlayerNames.join(', ') : 'ATTENTION! NPC does not know the player\'s name.';
+          const knownPlayerLabel = npc.knowsPlayerAs.length > 0 ? npc.knowsPlayerAs.join(', ') : 'ATTENTION! NPC does not know the player\'s name.';
           npcStr += `; Attitude: ${npc.attitudeTowardPlayer}; Knows player as: ${knownPlayerLabel}`;
           npcStr += ')';
           return npcStr;
@@ -192,7 +192,7 @@ export const buildDialogueSummaryPrompt = (
           } else {
             npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
           }
-          const knownPlayerLabel = npc.knownPlayerNames.length > 0 ? npc.knownPlayerNames.join(', ') : 'ATTENTION! NPC does not know the player\'s name.';
+          const knownPlayerLabel = npc.knowsPlayerAs.length > 0 ? npc.knowsPlayerAs.join(', ') : 'ATTENTION! NPC does not know the player\'s name.';
           npcStr += `; Attitude: ${npc.attitudeTowardPlayer}; Knows player as: ${knownPlayerLabel}`;
           npcStr += ')';
           return npcStr;

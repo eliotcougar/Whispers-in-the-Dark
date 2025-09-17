@@ -153,7 +153,7 @@ async function handleDialogueSetup(
                     id: buildNPCId(add.name),
                     presenceStatus: add.presenceStatus ?? 'unknown',
                     attitudeTowardPlayer: add.attitudeTowardPlayer,
-                    knownPlayerNames: toKnownNames((add as { knownPlayerNames?: unknown; knownPlayerName?: unknown }).knownPlayerNames ?? (add as { knownPlayerName?: unknown }).knownPlayerName),
+                    knowsPlayerAs: toKnownNames((add as { knowsPlayerAs?: unknown; knownPlayerName?: unknown }).knowsPlayerAs ?? (add as { knownPlayerName?: unknown }).knownPlayerName),
                     lastKnownLocation: add.lastKnownLocation ?? null,
                     preciseLocation: add.preciseLocation ?? null,
                   } as NPC);
@@ -169,7 +169,7 @@ async function handleDialogueSetup(
                           aliases: npcUpd.newAliases ?? existing?.aliases ?? [],
                           presenceStatus: npcUpd.newPresenceStatus ?? existing?.presenceStatus ?? 'unknown',
                           attitudeTowardPlayer: toAttitude((npcUpd.newAttitudeTowardPlayer ?? existing?.attitudeTowardPlayer) ?? null),
-                          knownPlayerNames: toKnownNames(npcUpd.newKnownPlayerNames ?? existing?.knownPlayerNames ?? []),
+                          knowsPlayerAs: toKnownNames(npcUpd.newKnownPlayerNames ?? existing?.knowsPlayerAs ?? []),
                           lastKnownLocation: npcUpd.newLastKnownLocation ?? (existing?.lastKnownLocation ?? null),
                           preciseLocation: npcUpd.newPreciseLocation ?? (existing?.preciseLocation ?? null),
                     } as NPC);
@@ -242,7 +242,7 @@ async function handleNPCChanges(
                     aliases: add.aliases ?? [],
                     presenceStatus: add.presenceStatus ?? 'unknown',
                     attitudeTowardPlayer: add.attitudeTowardPlayer,
-                    knownPlayerNames: toKnownNames(((add as { knownPlayerNames?: unknown; knownPlayerName?: unknown }).knownPlayerNames) ?? (add as { knownPlayerName?: unknown }).knownPlayerName),
+                    knowsPlayerAs: toKnownNames(((add as { knowsPlayerAs?: unknown; knownPlayerName?: unknown }).knowsPlayerAs) ?? (add as { knownPlayerName?: unknown }).knownPlayerName),
                     lastKnownLocation: add.lastKnownLocation ?? null,
                     preciseLocation: add.preciseLocation ?? null,
                     dialogueSummaries: [],
@@ -264,7 +264,7 @@ async function handleNPCChanges(
                         aliases: correctedDetails.aliases,
                         presenceStatus: correctedDetails.presenceStatus,
                         attitudeTowardPlayer: toAttitude(correctedDetails.attitudeTowardPlayer),
-                        knownPlayerNames: toKnownNames(((correctedDetails as { knownPlayerNames?: unknown }).knownPlayerNames) ?? (correctedDetails as { knownPlayerName?: unknown }).knownPlayerName),
+                        knowsPlayerAs: toKnownNames(((correctedDetails as { knowsPlayerAs?: unknown }).knowsPlayerAs) ?? (correctedDetails as { knownPlayerName?: unknown }).knownPlayerName),
                         lastKnownLocation: correctedDetails.lastKnownLocation,
                         preciseLocation: correctedDetails.preciseLocation,
                     };
@@ -373,7 +373,7 @@ async function handleNPCChanges(
             if (npcUpdatePayload.addAlias) npcInAddedList.aliases = Array.from(new Set([...(npcInAddedList.aliases ?? []), npcUpdatePayload.addAlias]));
             if (npcUpdatePayload.newPresenceStatus !== undefined) npcInAddedList.presenceStatus = npcUpdatePayload.newPresenceStatus;
             if (npcUpdatePayload.newAttitudeTowardPlayer !== undefined) npcInAddedList.attitudeTowardPlayer = toAttitude(npcUpdatePayload.newAttitudeTowardPlayer);
-            if (npcUpdatePayload.newKnownPlayerNames !== undefined) npcInAddedList.knownPlayerNames = toKnownNames(npcUpdatePayload.newKnownPlayerNames);
+            if (npcUpdatePayload.newKnownPlayerNames !== undefined) npcInAddedList.knowsPlayerAs = toKnownNames(npcUpdatePayload.newKnownPlayerNames);
             if (npcUpdatePayload.newLastKnownLocation !== undefined) npcInAddedList.lastKnownLocation = npcUpdatePayload.newLastKnownLocation;
             if (npcUpdatePayload.newPreciseLocation !== undefined) npcInAddedList.preciseLocation = npcUpdatePayload.newPreciseLocation;
 
@@ -393,7 +393,7 @@ async function handleNPCChanges(
                     aliases: npcUpdatePayload.newAliases ?? (npcUpdatePayload.addAlias ? [npcUpdatePayload.addAlias] : []),
                     presenceStatus: npcUpdatePayload.newPresenceStatus ?? 'unknown',
                     attitudeTowardPlayer: toAttitude(npcUpdatePayload.newAttitudeTowardPlayer),
-                    knownPlayerNames: toKnownNames(npcUpdatePayload.newKnownPlayerNames),
+                    knowsPlayerAs: toKnownNames(npcUpdatePayload.newKnownPlayerNames),
                     lastKnownLocation: npcUpdatePayload.newLastKnownLocation ?? null,
                     preciseLocation: npcUpdatePayload.newPreciseLocation ?? null,
                 };
@@ -413,9 +413,9 @@ async function handleNPCChanges(
                     );
                     newNPCDataFromUpdate.presenceStatus = correctedDetails.presenceStatus;
                     if (typeof (correctedDetails as { attitudeTowardPlayer?: unknown }).attitudeTowardPlayer === 'string') { newNPCDataFromUpdate.attitudeTowardPlayer = toAttitude((correctedDetails as { attitudeTowardPlayer?: string }).attitudeTowardPlayer); }
-                    const correctedNames = toKnownNames(((correctedDetails as { knownPlayerNames?: unknown }).knownPlayerNames) ?? (correctedDetails as { knownPlayerName?: unknown }).knownPlayerName);
+                    const correctedNames = toKnownNames(((correctedDetails as { knowsPlayerAs?: unknown }).knowsPlayerAs) ?? (correctedDetails as { knownPlayerName?: unknown }).knownPlayerName);
                     if (correctedNames.length > 0) {
-                        newNPCDataFromUpdate.knownPlayerNames = Array.from(new Set([...(newNPCDataFromUpdate.knownPlayerNames), ...correctedNames]));
+                        newNPCDataFromUpdate.knowsPlayerAs = Array.from(new Set([...(newNPCDataFromUpdate.knowsPlayerAs), ...correctedNames]));
                     }
                     newNPCDataFromUpdate.lastKnownLocation = correctedDetails.lastKnownLocation;
                     newNPCDataFromUpdate.preciseLocation = correctedDetails.preciseLocation;

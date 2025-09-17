@@ -133,12 +133,12 @@ export const buildMainGameTurnPrompt = (
 
   const companionsSection = npcsToString(
     companions,
-    '- <ID: {id}> - {name} — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knownPlayerNames})\n',
+    '- <ID: {id}> - {name} — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knowsPlayerAs})\n',
     '### Companions traveling with the Player:\n',
   );
   const nearbySection = npcsToString(
     nearbyNPCs,
-    '- <ID: {id}> - {name} — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knownPlayerNames})\n',
+    '- <ID: {id}> - {name} — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knowsPlayerAs})\n',
     '### NPCs Player can interact with (nearby):\n',
   );
   const knownNpcSection = npcsToString(

@@ -106,7 +106,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
         aliases: npc.aliases ?? [],
         presenceStatus: npc.presenceStatus,
         attitudeTowardPlayer: npc.attitudeTowardPlayer,
-        knownPlayerNames: sanitizeKnownPlayerNames(npc.knownPlayerNames),
+        knowsPlayerAs: sanitizeKnownPlayerNames(npc.knowsPlayerAs),
         lastKnownLocation: npc.lastKnownLocation,
         preciseLocation: npc.preciseLocation,
         dialogueSummaries: npc.dialogueSummaries ?? [],
@@ -150,7 +150,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     allNPCs: savedData.allNPCs.map(npc => ({
       ...npc,
       attitudeTowardPlayer: npc.attitudeTowardPlayer,
-      knownPlayerNames: sanitizeKnownPlayerNames(npc.knownPlayerNames),
+      knowsPlayerAs: sanitizeKnownPlayerNames(npc.knowsPlayerAs),
       dialogueSummaries: npc.dialogueSummaries ?? [],
     })),
     mapData: mapDataFromLoad,

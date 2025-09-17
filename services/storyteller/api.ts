@@ -243,7 +243,7 @@ export const STORYTELLER_JSON_SCHEMA = {
             maxLength: 100,
             description: 'Initial attitude toward the player character (free-form text up to 100 characters).',
           },
-          knownPlayerNames: {
+          knowsPlayerAs: {
             type: 'array',
             items: { type: 'string' },
             description: 'Names or aliases this NPC uses for the player. Provide an empty array if they do not know any name yet.',
@@ -269,7 +269,7 @@ export const STORYTELLER_JSON_SCHEMA = {
           'aliases',
           'description',
           'attitudeTowardPlayer',
-          'knownPlayerNames',
+          'knowsPlayerAs',
           'lastKnownLocation',
           'name',
           'preciseLocation',
@@ -279,7 +279,7 @@ export const STORYTELLER_JSON_SCHEMA = {
           'aliases',
           'description',
           'attitudeTowardPlayer',
-          'knownPlayerNames',
+          'knowsPlayerAs',
           'lastKnownLocation',
           'name',
           'presenceStatus',

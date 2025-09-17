@@ -690,7 +690,7 @@ export const useProcessAiResponse = ({
             const npcs = draftState.allNPCs;
             const knownNPCs =
               npcsToString(npcs, '- <ID: {id}> - {name}\n') ||
-              'None specifically known in this theme yet.';
+              'None specifically known in this theme yet.\n';
             const prev = target.chapters?.[target.chapters.length - 1]?.actualContent ?? '';
             const thoughts = draftState.lastDebugPacket.storytellerThoughts?.slice(-1)[0] ?? '';
             const actual = await generatePageText(
