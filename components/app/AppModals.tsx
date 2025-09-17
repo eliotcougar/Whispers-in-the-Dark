@@ -26,9 +26,9 @@ interface AppModalsProps {
   readonly currentTheme: AdventureTheme;
   readonly mapData: MapData;
   readonly allNPCs: Array<NPC>;
-  readonly localTime: string | null;
-  readonly localEnvironment: string | null;
-  readonly localPlace: string | null;
+  readonly localTime: string;
+  readonly localEnvironment: string;
+  readonly localPlace: string;
 
   readonly isKnowledgeBaseVisible: boolean;
   readonly onCloseKnowledgeBase: () => void;

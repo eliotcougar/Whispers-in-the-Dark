@@ -46,9 +46,8 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
 
   const handleDialogueOptionSelect = useCallback(async (option: string) => {
     const currentFullState = getCurrentGameState();
-    const currentThemeObj = currentFullState.currentTheme;
-
-    if (!currentThemeObj || !currentFullState.dialogueState || isDialogueExiting) return;
+    if (!currentFullState.dialogueState || isDialogueExiting) return;
+    const currentTheme = currentFullState.currentTheme;
 
     const playerEntry: DialogueHistoryEntry = { speaker: 'Player', line: option };
     const originalOptions = [...currentFullState.dialogueState.options];
@@ -66,6 +65,14 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
       lastTurnChanges: null,
     };
     commitGameState(stateAfterPlayerChoice);
+
+    const dialogueStateAfterChoice = stateAfterPlayerChoice.dialogueState;
+    if (!dialogueStateAfterChoice) {
+      setError('The conversation ended unexpectedly. Try selecting an option again.');
+      setIsLoading(false);
+      setLoadingReason(null);
+      return;
+    }
 
     if (isExitOption) {
       await initiateDialogueExit(stateAfterPlayerChoice);
@@ -92,7 +99,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           .map(f => ({ text: f.text, tier: f.tier }));
         setLoadingReason('loremaster_collect');
         const collectResult = await collectRelevantFacts_Service({
-          themeName: currentThemeObj.name,
+          themeName: currentTheme.name,
           facts: sortedFacts,
           lastScene: stateAfterPlayerChoice.currentScene,
           playerAction: option,
@@ -102,7 +109,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         setLoadingReason('dialogue_turn');
         const relevantFacts = collectResult?.facts ?? [];
         const { parsed: turnData, prompt: turnPrompt, rawResponse, thoughts } = await executeDialogueTurn(
-          currentThemeObj,
+          currentTheme,
           stateAfterPlayerChoice.storyArc,
           stateAfterPlayerChoice.mainQuest,
           stateAfterPlayerChoice.currentObjective,
@@ -116,12 +123,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.heroSheet,
           historyWithPlayerChoice,
           option,
-          (() => {
-            if (!stateAfterPlayerChoice.dialogueState) {
-              throw new Error('Dialogue state is not defined');
-            }
-            return stateAfterPlayerChoice.dialogueState.participants;
-          })(),
+          dialogueStateAfterChoice.participants,
           relevantFacts,
         );
         addDebugEntry({ prompt: turnPrompt, rawResponse, thoughts });
@@ -169,7 +171,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
               if (update.newKnownPlayerNames !== undefined) {
                 namePayloads.push({ name: update.name, newKnownPlayerNames: update.newKnownPlayerNames });
               } else if (update.addKnownPlayerName) {
-                const existingNames = target.knownPlayerNames ?? [];
+                const existingNames = target.knownPlayerNames;
                 const trimmedAdd = update.addKnownPlayerName.trim();
                 if (trimmedAdd.length === 0) return;
                 const namesSet = new Set(existingNames);

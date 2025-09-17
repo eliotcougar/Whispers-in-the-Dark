@@ -26,9 +26,9 @@ interface ImageVisualizerProps {
   readonly currentTheme: AdventureTheme | null;
   readonly mapData: Array<MapNode>; 
   readonly allNPCs: Array<NPC>;
-  readonly localTime: string | null; 
-  readonly localEnvironment: string | null; 
-  readonly localPlace: string | null;
+  readonly localTime: string; 
+  readonly localEnvironment: string; 
+  readonly localPlace: string;
   readonly isVisible: boolean;
   readonly onClose: () => void;
   readonly setGeneratedImage: (url: string, scene: string) => void; 
@@ -158,7 +158,7 @@ function ImageVisualizer({
 
     const prefix = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
     Aspect ratio 4:3.
-    It is ${localTime || 'now'}. ${localEnvironment || 'The air is okay'}. ${localPlace || 'Location is unimportant'}. ${currentSceneDescription}`;
+    It is ${localTime}. ${localEnvironment}. ${localPlace}. ${currentSceneDescription}`;
     let rawPrompt = prefix;
 
     const mentionedPlaces: Array<string> = [];

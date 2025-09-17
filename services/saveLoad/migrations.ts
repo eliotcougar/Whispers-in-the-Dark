@@ -10,8 +10,7 @@ import {
   SavedGameStack,
 } from '../../types';
 import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID, DEFAULT_ENABLED_THEME_PACKS } from '../../constants';
-import { findThemeByName } from '../../utils/themeUtils';
-import { PLACEHOLDER_THEME } from '../../utils/initialStates';
+import { ensureCoreGameStateIntegrity } from '../../utils/gameStateIntegrity';
 import {
   ensureCompleteMapLayoutConfig,
   ensureCompleteMapNodeDataDefaults,
@@ -34,55 +33,20 @@ const sanitizeKnownPlayerNames = (value?: Array<string> | string | null): Array<
 
 export function normalizeLoadedSaveData(
   parsedObj: Record<string, unknown>,
-  sourceLabel: string
+  sourceLabel: string,
 ): SavedGameDataShape | null {
-  let dataToValidateAndExpand: SavedGameDataShape | null = null;
-  if (
-    parsedObj.saveGameVersion === CURRENT_SAVE_GAME_VERSION ||
-    (typeof parsedObj.saveGameVersion === 'string' &&
-      parsedObj.saveGameVersion.startsWith(CURRENT_SAVE_GAME_VERSION.split('.')[0]))
-  ) {
-    if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
-      console.warn(
-        `Potentially compatible future V${CURRENT_SAVE_GAME_VERSION.split('.')[0]}.x save version '${parsedObj.saveGameVersion}' from ${sourceLabel}. Attempting to treat as current version (V3) for validation.`
-      );
-    }
-    dataToValidateAndExpand = parsedObj as SavedGameDataShape;
-    ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
-    ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
-  } else {
+  if (parsedObj.saveGameVersion !== CURRENT_SAVE_GAME_VERSION) {
     console.warn(
-      `Unknown save version '${String(parsedObj.saveGameVersion)}' from ${sourceLabel}. This might fail validation.`
+      `Save version '${String(parsedObj.saveGameVersion)}' from ${sourceLabel} does not match current version '${CURRENT_SAVE_GAME_VERSION}'. Attempting to load without migration support.`,
     );
-    dataToValidateAndExpand = parsedObj as SavedGameDataShape;
-    ensureCompleteMapLayoutConfig(dataToValidateAndExpand);
-    ensureCompleteMapNodeDataDefaults(dataToValidateAndExpand.mapData);
   }
 
-  const legacyThemeName = (parsedObj as { currentThemeName?: string | null }).currentThemeName;
-  if (!dataToValidateAndExpand.currentTheme && legacyThemeName) {
-    const matchedTheme = findThemeByName(legacyThemeName);
-    if (matchedTheme) {
-      dataToValidateAndExpand.currentTheme = matchedTheme;
-    } else {
-      console.warn(
-        `Failed to find theme "${legacyThemeName}" during ${sourceLabel} load. Game state might be incomplete.`
-      );
-      dataToValidateAndExpand.currentTheme = PLACEHOLDER_THEME;
-    }
-  }
+  const candidate = parsedObj as SavedGameDataShape;
+  ensureCompleteMapLayoutConfig(candidate);
+  ensureCompleteMapNodeDataDefaults(candidate.mapData);
 
-  const gtRaw = (parsedObj as { globalTurnNumber?: unknown }).globalTurnNumber;
-  if (typeof gtRaw === 'string') {
-    const parsed = parseInt(gtRaw, 10);
-    dataToValidateAndExpand.globalTurnNumber = isNaN(parsed) ? 0 : parsed;
-  } else if (gtRaw === undefined || gtRaw === null) {
-    dataToValidateAndExpand.globalTurnNumber = 0;
-  }
-  dataToValidateAndExpand.destinationNodeId = dataToValidateAndExpand.destinationNodeId ?? null;
-
-  if (validateSavedGameState(dataToValidateAndExpand)) {
-    return postProcessValidatedData(dataToValidateAndExpand);
+  if (validateSavedGameState(candidate)) {
+    return postProcessValidatedData(candidate);
   }
 
   return null;
@@ -178,23 +142,9 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     edges: savedData.mapData.edges,
   };
 
-  let themeObjectToUse: typeof PLACEHOLDER_THEME | ReturnType<typeof findThemeByName> = savedData.currentTheme ?? PLACEHOLDER_THEME;
-  if (themeObjectToUse === PLACEHOLDER_THEME) {
-    const legacyName = (savedData as { currentThemeName?: string | null }).currentThemeName;
-    if (legacyName) {
-      themeObjectToUse = findThemeByName(legacyName);
-      if (!themeObjectToUse) {
-        console.warn(`expandSavedDataToFullState: Theme "${legacyName}" not found in current definitions. Game may be unstable.`);
-        themeObjectToUse = PLACEHOLDER_THEME;
-      }
-    } else {
-      themeObjectToUse = PLACEHOLDER_THEME;
-    }
-  }
-
-  return {
+  const baseState: FullGameState = {
     ...savedData,
-    currentTheme: themeObjectToUse ?? PLACEHOLDER_THEME,
+    currentTheme: savedData.currentTheme,
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
     thinkingEffort: 'Medium',
     allNPCs: savedData.allNPCs.map(npc => ({
@@ -222,6 +172,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     lastDebugPacket: null,
     lastTurnChanges: null,
   };
+  return ensureCoreGameStateIntegrity(baseState, 'expandSavedDataToFullState');
 };
 
 export const prepareGameStateStackForSaving = (

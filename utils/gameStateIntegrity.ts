@@ -24,7 +24,7 @@ export const ensureCoreGameStateIntegrity = (
   state: FullGameState,
   context: string,
 ): FullGameState => {
-  const cast = state as FullGameState & {
+  const cast = state as Partial<FullGameState> & {
     currentTheme?: AdventureTheme | null;
     mainQuest?: string | null;
     lastActionLog?: string | null;
@@ -44,12 +44,12 @@ export const ensureCoreGameStateIntegrity = (
     repaired.push('currentTheme');
   }
 
-  if (cast.mainQuest === undefined || cast.mainQuest === null) {
+  if (typeof cast.mainQuest !== 'string') {
     cast.mainQuest = '';
     repaired.push('mainQuest');
   }
 
-  if (cast.lastActionLog === undefined || cast.lastActionLog === null) {
+  if (typeof cast.lastActionLog !== 'string') {
     cast.lastActionLog = 'No actions recorded yet.';
     repaired.push('lastActionLog');
   }
@@ -74,17 +74,20 @@ export const ensureCoreGameStateIntegrity = (
     repaired.push('storyArc');
   }
 
-  if (cast.localTime === undefined || cast.localTime === null || cast.localTime.trim().length === 0) {
+  const localTimeValue = typeof cast.localTime === 'string' ? cast.localTime.trim() : '';
+  if (localTimeValue.length === 0) {
     cast.localTime = 'Unknown';
     repaired.push('localTime');
   }
 
-  if (cast.localEnvironment === undefined || cast.localEnvironment === null || cast.localEnvironment.trim().length === 0) {
+  const localEnvironmentValue = typeof cast.localEnvironment === 'string' ? cast.localEnvironment.trim() : '';
+  if (localEnvironmentValue.length === 0) {
     cast.localEnvironment = 'Unknown';
     repaired.push('localEnvironment');
   }
 
-  if (cast.localPlace === undefined || cast.localPlace === null || cast.localPlace.trim().length === 0) {
+  const localPlaceValue = typeof cast.localPlace === 'string' ? cast.localPlace.trim() : '';
+  if (localPlaceValue.length === 0) {
     cast.localPlace = 'Unknown';
     repaired.push('localPlace');
   }
@@ -95,7 +98,7 @@ export const ensureCoreGameStateIntegrity = (
     );
   }
 
-  return cast;
+  return cast as FullGameState;
 };
 
 export const ensureCoreGameStateStackIntegrity = (

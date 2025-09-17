@@ -281,6 +281,7 @@ function App() {
     lastJournalInspectTurn,
     handleDistillFacts,
     toggleDebugLore,
+    clearDebugFacts,
     debugLore,
     debugGoodFacts,
       debugBadFacts,
@@ -311,9 +312,12 @@ function App() {
   }, [isVictory]);
 
   useEffect(() => {
-    if (lastTurnChanges?.mainQuestAchieved) {
-      void triggerMainQuestAchieved();
+    if (!lastTurnChanges?.mainQuestAchieved) {
+      return;
     }
+    triggerMainQuestAchieved().catch((error: unknown) => {
+      console.error('Failed to finalize main quest achievement after a turn.', error);
+    });
   }, [lastTurnChanges?.mainQuestAchieved, triggerMainQuestAchieved]);
 
   const handleActContinue = useCallback(() => {
@@ -327,35 +331,39 @@ function App() {
   );
 
   const handleTriggerMainQuestAchievedClick = useCallback(() => {
-    void triggerMainQuestAchieved();
+    triggerMainQuestAchieved().catch((error: unknown) => {
+      console.error('Failed to trigger main quest achievement via debug action.', error);
+    });
   }, [triggerMainQuestAchieved]);
 
   const handleSimulateVictoryClick = useCallback(() => {
-    void simulateVictory();
+    simulateVictory().catch((error: unknown) => {
+      console.error('Failed to simulate victory via debug action.', error);
+    });
   }, [simulateVictory]);
 
   const handleSpawnNpcAtLocation = useCallback(() => {
-    void spawnNpcAtPlayerLocation();
+    spawnNpcAtPlayerLocation();
   }, [spawnNpcAtPlayerLocation]);
 
   const handleSpawnBook = useCallback(() => {
-    void spawnBookForPlayer();
+    spawnBookForPlayer();
   }, [spawnBookForPlayer]);
 
   const handleSpawnMap = useCallback(() => {
-    void spawnMapForPlayer();
+    spawnMapForPlayer();
   }, [spawnMapForPlayer]);
 
   const handleSpawnPicture = useCallback(() => {
-    void spawnPictureForPlayer();
+    spawnPictureForPlayer();
   }, [spawnPictureForPlayer]);
 
   const handleSpawnPage = useCallback(() => {
-    void spawnPageForPlayer();
+    spawnPageForPlayer();
   }, [spawnPageForPlayer]);
 
   const handleSpawnVehicle = useCallback(() => {
-    void spawnVehicleForPlayer();
+    spawnVehicleForPlayer();
   }, [spawnVehicleForPlayer]);
 
   const handleVictoryClose = useCallback(() => {
@@ -376,13 +384,13 @@ function App() {
   }, []);
 
   const handleClearFacts = useCallback(() => {
-    gameLogic.clearDebugFacts();
+    clearDebugFacts();
     saveDebugLoreToLocalStorage({
-      debugLore: gameLogic.debugLore,
+      debugLore,
       debugGoodFacts: [],
       debugBadFacts: [],
     });
-  }, [gameLogic]);
+  }, [clearDebugFacts, debugLore]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -397,7 +405,7 @@ function App() {
   const effectiveIsTitleMenuOpen = userRequestedTitleMenuOpen || (appReady && !hasGameBeenInitialized && !isLoading && !isCustomGameSetupVisible);
 
   // Modal visibility (non-blocking and blocking classification)
-  const isVictoryModalVisible = Boolean(gameLogic.isVictory && gameLogic.heroSheet && gameLogic.storyArc);
+  const isVictoryModalVisible = isVictory;
   const isAnyModalActive =
     isVisualizerVisible ||
     isKnowledgeBaseVisible ||
@@ -601,6 +609,7 @@ function App() {
     globalTurnNumber,
     lastJournalWriteTurn,
     isPlayerJournalWriting,
+    isPlaceholderTheme,
   ]);
 
   const handleInspectFromPage = useCallback(
@@ -961,7 +970,7 @@ function App() {
 
       <DialogueDisplay
         allNPCs={allNPCs}
-        heroShortName={heroSheet?.heroShortName}
+        heroShortName={heroSheet.heroShortName}
         history={dialogueState?.history ?? []}
         inventory={inventory}
         isDialogueExiting={isDialogueExiting}
@@ -987,11 +996,11 @@ function App() {
         onDistillFacts={handleDistillClick}
         onSaveFacts={handleSaveFacts}
         onSimulateVictory={handleSimulateVictoryClick}
-        onSpawnNpcAtLocation={handleSpawnNpcAtLocation}
         onSpawnBook={handleSpawnBook}
         onSpawnMap={handleSpawnMap}
-        onSpawnPicture={handleSpawnPicture}
+        onSpawnNpcAtLocation={handleSpawnNpcAtLocation}
         onSpawnPage={handleSpawnPage}
+        onSpawnPicture={handleSpawnPicture}
         onSpawnVehicle={handleSpawnVehicle}
         onToggleDebugLore={toggleDebugLore}
         onTriggerMainQuestAchieved={handleTriggerMainQuestAchievedClick}
@@ -1060,7 +1069,7 @@ function App() {
         />
       ) : null}
 
-      {isVictory && heroSheet && storyArc ? (
+      {isVictory ? (
         <VictoryScreen
           heroSheet={heroSheet}
           onClose={handleVictoryClose}

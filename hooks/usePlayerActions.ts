@@ -121,8 +121,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
   const runDistillIfNeeded = useCallback(
     async (state: FullGameState) => {
-      const themeObj = state.currentTheme;
-      if (!themeObj) return;
       if (
         state.globalTurnNumber > 0 &&
         state.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
@@ -146,12 +144,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         const mapNodeNames = currentThemeNodes.map(n => n.placeName);
         const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
         setLoadingReason('loremaster_distill');
-        const act =
-          state.storyArc?.acts[state.storyArc.currentAct - 1];
+        const actIndex = state.storyArc.currentAct - 1;
+        const acts = state.storyArc.acts;
+        const act = actIndex >= 0 && actIndex < acts.length ? acts[actIndex] : null;
         const result = await distillFacts_Service({
-          themeName: themeObj.name,
+          themeName: state.currentTheme.name,
           facts: state.themeFacts,
-          currentQuest: act?.mainObjective ?? null,
+          currentQuest: act ? act.mainObjective : null,
           currentObjective: state.currentObjective,
           inventoryItemNames,
           mapNodeNames,
@@ -210,12 +209,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const scoreChangeFromAction = isFreeForm ? -FREE_FORM_ACTION_COST : 0;
 
       const currentThemeObj = currentFullState.currentTheme;
-      if (!currentThemeObj) {
-        setError('Critical error: Current theme object not found. Cannot proceed.');
-        setIsLoading(false);
-        setLoadingReason(null);
-        return;
-      }
 
       const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
       const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter(

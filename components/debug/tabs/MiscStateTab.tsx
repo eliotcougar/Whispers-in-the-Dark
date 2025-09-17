@@ -6,27 +6,32 @@ interface MiscStateTabProps {
 }
 
 function MiscStateTab({ currentState }: MiscStateTabProps) {
+  const { lastTurnChanges } = currentState;
+  const lastTurnChangesBrief = lastTurnChanges
+    ? {
+        npcs: lastTurnChanges.npcChanges.length,
+        items: lastTurnChanges.itemChanges.length,
+        mapChanged: lastTurnChanges.mapDataChanged,
+        objAchieved: lastTurnChanges.objectiveAchieved,
+        mainQuestAchieved: lastTurnChanges.mainQuestAchieved,
+      }
+    : null;
+
   return (
     <DebugSection
       content={{
-      currentMapNodeId: currentState.currentMapNodeId,
-      currentObjective: currentState.currentObjective,
-      currentThemeName: currentState.currentTheme?.name ?? null,
-      globalTurnNumber: currentState.globalTurnNumber,
-      lastTurnChangesBrief: currentState.lastTurnChanges ? {
-        npcs: currentState.lastTurnChanges.npcChanges.length,
-        items: currentState.lastTurnChanges.itemChanges.length,
-        mapChanged: currentState.lastTurnChanges.mapDataChanged,
-        objAchieved: currentState.lastTurnChanges.objectiveAchieved,
-        mainQuestAchieved: currentState.lastTurnChanges.mainQuestAchieved,
-      } : null,
-      localEnvironment: currentState.localEnvironment,
-      localPlace: currentState.localPlace,
-      localTime: currentState.localTime,
-      mainQuest: currentState.mainQuest,
-      objectiveAnimationType: currentState.objectiveAnimationType,
-      score: currentState.score,
-    }}
+        currentMapNodeId: currentState.currentMapNodeId,
+        currentObjective: currentState.currentObjective,
+        currentThemeName: currentState.currentTheme.name,
+        globalTurnNumber: currentState.globalTurnNumber,
+        lastTurnChangesBrief,
+        localEnvironment: currentState.localEnvironment,
+        localPlace: currentState.localPlace,
+        localTime: currentState.localTime,
+        mainQuest: currentState.mainQuest,
+        objectiveAnimationType: currentState.objectiveAnimationType,
+        score: currentState.score,
+      }}
       maxHeightClass="max-h-[70vh]"
       title="Miscellaneous State Values"
     />

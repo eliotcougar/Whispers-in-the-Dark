@@ -34,8 +34,8 @@ const parseDialogueResponse = (
         return null;
       }
       sanitizedAttitudeUpdates = [];
-      for (const entry of parsed.npcAttitudeUpdates) {
-        if (!entry || typeof entry !== 'object') {
+      for (const entry of parsed.npcAttitudeUpdates as Array<unknown>) {
+        if (entry === null || typeof entry !== 'object') {
           console.warn('npcAttitudeUpdates entry is not an object:', entry);
           return null;
         }
@@ -67,8 +67,8 @@ const parseDialogueResponse = (
         return null;
       }
       sanitizedKnownNameUpdates = [];
-      for (const entry of parsed.npcKnownNameUpdates) {
-        if (!entry || typeof entry !== 'object') {
+      for (const entry of parsed.npcKnownNameUpdates as Array<unknown>) {
+        if (entry === null || typeof entry !== 'object') {
           console.warn('npcKnownNameUpdates entry is not an object:', entry);
           return null;
         }

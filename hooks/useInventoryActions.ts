@@ -78,9 +78,8 @@ export const useInventoryActions = ({
       let logMessage = logMessageOverride;
       if (!logMessage) {
         const placeName =
-          currentFullState.mapData.nodes.find((n) => n.id === currentLocationId)?.placeName ??
-          currentFullState.localPlace ??
-          'Unknown Place';
+          currentFullState.mapData.nodes.find(n => n.id === currentLocationId)?.placeName ??
+          currentFullState.localPlace;
         if (itemToDiscard.type === 'vehicle' && !itemToDiscard.isActive) {
           logMessage = `You left your ${itemToDiscard.name} parked at ${placeName}.`;
         } else {

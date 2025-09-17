@@ -51,6 +51,7 @@ import {
 } from '../services/worldData';
 import { extractInitialFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import { ensureCoreGameStateIntegrity } from '../utils/gameStateIntegrity';
 import { isStoryArcValid } from '../utils/storyArcUtils';
 
 export interface LoadInitialGameOptions {
@@ -138,81 +139,54 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       }
 
       if (savedStateToLoad) {
-        const [currentSaved, previousSaved] = savedStateToLoad;
-        let themeForLoadedState: AdventureTheme | null = currentSaved.currentTheme ?? null;
-        if (!themeForLoadedState) {
-          const legacyName = (currentSaved as { currentThemeName?: string | null }).currentThemeName;
-          if (legacyName) themeForLoadedState = findThemeByName(legacyName);
-        }
-        if (!themeForLoadedState) {
-          const warnName = (currentSaved as { currentThemeName?: string | null }).currentThemeName;
-          if (warnName) setError(`Failed to apply loaded state: Theme "${warnName}" not found. Game state may be unstable.`);
-        }
+        const mergeMapLayoutConfig = (
+          config?: Partial<FullGameState['mapLayoutConfig']> | null,
+        ): FullGameState['mapLayoutConfig'] => {
+          const defaults = getDefaultMapLayoutConfig();
+          const merged = { ...defaults };
+          const source = config ?? {};
+          (Object.keys(defaults) as Array<keyof typeof defaults>).forEach(key => {
+            const rawValue = (source as Partial<Record<keyof typeof defaults, number>>)[key];
+            merged[key] = typeof rawValue === 'number' ? rawValue : defaults[key];
+          });
+          return merged;
+        };
 
-        let mapDataToApply = currentSaved.mapData;
-        if (themeForLoadedState) {
-          mapDataToApply = await repairFeatureHierarchy(
-            mapDataToApply,
-            themeForLoadedState,
-          );
-        }
-        const currentMapNodeIdToApply = currentSaved.currentMapNodeId;
-        const destinationToApply = currentSaved.destinationNodeId;
-        const mapLayoutConfigToApply = currentSaved.mapLayoutConfig;
-        if (typeof mapLayoutConfigToApply.NESTED_PADDING !== 'number') {
-          mapLayoutConfigToApply.NESTED_PADDING = getDefaultMapLayoutConfig().NESTED_PADDING;
-        }
-        if (typeof mapLayoutConfigToApply.NESTED_ANGLE_PADDING !== 'number') {
-          mapLayoutConfigToApply.NESTED_ANGLE_PADDING = getDefaultMapLayoutConfig().NESTED_ANGLE_PADDING;
-        }
+        const hydrateLoadedState = async (
+          rawState: FullGameState,
+          context: 'current' | 'previous',
+        ): Promise<FullGameState> => {
+          const cloned = structuredCloneGameState(rawState);
+          const theme = cloned.currentTheme;
+          const repairedMap = await repairFeatureHierarchy(cloned.mapData, theme);
+          const normalizedDestination =
+            typeof cloned.destinationNodeId === 'string' ? cloned.destinationNodeId : null;
+          const hydrated = {
+            ...cloned,
+            currentTheme: theme,
+            mapData: repairedMap,
+            mapLayoutConfig: mergeMapLayoutConfig(cloned.mapLayoutConfig),
+            destinationNodeId: normalizedDestination,
+            enabledThemePacks: enabledThemePacksProp,
+            thinkingEffort: thinkingEffortProp,
+            isVictory: false,
+          } as FullGameState;
+          return ensureCoreGameStateIntegrity(hydrated, `loadInitialGame.${context}`);
+        };
 
-        const stateWithMapData = {
-          ...currentSaved,
-          currentTheme: themeForLoadedState ?? PLACEHOLDER_THEME,
-          mainQuest: currentSaved.mainQuest ?? '',
-          lastActionLog: currentSaved.lastActionLog ?? 'No actions recorded yet.',
-          worldFacts: currentSaved.worldFacts ?? createDefaultWorldFacts(),
-          heroSheet: currentSaved.heroSheet ?? createDefaultHeroSheet(),
-          heroBackstory: currentSaved.heroBackstory ?? createDefaultHeroBackstory(),
-          storyArc: currentSaved.storyArc ?? createDefaultStoryArc(),
-          mapData: mapDataToApply,
-          currentMapNodeId: currentMapNodeIdToApply,
-          destinationNodeId: destinationToApply,
-          mapLayoutConfig: mapLayoutConfigToApply,
-          mapViewBox: currentSaved.mapViewBox,
-          globalTurnNumber: currentSaved.globalTurnNumber,
-          localTime: currentSaved.localTime ?? 'Unknown',
-          localEnvironment: currentSaved.localEnvironment ?? 'Unknown',
-          localPlace: currentSaved.localPlace ?? 'Unknown',
-          enabledThemePacks: enabledThemePacksProp,
-          thinkingEffort: thinkingEffortProp,
-          isVictory: false,
-        } as FullGameState;
+        const [rawCurrent, rawPrevious] = savedStateToLoad;
+        const hydratedCurrent = await hydrateLoadedState(rawCurrent, 'current');
+        const hydratedPrevious = rawPrevious
+          ? await hydrateLoadedState(rawPrevious, 'previous')
+          : hydratedCurrent;
 
-        const prev = previousSaved
-          ? ({
-              ...previousSaved,
-              currentTheme: previousSaved.currentTheme ?? PLACEHOLDER_THEME,
-              mainQuest: previousSaved.mainQuest ?? '',
-              lastActionLog: previousSaved.lastActionLog ?? 'No actions recorded yet.',
-              worldFacts: previousSaved.worldFacts ?? createDefaultWorldFacts(),
-              heroSheet: previousSaved.heroSheet ?? createDefaultHeroSheet(),
-              heroBackstory: previousSaved.heroBackstory ?? createDefaultHeroBackstory(),
-              storyArc: previousSaved.storyArc ?? createDefaultStoryArc(),
-              localTime: previousSaved.localTime ?? 'Unknown',
-              localEnvironment: previousSaved.localEnvironment ?? 'Unknown',
-              localPlace: previousSaved.localPlace ?? 'Unknown',
-              enabledThemePacks: enabledThemePacksProp,
-              thinkingEffort: thinkingEffortProp,
-              isVictory: false,
-            } as FullGameState)
-          : stateWithMapData;
-
-        setGameStateStack([stateWithMapData, prev]);
-        if (isStoryArcValid(stateWithMapData.storyArc)) {
-          const actIndex = Math.max(0, stateWithMapData.storyArc.currentAct - 1);
-          const act = stateWithMapData.storyArc.acts[actIndex];
-          if (act) onActIntro(act);
+        setGameStateStack([hydratedCurrent, hydratedPrevious]);
+        if (isStoryArcValid(hydratedCurrent.storyArc)) {
+          const acts = hydratedCurrent.storyArc.acts;
+          const actIndex = Math.max(0, hydratedCurrent.storyArc.currentAct - 1);
+          if (actIndex < acts.length) {
+            onActIntro(acts[actIndex]);
+          }
         }
 
         setHasGameBeenInitialized(true);
@@ -460,10 +434,12 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       await waitForBegin;
 
       // After player closes character select, always show Act 1 intro when valid data exists
-      if (hasValidStoryArc && isStoryArcValid(draftState.storyArc)) {
+      if (isStoryArcValid(draftState.storyArc)) {
+        const acts = draftState.storyArc.acts;
         const actIdx = Math.max(0, draftState.storyArc.currentAct - 1);
-        const firstAct = draftState.storyArc.acts[actIdx];
-        onActIntro(firstAct);
+        if (actIdx < acts.length) {
+          onActIntro(acts[actIdx]);
+        }
       }
       await initialTurnPromise;
       return;

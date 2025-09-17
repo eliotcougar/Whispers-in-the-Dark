@@ -65,12 +65,9 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
    * Finalizes a dialogue session and gathers summary updates.
    */
   const initiateDialogueExit = useCallback(async (stateAtDialogueConclusionStart: FullGameState) => {
-    const currentThemeObj = stateAtDialogueConclusionStart.currentTheme;
-    const finalHistory = stateAtDialogueConclusionStart.dialogueState?.history ?? [];
-    const finalParticipants = stateAtDialogueConclusionStart.dialogueState?.participants ?? [];
-
-    if (!currentThemeObj || !stateAtDialogueConclusionStart.dialogueState) {
-      console.error('Cannot exit dialogue: current theme is null or not in dialogue state.', stateAtDialogueConclusionStart);
+    const { dialogueState } = stateAtDialogueConclusionStart;
+    if (!dialogueState) {
+      console.error('Cannot exit dialogue: no dialogue state available.', stateAtDialogueConclusionStart);
       await onDialogueConcluded(
         null,
         stateAtDialogueConclusionStart,
@@ -88,14 +85,17 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setError(null);
 
     const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
+    const currentThemeObj = workingGameState.currentTheme;
+    const finalHistory = dialogueState.history;
+    const finalParticipants = dialogueState.participants;
     // Enter dialogue memory creation phase in the FSM.
     workingGameState.turnState = 'dialogue_memory';
     commitGameState(workingGameState);
 
     setLoadingReason('dialogue_memory');
     const memorySummaryContext: DialogueMemorySummaryContext = {
-      themeName: currentThemeObj.name,
-      currentTheme: currentThemeObj,
+      themeName: workingGameState.currentTheme.name,
+      currentTheme: workingGameState.currentTheme,
       currentScene: workingGameState.currentScene,
       localTime: workingGameState.localTime,
       localEnvironment: workingGameState.localEnvironment,
@@ -109,12 +109,12 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     const newSummaryRecord: DialogueSummaryRecord = {
       summaryText: npcMemoryText ?? 'A conversation took place, but the details are hazy.',
       participants: finalParticipants,
-      timestamp: workingGameState.localTime || 'Unknown Time',
-      location: workingGameState.localPlace || 'Unknown Location',
+      timestamp: workingGameState.localTime,
+      location: workingGameState.localPlace,
     };
 
     workingGameState.allNPCs = workingGameState.allNPCs.map((npc) => {
-      if (finalParticipants.includes(npc.name)) {
+      if (dialogueState.participants.includes(npc.name)) {
         const newSummaries = [...(npc.dialogueSummaries ?? []), newSummaryRecord];
         if (newSummaries.length > MAX_DIALOGUE_SUMMARIES_PER_NPC) {
           newSummaries.shift();

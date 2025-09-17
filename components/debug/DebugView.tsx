@@ -193,14 +193,14 @@ function DebugView({
             onClearFacts={onClearFacts}
             onSaveFacts={onSaveFacts}
             onSimulateVictory={onSimulateVictory}
-            onToggleDebugLore={onToggleDebugLore}
-            onTriggerMainQuestAchieved={onTriggerMainQuestAchieved}
             onSpawnBook={onSpawnBook}
             onSpawnMap={onSpawnMap}
-            onSpawnPicture={onSpawnPicture}
-            onSpawnPage={onSpawnPage}
-            onSpawnVehicle={onSpawnVehicle}
             onSpawnNpcAtLocation={onSpawnNpcAtLocation}
+            onSpawnPage={onSpawnPage}
+            onSpawnPicture={onSpawnPicture}
+            onSpawnVehicle={onSpawnVehicle}
+            onToggleDebugLore={onToggleDebugLore}
+            onTriggerMainQuestAchieved={onTriggerMainQuestAchieved}
           />
         );
       default:

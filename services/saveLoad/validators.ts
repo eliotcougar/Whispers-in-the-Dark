@@ -317,13 +317,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   for (const field of fields) {
     if (!(field in obj)) {
       const nullableFields: Array<keyof SavedGameDataShape> = [
-        'currentTheme',
-        'mainQuest',
         'currentObjective',
-        'lastActionLog',
-        'localTime',
-        'localEnvironment',
-        'localPlace',
         'currentMapNodeId',
         'destinationNodeId',
         'themeFacts',
@@ -344,10 +338,17 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     }
   }
 
-  if (obj.currentTheme !== null && !isValidAdventureThemeObject(obj.currentTheme)) { console.warn('Invalid save data (V3): currentTheme type or structure.'); return false; }
+  if (!obj.currentTheme) {
+    console.warn('Invalid save data (V3): currentTheme missing.');
+    return false;
+  }
+  if (!isValidAdventureThemeObject(obj.currentTheme)) {
+    console.warn('Invalid save data (V3): currentTheme type or structure.');
+    return false;
+  }
   if (typeof obj.currentScene !== 'string') { console.warn('Invalid save data (V3): currentScene type.'); return false; }
   if (!Array.isArray(obj.actionOptions) || !obj.actionOptions.every((opt: unknown) => typeof opt === 'string')) { console.warn('Invalid save data (V3): actionOptions.'); return false; }
-  if (obj.mainQuest !== null && typeof obj.mainQuest !== 'string') { console.warn('Invalid save data (V3): mainQuest type.'); return false; }
+  if (typeof obj.mainQuest !== 'string') { console.warn('Invalid save data (V3): mainQuest type.'); return false; }
   if (obj.currentObjective !== null && typeof obj.currentObjective !== 'string') { console.warn('Invalid save data (V3): currentObjective type.'); return false; }
   if (!Array.isArray(obj.inventory) || !obj.inventory.every(isValidItemForSave)) { console.warn('Invalid save data (V3): inventory.'); return false; }
   if (
@@ -361,7 +362,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (typeof obj.lastJournalInspectTurn !== 'number') { console.warn('Invalid save data (V3): lastJournalInspectTurn type.'); return false; }
   if (typeof obj.lastLoreDistillTurn !== 'number') { console.warn('Invalid save data (V3): lastLoreDistillTurn type.'); return false; }
   if (!Array.isArray(obj.gameLog) || !obj.gameLog.every((msg: unknown) => typeof msg === 'string')) { console.warn('Invalid save data (V3): gameLog.'); return false; }
-  if (obj.lastActionLog !== null && typeof obj.lastActionLog !== 'string') { console.warn('Invalid save data (V3): lastActionLog type.'); return false; }
+  if (typeof obj.lastActionLog !== 'string') { console.warn('Invalid save data (V3): lastActionLog type.'); return false; }
   if (obj.themeFacts !== undefined && !Array.isArray(obj.themeFacts)) {
     console.warn('Invalid save data (V5): themeFacts type.');
     return false;
@@ -370,15 +371,15 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     console.warn('Invalid save data (V5): themeFacts structure.');
     return false;
   }
-  if (obj.worldFacts !== null && obj.worldFacts !== undefined && !isValidWorldFacts(obj.worldFacts)) {
+  if (obj.worldFacts && !isValidWorldFacts(obj.worldFacts)) {
     console.warn('Invalid save data (V5): worldFacts structure.');
     return false;
   }
-  if (obj.heroSheet !== null && obj.heroSheet !== undefined && !isValidHeroSheet(obj.heroSheet)) {
+  if (obj.heroSheet && !isValidHeroSheet(obj.heroSheet)) {
     console.warn('Invalid save data (V5): heroSheet structure.');
     return false;
   }
-  if (obj.heroBackstory !== null && obj.heroBackstory !== undefined && !isValidHeroBackstory(obj.heroBackstory)) {
+  if (obj.heroBackstory && !isValidHeroBackstory(obj.heroBackstory)) {
     console.warn('Invalid save data (V5): heroBackstory structure.');
     return false;
   }
@@ -389,9 +390,9 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (!isValidMapLayoutConfig(obj.mapLayoutConfig)) { console.warn('Invalid save data (V3): mapLayoutConfig.'); return false; }
   if (typeof obj.mapViewBox !== 'string') { console.warn('Invalid save data (V3): mapViewBox type.'); return false; }
   if (typeof obj.score !== 'number') { console.warn('Invalid save data (V3): score type.'); return false; }
-  if (obj.localTime !== null && typeof obj.localTime !== 'string') { console.warn('Invalid save data (V3): localTime type.'); return false; }
-  if (obj.localEnvironment !== null && typeof obj.localEnvironment !== 'string') { console.warn('Invalid save data (V3): localEnvironment type.'); return false; }
-  if (obj.localPlace !== null && typeof obj.localPlace !== 'string') { console.warn('Invalid save data (V3): localPlace type.'); return false; }
+  if (typeof obj.localTime !== 'string') { console.warn('Invalid save data (V3): localTime type.'); return false; }
+  if (typeof obj.localEnvironment !== 'string') { console.warn('Invalid save data (V3): localEnvironment type.'); return false; }
+  if (typeof obj.localPlace !== 'string') { console.warn('Invalid save data (V3): localPlace type.'); return false; }
   if (typeof obj.globalTurnNumber !== 'number') { console.warn('Invalid save data(V3): globalTurnNumber type.'); return false; }
 
   const dialogueFields: Array<string> = ['dialogueState'];
@@ -453,7 +454,15 @@ export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined):
 }
 
 export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDataShape {
-  data.inventory = data.inventory.map((item: Item) => ({
+  const cast = data as Partial<SavedGameDataShape> & {
+    worldFacts?: WorldFacts | null;
+    heroSheet?: HeroSheet | null;
+    heroBackstory?: HeroBackstory | null;
+    storyArc?: StoryArc | null;
+    playerJournal?: Array<ItemChapter> | null;
+  };
+
+  cast.inventory = (cast.inventory ?? []).map((item: Item) => ({
     ...item,
     id: item.id || buildItemId(item.name),
     tags: item.tags ?? [],
@@ -461,7 +470,7 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     holderId: item.holderId || PLAYER_HOLDER_ID,
   }));
   // Numeric fields and nullable strings are guaranteed by validation
-  data.allNPCs = data.allNPCs.map((npc: unknown) => {
+  cast.allNPCs = (cast.allNPCs ?? []).map((npc: unknown) => {
     const oneNpc = npc as Partial<NPC>;
     return {
       ...oneNpc,
@@ -477,35 +486,35 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
       dialogueSummaries: oneNpc.dialogueSummaries ?? [],
     } as NPC;
   });
-  data.mapViewBox = typeof data.mapViewBox === 'string' ? data.mapViewBox : DEFAULT_VIEWBOX;
-  if (!Array.isArray(data.themeFacts)) {
-    data.themeFacts = [];
+  cast.mapViewBox = typeof cast.mapViewBox === 'string' ? cast.mapViewBox : DEFAULT_VIEWBOX;
+  if (!Array.isArray(cast.themeFacts)) {
+    cast.themeFacts = [];
   }
-  if (!data.worldFacts || !isValidWorldFacts(data.worldFacts)) {
-    data.worldFacts = createDefaultWorldFacts();
+  if (!cast.worldFacts || !isValidWorldFacts(cast.worldFacts)) {
+    cast.worldFacts = createDefaultWorldFacts();
   }
-  if (!data.heroSheet || !isValidHeroSheet(data.heroSheet)) {
-    data.heroSheet = createDefaultHeroSheet();
+  if (!cast.heroSheet || !isValidHeroSheet(cast.heroSheet)) {
+    cast.heroSheet = createDefaultHeroSheet();
   }
-  if (!data.heroBackstory || !isValidHeroBackstory(data.heroBackstory)) {
-    data.heroBackstory = createDefaultHeroBackstory();
+  if (!cast.heroBackstory || !isValidHeroBackstory(cast.heroBackstory)) {
+    cast.heroBackstory = createDefaultHeroBackstory();
   }
-  if (!data.storyArc || !Array.isArray((data.storyArc as StoryArc).acts)) {
-    data.storyArc = createDefaultStoryArc();
+  if (!cast.storyArc || !Array.isArray(cast.storyArc.acts)) {
+    cast.storyArc = createDefaultStoryArc();
   }
-  data.mainQuest = typeof data.mainQuest === 'string' ? data.mainQuest : '';
-  data.lastActionLog = typeof data.lastActionLog === 'string' ? data.lastActionLog : 'No actions recorded yet.';
-  data.localTime = typeof data.localTime === 'string' ? data.localTime : 'Unknown';
-  data.localEnvironment = typeof data.localEnvironment === 'string' ? data.localEnvironment : 'Unknown';
-  data.localPlace = typeof data.localPlace === 'string' ? data.localPlace : 'Unknown';
-  if (!Array.isArray(data.playerJournal)) {
-    data.playerJournal = [];
+  cast.mainQuest = typeof cast.mainQuest === 'string' ? cast.mainQuest : '';
+  cast.lastActionLog = typeof cast.lastActionLog === 'string' ? cast.lastActionLog : 'No actions recorded yet.';
+  cast.localTime = typeof cast.localTime === 'string' ? cast.localTime : 'Unknown';
+  cast.localEnvironment = typeof cast.localEnvironment === 'string' ? cast.localEnvironment : 'Unknown';
+  cast.localPlace = typeof cast.localPlace === 'string' ? cast.localPlace : 'Unknown';
+  if (!Array.isArray(cast.playerJournal)) {
+    cast.playerJournal = [];
   }
-  if (typeof data.lastJournalInspectTurn !== 'number') {
-    data.lastJournalInspectTurn = 0;
+  if (typeof cast.lastJournalInspectTurn !== 'number') {
+    cast.lastJournalInspectTurn = 0;
   }
-  if (typeof data.lastLoreDistillTurn !== 'number') {
-    data.lastLoreDistillTurn = 0;
+  if (typeof cast.lastLoreDistillTurn !== 'number') {
+    cast.lastLoreDistillTurn = 0;
   }
-  return data;
+  return cast as SavedGameDataShape;
 }

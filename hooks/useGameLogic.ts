@@ -90,7 +90,13 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     onActIntro,
   } = props;
 
-  const [gameStateStack, setGameStateStackInternal] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
+  const initialGameStateStack = useMemo(() => {
+    const current = getInitialGameStates();
+    const previous = structuredCloneGameState(current);
+    return [current, previous] as GameStateStack;
+  }, []);
+  const [gameStateStackValue, setGameStateStackValue] = useState(initialGameStateStack);
+  const gameStateStack = gameStateStackValue;
   const [debugPacketStack, setDebugPacketStack] = useState<DebugPacketStack>(
     () => initialDebugStackFromApp ?? [null, null],
   );
@@ -132,7 +138,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const setGameStateStack = useCallback(
     (update: React.SetStateAction<GameStateStack>) => {
-      setGameStateStackInternal(prev => {
+      setGameStateStackValue(prev => {
         const next = typeof update === 'function'
           ? (update as (stack: GameStateStack) => GameStateStack)(prev)
           : update;
@@ -455,7 +461,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
         return prev;
       });
     }
-  }, [isAppReady, hasGameBeenInitialized]);
+  }, [isAppReady, hasGameBeenInitialized, setGameStateStack]);
 
   // Keep current state's enabled theme packs in sync with user settings
   useEffect(() => {
@@ -472,7 +478,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
       } as FullGameState;
       return [updatedCurrent, prevStack[1]];
     });
-  }, [enabledThemePacksProp, hasGameBeenInitialized]);
+  }, [enabledThemePacksProp, hasGameBeenInitialized, setGameStateStack]);
 
   const itemPresenceByNode = useMemo(() => {
     const map: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
@@ -490,8 +496,6 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
 
   const handleDistillFacts = useCallback(async () => {
     const currentFullState = getCurrentGameState();
-    const themeObj = currentFullState.currentTheme;
-    if (!themeObj) return;
     setIsLoading(true);
     setError(null);
     const currentThemeNodes = currentFullState.mapData.nodes;
@@ -512,13 +516,14 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     const mapNodeNames = currentThemeNodes.map(n => n.placeName);
     const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
     setLoadingReasonRef('loremaster_distill');
-    const act =
-      currentFullState.storyArc?.acts[
-        currentFullState.storyArc.currentAct - 1
-      ];
-    const actQuest = act?.mainObjective ?? null;
+    const storyArcActs = currentFullState.storyArc.acts;
+    const actIndex = currentFullState.storyArc.currentAct - 1;
+    const act = actIndex >= 0 && actIndex < storyArcActs.length
+      ? storyArcActs[actIndex]
+      : null;
+    const actQuest = act ? act.mainObjective : null;
     const result = await distillFacts_Service({
-      themeName: themeObj.name,
+      themeName: currentFullState.currentTheme.name,
       facts: currentFullState.themeFacts,
       currentQuest: actQuest,
       currentObjective: currentFullState.currentObjective,
@@ -579,11 +584,12 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     currentFullState.dialogueState,
   ]);
 
-  const currentAct =
-    currentFullState.storyArc?.acts[
-      currentFullState.storyArc.currentAct - 1
-    ];
-  const mainQuest = currentAct?.mainObjective ?? null;
+  const arcActs = currentFullState.storyArc.acts;
+  const currentActIndex = currentFullState.storyArc.currentAct - 1;
+  const currentAct = currentActIndex >= 0 && currentActIndex < arcActs.length
+    ? arcActs[currentActIndex]
+    : null;
+  const mainQuest = currentAct ? currentAct.mainObjective : null;
 
   return {
     currentTheme: currentFullState.currentTheme,

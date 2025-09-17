@@ -28,7 +28,12 @@ const stringifyNpcValue = (npc: NPC, key: keyof NPC): string => {
     }
   }
   if (Array.isArray(value)) {
-    return value.length > 0 ? value.map(entry => String(entry)).join(', ') : 'None';
+    if (value.length === 0) {
+      return 'None';
+    }
+    return value
+      .map(entry => (typeof entry === 'string' ? entry : JSON.stringify(entry)))
+      .join(', ');
   }
   if (value === null || value === undefined) {
     if (key === 'aliases' || key === 'dialogueSummaries') {
@@ -40,7 +45,7 @@ const stringifyNpcValue = (npc: NPC, key: keyof NPC): string => {
   if (typeof value === 'object') {
     return JSON.stringify(value);
   }
-  return String(value);
+  return typeof value === 'string' ? value : String(value);
 };
 
 /**
@@ -136,7 +141,7 @@ export const formatDetailedContextForMentionedEntities = (
     `${npcsPrefixIfAny}\n`,
   );
   if (mentionedNPCsSection) {
-    detailedContext += `${mentionedNPCsSection}`;
+    detailedContext += mentionedNPCsSection;
   }
   return detailedContext.trimStart();
 };
