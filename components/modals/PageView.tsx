@@ -198,7 +198,7 @@ function PageView({
 
   const knownNPCs = useMemo(() => {
     return (
-      npcsToString(allNPCs, '- <ID: {id}> - "{name}"\n') ||
+      npcsToString(allNPCs, '- <ID: {id}> - {name}\n') ||
       'None specifically known in this theme yet.'
     );
   }, [allNPCs]);

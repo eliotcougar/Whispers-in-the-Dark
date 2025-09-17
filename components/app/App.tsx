@@ -565,7 +565,7 @@ function App() {
       );
       const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
       const knownNPCs =
-        npcsToString(allNPCs, '- <ID: {id}> - "{name}"\n') ||
+        npcsToString(allNPCs, '- <ID: {id}> - {name}\n') ||
         'None specifically known in this theme yet.';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;

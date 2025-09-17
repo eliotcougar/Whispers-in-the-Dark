@@ -689,7 +689,7 @@ export const useProcessAiResponse = ({
             const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
             const npcs = draftState.allNPCs;
             const knownNPCs =
-              npcsToString(npcs, '- <ID: {id}> - "{name}"\n') ||
+              npcsToString(npcs, '- <ID: {id}> - {name}\n') ||
               'None specifically known in this theme yet.';
             const prev = target.chapters?.[target.chapters.length - 1]?.actualContent ?? '';
             const thoughts = draftState.lastDebugPacket.storytellerThoughts?.slice(-1)[0] ?? '';

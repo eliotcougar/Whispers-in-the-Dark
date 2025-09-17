@@ -40,7 +40,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
   }
 
   const npcContext =
-    npcsToString(allRelevantNPCs, '<ID: {id}> - "{name}"; ') ||
+    npcsToString(allRelevantNPCs, '<ID: {id}> - {name}; ') ||
     'None.';
   const placeContext = formatKnownPlacesForPrompt(allRelevantMapNodes, true);
   const inventoryContext = currentInventory.map(i => i.name).join(', ') || 'Empty';
@@ -66,7 +66,7 @@ Narrative Context:
 
 Required JSON Structure for corrected 'dialogueSetup':
 {
-  "initialNpcResponses": [{ "speaker": "NPCr Name 1", "line": "Their first line." }],
+  "initialNpcResponses": [{ "speaker": "NPC Name 1", "line": "Their first line." }],
   "initialPlayerOptions": [],
   "participants": ["NPC Name 1", "NPC Name 2"?]
 }

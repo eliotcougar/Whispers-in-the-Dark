@@ -137,7 +137,7 @@ export const formatDetailedContextForMentionedEntities = (
   }
   const mentionedNPCsSection = npcsToString(
     mentionedNPCs,
-    '- <ID: {id}> - "{name}" — {description} (status: {presenceStatus}, lastKnownLocation: {lastKnownLocation}, preciseLocation: {preciseLocation})\n',
+    '- <ID: {id}> - {name} — {description} (status: {presenceStatus}, lastKnownLocation: {lastKnownLocation}, preciseLocation: {preciseLocation})\n',
     `${npcsPrefixIfAny}\n`,
   );
   if (mentionedNPCsSection) {
