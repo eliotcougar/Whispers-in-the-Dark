@@ -75,7 +75,7 @@ function SceneDisplay({
         borderWidthClass="border-t"
         contentColorClass="text-slate-300"
         contentFontClass="text-lg"
-        text={`Time: ${localTime ?? 'Unknown'}. Environment: ${localEnvironment ?? 'Unknown'} Location: ${localPlace ?? 'Unknown'}`}
+        text={`Time: ${localTime || 'Unknown'}. Environment: ${localEnvironment || 'Unknown'} Location: ${localPlace || 'Unknown'}`}
       />
     ) : null;
 

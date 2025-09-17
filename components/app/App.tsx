@@ -67,6 +67,7 @@ import {
   ThinkingEffort,
 } from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
+import { PLACEHOLDER_THEME } from '../../utils/initialStates';
 
 
 function App() {
@@ -296,6 +297,9 @@ function App() {
     clearQueuedItemActions,
     remainingActionPoints,
   } = gameLogic;
+
+  const isPlaceholderTheme = currentTheme.name === PLACEHOLDER_THEME.name;
+  const currentThemeNameForUi = isPlaceholderTheme ? null : currentTheme.name;
 
   const isActTurnGenerating = pendingAct !== null && (isLoading || isTurnProcessing);
 
@@ -546,7 +550,7 @@ function App() {
     setIsPlayerJournalWriting(true);
     openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
     void (async () => {
-      if (!currentTheme) { setIsPlayerJournalWriting(false); return; }
+      if (isPlaceholderTheme) { setIsPlayerJournalWriting(false); return; }
       const { name: themeName, storyGuidance } = currentTheme;
       const nodes = mapData.nodes.filter(
         node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
@@ -610,7 +614,7 @@ function App() {
           holderId: PLAYER_HOLDER_ID,
           chapters: playerJournal,
           lastWriteTurn: lastJournalWriteTurn,
-          tags: [currentTheme?.playerJournalStyle ?? 'handwritten'],
+          tags: [currentTheme.playerJournalStyle],
         };
         const updatedState = recordPlayerJournalInspect();
         executeItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
@@ -803,7 +807,7 @@ function App() {
     mapViewBox,
     currentMapNodeId,
     mapData.nodes,
-    currentTheme?.name,
+    currentTheme.name,
     mapLayoutConfig,
     handleMapNodesPositionChange,
   ]);
@@ -848,7 +852,7 @@ function App() {
           <div className="lg:col-span-2 space-y-3 flex flex-col">
             <MainToolbar
               currentSceneExists={!!currentScene}
-              currentThemeName={currentTheme ? currentTheme.name : null}
+              currentThemeName={currentThemeNameForUi}
               isLoading={isLoading || !!dialogueState || isTurnProcessing}
               isTurnProcessing={isTurnProcessing}
               onOpenKnowledgeBase={openKnowledgeBase}
@@ -1076,7 +1080,7 @@ function App() {
         />
       ) : null}
 
-      {hasGameBeenInitialized && currentTheme ? <AppModals
+      {hasGameBeenInitialized && !isPlaceholderTheme ? <AppModals
         allNPCs={allNPCs}
         canInspectJournal={canInspectPlayerJournal}
         canWriteJournal={canWritePlayerJournal}
@@ -1084,7 +1088,7 @@ function App() {
         currentQuest={mainQuest}
         currentScene={currentScene}
         currentTheme={currentTheme}
-        currentThemeName={currentTheme.name}
+        currentThemeName={currentThemeNameForUi}
         destinationNodeId={destinationNodeId}
         handleCancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
         handleCancelNewGameFromMenu={handleCancelNewGameFromMenu}

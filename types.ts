@@ -671,10 +671,10 @@ export interface DebugPacket {
 
 export interface FullGameState {
   saveGameVersion: string;
-  currentTheme: AdventureTheme | null; // Stores the full theme object
+  currentTheme: AdventureTheme; // Stores the full theme object
   currentScene: string;
   actionOptions: Array<string>; 
-  mainQuest: string | null;
+  mainQuest: string;
   currentObjective: string | null;
   inventory: Array<Item>;
   playerJournal: Array<ItemChapter>;
@@ -682,12 +682,12 @@ export interface FullGameState {
   lastJournalInspectTurn: number;
   lastLoreDistillTurn: number;
   gameLog: Array<string>;
-  lastActionLog: string | null;
+  lastActionLog: string;
   themeFacts: Array<ThemeFact>;
-  worldFacts: WorldFacts | null;
-  heroSheet: HeroSheet | null;
-  heroBackstory: HeroBackstory | null;
-  storyArc: StoryArc | null;
+  worldFacts: WorldFacts;
+  heroSheet: HeroSheet;
+  heroBackstory: HeroBackstory;
+  storyArc: StoryArc;
   allNPCs: Array<NPC>;
   mapData: MapData; // Single source of truth for map/location data
   currentMapNodeId: string | null; // ID of the MapNode the player is currently at
@@ -695,9 +695,9 @@ export interface FullGameState {
   mapLayoutConfig: MapLayoutConfig;
   mapViewBox: string;
   score: number;
-  localTime: string | null;
-  localEnvironment: string | null;
-  localPlace: string | null; // Free-text description, ideally aligns with a map node
+  localTime: string;
+  localEnvironment: string;
+  localPlace: string; // Free-text description, ideally aligns with a map node
   globalTurnNumber: number; // New field
   dialogueState: DialogueData | null;
   isVictory: boolean;

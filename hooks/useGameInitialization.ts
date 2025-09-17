@@ -30,7 +30,12 @@ import { findThemeByName } from '../utils/themeUtils';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
 import {
   getInitialGameStates,
-  getInitialGameStatesWithSettings
+  getInitialGameStatesWithSettings,
+  PLACEHOLDER_THEME,
+  createDefaultWorldFacts,
+  createDefaultStoryArc,
+  createDefaultHeroSheet,
+  createDefaultHeroBackstory,
 } from '../utils/initialStates';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getDefaultMapLayoutConfig } from './useMapUpdates';
@@ -134,7 +139,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       if (savedStateToLoad) {
         const [currentSaved, previousSaved] = savedStateToLoad;
-        let themeForLoadedState = currentSaved.currentTheme;
+        let themeForLoadedState: AdventureTheme | null = currentSaved.currentTheme ?? null;
         if (!themeForLoadedState) {
           const legacyName = (currentSaved as { currentThemeName?: string | null }).currentThemeName;
           if (legacyName) themeForLoadedState = findThemeByName(legacyName);
@@ -163,31 +168,52 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
         const stateWithMapData = {
           ...currentSaved,
-          currentTheme: themeForLoadedState,
+          currentTheme: themeForLoadedState ?? PLACEHOLDER_THEME,
+          mainQuest: currentSaved.mainQuest ?? '',
+          lastActionLog: currentSaved.lastActionLog ?? 'No actions recorded yet.',
+          worldFacts: currentSaved.worldFacts ?? createDefaultWorldFacts(),
+          heroSheet: currentSaved.heroSheet ?? createDefaultHeroSheet(),
+          heroBackstory: currentSaved.heroBackstory ?? createDefaultHeroBackstory(),
+          storyArc: currentSaved.storyArc ?? createDefaultStoryArc(),
           mapData: mapDataToApply,
           currentMapNodeId: currentMapNodeIdToApply,
           destinationNodeId: destinationToApply,
           mapLayoutConfig: mapLayoutConfigToApply,
           mapViewBox: currentSaved.mapViewBox,
           globalTurnNumber: currentSaved.globalTurnNumber,
+          localTime: currentSaved.localTime ?? 'Unknown',
+          localEnvironment: currentSaved.localEnvironment ?? 'Unknown',
+          localPlace: currentSaved.localPlace ?? 'Unknown',
           enabledThemePacks: enabledThemePacksProp,
           thinkingEffort: thinkingEffortProp,
           isVictory: false,
         } as FullGameState;
 
         const prev = previousSaved
-          ? {
+          ? ({
               ...previousSaved,
+              currentTheme: previousSaved.currentTheme ?? PLACEHOLDER_THEME,
+              mainQuest: previousSaved.mainQuest ?? '',
+              lastActionLog: previousSaved.lastActionLog ?? 'No actions recorded yet.',
+              worldFacts: previousSaved.worldFacts ?? createDefaultWorldFacts(),
+              heroSheet: previousSaved.heroSheet ?? createDefaultHeroSheet(),
+              heroBackstory: previousSaved.heroBackstory ?? createDefaultHeroBackstory(),
+              storyArc: previousSaved.storyArc ?? createDefaultStoryArc(),
+              localTime: previousSaved.localTime ?? 'Unknown',
+              localEnvironment: previousSaved.localEnvironment ?? 'Unknown',
+              localPlace: previousSaved.localPlace ?? 'Unknown',
               enabledThemePacks: enabledThemePacksProp,
               thinkingEffort: thinkingEffortProp,
               isVictory: false,
-            }
+            } as FullGameState)
           : stateWithMapData;
 
         setGameStateStack([stateWithMapData, prev]);
-        const arc = stateWithMapData.storyArc;
-        const act = arc ? arc.acts[arc.currentAct - 1] : null;
-        if (act) onActIntro(act);
+        if (isStoryArcValid(stateWithMapData.storyArc)) {
+          const actIndex = Math.max(0, stateWithMapData.storyArc.currentAct - 1);
+          const act = stateWithMapData.storyArc.acts[actIndex];
+          if (act) onActIntro(act);
+        }
 
         setHasGameBeenInitialized(true);
         setIsLoading(false);
@@ -221,8 +247,11 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         const draft = { ...s, startState: 'gender_select' } as FullGameState;
         commitGameState(draft);
       }
+      const currentHeroGender = getCurrentGameState().heroSheet.gender;
       const selectedGender = await openGenderSelectModal(
-        getCurrentGameState().heroSheet?.gender ?? 'Male',
+        currentHeroGender && currentHeroGender !== 'Unspecified'
+          ? currentHeroGender
+          : 'Male',
       );
 
       let draftState = getInitialGameStates();
@@ -233,33 +262,23 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.currentTheme = themeObjToLoad;
       draftState.thinkingEffort = thinkingEffortProp;
       draftState.heroSheet = {
-        name: 'Hero',
+        ...createDefaultHeroSheet(),
         gender: selectedGender,
-        heroShortName: 'Hero',
         occupation: '',
         traits: [],
         startingItems: [],
       };
       draftState.startState = 'seeding_facts';
 
-      const worldFacts = await generateWorldFacts(themeObjToLoad);
-      const safeWorldFacts = worldFacts ?? {
-        geography: '',
-        climate: '',
-        technologyLevel: '',
-        supernaturalElements: '',
-        majorFactions: [],
-        keyResources: [],
-        culturalNotes: [],
-        notableLocations: [],
-      };
-      draftState.worldFacts = worldFacts ?? null;
+      const generatedWorldFacts = await generateWorldFacts(themeObjToLoad);
+      const worldFactsForGame = generatedWorldFacts ?? createDefaultWorldFacts();
+      draftState.worldFacts = worldFactsForGame;
       commitGameState(draftState);
 
       const names = await generateCharacterNames(
         themeObjToLoad,
         selectedGender,
-        safeWorldFacts,
+        worldFactsForGame,
       );
       if (!names || names.length === 0) {
         setError('Failed to generate character options. Please retry.');
@@ -267,8 +286,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         setLoadingReason(null);
         return;
       }
-      let heroSheet: HeroSheet | null = null;
-      let heroBackstory: HeroBackstory | null = null;
       const shuffledBase = [...names].sort(() => Math.random() - 0.5).slice(0, 10);
       const sanitizedPref = (preferredPlayerNameProp ?? '')
         .replace(/[^a-zA-Z0-9\s\-"']/g, '')
@@ -283,7 +300,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       const descriptions = await generateCharacterDescriptions(
         themeObjToLoad,
         selectedGender,
-        safeWorldFacts,
+        worldFactsForGame,
         shuffled,
       );
       if (!descriptions) {
@@ -293,20 +310,30 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         return;
       }
       let initialTurnPromise: Promise<void> = Promise.resolve();
+      let hasValidStoryArc = false;
+      let hasGeneratedHeroData = false;
       const waitForBegin = openCharacterSelectModal(
         {
           theme: themeObjToLoad,
           heroGender: selectedGender,
-          worldFacts: safeWorldFacts,
+          worldFacts: worldFactsForGame,
           options: descriptions,
         },
         result => {
-          heroSheet = result.heroSheet;
-          heroBackstory = result.heroBackstory;
-          draftState.storyArc = result.storyArc;
-          draftState.heroSheet = heroSheet;
-          draftState.heroBackstory = heroBackstory;
-          if (!result.storyArc || !isStoryArcValid(result.storyArc)) {
+          const resolvedHeroSheet = result.heroSheet ?? createDefaultHeroSheet();
+          const resolvedHeroBackstory = result.heroBackstory ?? createDefaultHeroBackstory();
+          const resolvedStoryArc = result.storyArc ?? createDefaultStoryArc();
+
+          hasGeneratedHeroData = Boolean(result.heroSheet && result.heroBackstory);
+          hasValidStoryArc = isStoryArcValid(result.storyArc);
+
+          const heroSheetForState = { ...resolvedHeroSheet, gender: selectedGender };
+
+          draftState.storyArc = resolvedStoryArc;
+          draftState.heroSheet = heroSheetForState;
+          draftState.heroBackstory = resolvedHeroBackstory;
+
+          if (!hasValidStoryArc) {
             setError('Failed to generate a valid story arc. Please retry.');
             setIsLoading(false);
             setLoadingReason(null);
@@ -314,12 +341,12 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           }
           initialTurnPromise = (async () => {
             draftState.startState = 'seeding_facts';
-            if (worldFacts) {
+            if (generatedWorldFacts) {
               const initialFacts = await extractInitialFacts_Service({
                 themeName: themeObjToLoad.name,
-                worldFacts: safeWorldFacts,
-                heroSheet: heroSheet ?? undefined,
-                heroBackstory: heroBackstory ?? undefined,
+                worldFacts: generatedWorldFacts,
+                heroSheet: hasGeneratedHeroData ? heroSheetForState : undefined,
+                heroBackstory: hasGeneratedHeroData ? resolvedHeroBackstory : undefined,
                 onSetLoadingReason: setLoadingReason,
               });
               if (initialFacts) {
@@ -344,17 +371,15 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
             draftState.allNPCs = [];
             draftState.score = 0;
             draftState.inventory = [];
-
-            if (draftState.heroSheet) draftState.heroSheet.gender = selectedGender;
             const baseStateSnapshotForInitialTurn = structuredCloneGameState(draftState);
             let prompt = '';
             try {
               prompt = buildInitialGamePrompt({
                 theme: themeObjToLoad,
-                storyArc: draftState.storyArc ?? undefined,
-                worldFacts: draftState.worldFacts ?? undefined,
-                heroSheet: draftState.heroSheet ?? undefined,
-                heroBackstory: draftState.heroBackstory ?? undefined,
+                storyArc: draftState.storyArc,
+                worldFacts: draftState.worldFacts,
+                heroSheet: draftState.heroSheet,
+                heroBackstory: draftState.heroBackstory,
               });
               draftState.lastDebugPacket = {
                 prompt,
@@ -434,8 +459,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       await waitForBegin;
 
-      // After player closes character select, always show Act 1 intro
-      if (draftState.storyArc) {
+      // After player closes character select, always show Act 1 intro when valid data exists
+      if (hasValidStoryArc && isStoryArcValid(draftState.storyArc)) {
         const actIdx = Math.max(0, draftState.storyArc.currentAct - 1);
         const firstAct = draftState.storyArc.acts[actIdx];
         onActIntro(firstAct);
@@ -526,7 +551,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     const currentFullState = getCurrentGameState();
 
     // If no theme has been initialized yet, retry initial load
-    if (!currentFullState.currentTheme) {
+    const isThemeInitialized = currentFullState.currentTheme.name !== PLACEHOLDER_THEME.name;
+    if (!isThemeInitialized) {
       await loadInitialGame({
         isRestart: true,
       });
@@ -602,7 +628,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         currentThemeObj,
         draftState.heroSheet,
         () => { setParseErrorCounter(1); },
-        currentFullState.lastActionLog ?? undefined,
+        currentFullState.lastActionLog || undefined,
         currentFullState.currentScene,
         currentThemeNPCs,
         currentThemeMapDataForParse,

@@ -12,10 +12,11 @@
 Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
 
 ## Tooling Notes
-- `fd` 10.3.0 installed via winget; use for fast file discovery.
-- `fzf` 0.65.1 installed via winget; use for fuzzy file/pattern selection.
-- `rg` 14.1.1 installed system-wide; use for fast text searching with `.rgignore` defaults.
+- You work under Bash, or Git Bash console. Do not use PowerShell.
 - When piping Windows paths into POSIX tools, translate backslashes (e.g., `tr '\\' '/'`) or use fd's `--path-separator '//'` to avoid escape parsing.
+- `fd` 10.3.0 is available;
+- `fzf` 0.65.1 is available;
+- `rg` 14.1.1 is available;
 
 ## Build, Test, and Development Commands
 - `npm run typecheck` — strict TypeScript checks (no emit).
@@ -57,10 +58,10 @@ Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
 ## Gameplay Flow (Domain‑Specific)
 - Storyteller drives scenes and options via strict JSON schemas (`services/storyteller`).
  - Loremaster modes unify FSM stages and loading reasons:
-   - `loremaster_collect`: pick 10 facts (reason: `loremaster_collect`).
-   - `loremaster_extract`: extract new facts (stage after storyteller; reason: `loremaster_extract`).
-   - `loremaster_integrate`: integrate/merge into lore (reason: `loremaster_integrate`).
-   - `loremaster_distill`: periodic consolidation (reason: `loremaster_distill`).
+   - `loremaster_collect`: pick 10 facts.
+   - `loremaster_extract`: extract new facts.
+   - `loremaster_integrate`: integrate/merge into lore.
+   - `loremaster_distill`: periodic consolidation.
 - Cartographer updates the map graph (nodes/edges) from hints; features belong to main areas.
 - Dialogue Mode: AI returns NPC lines and options; memory summaries are written to NPCs.
 - Images: Visualizer prompts Imagen 4; falls back to Gemini image streaming when needed.

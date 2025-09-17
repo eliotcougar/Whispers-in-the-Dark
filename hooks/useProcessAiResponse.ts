@@ -513,9 +513,9 @@ export const useProcessAiResponse = ({
         }
         draftState.lastActionLog =
           "The Dungeon Master seems to be having trouble communicating the outcome of your last action.";
-        draftState.localTime = draftState.localTime ?? 'Time Unknown';
-        draftState.localEnvironment = draftState.localEnvironment ?? 'Environment Undetermined';
-        draftState.localPlace = draftState.localPlace ?? 'Undetermined Location';
+        if (!draftState.localTime) draftState.localTime = 'Time Unknown';
+        if (!draftState.localEnvironment) draftState.localEnvironment = 'Environment Undetermined';
+        if (!draftState.localPlace) draftState.localPlace = 'Undetermined Location';
         draftState.lastTurnChanges = turnChanges;
         draftState.dialogueState = null;
         return;
@@ -704,7 +704,7 @@ export const useProcessAiResponse = ({
               knownPlaces,
               knownNPCs,
               draftState.mainQuest,
-              `Take into account: ${draftState.lastActionLog ?? ''}`,
+              `Take into account: ${draftState.lastActionLog || ''}`,
               prev
             );
             if (actual) {

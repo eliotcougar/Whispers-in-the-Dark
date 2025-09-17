@@ -189,7 +189,7 @@ describe('game start sequence', () => {
     state.currentTheme = theme;
     state.currentScene = parsed.sceneDescription;
     state.actionOptions = parsed.options;
-    state.mainQuest = parsed.mainQuest ?? null;
+    state.mainQuest = parsed.mainQuest ?? state.mainQuest;
     state.currentObjective = parsed.currentObjective ?? null;
     state.gameLog.push(parsed.logMessage ?? '');
     state.localTime = parsed.localTime ?? state.localTime;

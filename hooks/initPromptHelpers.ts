@@ -11,6 +11,11 @@ import {
 } from '../types';
 import { buildNewGameFirstTurnPrompt } from '../services/storyteller';
 import { isStoryArcValid } from '../utils/storyArcUtils';
+import {
+  createDefaultWorldFacts,
+  createDefaultHeroSheet,
+  createDefaultHeroBackstory,
+} from '../utils/initialStates';
 
 export interface BuildInitialGamePromptOptions {
   theme: AdventureTheme;
@@ -34,26 +39,9 @@ export const buildInitialGamePrompt = (
   const prompt = buildNewGameFirstTurnPrompt(
     theme,
     storyArc,
-    worldFacts ?? {
-      geography: '',
-      climate: '',
-      technologyLevel: '',
-      supernaturalElements: '',
-      majorFactions: [],
-      keyResources: [],
-      culturalNotes: [],
-      notableLocations: [],
-    },
-    heroSheet ?? { name: 'Hero', gender: 'Male', heroShortName: 'Hero', occupation: '', traits: [], startingItems: [] },
-    heroBackstory ?? {
-      fiveYearsAgo: '',
-      oneYearAgo: '',
-      sixMonthsAgo: '',
-      oneMonthAgo: '',
-      oneWeekAgo: '',
-      yesterday: '',
-      now: '',
-    },
+    worldFacts ?? createDefaultWorldFacts(),
+    heroSheet ?? createDefaultHeroSheet(),
+    heroBackstory ?? createDefaultHeroBackstory(),
   );
   return prompt;
 };

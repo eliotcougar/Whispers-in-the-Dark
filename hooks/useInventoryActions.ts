@@ -181,8 +181,8 @@ export const useInventoryActions = ({
       draftState.lastTurnChanges = turnChangesForTake;
 
       draftState.gameLog = removeDroppedItemLog(draftState.gameLog, itemToTake.name);
-      if (draftState.lastActionLog?.startsWith(`You left your ${itemToTake.name}`)) {
-        draftState.lastActionLog = null;
+      if (draftState.lastActionLog.startsWith(`You left your ${itemToTake.name}`)) {
+        draftState.lastActionLog = 'No actions recorded yet.';
       }
       commitGameState(draftState);
     },

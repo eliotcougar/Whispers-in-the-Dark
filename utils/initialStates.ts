@@ -5,9 +5,14 @@
  * @description Provides functions creating initial game states.
  */
 import {
+  AdventureTheme,
   FullGameState,
+  HeroBackstory,
+  HeroSheet,
   MapLayoutConfig,
-  ThemePackName
+  StoryArc,
+  ThemePackName,
+  WorldFacts,
 } from '../types';
 import {
     CURRENT_SAVE_GAME_VERSION,
@@ -37,6 +42,59 @@ const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
     ITEM_ICON_SCALE: DEFAULT_ITEM_ICON_SCALE,
 });
 
+export const PLACEHOLDER_THEME: AdventureTheme = {
+  name: 'Pending Adventure',
+  storyGuidance: 'Theme selection is still in progress.',
+  playerJournalStyle: 'typed',
+};
+
+export const createDefaultWorldFacts = (): WorldFacts => ({
+  geography: 'Unknown',
+  climate: 'Unknown',
+  technologyLevel: 'Unknown',
+  supernaturalElements: 'Unknown',
+  majorFactions: [],
+  keyResources: [],
+  culturalNotes: [],
+  notableLocations: [],
+});
+
+export const createDefaultHeroSheet = (): HeroSheet => ({
+  name: 'Hero',
+  gender: 'Male',
+  heroShortName: 'Hero',
+  occupation: '',
+  traits: [],
+  startingItems: [],
+});
+
+export const createDefaultHeroBackstory = (): HeroBackstory => ({
+  fiveYearsAgo: '',
+  oneYearAgo: '',
+  sixMonthsAgo: '',
+  oneMonthAgo: '',
+  oneWeekAgo: '',
+  yesterday: '',
+  now: '',
+});
+
+export const createDefaultStoryArc = (): StoryArc => ({
+  title: 'Uncharted Journey',
+  overview: 'The grand tale has not yet begun.',
+  acts: [
+    {
+      actNumber: 1,
+      title: 'Act I: Beginnings',
+      description: 'Awaiting initialization.',
+      mainObjective: 'Initialize the adventure.',
+      sideObjectives: [],
+      successCondition: 'Complete initial setup.',
+      completed: false,
+    },
+  ],
+  currentAct: 1,
+});
+
 /**
  * Creates a default FullGameState with all numeric counters and collections
  * initialized to their starting values.
@@ -44,9 +102,9 @@ const getDefaultMapLayoutConfig = (): MapLayoutConfig => ({
 export const getInitialGameStates = (): FullGameState => {
   return {
     saveGameVersion: CURRENT_SAVE_GAME_VERSION, 
-    currentTheme: null, // Initialize currentTheme
+    currentTheme: PLACEHOLDER_THEME,
     currentScene: "", 
-    mainQuest: null, 
+    mainQuest: "",
     currentObjective: null,
     actionOptions: [],
     inventory: [],
@@ -55,12 +113,12 @@ export const getInitialGameStates = (): FullGameState => {
     lastJournalInspectTurn: 0,
     lastLoreDistillTurn: 0,
     gameLog: [],
-    lastActionLog: null,
+    lastActionLog: 'No actions recorded yet.',
     themeFacts: [],
-    worldFacts: null,
-    heroSheet: null,
-    heroBackstory: null,
-    storyArc: null,
+    worldFacts: createDefaultWorldFacts(),
+    heroSheet: createDefaultHeroSheet(),
+    heroBackstory: createDefaultHeroBackstory(),
+    storyArc: createDefaultStoryArc(),
     allNPCs: [],
     mapData: { nodes: [], edges: [] },
     currentMapNodeId: null,

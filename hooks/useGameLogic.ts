@@ -41,6 +41,10 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import {
+  ensureCoreGameStateIntegrity,
+  ensureCoreGameStateStackIntegrity,
+} from '../utils/gameStateIntegrity';
 
 export interface UseGameLogicProps {
   enabledThemePacksProp: Array<ThemePackName>;
@@ -86,7 +90,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     onActIntro,
   } = props;
 
-  const [gameStateStack, setGameStateStack] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
+  const [gameStateStack, setGameStateStackInternal] = useState<GameStateStack>(() => [getInitialGameStates(), getInitialGameStates()]);
   const [debugPacketStack, setDebugPacketStack] = useState<DebugPacketStack>(
     () => initialDebugStackFromApp ?? [null, null],
   );
@@ -126,19 +130,36 @@ export const useGameLogic = (props: UseGameLogicProps) => {
 
   const actIntroRef = useRef<StoryAct | null>(null);
 
+  const setGameStateStack = useCallback(
+    (update: React.SetStateAction<GameStateStack>) => {
+      setGameStateStackInternal(prev => {
+        const next = typeof update === 'function'
+          ? (update as (stack: GameStateStack) => GameStateStack)(prev)
+          : update;
+        const current = ensureCoreGameStateIntegrity(next[0], 'setGameStateStack.current');
+        const previous = ensureCoreGameStateStackIntegrity(next[1], 'setGameStateStack.previous');
+        return [current, previous];
+      });
+    },
+    [],
+  );
+
   const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
   const commitGameState = useCallback((newGameState: FullGameState) => {
-    setGameStateStack(prev => [newGameState, prev[0]]);
-    setDebugPacketStack(prev => [newGameState.lastDebugPacket ?? null, prev[0]]);
-  }, []);
+    const sanitized = ensureCoreGameStateIntegrity(newGameState, 'commitGameState');
+    setGameStateStack(prev => [sanitized, prev[0]]);
+    setDebugPacketStack(prev => [sanitized.lastDebugPacket ?? null, prev[0]]);
+  }, [setGameStateStack, setDebugPacketStack]);
 
   /**
    * Replaces the entire game state stack with a blank state.
    */
   const resetGameStateStack = useCallback((newState: FullGameState) => {
-    setGameStateStack([newState, newState]);
-    setDebugPacketStack([newState.lastDebugPacket ?? null, newState.lastDebugPacket ?? null]);
-  }, []);
+    const sanitized = ensureCoreGameStateIntegrity(newState, 'resetGameStateStack');
+    setGameStateStack(() => [sanitized, sanitized]);
+    const debugPacket = sanitized.lastDebugPacket ?? null;
+    setDebugPacketStack([debugPacket, debugPacket]);
+  }, [setGameStateStack, setDebugPacketStack]);
 
   const gatherGameStateStackForSave = useCallback((): GameStateStack => {
     const [current, previous] = gameStateStack;
@@ -161,14 +182,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
       { ...prev[0], debugLore: !prev[0].debugLore },
       prev[1],
     ]);
-  }, []);
+  }, [setGameStateStack]);
 
   const clearDebugFacts = useCallback(() => {
     setGameStateStack(prev => [
       { ...prev[0], debugGoodFacts: [], debugBadFacts: [] },
       prev[1],
     ]);
-  }, []);
+  }, [setGameStateStack]);
 
 
   const {

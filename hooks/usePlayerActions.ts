@@ -40,6 +40,7 @@ import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import { isStoryArcValid } from '../utils/storyArcUtils';
 
 export interface UsePlayerActionsProps {
   getCurrentGameState: () => FullGameState;
@@ -266,9 +267,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         action,
         currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
         locationItems,
-        currentFullState.storyArc?.acts[
-          currentFullState.storyArc.currentAct - 1
-        ]?.mainObjective ?? null,
+        isStoryArcValid(currentFullState.storyArc)
+          ? currentFullState.storyArc.acts[currentFullState.storyArc.currentAct - 1]?.mainObjective ?? null
+          : null,
         currentFullState.currentObjective,
         currentThemeObj,
         recentLogs,
@@ -278,24 +279,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentFullState.localTime,
         currentFullState.localEnvironment,
         currentFullState.localPlace,
-        currentFullState.worldFacts ?? {
-          geography: '',
-          climate: '',
-          technologyLevel: '',
-          supernaturalElements: '',
-          majorFactions: [],
-          keyResources: [],
-          culturalNotes: [],
-          notableLocations: [],
-        },
-        currentFullState.heroSheet ?? {
-          name: 'Hero',
-          gender: 'Male',
-          heroShortName: 'Hero',
-          occupation: '',
-          traits: [],
-          startingItems: [],
-        },
+        currentFullState.worldFacts,
+        currentFullState.heroSheet,
         currentMapNodeDetails,
         currentFullState.mapData,
         currentFullState.destinationNodeId,
@@ -357,7 +342,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           currentThemeObj,
           draftState.heroSheet,
           () => { setParseErrorCounter(1); },
-          currentFullState.lastActionLog ?? undefined,
+          currentFullState.lastActionLog || undefined,
           currentFullState.currentScene,
           currentThemeNPCs,
           currentThemeMapDataForParse,
@@ -567,7 +552,11 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       worldFacts,
       heroSheet,
     } = currentState;
-    if (!currentTheme || !storyArc || !worldFacts || !heroSheet) return null;
+
+    if (!isStoryArcValid(storyArc)) {
+      console.error('triggerMainQuestAchieved: invalid story arc detected.');
+      return null;
+    }
 
     const draftState = structuredCloneGameState(currentState);
     draftState.turnState = 'act_transition';
@@ -595,22 +584,20 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       mapDataChanged: false,
     };
 
-    if (draftState.storyArc) {
-      const arc = draftState.storyArc;
-      arc.acts[arc.currentAct - 1].completed = true;
+    const arc = draftState.storyArc;
+    arc.acts[arc.currentAct - 1].completed = true;
 
-      draftState.score += ACT_COMPLETION_SCORE;
-      turnChanges.scoreChangedBy += ACT_COMPLETION_SCORE;
+    draftState.score += ACT_COMPLETION_SCORE;
+    turnChanges.scoreChangedBy += ACT_COMPLETION_SCORE;
 
-      if (newAct) {
-        arc.acts.push(newAct);
-        arc.currentAct = newAct.actNumber;
-        turnChanges.mainQuestAchieved = false;
-        actIntroRef.current = newAct;
-      } else {
-        draftState.isVictory = true;
-        turnChanges.mainQuestAchieved = false;
-      }
+    if (newAct) {
+      arc.acts.push(newAct);
+      arc.currentAct = newAct.actNumber;
+      turnChanges.mainQuestAchieved = false;
+      actIntroRef.current = newAct;
+    } else {
+      draftState.isVictory = true;
+      turnChanges.mainQuestAchieved = false;
     }
 
     draftState.globalTurnNumber += 1;

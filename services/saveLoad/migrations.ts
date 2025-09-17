@@ -11,6 +11,7 @@ import {
 } from '../../types';
 import { CURRENT_SAVE_GAME_VERSION, PLAYER_HOLDER_ID, DEFAULT_ENABLED_THEME_PACKS } from '../../constants';
 import { findThemeByName } from '../../utils/themeUtils';
+import { PLACEHOLDER_THEME } from '../../utils/initialStates';
 import {
   ensureCompleteMapLayoutConfig,
   ensureCompleteMapNodeDataDefaults,
@@ -60,11 +61,14 @@ export function normalizeLoadedSaveData(
 
   const legacyThemeName = (parsedObj as { currentThemeName?: string | null }).currentThemeName;
   if (!dataToValidateAndExpand.currentTheme && legacyThemeName) {
-    dataToValidateAndExpand.currentTheme = findThemeByName(legacyThemeName);
-    if (!dataToValidateAndExpand.currentTheme) {
+    const matchedTheme = findThemeByName(legacyThemeName);
+    if (matchedTheme) {
+      dataToValidateAndExpand.currentTheme = matchedTheme;
+    } else {
       console.warn(
         `Failed to find theme "${legacyThemeName}" during ${sourceLabel} load. Game state might be incomplete.`
       );
+      dataToValidateAndExpand.currentTheme = PLACEHOLDER_THEME;
     }
   }
 
@@ -174,20 +178,23 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     edges: savedData.mapData.edges,
   };
 
-  let themeObjectToUse = savedData.currentTheme;
-  if (!themeObjectToUse) {
+  let themeObjectToUse: typeof PLACEHOLDER_THEME | ReturnType<typeof findThemeByName> = savedData.currentTheme ?? PLACEHOLDER_THEME;
+  if (themeObjectToUse === PLACEHOLDER_THEME) {
     const legacyName = (savedData as { currentThemeName?: string | null }).currentThemeName;
     if (legacyName) {
       themeObjectToUse = findThemeByName(legacyName);
       if (!themeObjectToUse) {
         console.warn(`expandSavedDataToFullState: Theme "${legacyName}" not found in current definitions. Game may be unstable.`);
+        themeObjectToUse = PLACEHOLDER_THEME;
       }
+    } else {
+      themeObjectToUse = PLACEHOLDER_THEME;
     }
   }
 
   return {
     ...savedData,
-    currentTheme: themeObjectToUse,
+    currentTheme: themeObjectToUse ?? PLACEHOLDER_THEME,
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
     thinkingEffort: 'Medium',
     allNPCs: savedData.allNPCs.map(npc => ({

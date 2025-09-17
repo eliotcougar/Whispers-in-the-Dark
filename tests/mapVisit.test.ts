@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers.ts';
 import { structuredCloneGameState } from '../utils/cloneUtils.ts';
+import { getInitialGameStates } from '../utils/initialStates';
 import type { AdventureTheme, FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig } from '../types';
 import { ROOT_MAP_NODE_ID } from '../constants';
 
@@ -51,25 +52,12 @@ const mapData: MapData = {
 };
 
 const baseState: FullGameState = {
+  ...getInitialGameStates(),
   saveGameVersion: '9',
   currentTheme: theme,
   currentScene: '',
   actionOptions: [],
-  mainQuest: null,
   currentObjective: null,
-  inventory: [],
-  playerJournal: [],
-  lastJournalWriteTurn: 0,
-  lastJournalInspectTurn: 0,
-  lastLoreDistillTurn: 0,
-  gameLog: [],
-  lastActionLog: null,
-  themeFacts: [],
-  worldFacts: null,
-  heroSheet: null,
-  heroBackstory: null,
-  storyArc: null,
-  allNPCs: [],
   mapData: structuredCloneGameState(mapData),
   currentMapNodeId: ROOT_MAP_NODE_ID,
   destinationNodeId: null,
@@ -83,21 +71,8 @@ const baseState: FullGameState = {
     ITEM_ICON_SCALE: 0.3
   } as MapLayoutConfig,
   mapViewBox: '',
-  score: 0,
-  localTime: null,
-  localEnvironment: null,
-  localPlace: null,
-  globalTurnNumber: 0,
-  dialogueState: null,
-  isVictory: false,
   enabledThemePacks: [],
   thinkingEffort: 'Medium',
-  debugLore: false,
-  debugGoodFacts: [],
-  debugBadFacts: [],
-  objectiveAnimationType: null,
-  lastDebugPacket: null,
-  lastTurnChanges: null
 };
 
 const draftState: FullGameState = structuredCloneGameState(baseState);

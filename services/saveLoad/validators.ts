@@ -20,6 +20,7 @@ import {
   WorldFacts,
   HeroSheet,
   HeroBackstory,
+  StoryArc,
 } from '../../types';
 import {
   CURRENT_SAVE_GAME_VERSION,
@@ -33,6 +34,12 @@ import { ALL_THEME_PACK_NAMES } from '../../themes';
 import { getDefaultMapLayoutConfig } from '../../hooks/useMapUpdates';
 import { DEFAULT_VIEWBOX } from '../../constants';
 import { buildNPCId, buildItemId } from '../../utils/entityUtils';
+import {
+  createDefaultWorldFacts,
+  createDefaultHeroSheet,
+  createDefaultHeroBackstory,
+  createDefaultStoryArc,
+} from '../../utils/initialStates';
 
 // --- Validation Helpers for SavedGameDataShape (V3) ---
 export function isValidDialogueSummaryRecord(record: unknown): record is DialogueSummaryRecord {
@@ -475,14 +482,22 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     data.themeFacts = [];
   }
   if (!data.worldFacts || !isValidWorldFacts(data.worldFacts)) {
-    data.worldFacts = null;
+    data.worldFacts = createDefaultWorldFacts();
   }
   if (!data.heroSheet || !isValidHeroSheet(data.heroSheet)) {
-    data.heroSheet = null;
+    data.heroSheet = createDefaultHeroSheet();
   }
   if (!data.heroBackstory || !isValidHeroBackstory(data.heroBackstory)) {
-    data.heroBackstory = null;
+    data.heroBackstory = createDefaultHeroBackstory();
   }
+  if (!data.storyArc || !Array.isArray((data.storyArc as StoryArc).acts)) {
+    data.storyArc = createDefaultStoryArc();
+  }
+  data.mainQuest = typeof data.mainQuest === 'string' ? data.mainQuest : '';
+  data.lastActionLog = typeof data.lastActionLog === 'string' ? data.lastActionLog : 'No actions recorded yet.';
+  data.localTime = typeof data.localTime === 'string' ? data.localTime : 'Unknown';
+  data.localEnvironment = typeof data.localEnvironment === 'string' ? data.localEnvironment : 'Unknown';
+  data.localPlace = typeof data.localPlace === 'string' ? data.localPlace : 'Unknown';
   if (!Array.isArray(data.playerJournal)) {
     data.playerJournal = [];
   }

@@ -21,6 +21,7 @@ import {
 } from '../services/dialogue';
 import { MAX_DIALOGUE_SUMMARIES_PER_NPC, PLAYER_HOLDER_ID } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
+import { isStoryArcValid } from '../utils/storyArcUtils';
 
 
 export interface UseDialogueSummaryProps {
@@ -101,15 +102,15 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       localPlace: workingGameState.localPlace,
       dialogueParticipants: finalParticipants,
       dialogueLog: finalHistory,
-      heroShortName: workingGameState.heroSheet?.heroShortName ?? 'Player',
+      heroShortName: workingGameState.heroSheet.heroShortName || 'Player',
     };
     const npcMemoryText = await executeMemorySummary(memorySummaryContext);
 
     const newSummaryRecord: DialogueSummaryRecord = {
       summaryText: npcMemoryText ?? 'A conversation took place, but the details are hazy.',
       participants: finalParticipants,
-      timestamp: workingGameState.localTime ?? 'Unknown Time',
-      location: workingGameState.localPlace ?? 'Unknown Location',
+      timestamp: workingGameState.localTime || 'Unknown Time',
+      location: workingGameState.localPlace || 'Unknown Location',
     };
 
     workingGameState.allNPCs = workingGameState.allNPCs.map((npc) => {
@@ -125,10 +126,11 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
 
     setLoadingReason('dialogue_summary');
     const mapDataForSummary: MapData = workingGameState.mapData;
-    const act =
-      workingGameState.storyArc?.acts[
+    const act = isStoryArcValid(workingGameState.storyArc)
+      ? workingGameState.storyArc.acts[
         workingGameState.storyArc.currentAct - 1
-      ];
+      ]
+      : null;
     const summaryContextForUpdates: DialogueSummaryContext = {
       mainQuest: act?.mainObjective ?? null,
       currentObjective: workingGameState.currentObjective,

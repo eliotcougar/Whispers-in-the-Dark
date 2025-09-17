@@ -158,7 +158,7 @@ function ImageVisualizer({
 
     const prefix = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
     Aspect ratio 4:3.
-    It is ${localTime ?? 'now'}. ${localEnvironment ?? 'The air is okay'}. ${localPlace ?? 'Location is unimportant'}. ${currentSceneDescription}`;
+    It is ${localTime || 'now'}. ${localEnvironment || 'The air is okay'}. ${localPlace || 'Location is unimportant'}. ${currentSceneDescription}`;
     let rawPrompt = prefix;
 
     const mentionedPlaces: Array<string> = [];
