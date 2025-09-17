@@ -109,6 +109,7 @@ export const buildMainGameTurnPrompt = (
       ? itemsToString(locationItems, ' - ', true, true, false, false, true)
       : '';
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
+
   // Categorize NPCs in a single pass for efficiency
   const companions: Array<NPC> = [];
   const nearbyNPCs: Array<NPC> = [];
@@ -129,16 +130,22 @@ export const buildMainGameTurnPrompt = (
         break;
     }
   }
-  const formatNpcSection = (header: string, list: Array<NPC>): string => {
-    if (list.length === 0) return '';
-    const body = npcsToString(list, ' - ', false, true, false)
-      .replace(/;(?=\n)/g, '');
-    return `${header}\n${body}`;
-  };
 
-  const companionsSection = formatNpcSection('### Companions traveling with the Player:', companions);
-  const nearbySection = formatNpcSection('### NPCs Player can interact with (nearby):', nearbyNPCs);
-  const knownNpcSection = formatNpcSection('### Known NPCs:', knownNPCs);
+  const companionsSection = npcsToString(
+    companions,
+    '- <ID: {id}> - "{name}" — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knownPlayerNames})\n',
+    '### Companions traveling with the Player:\n',
+  );
+  const nearbySection = npcsToString(
+    nearbyNPCs,
+    '- <ID: {id}> - "{name}" — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knownPlayerNames})\n',
+    '### NPCs Player can interact with (nearby):\n',
+  );
+  const knownNpcSection = npcsToString(
+    knownNPCs,
+    '- <ID: {id}> - "{name}" — {description} (lastKnownLocation: {lastKnownLocation})\n',
+    '### Other Known NPCs:\n',
+  );
 
   const relevantFactsContent =
     relevantFacts.length > 0 ? relevantFacts.map(f => `- ${f}`).join('\n') : '';

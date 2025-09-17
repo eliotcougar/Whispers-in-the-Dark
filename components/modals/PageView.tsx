@@ -197,9 +197,10 @@ function PageView({
   }, [mapData]);
 
   const knownNPCs = useMemo(() => {
-    return allNPCs.length > 0
-      ? npcsToString(allNPCs, ' - ', false, false, false, true)
-      : 'None specifically known in this theme yet.';
+    return (
+      npcsToString(allNPCs, '- <ID: {id}> - "{name}"\n') ||
+      'None specifically known in this theme yet.'
+    );
   }, [allNPCs]);
 
   useEffect(() => {

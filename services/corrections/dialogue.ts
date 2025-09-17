@@ -40,9 +40,8 @@ export const fetchCorrectedDialogueSetup_Service = async (
   }
 
   const npcContext =
-    allRelevantNPCs.length > 0
-      ? npcsToString(allRelevantNPCs, ' - ')
-      : 'None specifically known in this theme yet.';
+    npcsToString(allRelevantNPCs, '<ID: {id}> - "{name}"; ') ||
+    'None.';
   const placeContext = formatKnownPlacesForPrompt(allRelevantMapNodes, true);
   const inventoryContext = currentInventory.map(i => i.name).join(', ') || 'Empty';
   const malformedString = JSON.stringify(malformedDialogueSetup);
@@ -63,7 +62,7 @@ Narrative Context:
 - Known/Available NPCs for Dialogue: ${npcContext}
 - Known Map Locations: ${placeContext}
 - Player Inventory: ${inventoryContext}
- - Player Gender: "${heroGender}"
+- Player Gender: "${heroGender}"
 
 Required JSON Structure for corrected 'dialogueSetup':
 {

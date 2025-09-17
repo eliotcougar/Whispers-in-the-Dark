@@ -18,50 +18,71 @@ import { formatKnownPlacesForPrompt } from './map';
 import { findTravelPath, buildTravelAdjacency } from '../mapPathfinding';
 import { ROOT_MAP_NODE_ID } from '../../constants';
 
+const STRING_TEMPLATE_TOKEN = /\{([a-zA-Z0-9_]+)\}/g;
+
+const stringifyNpcValue = (npc: NPC, key: keyof NPC): string => {
+  const value = npc[key];
+  if (key === 'knownPlayerNames') {
+    if (Array.isArray(value) && value.length === 0) {
+      return 'ATTENTION! NPC does not know the player\'s name.';
+    }
+  }
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value.map(entry => String(entry)).join(', ') : 'None';
+  }
+  if (value === null || value === undefined) {
+    if (key === 'aliases' || key === 'dialogueSummaries') {
+      return 'None';
+    }
+    // NPC data frequently uses null to mean "not tracked"; surface that as Unknown in prompts.
+    return 'Unknown';
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+};
+
 /**
- * Formats a list of known NPCs for AI prompts.
+ * Formats NPC information using a caller-provided template.
+ * Callers control layout entirely: include separators/newlines in the template, prefix, or suffix.
+ * Each template token (e.g. `{name}`) maps directly to a property on the NPC type.
  */
 export const npcsToString = (
   npcs: NPC | Array<NPC>,
+  template: string,
   prefix = '',
-  addAliases = true,
-  addStatus = true,
-  addDescription = true,
-  singleLine = false,
+  suffix = '',
 ): string => {
   const npcList = Array.isArray(npcs) ? npcs : [npcs];
   if (npcList.length === 0) {
     return '';
   }
-  const delimiter = singleLine ? '; ' : ';\n';
 
-  const result = npcList
-    .map(npc => {
-      let str = `${prefix}${npc.id} - "${npc.name}"`;
-      if (addAliases && npc.aliases && npc.aliases.length > 0) {
-        str += ` (aka ${npc.aliases.map(a => `"${a}"`).join(', ')})`;
+  const renderForNpc = (npc: NPC): string => {
+    const rendered = template.replace(STRING_TEMPLATE_TOKEN, (_match, token) => {
+      if (!Object.prototype.hasOwnProperty.call(npc, token)) {
+        return '';
       }
-      if (addStatus) {
-        str += ` (${npc.presenceStatus}`;
-        if (npc.presenceStatus === 'companion' || npc.presenceStatus === 'nearby') {
-          str += `, ${npc.preciseLocation ?? (npc.presenceStatus === 'companion' ? 'with you' : 'nearby')}`;
-        } else {
-          str += `, Last Location: ${npc.lastKnownLocation ?? 'Unknown'}`;
-        }
-        str += ')';
-      }
-      const knownNames = npc.knownPlayerNames.length > 0
-        ? npc.knownPlayerNames.join(', ')
-        : 'ATTENTION! NPC does not know the player\'s name.';
-      str += `, Attitude: ${npc.attitudeTowardPlayer}, Knows player as: ${knownNames}`;
-      if (addDescription) {
-        str += `, "${npc.description}"`;
-      }
-      return str;
-    })
-    .join(delimiter);
+      return stringifyNpcValue(npc, token as keyof NPC);
+    });
+    return rendered;
+  };
 
-  return result + '.';
+  const lines = npcList
+    .map(renderForNpc)
+    .filter(line => line.trim().length > 0);
+
+  if (lines.length === 0) {
+    return '';
+  }
+
+  const parts: Array<string> = [];
+  if (prefix) parts.push(prefix);
+  parts.push(lines.join(''));
+  if (suffix) parts.push(suffix);
+
+  return parts.join('');
 };
 
 
@@ -109,9 +130,13 @@ export const formatDetailedContextForMentionedEntities = (
   if (formattedMentionedPlaces && formattedMentionedPlaces !== 'None specifically known in this theme yet.') {
     detailedContext += `${placesPrefixIfAny}\n${formattedMentionedPlaces}\n`;
   }
-  const mentionedNPCsString = npcsToString(mentionedNPCs, ' - ');
-  if (mentionedNPCsString) {
-    detailedContext += `${npcsPrefixIfAny}\n${mentionedNPCsString}`;
+  const mentionedNPCsSection = npcsToString(
+    mentionedNPCs,
+    '- <ID: {id}> - "{name}" — {description} (status: {presenceStatus}, lastKnownLocation: {lastKnownLocation}, preciseLocation: {preciseLocation})\n',
+    `${npcsPrefixIfAny}\n`,
+  );
+  if (mentionedNPCsSection) {
+    detailedContext += `${mentionedNPCsSection}`;
   }
   return detailedContext.trimStart();
 };
