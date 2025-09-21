@@ -8,6 +8,7 @@ import {
   ThemePackName,
   FullGameState,
   GameStateStack,
+  DebugPacket,
   DebugPacketStack,
   LoadingReason,
   AdventureTheme,
@@ -153,8 +154,25 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
   const commitGameState = useCallback((newGameState: FullGameState) => {
     const sanitized = ensureCoreGameStateIntegrity(newGameState, 'commitGameState');
-    setGameStateStack(prev => [sanitized, prev[0]]);
-    setDebugPacketStack(prev => [sanitized.lastDebugPacket ?? null, prev[0]]);
+    let fallbackDebugForAwaiting: DebugPacket | null = null;
+    setGameStateStack(prev => {
+      const [prevCurrent, prevPrevious] = prev;
+      if (sanitized.turnState === 'awaiting_input') {
+        const fallbackPrevState = prevCurrent.turnState === 'awaiting_input'
+          ? prevCurrent
+          : prevPrevious ?? prevCurrent;
+        fallbackDebugForAwaiting = fallbackPrevState?.lastDebugPacket ?? null;
+        return [sanitized, fallbackPrevState];
+      }
+      return [sanitized, prevCurrent];
+    });
+    setDebugPacketStack(prev => {
+      const nextCurrentDebug = sanitized.lastDebugPacket ?? null;
+      if (sanitized.turnState === 'awaiting_input') {
+        return [nextCurrentDebug, fallbackDebugForAwaiting];
+      }
+      return [nextCurrentDebug, prev[0]];
+    });
   }, [setGameStateStack, setDebugPacketStack]);
 
   /**

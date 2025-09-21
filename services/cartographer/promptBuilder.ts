@@ -76,7 +76,7 @@ export const buildSimplifiedNavigationPrompt = (
   const accessibleNodes = mapData.nodes.filter(n => ACCESSIBLE_NODE_STATUSES.includes(n.data.status));
   const nodesList = accessibleNodes.length > 0
     ? accessibleNodes
-        .map(n => `- id: ${n.id}; name: "${n.placeName}"; type: ${n.data.nodeType}`)
+        .map(n => `<ID: ${n.id}> - name: "${n.placeName}"; type: ${n.data.nodeType}; description: ${n.data.description}`)
         .join('\n')
     : 'None (no accessible nodes discovered yet).';
 

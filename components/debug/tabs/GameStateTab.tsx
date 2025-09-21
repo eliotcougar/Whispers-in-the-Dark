@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from '../../elements/Button';
 import DebugSection from '../DebugSection';
 import type { FullGameState } from '../../../types';
@@ -19,11 +19,22 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
   const [editableText, setEditableText] = useState<string>('');
   const [parseError, setParseError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const sanitizedCurrentState = useMemo(() => {
     const sanitized = cloneGameStateWithoutImages(currentState);
     delete (sanitized as Partial<FullGameState>).lastDebugPacket;
-    setEditableText(JSON.stringify(sanitized, null, 2));
+    return sanitized;
   }, [currentState]);
+
+  const sanitizedPreviousState = useMemo(() => {
+    if (!previousState) return undefined;
+    const sanitized = cloneGameStateWithoutImages(previousState);
+    delete (sanitized as Partial<FullGameState>).lastDebugPacket;
+    return sanitized;
+  }, [previousState]);
+
+  useEffect(() => {
+    setEditableText(JSON.stringify(sanitizedCurrentState, null, 2));
+  }, [sanitizedCurrentState]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -108,14 +119,14 @@ function GameStateTab({ currentState, onUndoTurn, onApplyGameState, previousStat
       </div>
 
       <DebugSection
-        content={cloneGameStateWithoutImages(currentState)}
+        content={sanitizedCurrentState}
         maxHeightClass="max-h-[30vh]"
         title="Current Game State (Stack[0] - Top)"
       />
 
-      {previousState ? (
+      {sanitizedPreviousState ? (
         <DebugSection
-          content={(() => { const tmp = cloneGameStateWithoutImages(previousState); delete (tmp as Partial<FullGameState>).lastDebugPacket; return tmp; })()}
+          content={sanitizedPreviousState}
           maxHeightClass="max-h-[30vh]"
           title="Previous Game State (Stack[1] - Bottom)"
         />
