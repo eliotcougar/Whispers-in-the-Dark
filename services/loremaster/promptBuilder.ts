@@ -142,7 +142,7 @@ ${mapLines || 'None'}
 ## Current Facts:
 ${factLines}
 
-Identify pairs of facts that could be merged into a single, more specific statement.
+Identify sets of facts that could be merged into a single, more specific statement.
 Delete facts that reference obsolete quests, objectives, conditions, items or places. If merging or deleting, provide instructions.
 `;
 };

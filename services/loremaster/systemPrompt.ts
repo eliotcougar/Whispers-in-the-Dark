@@ -113,13 +113,12 @@ Consider the last 20 log entries supplied in the prompt. Remove or edit any fact
 1. Look for statements that describe the same idea and merge them into a single, more specific fact. Keep the length of the merged fact under 200 words. Split any fact longer than 200 words into two non-overlapping facts.
 Increase the tier of the merged fact by one.
 When merging, combine the entity IDs from all merged facts into a single set with no duplicates.
-
 2. Prune facts that reference obsolete or irrelevant details, such as:
 - places that no longer exist;
 - items that no longer exist;
 - old quest and objective that is different from the current quest and objective.
-
 3. Edit or prune any facts facts that are obsolete and no longer in effect according to Recent Events.
+4. Prune any simple statements about the Player posessing an inventory item or items - it's redundant.
 
 ## Examples:
 "factsChange": [
