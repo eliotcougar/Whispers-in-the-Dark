@@ -471,7 +471,12 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
   }));
   // Numeric fields and nullable strings are guaranteed by validation
   cast.allNPCs = (cast.allNPCs ?? []).map((npc: unknown) => {
-    const oneNpc = npc as Partial<NPC>;
+    const legacyAwareNpc = npc as Partial<NPC> & {
+      knownPlayerNames?: Array<string> | string | null;
+      knowsPlayerAs?: Array<string> | string | null;
+    };
+    const { knownPlayerNames, ...oneNpc } = legacyAwareNpc;
+    const knowsPlayerAsSource = legacyAwareNpc.knowsPlayerAs ?? knownPlayerNames;
     return {
       ...oneNpc,
       id: oneNpc.id ?? buildNPCId(oneNpc.name ?? ''),
@@ -480,7 +485,7 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
       attitudeTowardPlayer: typeof oneNpc.attitudeTowardPlayer === 'string' && oneNpc.attitudeTowardPlayer.trim().length > 0
         ? oneNpc.attitudeTowardPlayer
         : DEFAULT_NPC_ATTITUDE,
-      knowsPlayerAs: sanitizeKnownPlayerNames(oneNpc.knowsPlayerAs ?? []),
+      knowsPlayerAs: sanitizeKnownPlayerNames(knowsPlayerAsSource),
       lastKnownLocation: oneNpc.lastKnownLocation ?? null,
       preciseLocation: oneNpc.preciseLocation ?? null,
       dialogueSummaries: oneNpc.dialogueSummaries ?? [],

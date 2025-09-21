@@ -147,12 +147,19 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     currentTheme: savedData.currentTheme,
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
     thinkingEffort: 'Medium',
-    allNPCs: savedData.allNPCs.map(npc => ({
-      ...npc,
-      attitudeTowardPlayer: npc.attitudeTowardPlayer,
-      knowsPlayerAs: sanitizeKnownPlayerNames(npc.knowsPlayerAs),
-      dialogueSummaries: npc.dialogueSummaries ?? [],
-    })),
+    allNPCs: savedData.allNPCs.map(npc => {
+      const npcWithLegacyNames = npc as typeof npc & {
+        knownPlayerNames?: Array<string> | string | null;
+      };
+      const knowsPlayerAsSource = (npcWithLegacyNames as { knowsPlayerAs?: Array<string> | string | null }).knowsPlayerAs
+        ?? npcWithLegacyNames.knownPlayerNames;
+      return {
+        ...npc,
+        attitudeTowardPlayer: npc.attitudeTowardPlayer,
+        knowsPlayerAs: sanitizeKnownPlayerNames(knowsPlayerAsSource),
+        dialogueSummaries: npc.dialogueSummaries ?? [],
+      };
+    }),
     mapData: mapDataFromLoad,
     currentMapNodeId: savedData.currentMapNodeId,
     destinationNodeId: savedData.destinationNodeId,

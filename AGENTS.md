@@ -1,16 +1,5 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
-- App UI: `components/` (e.g., `components/app`, `components/modals`).
-- Game logic: `hooks/` (e.g., `useGameLogic`, `useGameInitialization`, dialogue and turn helpers).
-- Domain services: `services/` (storyteller, cartographer, dialogue, image, librarian, worldData, storage, thinkingConfig, modelDispatcher).
-- Utilities: `utils/` (prompt formatters, entity and map helpers, JSON helpers).
-- Types and constants: `types.ts`, `constants.ts`.
-- Static resources: `resources/`.
-- Tests: `tests/` (Vitest).
-
-Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
-
 ## Tooling Notes
 - You work under Bash, or Git Bash console. Do not use PowerShell.
 - When piping Windows paths into POSIX tools, translate backslashes (e.g., `tr '\\' '/'`) or use fd's `--path-separator '//'` to avoid escape parsing.
@@ -26,6 +15,17 @@ Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
 - `npm run lint-strict:fix` — auto-fixable strict lint issues.
 - `npm run build` — production build (TypeScript + bundling).
 - `npm run test:unit` — run unit tests (Vitest).
+
+## Project Structure & Module Organization
+- App UI: `components/` (e.g., `components/app`, `components/modals`).
+- Game logic: `hooks/` (e.g., `useGameLogic`, `useGameInitialization`, dialogue and turn helpers).
+- Domain services: `services/` (storyteller, cartographer, dialogue, image, librarian, worldData, storage, thinkingConfig, modelDispatcher).
+- Utilities: `utils/` (prompt formatters, entity and map helpers, JSON helpers).
+- Types and constants: `types.ts`, `constants.ts`.
+- Static resources: `resources/`.
+- Tests: `tests/` (Vitest).
+
+Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
 
 ## Coding Style & Naming Conventions
 - TypeScript + React; 2‑space indentation; avoid deep JSX nesting (>4).
