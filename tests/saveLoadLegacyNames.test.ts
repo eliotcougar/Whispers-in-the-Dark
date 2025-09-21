@@ -54,8 +54,8 @@ describe('save/load legacy NPC name migration', () => {
 
     expect(processed.allNPCs[0].knowsPlayerAs).toEqual(['Hero']);
     expect(processed.allNPCs[1].knowsPlayerAs).toEqual(['Wayfarer']);
-    expect((processed.allNPCs[0] as Record<string, unknown>).knownPlayerNames).toBeUndefined();
-    expect((processed.allNPCs[1] as Record<string, unknown>).knownPlayerNames).toBeUndefined();
+    expect('knownPlayerNames' in processed.allNPCs[0]).toBe(false);
+    expect('knownPlayerNames' in processed.allNPCs[1]).toBe(false);
 
     const fullState = expandSavedDataToFullState(processed);
 

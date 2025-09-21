@@ -87,7 +87,7 @@ export const npcsToString = (
   parts.push(lines.join(''));
   if (suffix) parts.push(suffix);
 
-  return parts.join('');
+  return parts.join('').trimEnd();
 };
 
 
@@ -137,7 +137,7 @@ export const formatDetailedContextForMentionedEntities = (
   }
   const mentionedNPCsSection = npcsToString(
     mentionedNPCs,
-    '- <ID: {id}> - {name} — {description} (status: {presenceStatus}, lastKnownLocation: {lastKnownLocation}, preciseLocation: {preciseLocation})\n',
+    '<ID: {id}> - {name} — {description} (status: {presenceStatus}, lastKnownLocation: {lastKnownLocation}, preciseLocation: {preciseLocation})\n',
     `${npcsPrefixIfAny}\n`,
   );
   if (mentionedNPCsSection) {

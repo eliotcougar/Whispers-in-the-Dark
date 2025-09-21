@@ -32,7 +32,6 @@ import Footer from './Footer';
 import AppModals from './AppModals';
 import AppHeader from './AppHeader';
 import FreeActionInput from './FreeActionInput';
-import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
 import { generateJournalEntry } from '../../services/journal';
 import { useLoadingProgress } from '../../hooks/useLoadingProgress';
 import { useSaveLoad } from '../../hooks/useSaveLoad';
@@ -560,13 +559,6 @@ function App() {
     void (async () => {
       if (isPlaceholderTheme) { setIsPlayerJournalWriting(false); return; }
       const { name: themeName, storyGuidance } = currentTheme;
-      const nodes = mapData.nodes.filter(
-        node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
-      );
-      const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-      const knownNPCs =
-        npcsToString(allNPCs, '- <ID: {id}> - {name}\n') ||
-        'None specifically known in this theme yet.\n';
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;
       const journalResult = await generateJournalEntry( /* TODO: Somewhere around here we need to sanitize Chapter heading to remove any HTML or Markup formatting */
@@ -578,8 +570,8 @@ function App() {
         storyGuidance,
         currentScene,
         lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? '',
-        knownPlaces,
-        knownNPCs,
+        mapData.nodes,
+        allNPCs,
         gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT),
         mainQuest
       );

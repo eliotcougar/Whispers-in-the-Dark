@@ -25,8 +25,7 @@ Player Input and Contextual Information:
 - Also record the specific name or alias the NPC uses for the player. Set 'knowsPlayerAs' when adding an NPC and update with 'newKnownPlayerNames' if it changes; use an empty array if they do not know or forget the name.
 - Pay close attention to 'Active: true' items and their available actions.
 - Compare the new Local Place of the Player to the precise locations of relevant NPCs, and update their presence state accordingly.
-For example, leaving NPC's location makes them "distant", entering NPC's location makes them 'nearby' if they are still there, or 'unknown', is they moved while the player was not there.
-If a Companion leaves the Player, or the Player leaves a Companion, their presence status changes to 'nearby' or, sometimes, 'distant', depending on context.
+For example, leaving NPC's location makes them "distant", entering NPC's location makes them 'nearby' if they are still there, or 'unknown', is they moved while the player was not there. If a Companion leaves the Player, or the Player leaves a Companion, their presence status changes to 'nearby' or, sometimes, 'distant', depending on context.
 - The response MUST include "localTime", "localEnvironment", and "localPlace".
 - If "mainQuest" or "currentObjective" change, they MUST be provided. Otherwise, they are optional.
 - If the narrative implies any changes to the map (new details, locations, connections, status changes), set "mapUpdated": true and write about it in mapHint.

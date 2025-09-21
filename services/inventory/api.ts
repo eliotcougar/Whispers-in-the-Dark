@@ -22,8 +22,10 @@ import { getThinkingBudget } from '../thinkingConfig';
 import { isApiConfigured } from '../geminiClient';
 import {
   AdventureTheme,
+  Item,
   ItemChange,
   NewItemSuggestion,
+  NPC,
 } from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
 import { parseInventoryResponse, InventoryAIPayload } from './responseParser';
@@ -341,11 +343,9 @@ export const applyInventoryHints_Service = async (
   npcItemsHint: string | undefined,
   newItems: Array<NewItemSuggestion>,
   playerLastAction: string,
-  playerInventory: string,
-  locationInventory: string,
+  inventory: Array<Item>,
   currentNodeId: string | null,
-  companionsInventory: string,
-  nearbyNpcsInventory: string,
+  npcs: Array<NPC>,
   sceneDescription: string | undefined,
   logMessage: string | undefined,
   currentTheme: AdventureTheme,
@@ -358,17 +358,15 @@ export const applyInventoryHints_Service = async (
     return { itemChanges: [], debugInfo: null };
   }
 
-  const prompt = buildInventoryPrompt(
+  const { prompt, companionsContext, nearbyNpcsContext } = buildInventoryPrompt(
     playerLastAction,
     pHint,
     wHint,
     nHint,
     newItems,
-    playerInventory,
-    locationInventory,
+    inventory,
     currentNodeId,
-    companionsInventory,
-    nearbyNpcsInventory,
+    npcs,
     limitedMapContext,
   );
   const {
@@ -388,8 +386,8 @@ export const applyInventoryHints_Service = async (
       wHint,
       nHint,
       currentNodeId,
-      companionsInventory,
-      nearbyNpcsInventory,
+      companionsContext,
+      nearbyNpcsContext,
       currentTheme,
     );
     if (corrected)

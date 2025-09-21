@@ -10,7 +10,7 @@ import {
   GEMINI_MODEL_NAME,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
-import { npcsToString } from '../../utils/promptFormatters';
+import { itemsToString, npcsToString } from '../../utils/promptFormatters';
 import { isDialogueSetupPayloadStructurallyValid } from '../parsers/validation';
 import { CORRECTION_TEMPERATURE } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -39,11 +39,19 @@ export const fetchCorrectedDialogueSetup_Service = async (
     return null;
   }
 
-  const npcContext =
-    npcsToString(allRelevantNPCs, '<ID: {id}> - {name}; ') ||
-    'None.';
+  const npcContextLine = npcsToString(
+    allRelevantNPCs,
+    '<ID: {id}> - {name}; ',
+    '- Known/Available NPCs for Dialogue: ',
+    '\n'
+  );
   const placeContext = formatKnownPlacesForPrompt(allRelevantMapNodes, true);
-  const inventoryContext = currentInventory.map(i => i.name).join(', ') || 'Empty';
+  const inventoryContext = itemsToString(
+    currentInventory,
+    '{name}, ',
+    '- Player Inventory: ',
+    '\n'
+  );
   const malformedString = JSON.stringify(malformedDialogueSetup);
 
   const prompt = `
@@ -59,9 +67,9 @@ Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
 - Theme Guidance: "${currentTheme.storyGuidance}"
-- Known/Available NPCs for Dialogue: ${npcContext}
+${npcContextLine}
 - Known Map Locations: ${placeContext}
-- Player Inventory: ${inventoryContext}
+${inventoryContext}
 - Player Gender: "${heroGender}"
 
 Required JSON Structure for corrected 'dialogueSetup':

@@ -27,7 +27,9 @@ import {
   formatHeroBackstoryForPrompt,
   formatStoryArcContext,
 } from '../../utils/promptFormatters';
-import { ROOT_MAP_NODE_ID } from '../../constants';
+import { PLAYER_HOLDER_ID, ROOT_MAP_NODE_ID } from '../../constants';
+
+const STORYTELLER_ITEM_TEMPLATE = '<ID: {id}> - "{name}" (Type: "{type}"{tagswithdescription}, Description: "{currentdescription}"{activehint}){availableactions};\n';
 
 /**
  * Build the initial prompt for starting a new game.
@@ -81,7 +83,7 @@ export const buildMainGameTurnPrompt = (
   currentScene: string,
   playerAction: string,
   inventory: Array<Item>,
-  locationItems: Array<Item>,
+  currentMapNodeId: string | null,
   mainQuest: string | null,
   currentObjective: string | null,
   currentTheme: AdventureTheme,
@@ -100,14 +102,22 @@ export const buildMainGameTurnPrompt = (
   storyArc: StoryArc,
   debugToolDirective?: string,
 ): string => {
-  const inventoryContent =
-    inventory.length > 0
-      ? itemsToString(inventory, ' - ', true, true, false, false, true)
-      : `There are no items in player's inventory.`;
-  const locationItemsContent =
-    locationItems.length > 0
-      ? itemsToString(locationItems, ' - ', true, true, false, false, true)
-      : '';
+  const playerInventoryItems = inventory.filter(item => item.holderId === PLAYER_HOLDER_ID);
+  const inventoryContent = itemsToString(
+    playerInventoryItems,
+    STORYTELLER_ITEM_TEMPLATE,
+    '### Player\'s Inventory:\n',
+    '\n'
+  );
+  const locationItems = currentMapNodeId
+    ? inventory.filter(item => item.holderId === currentMapNodeId)
+    : [];
+  const locationItemsContent = itemsToString(
+    locationItems,
+    STORYTELLER_ITEM_TEMPLATE,
+    '### Items at Current Location:\n',
+    '\n'
+  );
   const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
 
   // Categorize NPCs in a single pass for efficiency
@@ -133,17 +143,17 @@ export const buildMainGameTurnPrompt = (
 
   const companionsSection = npcsToString(
     companions,
-    '- <ID: {id}> - {name} — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knowsPlayerAs})\n',
+    '<ID: {id}> - {name} — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knowsPlayerAs})\n',
     '### Companions traveling with the Player:\n',
   );
   const nearbySection = npcsToString(
     nearbyNPCs,
-    '- <ID: {id}> - {name} — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knowsPlayerAs})\n',
+    '<ID: {id}> - {name} — {description} (preciseLocation: {preciseLocation}, attitude: {attitudeTowardPlayer}, knows Player as {knowsPlayerAs})\n',
     '### NPCs Player can interact with (nearby):\n',
   );
   const knownNpcSection = npcsToString(
     knownNPCs,
-    '- <ID: {id}> - {name} — {description} (lastKnownLocation: {lastKnownLocation})\n',
+    '<ID: {id}> - {name} — {description} (lastKnownLocation: {lastKnownLocation})\n',
     '### Other Known NPCs:\n',
   );
 
@@ -224,12 +234,12 @@ export const buildMainGameTurnPrompt = (
     [
       `### World Details:\n${worldInfo}`,
       `### Player Character Description:\n${heroDescription}`,
-      `### Player's Inventory:\n${inventoryContent}`,
-      locationItemsContent ? `### Items at Current Location:\n${locationItemsContent}` : null,
+      inventoryContent || null,
+      locationItemsContent || null,
       `### Known Locations:\n${placesContext}`,
-      knownNpcSection || null,
       companionsSection || null,
       nearbySection || null,
+      knownNpcSection || null,
       mapContextSection || null,
       detailedEntitySection || null,
       relevantFactsSection || null,

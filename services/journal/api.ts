@@ -9,9 +9,12 @@ import { getThinkingBudget } from '../thinkingConfig';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { isApiConfigured } from '../geminiClient';
-import { formatRecentEventsForPrompt } from '../../utils/promptFormatters';
+import { formatRecentEventsForPrompt, npcsToString } from '../../utils/promptFormatters';
+import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { safeParseJson } from '../../utils/jsonUtils';
-import type { LoremasterModeDebugInfo, GeneratedJournalEntry } from '../../types';
+import type { LoremasterModeDebugInfo, GeneratedJournalEntry, MapNode, NPC } from '../../types';
+
+const JOURNAL_KNOWN_NPC_TEMPLATE = '<ID: {id}> - {name}\n';
 
 export interface GeneratedJournalEntryResult {
   entry: GeneratedJournalEntry | null;
@@ -49,8 +52,8 @@ export const generateJournalEntry = async (
   themeDescription: string,
   sceneDescription: string,
   storytellerThoughts: string,
-  knownPlaces: string,
-  knownNPCs: string,
+  mapNodes: Array<MapNode>,
+  npcs: Array<NPC>,
   recentLogEntries: Array<string>,
   currentQuest: string | null,
 ): Promise<GeneratedJournalEntryResult | null> => {
@@ -61,6 +64,13 @@ export const generateJournalEntry = async (
 
   const questLine = currentQuest ? `Current Quest: "${currentQuest}"` : 'Current Quest: Not set';
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
+  const knownPlaces = formatKnownPlacesForPrompt(mapNodes, true);
+  const knownNpcSection = npcsToString(
+    npcs,
+    JOURNAL_KNOWN_NPC_TEMPLATE,
+    '## Known NPCs:\n',
+    '\n',
+  );
   const prompt = `**Context:**
 Theme Name: "${themeName}";
 Theme Description: "${themeDescription}";
@@ -68,8 +78,7 @@ ${questLine};
 
 ## Known Locations:
 ${knownPlaces}
-## Known NPCs:
-${knownNPCs}
+${knownNpcSection}
 ## Previous Journal Entry:
 ${previousEntry}
 

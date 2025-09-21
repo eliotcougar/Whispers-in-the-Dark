@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Item, ItemChapter, MapData, NPC, AdventureTheme } from '../../types';
-import { formatKnownPlacesForPrompt, npcsToString } from '../../utils/promptFormatters';
 import { PLAYER_JOURNAL_ID } from '../../constants';
 import { normalizeChapters } from '../../utils/writtenItemChapters';
 import { rot13, toRunic, tornVisibleText } from '../../utils/textTransforms';
@@ -187,22 +186,6 @@ function PageView({
   }, [item, showDecoded, chapterIndex, chapters, isJournal]);
 
 
-  const knownPlaces = useMemo(() => {
-    const nodes = mapData.nodes.filter(
-      n =>
-        n.data.nodeType !== 'feature' &&
-        n.data.nodeType !== 'room',
-    );
-    return formatKnownPlacesForPrompt(nodes, true);
-  }, [mapData]);
-
-  const knownNPCs = useMemo(() => {
-    return (
-      npcsToString(allNPCs, '- <ID: {id}> - {name}\n') ||
-      'None specifically known in this theme yet.\n'
-    );
-  }, [allNPCs]);
-
   useEffect(() => {
     if (!isVisible || !item) {
       setText(null);
@@ -247,8 +230,8 @@ function PageView({
         themeDescription,
         currentScene,
         storytellerThoughts,
-        knownPlaces,
-        knownNPCs,
+        mapData.nodes,
+        allNPCs,
         currentQuest,
         'Write it exclusively in English without any foreign, encrypted, or gibberish text.',
         item.type === 'book' && !isJournal && idx > 0
@@ -267,8 +250,8 @@ function PageView({
             themeDescription,
             currentScene,
             storytellerThoughts,
-            knownPlaces,
-            knownNPCs,
+            mapData.nodes,
+            allNPCs,
             currentQuest,
             `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
           );
@@ -296,8 +279,8 @@ function PageView({
     themeDescription,
     currentScene,
     storytellerThoughts,
-    knownPlaces,
-    knownNPCs,
+    mapData.nodes,
+    allNPCs,
     currentQuest,
     updateItemContent,
     isJournal,

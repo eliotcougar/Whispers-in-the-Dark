@@ -19,14 +19,12 @@ import {
   applyAllItemChanges,
   applyThemeFactChanges,
 } from '../utils/gameLogicUtils';
-import { itemsToString } from '../utils/promptFormatters/inventory';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
 import { applyInventoryHints_Service } from '../services/inventory';
 import { applyLibrarianHints_Service } from '../services/librarian';
 import { refineLore_Service } from '../services/loremaster';
 import { generatePageText } from '../services/page';
-import { formatKnownPlacesForPrompt, npcsToString } from '../utils/promptFormatters';
 import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import {
@@ -253,52 +251,10 @@ const handleInventoryHints = async ({
   const baseInventoryForPlayer = baseState.inventory.filter(
     (item) => item.holderId === PLAYER_HOLDER_ID,
   );
-  const locationInventory = baseState.inventory.filter(
-    (item) => item.holderId === baseState.currentMapNodeId,
-  );
-  const companionNPCs = baseState.allNPCs.filter(
-    (npc) => npc.presenceStatus === 'companion',
-  );
-  const nearbyNPCs = baseState.allNPCs.filter(
-    (npc) => npc.presenceStatus === 'nearby',
-  );
-
   const filterItemsByType = (
     items: Array<Item>,
     allowed: ReadonlyArray<string>,
   ): Array<Item> => items.filter(it => allowed.includes(it.type));
-
-  const regularPlayerInventory = filterItemsByType(
-    baseInventoryForPlayer,
-    REGULAR_ITEM_TYPES,
-  );
-  const regularLocationInventory = filterItemsByType(
-    locationInventory,
-    REGULAR_ITEM_TYPES,
-  );
-  const writtenPlayerInventory = filterItemsByType(
-    baseInventoryForPlayer,
-    WRITTEN_ITEM_TYPES,
-  );
-  const writtenLocationInventory = filterItemsByType(
-    locationInventory,
-    WRITTEN_ITEM_TYPES,
-  );
-
-  const formatNPCInventoryList = (
-    npcs: typeof companionNPCs,
-    allowedTypes: ReadonlyArray<string>,
-  ): string => {
-    if (npcs.length === 0) return 'None.';
-    return npcs
-      .map((npc) => {
-        const items = baseState.inventory.filter(
-          (i) => i.holderId === npc.id && allowedTypes.includes(i.type),
-        );
-        return `ID: ${npc.id} - ${npc.name}: ${itemsToString(items, ' - ', true, true, false, true)}`;
-      })
-      .join('\n');
-  };
 
   let combinedItemChanges = [...correctedItemChanges];
 
@@ -338,11 +294,9 @@ const handleInventoryHints = async ({
         npcItemsHint,
         inventoryNewItems,
         playerActionText ?? '',
-        itemsToString(regularPlayerInventory, ' - ', true, true, false, true),
-        itemsToString(regularLocationInventory, ' - ', true, true, false, true),
+        baseState.inventory,
         baseState.currentMapNodeId ?? null,
-        formatNPCInventoryList(companionNPCs, REGULAR_ITEM_TYPES),
-        formatNPCInventoryList(nearbyNPCs, REGULAR_ITEM_TYPES),
+        baseState.allNPCs,
         'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
         aiData.logMessage,
         theme,
@@ -366,11 +320,9 @@ const handleInventoryHints = async ({
         librarianHint,
         librarianNewItems,
         playerActionText ?? '',
-        itemsToString(writtenPlayerInventory, ' - ', true, true, false, true),
-        itemsToString(writtenLocationInventory, ' - ', true, true, false, true),
+        baseState.inventory,
         baseState.currentMapNodeId ?? null,
-        formatNPCInventoryList(companionNPCs, WRITTEN_ITEM_TYPES),
-        formatNPCInventoryList(nearbyNPCs, WRITTEN_ITEM_TYPES),
+        baseState.allNPCs,
         limitedMapContextWritten,
       );
       setLoadingReason(original);
@@ -683,14 +635,6 @@ export const useProcessAiResponse = ({
             const chapter = change.item.chapters?.[0];
             if (!chapter) continue;
             const { name: themeName, storyGuidance } = themeContextForResponse;
-            const nodes = draftState.mapData.nodes.filter(
-              n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
-            );
-            const knownPlaces = formatKnownPlacesForPrompt(nodes, true);
-            const npcs = draftState.allNPCs;
-            const knownNPCs =
-              npcsToString(npcs, '- <ID: {id}> - {name}\n') ||
-              'None specifically known in this theme yet.\n';
             const prev = target.chapters?.[target.chapters.length - 1]?.actualContent ?? '';
             const thoughts = draftState.lastDebugPacket.storytellerThoughts?.slice(-1)[0] ?? '';
             const actual = await generatePageText(
@@ -701,8 +645,8 @@ export const useProcessAiResponse = ({
               storyGuidance,
               draftState.currentScene,
               thoughts,
-              knownPlaces,
-              knownNPCs,
+              draftState.mapData.nodes,
+              draftState.allNPCs,
               draftState.mainQuest,
               `Take into account: ${draftState.lastActionLog || ''}`,
               prev
@@ -719,8 +663,8 @@ export const useProcessAiResponse = ({
                   storyGuidance,
                   draftState.currentScene,
                   thoughts,
-                  knownPlaces,
-                  knownNPCs,
+                  draftState.mapData.nodes,
+                  draftState.allNPCs,
                   draftState.mainQuest,
                   `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
                 );

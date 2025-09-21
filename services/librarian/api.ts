@@ -16,7 +16,7 @@ import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { getThinkingBudget } from '../thinkingConfig';
 import { isApiConfigured } from '../geminiClient';
-import { ItemChange, NewItemSuggestion } from '../../types';
+import { Item, ItemChange, NewItemSuggestion, NPC } from '../../types';
 import { buildLibrarianPrompt } from './promptBuilder';
 import { parseLibrarianResponse } from './responseParser';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -299,11 +299,9 @@ export const applyLibrarianHints_Service = async (
   librarianHint: string | undefined,
   newItems: Array<NewItemSuggestion>,
   playerLastAction: string,
-  playerInventory: string,
-  locationInventory: string,
+  inventory: Array<Item>,
   currentNodeId: string | null,
-  companionsInventory: string,
-  nearbyNpcsInventory: string,
+  npcs: Array<NPC>,
   limitedMapContext: string,
 ): Promise<LibrarianUpdateResult | null> => {
   const hint = librarianHint?.trim() ?? '';
@@ -314,11 +312,9 @@ export const applyLibrarianHints_Service = async (
     playerLastAction,
     hint,
     newItems,
-    playerInventory,
-    locationInventory,
+    inventory,
     currentNodeId,
-    companionsInventory,
-    nearbyNpcsInventory,
+    npcs,
     limitedMapContext,
   );
   const result = await executeLibrarianRequest(prompt);

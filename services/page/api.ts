@@ -4,6 +4,11 @@ import { getThinkingBudget } from '../thinkingConfig';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { isApiConfigured } from '../geminiClient';
+import type { MapNode, NPC } from '../../types';
+import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
+import { npcsToString } from '../../utils/promptFormatters';
+
+const PAGE_KNOWN_NPC_TEMPLATE = '<ID: {id}> - {name}\n';
 
 export const generatePageText = async (
   itemName: string,
@@ -13,8 +18,8 @@ export const generatePageText = async (
   themeDescription: string,
   sceneDescription: string,
   storytellerThoughts: string,
-  knownPlaces: string,
-  knownNPCs: string,
+  mapNodes: Array<MapNode>,
+  npcs: Array<NPC>,
   currentQuest: string | null,
   extraInstruction = '',
   previousChapterText?: string,
@@ -27,18 +32,23 @@ export const generatePageText = async (
   const questLine = currentQuest ? `"${currentQuest}"` : 'Not set';
   const thoughtsLine = storytellerThoughts;
   const previousChapterLine = previousChapterText ?? '';
+  const knownPlaces = formatKnownPlacesForPrompt(mapNodes, true);
+  const knownNpcSection = npcsToString(
+    npcs,
+    PAGE_KNOWN_NPC_TEMPLATE,
+    '## Known NPCs:\n',
+    '\n',
+  );
   const prompt = `**Context:**
 Theme Name: "${themeName}";
 Theme Description: "${themeDescription}";
 Scene Description: "${sceneDescription}";
-Current Player's Quest: ${questLine};
+Current Quest: ${questLine}
 Storyteller's thoughts for the last turn: "${thoughtsLine}" (use these as your background knowledge and possible adventure guidance);
 
 ## Known Locations:
 ${knownPlaces}
-
-## Known NPCs:
-${knownNPCs}
+${knownNpcSection}
 
 ## Previous Chapter:
 ${previousChapterLine}

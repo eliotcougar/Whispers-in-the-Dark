@@ -219,12 +219,6 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
         : null;
 
-      const locationItems = currentFullState.inventory.filter(
-        i =>
-          i.holderId !== PLAYER_HOLDER_ID &&
-          i.holderId === currentFullState.currentMapNodeId
-      );
-
       const detailedContextForFacts = formatDetailedContextForMentionedEntities(
         currentThemeMainMapNodes,
         currentThemeNPCs,
@@ -258,8 +252,8 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const prompt = buildMainGameTurnPrompt(
         currentFullState.currentScene,
         action,
-        currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-        locationItems,
+        currentFullState.inventory,
+        currentFullState.currentMapNodeId ?? null,
         isStoryArcValid(currentFullState.storyArc)
           ? currentFullState.storyArc.acts[currentFullState.storyArc.currentAct - 1]?.mainObjective ?? null
           : null,

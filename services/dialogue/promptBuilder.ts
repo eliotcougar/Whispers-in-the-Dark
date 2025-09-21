@@ -6,13 +6,44 @@ import type {
   DialogueSummaryContext,
   DialogueMemorySummaryContext,
   DialogueTurnContext,
+  NPC,
 } from '../../types';
 import {
   MAX_DIALOGUE_SUMMARIES_IN_PROMPT,
   MAIN_TURN_OPTIONS_COUNT,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
-import { formatHeroSheetForPrompt, formatStoryArcContext } from '../../utils/promptFormatters';
+import {
+  formatHeroSheetForPrompt,
+  formatStoryArcContext,
+  itemsToString,
+  npcsToString,
+} from '../../utils/promptFormatters';
+
+const DIALOGUE_INVENTORY_TEMPLATE = '{name} (Type: {type}, Active: {isActive}), ';
+const DIALOGUE_SUMMARY_INVENTORY_TEMPLATE = '{name} (Type: {type}), ';
+const DIALOGUE_KNOWN_NPC_TEMPLATE = '- "{name}" (Description: {description}; Presence: {presenceStatus}{dialoguePresenceSummary}; Attitude: {attitudeTowardPlayer}; Knows player as: {knownPlayerLabel})\n';
+
+const buildDialogueNpcPromptData = (npcs: Array<NPC>): Array<NPC & {
+  dialoguePresenceSummary: string;
+  knownPlayerLabel: string;
+}> => {
+  return npcs.map(npc => {
+    const presenceSummary =
+      npc.presenceStatus === 'nearby' || npc.presenceStatus === 'companion'
+        ? ` at ${npc.preciseLocation ?? 'around'}`
+        : `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
+    const knownPlayerLabel =
+      npc.knowsPlayerAs.length > 0
+        ? npc.knowsPlayerAs.join(', ')
+        : 'ATTENTION! NPC does not know the player\'s name.';
+    return {
+      ...npc,
+      dialoguePresenceSummary: presenceSummary,
+      knownPlayerLabel,
+    };
+  });
+};
 
 /**
  * Builds the prompt used to fetch the next dialogue turn.
@@ -72,36 +103,23 @@ export const buildDialogueTurnPrompt = (
     })
     .join('\n');
 
-    const inventoryString =
-      inventory.length > 0
-        ? inventory.map(item => `${item.name} (Type: ${item.type}, Active: ${String(!!item.isActive)})`).join(', ')
-        : 'Empty';
+  const inventorySection = itemsToString(
+    inventory,
+    DIALOGUE_INVENTORY_TEMPLATE,
+    '## Player\'s Inventory:\n',
+    '\n'
+  );
   const knownPlacesString = formatKnownPlacesForPrompt(
     knownMainMapNodesInTheme,
     true,
     false,
   );
 
-  let npcContextString = '## Known NPCs: ';
-  if (knownNPCsInTheme.length > 0) {
-    npcContextString +=
-      knownNPCsInTheme
-        .map(npc => {
-          let npcStr = `"${npc.name}" (Description: ${npc.description}; Presence: ${npc.presenceStatus}`;
-          if (npc.presenceStatus === 'nearby' || npc.presenceStatus === 'companion') {
-            npcStr += ` at ${npc.preciseLocation ?? 'around'}`;
-          } else {
-            npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
-          }
-          const knownPlayerLabel = npc.knowsPlayerAs.length > 0 ? npc.knowsPlayerAs.join(', ') : 'ATTENTION! NPC does not know the player\'s name.';
-          npcStr += `; Attitude: ${npc.attitudeTowardPlayer}; Knows player as: ${knownPlayerLabel}`;
-          npcStr += ')';
-          return npcStr;
-        })
-        .join('; ') + '.';
-  } else {
-    npcContextString += 'None specifically known.';
-  }
+  const npcContextString = npcsToString(
+    buildDialogueNpcPromptData(knownNPCsInTheme),
+    DIALOGUE_KNOWN_NPC_TEMPLATE,
+    '\n## Known NPCs:\n',
+  );
 
   let pastDialogueSummariesContext = '';
   dialogueParticipants.forEach(participantName => {
@@ -135,13 +153,8 @@ Character Traits should slightly influence dialogue choices.
 ## Relevant Facts about the world:
 ${relevantFactsSection}
 
-## Player's Inventory:
-${inventoryString}
-
-## Known Locations:
-${knownPlacesString}
-
-${npcContextString}
+${inventorySection}## Known Locations:
+${knownPlacesString}${npcContextString}
 
 ## Dialogue Context:
 - Current Dialogue Participants: ${dialogueParticipants.join(', ')};
@@ -169,10 +182,12 @@ export const buildDialogueSummaryPrompt = (
   const dialogueLogString = summaryContext.dialogueLog
     .map(entry => `${entry.speaker.toLowerCase() === 'player' ? playerName : entry.speaker}: "${entry.line}"`)
     .join('\n');
-  const inventoryString =
-    summaryContext.inventory.length > 0
-      ? summaryContext.inventory.map(item => `${item.name} (Type: ${item.type})`).join(', ')
-      : 'Empty';
+  const inventorySummarySection = itemsToString(
+    summaryContext.inventory,
+    DIALOGUE_SUMMARY_INVENTORY_TEMPLATE,
+    '- Player\'s Inventory (before dialogue):\n',
+    '\n'
+  );
   const knownPlacesString = formatKnownPlacesForPrompt(
     summaryContext.mapDataForTheme.nodes.filter(
       n => n.data.nodeType !== 'feature',
@@ -181,26 +196,13 @@ export const buildDialogueSummaryPrompt = (
     false,
   );
 
-  let knownNPCsString = 'Known NPCs: ';
-  if (summaryContext.knownNPCsInTheme.length > 0) {
-    knownNPCsString +=
-      summaryContext.knownNPCsInTheme
-        .map(npc => {
-          let npcStr = `"${npc.name}" (Description: ${npc.description}; Presence: ${npc.presenceStatus}`;
-          if (npc.presenceStatus === 'nearby' || npc.presenceStatus === 'companion') {
-            npcStr += ` at ${npc.preciseLocation ?? 'around'}`;
-          } else {
-            npcStr += `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
-          }
-          const knownPlayerLabel = npc.knowsPlayerAs.length > 0 ? npc.knowsPlayerAs.join(', ') : 'ATTENTION! NPC does not know the player\'s name.';
-          npcStr += `; Attitude: ${npc.attitudeTowardPlayer}; Knows player as: ${knownPlayerLabel}`;
-          npcStr += ')';
-          return npcStr;
-        })
-        .join('; ') + '.';
-  } else {
-    knownNPCsString += 'None specifically known.';
-  }
+  const knownNpcSummarySection = npcsToString(
+    buildDialogueNpcPromptData(summaryContext.knownNPCsInTheme),
+    DIALOGUE_KNOWN_NPC_TEMPLATE,
+    '\n- Known NPCs:\n',
+    '\n',
+  );
+  const knownLocationsSection = `- Known Locations (before dialogue):\n${knownPlacesString}\n`;
 
   return `
  Context for Dialogue Summary:
@@ -211,12 +213,8 @@ ${summaryContext.storyArc ? `Narrative Arc: ${summaryContext.storyArc.title} (Ac
 - Local Time: "${summaryContext.localTime ?? 'Unknown'}", Environment: "${summaryContext.localEnvironment ?? 'Undetermined'}", Place: "${summaryContext.localPlace ?? 'Undetermined'}"
   - Player's Character Gender: "${summaryContext.heroSheet?.gender ?? 'Male'}"
 
-- Player's Inventory (before dialogue):
-${inventoryString}
-- Known Locations (before dialogue):
-${knownPlacesString}
-- ${knownNPCsString}
-- Dialogue Participants: ${summaryContext.dialogueParticipants.join(', ')}
+${inventorySummarySection}${knownLocationsSection}
+${knownNpcSummarySection}- Dialogue Participants: ${summaryContext.dialogueParticipants.join(', ')}
 
 ## Full Dialogue Transcript:
 ${dialogueLogString}

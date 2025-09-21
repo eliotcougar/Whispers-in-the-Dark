@@ -167,7 +167,7 @@ export const findItemByIdentifier = (
     if (idMatch) {
       if (nameToCheck && !cmp(idMatch.name, nameToCheck)) {
         console.warn(
-          `findItemByIdentifier: Provided name "${nameToCheck}" does not match item name "${idMatch.name}" for id "${id}".`,
+          `findItemByIdentifier: Provided name "${nameToCheck}" does not match item name "${idMatch.name}" for <ID: ${id}>.`,
         );
       }
       if (!getAll) return idMatch;
