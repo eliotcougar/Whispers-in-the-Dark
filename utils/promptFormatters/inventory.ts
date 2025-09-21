@@ -35,15 +35,33 @@ const stringifyItemValue = (value: unknown): string => {
     return value
       .map(entry => {
         if (typeof entry === 'string') return entry;
-        if (typeof entry === 'number' || typeof entry === 'boolean') return String(entry);
+        if (typeof entry === 'number' || typeof entry === 'boolean' || typeof entry === 'bigint') {
+          return String(entry);
+        }
+        if (typeof entry === 'symbol') {
+          return entry.description ?? entry.toString();
+        }
+        if (typeof entry === 'function') {
+          return '[function]';
+        }
         return JSON.stringify(entry);
       })
       .join(', ');
   }
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value);
+  }
+  if (typeof value === 'symbol') {
+    return value.description ?? value.toString();
+  }
+  if (typeof value === 'function') {
+    return '[function]';
+  }
   if (typeof value === 'object') {
     return JSON.stringify(value);
   }
-  return String(value);
+  return '';
 };
 
 const computeTagMeaning = (tags: Array<ItemTag>, hasRecovered: boolean): string => {
@@ -113,11 +131,14 @@ const renderTemplateForItem = (item: Item, template: string, index: number, last
         return currentDescription(item);
       case 'activehint':
         return activeHint(item);
-      default:
-        if (Object.prototype.hasOwnProperty.call(item, token)) {
-          return stringifyItemValue((item as unknown as Record<string, unknown>)[token]);
+      default: {
+        if (!Object.prototype.hasOwnProperty.call(item, token)) {
+          return '';
         }
-        return '';
+        const record = item as Partial<Record<keyof Item, unknown>>;
+        const candidate = record[token as keyof Item];
+        return stringifyItemValue(candidate);
+      }
     }
   });
 

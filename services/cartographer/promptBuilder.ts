@@ -2,7 +2,9 @@
  * @file promptBuilder.ts
  * @description Utilities for constructing prompts for the cartographer AI.
  */
-import type { AdventureTheme, MapData} from '../../types';
+import type { AdventureTheme, MapData, MapNodeStatus } from '../../types';
+
+const ACCESSIBLE_NODE_STATUSES: Array<MapNodeStatus> = ['discovered', 'quest_target'];
 
 /**
  * Builds a simple map update prompt using the provided context.
@@ -71,9 +73,12 @@ export const buildSimplifiedNavigationPrompt = (
     previousMapNodeName: string | null;
   },
 ): string => {
-  const nodesList = mapData.nodes
-    .map(n => `- id: ${n.id}; name: "${n.placeName}"; type: ${n.data.nodeType}`)
-    .join('\n');
+  const accessibleNodes = mapData.nodes.filter(n => ACCESSIBLE_NODE_STATUSES.includes(n.data.status));
+  const nodesList = accessibleNodes.length > 0
+    ? accessibleNodes
+        .map(n => `- id: ${n.id}; name: "${n.placeName}"; type: ${n.data.nodeType}`)
+        .join('\n')
+    : 'None (no accessible nodes discovered yet).';
 
   const logMsg = (context.logMessage ?? '').trim() || 'None';
   const scene = context.currentScene.trim() || 'Unknown';
@@ -82,7 +87,7 @@ export const buildSimplifiedNavigationPrompt = (
   const prevNode = context.previousMapNodeName ?? 'Unknown or N/A';
 
   return `## Goal
-Pick the single best existing node that matches the Player's current position.
+Pick the single best accessible node that matches the Player's current position. If none fits, define one new node to add.
 
 ## Theme
 - Name: "${currentTheme.name}"
@@ -93,8 +98,10 @@ Pick the single best existing node that matches the Player's current position.
 - Previous Map Node: ${prevNode}
 - localPlace change: "${prevLP}" → "${currLP}"
 
-## Known Nodes (existing map)
+## Accessible Nodes (existing map only)
 ${nodesList}
 
-Respond ONLY with a JSON object: { "suggestedCurrentMapNodeId": "<existing id or name>" }`;
+Respond ONLY with JSON.
+- When an existing node works: { "suggestedCurrentMapNodeId": "<existing id>" }
+- When a new node is required: { "suggestedCurrentMapNodeId": "<new placeName>", "nodesToAdd": [ { "placeName": "...", "description": "...", "aliases": ["..."], "status": "discovered" (or "quest_target" if the story demands), "nodeType": "<type>", "parentNodeId": "<existing id or name>" } ] }`;
 };

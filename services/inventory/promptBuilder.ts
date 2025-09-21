@@ -136,8 +136,8 @@ export const buildInventoryPrompt = (
   sections.push(newItemsSection);
   if (playerInventorySection) sections.push(`${playerInventorySection}\n`);
   if (locationInventorySection) sections.push(`${locationInventorySection}\n`);
-  if (companionsInventory.promptSection) sections.push(`${companionsInventory.promptSection}`);
-  if (nearbyInventory.promptSection) sections.push(`${nearbyInventory.promptSection}`);
+  if (companionsInventory.promptSection) sections.push(companionsInventory.promptSection);
+  if (nearbyInventory.promptSection) sections.push(nearbyInventory.promptSection);
   if (limitedMapContext) {
     sections.push(`Nearby Map Context where you can put Items:\n${limitedMapContext}\n`);
   }

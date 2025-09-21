@@ -238,6 +238,48 @@ export const MAP_NAVIGATION_ONLY_JSON_SCHEMA = {
       type: 'string',
       description: 'Existing node id or placeName representing the player\'s new location.',
     },
+    nodesToAdd: {
+      type: 'array',
+      minItems: 1,
+      maxItems: 1,
+      description: 'Provide exactly one new node definition only when no accessible node fits.',
+      items: {
+        type: 'object',
+        properties: {
+          aliases: {
+            type: 'array',
+            minItems: 1,
+            items: { type: 'string' },
+            description: ALIAS_INSTRUCTION,
+          },
+          description: {
+            type: 'string',
+            minLength: 30,
+            description: NODE_DESCRIPTION_INSTRUCTION,
+          },
+          nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
+          parentNodeId: {
+            type: 'string',
+            description: `Existing parent node id or placeName. Use place names only when referencing other nodes in this response.`,
+          },
+          placeName: {
+            type: 'string',
+            description: 'Name of the new node. Must be unique within the theme and free of commas.',
+          },
+          status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
+        },
+        propertyOrdering: [
+          'aliases',
+          'description',
+          'nodeType',
+          'parentNodeId',
+          'placeName',
+          'status',
+        ],
+        required: ['aliases', 'description', 'nodeType', 'parentNodeId', 'placeName', 'status'],
+        additionalProperties: false,
+      },
+    },
   },
   required: ['suggestedCurrentMapNodeId'],
   additionalProperties: false,
@@ -355,6 +397,7 @@ export const parseNavigationOnlyResponse = (responseText: string): string | null
 
 export interface NavigationOnlyRequestResult {
   suggestedCurrentMapNodeId: string | null;
+  nodesToAdd: Array<NonNullable<AIMapUpdatePayload['nodesToAdd']>[number]>;
   debugInfo: MapUpdateDebugInfo;
 }
 
@@ -364,6 +407,7 @@ export interface NavigationOnlyRequestResult {
 export const fetchNavigationOnlySuggestion = async (
   basePrompt: string,
   systemInstruction: string,
+  currentTheme: AdventureTheme,
 ): Promise<NavigationOnlyRequestResult> => {
   const { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await executeNavigationOnlyRequest(
     basePrompt,
@@ -380,8 +424,34 @@ export const fetchNavigationOnlySuggestion = async (
     thoughts: thoughts.length > 0 ? thoughts : undefined,
     connectorChainsDebugInfo: [],
   };
-  const suggested = parseNavigationOnlyResponse(rawText);
-  return { suggestedCurrentMapNodeId: suggested, debugInfo };
+  const { payload: parsedPayload, validationError } = await parseAIMapUpdateResponse(rawText, currentTheme);
+
+  let suggested: string | null = null;
+  let nodesToAdd: Array<NonNullable<AIMapUpdatePayload['nodesToAdd']>[number]> = [];
+
+  if (parsedPayload) {
+    const simplifiedPayload: AIMapUpdatePayload = {};
+    if (typeof parsedPayload.suggestedCurrentMapNodeId === 'string') {
+      const trimmed = parsedPayload.suggestedCurrentMapNodeId.trim();
+      simplifiedPayload.suggestedCurrentMapNodeId = trimmed.length > 0 ? trimmed : undefined;
+    }
+    if (Array.isArray(parsedPayload.nodesToAdd) && parsedPayload.nodesToAdd.length > 0) {
+      simplifiedPayload.nodesToAdd = parsedPayload.nodesToAdd.slice(0, 1);
+    }
+
+    debugInfo.parsedPayload = simplifiedPayload;
+    suggested = simplifiedPayload.suggestedCurrentMapNodeId ?? null;
+    nodesToAdd = simplifiedPayload.nodesToAdd ?? [];
+    debugInfo.validationError = undefined;
+  } else {
+    suggested = parseNavigationOnlyResponse(rawText);
+    nodesToAdd = [];
+    if (validationError) {
+      debugInfo.validationError = validationError;
+    }
+  }
+
+  return { suggestedCurrentMapNodeId: suggested, nodesToAdd, debugInfo };
 };
 
 export interface MapUpdateRequestResult {

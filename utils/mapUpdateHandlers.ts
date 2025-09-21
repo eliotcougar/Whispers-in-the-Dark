@@ -13,7 +13,7 @@ import {
   ValidNewNPCPayload,
   ValidNPCUpdatePayload
 } from '../types';
-import { updateMapFromAIData_Service, MapUpdateServiceResult, suggestNodeFromLocationChange_Service } from '../services/cartographer';
+import { updateMapFromAIData_Service, MapUpdateServiceResult, MapUpdateDebugInfo, suggestNodeFromLocationChange_Service } from '../services/cartographer';
 import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import {
@@ -50,6 +50,7 @@ export const handleMapUpdates = async (
   if (needsFullUpdate || locationTextChanged) {
     const originalLoadingReason = loadingReason;
     setLoadingReason('map_updates');
+    let latestDebugInfo: MapUpdateDebugInfo | null = null;
 
     if (needsFullUpdate) {
       const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
@@ -64,7 +65,6 @@ export const handleMapUpdates = async (
         draftState.inventory,
         draftState.allNPCs,
       );
-      setLoadingReason(originalLoadingReason);
 
       if (!mapUpdateResult) {
         throw new Error('Map Update Service returned no data.');
@@ -76,15 +76,8 @@ export const handleMapUpdates = async (
           'Unknown error';
         throw new Error(`Map update failed: ${reason}`);
       }
-
-      if (JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
-        turnChanges.mapDataChanged = true;
-        draftState.mapData = mapUpdateResult.updatedMapData;
-      }
-      if (mapUpdateResult.debugInfo && draftState.lastDebugPacket) {
-        draftState.lastDebugPacket.mapUpdateDebugInfo = mapUpdateResult.debugInfo;
-      }
       mapAISuggestedNodeIdentifier = mapUpdateResult.debugInfo?.parsedPayload?.suggestedCurrentMapNodeId;
+      latestDebugInfo = mapUpdateResult.debugInfo ?? null;
     } else {
       // Simplified navigation-only suggestion
       const prevNodeName = (() => {
@@ -99,18 +92,36 @@ export const handleMapUpdates = async (
         prevNodeName,
         baseStateSnapshot.localPlace,
         draftState.localPlace,
+        {
+          previousMapNodeId: baseStateSnapshot.currentMapNodeId,
+          inventoryItems: draftState.inventory,
+          knownNPCs: draftState.allNPCs,
+        },
       );
-      setLoadingReason(originalLoadingReason);
       if (suggestionResult) {
         mapAISuggestedNodeIdentifier = suggestionResult.suggested;
-        if (draftState.lastDebugPacket) {
-          draftState.lastDebugPacket.mapUpdateDebugInfo = suggestionResult.debugInfo;
+        latestDebugInfo = suggestionResult.mapUpdateResult?.debugInfo ?? suggestionResult.debugInfo;
+        if (suggestionResult.mapUpdateResult) {
+          mapUpdateResult = suggestionResult.mapUpdateResult;
         }
       }
     }
 
-      if (mapUpdateResult && mapUpdateResult.newlyAddedNodes.length > 0) {
-        for (const added of mapUpdateResult.newlyAddedNodes) {
+    setLoadingReason(originalLoadingReason);
+
+    if (mapUpdateResult?.updatedMapData) {
+      if (JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
+        turnChanges.mapDataChanged = true;
+        draftState.mapData = mapUpdateResult.updatedMapData;
+      }
+    }
+
+    if (latestDebugInfo && draftState.lastDebugPacket) {
+      draftState.lastDebugPacket.mapUpdateDebugInfo = latestDebugInfo;
+    }
+
+    if (mapUpdateResult && mapUpdateResult.newlyAddedNodes.length > 0) {
+      for (const added of mapUpdateResult.newlyAddedNodes) {
           const isMainNode = added.data.nodeType !== 'feature';
           if (isMainNode) {
             const newlyAddedNodeInDraft = draftState.mapData.nodes.find(
