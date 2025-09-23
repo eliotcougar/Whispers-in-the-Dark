@@ -30,6 +30,66 @@ function KnowledgeBase({
     [allNPCs],
   );
 
+  const renderLocationDisplay = React.useCallback(
+    (npc: NPC): React.ReactNode => {
+      const lastKnownLocation = npc.lastKnownLocation;
+      const hasKnownLocation = typeof lastKnownLocation === 'string' && lastKnownLocation !== 'Unknown';
+
+      if (currentTheme && CLOSE_PRESENCE_STATUSES.includes(
+        npc.presenceStatus as (typeof CLOSE_PRESENCE_STATUSES)[number],
+      )) {
+        const isCompanion = npc.presenceStatus === 'companion';
+        const iconName = isCompanion ? 'companion' : 'nearbyNpc';
+        const colorClass = isCompanion ? 'text-green-300' : 'text-sky-300';
+        const statusText = isCompanion ? '(Companion)' : '(Nearby)';
+        const preciseLocation = npc.preciseLocation?.trim();
+
+        return (
+          <p className="text-sm text-slate-300 flex items-center">
+            <Icon
+              color={isCompanion ? 'green' : 'sky'}
+              inline
+              marginRight={4}
+              name={iconName}
+              size={16}
+            />
+
+            <span className={`ml-1 ${colorClass} italic`}>
+              {preciseLocation && preciseLocation.length > 0 ? (
+                <>
+                  {preciseLocation}
+                  {' '}
+                  {statusText}
+                </>
+              ) : statusText}
+            </span>
+          </p>
+        );
+      }
+
+      if (hasKnownLocation) {
+        return (
+          <p className="text-sm text-slate-300 flex items-center">
+            <span className="ml-1 italic">
+              {lastKnownLocation}
+              {' '}
+              ({npc.presenceStatus})
+            </span>
+          </p>
+        );
+      }
+
+      return (
+        <p className="text-sm text-slate-500 flex items-center">
+          <span className="ml-1 italic">
+            ({npc.presenceStatus})
+          </span>
+        </p>
+      );
+    },
+    [currentTheme],
+  );
+
   return (
     <div
       aria-labelledby="knowledge-base-title"
@@ -69,88 +129,36 @@ function KnowledgeBase({
 
               {sortedNPCs.length > 0 && (
                 <div className="kb-card-grid">
-                  {sortedNPCs.map(npc => {
-                        let locationDisplay: React.ReactNode;
-                        const isCurrentThemeNPC = Boolean(currentTheme);
+                  {sortedNPCs.map(npc => (
+                    <div
+                      className="kb-card"
+                      key={npc.name}
+                    >
+                      <div className="kb-card-name-header">
+                        {npc.name}
+                      </div>
 
-                        if (
-                          isCurrentThemeNPC &&
-                          CLOSE_PRESENCE_STATUSES.includes(
-                            npc.presenceStatus as (typeof CLOSE_PRESENCE_STATUSES)[number],
-                          )
-                        ) {
-                          const iconName = npc.presenceStatus === 'companion' ? 'companion' : 'nearbyNpc';
-                          const statusText = npc.presenceStatus === 'companion' ? '(Companion)' : '(Nearby)';
-                          const colorClass = npc.presenceStatus === 'companion' ? 'text-green-300' : 'text-sky-300';
-                          locationDisplay = (
-                            <p className="text-sm text-slate-300 flex items-center">
-                              <Icon
-                                color={iconName === 'companion' ? 'green' : 'sky'}
-                                inline
-                                marginRight={4}
-                                name={iconName}
-                                size={16}
-                              />
+                      {npc.aliases && npc.aliases.length > 0 ? <p className="kb-card-aliases">
+                        {npc.aliases.join(', ')}
+                      </p> : null}
 
-                              <span className={`ml-1 ${colorClass} italic`}>
-                                {npc.preciseLocation ?? ''}
+                      <p className="kb-card-description">
+                        {npc.description}
+                      </p>
 
-                                {' '}
+                      <div className="mt-2 pt-2 border-t border-slate-600">
+                        {renderLocationDisplay(npc)}
+                      </div>
 
-                                {statusText}
-                              </span>
-                            </p>
-                          );
-                        } else if (npc.lastKnownLocation && npc.lastKnownLocation !== "Unknown") { 
-                           locationDisplay = (
-                             <p className="text-sm text-slate-300 flex items-center">
-                               <span className="ml-1 italic">
-                                 {npc.lastKnownLocation}
-
-                                 {' '}
-                                 (
-
-                                 {npc.presenceStatus}
-                                 )
-                               </span>
-                             </p>
-                          );
-                        } else {
-                           locationDisplay = (
-                             <p className="text-sm text-slate-500 flex items-center">
-                               <span className="ml-1 italic">
-                                 (
-                                 {npc.presenceStatus}
-                                 , Location Unknown)
-                               </span>
-                             </p>
-                          );
-                        }
-
-                        return (
-                          <div
-                            className="kb-card"
-                            key={npc.name}
-                          >
-                            <div className="kb-card-name-header">
-                              {npc.name}
-                            </div>
-
-                            {npc.aliases && npc.aliases.length > 0 ? <p className="kb-card-aliases">
-                              Aliases:
-                              {npc.aliases.join(', ')}
-                            </p> : null}
-
-                            <p className="kb-card-description">
-                              {npc.description}
-                            </p>
-
-                            <div className="mt-2 pt-2 border-t border-slate-600">
-                              {locationDisplay}
-                            </div>
-                          </div>
-                        );
-                  })}
+                      {npc.knowsPlayerAs.length > 0 ? <p className="text-sm text-slate-400">
+                        Knows you as:
+                        {' '}
+                        {npc.knowsPlayerAs.join(', ')}
+                      </p> : <p className="text-sm text-slate-500 italic">
+                        Does not know your name.
+                      </p>}
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
