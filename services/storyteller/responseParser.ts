@@ -93,26 +93,31 @@ function validateBasicStructure(
         return null;
     }
 
+    const isOptionalString = (value: unknown): boolean => value == null || typeof value === 'string';
+    const isOptionalBoolean = (value: unknown): boolean => value == null || typeof value === 'boolean';
+    const isOptionalArray = (value: unknown): boolean => value == null || Array.isArray(value);
+    const isOptionalObject = (value: unknown): boolean => value == null || typeof value === 'object';
+
     const baseFieldsValid =
-        (data.mainQuest === undefined || data.mainQuest === null || typeof data.mainQuest === 'string') &&
-        (data.currentObjective === undefined || data.currentObjective === null || typeof data.currentObjective === 'string') &&
-        (data.logMessage === undefined || data.logMessage === null || typeof data.logMessage === 'string') &&
-        (data.npcsAdded === undefined || data.npcsAdded === null || Array.isArray(data.npcsAdded)) &&
-        (data.npcsUpdated === undefined || data.npcsUpdated === null || Array.isArray(data.npcsUpdated)) &&
-        (data.objectiveAchieved === undefined || data.objectiveAchieved === null || typeof data.objectiveAchieved === 'boolean') &&
-        (data.mainQuestAchieved === undefined || data.mainQuestAchieved === null || typeof data.mainQuestAchieved === 'boolean') &&
-        (data.localTime === undefined || data.localTime === null || typeof data.localTime === 'string') &&
-        (data.localEnvironment === undefined || data.localEnvironment === null || typeof data.localEnvironment === 'string') &&
-        (data.localPlace === undefined || data.localPlace === null || typeof data.localPlace === 'string') &&
-        (data.dialogueSetup === undefined || data.dialogueSetup === null || typeof data.dialogueSetup === 'object') &&
-        (data.mapUpdated === undefined || data.mapUpdated === null || typeof data.mapUpdated === 'boolean') &&
-        (data.currentMapNodeId === undefined || data.currentMapNodeId === null || typeof data.currentMapNodeId === 'string') &&
-        (data.mapHint === undefined || data.mapHint === null || typeof data.mapHint === 'string') &&
-        (data.playerItemsHint === undefined || data.playerItemsHint === null || typeof data.playerItemsHint === 'string') &&
-        (data.worldItemsHint === undefined || data.worldItemsHint === null || typeof data.worldItemsHint === 'string') &&
-        (data.npcItemsHint === undefined || data.npcItemsHint === null || typeof data.npcItemsHint === 'string') &&
-        (data.librarianHint === undefined || data.librarianHint === null || typeof data.librarianHint === 'string') &&
-        (data.newItems === undefined || data.newItems === null || Array.isArray(data.newItems));
+        isOptionalString(data.mainQuest) &&
+        isOptionalString(data.currentObjective) &&
+        isOptionalString(data.logMessage) &&
+        isOptionalArray(data.npcsAdded) &&
+        isOptionalArray(data.npcsUpdated) &&
+        isOptionalBoolean(data.objectiveAchieved) &&
+        isOptionalBoolean(data.mainQuestAchieved) &&
+        isOptionalString(data.localTime) &&
+        isOptionalString(data.localEnvironment) &&
+        isOptionalString(data.localPlace) &&
+        isOptionalObject(data.dialogueSetup) &&
+        isOptionalBoolean(data.mapUpdated) &&
+        isOptionalString(data.currentMapNodeId) &&
+        isOptionalString(data.mapHint) &&
+        isOptionalString(data.playerItemsHint) &&
+        isOptionalString(data.worldItemsHint) &&
+        isOptionalString(data.npcItemsHint) &&
+        isOptionalString(data.librarianHint) &&
+        isOptionalArray(data.newItems);
 
     if (!baseFieldsValid) {
         console.warn('parseAIResponse: Basic field validation failed (pre-dialogue specifics and array checks).', parsedData);

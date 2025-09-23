@@ -214,10 +214,8 @@ const applyMapUpdatesFromAi = async ({
   if (theme) {
     // Only run Cartographer when storyteller indicates map updates or
     // when the location changed.
-    let shouldRunMap = false;
-    if ((('mapUpdated' in aiData) && aiData.mapUpdated) || (draftState.localPlace !== baseState.localPlace)) {
-      shouldRunMap = true;
-    }
+    const shouldRunMap =
+      aiData.mapUpdated === true || draftState.localPlace !== baseState.localPlace;
     if (shouldRunMap) {
       await processMapUpdates(aiData, draftState, baseState, theme, turnChanges);
     }
@@ -567,10 +565,8 @@ export const useProcessAiResponse = ({
       });
 
       // Map updates run only if flagged
-      let shouldRunMap = false;
-      if ((('mapUpdated' in aiData) && aiData.mapUpdated) || (draftState.localPlace !== baseStateSnapshot.localPlace)) {
-        shouldRunMap = true;
-      }
+      const shouldRunMap =
+        aiData.mapUpdated === true || draftState.localPlace !== baseStateSnapshot.localPlace;
       if (shouldRunMap) {
         draftState.turnState = 'map_updates';
         await applyMapUpdatesFromAi({

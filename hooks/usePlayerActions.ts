@@ -31,6 +31,7 @@ import {
   DISTILL_LORE_INTERVAL,
   RECENT_LOG_COUNT_FOR_DISTILL,
   ACT_COMPLETION_SCORE,
+  READABLE_ITEM_TYPES,
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -421,7 +422,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         while ((match = regex.exec(action)) !== null) {
           const info = lookup.get(match[0].toLowerCase());
           const matchedItem = info?.entityData.item;
-          if (matchedItem && (matchedItem.type === 'book' || matchedItem.type === 'page')) {
+          if (
+            matchedItem &&
+            READABLE_ITEM_TYPES.includes(matchedItem.type as (typeof READABLE_ITEM_TYPES)[number])
+          ) {
             matchedBooks.add(matchedItem);
           }
         }
@@ -456,7 +460,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (interactionType === 'inspect') {
         const updatedState = recordInspect(item.id, stateOverride);
 
-        if (item.type === 'book' || item.type === 'page') {
+        if (READABLE_ITEM_TYPES.includes(item.type as (typeof READABLE_ITEM_TYPES)[number])) {
           const showActual = item.tags?.includes('recovered');
           const contents = (item.chapters ?? [])
             .map(

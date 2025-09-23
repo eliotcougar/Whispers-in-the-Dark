@@ -8,7 +8,7 @@ import {
   ItemChapter,
   LoremasterModeDebugInfo,
 } from '../types';
-import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES } from '../constants';
+import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITTEN_ITEM_TYPES } from '../constants';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { makeUniqueHeading } from '../utils/uniqueHeading';
 import { addLogMessageToList, removeDroppedItemLog } from '../utils/gameLogicUtils';
@@ -46,11 +46,9 @@ export const useInventoryActions = ({
           return item;
         }
 
-        const shouldResetStashed =
-          item.type === 'page' ||
-          item.type === 'book' ||
-          item.type === 'picture' ||
-          item.type === 'map';
+        const shouldResetStashed = WRITTEN_ITEM_TYPES.includes(
+          item.type as (typeof WRITTEN_ITEM_TYPES)[number],
+        );
 
         return {
           ...item,

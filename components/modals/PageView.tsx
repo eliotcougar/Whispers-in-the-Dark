@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Item, ItemChapter, MapData, NPC, AdventureTheme } from '../../types';
-import { PLAYER_JOURNAL_ID } from '../../constants';
+import { PLAYER_JOURNAL_ID, IMAGE_ITEM_TYPES } from '../../constants';
 import { normalizeChapters } from '../../utils/writtenItemChapters';
 import { rot13, toRunic, tornVisibleText } from '../../utils/textTransforms';
 import Button from '../elements/Button';
@@ -71,6 +71,9 @@ function PageView({
   const isBook = item?.type === 'book';
   const isPage = item?.type === 'page';
   const isJournal = item?.id === PLAYER_JOURNAL_ID;
+  const isImageItem = item
+    ? IMAGE_ITEM_TYPES.includes(item.type as (typeof IMAGE_ITEM_TYPES)[number])
+    : false;
 
   const chapters = useMemo(() => {
     if (!item) return [];
@@ -549,14 +552,14 @@ function PageView({
               </p>
             ))}
           </ul>
-        ) : displayedText || ((item?.type === 'picture' || item?.type === 'map') && imageUrl) ? (
+        ) : displayedText || (isImageItem && imageUrl) ? (
           <div
             className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 ${textClassNames} ${tearOrientation ? `torn-${tearOrientation}` : ''}`}
           >
-            {(item?.type === 'picture' || item?.type === 'map') && imageUrl ? (
+            {isImageItem && imageUrl ? (
               <div className="mb-4 flex justify-center">
                 <img
-                  alt={item.name}
+                  alt={item?.name ?? 'Item image'}
                   className="max-h-[24rem] object-contain mask-gradient-edges"
                   src={imageUrl}
                 />

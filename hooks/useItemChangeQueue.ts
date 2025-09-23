@@ -31,6 +31,7 @@ export interface UseItemChangeQueueProps {
 
 const ANIMATION_TRANSITION_DURATION_MS = 600;
 const HOLD_DURATION_MS = 2000;
+const SKIP_ANIMATION_KEYS = new Set(['Enter', ' ']);
 
 const areKnownUsesEffectivelyIdentical = (
   ku1Array?: Array<KnownUse>,
@@ -319,7 +320,7 @@ export const useItemChangeQueue = ({ lastTurnChanges, isGameBusy, currentTurnNum
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === 'Enter' || event.key === ' ') {
+      if (SKIP_ANIMATION_KEYS.has(event.key)) {
         handleSkipAnimations();
       }
     },

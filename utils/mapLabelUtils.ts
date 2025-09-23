@@ -12,6 +12,8 @@ import {
 } from '../constants';
 import { isDescendantOf } from './mapGraphUtils';
 
+const SMALL_FONT_TYPES = new Set(['feature', 'room', 'interior']);
+
 /** Returns the radius for a node's circle. */
 export const getRadiusForNode = (node: MapNode): number => {
   if (node.data.visualRadius) return node.data.visualRadius;
@@ -98,7 +100,7 @@ export const splitTextIntoLines = (
 };
 
 export const isSmallFontType = (type: string | undefined) =>
-  type === 'feature' || type === 'room' || type === 'interior';
+  !!type && SMALL_FONT_TYPES.has(type);
 
 export const hasCenteredLabel = (type: string | undefined) => type === 'feature';
 

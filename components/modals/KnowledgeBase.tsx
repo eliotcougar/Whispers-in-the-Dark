@@ -7,6 +7,7 @@ import * as React from 'react';
 import { NPC, AdventureTheme } from '../../types';
 import { Icon } from '../elements/icons';
 import Button from '../elements/Button';
+import { CLOSE_PRESENCE_STATUSES } from '../../constants';
 
 interface KnowledgeBaseProps {
   readonly allNPCs: Array<NPC>;
@@ -72,7 +73,12 @@ function KnowledgeBase({
                         let locationDisplay: React.ReactNode;
                         const isCurrentThemeNPC = Boolean(currentTheme);
 
-                        if (isCurrentThemeNPC && (npc.presenceStatus === 'companion' || npc.presenceStatus === 'nearby')) {
+                        if (
+                          isCurrentThemeNPC &&
+                          CLOSE_PRESENCE_STATUSES.includes(
+                            npc.presenceStatus as (typeof CLOSE_PRESENCE_STATUSES)[number],
+                          )
+                        ) {
                           const iconName = npc.presenceStatus === 'companion' ? 'companion' : 'nearbyNpc';
                           const statusText = npc.presenceStatus === 'companion' ? '(Companion)' : '(Nearby)';
                           const colorClass = npc.presenceStatus === 'companion' ? 'text-green-300' : 'text-sky-300';

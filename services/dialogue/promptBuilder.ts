@@ -11,6 +11,7 @@ import type {
 import {
   MAX_DIALOGUE_SUMMARIES_IN_PROMPT,
   MAIN_TURN_OPTIONS_COUNT,
+  CLOSE_PRESENCE_STATUSES,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import {
@@ -30,7 +31,9 @@ const buildDialogueNpcPromptData = (npcs: Array<NPC>): Array<NPC & {
 }> => {
   return npcs.map(npc => {
     const presenceSummary =
-      npc.presenceStatus === 'nearby' || npc.presenceStatus === 'companion'
+      CLOSE_PRESENCE_STATUSES.includes(
+        npc.presenceStatus as (typeof CLOSE_PRESENCE_STATUSES)[number],
+      )
         ? ` at ${npc.preciseLocation ?? 'around'}`
         : `, last seen: ${npc.lastKnownLocation ?? 'Unknown'}`;
     const knownPlayerLabel =

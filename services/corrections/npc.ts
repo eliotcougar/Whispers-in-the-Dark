@@ -11,6 +11,8 @@ import {
   MINIMAL_MODEL_NAME,
   GEMINI_LITE_MODEL_NAME,
   GEMINI_MODEL_NAME,
+  CLOSE_PRESENCE_STATUSES,
+  DISTANT_PRESENCE_STATUSES,
 } from '../../constants';
 import { formatKnownPlacesForPrompt } from '../../utils/promptFormatters/map';
 import { CORRECTION_TEMPERATURE, LOADING_REASON_UI_MAP } from '../../constants';
@@ -94,6 +96,10 @@ Constraints:
         label: 'Corrections',
       });
       const aiResponse = safeParseJson<CorrectedNPCDetails>(response.text ?? '');
+      const trimmedAttitude =
+        aiResponse && typeof aiResponse.attitudeTowardPlayer === 'string'
+          ? aiResponse.attitudeTowardPlayer.trim()
+          : null;
       if (
         aiResponse &&
         typeof aiResponse.description === 'string' &&
@@ -102,16 +108,20 @@ Constraints:
         aiResponse.aliases.every((a): a is string => typeof a === 'string') &&
         typeof aiResponse.presenceStatus === 'string' &&
         VALID_PRESENCE_STATUS_VALUES.includes(aiResponse.presenceStatus) &&
-        (aiResponse.attitudeTowardPlayer === undefined || (typeof aiResponse.attitudeTowardPlayer === "string" && aiResponse.attitudeTowardPlayer.trim().length > 0 && aiResponse.attitudeTowardPlayer.trim().length <= 100)) &&
+        (aiResponse.attitudeTowardPlayer === undefined || (trimmedAttitude !== null && trimmedAttitude.length > 0 && trimmedAttitude.length <= 100)) &&
         (aiResponse.knowsPlayerAs === undefined || Array.isArray(aiResponse.knowsPlayerAs)) &&
         (aiResponse.lastKnownLocation === null || typeof aiResponse.lastKnownLocation === 'string') &&
         (aiResponse.preciseLocation === null || typeof aiResponse.preciseLocation === 'string') &&
         !(
-          (aiResponse.presenceStatus === 'nearby' || aiResponse.presenceStatus === 'companion') &&
+          CLOSE_PRESENCE_STATUSES.includes(
+            aiResponse.presenceStatus as (typeof CLOSE_PRESENCE_STATUSES)[number],
+          ) &&
           (aiResponse.preciseLocation === null || aiResponse.preciseLocation === '')
         ) &&
         !(
-          (aiResponse.presenceStatus === 'distant' || aiResponse.presenceStatus === 'unknown') &&
+          DISTANT_PRESENCE_STATUSES.includes(
+            aiResponse.presenceStatus as (typeof DISTANT_PRESENCE_STATUSES)[number],
+          ) &&
           aiResponse.preciseLocation !== null
         )
       ) {

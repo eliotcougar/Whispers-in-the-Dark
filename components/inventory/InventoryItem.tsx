@@ -9,6 +9,8 @@ import {
   KNOWN_USE_ACTION_COST,
   GENERIC_USE_ACTION_COST,
   INSPECT_ACTION_COST,
+  WRITTEN_ITEM_TYPES,
+  IMAGE_ITEM_TYPES,
 } from '../../constants';
 import { FilterMode } from '../../hooks/useInventoryDisplay';
 
@@ -54,12 +56,12 @@ function InventoryItem({
   remainingActionPoints,
 }: InventoryItemProps) {
   const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
-  const isWrittenItem =
-    item.type === 'page' ||
-    item.type === 'book' ||
-    item.type === 'picture' ||
-    item.type === 'map';
-  const isImageItem = item.type === 'picture' || item.type === 'map';
+  const isWrittenItem = WRITTEN_ITEM_TYPES.includes(
+    item.type as (typeof WRITTEN_ITEM_TYPES)[number],
+  );
+  const isImageItem = IMAGE_ITEM_TYPES.includes(
+    item.type as (typeof IMAGE_ITEM_TYPES)[number],
+  );
   const canShowGenericUse =
     item.type !== 'status effect' && item.type !== 'vehicle';
   const canEverDrop =
@@ -144,7 +146,7 @@ function InventoryItem({
     />
   );
 
-  if (item.type === 'page' || item.type === 'book' || item.type === 'picture' || item.type === 'map') {
+  if (isWrittenItem) {
     actionButtons.push(
       <Button
         ariaLabel={`Read ${item.name}`}
@@ -255,12 +257,7 @@ function InventoryItem({
     }
   }
 
-  if (
-    item.type === 'page' ||
-    item.type === 'book' ||
-    item.type === 'picture' ||
-    item.type === 'map'
-  ) {
+  if (isWrittenItem) {
     actionButtons.push(
       <Button
         ariaLabel={filterMode === 'stashed' ? `Retrieve ${item.name}` : `Stash ${item.name}`}

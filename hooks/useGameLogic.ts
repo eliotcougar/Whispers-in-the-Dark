@@ -38,6 +38,7 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
     KNOWN_USE_ACTION_COST,
     GENERIC_USE_ACTION_COST,
     INSPECT_ACTION_COST,
+    READABLE_ITEM_TYPES,
   } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
@@ -161,7 +162,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
         const fallbackPrevState = prevCurrent.turnState === 'awaiting_input'
           ? prevCurrent
           : prevPrevious ?? prevCurrent;
-        fallbackDebugForAwaiting = fallbackPrevState?.lastDebugPacket ?? null;
+        fallbackDebugForAwaiting = fallbackPrevState.lastDebugPacket ?? null;
         return [sanitized, fallbackPrevState];
       }
       return [sanitized, prevCurrent];
@@ -312,7 +313,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
               recordInspect(item.id);
             };
             cost = INSPECT_ACTION_COST;
-            if (item.type === 'book' || item.type === 'page') {
+            if (READABLE_ITEM_TYPES.includes(item.type as (typeof READABLE_ITEM_TYPES)[number])) {
               const showActual = item.tags?.includes('recovered');
               const contents = (item.chapters ?? [])
                 .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)

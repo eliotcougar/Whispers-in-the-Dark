@@ -20,13 +20,19 @@ import {
   TEXT_STYLE_TAGS,
   COMMON_TAGS,
   WRITTEN_TAGS,
+  WRITTEN_ITEM_TYPES,
+  SINGLE_CHAPTER_WRITTEN_ITEM_TYPES,
+  CLOSE_PRESENCE_STATUSES,
+  DISTANT_PRESENCE_STATUSES,
 } from '../../constants';
 import { normalizeItemType } from '../../utils/itemSynonyms';
 import { normalizeTags } from '../../utils/tagSynonyms';
 
 const TEXT_STYLE_TAG_SET = new Set<string>(TEXT_STYLE_TAGS);
-const WRITTEN_TYPES = ['page', 'book', 'map', 'picture'] as const;
-const WRITTEN_TYPE_SET = new Set<string>(WRITTEN_TYPES);
+const WRITTEN_TYPE_SET = new Set<string>(WRITTEN_ITEM_TYPES as ReadonlyArray<string>);
+const SINGLE_CHAPTER_WRITTEN_TYPE_SET = new Set<string>(
+  SINGLE_CHAPTER_WRITTEN_ITEM_TYPES as ReadonlyArray<string>,
+);
 
 function guessTextStyle(name: string, description: string): typeof TEXT_STYLE_TAGS[number] {
   const text = `${name} ${description}`.toLowerCase();
@@ -168,21 +174,14 @@ export function isValidItem(item: unknown, context?: 'create' | 'change'): item 
           typeof (ch as ItemChapter).imageData === 'string')
     );
 
-  if (
-    obj.type === 'page' ||
-    obj.type === 'book' ||
-    obj.type === 'map' ||
-    obj.type === 'picture'
-  ) {
+  const type = obj.type;
+  if (type && WRITTEN_TYPE_SET.has(type)) {
     if (obj.chapters !== undefined) {
       if (!chaptersValid(obj.chapters)) {
         console.warn("isValidItem: 'chapters' is present but invalid.", item);
         return false;
       }
-      if (
-        (obj.type === 'page' || obj.type === 'map' || obj.type === 'picture') &&
-        obj.chapters.length > 1
-      ) {
+      if (SINGLE_CHAPTER_WRITTEN_TYPE_SET.has(type) && obj.chapters.length > 1) {
         obj.chapters = [obj.chapters[0]];
       }
     } else {
@@ -358,11 +357,29 @@ export function isValidNPCUpdate(obj: unknown): obj is ValidNPCUpdatePayload {
     if (maybe.newLastKnownLocation !== undefined && maybe.newLastKnownLocation != null && typeof maybe.newLastKnownLocation !== 'string') return false;
     if (maybe.newPreciseLocation !== undefined && maybe.newPreciseLocation != null && typeof maybe.newPreciseLocation !== 'string') return false;
     
-    if ((maybe.newPresenceStatus === 'nearby' || maybe.newPresenceStatus === 'companion') && maybe.newPreciseLocation === undefined) {
-      // This could be problematic if AI intends to set a location but omits the field.
+    if (
+      typeof maybe.newPresenceStatus === 'string' &&
+      CLOSE_PRESENCE_STATUSES.includes(
+        maybe.newPresenceStatus as (typeof CLOSE_PRESENCE_STATUSES)[number],
+      ) &&
+      maybe.newPreciseLocation === undefined
+    ) {
+      console.warn(
+        "isValidNPCUpdate: 'newPreciseLocation' must be provided when 'newPresenceStatus' is nearby or companion.",
+        obj,
+      );
     }
-    if ((maybe.newPresenceStatus === 'distant' || maybe.newPresenceStatus === 'unknown') && maybe.newPreciseLocation != null) {
-      // console.warn("NPC update: preciseLocation provided for a non-present NPC. This will be ignored or nulled by game logic.");
+    if (
+      typeof maybe.newPresenceStatus === 'string' &&
+      DISTANT_PRESENCE_STATUSES.includes(
+        maybe.newPresenceStatus as (typeof DISTANT_PRESENCE_STATUSES)[number],
+      ) &&
+      maybe.newPreciseLocation != null
+    ) {
+      console.warn(
+        "isValidNPCUpdate: 'newPreciseLocation' must be omitted when 'newPresenceStatus' is distant or unknown.",
+        obj,
+      );
     }
     return true;
 }
@@ -382,11 +399,29 @@ export function isValidNewNPCPayload(obj: unknown): obj is ValidNewNPCPayload {
     if (maybe.lastKnownLocation !== undefined && maybe.lastKnownLocation != null && typeof maybe.lastKnownLocation !== 'string') return false;
     if (maybe.preciseLocation !== undefined && maybe.preciseLocation != null && typeof maybe.preciseLocation !== 'string') return false;
 
-    if ((maybe.presenceStatus === 'nearby' || maybe.presenceStatus === 'companion') && maybe.preciseLocation === undefined) {
-      // console.warn("New NPC: preciseLocation undefined for a present NPC.");
+    if (
+      typeof maybe.presenceStatus === 'string' &&
+      CLOSE_PRESENCE_STATUSES.includes(
+        maybe.presenceStatus as (typeof CLOSE_PRESENCE_STATUSES)[number],
+      ) &&
+      maybe.preciseLocation === undefined
+    ) {
+      console.warn(
+        "isValidNewNPCPayload: 'preciseLocation' must be provided when 'presenceStatus' is nearby or companion.",
+        obj,
+      );
     }
-    if ((maybe.presenceStatus === 'distant' || maybe.presenceStatus === 'unknown') && maybe.preciseLocation != null) {
-      // console.warn("New NPC: preciseLocation provided for a non-present NPC.");
+    if (
+      typeof maybe.presenceStatus === 'string' &&
+      DISTANT_PRESENCE_STATUSES.includes(
+        maybe.presenceStatus as (typeof DISTANT_PRESENCE_STATUSES)[number],
+      ) &&
+      maybe.preciseLocation != null
+    ) {
+      console.warn(
+        "isValidNewNPCPayload: 'preciseLocation' must be omitted when 'presenceStatus' is distant or unknown.",
+        obj,
+      );
     }
     return true;
 }

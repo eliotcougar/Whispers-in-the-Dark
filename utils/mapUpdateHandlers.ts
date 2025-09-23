@@ -44,7 +44,7 @@ export const handleMapUpdates = async (
   let mapAISuggestedNodeIdentifier: string | null | undefined = undefined;
   let mapUpdateResult: MapUpdateServiceResult | null = null;
 
-  const needsFullUpdate = ('mapUpdated' in aiData && aiData.mapUpdated) === true;
+  const needsFullUpdate = aiData.mapUpdated === true;
   const locationTextChanged = draftState.localPlace !== baseStateSnapshot.localPlace;
 
   if (needsFullUpdate || locationTextChanged) {
@@ -110,7 +110,7 @@ export const handleMapUpdates = async (
     setLoadingReason(originalLoadingReason);
 
     if (mapUpdateResult?.updatedMapData) {
-      if (JSON.stringify(draftState.mapData) !== JSON.stringify(mapUpdateResult.updatedMapData)) {
+      if (mapUpdateResult.updatedMapData !== draftState.mapData) {
         turnChanges.mapDataChanged = true;
         draftState.mapData = mapUpdateResult.updatedMapData;
       }
