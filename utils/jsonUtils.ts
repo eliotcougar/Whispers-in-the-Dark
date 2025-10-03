@@ -3,6 +3,10 @@
  * @description Small helpers for working with JSON strings.
  */
 
+import { CODE_FENCE } from '../constants';
+
+const fenceRegex = new RegExp(String.raw`^${CODE_FENCE}(?:json)?\s*\n?(.*?)\n?\s*${CODE_FENCE}$`, 's');
+
 /**
  * Extracts JSON content from a possible fenced code block. Many of our AI
  * services wrap JSON in ```json fences. This helper strips those fences if
@@ -10,7 +14,6 @@
  */
 export const extractJsonFromFence = (raw: string): string => {
   let jsonStr = raw.trim();
-  const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
   const match = fenceRegex.exec(jsonStr);
   if (match?.[1]) {
     jsonStr = match[1].trim();

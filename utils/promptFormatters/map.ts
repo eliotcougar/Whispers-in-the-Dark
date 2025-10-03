@@ -529,10 +529,12 @@ export const formatMapContextForPrompt = (
         }
       }
       if (exitStrings.length > 0) {
-        exitsContext =
-          '\nPossible Exits from Current Main Area (' + areaMainNode.placeName + "):\n" + exitStrings.join('\n');
+        exitsContext = `
+Possible Exits from Current Main Area (${areaMainNode.placeName}):
+${exitStrings.join('\n')}`;
       } else {
-        exitsContext = `\nNo mapped exits from the current main area ("${areaMainNode.placeName}") to other major areas are known.`;
+        exitsContext = `
+No mapped exits from the current main area ("${areaMainNode.placeName}") to other major areas are known.`;
       }
     } else if (areaMainNode && (areaMainNode.data.nodeType === 'feature')) {
       exitsContext = `You are at a detailed feature ("${areaMainNode.placeName}"). Connections to other major areas are listed below if available.`;
@@ -540,7 +542,9 @@ export const formatMapContextForPrompt = (
   } else {
     exitsContext = 'Current location is not part of a larger mapped area.';
   }
-  context += exitsContext + '\n\n';
+  context += `${exitsContext}
+
+`;
 
   const processedTargets = new Set<string>();
   const excludeForCurrentNode =
@@ -566,15 +570,14 @@ export const formatMapContextForPrompt = (
     : [];
 
   if (pathsFromCurrentNode.length > 0) {
-    context +=
-      'Paths leading directly from your current spot (' + currentNode.placeName + "):\n" + pathsFromCurrentNode.join('\n');
+    context += `Paths leading directly from your current spot (${currentNode.placeName}):
+${pathsFromCurrentNode.join('\n')}`;
   }
 
   if (pathsFromParentNode.length > 0 && parentNodeForCurrent) {
     if (pathsFromCurrentNode.length > 0) context += '\n\n';
-    context +=
-      `Additional paths and features within or connected to "${parentNodeForCurrent.placeName}":\n` +
-      pathsFromParentNode.join('\n');
+    context += `Additional paths and features within or connected to "${parentNodeForCurrent.placeName}":
+${pathsFromParentNode.join('\n')}`;
   }
   context += '\n';
 
@@ -585,7 +588,8 @@ export const formatMapContextForPrompt = (
       .filter(name => !!name)
       .map(name => `"${String(name)}"`);
     if (nearbyNodeNames.length > 0) {
-      context += `\nLocations nearby (within two hops): ${nearbyNodeNames.join(', ')}.`;
+      context += `
+Locations nearby (within two hops): ${nearbyNodeNames.join(', ')}.`;
     }
   }
 

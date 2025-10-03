@@ -6,11 +6,12 @@
 
 
 // Using gemini-2.5-flash model specified by API guidelines for general text tasks.
-export const GEMINI_MODEL_NAME = "gemini-2.5-flash";
+export const GEMINI_MODEL_NAME = "gemini-flash-latest";
 export const GEMINI_PRO_MODEL_NAME = "gemini-2.5-pro"; // High quality, expensive; use sparingly
-export const GEMINI_LITE_MODEL_NAME = "gemini-2.5-flash-lite"; // Updated for better capability
+export const GEMINI_LITE_MODEL_NAME = "gemini-flash-lite-latest"; // Updated for better capability
 export const MINIMAL_MODEL_NAME = "gemma-3-27b-it" // Model for simplest string outputs
 export const TINY_MODEL_NAME = "gemma-3n-e4b-it" // Fastest free model with 8000 input limit
+export const CODE_FENCE = '```';
 
 // Temperature used for correction helpers
 export const CORRECTION_TEMPERATURE = 0.8;

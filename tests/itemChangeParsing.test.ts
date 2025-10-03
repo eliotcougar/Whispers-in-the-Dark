@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { ItemChange } from '../types';
+import { CODE_FENCE } from '../constants';
 import { parseInventoryResponse } from '../services/inventory/responseParser';
 
 const PLAYER = 'player';
@@ -24,7 +25,9 @@ describe('parseInventoryResponse', () => {
       rationale: 'why',
     };
 
-    const responseText = "```json\n" + JSON.stringify(rawPayload) + "\n```";
+    const responseText = `${CODE_FENCE}json
+${JSON.stringify(rawPayload)}
+${CODE_FENCE}`;
     const maybeResult = parseInventoryResponse(responseText);
     if (!maybeResult) throw new Error('Failed to parse inventory response');
     const result = maybeResult;
@@ -52,7 +55,9 @@ describe('parseInventoryResponse', () => {
       ],
     };
 
-    const text = '```json\n' + JSON.stringify(payload) + '\n```';
+    const text = `${CODE_FENCE}json
+${JSON.stringify(payload)}
+${CODE_FENCE}`;
     const maybeRes = parseInventoryResponse(text);
     if (!maybeRes) throw new Error('Failed to parse inventory response');
     const res = maybeRes;
@@ -81,7 +86,9 @@ describe('parseInventoryResponse', () => {
     ],
     };
 
-    const text = '```json\n' + JSON.stringify(payload) + '\n```';
+    const text = `${CODE_FENCE}json
+${JSON.stringify(payload)}
+${CODE_FENCE}`;
     const maybeRes = parseInventoryResponse(text);
     if (!maybeRes) throw new Error('Failed to parse inventory response');
     const res = maybeRes;
@@ -100,7 +107,9 @@ describe('parseInventoryResponse', () => {
         },
       ],
     };
-    const text = '```json\n' + JSON.stringify(payload) + '\n```';
+    const text = `${CODE_FENCE}json
+${JSON.stringify(payload)}
+${CODE_FENCE}`;
     const maybeRes = parseInventoryResponse(text);
     if (!maybeRes) throw new Error('Failed to parse inventory response');
     const res = maybeRes;
@@ -114,7 +123,9 @@ describe('parseInventoryResponse', () => {
         { id: 'b1', name: 'Book of Fog', tags: ['mystic'] },
       ],
     };
-    const text = '```json\n' + JSON.stringify(payload) + '\n```';
+    const text = `${CODE_FENCE}json
+${JSON.stringify(payload)}
+${CODE_FENCE}`;
     const maybeRes = parseInventoryResponse(text);
     if (!maybeRes) throw new Error('Failed to parse inventory response');
     const res = maybeRes;

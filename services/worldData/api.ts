@@ -272,14 +272,11 @@ export const generateHeroData = async (
     console.error('generateHeroData: API key not configured.');
     return null;
   }
-  const heroSheetPrompt =
-    `Using the theme "${theme.name}" and these world details:
-    ${JSON.stringify(worldFacts)}
-    The player's character gender is ${heroGender}.` +
-    (heroName ? ` Their name is ${heroName}.` : '') +
-    (heroDescription ? ` Here is a short description of the hero: ${heroDescription}.` : '') +
-    ' Create a brief character sheet including occupation, notable traits, and starting items.' +
-    ' Also include "heroShortName": a single-word short name used in UI and dialogue, composed only of alphanumeric characters and hyphens (no underscores). Strongly PREFER using the exact FirstName part of the full name for "heroShortName"; choose a different single-word alias only if the FirstName would be ambiguous in this world/context.';
+  const heroSheetPrompt = `Using the theme "${theme.name}" and these world details:
+${JSON.stringify(worldFacts)}
+The player's character gender is ${heroGender}.${heroName ? ` Their name is ${heroName}.` : ''}${heroDescription ? ` Here is a short description of the hero: ${heroDescription}.` : ''}
+Create a brief character sheet including occupation, notable traits, and starting items.
+Also include "heroShortName": a single-word short name used in UI and dialogue, composed only of alphanumeric characters and hyphens (no underscores). Strongly PREFER using the exact FirstName part of the full name for "heroShortName"; choose a different single-word alias only if the FirstName would be ambiguous in this world/context.`;
     const request = async (prompt: string, schema: unknown, label: string) => {
       const thinkingBudget = getThinkingBudget(1024);
       const maxOutputTokens = getMaxOutputTokens(1024);
@@ -315,15 +312,14 @@ export const generateHeroData = async (
           .replace(/^-+|-+$/g, '')) || 'Hero';
       }
       const finalHeroName = heroName ?? parsedSheet?.name ?? 'the hero';
-      const backstoryPrompt =
-        `Using these world details:
-        ${JSON.stringify(worldFacts)}
-        and this hero sheet:
-        ${sheetText ?? ''}
-        ${heroDescription ? `The hero's description is: ${heroDescription}.` : ''}
-        Write a short backstory for ${finalHeroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.` +
-        ' Then outline a five act narrative arc for this adventure with an overview of at least 3000 characters.' +
-        ' Provide details only for Act 1 (exposition) including a description of at least 3000 characters, the main objective, two side quests, and the success condition to proceed to the next act (rising action).';
+      const backstoryPrompt = `Using these world details:
+${JSON.stringify(worldFacts)}
+and this hero sheet:
+${sheetText ?? ''}
+${heroDescription ? `The hero's description is: ${heroDescription}.` : ''}
+Write a short backstory for ${finalHeroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.
+Then outline a five act narrative arc for this adventure with an overview of at least 3000 characters.
+Provide details only for Act 1 (exposition) including a description of at least 3000 characters, the main objective, two side quests, and the success condition to proceed to the next act (rising action).`;
       const backstoryText = await request(backstoryPrompt, heroBackstorySchema, 'HeroBackstory');
       const parsedData = backstoryText
         ? safeParseJson<HeroBackstory & { storyArc: StoryArcData }>(backstoryText)
