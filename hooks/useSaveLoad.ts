@@ -21,6 +21,7 @@ import {
 } from '../services/storage';
 import { DEFAULT_ENABLED_THEME_PACKS } from '../constants';
 import { setThinkingEffortLevel } from '../services/thinkingConfig';
+import { sanitizePlayerName } from '../utils/textSanitizers';
 
 export interface UseSaveLoadOptions {
   gatherGameStateStack?: () => GameStateStack;
@@ -88,10 +89,7 @@ export const useSaveLoad = ({
 
   useEffect(() => {
     setThinkingEffortLevel(thinkingEffort);
-    const sanitized = preferredPlayerName
-      .replace(/[^a-zA-Z0-9\s\-"']/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const sanitized = sanitizePlayerName(preferredPlayerName);
     saveSettingsToLocalStorage({ enabledThemePacks, thinkingEffort, preferredPlayerName: sanitized });
   }, [enabledThemePacks, thinkingEffort, preferredPlayerName]);
 

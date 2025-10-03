@@ -16,6 +16,20 @@ import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import { generateImageWithFallback, getThemeStylePrompt, sanitizeVisualPrompt } from '../../services/image/common';
 
+const buildMapSignature = (nodes: Array<MapNode>): string => {
+  return nodes
+    .map(node => `${node.id}|${node.placeName}|${node.data.description}`)
+    .sort()
+    .join('||');
+};
+
+const buildNpcSignature = (npcs: Array<NPC>): string => {
+  return npcs
+    .map(npc => `${npc.id}|${npc.name}|${npc.description}`)
+    .sort()
+    .join('||');
+};
+
 
 if (!isApiConfigured()) {
   console.error('Gemini API key is not set. Image visualization will not work.');
@@ -62,6 +76,26 @@ function ImageVisualizer({
   const [lastTouchPoint, setLastTouchPoint] = useState<{ x: number; y: number } | null>(null);
   const [lastPinchDistance, setLastPinchDistance] = useState<number | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const mapDataRef = useRef<Array<MapNode>>(mapData);
+  const allNPCsRef = useRef<Array<NPC>>(allNPCs);
+  const [mapSignature, setMapSignature] = useState(() => buildMapSignature(mapData));
+  const [npcSignature, setNpcSignature] = useState(() => buildNpcSignature(allNPCs));
+
+  useEffect(() => {
+    mapDataRef.current = mapData;
+    setMapSignature(prev => {
+      const next = buildMapSignature(mapData);
+      return next === prev ? prev : next;
+    });
+  }, [mapData]);
+
+  useEffect(() => {
+    allNPCsRef.current = allNPCs;
+    setNpcSignature(prev => {
+      const next = buildNpcSignature(allNPCs);
+      return next === prev ? prev : next;
+    });
+  }, [allNPCs]);
   const clamp = (value: number, min: number, max: number): number => {
     return Math.min(max, Math.max(min, value));
   };
@@ -154,7 +188,6 @@ function ImageVisualizer({
     setIsLoading(true);
     setLoadingReason('visualize_scene');
     setError(null);
-    setInternalImageUrl(null);
 
     const prefix = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
     Aspect ratio 4:3.
@@ -163,7 +196,7 @@ function ImageVisualizer({
 
     const mentionedPlaces: Array<string> = [];
     // Derive places from mapData (main nodes)
-    mapData
+    mapDataRef.current
       .forEach(node => {
         if (currentSceneDescription.toLowerCase().includes(node.placeName.toLowerCase())) {
           rawPrompt += ` The ${node.placeName} is prominent, described as: ${node.data.description || 'A notable location.'}.`;
@@ -172,7 +205,7 @@ function ImageVisualizer({
       });
 
     const mentionedNPCs: Array<string> = [];
-    allNPCs.forEach(npc => {
+    allNPCsRef.current.forEach(npc => {
       if (currentSceneDescription.toLowerCase().includes(npc.name.toLowerCase())) {
         rawPrompt += ` ${npc.name} here, appearing as: ${npc.description}.`;
         mentionedNPCs.push(npc.name);
@@ -180,8 +213,6 @@ function ImageVisualizer({
     });
     
     rawPrompt += " Focus on creating a faithful representation based on this description. Do not generate any text on the image.";
-
-    console.log("Original Scene: ", rawPrompt);
     // Ask a minimal model to rewrite the prompt to avoid unsafe elements
     const safePrompt = await sanitizeVisualPrompt(
       `Rewrite the following scene description into a safe and aestetic visual depiction suitable for highly censored image generation. Only include the elements that are definitely present in the scene and omit anything non-visual, that is mentioned only for unrelated context. Preserve all details of the landscape or environment. Mention time, weather, mood of the environment. Preserve small details. Avoid any depressing, explicit or unsafe elements. Absolutely avoid nudity or corpses.\n\nScene:\n${rawPrompt}`,
@@ -227,7 +258,14 @@ function ImageVisualizer({
       setIsLoading(false);
       setLoadingReason(null);
     }
-  }, [currentSceneDescription, currentTheme, mapData, allNPCs, localTime, localEnvironment, localPlace, setGeneratedImage]);
+  }, [
+    currentSceneDescription,
+    currentTheme,
+    localTime,
+    localEnvironment,
+    localPlace,
+    setGeneratedImage,
+  ]);
 
   const handleRetry = useCallback(() => {
     void generateImage();
@@ -243,7 +281,15 @@ function ImageVisualizer({
         void generateImage();
       }
     }
-  }, [isVisible, cachedImageUrl, cachedImageScene, currentSceneDescription, generateImage]);
+  }, [
+    isVisible,
+    cachedImageUrl,
+    cachedImageScene,
+    currentSceneDescription,
+    mapSignature,
+    npcSignature,
+    generateImage,
+  ]);
 
   return (
     <div

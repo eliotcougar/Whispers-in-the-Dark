@@ -67,6 +67,7 @@ import {
 } from '../../types';
 import { saveDebugLoreToLocalStorage } from '../../services/storage';
 import { PLACEHOLDER_THEME } from '../../utils/initialStates';
+import { stripMarkupFormatting } from '../../utils/textSanitizers';
 
 
 function App() {
@@ -561,7 +562,7 @@ function App() {
       const { name: themeName, storyGuidance } = currentTheme;
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;
-      const journalResult = await generateJournalEntry( /* TODO: Somewhere around here we need to sanitize Chapter heading to remove any HTML or Markup formatting */
+      const journalResult = await generateJournalEntry(
         entryLength,
         'Personal Journal',
         'Your own journal',
@@ -576,8 +577,9 @@ function App() {
         mainQuest
       );
       if (journalResult?.entry) {
+        const sanitizedHeading = stripMarkupFormatting(journalResult.entry.heading);
         const chapter = {
-          heading: journalResult.entry.heading,
+          heading: sanitizedHeading || 'Journal Entry',
           description: '',
           contentLength: entryLength,
           actualContent: journalResult.entry.text,

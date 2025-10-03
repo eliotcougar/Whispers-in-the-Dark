@@ -18,6 +18,7 @@ import {
 } from './saveLoad';
 import { attachImageRefsFromDb } from './imageDb';
 import { safeParseJson } from '../utils/jsonUtils';
+import { sanitizePlayerName } from '../utils/textSanitizers';
 
 /** Saves the current game state to localStorage. */
 export const saveGameStateToLocalStorage = (
@@ -135,11 +136,7 @@ export const loadSettingsFromLocalStorage = (): GameSettings => {
     }
     const rawPref = (parsed as { preferredPlayerName?: unknown }).preferredPlayerName;
     if (typeof rawPref === 'string') {
-      const sanitized = rawPref
-        .replace(/[^a-zA-Z0-9\s\-"']/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      merged.preferredPlayerName = sanitized;
+      merged.preferredPlayerName = sanitizePlayerName(rawPref);
     }
     return merged;
   } catch (error: unknown) {

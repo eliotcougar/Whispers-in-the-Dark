@@ -104,7 +104,7 @@ export const generateImageWithFallback = async (
     // Try Gemini image generation fallback (streaming inline image data)
     try {
       const stream = await ai.models.generateContentStream({
-        model: 'gemini-2.0-flash-preview-image-generation',
+        model: 'gemini-2.5-flash-image',
         contents: [
           {
             role: 'user',

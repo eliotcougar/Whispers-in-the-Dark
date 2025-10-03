@@ -100,6 +100,8 @@ function MapNodeView({
 
 
 
+  const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node])), [nodes]);
+
   const labelOffsetMap = useMemo(
     () => calculateLabelOffsets(nodes, labelOverlapMarginPx),
     [nodes, labelOverlapMarginPx]
@@ -107,20 +109,19 @@ function MapNodeView({
 
   /** Map node depth for rendering order */
   const depthMap = useMemo(() => {
-    const idToNode = new Map(nodes.map(n => [n.id, n]));
     const cache = new Map<string, number>();
     const getDepth = (n: MapNode | undefined): number => {
       if (!n) return 0;
       const cached = cache.get(n.id);
       if (cached !== undefined) return cached;
-      const parent = n.data.parentNodeId ? idToNode.get(n.data.parentNodeId) : undefined;
+      const parent = n.data.parentNodeId ? nodeMap.get(n.data.parentNodeId) : undefined;
       const depth = parent ? getDepth(parent) + 1 : 0;
       cache.set(n.id, depth);
       return depth;
     };
     nodes.forEach(n => getDepth(n));
     return cache;
-  }, [nodes]);
+  }, [nodes, nodeMap]);
 
   const sortedNodes = useMemo(
     () => [...nodes].sort((a, b) => (depthMap.get(a.id) ?? 0) - (depthMap.get(b.id) ?? 0)),
@@ -129,10 +130,9 @@ function MapNodeView({
 
   const destinationMarker = useMemo(() => {
     if (!destinationNodeId) return null;
-    const dest = nodes.find(n => n.id === destinationNodeId);
-    const current = currentMapNodeId ? nodes.find(n => n.id === currentMapNodeId) : null;
+    const dest = nodeMap.get(destinationNodeId) ?? null;
+    const current = currentMapNodeId ? nodeMap.get(currentMapNodeId) ?? null : null;
     if (!dest) return null;
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
     if (current && (current.id === dest.id || isDescendantOf(current, dest, nodeMap))) {
       return null;
     }
@@ -144,7 +144,7 @@ function MapNodeView({
         transform={`translate(${String(dest.position.x)}, ${String(dest.position.y)})`}
       />
     );
-  }, [destinationNodeId, nodes, currentMapNodeId]);
+  }, [destinationNodeId, nodeMap, currentMapNodeId]);
 
 
 
@@ -178,8 +178,8 @@ function MapNodeView({
         <g>
 
           {edges.map(edge => {
-            const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
-            const targetNode = nodes.find(n => n.id === edge.targetNodeId);
+            const sourceNode = nodeMap.get(edge.sourceNodeId);
+            const targetNode = nodeMap.get(edge.targetNodeId);
             if (!sourceNode || !targetNode) return null;
             let edgeClass = 'map-edge';
             if (edge.data.type) edgeClass += ` ${edge.data.type.replace(/\s+/g, '_').toLowerCase()}`;
