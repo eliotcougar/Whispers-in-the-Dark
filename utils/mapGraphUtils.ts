@@ -102,8 +102,7 @@ export const getAdjacentNodeIds = (
     .filter(a => {
       const edge = edgeMap.get(a.edgeId);
       if (!edge) return true;
-      const status = edge.data.status ?? 'open';
-      return allowed.includes(status);
+      return allowed.includes(edge.data.status);
     })
     .map(a => a.to);
 };
@@ -116,7 +115,7 @@ export type NonRumoredAdjacencyMap = Map<string, Array<{ nodeId: string; edgeId:
  */
 export const buildNonRumoredAdjacencyMap = (mapData: MapData): NonRumoredAdjacencyMap => {
   const adjacency: NonRumoredAdjacencyMap = new Map();
-  const isTraversable = (status?: MapEdgeStatus) => status !== 'rumored' && status !== 'removed';
+  const isTraversable = (status: MapEdgeStatus) => status !== 'rumored' && status !== 'removed';
   for (const edge of mapData.edges) {
     if (!isTraversable(edge.data.status)) continue;
     if (!adjacency.has(edge.sourceNodeId)) adjacency.set(edge.sourceNodeId, []);

@@ -15,8 +15,8 @@
 - [ ] `hooks/usePlayerActions.ts:123` – Cache frequently used collections in `runDistillIfNeeded` instead of recomputing `mapNodes`, player inventory filters, and NPC lookups inside nested loops.
 - [x] `hooks/useAutosave.ts:40` – Replace the `JSON.stringify(dependencies)` sentinel with a stable dependency signature to avoid needless effect reruns and string allocations.
 - [x] `hooks/useSaveLoad.ts:99` – Reuse the autosave hook/timer instead of maintaining a second nearly identical effect.
-- [ ] `utils/promptFormatters/map.ts:309` – Build reusable node/edge indexes and share them across connection/nearby helpers so we avoid repeated `find`/`filter` passes and treat undefined edge statuses as traversable defaults.
-- [ ] `utils/mapUpdateHandlers.ts:33` – Pre-index nodes, aliases, and edges once per update cycle to eliminate repeated `findIndex`/`Array.from` scans during corrections and renames.
+- [x] `utils/promptFormatters/map.ts:309` – Build reusable node/edge indexes and share them across connection/nearby helpers so we avoid repeated `find`/`filter` passes and treat undefined edge statuses as traversable defaults.
+- [x] `utils/mapUpdateHandlers.ts:33` – Pre-index nodes, aliases, and edges once per update cycle to eliminate repeated `findIndex`/`Array.from` scans during corrections and renames.
 - [x] `utils/mapUpdateHandlers.ts:278` – Swap the `edgesToRemoveIndices.includes` pattern for a `Set` lookup when filtering edges to remove the O(n²) behaviour.
 - [x] `utils/modelUsageTracker.ts:16` – Replace the `while (arr.shift())` cleanup with pointer arithmetic or `splice` to avoid O(n²) array shifting under high throughput.
 
@@ -25,7 +25,7 @@
 - [ ] `services/loremaster/api.ts:214` – Consolidate the repeated `retryAiCall` + `dispatchAIRequest` scaffolding into a shared helper so extract/collect/integrate/distill stay in sync.
 - [x] `services/storyteller/responseParser.ts:135` – Tidy the dialogue correction branch by normalizing imports, removing redundant aliasing, and leaning on reusable validators.
 - [x] `services/storyteller/responseParser.ts:147` – Extract the ad-hoc NPC merge/correction block into helpers to reduce duplication and tighten the correction path.
-- [ ] `utils/mapUpdateHandlers.ts:118` – Move alias-map cleanup and node renaming side effects into utilities so `handleMapUpdates` reads declaratively.
+- [x] `utils/mapUpdateHandlers.ts:118` – Move alias-map cleanup and node renaming side effects into utilities so `handleMapUpdates` reads declaratively.
 
 ## Testing
 - [x] `tests/useProcessAiResponse.test.ts` – Add coverage for item correction, map update delegation, and lore refinement toggles to guard the AI pipeline.

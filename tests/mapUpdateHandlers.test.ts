@@ -63,7 +63,7 @@ const makeEdge = (id: string, source: string, target: string, status: MapEdge['d
   id,
   sourceNodeId: source,
   targetNodeId: target,
-  data: { status },
+  data: { status, type: 'path' },
 });
 
 const createTurnChanges = (): TurnChanges => ({

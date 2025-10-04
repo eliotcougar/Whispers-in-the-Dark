@@ -8,12 +8,15 @@ import {
   FullGameState,
   TurnChanges,
   MapNode,
+  MapEdge,
+  MapData,
   LoadingReason,
   ValidNewNPCPayload,
   ValidNPCUpdatePayload
 } from '../types';
 import { updateMapFromAIData_Service, MapUpdateServiceResult, MapUpdateDebugInfo, suggestNodeFromLocationChange_Service } from '../services/cartographer';
 import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
+import type { NodeRenameResult } from '../services/corrections/duplicateNodeNames';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import {
   buildNPCChangeRecords,
@@ -27,6 +30,71 @@ import {
   buildNonRumoredAdjacencyMap,
 } from './mapGraphUtils';
 import { buildNodeId } from './entityUtils';
+
+interface MapDataIndexes {
+  nodesById: Map<string, MapNode>;
+  edgesById: Map<string, MapEdge>;
+}
+
+const buildMapDataIndexes = (mapData: MapData): MapDataIndexes => ({
+  nodesById: new Map(mapData.nodes.map(node => [node.id, node] as const)),
+  edgesById: new Map(mapData.edges.map(edge => [edge.id, edge] as const)),
+});
+
+const applyNodeRenameResults = (
+  renameResults: Array<NodeRenameResult>,
+  draftState: FullGameState,
+  nodesById: Map<string, MapNode>,
+): boolean => {
+  if (renameResults.length === 0) return false;
+
+  const renameMap: Record<string, string> = {};
+  let didRename = false;
+
+  for (const { nodeId, newName } of renameResults) {
+    const node = nodesById.get(nodeId);
+    if (!node) continue;
+
+    const oldId = node.id;
+    const newId = buildNodeId(newName);
+    if (oldId === newId && node.placeName === newName) {
+      continue;
+    }
+
+    renameMap[oldId] = newId;
+    didRename = true;
+
+    node.placeName = newName;
+    node.id = newId;
+
+    nodesById.delete(oldId);
+    nodesById.set(newId, node);
+
+    draftState.mapData.nodes.forEach(child => {
+      if (child.data.parentNodeId === oldId) {
+        child.data.parentNodeId = newId;
+      }
+    });
+
+    draftState.mapData.edges.forEach(edge => {
+      if (edge.sourceNodeId === oldId) edge.sourceNodeId = newId;
+      if (edge.targetNodeId === oldId) edge.targetNodeId = newId;
+    });
+
+    draftState.inventory.forEach(item => {
+      if (item.holderId === oldId) item.holderId = newId;
+    });
+
+    if (draftState.currentMapNodeId === oldId) draftState.currentMapNodeId = newId;
+    if (draftState.destinationNodeId === oldId) draftState.destinationNodeId = newId;
+  }
+
+  if (didRename) {
+    updateEntityIdsInFacts(draftState.loreFacts, renameMap);
+  }
+
+  return didRename;
+};
 
 /**
  * Handles all map-related updates from the AI response and returns the suggested node identifier.
@@ -42,6 +110,15 @@ export const handleMapUpdates = async (
   const activeTheme = draftState.theme;
   let mapAISuggestedNodeIdentifier: string | null | undefined = undefined;
   let mapUpdateResult: MapUpdateServiceResult | null = null;
+
+  let { nodesById, edgesById } = buildMapDataIndexes(draftState.mapData);
+  const rebuildIndexes = () => {
+    const rebuilt = buildMapDataIndexes(draftState.mapData);
+    nodesById = rebuilt.nodesById;
+    edgesById = rebuilt.edgesById;
+  };
+  const getNodeById = (id: string | null | undefined): MapNode | undefined =>
+    id ? nodesById.get(id) : undefined;
 
   const needsFullUpdate = aiData.mapUpdated === true;
   const locationTextChanged = draftState.localPlace !== baseStateSnapshot.localPlace;
@@ -80,9 +157,8 @@ export const handleMapUpdates = async (
     } else {
       // Simplified navigation-only suggestion
       const prevNodeName = (() => {
-        if (!baseStateSnapshot.currentMapNodeId) return null;
-        const n = draftState.mapData.nodes.find(m => m.id === baseStateSnapshot.currentMapNodeId);
-        return n ? n.placeName : null;
+        const previousNode = getNodeById(baseStateSnapshot.currentMapNodeId);
+        return previousNode ? previousNode.placeName : null;
       })();
       const suggestionResult = await suggestNodeFromLocationChange_Service(
         aiData,
@@ -108,11 +184,17 @@ export const handleMapUpdates = async (
 
     setLoadingReason(originalLoadingReason);
 
+    let mapDataReplaced = false;
     if (mapUpdateResult?.updatedMapData) {
       if (mapUpdateResult.updatedMapData !== draftState.mapData) {
-        turnChanges.mapDataChanged = true;
         draftState.mapData = mapUpdateResult.updatedMapData;
+        turnChanges.mapDataChanged = true;
+        mapDataReplaced = true;
       }
+    }
+
+    if (mapDataReplaced) {
+      rebuildIndexes();
     }
 
     if (latestDebugInfo && draftState.lastDebugPacket) {
@@ -123,9 +205,7 @@ export const handleMapUpdates = async (
       for (const added of mapUpdateResult.newlyAddedNodes) {
           const isMainNode = added.data.nodeType !== 'feature';
           if (isMainNode) {
-            const newlyAddedNodeInDraft = draftState.mapData.nodes.find(
-              n => n.id === added.id
-            );
+            const newlyAddedNodeInDraft = getNodeById(added.id);
             if (
               newlyAddedNodeInDraft &&
               (!newlyAddedNodeInDraft.data.description ||
@@ -142,12 +222,9 @@ export const handleMapUpdates = async (
               );
               setLoadingReason(originalLoadingReasonCorrection);
               if (placeDetails) {
-                const nodeIndexToUpdate = draftState.mapData.nodes.findIndex(n => n.id === newlyAddedNodeInDraft.id);
-                if (nodeIndexToUpdate !== -1) {
-                  draftState.mapData.nodes[nodeIndexToUpdate].data.description = placeDetails.description;
-                  draftState.mapData.nodes[nodeIndexToUpdate].data.aliases = placeDetails.aliases ?? [];
-                  turnChanges.mapDataChanged = true;
-                }
+                newlyAddedNodeInDraft.data.description = placeDetails.description;
+                newlyAddedNodeInDraft.data.aliases = placeDetails.aliases ?? [];
+                turnChanges.mapDataChanged = true;
               }
             }
           }
@@ -160,34 +237,9 @@ export const handleMapUpdates = async (
         activeTheme,
         mapUpdateResult?.debugInfo?.minimalModelCalls,
       );
-      if (renameResults.length > 0) {
-        const renameMap: Record<string, string> = {};
-        for (const r of renameResults) {
-          const idx = draftState.mapData.nodes.findIndex(n => n.id === r.nodeId);
-          if (idx === -1) continue;
-          const node = draftState.mapData.nodes[idx];
-          const oldId = node.id;
-          const newId = buildNodeId(r.newName);
-          renameMap[oldId] = newId;
-          node.placeName = r.newName;
-          node.id = newId;
-          draftState.mapData.nodes.forEach(n => {
-            if (n.data.parentNodeId === oldId) n.data.parentNodeId = newId;
-          });
-          draftState.mapData.edges.forEach(e => {
-            if (e.sourceNodeId === oldId) e.sourceNodeId = newId;
-            if (e.targetNodeId === oldId) e.targetNodeId = newId;
-          });
-          draftState.inventory.forEach(item => {
-            if (item.holderId === oldId) item.holderId = newId;
-          });
-          if (draftState.currentMapNodeId === oldId) draftState.currentMapNodeId = newId;
-          if (draftState.destinationNodeId === oldId) draftState.destinationNodeId = newId;
-        }
-        if (Object.keys(renameMap).length > 0) {
-          updateEntityIdsInFacts(draftState.loreFacts, renameMap);
-        }
+      if (applyNodeRenameResults(renameResults, draftState, nodesById)) {
         turnChanges.mapDataChanged = true;
+        rebuildIndexes();
       }
 
 
@@ -226,43 +278,39 @@ export const handleMapUpdates = async (
   draftState.currentMapNodeId = finalChosenNodeId;
   if (draftState.currentMapNodeId !== oldMapNodeId) turnChanges.currentMapNodeIdChanged = true;
   if (draftState.currentMapNodeId && draftState.destinationNodeId) {
-    const nodeMap = new Map(draftState.mapData.nodes.map(n => [n.id, n]));
-    const currentNode = nodeMap.get(draftState.currentMapNodeId);
-    const destNode = nodeMap.get(draftState.destinationNodeId);
+    const currentNode = nodesById.get(draftState.currentMapNodeId);
+    const destNode = nodesById.get(draftState.destinationNodeId);
     if (
       currentNode &&
       destNode &&
-      (currentNode.id === destNode.id || isDescendantOf(currentNode, destNode, nodeMap))
+      (currentNode.id === destNode.id || isDescendantOf(currentNode, destNode, nodesById))
     ) {
       draftState.destinationNodeId = null;
     }
   }
 
   if (draftState.currentMapNodeId) {
-    const currentNodeIndex = draftState.mapData.nodes.findIndex(n => n.id === draftState.currentMapNodeId);
-    if (currentNodeIndex !== -1) {
-      if (!draftState.mapData.nodes[currentNodeIndex].data.visited) {
-        draftState.mapData.nodes[currentNodeIndex].data.visited = true;
+    const currentNode = getNodeById(draftState.currentMapNodeId);
+    if (currentNode) {
+      if (!currentNode.data.visited) {
+        currentNode.data.visited = true;
         if (
-          draftState.mapData.nodes[currentNodeIndex].data.status === 'rumored' ||
-          draftState.mapData.nodes[currentNodeIndex].data.status === 'undiscovered'
+          currentNode.data.status === 'rumored' ||
+          currentNode.data.status === 'undiscovered'
         ) {
-          draftState.mapData.nodes[currentNodeIndex].data.status = 'discovered';
+          currentNode.data.status = 'discovered';
         }
         turnChanges.mapDataChanged = true;
       }
-      const nodeMap = new Map(draftState.mapData.nodes.map(n => [n.id, n]));
-      const currentNode = draftState.mapData.nodes[currentNodeIndex];
-      const ancestors = getAncestors(currentNode, nodeMap);
+      const ancestors = getAncestors(currentNode, nodesById);
       for (const ancestor of ancestors) {
-        const idx = draftState.mapData.nodes.findIndex(n => n.id === ancestor.id);
-        if (idx !== -1 && !draftState.mapData.nodes[idx].data.visited) {
-          draftState.mapData.nodes[idx].data.visited = true;
+        if (!ancestor.data.visited) {
+          ancestor.data.visited = true;
           if (
-            draftState.mapData.nodes[idx].data.status === 'rumored' ||
-            draftState.mapData.nodes[idx].data.status === 'undiscovered'
+            ancestor.data.status === 'rumored' ||
+            ancestor.data.status === 'undiscovered'
           ) {
-            draftState.mapData.nodes[idx].data.status = 'discovered';
+            ancestor.data.status = 'discovered';
           }
           turnChanges.mapDataChanged = true;
         }
@@ -272,9 +320,9 @@ export const handleMapUpdates = async (
 
   if (turnChanges.mapDataChanged) {
     const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
-    const edgesToRemoveIndices = new Set<number>();
+    const edgesToRemoveIds = new Set<string>();
     const adjacency = buildNonRumoredAdjacencyMap(draftState.mapData);
-    draftState.mapData.edges.forEach((edge, index) => {
+    edgesById.forEach(edge => {
       if (newlyAddedEdgeIds.has(edge.id)) return;
       if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {
         if (edge.data.status === 'rumored' || edge.data.status === 'removed') {
@@ -285,17 +333,17 @@ export const handleMapUpdates = async (
             edge.id
           );
           if (altExists) {
-            edgesToRemoveIndices.add(index);
-          }
-          else {
+            edgesToRemoveIds.add(edge.id);
+          } else {
             edge.data.status = 'open';
             turnChanges.mapDataChanged = true;
           }
         }
       }
     });
-    if (edgesToRemoveIndices.size > 0) {
-      draftState.mapData.edges = draftState.mapData.edges.filter((_, index) => !edgesToRemoveIndices.has(index));
+    if (edgesToRemoveIds.size > 0) {
+      draftState.mapData.edges = draftState.mapData.edges.filter(edge => !edgesToRemoveIds.has(edge.id));
+      rebuildIndexes();
     }
   }
 

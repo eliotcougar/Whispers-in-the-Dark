@@ -26,7 +26,8 @@ import {
   CURRENT_SAVE_GAME_VERSION,
   VALID_ITEM_TYPES,
   VALID_PRESENCE_STATUS_VALUES,
-
+  VALID_EDGE_TYPE_VALUES,
+  VALID_EDGE_STATUS_VALUES,
   DEFAULT_NPC_ATTITUDE,
   PLAYER_HOLDER_ID,
 } from '../../constants';
@@ -453,6 +454,28 @@ export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined):
   });
 }
 
+export function ensureCompleteMapEdgeDataDefaults(mapData: MapData | undefined): void {
+  if (!mapData || !Array.isArray(mapData.edges)) {
+    return;
+  }
+
+  mapData.edges.forEach(edge => {
+    const data = edge.data;
+    if (typeof data.description !== 'string') {
+      data.description = '';
+    }
+    if (typeof data.type !== 'string' || data.type.trim().length === 0) {
+      data.type = 'path';
+    }
+    if (!VALID_EDGE_TYPE_VALUES.includes(data.type)) {
+      data.type = 'path';
+    }
+    if (!VALID_EDGE_STATUS_VALUES.includes(data.status)) {
+      data.status = 'open';
+    }
+  });
+}
+
 export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDataShape {
   const cast = data as Partial<SavedGameDataShape> & {
     worldFacts?: WorldFacts | null;
@@ -469,6 +492,7 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     stashed: item.stashed ?? false,
     holderId: item.holderId || PLAYER_HOLDER_ID,
   }));
+  ensureCompleteMapEdgeDataDefaults(cast.mapData);
   // Numeric fields and nullable strings are guaranteed by validation
   cast.allNPCs = (cast.allNPCs ?? []).map((npc: unknown) => {
     const legacyAwareNpc = npc as Partial<NPC> & {

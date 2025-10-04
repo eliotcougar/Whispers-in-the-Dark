@@ -182,8 +182,8 @@ function MapNodeView({
             const targetNode = nodeMap.get(edge.targetNodeId);
             if (!sourceNode || !targetNode) return null;
             let edgeClass = 'map-edge';
-            if (edge.data.type) edgeClass += ` ${edge.data.type.replace(/\s+/g, '_').toLowerCase()}`;
-            if (edge.data.status) edgeClass += ` ${edge.data.status.replace(/\s+/g, '_').toLowerCase()}`;
+            edgeClass += ` ${edge.data.type.replace(/\s+/g, '_').toLowerCase()}`;
+            edgeClass += ` ${edge.data.status.replace(/\s+/g, '_').toLowerCase()}`;
             return (
               <g
                 className="map-edge-group"

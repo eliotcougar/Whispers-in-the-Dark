@@ -21,25 +21,28 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       continue;
     }
 
+    const normalizedType = edgeAddOp.type;
     const pairKey =
       sourceNode.id < targetNode.id
-        ? `${sourceNode.id}|${targetNode.id}|${edgeAddOp.type ?? 'path'}`
-        : `${targetNode.id}|${sourceNode.id}|${edgeAddOp.type ?? 'path'}`;
+        ? `${sourceNode.id}|${targetNode.id}|${normalizedType}`
+        : `${targetNode.id}|${sourceNode.id}|${normalizedType}`;
     if (ctx.processedChainKeys.has(pairKey)) continue;
     ctx.processedChainKeys.add(pairKey);
+
+    const normalizedStatus = edgeAddOp.status;
 
     const chainReq = buildChainRequest(
       sourceNode,
       targetNode,
       {
         description: edgeAddOp.description,
-        status: edgeAddOp.status,
+        status: normalizedStatus,
         travelTime: edgeAddOp.travelTime,
-        type: edgeAddOp.type,
+        type: normalizedType,
       },
       ctx.nodeIdMap,
     );
-    if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.type, ctx.nodeIdMap)) {
+    if (!isEdgeConnectionAllowed(sourceNode, targetNode, normalizedType, ctx.nodeIdMap)) {
       ctx.pendingChainRequests.push(chainReq);
       continue;
     }
@@ -49,13 +52,9 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       targetNode,
       {
         description: edgeAddOp.description,
-        type: edgeAddOp.type,
+        type: normalizedType,
         travelTime: edgeAddOp.travelTime,
-        status:
-          edgeAddOp.status ??
-          (sourceNode.data.status === 'rumored' || targetNode.data.status === 'rumored'
-            ? 'rumored'
-            : 'open'),
+        status: normalizedStatus,
       },
       ctx.newMapData.edges,
       ctx.edgesMap

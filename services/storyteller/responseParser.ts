@@ -66,7 +66,7 @@ const normalizeKnownPlayerNames = (
 
 const toValidNewNPCPayload = (candidate: unknown): ValidNewNPCPayload | null => {
     if (!candidate || typeof candidate !== 'object') return null;
-    const rawCandidate = candidate as { [key: string]: unknown };
+    const rawCandidate = candidate as Record<string, unknown>;
     const normalized: Record<string, unknown> = {
         ...rawCandidate,
         attitudeTowardPlayer: toAttitude(rawCandidate.attitudeTowardPlayer),
@@ -240,12 +240,12 @@ const buildNPCFromUpdatePayload = (
     update: ValidNPCUpdatePayload,
     existing?: NPC,
 ): NPC => {
-    const aliases = update.newAliases !== undefined
-        ? update.newAliases
-        : mergeUniqueStrings(existing?.aliases, update.addAlias ? [update.addAlias] : undefined);
-    const knowsPlayerAs = update.newKnownPlayerNames !== undefined
-        ? normalizeKnownPlayerNames(update.newKnownPlayerNames)
-        : existing?.knowsPlayerAs ?? [];
+    const aliases = update.newAliases ??
+        mergeUniqueStrings(existing?.aliases, update.addAlias ? [update.addAlias] : undefined);
+    const newKnownNames = update.newKnownPlayerNames;
+    const knowsPlayerAs = newKnownNames === undefined
+        ? existing?.knowsPlayerAs ?? []
+        : normalizeKnownPlayerNames(newKnownNames);
 
     return ensurePresenceConsistency({
         id: buildNPCId(update.name),
@@ -361,7 +361,7 @@ const createNPCFromCorrection = (
         description: string;
         aliases: Array<string>;
         presenceStatus: NPC['presenceStatus'];
-        attitudeTowardPlayer?: string;
+        attitudeTowardPlayer?: string | null;
         knowsPlayerAs?: Array<string>;
         knownPlayerName?: string;
         lastKnownLocation: string | null;
@@ -416,7 +416,7 @@ const enrichNPCFromCorrection = (
         description: string;
         aliases: Array<string>;
         presenceStatus: NPC['presenceStatus'];
-        attitudeTowardPlayer?: string;
+        attitudeTowardPlayer?: string | null;
         knowsPlayerAs?: Array<string>;
         knownPlayerName?: string;
         lastKnownLocation: string | null;

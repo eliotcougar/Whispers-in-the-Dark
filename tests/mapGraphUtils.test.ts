@@ -12,7 +12,7 @@ const makeEdge = (
   id,
   sourceNodeId: source,
   targetNodeId: target,
-  data: { status },
+  data: { status, type: 'path' },
 });
 
 type Node = MapData['nodes'][number];

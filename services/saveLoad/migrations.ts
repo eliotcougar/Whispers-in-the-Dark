@@ -14,6 +14,7 @@ import { ensureCoreGameStateIntegrity } from '../../utils/gameStateIntegrity';
 import {
   ensureCompleteMapLayoutConfig,
   ensureCompleteMapNodeDataDefaults,
+  ensureCompleteMapEdgeDataDefaults,
   validateSavedGameState,
   postProcessValidatedData,
 } from './validators';
@@ -58,6 +59,7 @@ export function normalizeLoadedSaveData(
   const candidate = candidateObj as SavedGameDataShape;
   ensureCompleteMapLayoutConfig(candidate);
   ensureCompleteMapNodeDataDefaults(candidate.mapData);
+  ensureCompleteMapEdgeDataDefaults(candidate.mapData);
 
   if (validateSavedGameState(candidate)) {
     return postProcessValidatedData(candidate);
@@ -155,6 +157,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     })),
     edges: savedData.mapData.edges,
   };
+  ensureCompleteMapEdgeDataDefaults(mapDataFromLoad);
 
   const baseState: FullGameState = {
     ...savedData,

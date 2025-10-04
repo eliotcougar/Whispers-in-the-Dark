@@ -28,9 +28,8 @@ describe('parseInventoryResponse', () => {
     const responseText = `${CODE_FENCE}json
 ${JSON.stringify(rawPayload)}
 ${CODE_FENCE}`;
-    const maybeResult = parseInventoryResponse(responseText);
-    if (!maybeResult) throw new Error('Failed to parse inventory response');
-    const result = maybeResult;
+    const result = parseInventoryResponse(responseText);
+    if (!result) throw new Error('Failed to parse inventory response');
 
     expect(result.itemChanges.length).toBe(5);
     expect(result.itemChanges).toEqual([
@@ -58,9 +57,8 @@ ${CODE_FENCE}`;
     const text = `${CODE_FENCE}json
 ${JSON.stringify(payload)}
 ${CODE_FENCE}`;
-    const maybeRes = parseInventoryResponse(text);
-    if (!maybeRes) throw new Error('Failed to parse inventory response');
-    const res = maybeRes;
+    const res = parseInventoryResponse(text);
+    if (!res) throw new Error('Failed to parse inventory response');
 
     expect(res.itemChanges).toEqual([
       payload.itemChanges[0],
@@ -89,9 +87,8 @@ ${CODE_FENCE}`;
     const text = `${CODE_FENCE}json
 ${JSON.stringify(payload)}
 ${CODE_FENCE}`;
-    const maybeRes = parseInventoryResponse(text);
-    if (!maybeRes) throw new Error('Failed to parse inventory response');
-    const res = maybeRes;
+    const res = parseInventoryResponse(text);
+    if (!res) throw new Error('Failed to parse inventory response');
 
     const item = res.itemChanges[0].item as { tags?: Array<string> };
     expect(item.tags).toEqual(['printed']);
@@ -110,9 +107,8 @@ ${CODE_FENCE}`;
     const text = `${CODE_FENCE}json
 ${JSON.stringify(payload)}
 ${CODE_FENCE}`;
-    const maybeRes = parseInventoryResponse(text);
-    if (!maybeRes) throw new Error('Failed to parse inventory response');
-    const res = maybeRes;
+    const res = parseInventoryResponse(text);
+    if (!res) throw new Error('Failed to parse inventory response');
     const item = res.itemChanges[0].item as { tags?: Array<string> };
     expect(item.tags).toEqual(['handwritten', 'recovered']);
   });
@@ -126,9 +122,8 @@ ${CODE_FENCE}`;
     const text = `${CODE_FENCE}json
 ${JSON.stringify(payload)}
 ${CODE_FENCE}`;
-    const maybeRes = parseInventoryResponse(text);
-    if (!maybeRes) throw new Error('Failed to parse inventory response');
-    const res = maybeRes;
+    const res = parseInventoryResponse(text);
+    if (!res) throw new Error('Failed to parse inventory response');
     expect(res.itemChanges).toHaveLength(1);
     const change = res.itemChanges[0] as ItemChange & { invalidPayload?: unknown };
     expect(change.action).toBe('addDetails');

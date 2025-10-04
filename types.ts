@@ -515,8 +515,8 @@ export interface MapNode {
 
 export interface MapEdgeData {
   description?: string;
-  type?: MapEdgeType;
-  status?: MapEdgeStatus;
+  type: MapEdgeType;
+  status: MapEdgeStatus;
   travelTime?: string;
   [key: string]: unknown;
 }

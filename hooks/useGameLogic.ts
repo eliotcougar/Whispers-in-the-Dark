@@ -98,7 +98,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     return [current, previous] as GameStateStack;
   }, []);
   const [gameStateStackValue, setGameStateStackValue] = useState(initialGameStateStack);
-  const gameStateStack = gameStateStackValue;
   const [debugPacketStack, setDebugPacketStack] = useState<DebugPacketStack>(
     () => initialDebugStackFromApp ?? [null, null],
   );
@@ -152,7 +151,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     [],
   );
 
-  const getCurrentGameState = useCallback((): FullGameState => gameStateStack[0], [gameStateStack]);
+  const getCurrentGameState = useCallback((): FullGameState => gameStateStackValue[0], [gameStateStackValue]);
   const commitGameState = useCallback((newGameState: FullGameState) => {
     const sanitized = ensureCoreGameStateIntegrity(newGameState, 'commitGameState');
     let fallbackDebugForAwaiting: DebugPacket | null = null;
@@ -187,14 +186,14 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   }, [setGameStateStack, setDebugPacketStack]);
 
   const gatherGameStateStackForSave = useCallback((): GameStateStack => {
-    const [current, previous] = gameStateStack;
+    const [current, previous] = gameStateStackValue;
     return [
       buildSaveStateSnapshot({
         currentState: current,
       }),
       previous ? buildSaveStateSnapshot({ currentState: previous }) : undefined,
     ];
-  }, [gameStateStack]);
+  }, [gameStateStackValue]);
 
   const gatherDebugPacketStackForSave = useCallback((): DebugPacketStack => debugPacketStack, [debugPacketStack]);
 
@@ -676,7 +675,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     isVictory: currentFullState.isVictory,
     lastDebugPacket: debugPacketStack[0],
     lastTurnChanges: currentFullState.lastTurnChanges,
-    gameStateStack,
+    gameStateStack: gameStateStackValue,
     debugPacketStack,
 
     handleActionSelect,

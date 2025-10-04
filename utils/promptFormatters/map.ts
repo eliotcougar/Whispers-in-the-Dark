@@ -19,10 +19,13 @@ import { extractJsonFromFence } from '../jsonUtils';
 export const formatNodeLine = (
   node: MapNode,
   inventory: Array<Item> = [],
+  itemsByHolder?: Map<string, Array<Item>>,
 ): string => {
   const parent = node.data.parentNodeId ?? ROOT_MAP_NODE_ID;
   const desc = node.data.description;
-  const itemsAtNode = inventory.filter(item => item.holderId === node.id);
+  const itemsAtNode = itemsByHolder
+    ? itemsByHolder.get(node.id) ?? []
+    : inventory.filter(item => item.holderId === node.id);
   const itemsStr =
     itemsAtNode.length > 0
       ? ` Items: ${itemsAtNode.map(i => `"${i.name}"`).join(', ')}`
@@ -34,7 +37,7 @@ export const formatNodeLine = (
  * Formats a single map edge line for prompt context.
  */
 export const formatEdgeLine = (edge: MapEdge): string =>
-  `- ${edge.id} (${String(edge.data.status)} ${String(edge.data.type)})`;
+  `- ${edge.id} (${edge.data.status} ${edge.data.type})`;
 
 /**
  * Formats a list of map nodes for inclusion in prompts.
@@ -91,8 +94,8 @@ export const mapEdgesToString = (
 
   const result = edgeList
     .map(e => {
-      const status = e.data.status ?? 'open';
-      const type = e.data.type ?? 'path';
+      const status = e.data.status;
+      const type = e.data.type;
       let str = `${prefix}${e.id} (${status} ${type})`;
       const details: Array<string> = [];
       if (e.data.travelTime) details.push(`travel time: ${e.data.travelTime}`);
@@ -105,6 +108,62 @@ export const mapEdgesToString = (
     .join(delimiter);
 
   return result + '.';
+};
+
+interface MapPromptLookup {
+  nodesById: Map<string, MapNode>;
+  edgesByNodeId: Map<string, Array<MapEdge>>;
+  nodesByParentId: Map<string, Array<MapNode>>;
+}
+
+const buildMapPromptLookup = (mapData: MapData): MapPromptLookup => {
+  const nodesById = new Map<string, MapNode>();
+  const edgesByNodeId = new Map<string, Array<MapEdge>>();
+  const nodesByParentId = new Map<string, Array<MapNode>>();
+
+  mapData.nodes.forEach(node => {
+    nodesById.set(node.id, node);
+    const parentId = node.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+    const siblings = nodesByParentId.get(parentId);
+    if (siblings) {
+      siblings.push(node);
+    } else {
+      nodesByParentId.set(parentId, [node]);
+    }
+  });
+
+  mapData.edges.forEach(edge => {
+    const register = (nodeId: string) => {
+      const edges = edgesByNodeId.get(nodeId);
+      if (edges) {
+        edges.push(edge);
+      } else {
+        edgesByNodeId.set(nodeId, [edge]);
+      }
+    };
+    register(edge.sourceNodeId);
+    register(edge.targetNodeId);
+  });
+
+  return { nodesById, edgesByNodeId, nodesByParentId };
+};
+
+const buildItemsByHolderMap = (inventory: Array<Item>): Map<string, Array<Item>> => {
+  const itemsByHolder = new Map<string, Array<Item>>();
+  inventory.forEach(item => {
+    if (!item.holderId) return;
+    const items = itemsByHolder.get(item.holderId);
+    if (items) {
+      items.push(item);
+    } else {
+      itemsByHolder.set(item.holderId, [item]);
+    }
+  });
+  return itemsByHolder;
+};
+
+const isTraversableEdgeStatus = (status: MapEdge['data']['status']): boolean => {
+  return status === 'open' || status === 'accessible' || status === 'active';
 };
 
 /**
@@ -191,17 +250,17 @@ export const formatMapDataForAI = (mapData: MapData): string => {
   };
 
   const nodeLines = nodes.map(n =>
-    `NODE id=${n.id}; name="${n.placeName}"; type=${n.data.nodeType}; parent=${n.data.parentNodeId ?? ROOT_MAP_NODE_ID}; status=${n.data.status}; visited=${String(Boolean(n.data.visited))}; aliases=${aliasList(n.data.aliases)}; desc="${sanitize(n.data.description)}"`
+    `NODE id=${n.id}; name="${n.placeName}"; type=${n.data.nodeType}; parent=${n.data.parentNodeId ?? ROOT_MAP_NODE_ID}; status=${n.data.status}; visited=${n.data.visited === true ? 'true' : 'false'}; aliases=${aliasList(n.data.aliases)}; desc="${sanitize(n.data.description)}"`
   );
 
   const edgeLines = edges
     .filter(e => nodeById.has(e.sourceNodeId) && nodeById.has(e.targetNodeId))
-    .filter(e => !(e.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(e.data.status)))
+    .filter(e => !NON_DISPLAYABLE_EDGE_STATUSES.includes(e.data.status))
     .map(e => {
       const from = resolveArea(e.sourceNodeId);
       const to = resolveArea(e.targetNodeId);
       const travel = e.data.travelTime ?? '';
-      return `EDGE id=${e.id}; type=${e.data.type ?? 'path'}; status=${e.data.status ?? 'open'}; fromFeature=${from.feature}; fromArea=${from.area}; toFeature=${to.feature}; toArea=${to.area}; travelTime=${travel}; desc="${sanitize(e.data.description)}"`;
+      return `EDGE id=${e.id}; type=${e.data.type}; status=${e.data.status}; fromFeature=${from.feature}; fromArea=${from.area}; toFeature=${to.feature}; toArea=${to.area}; travelTime=${travel}; desc="${sanitize(e.data.description)}"`;
     });
 
   return [
@@ -214,8 +273,8 @@ export const formatMapDataForAI = (mapData: MapData): string => {
 };
 
 const formatConnectionToNode = (edge: MapEdge, otherNode: MapNode): string => {
-  const statusText = edge.data.status ?? 'open';
-  const typeText = edge.data.type ?? 'path';
+  const statusText = edge.data.status;
+  const typeText = edge.data.type;
   const details: Array<string> = [];
   if (edge.data.travelTime) {
     details.push(`travel time: ${edge.data.travelTime}`);
@@ -299,7 +358,7 @@ const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
     blocked: 0,
     inactive: -1,
   };
-  return status ? scores[status] ?? 0 : 7;
+  return scores[status] ?? 0;
 };
 
 /**
@@ -307,56 +366,53 @@ const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
  */
 const getFormattedConnectionsForNode = (
   perspectiveNode: MapNode,
-  allNodes: Array<MapNode>,
-  allEdges: Array<MapEdge>,
+  lookup: MapPromptLookup,
   excludeTargetId: string | null,
   processedTargets: Set<string>
 ): Array<string> => {
-  const connectedEdges = allEdges.filter(
-    edge => edge.sourceNodeId === perspectiveNode.id || edge.targetNodeId === perspectiveNode.id
-  );
+  const connectedEdges = lookup.edgesByNodeId.get(perspectiveNode.id) ?? [];
 
-  const uniqueDestinations: Record<string, Array<MapEdge> | undefined> = {};
+  const uniqueDestinations = new Map<string, Array<MapEdge>>();
   connectedEdges.forEach(edge => {
     const otherNodeId = edge.sourceNodeId === perspectiveNode.id ? edge.targetNodeId : edge.sourceNodeId;
     if (otherNodeId === excludeTargetId || processedTargets.has(otherNodeId)) {
       return;
     }
-    let list = uniqueDestinations[otherNodeId];
-    if (!list) {
-      list = [];
-      uniqueDestinations[otherNodeId] = list;
+    const list = uniqueDestinations.get(otherNodeId);
+    if (list) {
+      list.push(edge);
+    } else {
+      uniqueDestinations.set(otherNodeId, [edge]);
     }
-    list.push(edge);
   });
 
   const formattedPaths: Array<string> = [];
-  for (const targetNodeId in uniqueDestinations) {
-    const candidateEdgesToTarget = uniqueDestinations[targetNodeId];
-    if (!candidateEdgesToTarget) continue;
+  uniqueDestinations.forEach((candidateEdgesToTarget, targetNodeId) => {
     const validCandidateEdges = candidateEdgesToTarget.filter(edge => {
-      if (edge.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) {
+      const status = edge.data.status;
+      if (NON_DISPLAYABLE_EDGE_STATUSES.includes(status)) {
         return false;
       }
-      if (edge.data.status === 'one_way' && edge.targetNodeId === perspectiveNode.id) {
+      if (status === 'one_way' && edge.targetNodeId === perspectiveNode.id) {
         return false;
       }
       return true;
     });
-    if (validCandidateEdges.length === 0) continue;
+    if (validCandidateEdges.length === 0) return;
     validCandidateEdges.sort((edgeA, edgeB) => {
       const scoreA = (edgeA.sourceNodeId === perspectiveNode.id ? 100 : 0) + getEdgeStatusScore(edgeA.data.status);
       const scoreB = (edgeB.sourceNodeId === perspectiveNode.id ? 100 : 0) + getEdgeStatusScore(edgeB.data.status);
       return scoreB - scoreA;
     });
     const bestEdge = validCandidateEdges[0];
-    const otherNode = allNodes.find(node => node.id === targetNodeId);
-    if (!otherNode) continue;
+    const otherNode = lookup.nodesById.get(targetNodeId);
+    if (!otherNode) return;
 
     const pathString = formatConnectionToNode(bestEdge, otherNode);
     formattedPaths.push(pathString);
     processedTargets.add(targetNodeId);
-  }
+  });
+
   return formattedPaths;
 };
 
@@ -366,45 +422,43 @@ const getFormattedConnectionsForNode = (
 const getNearbyNodeIds = (
   startNodeId: string,
   maxHops: number,
-  allNodes: Array<MapNode>,
-  allEdges: Array<MapEdge>,
+  lookup: MapPromptLookup,
   typesToInclude?: Array<'node' | 'feature'>,
   typesToTraverse?: Array<'node' | 'feature'>
 ): Set<string> => {
   const allReachableNodeIds = new Set<string>();
   const queue: Array<{ nodeId: string; hop: number }> = [{ nodeId: startNodeId, hop: 0 }];
-  const visitedForHops = new Set<string>();
-  const allowedEdgeStatuses: Array<MapEdge['data']['status']> = ['open', 'accessible', 'active'];
+  const visitedForHops = new Set<string>([startNodeId]);
 
   while (queue.length > 0) {
     const current = queue.shift();
     if (!current) continue;
-    if (visitedForHops.has(current.nodeId) && current.nodeId !== startNodeId) continue;
-    visitedForHops.add(current.nodeId);
     if (current.nodeId !== startNodeId) {
       allReachableNodeIds.add(current.nodeId);
     }
     if (current.hop < maxHops) {
-      const connectedEdges = allEdges.filter(
-        edge =>
-          (edge.sourceNodeId === current.nodeId || edge.targetNodeId === current.nodeId) &&
-          allowedEdgeStatuses.includes(edge.data.status)
-      );
+      const connectedEdges = lookup.edgesByNodeId.get(current.nodeId) ?? [];
       for (const edge of connectedEdges) {
         const neighborNodeId = edge.sourceNodeId === current.nodeId ? edge.targetNodeId : edge.sourceNodeId;
-        if (!visitedForHops.has(neighborNodeId)) {
-          const neighborNode = allNodes.find(n => n.id === neighborNodeId);
-          if (neighborNode) {
-            const neighborNodeType =
-              neighborNode.data.nodeType === 'feature'
-                ? 'feature'
-                : 'node';
-            if (typesToTraverse && typesToTraverse.length > 0 && !typesToTraverse.includes(neighborNodeType)) {
-              continue;
-            }
-            queue.push({ nodeId: neighborNodeId, hop: current.hop + 1 });
-          }
+        if (visitedForHops.has(neighborNodeId)) {
+          continue;
         }
+        if (!isTraversableEdgeStatus(edge.data.status)) {
+          continue;
+        }
+        const neighborNode = lookup.nodesById.get(neighborNodeId);
+        if (!neighborNode) {
+          continue;
+        }
+        const neighborNodeType =
+          neighborNode.data.nodeType === 'feature' || neighborNode.data.nodeType === 'room'
+            ? 'feature'
+            : 'node';
+        if (typesToTraverse && typesToTraverse.length > 0 && !typesToTraverse.includes(neighborNodeType)) {
+          continue;
+        }
+        visitedForHops.add(neighborNodeId);
+        queue.push({ nodeId: neighborNodeId, hop: current.hop + 1 });
       }
     }
   }
@@ -412,9 +466,9 @@ const getNearbyNodeIds = (
   if (typesToInclude && typesToInclude.length > 0) {
     const filteredReachableNodeIds = new Set<string>();
     for (const nodeId of allReachableNodeIds) {
-      const node = allNodes.find(n => n.id === nodeId);
+      const node = lookup.nodesById.get(nodeId);
       if (node) {
-        const nodeType = (node.data.nodeType === "feature" || node.data.nodeType === "room") ? 'feature' : 'node';
+        const nodeType = (node.data.nodeType === 'feature' || node.data.nodeType === 'room') ? 'feature' : 'node';
         if (typesToInclude.includes(nodeType)) {
           filteredReachableNodeIds.add(nodeId);
         }
@@ -435,15 +489,14 @@ export const formatLimitedMapContextForPrompt = (
   inventory: Array<Item> = [],
 ): string => {
   if (!currentMapNodeId) return 'Current location unknown.';
-  const allNodes = mapData.nodes;
-  const allEdges = mapData.edges;
-  const nearbyIds = getNearbyNodeIds(currentMapNodeId, 2, allNodes, allEdges);
+  const lookup = buildMapPromptLookup(mapData);
+  const itemsByHolder = buildItemsByHolderMap(inventory);
+  const nearbyIds = getNearbyNodeIds(currentMapNodeId, 2, lookup);
   nearbyIds.add(currentMapNodeId);
   const lines: Array<string> = [];
-  nearbyIds.forEach(id => {
-    const node = allNodes.find(n => n.id === id);
-    if (!node) return;
-    lines.push(formatNodeLine(node, inventory));
+  mapData.nodes.forEach(node => {
+    if (!nearbyIds.has(node.id)) return;
+    lines.push(formatNodeLine(node, inventory, itemsByHolder));
   });
   return lines.join(';\n') + '.';
 };
@@ -455,13 +508,12 @@ export const formatMapContextForPrompt = (
   mapData: MapData,
   currentMapNodeId: string | null
 ): string => {
-  const allNodes = mapData.nodes;
-  const allEdges = mapData.edges;
+  const lookup = buildMapPromptLookup(mapData);
   if (!currentMapNodeId) {
     return "Player's precise map location is currently unknown or they are between known locations.";
   }
 
-  const currentNode = allNodes.find(node => node.id === currentMapNodeId);
+  const currentNode = lookup.nodesById.get(currentMapNodeId);
   if (!currentNode) {
     return '';
   }
@@ -473,7 +525,7 @@ export const formatMapContextForPrompt = (
 
   const parentNodeForCurrent =
     currentNode.data.nodeType === 'feature' && currentNode.data.parentNodeId && currentNode.data.parentNodeId !== ROOT_MAP_NODE_ID
-      ? allNodes.find(n => n.id === currentNode.data.parentNodeId)
+      ? lookup.nodesById.get(currentNode.data.parentNodeId)
       : null;
 
   if (parentNodeForCurrent) {
@@ -491,20 +543,21 @@ export const formatMapContextForPrompt = (
       : currentNode.id;
   let exitsContext = '';
   if (areaMainNodeId) {
-    const areaMainNode = allNodes.find(node => node.id === areaMainNodeId);
+    const areaMainNode = lookup.nodesById.get(areaMainNodeId);
     if (areaMainNode && !(areaMainNode.data.nodeType === 'feature')) {
-      const exitFeatureNodesInCurrentArea = allNodes.filter(
-        node => node.data.nodeType === "feature" && node.data.parentNodeId === areaMainNode.id
+      const exitFeatureNodesInCurrentArea = (lookup.nodesByParentId.get(areaMainNode.id) ?? []).filter(
+        node => node.data.nodeType === 'feature'
       );
       const exitStrings: Array<string> = [];
       if (exitFeatureNodesInCurrentArea.length > 0) {
         for (const exitFeature of exitFeatureNodesInCurrentArea) {
           if (exitFeature.id === currentNode.id) continue;
-          for (const edge of allEdges) {
-            if (edge.sourceNodeId !== exitFeature.id && edge.targetNodeId !== exitFeature.id) continue;
-            if (edge.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) continue;
+          const featureEdges = lookup.edgesByNodeId.get(exitFeature.id) ?? [];
+          for (const edge of featureEdges) {
+            const status = edge.data.status;
+            if (NON_DISPLAYABLE_EDGE_STATUSES.includes(status)) continue;
             const otherEndNodeId = edge.sourceNodeId === exitFeature.id ? edge.targetNodeId : edge.sourceNodeId;
-            const entryFeature = allNodes.find(node => node.id === otherEndNodeId);
+            const entryFeature = lookup.nodesById.get(otherEndNodeId);
             if (
               entryFeature &&
               entryFeature.data.nodeType === 'feature' &&
@@ -512,12 +565,13 @@ export const formatMapContextForPrompt = (
               entryFeature.data.parentNodeId !== areaMainNode.id &&
               entryFeature.data.parentNodeId !== ROOT_MAP_NODE_ID
             ) {
-              const otherAreaMainNode = allNodes.find(
-                node => node.id === entryFeature.data.parentNodeId && !(node.data.nodeType === "feature")
-              );
+              const otherAreaMainNode = lookup.nodesById.get(entryFeature.data.parentNodeId);
+              if (otherAreaMainNode && otherAreaMainNode.data.nodeType === 'feature') {
+                continue;
+              }
               if (otherAreaMainNode) {
-                const edgeStatus = edge.data.status ?? 'open';
-                const edgeType = edge.data.type ?? 'path';
+                const edgeStatus = status;
+                const edgeType = edge.data.type;
                 exitStrings.push(
                   ` - '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
                 );
@@ -551,8 +605,7 @@ No mapped exits from the current main area ("${areaMainNode.placeName}") to othe
       : null;
   const pathsFromCurrentNode = getFormattedConnectionsForNode(
     currentNode,
-    allNodes,
-    allEdges,
+    lookup,
     excludeForCurrentNode,
     processedTargets
   );
@@ -560,8 +613,7 @@ No mapped exits from the current main area ("${areaMainNode.placeName}") to othe
   const pathsFromParentNode = parentNodeForCurrent
     ? getFormattedConnectionsForNode(
         parentNodeForCurrent,
-        allNodes,
-        allEdges,
+        lookup,
         currentNode.id,
         processedTargets
       )
@@ -579,10 +631,10 @@ ${pathsFromParentNode.join('\n')}`;
   }
   context += '\n';
 
-  const nearbyNodeIds = getNearbyNodeIds(currentNode.id, 2, allNodes, allEdges);
+  const nearbyNodeIds = getNearbyNodeIds(currentNode.id, 2, lookup);
   if (nearbyNodeIds.size > 0) {
     const nearbyNodeNames = Array.from(nearbyNodeIds)
-      .map(id => allNodes.find(n => n.id === id)?.placeName)
+      .map(id => lookup.nodesById.get(id)?.placeName)
       .filter(name => !!name)
       .map(name => `"${String(name)}"`);
     if (nearbyNodeNames.length > 0) {

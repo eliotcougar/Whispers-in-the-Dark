@@ -26,7 +26,7 @@ const makeEdge = (
   id,
   sourceNodeId: source,
   targetNodeId: target,
-  data: { status },
+  data: { status, type: 'path' },
 });
 
 describe('getAdjacentNodeIds for item reachability', () => {

@@ -49,8 +49,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
     const src = e.sourcePlaceName.toLowerCase();
     const tgt = e.targetPlaceName.toLowerCase();
     const type = e.type;
-    const typeStr = String(type);
-    const key = src < tgt ? `${src}|${tgt}|${typeStr}` : `${tgt}|${src}|${typeStr}`;
+    const key = src < tgt ? `${src}|${tgt}|${type}` : `${tgt}|${src}|${type}`;
     if (!edgeKeySet.has(key)) {
       edgeKeySet.add(key);
       dedupedEdges.push(e);
@@ -165,21 +164,22 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
         context.referenceMapNodeId
       ) as MapNode | undefined;
 
-      const canReuseExisting =
-        existingNode !== undefined &&
+      const reusableNode =
+        existingNode &&
         ((resolvedParentId === undefined && !existingNode.data.parentNodeId) ||
           existingNode.data.parentNodeId === resolvedParentId) &&
         (existingNode.placeName.toLowerCase() === nodeAddOp.placeName.toLowerCase() ||
           (existingNode.data.aliases?.some(a => a.toLowerCase() === nodeAddOp.placeName.toLowerCase()) ?? false) ||
-          nodeAddOp.aliases.some(a => a.toLowerCase() === existingNode.placeName.toLowerCase()));
+          nodeAddOp.aliases.some(a => a.toLowerCase() === existingNode.placeName.toLowerCase()))
+          ? existingNode
+          : null;
 
-      if (canReuseExisting) {
-        const existing = existingNode;
-        const aliasSet = new Set([...(existing.data.aliases ?? [])]);
+      if (reusableNode) {
+        const aliasSet = new Set([...(reusableNode.data.aliases ?? [])]);
         nodeAddOp.aliases.forEach(a => aliasSet.add(a));
-        existing.data.aliases = Array.from(aliasSet);
-        if (nodeAddOp.description && existing.data.description.trim().length === 0) {
-          existing.data.description = nodeAddOp.description;
+        reusableNode.data.aliases = Array.from(aliasSet);
+        if (nodeAddOp.description && reusableNode.data.description.trim().length === 0) {
+          reusableNode.data.description = nodeAddOp.description;
         }
         Reflect.deleteProperty(
           context.newNodesInBatchIdNameMap,

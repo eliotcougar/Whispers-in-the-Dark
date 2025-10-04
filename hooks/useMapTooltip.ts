@@ -94,7 +94,7 @@ export const useMapTooltip = ({
         edge.data.description ??
         `Path between ${sourceNode?.placeName ?? 'Unknown'} and ${targetNode?.placeName ?? 'Unknown'}`;
       if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
-      if (edge.data.status) content += `\nStatus: ${edge.data.status}`;
+      content += `\nStatus: ${edge.data.status}`;
       const anchor = computeAnchor(x, y, svgRect);
       if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
       tooltipTimeout.current = window.setTimeout(() => {

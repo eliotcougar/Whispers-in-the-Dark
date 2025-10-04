@@ -104,21 +104,23 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           ctx.referenceMapNodeId
         ) as MapNode | undefined;
         if (src && tgt) {
+          const normalizedType = edgeData.type ?? 'path';
           const pairKey =
             src.id < tgt.id
-              ? `${src.id}|${tgt.id}|${edgeData.type ?? 'path'}`
-              : `${tgt.id}|${src.id}|${edgeData.type ?? 'path'}`;
+              ? `${src.id}|${tgt.id}|${normalizedType}`
+              : `${tgt.id}|${src.id}|${normalizedType}`;
           if (ctx.processedChainKeys.has(pairKey)) return;
           ctx.processedChainKeys.add(pairKey);
-          if (isEdgeConnectionAllowed(src, tgt, edgeData.type, ctx.nodeIdMap)) {
+          const normalizedStatus = edgeData.status ?? 'open';
+          if (isEdgeConnectionAllowed(src, tgt, normalizedType, ctx.nodeIdMap)) {
             addEdgeWithTracking(
               src,
               tgt,
               {
                 description: edgeData.description,
-                status: edgeData.status,
+                status: normalizedStatus,
                 travelTime: edgeData.travelTime,
-                type: edgeData.type,
+                type: normalizedType,
               },
               ctx.newMapData.edges,
               ctx.edgesMap
@@ -133,9 +135,9 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
                 tgt,
                 {
                   description: edgeData.description,
-                  status: edgeData.status,
+                  status: normalizedStatus,
                   travelTime: edgeData.travelTime,
-                  type: edgeData.type,
+                  type: normalizedType,
                 },
                 ctx.nodeIdMap,
               ),

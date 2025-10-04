@@ -63,7 +63,7 @@ export const buildTravelAdjacency = (mapData: MapData): TravelAdjacency => {
 
   for (const edge of mapData.edges) {
     if (!isTraversable(edge.sourceNodeId) || !isTraversable(edge.targetNodeId)) continue;
-    const status = edge.data.status ?? 'open';
+    const status = edge.data.status;
     const cost = EDGE_STATUS_TRAVEL_COSTS[status];
     if (cost === Infinity) continue;
     addAdj(edge.sourceNodeId, edge.targetNodeId, edge.id, cost);

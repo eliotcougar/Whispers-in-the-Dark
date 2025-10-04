@@ -198,8 +198,10 @@ export const formatTravelPlanLine = (
     line += ` The journey leads towards ${toName} in the general area of ${fromName}, and then towards ${furtherRumored ? 'a rumored place - ' + furtherName : furtherName}.`;
   } else {
     const edge = mapData.edges.find(e => e.id === firstEdge.id);
-    const edgeStatus = edge?.data.status ?? 'open';
-    const edgeName = edge?.data.description ?? edge?.data.type ?? 'path';
+    const edgeStatus = edge ? edge.data.status : 'open';
+    const edgeName = edge
+      ? edge.data.description ?? edge.data.type
+      : 'path';
     if (edgeStatus === 'rumored') {
       line += ` There is a rumor a path exists from here to ${nextRumored ? 'a rumored place - ' + nextName : nextName}.`;
     } else {

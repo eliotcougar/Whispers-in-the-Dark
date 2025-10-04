@@ -283,7 +283,9 @@ export const fetchConnectorChains_Service = async (
 
     const edgeLines = Array.from(edgeMap.values())
       .map((e, i) => {
-        return `Edge ${String(i + 1)}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${e.data.type ?? "path"}, Status: ${e.data.status ?? "open"}, Desc: ${e.data.description ?? "None"})`;
+        const type = e.data.type;
+        const status = e.data.status;
+        return `Edge ${String(i + 1)}: "${e.source.placeName}" -> "${e.target.placeName}" (Type: ${type}, Status: ${status}, Desc: ${e.data.description ?? 'None'})`;
       })
       .join("\n");
 
