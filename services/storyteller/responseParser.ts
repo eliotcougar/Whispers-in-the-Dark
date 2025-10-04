@@ -3,14 +3,23 @@
  * @description Utilities for validating and parsing AI storyteller responses.
  */
 
-import { GameStateFromAI, HeroSheet, Item, NPC, MapData,
-    ValidNPCUpdatePayload, ValidNewNPCPayload as ValidNewNPCPayload, DialogueSetupPayload,
-    MapNode, AdventureTheme } from '../../types';
+import {
+    GameStateFromAI,
+    HeroSheet,
+    Item,
+    NPC,
+    MapData,
+    ValidNPCUpdatePayload,
+    ValidNewNPCPayload,
+    DialogueSetupPayload,
+    MapNode,
+    AdventureTheme,
+} from '../../types';
 import { MAIN_TURN_OPTIONS_COUNT, DEFAULT_NPC_ATTITUDE } from '../../constants';
 import {
     isValidNPCUpdate,
-    isValidNewNPCPayload as isValidNewNPCPayload,
-    isDialogueSetupPayloadStructurallyValid
+    isValidNewNPCPayload,
+    isDialogueSetupPayloadStructurallyValid,
 } from '../parsers/validation';
 import { trimDialogueHints } from '../../utils/dialogueParsing';
 import {
@@ -20,10 +29,7 @@ import {
 } from '../corrections';
 
 import { safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
-import {
-    buildNPCId as buildNPCId,
-    findNPCByIdentifier,
-} from '../../utils/entityUtils';
+import { buildNPCId, findNPCByIdentifier } from '../../utils/entityUtils';
 
 const toAttitude = (value?: unknown): string => {
     if (typeof value === 'string') {
@@ -51,6 +57,390 @@ const toKnownNames = (value?: unknown): Array<string> => {
         return trimmed.length > 0 ? [trimmed] : [];
     }
     return [];
+};
+
+const normalizeKnownPlayerNames = (
+    primary?: unknown,
+    fallback?: unknown,
+): Array<string> => toKnownNames(primary ?? fallback);
+
+const toValidNewNPCPayload = (candidate: unknown): ValidNewNPCPayload | null => {
+    if (!candidate || typeof candidate !== 'object') return null;
+    const rawCandidate = candidate as { [key: string]: unknown };
+    const normalized: Record<string, unknown> = {
+        ...rawCandidate,
+        attitudeTowardPlayer: toAttitude(rawCandidate.attitudeTowardPlayer),
+        knowsPlayerAs: normalizeKnownPlayerNames(
+            rawCandidate.knowsPlayerAs,
+            rawCandidate.knownPlayerName,
+        ),
+        lastKnownLocation:
+            rawCandidate.lastKnownLocation === undefined
+                ? null
+                : rawCandidate.lastKnownLocation,
+        preciseLocation:
+            rawCandidate.preciseLocation === undefined
+                ? null
+                : rawCandidate.preciseLocation,
+    };
+    delete normalized.knownPlayerName;
+    if (!isValidNewNPCPayload(normalized)) return null;
+    return normalized as ValidNewNPCPayload;
+};
+
+const createNPCFromNewPayload = (payload: ValidNewNPCPayload): NPC => ({
+    ...payload,
+    id: buildNPCId(payload.name),
+    aliases: payload.aliases ?? [],
+    presenceStatus: payload.presenceStatus ?? 'unknown',
+    attitudeTowardPlayer: toAttitude(payload.attitudeTowardPlayer),
+    knowsPlayerAs: payload.knowsPlayerAs ?? [],
+    lastKnownLocation: payload.lastKnownLocation ?? null,
+    preciseLocation: payload.preciseLocation ?? null,
+    dialogueSummaries: [],
+});
+
+const toValidNPCUpdatePayload = (candidate: unknown): ValidNPCUpdatePayload | null => {
+    if (!isValidNPCUpdate(candidate)) return null;
+    const payload = candidate as ValidNPCUpdatePayload & {
+        newKnownPlayerName?: unknown;
+    };
+    const normalizedKnownNames = normalizeKnownPlayerNames(
+        payload.newKnownPlayerNames,
+        payload.newKnownPlayerName,
+    );
+    if (normalizedKnownNames.length > 0) {
+        payload.newKnownPlayerNames = Array.from(new Set(normalizedKnownNames));
+    }
+    delete (payload as { newKnownPlayerName?: unknown }).newKnownPlayerName;
+    return payload;
+};
+
+const collectNPCsForDialogueContext = (
+    data: Partial<GameStateFromAI>,
+    context: ParserContext,
+): Array<NPC> => {
+    const npcsForContext: Array<NPC> = [...context.allRelevantNPCs];
+    const npcByName = new Map<string, NPC>(
+        npcsForContext.map(npc => [npc.name, npc]),
+    );
+
+    const handleAddCandidate = (candidate: unknown): void => {
+        const payload = toValidNewNPCPayload(candidate);
+        if (!payload) return;
+        const npc = createNPCFromNewPayload(payload);
+        npcsForContext.push(npc);
+        npcByName.set(npc.name, npc);
+    };
+
+    const handleUpdateCandidate = (candidate: unknown): void => {
+        const payload = toValidNPCUpdatePayload(candidate);
+        if (!payload) return;
+        const existing = npcByName.get(payload.name);
+        const normalized: NPC = {
+            id: buildNPCId(payload.name),
+            name: payload.name,
+            description:
+                payload.newDescription ?? existing?.description ?? 'Updated NPC',
+            aliases:
+                payload.newAliases ??
+                (payload.addAlias
+                    ? [...(existing?.aliases ?? []), payload.addAlias]
+                    : existing?.aliases ?? []),
+            presenceStatus:
+                payload.newPresenceStatus ?? existing?.presenceStatus ?? 'unknown',
+            attitudeTowardPlayer: toAttitude(
+                payload.newAttitudeTowardPlayer ?? existing?.attitudeTowardPlayer,
+            ),
+            knowsPlayerAs:
+                normalizeKnownPlayerNames(
+                    payload.newKnownPlayerNames,
+                    existing?.knowsPlayerAs,
+                ),
+            lastKnownLocation:
+                payload.newLastKnownLocation ?? existing?.lastKnownLocation ?? null,
+            preciseLocation:
+                payload.newPreciseLocation ?? existing?.preciseLocation ?? null,
+            dialogueSummaries: existing?.dialogueSummaries ?? [],
+        };
+        npcsForContext.push(normalized);
+        npcByName.set(normalized.name, normalized);
+    };
+
+    if (Array.isArray(data.npcsAdded)) {
+        data.npcsAdded.forEach(handleAddCandidate);
+    }
+    if (Array.isArray(data.npcsUpdated)) {
+        data.npcsUpdated.forEach(handleUpdateCandidate);
+    }
+
+    return npcsForContext;
+};
+
+const ensurePresenceConsistency = (npc: NPC): NPC => {
+    const next: NPC = { ...npc };
+    if (next.presenceStatus === 'distant' || next.presenceStatus === 'unknown') {
+        next.preciseLocation = null;
+    } else {
+        next.preciseLocation ??=
+            next.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
+    }
+    return next;
+};
+
+const mergeUniqueStrings = (
+    ...collections: Array<Array<string> | undefined>
+): Array<string> => {
+    const merged = new Set<string>();
+    for (const collection of collections) {
+        if (!collection) continue;
+        for (const entry of collection) {
+            if (typeof entry !== 'string') continue;
+            const trimmed = entry.trim();
+            if (trimmed.length === 0) continue;
+            merged.add(trimmed);
+        }
+    }
+    return Array.from(merged);
+};
+
+const applyNPCUpdateToExisting = (
+    npc: NPC,
+    update: ValidNPCUpdatePayload,
+): NPC => {
+    const updated: NPC = { ...npc };
+    if (update.newDescription !== undefined) {
+        updated.description = update.newDescription;
+    }
+    if (update.newAliases !== undefined) {
+        updated.aliases = update.newAliases;
+    }
+    if (update.addAlias) {
+        updated.aliases = mergeUniqueStrings(updated.aliases ?? [], [update.addAlias]);
+    }
+    if (update.newPresenceStatus !== undefined) {
+        updated.presenceStatus = update.newPresenceStatus;
+    }
+    if (update.newAttitudeTowardPlayer !== undefined) {
+        updated.attitudeTowardPlayer = toAttitude(update.newAttitudeTowardPlayer);
+    }
+    if (update.newKnownPlayerNames !== undefined) {
+        updated.knowsPlayerAs = normalizeKnownPlayerNames(update.newKnownPlayerNames);
+    }
+    if (update.newLastKnownLocation !== undefined) {
+        updated.lastKnownLocation = update.newLastKnownLocation;
+    }
+    if (update.newPreciseLocation !== undefined) {
+        updated.preciseLocation = update.newPreciseLocation;
+    }
+    return ensurePresenceConsistency(updated);
+};
+
+const buildNPCFromUpdatePayload = (
+    update: ValidNPCUpdatePayload,
+    existing?: NPC,
+): NPC => {
+    const aliases = update.newAliases !== undefined
+        ? update.newAliases
+        : mergeUniqueStrings(existing?.aliases, update.addAlias ? [update.addAlias] : undefined);
+    const knowsPlayerAs = update.newKnownPlayerNames !== undefined
+        ? normalizeKnownPlayerNames(update.newKnownPlayerNames)
+        : existing?.knowsPlayerAs ?? [];
+
+    return ensurePresenceConsistency({
+        id: buildNPCId(update.name),
+        name: update.name,
+        description: update.newDescription ?? existing?.description ?? `Details for ${update.name} are emerging.`,
+        aliases,
+        presenceStatus: update.newPresenceStatus ?? existing?.presenceStatus ?? 'unknown',
+        attitudeTowardPlayer: toAttitude(update.newAttitudeTowardPlayer ?? existing?.attitudeTowardPlayer),
+        knowsPlayerAs,
+        lastKnownLocation: update.newLastKnownLocation ?? existing?.lastKnownLocation ?? null,
+        preciseLocation: update.newPreciseLocation ?? existing?.preciseLocation ?? null,
+        dialogueSummaries: existing?.dialogueSummaries ?? [],
+    });
+};
+
+const buildNPCFromUpdateAsAddition = async (
+    update: ValidNPCUpdatePayload,
+    baseData: Partial<GameStateFromAI>,
+    context: ParserContext,
+): Promise<NPC> => {
+    let npc = buildNPCFromUpdatePayload(update);
+    if (npc.description === `Details for ${update.name} are emerging.`) {
+        const correctedDetails = await fetchCorrectedNPCDetails_Service(
+            update.name,
+            context.logMessageFromPayload ?? baseData.logMessage,
+            context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
+            context.theme,
+            context.allRelevantMainMapNodesForCorrection,
+        );
+        if (correctedDetails) {
+            npc = enrichNPCFromCorrection(npc, correctedDetails);
+        }
+    }
+    return npc;
+};
+
+const normalizeNPCUpdateCandidate = async (
+    candidate: unknown,
+    knownNPCs: Array<NPC>,
+    knownNames: Set<string>,
+    baseData: Partial<GameStateFromAI>,
+    context: ParserContext,
+): Promise<ValidNPCUpdatePayload | null> => {
+    if (!candidate || typeof candidate !== 'object') {
+        console.warn("parseAIResponse ('npcsUpdated'): Update missing or malformed. Discarding.", candidate);
+        return null;
+    }
+
+    const rawPayload = { ...(candidate as Record<string, unknown>) };
+    if (typeof rawPayload.name !== 'string' || rawPayload.name.trim() === '') {
+        console.warn("parseAIResponse ('npcsUpdated'): Update missing or has invalid 'name'. Discarding.", candidate);
+        return null;
+    }
+
+    const payloadIdentifierForLogs = rawPayload.name;
+
+    if ('newKnownPlayerName' in rawPayload) {
+        const value = rawPayload.newKnownPlayerName;
+        rawPayload.newKnownPlayerNames = Array.isArray(value)
+            ? value
+            : value !== undefined && value !== null
+                ? [value]
+                : [];
+        delete rawPayload.newKnownPlayerName;
+    }
+
+    const matchedNPC = findNPCByIdentifier(
+        rawPayload.name,
+        knownNPCs,
+    ) as NPC | undefined;
+
+    if (matchedNPC) {
+        rawPayload.name = matchedNPC.name;
+    } else if (!knownNames.has(rawPayload.name)) {
+        console.warn(
+            `parseAIResponse ('npcsUpdated'): Identifier "${payloadIdentifierForLogs}" not found. Attempting name correction.`,
+        );
+        const correctedName = await fetchCorrectedName_Service(
+            'NPC name',
+            rawPayload.name,
+            context.logMessageFromPayload ?? baseData.logMessage,
+            context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
+            Array.from(knownNames),
+            context.theme,
+        );
+        if (correctedName && correctedName.trim() !== '') {
+            rawPayload.name = correctedName;
+            console.log(
+                `parseAIResponse ('npcsUpdated'): Corrected target name to "${correctedName}".`,
+            );
+        } else {
+            console.warn(
+                `parseAIResponse ('npcsUpdated'): Failed to correct identifier "${payloadIdentifierForLogs}". Will attempt to process as is, may convert to 'add'.`,
+            );
+        }
+    }
+
+    const sanitized = toValidNPCUpdatePayload(rawPayload);
+    if (!sanitized) {
+        console.warn(
+            `parseAIResponse ('npcsUpdated'): Payload for "${payloadIdentifierForLogs}" is invalid after potential name correction. Discarding. Payload:`,
+            rawPayload,
+        );
+        return null;
+    }
+
+    return sanitized;
+};
+
+const createNPCFromCorrection = (
+    name: string,
+    details: {
+        description: string;
+        aliases: Array<string>;
+        presenceStatus: NPC['presenceStatus'];
+        attitudeTowardPlayer?: string;
+        knowsPlayerAs?: Array<string>;
+        knownPlayerName?: string;
+        lastKnownLocation: string | null;
+        preciseLocation: string | null;
+    },
+): NPC => {
+    const correctedKnownNames = normalizeKnownPlayerNames(
+        details.knowsPlayerAs,
+        details.knownPlayerName,
+    );
+    return ensurePresenceConsistency({
+        id: buildNPCId(name),
+        name,
+        description: details.description,
+        aliases: mergeUniqueStrings(details.aliases),
+        presenceStatus: details.presenceStatus,
+        attitudeTowardPlayer: toAttitude(details.attitudeTowardPlayer),
+        knowsPlayerAs: correctedKnownNames,
+        lastKnownLocation: details.lastKnownLocation,
+        preciseLocation: details.preciseLocation,
+        dialogueSummaries: [],
+    });
+};
+
+const attemptCorrectNPCAdd = async (
+    originalName: string | undefined,
+    baseData: Partial<GameStateFromAI>,
+    context: ParserContext,
+): Promise<NPC | null> => {
+    const correctedDetails = await fetchCorrectedNPCDetails_Service(
+        originalName ?? 'Newly Mentioned NPC',
+        context.logMessageFromPayload ?? baseData.logMessage,
+        context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
+        context.theme,
+        context.allRelevantMainMapNodesForCorrection,
+    );
+    if (!correctedDetails) {
+        return null;
+    }
+    const generatedName = correctedDetails.description
+        .split(' ')
+        .slice(0, 2)
+        .join(' ')
+        .trim();
+    const fallbackName = originalName ?? (generatedName || 'Corrected NPC');
+    return createNPCFromCorrection(fallbackName, correctedDetails);
+};
+
+const enrichNPCFromCorrection = (
+    npc: NPC,
+    details: {
+        description: string;
+        aliases: Array<string>;
+        presenceStatus: NPC['presenceStatus'];
+        attitudeTowardPlayer?: string;
+        knowsPlayerAs?: Array<string>;
+        knownPlayerName?: string;
+        lastKnownLocation: string | null;
+        preciseLocation: string | null;
+    },
+): NPC => {
+    const mergedAliases = mergeUniqueStrings(npc.aliases, details.aliases);
+    const mergedKnownNames = mergeUniqueStrings(
+        npc.knowsPlayerAs,
+        normalizeKnownPlayerNames(
+            details.knowsPlayerAs,
+            details.knownPlayerName,
+        ),
+    );
+    return ensurePresenceConsistency({
+        ...npc,
+        description: details.description,
+        aliases: mergedAliases,
+        presenceStatus: details.presenceStatus,
+        attitudeTowardPlayer: toAttitude(details.attitudeTowardPlayer ?? npc.attitudeTowardPlayer),
+        knowsPlayerAs: mergedKnownNames,
+        lastKnownLocation: details.lastKnownLocation,
+        preciseLocation: details.preciseLocation,
+    });
 };
 
 /** Interface describing contextual data required by the parsing helpers. */
@@ -144,48 +534,12 @@ async function handleDialogueSetup(
         let dialogueSetupIsValid = isDialogueSetupPayloadStructurallyValid(dialogueSetup);
         if (!dialogueSetupIsValid) {
             console.warn("parseAIResponse: 'dialogueSetup' is present but malformed. Attempting correction.");
-            const NPCsForDialogueContext: Array<NPC> = [...context.allRelevantNPCs];
-            const existingByName = new Map(context.allRelevantNPCs.map(n => [n.name, n]));
-              (data.npcsAdded ?? []).forEach(npcAdd => {
-                const normalized = {
-                  ...npcAdd,
-                  attitudeTowardPlayer: toAttitude((npcAdd as { attitudeTowardPlayer?: unknown }).attitudeTowardPlayer),
-                } as unknown;
-                if (isValidNewNPCPayload(normalized)) {
-                  const add = normalized;
-                  NPCsForDialogueContext.push({
-                    ...add,
-                    id: buildNPCId(add.name),
-                    presenceStatus: add.presenceStatus ?? 'unknown',
-                    attitudeTowardPlayer: add.attitudeTowardPlayer,
-                    knowsPlayerAs: toKnownNames((add as { knowsPlayerAs?: unknown; knownPlayerName?: unknown }).knowsPlayerAs ?? (add as { knownPlayerName?: unknown }).knownPlayerName),
-                    lastKnownLocation: add.lastKnownLocation ?? null,
-                    preciseLocation: add.preciseLocation ?? null,
-                  } as NPC);
-                }
-              });
-              (data.npcsUpdated ?? []).forEach(npcUpd => {
-                if (isValidNPCUpdate(npcUpd)) {
-                    const existing = existingByName.get(npcUpd.name);
-                    NPCsForDialogueContext.push({
-                        id: buildNPCId(npcUpd.name),
-                        name: npcUpd.name,
-                          description: npcUpd.newDescription ?? existing?.description ?? 'Updated NPC',
-                          aliases: npcUpd.newAliases ?? existing?.aliases ?? [],
-                          presenceStatus: npcUpd.newPresenceStatus ?? existing?.presenceStatus ?? 'unknown',
-                          attitudeTowardPlayer: toAttitude((npcUpd.newAttitudeTowardPlayer ?? existing?.attitudeTowardPlayer) ?? null),
-                          knowsPlayerAs: toKnownNames(npcUpd.newKnownPlayerNames ?? existing?.knowsPlayerAs ?? []),
-                          lastKnownLocation: npcUpd.newLastKnownLocation ?? (existing?.lastKnownLocation ?? null),
-                          preciseLocation: npcUpd.newPreciseLocation ?? (existing?.preciseLocation ?? null),
-                    } as NPC);
-                }
-            });
-
+            const npcDialogueContext = collectNPCsForDialogueContext(data, context);
             const correctedDialogueSetup = await fetchCorrectedDialogueSetup_Service(
                 context.logMessageFromPayload ?? data.logMessage,
                 context.sceneDescriptionFromPayload ?? data.sceneDescription,
                 context.theme,
-                NPCsForDialogueContext,
+                npcDialogueContext,
                 context.allRelevantMainMapNodesForCorrection,
                 context.currentInventoryForCorrection,
                 context.heroGender,
@@ -231,57 +585,61 @@ async function handleNPCChanges(
     context: ParserContext
 ): Promise<{ npcsAdded: Array<NPC>; npcsUpdated: Array<ValidNPCUpdatePayload> }> {
     const finalNPCsAdded: Array<NPC> = [];
+    const finalNPCUpdateInstructions: Array<ValidNPCUpdatePayload> = [];
+    const addedIndexByName = new Map<string, number>();
+    const baseKnownNames = new Set(context.allRelevantNPCs.map(npc => npc.name));
+    const knownNamesForCorrection = new Set(baseKnownNames);
+    const knownNPCsForLookup: Array<NPC> = [...context.allRelevantNPCs];
+
+    const registerAddedNPC = (npc: NPC): void => {
+        const normalized = ensurePresenceConsistency(npc);
+        const existingIndex = addedIndexByName.get(normalized.name);
+        if (existingIndex === undefined) {
+            addedIndexByName.set(normalized.name, finalNPCsAdded.length);
+            finalNPCsAdded.push(normalized);
+            knownNPCsForLookup.push(normalized);
+        } else {
+            const existing = finalNPCsAdded[existingIndex];
+            const merged = ensurePresenceConsistency({
+                ...existing,
+                ...normalized,
+                aliases: mergeUniqueStrings(existing.aliases, normalized.aliases),
+                knowsPlayerAs: mergeUniqueStrings(existing.knowsPlayerAs, normalized.knowsPlayerAs),
+            });
+            finalNPCsAdded[existingIndex] = merged;
+            const lookupIndex = knownNPCsForLookup.findIndex(npcInLookup => npcInLookup.name === merged.name);
+            if (lookupIndex >= 0) {
+                knownNPCsForLookup[lookupIndex] = merged;
+            } else {
+                knownNPCsForLookup.push(merged);
+            }
+        }
+        knownNamesForCorrection.add(normalized.name);
+    };
+
     if (Array.isArray(rawAdded)) {
         for (const originalNPCAdd of rawAdded) {
-            const originalName = (typeof originalNPCAdd === 'object' && originalNPCAdd !== null && 'name' in originalNPCAdd)
-                ? (originalNPCAdd as { name?: unknown }).name as string | undefined
-                : undefined;
-            const candidate = (typeof originalNPCAdd === 'object' && originalNPCAdd !== null)
-                ? (originalNPCAdd as Partial<ValidNewNPCPayload>)
-                : null;
-            if (candidate && isValidNewNPCPayload({ ...candidate, attitudeTowardPlayer: toAttitude(candidate.attitudeTowardPlayer) } as unknown)) {
-                const add = { ...candidate, attitudeTowardPlayer: toAttitude(candidate.attitudeTowardPlayer) } as ValidNewNPCPayload;
-                finalNPCsAdded.push({
-                    ...add,
-                    id: buildNPCId(add.name),
-                    aliases: add.aliases ?? [],
-                    presenceStatus: add.presenceStatus ?? 'unknown',
-                    attitudeTowardPlayer: add.attitudeTowardPlayer,
-                    knowsPlayerAs: toKnownNames(((add as { knowsPlayerAs?: unknown; knownPlayerName?: unknown }).knowsPlayerAs) ?? (add as { knownPlayerName?: unknown }).knownPlayerName),
-                    lastKnownLocation: add.lastKnownLocation ?? null,
-                    preciseLocation: add.preciseLocation ?? null,
-                    dialogueSummaries: [],
-                });
+            const originalName =
+                typeof originalNPCAdd === 'object' &&
+                originalNPCAdd !== null &&
+                'name' in originalNPCAdd &&
+                typeof (originalNPCAdd as { name?: unknown }).name === 'string'
+                    ? ((originalNPCAdd as { name?: string }).name ?? undefined)
+                    : undefined;
+
+            const payload = toValidNewNPCPayload(originalNPCAdd);
+            if (payload) {
+                registerAddedNPC(createNPCFromNewPayload(payload));
+                continue;
+            }
+
+            console.warn(`parseAIResponse ('npcsAdded'): Invalid NPC structure for "${originalName ?? 'Unknown Name'}". Attempting correction.`);
+            const correctedNPC = await attemptCorrectNPCAdd(originalName, baseData, context);
+            if (correctedNPC) {
+                registerAddedNPC(correctedNPC);
+                console.log(`parseAIResponse ('npcsAdded'): Successfully corrected NPC:`, correctedNPC.name);
             } else {
-                console.warn(`parseAIResponse ('npcsAdded'): Invalid NPC structure for "${originalName ?? 'Unknown Name'}". Attempting correction.`);
-                const correctedDetails = await fetchCorrectedNPCDetails_Service(
-                    originalName ?? 'Newly Mentioned NPC',
-                    context.logMessageFromPayload ?? baseData.logMessage,
-                    context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
-                    context.theme,
-                    context.allRelevantMainMapNodesForCorrection
-                );
-                if (correctedDetails) {
-                    const fallbackName = correctedDetails.description.split(' ').slice(0, 2).join(' ') || 'Corrected NPC';
-                    const correctedNPCAddPayload: ValidNewNPCPayload = {
-                        name: originalName ?? fallbackName,
-                        description: correctedDetails.description,
-                        aliases: correctedDetails.aliases,
-                        presenceStatus: correctedDetails.presenceStatus,
-                        attitudeTowardPlayer: toAttitude(correctedDetails.attitudeTowardPlayer),
-                        knowsPlayerAs: toKnownNames(((correctedDetails as { knowsPlayerAs?: unknown }).knowsPlayerAs) ?? (correctedDetails as { knownPlayerName?: unknown }).knownPlayerName),
-                        lastKnownLocation: correctedDetails.lastKnownLocation,
-                        preciseLocation: correctedDetails.preciseLocation,
-                    };
-                    if (isValidNewNPCPayload(correctedNPCAddPayload)) {
-                        finalNPCsAdded.push({ ...correctedNPCAddPayload, id: buildNPCId(correctedNPCAddPayload.name) } as NPC);
-                        console.log(`parseAIResponse ('npcsAdded'): Successfully corrected NPC:`, correctedNPCAddPayload.name);
-                    } else {
-                        console.warn(`parseAIResponse ('npcsAdded'): Corrected NPC "${originalName ?? 'Unknown Name'}" still invalid. Discarding. Corrected Data:`, correctedNPCAddPayload);
-                    }
-                } else {
-                    console.warn(`parseAIResponse ('npcsAdded'): Failed to correct NPC "${originalName ?? 'Unknown Name'}". Discarding.`);
-                }
+                console.warn(`parseAIResponse ('npcsAdded'): Failed to correct NPC "${originalName ?? 'Unknown Name'}". Discarding.`);
             }
         }
     } else if (rawAdded !== undefined) {
@@ -291,156 +649,52 @@ async function handleNPCChanges(
     const rawNPCUpdates: Array<unknown> = Array.isArray(rawUpdated) ? rawUpdated : [];
     const tempFinalNPCsUpdatedPayloads: Array<ValidNPCUpdatePayload> = [];
 
-    // Precompute lookup collections for name resolution
-    const knownNPCsForLookup: Array<NPC> = [
-        ...context.allRelevantNPCs,
-        ...finalNPCsAdded,
-    ];
-    const allKnownNPCNames = new Set(knownNPCsForLookup.map(npc => npc.name));
-
     for (const npcUpdate of rawNPCUpdates) {
-        if (
-            typeof npcUpdate === 'object' &&
-            npcUpdate !== null &&
-            'name' in npcUpdate &&
-            typeof (npcUpdate as { name?: unknown }).name === 'string' &&
-            (npcUpdate as { name: string }).name.trim() !== ''
-        ) {
-            const currentNPCUpdatePayload: { [key: string]: unknown; name: string } = {
-                ...(npcUpdate as Record<string, unknown>),
-                name: (npcUpdate as { name: string }).name,
-            };
-            if ('newKnownPlayerName' in currentNPCUpdatePayload) {
-                const value = (currentNPCUpdatePayload as { newKnownPlayerName?: unknown }).newKnownPlayerName;
-                currentNPCUpdatePayload.newKnownPlayerNames = Array.isArray(value) ? value : value !== undefined && value !== null ? [value] : [];
-                delete currentNPCUpdatePayload.newKnownPlayerName;
-            }
-            const payloadIdentifierForLogs = currentNPCUpdatePayload.name;
-            const matchedNPC = findNPCByIdentifier(
-                currentNPCUpdatePayload.name,
-                knownNPCsForLookup,
-            ) as NPC | undefined;
-
-            if (matchedNPC) {
-                currentNPCUpdatePayload.name = matchedNPC.name;
-            } else {
-                if (!allKnownNPCNames.has(currentNPCUpdatePayload.name)) {
-                    console.warn(
-                        `parseAIResponse ('npcsUpdated'): Identifier "${payloadIdentifierForLogs}" not found. Attempting name correction.`,
-                    );
-                    const correctedName = await fetchCorrectedName_Service(
-                        'NPC name',
-                        currentNPCUpdatePayload.name,
-                        context.logMessageFromPayload ?? baseData.logMessage,
-                        context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
-                        Array.from(allKnownNPCNames),
-                        context.theme,
-                    );
-                    if (correctedName && correctedName.trim() !== '') {
-                        currentNPCUpdatePayload.name = correctedName;
-                        console.log(
-                            `parseAIResponse ('npcsUpdated'): Corrected target name to "${correctedName}".`,
-                        );
-                    } else {
-                        console.warn(
-                            `parseAIResponse ('npcsUpdated'): Failed to correct identifier "${payloadIdentifierForLogs}". Will attempt to process as is, may convert to 'add'.`,
-                        );
-                    }
-                }
-            }
-
-            if (isValidNPCUpdate(currentNPCUpdatePayload)) {
-                tempFinalNPCsUpdatedPayloads.push(currentNPCUpdatePayload);
-            } else {
-                console.warn(`parseAIResponse ('npcsUpdated'): Payload for "${payloadIdentifierForLogs}" is invalid after potential name correction. Discarding. Payload:`, currentNPCUpdatePayload);
-            }
-        } else {
-            console.warn("parseAIResponse ('npcsUpdated'): Update missing or has invalid 'name'. Discarding.", npcUpdate);
+        const normalizedUpdate = await normalizeNPCUpdateCandidate(
+            npcUpdate,
+            knownNPCsForLookup,
+            knownNamesForCorrection,
+            baseData,
+            context,
+        );
+        if (normalizedUpdate) {
+            tempFinalNPCsUpdatedPayloads.push(normalizedUpdate);
+            knownNamesForCorrection.add(normalizedUpdate.name);
         }
     }
 
-    const finalNPCUpdateInstructions: Array<ValidNPCUpdatePayload> = [];
-    // Precompute name sets/maps for O(1) checks and updates
-    const knownNames = new Set(context.allRelevantNPCs.map(npc => npc.name));
-    const addedIndexByName = new Map(finalNPCsAdded.map((npc, i) => [npc.name, i] as const));
     for (const npcUpdatePayload of tempFinalNPCsUpdatedPayloads) {
         const targetName = npcUpdatePayload.name;
-        const isAlreadyKnownFromPreviousTurns = knownNames.has(targetName);
-        const npcAddedThisTurnIndex = addedIndexByName.get(targetName);
+        const indexInAdded = addedIndexByName.get(targetName);
 
-        if (isAlreadyKnownFromPreviousTurns) {
+        if (baseKnownNames.has(targetName)) {
             finalNPCUpdateInstructions.push(npcUpdatePayload);
-        } else if (npcAddedThisTurnIndex !== undefined) {
-            finalNPCUpdateInstructions.push(npcUpdatePayload);
-            const npcInAddedList = finalNPCsAdded[npcAddedThisTurnIndex];
-            if (npcUpdatePayload.newDescription !== undefined) npcInAddedList.description = npcUpdatePayload.newDescription;
-            if (npcUpdatePayload.newAliases !== undefined) npcInAddedList.aliases = npcUpdatePayload.newAliases;
-            if (npcUpdatePayload.addAlias) npcInAddedList.aliases = Array.from(new Set([...(npcInAddedList.aliases ?? []), npcUpdatePayload.addAlias]));
-            if (npcUpdatePayload.newPresenceStatus !== undefined) npcInAddedList.presenceStatus = npcUpdatePayload.newPresenceStatus;
-            if (npcUpdatePayload.newAttitudeTowardPlayer !== undefined) npcInAddedList.attitudeTowardPlayer = toAttitude(npcUpdatePayload.newAttitudeTowardPlayer);
-            if (npcUpdatePayload.newKnownPlayerNames !== undefined) npcInAddedList.knowsPlayerAs = toKnownNames(npcUpdatePayload.newKnownPlayerNames);
-            if (npcUpdatePayload.newLastKnownLocation !== undefined) npcInAddedList.lastKnownLocation = npcUpdatePayload.newLastKnownLocation;
-            if (npcUpdatePayload.newPreciseLocation !== undefined) npcInAddedList.preciseLocation = npcUpdatePayload.newPreciseLocation;
-
-            if (npcInAddedList.presenceStatus === 'distant' || npcInAddedList.presenceStatus === 'unknown') {
-                npcInAddedList.preciseLocation = null;
-            } else {
-                npcInAddedList.preciseLocation ??= npcInAddedList.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
-            }
-            finalNPCsAdded[npcAddedThisTurnIndex] = npcInAddedList;
-        } else {
-            console.warn(`parseAIResponse ('npcsUpdated'): Target NPC "${targetName}" for update not found. Converting to an add operation.`);
-
-                const newNPCDataFromUpdate: NPC = {
-                    id: buildNPCId(targetName),
-                    name: targetName,
-                    description: npcUpdatePayload.newDescription ?? `Details for ${targetName} are emerging.`,
-                    aliases: npcUpdatePayload.newAliases ?? (npcUpdatePayload.addAlias ? [npcUpdatePayload.addAlias] : []),
-                    presenceStatus: npcUpdatePayload.newPresenceStatus ?? 'unknown',
-                    attitudeTowardPlayer: toAttitude(npcUpdatePayload.newAttitudeTowardPlayer),
-                    knowsPlayerAs: toKnownNames(npcUpdatePayload.newKnownPlayerNames),
-                    lastKnownLocation: npcUpdatePayload.newLastKnownLocation ?? null,
-                    preciseLocation: npcUpdatePayload.newPreciseLocation ?? null,
-                };
-
-            if (newNPCDataFromUpdate.description === `Details for ${targetName} are emerging.`) {
-                    const correctedDetails = await fetchCorrectedNPCDetails_Service(
-                      targetName,
-                      context.logMessageFromPayload ?? baseData.logMessage,
-                      context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
-                    context.theme,
-                    context.allRelevantMainMapNodesForCorrection
-                );
-                if (correctedDetails) {
-                    newNPCDataFromUpdate.description = correctedDetails.description;
-                    newNPCDataFromUpdate.aliases = Array.from(
-                        new Set([...(newNPCDataFromUpdate.aliases ?? []), ...correctedDetails.aliases])
-                    );
-                    newNPCDataFromUpdate.presenceStatus = correctedDetails.presenceStatus;
-                    if (typeof (correctedDetails as { attitudeTowardPlayer?: unknown }).attitudeTowardPlayer === 'string') { newNPCDataFromUpdate.attitudeTowardPlayer = toAttitude((correctedDetails as { attitudeTowardPlayer?: string }).attitudeTowardPlayer); }
-                    const correctedNames = toKnownNames(((correctedDetails as { knowsPlayerAs?: unknown }).knowsPlayerAs) ?? (correctedDetails as { knownPlayerName?: unknown }).knownPlayerName);
-                    if (correctedNames.length > 0) {
-                        newNPCDataFromUpdate.knowsPlayerAs = Array.from(new Set([...(newNPCDataFromUpdate.knowsPlayerAs), ...correctedNames]));
-                    }
-                    newNPCDataFromUpdate.lastKnownLocation = correctedDetails.lastKnownLocation;
-                    newNPCDataFromUpdate.preciseLocation = correctedDetails.preciseLocation;
-                }
-            }
-
-            if (newNPCDataFromUpdate.presenceStatus === 'distant' || newNPCDataFromUpdate.presenceStatus === 'unknown') {
-                newNPCDataFromUpdate.preciseLocation = null;
-            } else {
-                newNPCDataFromUpdate.preciseLocation ??= newNPCDataFromUpdate.presenceStatus === 'companion' ? 'with you' : 'nearby in the scene';
-            }
-
-            const existingIndexInAdded = addedIndexByName.get(newNPCDataFromUpdate.name);
-            if (existingIndexInAdded === undefined) {
-                finalNPCsAdded.push(newNPCDataFromUpdate);
-                addedIndexByName.set(newNPCDataFromUpdate.name, finalNPCsAdded.length - 1);
-            } else {
-                finalNPCsAdded[existingIndexInAdded] = { ...finalNPCsAdded[existingIndexInAdded], ...newNPCDataFromUpdate };
-            }
+            continue;
         }
+
+        if (indexInAdded !== undefined) {
+            finalNPCUpdateInstructions.push(npcUpdatePayload);
+            const updatedNPC = applyNPCUpdateToExisting(
+                finalNPCsAdded[indexInAdded],
+                npcUpdatePayload,
+            );
+            finalNPCsAdded[indexInAdded] = updatedNPC;
+            const lookupIndex = knownNPCsForLookup.findIndex(npc => npc.name === targetName);
+            if (lookupIndex >= 0) {
+                knownNPCsForLookup[lookupIndex] = updatedNPC;
+            } else {
+                knownNPCsForLookup.push(updatedNPC);
+            }
+            continue;
+        }
+
+        console.warn(`parseAIResponse ('npcsUpdated'): Target NPC "${targetName}" for update not found. Converting to an add operation.`);
+        const newNPCFromUpdate = await buildNPCFromUpdateAsAddition(
+            npcUpdatePayload,
+            baseData,
+            context,
+        );
+        registerAddedNPC(newNPCFromUpdate);
     }
 
     return { npcsAdded: finalNPCsAdded, npcsUpdated: finalNPCUpdateInstructions };

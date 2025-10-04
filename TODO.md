@@ -23,8 +23,8 @@
 ## Code Quality & Maintainability
 - [ ] `hooks/useProcessAiResponse.ts:430` – Refactor the response pipeline into composable steps (state prep, map inventory, lore, logging) with typed outputs for readability.
 - [ ] `services/loremaster/api.ts:214` – Consolidate the repeated `retryAiCall` + `dispatchAIRequest` scaffolding into a shared helper so extract/collect/integrate/distill stay in sync.
-- [ ] `services/storyteller/responseParser.ts:135` – Tidy the dialogue correction branch by normalizing imports, removing redundant aliasing, and leaning on reusable validators.
-- [ ] `services/storyteller/responseParser.ts:147` – Extract the ad-hoc NPC merge/correction block into helpers to reduce duplication and tighten the correction path.
+- [x] `services/storyteller/responseParser.ts:135` – Tidy the dialogue correction branch by normalizing imports, removing redundant aliasing, and leaning on reusable validators.
+- [x] `services/storyteller/responseParser.ts:147` – Extract the ad-hoc NPC merge/correction block into helpers to reduce duplication and tighten the correction path.
 - [ ] `utils/mapUpdateHandlers.ts:118` – Move alias-map cleanup and node renaming side effects into utilities so `handleMapUpdates` reads declaratively.
 
 ## Testing

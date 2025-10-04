@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { itemsToString } from '../utils/promptFormatters/inventory';
 import type { Item } from '../types';
 
-const TEMPLATE_WITH_TAGS = '<ID: {id}> - "{name}" (Type: "{type}"{tags}, Description: "{currentdescription}"{activehint}){availableactions};\n';
-const TEMPLATE_WITH_TAG_MEANING = '<ID: {id}> - "{name}" (Type: "{type}"{tagswithdescription}, Description: "{currentdescription}"{activehint}){availableactions};\n';
+const TEMPLATE_WITH_TAGS = '<ID: {id}> - "{name}" (Type: "{type}"{tags}, Description: "{currentdescription}"{activehint}){availableactions}{unavailableactions};\n';
+const TEMPLATE_WITH_TAG_MEANING = '<ID: {id}> - "{name}" (Type: "{type}"{tagswithdescription}, Description: "{currentdescription}"{activehint}){availableactions}{unavailableactions};\n';
 
 const buildItem = (overrides: Partial<Item>): Item => ({
   id: 'item-generic-0000',
