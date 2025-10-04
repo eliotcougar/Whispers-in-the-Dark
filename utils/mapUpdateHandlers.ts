@@ -205,14 +205,14 @@ export const handleMapUpdates = async (
 
   const oldMapNodeId = baseStateSnapshot.currentMapNodeId;
   let finalChosenNodeId: string | null = oldMapNodeId;
-  const currentThemeNodesFromDraftState = draftState.mapData.nodes;
+  const themeNodesFromDraftState = draftState.mapData.nodes;
 
   if (mapAISuggestedNodeIdentifier) {
-    const matchResult = attemptMatchAndSetNode(mapAISuggestedNodeIdentifier, 'mapAI', oldMapNodeId, themeContextForResponse.name, currentThemeNodesFromDraftState);
+    const matchResult = attemptMatchAndSetNode(mapAISuggestedNodeIdentifier, 'mapAI', oldMapNodeId, themeContextForResponse.name, themeNodesFromDraftState);
     if (matchResult.matched) finalChosenNodeId = matchResult.nodeId;
   }
   if (!mapAISuggestedNodeIdentifier && 'currentMapNodeId' in aiData && aiData.currentMapNodeId) {
-    const matchResult = attemptMatchAndSetNode(aiData.currentMapNodeId, 'mainAI', oldMapNodeId, themeContextForResponse.name, currentThemeNodesFromDraftState);
+    const matchResult = attemptMatchAndSetNode(aiData.currentMapNodeId, 'mainAI', oldMapNodeId, themeContextForResponse.name, themeNodesFromDraftState);
     if (matchResult.matched) finalChosenNodeId = matchResult.nodeId;
   }
   if (!mapAISuggestedNodeIdentifier && !('currentMapNodeId' in aiData && aiData.currentMapNodeId) && draftState.localPlace) {
@@ -221,7 +221,7 @@ export const handleMapUpdates = async (
         draftState.localPlace,
         themeContextForResponse,
         draftState.mapData,
-        currentThemeNodesFromDraftState,
+        themeNodesFromDraftState,
         oldMapNodeId
       ) ?? oldMapNodeId;
   }
@@ -275,7 +275,7 @@ export const handleMapUpdates = async (
 
   if (turnChanges.mapDataChanged) {
     const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
-    const edgesToRemoveIndices: Array<number> = [];
+    const edgesToRemoveIndices = new Set<number>();
     const adjacency = buildNonRumoredAdjacencyMap(draftState.mapData);
     draftState.mapData.edges.forEach((edge, index) => {
       if (newlyAddedEdgeIds.has(edge.id)) return;
@@ -288,7 +288,7 @@ export const handleMapUpdates = async (
             edge.id
           );
           if (altExists) {
-            edgesToRemoveIndices.push(index);
+            edgesToRemoveIndices.add(index);
           }
           else {
             edge.data.status = 'open';
@@ -297,8 +297,8 @@ export const handleMapUpdates = async (
         }
       }
     });
-    if (edgesToRemoveIndices.length > 0) {
-      draftState.mapData.edges = draftState.mapData.edges.filter((_, index) => !edgesToRemoveIndices.includes(index));
+    if (edgesToRemoveIndices.size > 0) {
+      draftState.mapData.edges = draftState.mapData.edges.filter((_, index) => !edgesToRemoveIndices.has(index));
     }
   }
 

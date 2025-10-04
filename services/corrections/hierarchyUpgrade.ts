@@ -20,7 +20,7 @@ import { isApiConfigured } from '../geminiClient';
 export const decideFeatureHierarchyUpgrade_Service = async (
   parentFeature: MapNode,
   childNode: MapNode,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<'convert_child' | 'upgrade_parent' | null> => {
   if (!isApiConfigured()) {

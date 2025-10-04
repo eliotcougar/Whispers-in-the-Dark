@@ -2,10 +2,10 @@ import { AdventureTheme } from '../../types';
 
 interface AppHeaderProps {
   readonly hasGameBeenInitialized: boolean;
-  readonly currentTheme: AdventureTheme | null;
+  readonly theme: AdventureTheme | null;
 }
 
-function AppHeader({ hasGameBeenInitialized, currentTheme }: AppHeaderProps) {
+function AppHeader({ hasGameBeenInitialized, theme }: AppHeaderProps) {
   return (
     <header className="w-full max-w-screen-xl mb-6 text-center">
       <h1 className="text-4xl md:text-5xl font-bold text-sky-400 tracking-wider title-font">
@@ -18,10 +18,10 @@ function AppHeader({ hasGameBeenInitialized, currentTheme }: AppHeaderProps) {
 
       {hasGameBeenInitialized ? (
         <p>
-          {currentTheme ? (
+          {theme ? (
             <span className="block text-xs text-purple-400">
 
-              {currentTheme.name}
+              {theme.name}
             </span>
           ) : null}
         </p>

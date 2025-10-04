@@ -27,7 +27,7 @@ import { parseDialogueTurnResponse } from '../dialogue/responseParser';
 export const fetchCorrectedDialogueSetup_Service = async (
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   allRelevantNPCs: Array<NPC>,
   allRelevantMapNodes: Array<MapNode>,
   currentInventory: Array<Item>,
@@ -66,7 +66,7 @@ ${malformedString}
 Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.storyGuidance}"
+- Theme Guidance: "${theme.storyGuidance}"
 ${npcContextLine}
 - Known Map Locations: ${placeContext}
 ${inventoryContext}
@@ -118,7 +118,7 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
 export const fetchCorrectedDialogueTurn_Service = async (
   malformedResponseText: string,
   validParticipants: Array<string>,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   npcThoughts?: Array<string>,
 ): Promise<DialogueAIResponse | null> => {
   if (!isApiConfigured()) {
@@ -130,7 +130,7 @@ export const fetchCorrectedDialogueTurn_Service = async (
 
   const prompt = `Role: You fix malformed JSON for a dialogue turn in a text adventure game.
 
-Theme Guidance: "${currentTheme.storyGuidance}"
+Theme Guidance: "${theme.storyGuidance}"
 
 Malformed Dialogue Response:
 \`\`\`

@@ -29,7 +29,7 @@ import { pruneInvalidEdges } from './edgeUtils';
 export interface ApplyMapUpdatesParams {
   payload: AIMapUpdatePayload;
   currentMapData: MapData;
-  currentTheme: AdventureTheme;
+  theme: AdventureTheme;
   previousMapNodeId: string | null;
   inventoryItems: Array<Item>;
   knownNPCs: Array<NPC>;
@@ -48,7 +48,7 @@ export interface ApplyMapUpdatesResult {
 export const applyMapUpdates = async ({
   payload,
   currentMapData,
-  currentTheme,
+  theme,
   previousMapNodeId,
   inventoryItems,
   knownNPCs,
@@ -65,24 +65,24 @@ export const applyMapUpdates = async ({
       ? aiData.currentMapNodeId
       : previousMapNodeId;
 
-  const currentThemeNodesFromMapData = currentMapData.nodes;
-  const currentThemeNodeIdsSet = new Set(currentThemeNodesFromMapData.map(n => n.id));
-  const currentThemeEdgesFromMapData = currentMapData.edges.filter(e =>
-    currentThemeNodeIdsSet.has(e.sourceNodeId) &&
-    currentThemeNodeIdsSet.has(e.targetNodeId),
+  const themeNodesFromMapData = currentMapData.nodes;
+  const themeNodeIdsSet = new Set(themeNodesFromMapData.map(n => n.id));
+  const themeEdgesFromMapData = currentMapData.edges.filter(e =>
+    themeNodeIdsSet.has(e.sourceNodeId) &&
+    themeNodeIdsSet.has(e.targetNodeId),
   );
   const themeNodeIdMap = new Map<string, MapNode>();
   const themeNodeNameMap = new Map<string, MapNode>();
   const themeNodeAliasMap = new Map<string, MapNode>();
   const themeEdgesMap = new Map<string, Array<MapEdge>>();
-  currentThemeNodesFromMapData.forEach(n => {
+  themeNodesFromMapData.forEach(n => {
     themeNodeIdMap.set(n.id, n);
     themeNodeNameMap.set(n.placeName, n);
     if (n.data.aliases) {
       n.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), n));
     }
   });
-  currentThemeEdgesFromMapData.forEach(e => {
+  themeEdgesFromMapData.forEach(e => {
     if (!themeEdgesMap.has(e.sourceNodeId)) themeEdgesMap.set(e.sourceNodeId, []);
     if (!themeEdgesMap.has(e.targetNodeId)) themeEdgesMap.set(e.targetNodeId, []);
     const arr1 = themeEdgesMap.get(e.sourceNodeId);
@@ -209,10 +209,10 @@ export const applyMapUpdates = async ({
   const ctx: ApplyUpdatesContext = {
     payload,
     newMapData,
-    currentTheme,
+    theme,
     referenceMapNodeId,
-    currentThemeNodesFromMapData,
-    currentThemeEdgesFromMapData,
+    themeNodesFromMapData,
+    themeEdgesFromMapData,
     themeNodeIdMap,
     themeNodeNameMap,
     themeNodeAliasMap,

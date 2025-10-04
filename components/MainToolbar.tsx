@@ -11,7 +11,7 @@ interface MainToolbarProps {
   readonly score: number;
   readonly isLoading: boolean;
   readonly isTurnProcessing: boolean;
-  readonly currentThemeName: string | null;
+  readonly themeName: string | null;
   readonly currentSceneExists: boolean;
   readonly onOpenVisualizer: () => void;
   readonly onOpenKnowledgeBase: () => void;
@@ -26,7 +26,7 @@ function MainToolbar({
   score,
   isLoading,
   isTurnProcessing,
-  currentThemeName,
+  themeName,
   currentSceneExists,
   onOpenVisualizer,
   onOpenKnowledgeBase,
@@ -70,7 +70,7 @@ function MainToolbar({
       <div className="flex space-x-2">
         <Button
           ariaLabel="Visualize Scene"
-          disabled={isLoading || isTurnProcessing || !currentThemeName || !currentSceneExists}
+          disabled={isLoading || isTurnProcessing || !themeName || !currentSceneExists}
           icon={<Icon
             inline
             name="visualize"
@@ -85,7 +85,7 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open Knowledge Base"
-          disabled={isLoading || isTurnProcessing || !currentThemeName}
+          disabled={isLoading || isTurnProcessing || !themeName}
           icon={<Icon
             inline
             name="bookOpen"
@@ -101,7 +101,7 @@ function MainToolbar({
 
         <Button
           ariaLabel="Open Map"
-          disabled={isLoading || isTurnProcessing || !currentThemeName}
+          disabled={isLoading || isTurnProcessing || !themeName}
           icon={<Icon
             inline
             name="map"

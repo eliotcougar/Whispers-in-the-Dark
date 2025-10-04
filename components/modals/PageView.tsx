@@ -19,7 +19,7 @@ import { applyBasicMarkup } from '../../utils/markup';
 
 interface PageViewProps {
   readonly item: Item | null;
-  readonly currentTheme: AdventureTheme;
+  readonly theme: AdventureTheme;
   readonly currentScene: string;
   readonly storytellerThoughts: string;
   readonly mapData: MapData;
@@ -44,7 +44,7 @@ interface PageViewProps {
 
 function PageView({
   item,
-  currentTheme,
+  theme,
   currentScene,
   storytellerThoughts,
   mapData,
@@ -130,7 +130,7 @@ function PageView({
     [unlockedChapterCount, isBook, isJournal]
   );
 
-  const { name: themeName, storyGuidance: themeDescription } = currentTheme;
+  const { name: themeName, storyGuidance: themeDescription } = theme;
 
   const handleToggleDecoded = useCallback(() => {
     setShowDecoded(prev => !prev);
@@ -334,7 +334,7 @@ function PageView({
       isGeneratingImageRef.current = true;
       setIsImageLoading(true);
       setLoadingReason(item.type === 'book' ? 'read_book' : 'read_page');
-      const img = await generateChapterImage(item, currentTheme, idx);
+      const img = await generateChapterImage(item, theme, idx);
       if (img) {
         await saveChapterImage(item.id, idx, img);
         updateItemContent(
@@ -355,7 +355,7 @@ function PageView({
     item,
     chapterIndex,
     chapters,
-    currentTheme,
+    theme,
     updateItemContent,
   ]);
 
@@ -570,7 +570,7 @@ function PageView({
           </div>
         ) : isJournal && chapters.length === 0 ? (
           <div
-            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 min-h-[20rem] tag-${currentTheme.playerJournalStyle}`}
+            className={`whitespace-pre-wrap text-lg overflow-y-auto p-5 mt-4 min-h-[20rem] tag-${theme.playerJournalStyle}`}
           />
         ) : null}
       </div>

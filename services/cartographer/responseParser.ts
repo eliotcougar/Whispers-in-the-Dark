@@ -30,7 +30,7 @@ export interface ParsedMapUpdateResult {
 
 export const parseAIMapUpdateResponse = async (
   responseText: string,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<ParsedMapUpdateResult> => {
   const parsed: unknown = safeParseJson(responseText);
   try {
@@ -148,7 +148,7 @@ export const parseAIMapUpdateResponse = async (
     const corrected = await fetchCorrectedMapUpdatePayload_Service(
       responseText,
       validationError,
-      currentTheme,
+      theme,
     );
     if (corrected) {
       return { payload: corrected };
@@ -160,7 +160,7 @@ export const parseAIMapUpdateResponse = async (
     const corrected = await fetchCorrectedMapUpdatePayload_Service(
       responseText,
       e instanceof Error ? e.message : String(e),
-      currentTheme,
+      theme,
     );
     if (corrected) {
       return { payload: corrected };

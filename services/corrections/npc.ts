@@ -40,7 +40,7 @@ export const fetchCorrectedNPCDetails_Service = async (
   npcName: string,
   logMessage: string | undefined,
   sceneDescription: string | undefined,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   allRelevantMapNodes: Array<MapNode>
 ): Promise<CorrectedNPCDetails | null> => {
   if (!isApiConfigured()) {
@@ -62,7 +62,7 @@ Context:
 - Log Message (how they appeared/what they're doing): "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description (where they appeared/are relevant): "${sceneDescription ?? 'Not specified, infer from log.'}"
 - ${knownPlacesString}
-- Theme Guidance (influences NPC style/role): "${currentTheme.storyGuidance}"
+- Theme Guidance (influences NPC style/role): "${theme.storyGuidance}"
 
 Respond ONLY in JSON format with the following structure:
 {
@@ -155,7 +155,7 @@ export const fetchCorrectedCompanionOrNPCLocation_Service = async (
   sceneDescription: string | undefined,
   allRelevantMapNodes: Array<MapNode>,
   invalidPreciseLocationPayload: string,
-  currentTheme: AdventureTheme
+  theme: AdventureTheme
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error(`fetchCorrectedCompanionOrNPCLocation_Service: API Key not configured. Cannot correct location for "${npcName}".`);
@@ -190,7 +190,7 @@ Example Response: "near you"
 Example Response: If unclear from context, respond with a generic but plausible short phrase like "observing the surroundings" or "standing nearby".
 `;
 
-  const systemInstruction = `Infer or correct the NPC's "preciseLocation" (a short phrase, max ~50-60 chars, describing their in-scene activity/position) from narrative context and potentially malformed input. Respond ONLY with the string value. Adhere to theme context: ${currentTheme.storyGuidance}`;
+  const systemInstruction = `Infer or correct the NPC's "preciseLocation" (a short phrase, max ~50-60 chars, describing their in-scene activity/position) from narrative context and potentially malformed input. Respond ONLY with the string value. Adhere to theme context: ${theme.storyGuidance}`;
 
   return retryAiCall<string>(async attempt => {
     try {

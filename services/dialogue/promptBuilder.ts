@@ -55,7 +55,7 @@ export const buildDialogueTurnPrompt = (
   context: DialogueTurnContext,
 ): string => {
   const {
-    currentTheme,
+    theme,
     currentQuest,
     currentObjective,
     currentScene,
@@ -142,7 +142,7 @@ export const buildDialogueTurnPrompt = (
       : 'None';
 
   return `**Context for Dialogue Turn**
-${arcContext ? `Narrative Arc:\n${arcContext}\n` : `Current Theme: "${currentTheme.name}";\nTheme Guidance: "${currentTheme.storyGuidance}";`}
+${arcContext ? `Narrative Arc:\n${arcContext}\n` : `Current Theme: "${theme.name}";\nTheme Guidance: "${theme.storyGuidance}";`}
 Current Main Quest: "${currentQuest ?? 'Not set'}";
 Current Objective: "${currentObjective ?? 'Not set'}";
 Scene Description (for environmental context): "${currentScene}";
@@ -209,7 +209,7 @@ export const buildDialogueSummaryPrompt = (
 
   return `
  Context for Dialogue Summary:
-${summaryContext.storyArc ? `Narrative Arc: ${summaryContext.storyArc.title} (Act ${String(summaryContext.storyArc.currentAct)}: ${summaryContext.storyArc.acts[summaryContext.storyArc.currentAct - 1].title})` : `Current Theme: "${summaryContext.currentTheme?.name ?? summaryContext.themeName}"\n- Theme Guidance: "${summaryContext.currentTheme?.storyGuidance ?? 'None'}"`}
+${summaryContext.storyArc ? `Narrative Arc: ${summaryContext.storyArc.title} (Act ${String(summaryContext.storyArc.currentAct)}: ${summaryContext.storyArc.acts[summaryContext.storyArc.currentAct - 1].title})` : `Current Theme: "${summaryContext.theme?.name ?? summaryContext.themeName}"\n- Theme Guidance: "${summaryContext.theme?.storyGuidance ?? 'None'}"`}
 - Current Main Quest (before dialogue): "${summaryContext.mainQuest ?? 'Not set'}"
 - Current Objective (before dialogue): "${summaryContext.currentObjective ?? 'Not set'}"
 - Scene Description (when dialogue started): "${summaryContext.currentScene}"
@@ -259,7 +259,7 @@ Output ONLY the summary text. Do NOT use JSON or formatting. Do NOT include any 
 
   const userPromptPart = `Generate a memory summary for the following conversation:
 - Conversation Participants: ${context.dialogueParticipants.join(', ')}
-${context.storyArc ? `- Narrative Arc: ${context.storyArc.title} (Act ${String(context.storyArc.currentAct)}: ${context.storyArc.acts[context.storyArc.currentAct - 1].title})` : `- Theme: "${context.currentTheme?.name ?? context.themeName}" (${context.currentTheme?.storyGuidance ?? 'None'})`}
+${context.storyArc ? `- Narrative Arc: ${context.storyArc.title} (Act ${String(context.storyArc.currentAct)}: ${context.storyArc.acts[context.storyArc.currentAct - 1].title})` : `- Theme: "${context.theme?.name ?? context.themeName}" (${context.theme?.storyGuidance ?? 'None'})`}
 - Scene at the start of conversation: "${context.currentScene}"
 - Context: Time: "${context.localTime ?? 'Unknown'}", Environment: "${context.localEnvironment ?? 'Undetermined'}", Place: "${context.localPlace ?? 'Undetermined'}"
 

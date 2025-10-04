@@ -16,8 +16,10 @@ let subscribers: Array<() => void> = [];
 const purgeOld = () => {
   const cutoff = Date.now() - 60_000;
   Object.values(usageHistories).forEach(arr => {
-    if (!arr) return;
-    while (arr.length && arr[0] < cutoff) arr.shift();
+    if (!arr || arr.length === 0) return;
+    let removeCount = 0;
+    while (removeCount < arr.length && arr[removeCount] < cutoff) removeCount += 1;
+    if (removeCount > 0) arr.splice(0, removeCount);
   });
 };
 

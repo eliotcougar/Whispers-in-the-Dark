@@ -213,7 +213,7 @@ export const fetchConnectorChains_Service = async (
   context: {
     sceneDescription: string;
     logMessage: string | undefined;
-    currentTheme: AdventureTheme;
+    theme: AdventureTheme;
     themeNodes: Array<MapNode>;
   },
 ): Promise<ConnectorChainsServiceResult> => {
@@ -295,7 +295,7 @@ export const fetchConnectorChains_Service = async (
   const prompt = `Suggest chains of locations (feature nodes) to connect distant map nodes in a text adventure.
 ** Context: **
 Scene Description: "${context.sceneDescription}"
-Theme: "${context.currentTheme.name}" (${context.currentTheme.storyGuidance})
+Theme: "${context.theme.name}" (${context.theme.storyGuidance})
 
 ---
 

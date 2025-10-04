@@ -407,7 +407,7 @@ export interface NavigationOnlyRequestResult {
 export const fetchNavigationOnlySuggestion = async (
   basePrompt: string,
   systemInstruction: string,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<NavigationOnlyRequestResult> => {
   const { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed } = await executeNavigationOnlyRequest(
     basePrompt,
@@ -424,7 +424,7 @@ export const fetchNavigationOnlySuggestion = async (
     thoughts: thoughts.length > 0 ? thoughts : undefined,
     connectorChainsDebugInfo: [],
   };
-  const { payload: parsedPayload, validationError } = await parseAIMapUpdateResponse(rawText, currentTheme);
+  const { payload: parsedPayload, validationError } = await parseAIMapUpdateResponse(rawText, theme);
 
   let suggested: string | null = null;
   let nodesToAdd: Array<NonNullable<AIMapUpdatePayload['nodesToAdd']>[number]> = [];
@@ -466,7 +466,7 @@ export const fetchMapUpdatePayload = async (
   basePrompt: string,
   systemInstruction: string,
   minimalModelCalls: Array<MinimalModelCallRecord>,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<MapUpdateRequestResult> => {
   let prompt = basePrompt;
   const debugInfo: MapUpdateDebugInfo = {
@@ -503,7 +503,7 @@ export const fetchMapUpdatePayload = async (
       debugInfo.prompt = promptUsed;
       const { payload: parsedPayload, validationError: parseError } = await parseAIMapUpdateResponse(
         response.text ?? '',
-        currentTheme,
+        theme,
       );
       if (parsedPayload) {
         debugInfo.observations = parsedPayload.observations ?? debugInfo.observations;

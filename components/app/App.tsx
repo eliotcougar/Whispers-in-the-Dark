@@ -101,7 +101,6 @@ function App() {
     setIsLoading: (val) => { getGameLogic().setIsLoading(val); },
     isLoading: gameLogicRef.current?.isLoading,
     dialogueState: gameLogicRef.current?.dialogueState,
-    hasGameBeenInitialized: gameLogicRef.current?.hasGameBeenInitialized,
   });
 
   const {
@@ -233,7 +232,7 @@ function App() {
   }, [setPreferredPlayerName]);
 
   const {
-    currentTheme,
+    theme,
     currentScene, mainQuest, currentObjective, actionOptions, storyArc, heroSheet,
     inventory,
     itemsHere,
@@ -299,8 +298,8 @@ function App() {
     remainingActionPoints,
   } = gameLogic;
 
-  const isPlaceholderTheme = currentTheme.name === PLACEHOLDER_THEME.name;
-  const currentThemeNameForUi = isPlaceholderTheme ? null : currentTheme.name;
+  const isPlaceholderTheme = theme.name === PLACEHOLDER_THEME.name;
+  const themeNameForUi = isPlaceholderTheme ? null : theme.name;
 
   const isActTurnGenerating = pendingAct !== null && (isLoading || isTurnProcessing);
 
@@ -463,7 +462,7 @@ function App() {
   useAutosave({
     appReady,
     dependencies: [
-      currentTheme,
+      theme,
       currentScene,
       actionOptions,
       mainQuest,
@@ -559,7 +558,7 @@ function App() {
     openPageView(PLAYER_JOURNAL_ID, playerJournal.length);
     void (async () => {
       if (isPlaceholderTheme) { setIsPlayerJournalWriting(false); return; }
-      const { name: themeName, storyGuidance } = currentTheme;
+      const { name: themeName, storyGuidance } = theme;
       const prev = playerJournal[playerJournal.length - 1]?.actualContent ?? '';
       const entryLength = Math.floor(Math.random() * 50) + 100;
       const journalResult = await generateJournalEntry(
@@ -591,7 +590,7 @@ function App() {
     })();
   }, [
     allNPCs,
-    currentTheme,
+    theme,
     currentScene,
     addPlayerJournalEntry,
     mapData.nodes,
@@ -617,7 +616,7 @@ function App() {
           holderId: PLAYER_HOLDER_ID,
           chapters: playerJournal,
           lastWriteTurn: lastJournalWriteTurn,
-          tags: [currentTheme.playerJournalStyle],
+          tags: [theme.playerJournalStyle],
         };
         const updatedState = recordPlayerJournalInspect();
         executeItemInteraction(pseudoItem, 'inspect', undefined, updatedState);
@@ -635,7 +634,7 @@ function App() {
       playerJournal,
       lastJournalWriteTurn,
       recordPlayerJournalInspect,
-      currentTheme,
+      theme,
     ]
   );
 
@@ -810,7 +809,7 @@ function App() {
     mapViewBox,
     currentMapNodeId,
     mapData.nodes,
-    currentTheme.name,
+    theme.name,
     mapLayoutConfig,
     handleMapNodesPositionChange,
   ]);
@@ -833,7 +832,7 @@ function App() {
     <>
       <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-8 flex flex-col items-center">
         <AppHeader
-          currentTheme={currentTheme}
+          theme={theme}
           hasGameBeenInitialized={hasGameBeenInitialized}
         />
 
@@ -855,7 +854,7 @@ function App() {
           <div className="lg:col-span-2 space-y-3 flex flex-col">
             <MainToolbar
               currentSceneExists={!!currentScene}
-              currentThemeName={currentThemeNameForUi}
+              themeName={themeNameForUi}
               isLoading={isLoading || !!dialogueState || isTurnProcessing}
               isTurnProcessing={isTurnProcessing}
               onOpenKnowledgeBase={openKnowledgeBase}
@@ -1090,8 +1089,8 @@ function App() {
         currentMapNodeId={currentMapNodeId}
         currentQuest={mainQuest}
         currentScene={currentScene}
-        currentTheme={currentTheme}
-        currentThemeName={currentThemeNameForUi}
+        theme={theme}
+        themeName={themeNameForUi}
         destinationNodeId={destinationNodeId}
         handleCancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
         handleCancelNewGameFromMenu={handleCancelNewGameFromMenu}

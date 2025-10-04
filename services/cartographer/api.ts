@@ -27,7 +27,7 @@ import { findMapNodeByIdentifier } from '../../utils/entityUtils';
 export const updateMapFromAIData_Service = async (
   aiData: GameStateFromAI,
   currentMapData: MapData,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   allKnownMainMapNodesForTheme: Array<MapNode>,
   previousMapNodeId: string | null,
   inventoryItems: Array<Item>,
@@ -99,7 +99,7 @@ export const updateMapFromAIData_Service = async (
     logMsg,
     localPlace,
     mapHint,
-    currentTheme,
+    theme,
     previousMapNodeContext,
     existingMapContext,
     allKnownMainPlacesString,
@@ -111,7 +111,7 @@ export const updateMapFromAIData_Service = async (
     basePrompt,
     MAP_UPDATE_SYSTEM_INSTRUCTION,
     minimalModelCalls,
-    currentTheme,
+    theme,
   );
 
   if (!payload) {
@@ -126,7 +126,7 @@ export const updateMapFromAIData_Service = async (
   const applyResult = await applyMapUpdates({
     payload,
     currentMapData,
-    currentTheme,
+    theme,
     previousMapNodeId,
     inventoryItems,
     knownNPCs,
@@ -144,7 +144,7 @@ export const updateMapFromAIData_Service = async (
 export const suggestNodeFromLocationChange_Service = async (
   aiData: GameStateFromAI,
   currentMapData: MapData,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   previousMapNodeName: string | null,
   previousLocalPlace: string | null,
   currentLocalPlace: string | null,
@@ -169,7 +169,7 @@ export const suggestNodeFromLocationChange_Service = async (
   const { previousMapNodeId, inventoryItems, knownNPCs } = extras;
 
   const basePrompt = buildSimplifiedNavigationPrompt(
-    currentTheme,
+    theme,
     currentMapData,
     {
       logMessage: logMsg,
@@ -183,7 +183,7 @@ export const suggestNodeFromLocationChange_Service = async (
   const { suggestedCurrentMapNodeId, nodesToAdd, debugInfo } = await fetchNavigationOnlySuggestion(
     basePrompt,
     CARTOGRAPHER_SIMPLIFIED_SYSTEM_INSTRUCTION,
-    currentTheme,
+    theme,
   );
   let finalSuggested = suggestedCurrentMapNodeId;
   let mapUpdateResult: MapUpdateServiceResult | null = null;
@@ -209,7 +209,7 @@ export const suggestNodeFromLocationChange_Service = async (
       const applyResult = await applyMapUpdates({
         payload: incrementalPayload,
         currentMapData,
-        currentTheme,
+        theme,
         previousMapNodeId,
         inventoryItems,
         knownNPCs,

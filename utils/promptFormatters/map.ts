@@ -455,11 +455,11 @@ export const formatLimitedMapContextForPrompt = (
 export const formatMapContextForPrompt = (
   mapData: MapData,
   currentMapNodeId: string | null,
-  currentTheme: AdventureTheme | null,
+  theme: AdventureTheme | null,
   allNodesForTheme: Array<MapNode>,
   allEdgesForTheme: Array<MapEdge>
 ): string => {
-  if (!currentMapNodeId || !currentTheme) {
+  if (!currentMapNodeId || !theme) {
     return "Player's precise map location is currently unknown or they are between known locations.";
   }
 

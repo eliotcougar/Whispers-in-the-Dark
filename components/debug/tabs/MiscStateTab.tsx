@@ -22,7 +22,7 @@ function MiscStateTab({ currentState }: MiscStateTabProps) {
       content={{
         currentMapNodeId: currentState.currentMapNodeId,
         currentObjective: currentState.currentObjective,
-        currentThemeName: currentState.currentTheme.name,
+        themeName: currentState.theme.name,
         globalTurnNumber: currentState.globalTurnNumber,
         lastTurnChangesBrief,
         localEnvironment: currentState.localEnvironment,

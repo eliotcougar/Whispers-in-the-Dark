@@ -119,7 +119,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
  * Fetches the next dialogue turn from the AI based on the current game state.
  */
 export const executeDialogueTurn = async (
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   storyArc: StoryArc | null,
   currentQuest: string | null,
   currentObjective: string | null,
@@ -142,7 +142,7 @@ export const executeDialogueTurn = async (
   }
 
   const prompt = buildDialogueTurnPrompt({
-    currentTheme,
+    theme,
     currentQuest,
     currentObjective,
     currentScene,
@@ -195,7 +195,7 @@ export const executeDialogueTurn = async (
       parsed ??= await fetchCorrectedDialogueTurn_Service(
         response.text ?? '',
         dialogueParticipants,
-        currentTheme,
+        theme,
         thoughtParts,
       );
       if (parsed) {
@@ -232,12 +232,12 @@ export const executeDialogueSummary = async (
     return Promise.reject(new Error('API Key not configured.'));
   }
 
-  if (!summaryContext.currentTheme) {
-    console.error('DialogueSummaryContext missing currentTheme. Cannot summarize dialogue.');
-    return Promise.reject(new Error('DialogueSummaryContext missing currentTheme.'));
+  if (!summaryContext.theme) {
+    console.error('DialogueSummaryContext missing theme. Cannot summarize dialogue.');
+    return Promise.reject(new Error('DialogueSummaryContext missing theme.'));
   }
 
-  const themeObject = summaryContext.currentTheme;
+  const themeObject = summaryContext.theme;
 
   const prompt = buildDialogueSummaryPrompt(summaryContext);
 
@@ -313,8 +313,8 @@ export const executeMemorySummary = async (
     console.error('API Key not configured for Dialogue Memory Summary Service.');
     return null;
   }
-  if (!context.currentTheme) {
-    console.error('DialogueMemorySummaryContext missing currentTheme. Cannot summarize memory.');
+  if (!context.theme) {
+    console.error('DialogueMemorySummaryContext missing theme. Cannot summarize memory.');
     return null;
   }
 

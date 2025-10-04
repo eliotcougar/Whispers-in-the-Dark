@@ -27,7 +27,7 @@ export interface NodeRenameResult {
 
 export const assignSpecificNamesToDuplicateNodes_Service = async (
   nodes: Array<MapNode>,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<Array<NodeRenameResult>> => {
   if (!isApiConfigured()) {
@@ -51,7 +51,7 @@ export const assignSpecificNamesToDuplicateNodes_Service = async (
     for (let i = 1; i < group.length; i += 1) {
       const node = group[i];
       const prompt = `You are an AI assistant disambiguating map location names in a text adventure game.\n` +
-        `Theme: "${currentTheme.name}"\n` +
+        `Theme: "${theme.name}"\n` +
         `Another map node shares the name "${group[0].placeName}". Provide a short, unique new name for the following node.\n` +
         `Node Type: ${node.data.nodeType}\n` +
         `Aliases: ${(node.data.aliases ?? []).join(', ') || 'None'}\n` +

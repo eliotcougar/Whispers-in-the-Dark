@@ -157,13 +157,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           context: 'current' | 'previous',
         ): Promise<FullGameState> => {
           const cloned = structuredCloneGameState(rawState);
-          const theme = cloned.currentTheme;
+          const theme = cloned.theme;
           const repairedMap = await repairFeatureHierarchy(cloned.mapData, theme);
           const normalizedDestination =
             typeof cloned.destinationNodeId === 'string' ? cloned.destinationNodeId : null;
           const hydrated = {
             ...cloned,
-            currentTheme: theme,
+            theme: theme,
             mapData: repairedMap,
             mapLayoutConfig: mergeMapLayoutConfig(cloned.mapLayoutConfig),
             destinationNodeId: normalizedDestination,
@@ -233,7 +233,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.mapLayoutConfig = getDefaultMapLayoutConfig();
       draftState.mapViewBox = DEFAULT_VIEWBOX;
       draftState.globalTurnNumber = 0;
-      draftState.currentTheme = themeObjToLoad;
+      draftState.theme = themeObjToLoad;
       draftState.thinkingEffort = thinkingEffortProp;
       draftState.heroSheet = {
         ...createDefaultHeroSheet(),
@@ -383,7 +383,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
               draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
               draftState.lastDebugPacket.prompt = promptUsed;
 
-              const currentThemeMapDataForParse = draftState.mapData;
+              const themeMapDataForParse = draftState.mapData;
               const parsedData = await parseAIResponse(
                 response.text ?? '',
                 themeObjToLoad,
@@ -394,7 +394,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                 undefined,
                 undefined,
                 draftState.allNPCs,
-                currentThemeMapDataForParse,
+                themeMapDataForParse,
                 draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
               );
 
@@ -527,7 +527,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     const currentFullState = getCurrentGameState();
 
     // If no theme has been initialized yet, retry initial load
-    const isThemeInitialized = currentFullState.currentTheme.name !== PLACEHOLDER_THEME.name;
+    const isThemeInitialized = currentFullState.theme.name !== PLACEHOLDER_THEME.name;
     if (!isThemeInitialized) {
       await loadInitialGame({
         isRestart: true,
@@ -536,7 +536,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     }
 
     const lastPrompt = currentFullState.lastDebugPacket?.prompt;
-    const currentThemeObj = currentFullState.currentTheme;
+    const themeObj = currentFullState.theme;
 
     // Fallback to generic retry if prompt or theme data is missing
     if (!lastPrompt) {
@@ -596,22 +596,22 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
       draftState.lastDebugPacket.prompt = promptUsed;
 
-      const currentThemeNPCs = draftState.allNPCs;
-      const currentThemeMapDataForParse = draftState.mapData;
+      const themeNPCs = draftState.allNPCs;
+      const themeMapDataForParse = draftState.mapData;
 
       const parsedData = await parseAIResponse(
         response.text ?? '',
-        currentThemeObj,
+        themeObj,
         draftState.heroSheet,
         () => { setParseErrorCounter(1); },
         currentFullState.lastActionLog || undefined,
         currentFullState.currentScene,
-        currentThemeNPCs,
-        currentThemeMapDataForParse,
+        themeNPCs,
+        themeMapDataForParse,
         currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
       );
 
-      await processAiResponse(parsedData, currentThemeObj, draftState, {
+      await processAiResponse(parsedData, themeObj, draftState, {
         baseStateSnapshot,
         scoreChangeFromAction: 0,
         playerActionText: undefined,

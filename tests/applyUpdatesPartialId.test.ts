@@ -76,7 +76,7 @@ describe('applyMapUpdates partial id handling', () => {
     const result = await applyMapUpdates({
       payload,
       currentMapData: baseMap,
-      currentTheme: theme,
+      theme: theme,
       previousMapNodeId: null,
       inventoryItems: [],
       knownNPCs: [],

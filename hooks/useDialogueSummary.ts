@@ -85,7 +85,7 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setError(null);
 
     const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
-    const currentThemeObj = workingGameState.currentTheme;
+    const themeObj = workingGameState.theme;
     const finalHistory = dialogueState.history;
     const finalParticipants = dialogueState.participants;
     // Enter dialogue memory creation phase in the FSM.
@@ -94,8 +94,8 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
 
     setLoadingReason('dialogue_memory');
     const memorySummaryContext: DialogueMemorySummaryContext = {
-      themeName: workingGameState.currentTheme.name,
-      currentTheme: workingGameState.currentTheme,
+      themeName: workingGameState.theme.name,
+      theme: workingGameState.theme,
       currentScene: workingGameState.currentScene,
       localTime: workingGameState.localTime,
       localEnvironment: workingGameState.localEnvironment,
@@ -144,8 +144,8 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       dialogueLog: finalHistory,
       dialogueParticipants: finalParticipants,
       heroSheet: workingGameState.heroSheet,
-      themeName: currentThemeObj.name,
-      currentTheme: currentThemeObj,
+      themeName: themeObj.name,
+      theme: themeObj,
       storyArc: workingGameState.storyArc,
     };
     const {

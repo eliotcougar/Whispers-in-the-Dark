@@ -233,7 +233,7 @@ export interface DialogueAIResponse { // AI response for a single turn *during* 
 
 // Context object for building a dialogue turn prompt
 export interface DialogueTurnContext {
-  currentTheme: AdventureTheme;
+  theme: AdventureTheme;
   currentQuest: string | null;
   currentObjective: string | null;
   currentScene: string;
@@ -266,13 +266,13 @@ export interface DialogueSummaryContext {
   dialogueParticipants: Array<string>;
   heroSheet: HeroSheet | null;
   themeName: string; // Retained for direct theme name access if needed
-  currentTheme: AdventureTheme | null; // Added for full theme object access
+  theme: AdventureTheme | null; // Added for full theme object access
 }
 
 // New context type for detailed memory summarization
 export interface DialogueMemorySummaryContext {
   themeName: string; // Retained for direct theme name access if needed
-  currentTheme: AdventureTheme | null; // Added for full theme object access
+  theme: AdventureTheme | null; // Added for full theme object access
   currentScene: string; // Scene at the START of the dialogue
   storyArc?: StoryArc | null;
   localTime: string | null;
@@ -671,7 +671,7 @@ export interface DebugPacket {
 
 export interface FullGameState {
   saveGameVersion: string;
-  currentTheme: AdventureTheme; // Stores the full theme object
+  theme: AdventureTheme; // Stores the full theme object
   currentScene: string;
   actionOptions: Array<string>; 
   mainQuest: string;
@@ -724,7 +724,7 @@ export interface FullGameState {
 export type SavedGameDataShape = Pick<
   FullGameState,
   | 'saveGameVersion'
-  | 'currentTheme' // Full theme object persistence
+  | 'theme' // Full theme object persistence
   | 'currentScene'
   | 'actionOptions'
   | 'mainQuest'

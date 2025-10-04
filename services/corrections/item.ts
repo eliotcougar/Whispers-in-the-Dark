@@ -35,7 +35,7 @@ export const fetchCorrectedItemPayload_Service = async (
   logMessage: string | undefined,
   sceneDescription: string | undefined,
   malformedPayloadString: string,
-  currentTheme: AdventureTheme
+  theme: AdventureTheme
 ): Promise<Item | null> => {
   if (!isApiConfigured()) {
     console.error(`fetchCorrectedItemPayload_Service: API Key not configured. Cannot correct item payload for action "${actionType}".`);
@@ -128,7 +128,7 @@ ${malformedPayloadString}
 ## Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
-- Theme Guidance: "${currentTheme.storyGuidance}"
+- Theme Guidance: "${theme.storyGuidance}"
 
 Required JSON Structure for the corrected 'item' field:
 ${baseItemStructureForPrompt}
@@ -175,7 +175,7 @@ export const fetchCorrectedItemAction_Service = async (
   logMessage: string | undefined,
   sceneDescription: string | undefined,
   malformedItemChangeString: string,
-  currentTheme: AdventureTheme
+  theme: AdventureTheme
 ): Promise<ItemChange['action'] | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedItemAction_Service: API Key not configured. Cannot correct item action.');
@@ -206,7 +206,7 @@ ${malformedItemChangeString}
 Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified, infer from scene.'}"
 - Scene Description: "${sceneDescription ?? 'Not specified, infer from log.'}"
-- Theme Guidance: "${currentTheme.storyGuidance}"
+- Theme Guidance: "${theme.storyGuidance}"
 
 Task: Based on the Log Message, Scene Description, and the 'item' details in the malformed object, determine the most logical 'action' ("create", "destroy", "change", "addDetails", or "move") that was intended.
 - "create": A new item appeared.
@@ -257,7 +257,7 @@ export const fetchCorrectedItemTag_Service = async (
   proposedTag: string,
   itemName: string,
   itemDescription: string,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<ItemTag | null> => {
   const direct = normalizeTag(proposedTag);
   if (direct) return direct;
@@ -282,7 +282,7 @@ export const fetchCorrectedItemTag_Service = async (
 Candidate tag: "${proposedTag}"
 Item name: "${itemName}"
 Description: "${itemDescription}"
-Theme Guidance: "${currentTheme.storyGuidance}"
+Theme Guidance: "${theme.storyGuidance}"
 Valid tags: ${VALID_TAGS_STRING}
 Respond ONLY with the single best tag.`;
 
@@ -386,7 +386,7 @@ export const fetchCorrectedAddDetailsPayload_Service = async (
   malformedPayloadString: string,
   logMessage: string | undefined,
   sceneDescription: string | undefined,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<AddDetailsPayload | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedAddDetailsPayload_Service: API Key not configured.');
@@ -402,7 +402,7 @@ ${malformedPayloadString}
 
 Log Message: "${logMessage ?? 'Not specified'}"
 Scene Description: "${sceneDescription ?? 'Not specified'}"
-Theme Guidance: "${currentTheme.storyGuidance}"
+Theme Guidance: "${theme.storyGuidance}"
 
 Task: Provide ONLY the corrected JSON object with fields { "id": string, "name": string, "type": (${VALID_ITEM_TYPES_STRING}), "knownUses"?, "tags"?, "chapters"? }.`;
 

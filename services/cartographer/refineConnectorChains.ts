@@ -15,7 +15,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
   const chainContext = {
     sceneDescription: ctx.sceneDesc,
     logMessage: ctx.logMsg,
-    currentTheme: ctx.currentTheme,
+    theme: ctx.theme,
     themeNodes: ctx.newMapData.nodes,
   };
 

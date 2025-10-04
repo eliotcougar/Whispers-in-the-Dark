@@ -23,7 +23,7 @@ interface AppModalsProps {
   readonly visualizerImageScene: string | null;
   readonly setGeneratedImage: (url: string, scene: string) => void;
   readonly currentScene: string;
-  readonly currentTheme: AdventureTheme;
+  readonly theme: AdventureTheme;
   readonly mapData: MapData;
   readonly allNPCs: Array<NPC>;
   readonly localTime: string;
@@ -37,7 +37,7 @@ interface AppModalsProps {
 
   readonly isMapVisible: boolean;
   readonly onCloseMap: () => void;
-  readonly currentThemeName: string | null;
+  readonly themeName: string | null;
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
   readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
@@ -86,7 +86,7 @@ function AppModals({
   visualizerImageScene,
   setGeneratedImage,
   currentScene,
-  currentTheme,
+  theme,
   mapData,
   allNPCs,
   localTime,
@@ -98,7 +98,7 @@ function AppModals({
 
   isMapVisible,
   onCloseMap,
-  currentThemeName,
+  themeName,
   currentMapNodeId,
   destinationNodeId,
   itemPresenceByNode,
@@ -171,7 +171,7 @@ function AppModals({
         cachedImageScene={visualizerImageScene}
         cachedImageUrl={visualizerImageUrl}
         currentSceneDescription={currentScene}
-        currentTheme={currentTheme}
+        theme={theme}
         isVisible={isVisualizerVisible}
         localEnvironment={localEnvironment}
         localPlace={localPlace}
@@ -183,7 +183,7 @@ function AppModals({
 
       <KnowledgeBase
         allNPCs={allNPCs}
-        currentTheme={currentTheme}
+        theme={theme}
         isVisible={isKnowledgeBaseVisible}
         onClose={onCloseKnowledgeBase}
       />
@@ -195,7 +195,7 @@ function AppModals({
         canWriteJournal={canWriteJournal}
         currentQuest={currentQuest}
         currentScene={currentScene}
-        currentTheme={currentTheme}
+        theme={theme}
         isVisible={isPageVisible}
         isWritingJournal={isWritingJournal}
         item={
@@ -208,7 +208,7 @@ function AppModals({
                 holderId: PLAYER_HOLDER_ID,
                 chapters: playerJournal,
                 lastWriteTurn: lastJournalWriteTurn,
-                tags: [currentTheme.playerJournalStyle],
+                tags: [theme.playerJournalStyle],
               }
             : inventory.find(it => it.id === pageItemId) ?? null
         }
@@ -223,7 +223,7 @@ function AppModals({
 
       <MapDisplay
         currentMapNodeId={currentMapNodeId}
-        currentThemeName={currentThemeName}
+        themeName={themeName}
         destinationNodeId={destinationNodeId}
         initialLayoutConfig={initialLayoutConfig}
         initialViewBox={initialViewBox}

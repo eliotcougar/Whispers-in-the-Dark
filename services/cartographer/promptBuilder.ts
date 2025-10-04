@@ -29,15 +29,15 @@ export const buildMapUpdatePrompt = (
   logMsg: string,
   localPlace: string,
   mapHint: string,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   previousMapNodeContext: string,
   existingMapContext: string,
   allKnownMainPlaces: string,
   itemNames: Array<string>,
   npcNames: Array<string>,
 ): string => `## Narrative Context for Map Update:
-  - Current Theme: "${currentTheme.name}";
-  - Theme Guidance: "${currentTheme.storyGuidance}";
+  - Current Theme: "${theme.name}";
+  - Theme Guidance: "${theme.storyGuidance}";
   - Scene Description: "${sceneDesc}";
   - Log Message (outcome of last action): "${logMsg}";
   - Player's Current Location Description (localPlace): "${localPlace}".
@@ -63,7 +63,7 @@ Based on the Narrative Context and existing map context, provide a JSON response
  * Builds a minimal prompt for quick navigation suggestion (no map edits).
  */
 export const buildSimplifiedNavigationPrompt = (
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   mapData: MapData,
   context: {
     logMessage?: string;
@@ -90,7 +90,7 @@ export const buildSimplifiedNavigationPrompt = (
 Pick the single best accessible node that matches the Player's current position. If none fits, define one new node to add.
 
 ## Theme
-- Name: "${currentTheme.name}"
+- Name: "${theme.name}"
 
 ## Player Context
 - Log Message: ${logMsg}

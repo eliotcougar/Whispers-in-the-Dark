@@ -102,7 +102,7 @@ export const createDefaultStoryArc = (): StoryArc => ({
 export const getInitialGameStates = (): FullGameState => {
   return {
     saveGameVersion: CURRENT_SAVE_GAME_VERSION, 
-    currentTheme: PLACEHOLDER_THEME,
+    theme: PLACEHOLDER_THEME,
     currentScene: "", 
     mainQuest: "",
     currentObjective: null,

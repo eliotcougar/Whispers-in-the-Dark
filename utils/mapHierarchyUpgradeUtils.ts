@@ -180,7 +180,7 @@ export const upgradeFeatureToRegion = (
  */
 export const upgradeFeaturesWithChildren = async (
   mapData: MapData,
-  currentTheme: AdventureTheme
+  theme: AdventureTheme
 ): Promise<{ updatedMapData: MapData; addedNodes: Array<MapNode>; addedEdges: Array<MapEdge> }> => {
   let working: MapData = structuredCloneGameState(mapData);
   const addedNodes: Array<MapNode> = [];
@@ -190,7 +190,7 @@ export const upgradeFeaturesWithChildren = async (
     if (node.data.nodeType === 'feature') {
       const childNodes = working.nodes.filter(n => n.data.parentNodeId === node.id);
       if (childNodes.length > 0) {
-        const decision = await decideFeatureHierarchyUpgrade_Service(node, childNodes[0], currentTheme);
+        const decision = await decideFeatureHierarchyUpgrade_Service(node, childNodes[0], theme);
         if (decision === 'convert_child') {
           childNodes.forEach(child => { child.data.parentNodeId = node.data.parentNodeId; });
         } else {
@@ -208,10 +208,10 @@ export const upgradeFeaturesWithChildren = async (
 
 export const repairFeatureHierarchy = async (
   mapData: MapData,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<MapData> => {
   try {
-    const result = await upgradeFeaturesWithChildren(mapData, currentTheme);
+    const result = await upgradeFeaturesWithChildren(mapData, theme);
     return result.updatedMapData;
   } catch (error: unknown) {
     console.error('repairFeatureHierarchy error:', error);

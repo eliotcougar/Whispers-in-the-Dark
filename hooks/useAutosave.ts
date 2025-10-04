@@ -3,6 +3,19 @@
  * @description Provides debounced autosave functionality for App.
  */
 import { useEffect, useRef } from 'react';
+
+const useDependenciesVersion = (deps: Array<unknown>): number => {
+  const lastDepsRef = useRef<Array<unknown>>([]);
+  const versionRef = useRef(0);
+  if (deps.length !== lastDepsRef.current.length ||
+    deps.some((dep, index) => !Object.is(dep, lastDepsRef.current[index]))
+  ) {
+    lastDepsRef.current = deps;
+    versionRef.current += 1;
+  }
+  return versionRef.current;
+};
+
 import { GameStateStack, DebugPacketStack } from '../types';
 import {
   saveGameStateToLocalStorage,
@@ -37,7 +50,7 @@ export function useAutosave({
 }: UseAutosaveOptions) {
   const autosaveTimeoutRef = useRef<number | null>(null);
 
-  const dependenciesKey = JSON.stringify(dependencies);
+  const dependenciesVersion = useDependenciesVersion(dependencies);
 
   useEffect(() => {
     if (isLoading || isTurnProcessing || !hasGameBeenInitialized || !appReady || !!dialogueState) {
@@ -73,7 +86,7 @@ export function useAutosave({
     hasGameBeenInitialized,
     appReady,
     dialogueState,
-    dependenciesKey,
+    dependenciesVersion,
     isTurnProcessing,
     setError,
   ]);

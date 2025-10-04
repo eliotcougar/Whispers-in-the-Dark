@@ -348,7 +348,7 @@ export const applyInventoryHints_Service = async (
   npcs: Array<NPC>,
   sceneDescription: string | undefined,
   logMessage: string | undefined,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   limitedMapContext: string,
 ): Promise<InventoryUpdateResult | null> => {
   const pHint = playerItemsHint?.trim() ?? '';
@@ -388,7 +388,7 @@ export const applyInventoryHints_Service = async (
       currentNodeId,
       companionsContext,
       nearbyNpcsContext,
-      currentTheme,
+      theme,
     );
     if (corrected)
       parsed = { itemChanges: corrected } as InventoryAIPayload;
@@ -403,7 +403,7 @@ export const applyInventoryHints_Service = async (
           JSON.stringify((change as { invalidPayload: unknown }).invalidPayload),
           logMessage,
           sceneDescription,
-          currentTheme,
+          theme,
         );
         if (corrected) {
           change.item = corrected;

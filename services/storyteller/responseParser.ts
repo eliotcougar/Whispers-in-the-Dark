@@ -56,7 +56,7 @@ const toKnownNames = (value?: unknown): Array<string> => {
 /** Interface describing contextual data required by the parsing helpers. */
 interface ParserContext {
     heroGender: string;
-    currentTheme: AdventureTheme;
+    theme: AdventureTheme;
     onParseAttemptFailed?: () => void;
     logMessageFromPayload?: string;
     sceneDescriptionFromPayload?: string;
@@ -184,7 +184,7 @@ async function handleDialogueSetup(
             const correctedDialogueSetup = await fetchCorrectedDialogueSetup_Service(
                 context.logMessageFromPayload ?? data.logMessage,
                 context.sceneDescriptionFromPayload ?? data.sceneDescription,
-                context.currentTheme,
+                context.theme,
                 NPCsForDialogueContext,
                 context.allRelevantMainMapNodesForCorrection,
                 context.currentInventoryForCorrection,
@@ -258,7 +258,7 @@ async function handleNPCChanges(
                     originalName ?? 'Newly Mentioned NPC',
                     context.logMessageFromPayload ?? baseData.logMessage,
                     context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
-                    context.currentTheme,
+                    context.theme,
                     context.allRelevantMainMapNodesForCorrection
                 );
                 if (correctedDetails) {
@@ -334,7 +334,7 @@ async function handleNPCChanges(
                         context.logMessageFromPayload ?? baseData.logMessage,
                         context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
                         Array.from(allKnownNPCNames),
-                        context.currentTheme,
+                        context.theme,
                     );
                     if (correctedName && correctedName.trim() !== '') {
                         currentNPCUpdatePayload.name = correctedName;
@@ -408,7 +408,7 @@ async function handleNPCChanges(
                       targetName,
                       context.logMessageFromPayload ?? baseData.logMessage,
                       context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
-                    context.currentTheme,
+                    context.theme,
                     context.allRelevantMainMapNodesForCorrection
                 );
                 if (correctedDetails) {
@@ -451,18 +451,18 @@ async function handleNPCChanges(
  */
 export async function parseAIResponse(
     responseText: string,
-    currentTheme: AdventureTheme,
+    theme: AdventureTheme,
     heroSheet: HeroSheet | null,
     onParseAttemptFailed?: () => void,
     logMessageFromPayload?: string,
     sceneDescriptionFromPayload?: string,
     allRelevantNPCs: Array<NPC> = [],
-    currentThemeMapData: MapData = { nodes: [], edges: [] },
+    themeMapData: MapData = { nodes: [], edges: [] },
     currentInventoryForCorrection: Array<Item> = []
 ): Promise<GameStateFromAI | null> {
     const jsonStr = responseText;
 
-    const allRelevantMainMapNodesForCorrection: Array<MapNode> = currentThemeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
+    const allRelevantMainMapNodesForCorrection: Array<MapNode> = themeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
 
     try {
         const parsedData = safeParseJson<Partial<GameStateFromAI>>(jsonStr);
@@ -473,7 +473,7 @@ export async function parseAIResponse(
 
         const context: ParserContext = {
             heroGender: heroSheet?.gender ?? 'Male',
-            currentTheme,
+            theme,
             onParseAttemptFailed,
             logMessageFromPayload,
             sceneDescriptionFromPayload,
@@ -525,7 +525,7 @@ export async function parseAIResponse(
                         logMessageFromPayload ?? validated.logMessage,
                         sceneDescriptionFromPayload ?? validated.sceneDescription,
                         Array.from(availableNPCNamesThisTurn),
-                        currentTheme,
+                        theme,
                     );
                     if (
                         correctedParticipantName &&

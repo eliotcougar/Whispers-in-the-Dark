@@ -37,7 +37,7 @@ if (!isApiConfigured()) {
 
 interface ImageVisualizerProps {
   readonly currentSceneDescription: string;
-  readonly currentTheme: AdventureTheme | null;
+  readonly theme: AdventureTheme | null;
   readonly mapData: Array<MapNode>; 
   readonly allNPCs: Array<NPC>;
   readonly localTime: string; 
@@ -55,7 +55,7 @@ interface ImageVisualizerProps {
  */
 function ImageVisualizer({
   currentSceneDescription,
-  currentTheme, // This is now AdventureTheme | null
+  theme, // This is now AdventureTheme | null
   mapData,
   allNPCs: allNPCs,
   localTime,
@@ -178,7 +178,7 @@ function ImageVisualizer({
    * Calls the AI service to generate an image of the current scene.
    */
   const generateImage = useCallback(async () => {
-    if (!ai || !currentTheme) {
+    if (!ai || !theme) {
       setError("Image generation service or theme is not available.");
       setIsLoading(false);
       setLoadingReason(null);
@@ -189,7 +189,7 @@ function ImageVisualizer({
     setLoadingReason('visualize_scene');
     setError(null);
 
-    const prefix = `A detailed, digital painting in ${getThemeStylePrompt(currentTheme)} without ANY text on it.
+    const prefix = `A detailed, digital painting in ${getThemeStylePrompt(theme)} without ANY text on it.
     Aspect ratio 4:3.
     It is ${localTime}. ${localEnvironment}. ${localPlace}. ${currentSceneDescription}`;
     let rawPrompt = prefix;
@@ -260,7 +260,7 @@ function ImageVisualizer({
     }
   }, [
     currentSceneDescription,
-    currentTheme,
+    theme,
     localTime,
     localEnvironment,
     localPlace,

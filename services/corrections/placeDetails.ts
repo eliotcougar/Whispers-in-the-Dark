@@ -36,7 +36,7 @@ import { MAP_NODE_TYPE_GUIDE } from '../../prompts/helperPrompts';
 
 export const fetchCorrectedLocalPlace_Service = async (
   currentSceneDescription: string,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   knownMapNodes: Array<MapNode>,
   localTime: string | null,
   localEnvironment: string | null,
@@ -57,7 +57,7 @@ Determine the most logical "localPlace" based on the provided context. This "loc
 
 ## Context for Inference:
 - Current Scene Description (primary source for inference): "${currentSceneDescription}"
-- Current Theme: "${currentTheme.name}" (Theme Guidance: ${currentTheme.storyGuidance})
+- Current Theme: "${theme.name}" (Theme Guidance: ${theme.storyGuidance})
 - Current Local Time: "${localTime ?? 'Unknown'}"
 - Current Local Environment: "${localEnvironment ?? 'Undetermined'}"
 
@@ -109,7 +109,7 @@ export const fetchCorrectedPlaceDetails_Service = async (
   malformedMapNodePayloadString: string,
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<{ name: string; description: string; aliases?: Array<string> } | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedPlaceDetails_Service: API Key not configured.');
@@ -145,7 +145,7 @@ ${malformedMapNodePayloadString}
 ## Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.storyGuidance}"
+- Theme Guidance: "${theme.storyGuidance}"
 
 Required JSON Structure for corrected map location details:
 {
@@ -206,7 +206,7 @@ export const fetchFullPlaceDetailsForNewMapNode_Service = async (
   mapNodePlaceName: string,
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<{ name: string; description: string; aliases?: Array<string> } | null> => {
   if (!isApiConfigured()) {
     console.error('fetchFullPlaceDetailsForNewMapNode_Service: API Key not configured.');
@@ -221,7 +221,7 @@ Map Location Name to Detail: "${mapNodePlaceName}"
 ## Narrative Context:
 - Log Message: "${logMessageContext ?? 'Not specified'}"
 - Scene Description: "${sceneDescriptionContext ?? 'Not specified'}"
-- Theme Guidance: "${currentTheme.storyGuidance}"
+- Theme Guidance: "${theme.storyGuidance}"
 
 Required JSON Structure:
 {
@@ -360,7 +360,7 @@ export const fetchLikelyParentNode_Service = async (
     sceneDescription: string;
     logMessage: string | undefined;
     localPlace: string;
-    currentTheme: AdventureTheme;
+    theme: AdventureTheme;
     currentMapNodeId: string | null;
     themeNodes: Array<MapNode>;
     themeEdges: Array<MapEdge>;

@@ -70,7 +70,7 @@ function TitleMenu({
 
         <div className="flex flex-col items-center justify-center h-full w-full p-4 text-center">
           <AppHeader
-            currentTheme={null} // No theme in title menu
+            theme={null} // No theme in title menu
             hasGameBeenInitialized={isGameActive}
           />
 

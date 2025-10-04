@@ -394,7 +394,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
   setLoadingReason: setLoadingReasonRef,
   onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
-      return processAiResponse(summaryPayload, preparedGameState.currentTheme, draftState, {
+      return processAiResponse(summaryPayload, preparedGameState.theme, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
         playerActionText: undefined,
@@ -517,13 +517,13 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     const currentFullState = getCurrentGameState();
     setIsLoading(true);
     setError(null);
-    const currentThemeNodes = currentFullState.mapData.nodes;
+    const themeNodes = currentFullState.mapData.nodes;
     const inventoryItemNames = Array.from(
       new Set(
         currentFullState.inventory
           .filter(item => {
             if (item.holderId === PLAYER_HOLDER_ID) return true;
-            if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
+            if (themeNodes.some(node => node.id === item.holderId)) return true;
             const holderNpc = currentFullState.allNPCs.find(
               npc => npc.id === item.holderId,
             );
@@ -532,7 +532,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
           .map(item => item.name),
       ),
     );
-    const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+    const mapNodeNames = themeNodes.map(n => n.placeName);
     const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
     setLoadingReasonRef('loremaster_distill');
     const storyArcActs = currentFullState.storyArc.acts;
@@ -542,7 +542,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
       : null;
     const actQuest = act ? act.mainObjective : null;
     const result = await distillFacts_Service({
-      themeName: currentFullState.currentTheme.name,
+      themeName: currentFullState.theme.name,
       facts: currentFullState.themeFacts,
       currentQuest: actQuest,
       currentObjective: currentFullState.currentObjective,
@@ -611,7 +611,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
   const mainQuest = currentAct ? currentAct.mainObjective : null;
 
   return {
-    currentTheme: currentFullState.currentTheme,
+    theme: currentFullState.theme,
     currentScene: currentFullState.currentScene,
     actionOptions: currentFullState.actionOptions,
     mainQuest,

@@ -96,7 +96,7 @@ export const fetchCorrectedItemChangeArray_Service = async (
   currentNodeId: string | null,
   companionsContext: string,
   nearbyNpcsContext: string,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
 ): Promise<Array<ItemChange> | null> => {
   if (!isApiConfigured()) {
     console.error('fetchCorrectedItemChangeArray_Service: API Key not configured.');
@@ -119,7 +119,7 @@ ${malformedResponseText}
 - Current Place ID: "${currentNodeId ?? 'unknown'}"
 - Companions: ${companionsContext}
 - Nearby NPCs: ${nearbyNpcsContext}
-- Theme Guidance: "${currentTheme.storyGuidance || 'General adventure theme.'}"
+- Theme Guidance: "${theme.storyGuidance || 'General adventure theme.'}"
 
 Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
 

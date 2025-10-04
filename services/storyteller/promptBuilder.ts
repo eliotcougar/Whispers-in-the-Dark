@@ -86,10 +86,10 @@ export const buildMainGameTurnPrompt = (
   currentMapNodeId: string | null,
   mainQuest: string | null,
   currentObjective: string | null,
-  currentTheme: AdventureTheme,
+  theme: AdventureTheme,
   recentLogEntries: Array<string>,
-  currentThemeMainMapNodes: Array<MapNode>,
-  currentThemeNPCs: Array<NPC>,
+  themeMainMapNodes: Array<MapNode>,
+  themeNPCs: Array<NPC>,
   relevantFacts: Array<string>,
   localTime: string | null,
   localEnvironment: string | null,
@@ -118,13 +118,13 @@ export const buildMainGameTurnPrompt = (
     '### Items at Current Location:\n',
     '\n'
   );
-  const placesContext = formatKnownPlacesForPrompt(currentThemeMainMapNodes, true);
+  const placesContext = formatKnownPlacesForPrompt(themeMainMapNodes, true);
 
   // Categorize NPCs in a single pass for efficiency
   const companions: Array<NPC> = [];
   const nearbyNPCs: Array<NPC> = [];
   const knownNPCs: Array<NPC> = [];
-  for (const npc of currentThemeNPCs) {
+  for (const npc of themeNPCs) {
     switch (npc.presenceStatus) {
       case 'companion':
         companions.push(npc);
@@ -174,7 +174,7 @@ export const buildMainGameTurnPrompt = (
   const mapContext = formatMapContextForPrompt(
     fullMapData,
     currentMapNodeDetails?.id ?? null,
-    currentTheme,
+    theme,
     allNodesForCurrentTheme,
     allEdgesForCurrentTheme
   );
@@ -205,8 +205,8 @@ export const buildMainGameTurnPrompt = (
   })();
 
   const detailedEntityContext = formatDetailedContextForMentionedEntities(
-    currentThemeMainMapNodes,
-    currentThemeNPCs,
+    themeMainMapNodes,
+    themeNPCs,
     `${currentScene} ${playerAction}`,
     '### Details on relevant locations mentioned in current scene or action:',
     '### Details on relevant NPCs mentioned in current scene or action:'

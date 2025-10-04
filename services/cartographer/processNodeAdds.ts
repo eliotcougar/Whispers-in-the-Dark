@@ -252,10 +252,10 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
               sceneDescription: context.sceneDesc,
               logMessage: context.logMsg,
               localPlace: context.localPlace,
-              currentTheme: context.currentTheme,
+              theme: context.theme,
               currentMapNodeId: context.referenceMapNodeId,
-              themeNodes: context.currentThemeNodesFromMapData,
-              themeEdges: context.currentThemeEdgesFromMapData,
+              themeNodes: context.themeNodesFromMapData,
+              themeEdges: context.themeEdgesFromMapData,
             },
             context.minimalModelCalls
           );

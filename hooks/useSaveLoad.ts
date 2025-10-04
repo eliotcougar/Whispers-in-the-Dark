@@ -34,10 +34,8 @@ export interface UseSaveLoadOptions {
   setIsLoading?: Dispatch<SetStateAction<boolean>>;
   isLoading?: boolean;
   dialogueState?: unknown;
-  hasGameBeenInitialized?: boolean;
 }
 
-const AUTOSAVE_DEBOUNCE_TIME = 1500;
 
 export const useSaveLoad = ({
   gatherGameStateStack,
@@ -47,7 +45,6 @@ export const useSaveLoad = ({
   setIsLoading,
   isLoading = false,
   dialogueState = null,
-  hasGameBeenInitialized = false,
 }: UseSaveLoadOptions) => {
   const [enabledThemePacks, setEnabledThemePacks] = useState<Array<ThemePackName>>([...DEFAULT_ENABLED_THEME_PACKS]);
   const [thinkingEffort, setThinkingEffort] = useState<ThinkingEffort>('Medium');
@@ -94,39 +91,6 @@ export const useSaveLoad = ({
   }, [enabledThemePacks, thinkingEffort, preferredPlayerName]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const autosaveTimeoutRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (isLoading || !hasGameBeenInitialized || !appReady || !!dialogueState) return;
-    if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current);
-
-    autosaveTimeoutRef.current = window.setTimeout(() => {
-      if (gatherGameStateStack && gatherDebugPacketStack) {
-        const stack = gatherGameStateStack();
-        const debugStack = gatherDebugPacketStack();
-        saveGameStateToLocalStorage(
-          stack,
-          setError ? (msg) => { setError(msg); } : undefined,
-        );
-        saveDebugPacketStackToLocalStorage(debugStack);
-        saveDebugLoreToLocalStorage({
-          debugLore: stack[0].debugLore,
-          debugGoodFacts: stack[0].debugGoodFacts,
-          debugBadFacts: stack[0].debugBadFacts,
-        });
-      }
-    }, AUTOSAVE_DEBOUNCE_TIME);
-
-    return () => { if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current); };
-  }, [
-    gatherGameStateStack,
-    gatherDebugPacketStack,
-    isLoading,
-    hasGameBeenInitialized,
-    appReady,
-    dialogueState,
-    setError,
-  ]);
 
   const handleSaveToFile = useCallback(async () => {
     if (isLoading || !!dialogueState) {

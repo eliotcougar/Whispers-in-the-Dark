@@ -308,7 +308,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   }
 
   const fields: Array<keyof SavedGameDataShape> = [
-    'currentTheme', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
+    'theme', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
     'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
     'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score',
     'localTime', 'localEnvironment', 'localPlace',
@@ -338,12 +338,12 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     }
   }
 
-  if (!obj.currentTheme) {
-    console.warn('Invalid save data (V3): currentTheme missing.');
+  if (!obj.theme) {
+    console.warn('Invalid save data (V3): theme missing.');
     return false;
   }
-  if (!isValidAdventureThemeObject(obj.currentTheme)) {
-    console.warn('Invalid save data (V3): currentTheme type or structure.');
+  if (!isValidAdventureThemeObject(obj.theme)) {
+    console.warn('Invalid save data (V3): theme type or structure.');
     return false;
   }
   if (typeof obj.currentScene !== 'string') { console.warn('Invalid save data (V3): currentScene type.'); return false; }

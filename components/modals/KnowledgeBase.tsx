@@ -11,7 +11,7 @@ import { CLOSE_PRESENCE_STATUSES } from '../../constants';
 
 interface KnowledgeBaseProps {
   readonly allNPCs: Array<NPC>;
-  readonly currentTheme: AdventureTheme | null; // Changed to AdventureTheme object
+  readonly theme: AdventureTheme | null; // Changed to AdventureTheme object
   readonly isVisible: boolean;
   readonly onClose: () => void;
 }
@@ -21,7 +21,7 @@ interface KnowledgeBaseProps {
  */
 function KnowledgeBase({
   allNPCs: allNPCs,
-  currentTheme, // This is now AdventureTheme | null
+  theme, // This is now AdventureTheme | null
   isVisible,
   onClose,
 }: KnowledgeBaseProps) {
@@ -35,7 +35,7 @@ function KnowledgeBase({
       const lastKnownLocation = npc.lastKnownLocation;
       const hasKnownLocation = typeof lastKnownLocation === 'string' && lastKnownLocation !== 'Unknown';
 
-      if (currentTheme && CLOSE_PRESENCE_STATUSES.includes(
+      if (theme && CLOSE_PRESENCE_STATUSES.includes(
         npc.presenceStatus as (typeof CLOSE_PRESENCE_STATUSES)[number],
       )) {
         const isCompanion = npc.presenceStatus === 'companion';
@@ -87,7 +87,7 @@ function KnowledgeBase({
         </p>
       );
     },
-    [currentTheme],
+    [theme],
   );
 
   return (

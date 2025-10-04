@@ -127,13 +127,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         state.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
         state.lastLoreDistillTurn !== state.globalTurnNumber
       ) {
-        const currentThemeNodes = state.mapData.nodes;
+        const themeNodes = state.mapData.nodes;
         const inventoryItemNames = Array.from(
           new Set(
             state.inventory
               .filter(item => {
                 if (item.holderId === PLAYER_HOLDER_ID) return true;
-                if (currentThemeNodes.some(node => node.id === item.holderId)) return true;
+                if (themeNodes.some(node => node.id === item.holderId)) return true;
                 const holderNpc = state.allNPCs.find(
                   npc => npc.id === item.holderId,
                 );
@@ -142,14 +142,14 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
               .map(item => item.name),
           ),
         );
-        const mapNodeNames = currentThemeNodes.map(n => n.placeName);
+        const mapNodeNames = themeNodes.map(n => n.placeName);
         const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
         setLoadingReason('loremaster_distill');
         const actIndex = state.storyArc.currentAct - 1;
         const acts = state.storyArc.acts;
         const act = actIndex >= 0 && actIndex < acts.length ? acts[actIndex] : null;
         const result = await distillFacts_Service({
-          themeName: state.currentTheme.name,
+          themeName: state.theme.name,
           facts: state.themeFacts,
           currentQuest: act ? act.mainObjective : null,
           currentObjective: state.currentObjective,
@@ -209,20 +209,20 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const baseStateSnapshot = structuredCloneGameState(currentFullState);
       const scoreChangeFromAction = isFreeForm ? -FREE_FORM_ACTION_COST : 0;
 
-      const currentThemeObj = currentFullState.currentTheme;
+      const themeObj = currentFullState.theme;
 
       const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
-      const currentThemeMainMapNodes = currentFullState.mapData.nodes.filter(
+      const themeMainMapNodes = currentFullState.mapData.nodes.filter(
         n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
       );
-      const currentThemeNPCs = currentFullState.allNPCs;
+      const themeNPCs = currentFullState.allNPCs;
       const currentMapNodeDetails = currentFullState.currentMapNodeId
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
         : null;
 
       const detailedContextForFacts = formatDetailedContextForMentionedEntities(
-        currentThemeMainMapNodes,
-        currentThemeNPCs,
+        themeMainMapNodes,
+        themeNPCs,
         `${currentFullState.currentScene} ${action}`,
         'Locations mentioned:',
         'NPCs mentioned:'
@@ -240,7 +240,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
       setLoadingReason('loremaster_collect');
       const collectResult = await collectRelevantFacts_Service({
-        themeName: currentThemeObj.name,
+        themeName: themeObj.name,
         facts: sortedFacts,
         lastScene: currentFullState.currentScene,
         playerAction: action,
@@ -259,10 +259,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           ? currentFullState.storyArc.acts[currentFullState.storyArc.currentAct - 1]?.mainObjective ?? null
           : null,
         currentFullState.currentObjective,
-        currentThemeObj,
+        themeObj,
         recentLogs,
-        currentThemeMainMapNodes,
-        currentThemeNPCs,
+        themeMainMapNodes,
+        themeNPCs,
         relevantFacts,
         currentFullState.localTime,
         currentFullState.localEnvironment,
@@ -323,21 +323,21 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           prompt: promptUsed,
         };
 
-        const currentThemeMapDataForParse = draftState.mapData;
+        const themeMapDataForParse = draftState.mapData;
 
         const parsedData = await parseAIResponse(
           response.text ?? '',
-          currentThemeObj,
+          themeObj,
           draftState.heroSheet,
           () => { setParseErrorCounter(1); },
           currentFullState.lastActionLog || undefined,
           currentFullState.currentScene,
-          currentThemeNPCs,
-          currentThemeMapDataForParse,
+          themeNPCs,
+          themeMapDataForParse,
           currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
 
-        await processAiResponse(parsedData, currentThemeObj, draftState, {
+        await processAiResponse(parsedData, themeObj, draftState, {
           baseStateSnapshot,
           onBeforeRefine: state => {
             commitGameState(state);
@@ -538,7 +538,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   ): Promise<FullGameState | null> => {
     const currentState = stateOverride ?? getCurrentGameState();
     const {
-      currentTheme,
+      theme,
       storyArc,
       worldFacts,
       heroSheet,
@@ -552,7 +552,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     const draftState = structuredCloneGameState(currentState);
     draftState.turnState = 'act_transition';
     const newAct = await generateNextStoryAct(
-      currentTheme,
+      theme,
       worldFacts,
       heroSheet,
       storyArc,

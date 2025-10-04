@@ -24,7 +24,7 @@ export const fetchCorrectedName_Service = async (
   contextualLogMessage: string | undefined,
   contextualSceneDescription: string | undefined,
   validNamesList: Array<string>,
-  currentTheme: AdventureTheme
+  theme: AdventureTheme
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
     console.error(`fetchCorrectedName_Service: API Key not configured. Cannot correct ${entityTypeToCorrect} name.`);
@@ -53,7 +53,7 @@ Task: Based on the context and the list of valid names, determine the correct fu
 Respond ONLY with the single, corrected ${entityTypeToCorrect} name as a string.
 If no suitable match can be confidently made, respond with an empty string.`;
 
-  const systemInstruction = `Your task is to match a malformed ${entityTypeToCorrect} name against a provided list of valid names, using narrative context. Respond ONLY with the best-matched string from the valid list, or an empty string if no confident match is found. Adhere to the theme context: ${currentTheme.storyGuidance}`;
+  const systemInstruction = `Your task is to match a malformed ${entityTypeToCorrect} name against a provided list of valid names, using narrative context. Respond ONLY with the best-matched string from the valid list, or an empty string if no confident match is found. Adhere to the theme context: ${theme.storyGuidance}`;
 
   return retryAiCall<string>(async attempt => {
     try {

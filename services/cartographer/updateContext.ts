@@ -13,10 +13,10 @@ import type { MapUpdateDebugInfo } from './types';
 export interface ApplyUpdatesContext {
   payload: AIMapUpdatePayload;
   newMapData: MapData;
-  currentTheme: AdventureTheme;
+  theme: AdventureTheme;
   referenceMapNodeId: string | null;
-  currentThemeNodesFromMapData: Array<MapNode>;
-  currentThemeEdgesFromMapData: Array<MapEdge>;
+  themeNodesFromMapData: Array<MapNode>;
+  themeEdgesFromMapData: Array<MapEdge>;
   themeNodeIdMap: Map<string, MapNode>;
   themeNodeNameMap: Map<string, MapNode>;
   themeNodeAliasMap: Map<string, MapNode>;

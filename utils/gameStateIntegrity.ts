@@ -25,7 +25,7 @@ export const ensureCoreGameStateIntegrity = (
   context: string,
 ): FullGameState => {
   const cast = state as Partial<FullGameState> & {
-    currentTheme?: AdventureTheme | null;
+    theme?: AdventureTheme | null;
     mainQuest?: string | null;
     lastActionLog?: string | null;
     worldFacts?: WorldFacts | null;
@@ -39,9 +39,9 @@ export const ensureCoreGameStateIntegrity = (
 
   const repaired: Array<string> = [];
 
-  if (!cast.currentTheme) {
-    cast.currentTheme = PLACEHOLDER_THEME;
-    repaired.push('currentTheme');
+  if (!cast.theme) {
+    cast.theme = PLACEHOLDER_THEME;
+    repaired.push('theme');
   }
 
   if (typeof cast.mainQuest !== 'string') {

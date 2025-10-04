@@ -47,7 +47,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
   const handleDialogueOptionSelect = useCallback(async (option: string) => {
     const currentFullState = getCurrentGameState();
     if (!currentFullState.dialogueState || isDialogueExiting) return;
-    const currentTheme = currentFullState.currentTheme;
+    const theme = currentFullState.theme;
 
     const playerEntry: DialogueHistoryEntry = { speaker: 'Player', line: option };
     const originalOptions = [...currentFullState.dialogueState.options];
@@ -82,14 +82,14 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
       setError(null);
 
       try {
-        const currentThemeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
+        const themeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
           node => node.data.nodeType !== 'feature'
         );
-        const currentThemeNPCs = stateAfterPlayerChoice.allNPCs;
+        const themeNPCs = stateAfterPlayerChoice.allNPCs;
         const recentLogs = stateAfterPlayerChoice.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
         const detailedContextForFacts = formatDetailedContextForMentionedEntities(
-          currentThemeMapNodes,
-          currentThemeNPCs,
+          themeMapNodes,
+          themeNPCs,
           `${stateAfterPlayerChoice.currentScene} ${option}`,
           'Locations mentioned:',
           'NPCs mentioned:'
@@ -99,7 +99,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           .map(f => ({ text: f.text, tier: f.tier }));
         setLoadingReason('loremaster_collect');
         const collectResult = await collectRelevantFacts_Service({
-          themeName: currentTheme.name,
+          themeName: theme.name,
           facts: sortedFacts,
           lastScene: stateAfterPlayerChoice.currentScene,
           playerAction: option,
@@ -109,7 +109,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         setLoadingReason('dialogue_turn');
         const relevantFacts = collectResult?.facts ?? [];
         const { parsed: turnData, prompt: turnPrompt, rawResponse, thoughts } = await executeDialogueTurn(
-          currentTheme,
+          theme,
           stateAfterPlayerChoice.storyArc,
           stateAfterPlayerChoice.mainQuest,
           stateAfterPlayerChoice.currentObjective,
@@ -117,7 +117,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.localTime,
           stateAfterPlayerChoice.localEnvironment,
           stateAfterPlayerChoice.localPlace,
-          currentThemeMapNodes,
+          themeMapNodes,
           stateAfterPlayerChoice.allNPCs,
           stateAfterPlayerChoice.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
           stateAfterPlayerChoice.heroSheet,

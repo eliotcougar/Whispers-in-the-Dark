@@ -41,7 +41,12 @@ export function normalizeLoadedSaveData(
     );
   }
 
-  const candidate = parsedObj as SavedGameDataShape;
+  const candidateObj = { ...parsedObj } as Record<string, unknown> & { theme?: unknown; currentTheme?: unknown };
+  if (candidateObj.theme === undefined && candidateObj.currentTheme !== undefined) {
+    candidateObj.theme = candidateObj.currentTheme;
+    delete candidateObj.currentTheme;
+  }
+  const candidate = candidateObj as SavedGameDataShape;
   ensureCompleteMapLayoutConfig(candidate);
   ensureCompleteMapNodeDataDefaults(candidate.mapData);
 
@@ -94,7 +99,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   const savedData: SavedGameDataShape = {
     ...restOfGameState,
     saveGameVersion: CURRENT_SAVE_GAME_VERSION,
-    currentTheme: gameState.currentTheme,
+    theme: gameState.theme,
     inventory: gameState.inventory.map(item => ({
       ...item,
       tags: item.tags ?? [],
@@ -144,7 +149,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
 
   const baseState: FullGameState = {
     ...savedData,
-    currentTheme: savedData.currentTheme,
+    theme: savedData.theme,
     enabledThemePacks: [...DEFAULT_ENABLED_THEME_PACKS],
     thinkingEffort: 'Medium',
     allNPCs: savedData.allNPCs.map(npc => {

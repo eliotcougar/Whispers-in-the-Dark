@@ -54,7 +54,7 @@ const mapData: MapData = {
 const baseState: FullGameState = {
   ...getInitialGameStates(),
   saveGameVersion: '9',
-  currentTheme: theme,
+  theme: theme,
   currentScene: '',
   actionOptions: [],
   currentObjective: null,

@@ -268,8 +268,8 @@ interface ExactMatchCandidate {
  * @param suggestedIdentifier The identifier string suggested by an AI.
  * @param source For logging purposes, indicates if suggestion is from 'mapAI' or 'mainAI'.
  * @param oldMapNodeIdIfAvailable The ID of the player's previous map node, used for tie-breaking. Can be null.
- * @param currentThemeName The name of the active theme.
- * @param currentThemeNodesFromDraft All MapNode objects for the current theme from the draft game state.
+ * @param themeName The name of the active theme.
+ * @param themeNodesFromDraft All MapNode objects for the current theme from the draft game state.
  * @returns An object `{ matched: boolean, nodeId: string | null }`. 
  *          `matched` is true if a node was successfully matched, `nodeId` is its ID.
  */
@@ -277,8 +277,8 @@ export const attemptMatchAndSetNode = (
     suggestedIdentifier: string | undefined | null,
     source: 'mapAI' | 'mainAI',
     oldMapNodeIdIfAvailable: string | null,
-    currentThemeName: string,
-    currentThemeNodesFromDraft: Array<MapNode>
+    themeName: string,
+    themeNodesFromDraft: Array<MapNode>
   ): { matched: boolean; nodeId: string | null } => {
   
     if (!suggestedIdentifier || suggestedIdentifier.trim() === "") {
@@ -286,20 +286,20 @@ export const attemptMatchAndSetNode = (
       return { matched: false, nodeId: null };
     }
   
-    if (currentThemeNodesFromDraft.length === 0) {
-        console.log(`MapNodeMatcher (${source}): No nodes found for theme "${currentThemeName}" in draft state.`);
+    if (themeNodesFromDraft.length === 0) {
+        console.log(`MapNodeMatcher (${source}): No nodes found for theme "${themeName}" in draft state.`);
         return { matched: false, nodeId: null };
     }
   
     // 1. Try to match by ID (exact match)
-    const foundNodeById = currentThemeNodesFromDraft.find(n => n.id === suggestedIdentifier);
+    const foundNodeById = themeNodesFromDraft.find(n => n.id === suggestedIdentifier);
     if (foundNodeById) {
       console.log(`MapNodeMatcher (${source}): AI suggested node ID "${suggestedIdentifier}", matched to ID "${foundNodeById.id}".`);
       return { matched: true, nodeId: foundNodeById.id };
     }
 
     const lowerId = suggestedIdentifier.toLowerCase();
-    let partialIdMatch = currentThemeNodesFromDraft.find(n => n.id.toLowerCase().includes(lowerId));
+    let partialIdMatch = themeNodesFromDraft.find(n => n.id.toLowerCase().includes(lowerId));
 
     const idPattern = /^(.*)-([a-zA-Z0-9]{4})$/;
     let extractedBase: string | null = null;
@@ -308,7 +308,7 @@ export const attemptMatchAndSetNode = (
       if (m) {
         const baseStr = m[1];
         extractedBase = baseStr;
-        partialIdMatch = currentThemeNodesFromDraft.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
+        partialIdMatch = themeNodesFromDraft.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
       }
     }
 
@@ -319,7 +319,7 @@ export const attemptMatchAndSetNode = (
   
     // 2. Try to match by Name or Alias (case-insensitive)
     const lowerSuggestedIdentifier = suggestedIdentifier.toLowerCase();
-    const matchingNodesByNameOrAlias = currentThemeNodesFromDraft.filter(n =>
+    const matchingNodesByNameOrAlias = themeNodesFromDraft.filter(n =>
       n.placeName.toLowerCase() === lowerSuggestedIdentifier ||
       (n.data.aliases?.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
     );
@@ -328,7 +328,7 @@ export const attemptMatchAndSetNode = (
       const baseForNames = extractedBase ?? suggestedIdentifier;
       const normalizedBase = baseForNames.replace(/_/g, ' ').toLowerCase();
       matchingNodesByNameOrAlias.push(
-        ...currentThemeNodesFromDraft.filter(n =>
+        ...themeNodesFromDraft.filter(n =>
           n.placeName.toLowerCase() === normalizedBase ||
           (n.data.aliases?.some(a => a.toLowerCase() === normalizedBase)),
         ),
@@ -336,7 +336,7 @@ export const attemptMatchAndSetNode = (
     }
   
     if (matchingNodesByNameOrAlias.length === 0) {
-      console.log(`MapNodeMatcher (${source}): AI suggested identifier "${suggestedIdentifier}" NOT found by ID, name, or alias within theme "${currentThemeName}".`);
+      console.log(`MapNodeMatcher (${source}): AI suggested identifier "${suggestedIdentifier}" NOT found by ID, name, or alias within theme "${themeName}".`);
       return { matched: false, nodeId: null };
     }
   
@@ -378,7 +378,7 @@ export const attemptMatchAndSetNode = (
  * from the description, preferring nodes that were previously nearby.
  *
  * @param localPlace - The freeform location string from the player.
- * @param currentTheme - The current active theme object.
+ * @param theme - The current active theme object.
  * @param mapData - Complete map graph data.
  * @param allNodesForTheme - Nodes belonging to the current theme.
  * @param previousMapNodeId - ID of the player's previous map node if any.
@@ -386,12 +386,12 @@ export const attemptMatchAndSetNode = (
  */
 export const selectBestMatchingMapNode = (
   localPlace: string | null,
-  currentTheme: AdventureTheme | null,
+  theme: AdventureTheme | null,
   mapData: MapData, // Full map data
   allNodesForTheme: Array<MapNode>, // Pre-filtered nodes for the current theme
   previousMapNodeId: string | null
 ): string | null => {
-  if (!localPlace || !currentTheme || allNodesForTheme.length === 0) {
+  if (!localPlace || !theme || allNodesForTheme.length === 0) {
     return null;
   }
 
