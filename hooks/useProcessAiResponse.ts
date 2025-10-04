@@ -51,7 +51,6 @@ const correctItemChanges = async ({
   setLoadingReason,
 }: CorrectItemChangesParams): Promise<Array<ItemChange>> => {
   const theme = baseState.theme;
-  if (!theme) return [...aiItemChanges];
 
   const result: Array<ItemChange> = [];
 
@@ -206,15 +205,12 @@ const applyMapUpdatesFromAi = async ({
   turnChanges,
   processMapUpdates,
 }: ApplyMapUpdatesParams) => {
-  const theme = draftState.theme;
-  if (theme) {
-    // Only run Cartographer when storyteller indicates map updates or
-    // when the location changed.
-    const shouldRunMap =
-      aiData.mapUpdated === true || draftState.localPlace !== baseState.localPlace;
-    if (shouldRunMap) {
-      await processMapUpdates(aiData, draftState, baseState, turnChanges);
-    }
+  // Only run Cartographer when storyteller indicates map updates or
+  // when the location changed.
+  const shouldRunMap =
+    aiData.mapUpdated === true || draftState.localPlace !== baseState.localPlace;
+  if (shouldRunMap) {
+    await processMapUpdates(aiData, draftState, baseState, turnChanges);
   }
 };
 
@@ -251,95 +247,93 @@ const handleInventoryHints = async ({
   let combinedItemChanges = [...correctedItemChanges];
 
   const theme = draftState.theme;
-  if (theme) {
-    const original = loadingReason;
-    setLoadingReason('inventory_updates');
-    const limitedMapContextRegular = formatLimitedMapContextForPrompt(
-      draftState.mapData,
-      draftState.currentMapNodeId,
-      filterItemsByType(baseState.inventory, REGULAR_ITEM_TYPES),
-    );
-    const limitedMapContextWritten = formatLimitedMapContextForPrompt(
-      draftState.mapData,
-      draftState.currentMapNodeId,
-      filterItemsByType(baseState.inventory, WRITTEN_ITEM_TYPES),
-    );
-    const allNewItems =
-      'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
-    const librarianNewItems = allNewItems.filter(it =>
-      WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
-    );
-    const inventoryNewItems = allNewItems.filter(
-      it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
-    );
+  const original = loadingReason;
+  setLoadingReason('inventory_updates');
+  const limitedMapContextRegular = formatLimitedMapContextForPrompt(
+    draftState.mapData,
+    draftState.currentMapNodeId,
+    filterItemsByType(baseState.inventory, REGULAR_ITEM_TYPES),
+  );
+  const limitedMapContextWritten = formatLimitedMapContextForPrompt(
+    draftState.mapData,
+    draftState.currentMapNodeId,
+    filterItemsByType(baseState.inventory, WRITTEN_ITEM_TYPES),
+  );
+  const allNewItems =
+    'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
+  const librarianNewItems = allNewItems.filter(it =>
+    WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
+  );
+  const inventoryNewItems = allNewItems.filter(
+    it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
+  );
 
-    const playerItemsHint =
-      'playerItemsHint' in aiData ? aiData.playerItemsHint?.trim() : '';
-    const worldItemsHint =
-      'worldItemsHint' in aiData ? aiData.worldItemsHint?.trim() : '';
-    const npcItemsHint =
-      'npcItemsHint' in aiData ? aiData.npcItemsHint?.trim() : '';
-    let invResult: Awaited<ReturnType<typeof applyInventoryHints_Service>> | null = null;
-    if (playerItemsHint || worldItemsHint || npcItemsHint || inventoryNewItems.length > 0) {
-      invResult = await applyInventoryHints_Service(
-        playerItemsHint,
-        worldItemsHint,
-        npcItemsHint,
-        inventoryNewItems,
-        playerActionText ?? '',
-        baseState.inventory,
-        baseState.currentMapNodeId ?? null,
-        baseState.allNPCs,
-        'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
-        aiData.logMessage,
-        theme,
-        limitedMapContextRegular,
-      );
-    }
+  const playerItemsHint =
+    'playerItemsHint' in aiData ? aiData.playerItemsHint?.trim() : '';
+  const worldItemsHint =
+    'worldItemsHint' in aiData ? aiData.worldItemsHint?.trim() : '';
+  const npcItemsHint =
+    'npcItemsHint' in aiData ? aiData.npcItemsHint?.trim() : '';
+  let invResult: Awaited<ReturnType<typeof applyInventoryHints_Service>> | null = null;
+  if (playerItemsHint || worldItemsHint || npcItemsHint || inventoryNewItems.length > 0) {
+    invResult = await applyInventoryHints_Service(
+      playerItemsHint,
+      worldItemsHint,
+      npcItemsHint,
+      inventoryNewItems,
+      playerActionText ?? '',
+      baseState.inventory,
+      baseState.currentMapNodeId ?? null,
+      baseState.allNPCs,
+      'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
+      aiData.logMessage,
+      theme,
+      limitedMapContextRegular,
+    );
+  }
+  setLoadingReason(original);
+
+  let librarianHint =
+    'librarianHint' in aiData ? aiData.librarianHint?.trim() : '';
+  if (!librarianHint && librarianNewItems.length > 0) {
+    const names = librarianNewItems.map(it => it.name).join(', ');
+    librarianHint = `Found ${names}.`;
+  }
+  let libResult: Awaited<ReturnType<typeof applyLibrarianHints_Service>> | null = null;
+  if (librarianHint) {
+    // Reflect librarian stage in FSM and loading indicator
+    draftState.turnState = 'librarian_updates';
+    setLoadingReason('librarian_updates');
+    libResult = await applyLibrarianHints_Service(
+      librarianHint,
+      librarianNewItems,
+      playerActionText ?? '',
+      baseState.inventory,
+      baseState.currentMapNodeId ?? null,
+      baseState.allNPCs,
+      limitedMapContextWritten,
+    );
     setLoadingReason(original);
+  }
 
-    let librarianHint =
-      'librarianHint' in aiData ? aiData.librarianHint?.trim() : '';
-    if (!librarianHint && librarianNewItems.length > 0) {
-      const names = librarianNewItems.map(it => it.name).join(', ');
-      librarianHint = `Found ${names}.`;
-    }
-    let libResult: Awaited<ReturnType<typeof applyLibrarianHints_Service>> | null = null;
-    if (librarianHint) {
-      // Reflect librarian stage in FSM and loading indicator
-      draftState.turnState = 'librarian_updates';
-      setLoadingReason('librarian_updates');
-      libResult = await applyLibrarianHints_Service(
-        librarianHint,
-        librarianNewItems,
-        playerActionText ?? '',
-        baseState.inventory,
-        baseState.currentMapNodeId ?? null,
-        baseState.allNPCs,
-        limitedMapContextWritten,
-      );
-      setLoadingReason(original);
-    }
+  if (invResult && libResult) {
+    invResult.itemChanges = filterDuplicateCreates(
+      invResult.itemChanges,
+      libResult.itemChanges,
+    );
+  }
 
-    if (invResult && libResult) {
-      invResult.itemChanges = filterDuplicateCreates(
-        invResult.itemChanges,
-        libResult.itemChanges,
-      );
+  if (invResult) {
+    combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
+    if (draftState.lastDebugPacket) {
+      draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
     }
+  }
 
-    if (invResult) {
-      combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
-      if (draftState.lastDebugPacket) {
-        draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
-      }
-    }
-
-    if (libResult) {
-      combinedItemChanges = combinedItemChanges.concat(libResult.itemChanges);
-      if (draftState.lastDebugPacket) {
-        draftState.lastDebugPacket.librarianDebugInfo = libResult.debugInfo;
-      }
+  if (libResult) {
+    combinedItemChanges = combinedItemChanges.concat(libResult.itemChanges);
+    if (draftState.lastDebugPacket) {
+      draftState.lastDebugPacket.librarianDebugInfo = libResult.debugInfo;
     }
   }
 
@@ -613,151 +607,147 @@ export const useProcessAiResponse = ({
         draftState.lastActionLog = 'The Dungeon Master remains silent on the outcome of your last action.';
       }
 
-      if (themeContextForResponse) {
-        for (const change of combinedItemChanges) {
-          if (change.action === 'addDetails') {
-            const target = findItemByIdentifier([
-              change.item.id,
-              change.item.name,
-            ], draftState.inventory, false, true) as Item | null;
-            if (!target) continue;
-            const chapter = change.item.chapters?.[0];
-            if (!chapter) continue;
-            const { name: themeName, storyGuidance } = themeContextForResponse;
-            const prev = target.chapters?.[target.chapters.length - 1]?.actualContent ?? '';
-            const thoughts = draftState.lastDebugPacket.storytellerThoughts?.slice(-1)[0] ?? '';
-            const actual = await generatePageText(
-              chapter.heading,
-              chapter.description,
-              chapter.contentLength,
-              themeName,
-              storyGuidance,
-              draftState.currentScene,
-              thoughts,
-              draftState.mapData.nodes,
-              draftState.allNPCs,
-              draftState.mainQuest,
-              `Take into account: ${draftState.lastActionLog || ''}`,
-              prev
-            );
-            if (actual) {
-              const tags = target.tags ?? [];
-              let visible = actual;
-              if (tags.includes('foreign')) {
-                const fake = await generatePageText(
-                  chapter.heading,
-                  chapter.description,
-                  chapter.contentLength,
-                  themeName,
-                  storyGuidance,
-                  draftState.currentScene,
-                  thoughts,
-                  draftState.mapData.nodes,
-                  draftState.allNPCs,
-                  draftState.mainQuest,
-                  `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
-                );
-                visible = fake ?? actual;
-              } else if (tags.includes('encrypted')) {
-                visible = rot13(actual);
-              } else if (tags.includes('runic')) {
-                visible = toRunic(actual);
-              }
-              if (tags.includes('torn') && !tags.includes('recovered')) {
-                visible = tornVisibleText(visible);
-              }
-              const updatedChapter = { ...chapter, actualContent: actual, visibleContent: visible };
-              const idx = draftState.inventory.findIndex(i => i.id === target.id);
-              const updated = {
-                ...target,
-                chapters: [...(target.chapters ?? []), updatedChapter],
-                lastInspectTurn: undefined,
-              };
-              draftState.inventory[idx] = updated;
+      for (const change of combinedItemChanges) {
+        if (change.action === 'addDetails') {
+          const target = findItemByIdentifier([
+            change.item.id,
+            change.item.name,
+          ], draftState.inventory, false, true) as Item | null;
+          if (!target) continue;
+          const chapter = change.item.chapters?.[0];
+          if (!chapter) continue;
+          const { name: themeName, storyGuidance } = themeContextForResponse;
+          const prev = target.chapters?.[target.chapters.length - 1]?.actualContent ?? '';
+          const thoughts = draftState.lastDebugPacket.storytellerThoughts?.slice(-1)[0] ?? '';
+          const actual = await generatePageText(
+            chapter.heading,
+            chapter.description,
+            chapter.contentLength,
+            themeName,
+            storyGuidance,
+            draftState.currentScene,
+            thoughts,
+            draftState.mapData.nodes,
+            draftState.allNPCs,
+            draftState.mainQuest,
+            `Take into account: ${draftState.lastActionLog || ''}`,
+            prev
+          );
+          if (actual) {
+            const tags = target.tags ?? [];
+            let visible = actual;
+            if (tags.includes('foreign')) {
+              const fake = await generatePageText(
+                chapter.heading,
+                chapter.description,
+                chapter.contentLength,
+                themeName,
+                storyGuidance,
+                draftState.currentScene,
+                thoughts,
+                draftState.mapData.nodes,
+                draftState.allNPCs,
+                draftState.mainQuest,
+                `Translate the following text into an artificial nonexistent language that fits the theme and context:\n"""${actual}"""`
+              );
+              visible = fake ?? actual;
+            } else if (tags.includes('encrypted')) {
+              visible = rot13(actual);
+            } else if (tags.includes('runic')) {
+              visible = toRunic(actual);
             }
+            if (tags.includes('torn') && !tags.includes('recovered')) {
+              visible = tornVisibleText(visible);
+            }
+            const updatedChapter = { ...chapter, actualContent: actual, visibleContent: visible };
+            const idx = draftState.inventory.findIndex(i => i.id === target.id);
+            const updated = {
+              ...target,
+              chapters: [...(target.chapters ?? []), updatedChapter],
+              lastInspectTurn: undefined,
+            };
+            draftState.inventory[idx] = updated;
           }
         }
       }
 
-      if (themeContextForResponse) {
-        // Proceed to loremaster extract (dialogue summary -> summary stage)
-        draftState.turnState = options.isFromDialogueSummary ? 'dialogue_summary' : 'loremaster_extract';
-        options.onBeforeRefine?.(structuredCloneGameState(draftState));
-        options.setIsLoading?.(false);
-        options.setIsTurnProcessing?.(true);
+      // Proceed to loremaster extract (dialogue summary -> summary stage)
+      draftState.turnState = options.isFromDialogueSummary ? 'dialogue_summary' : 'loremaster_extract';
+      options.onBeforeRefine?.(structuredCloneGameState(draftState));
+      options.setIsLoading?.(false);
+      options.setIsTurnProcessing?.(true);
 
-        const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
-        const baseContext = isFromDialogueSummary
-          ? [options.dialogueTranscript ?? '', thoughts ? `\n  ## Storyteller's Thoughts:\n${thoughts}\n------` : '']
-              .filter(Boolean)
-              .join('\n')
-          : [
-              playerActionText ? `Action: ${playerActionText}` : '',
-              aiData.sceneDescription,
-              aiData.logMessage ?? '',
-              thoughts ? `\n  ## Storyteller's Thoughts:\n\n${thoughts}\n------` : '',
-            ]
-              .filter(Boolean)
-              .join('\n');
+      const thoughts = draftState.lastDebugPacket.storytellerThoughts?.join('\n') ?? '';
+      const baseContext = isFromDialogueSummary
+        ? [options.dialogueTranscript ?? '', thoughts ? `\n  ## Storyteller's Thoughts:\n${thoughts}\n------` : '']
+            .filter(Boolean)
+            .join('\n')
+        : [
+            playerActionText ? `Action: ${playerActionText}` : '',
+            aiData.sceneDescription,
+            aiData.logMessage ?? '',
+            thoughts ? `\n  ## Storyteller's Thoughts:\n\n${thoughts}\n------` : '',
+          ]
+            .filter(Boolean)
+            .join('\n');
 
-        const nodesForTheme = draftState.mapData.nodes.filter(
-          n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
-        );
-        const npcsForTheme = draftState.allNPCs;
-        const itemsForTheme = draftState.inventory.filter(
-          item =>
-            item.holderId === PLAYER_HOLDER_ID ||
-            nodesForTheme.some(n => n.id === item.holderId) ||
-            npcsForTheme.some(npc => npc.id === item.holderId),
-        );
-        const idsContext = [
-          `Node IDs: ${nodesForTheme.map(n => n.id).join(', ')}`,
-          `NPC IDs: ${npcsForTheme.map(n => n.id).join(', ')}`,
-          `Item IDs: ${itemsForTheme.map(i => i.id).join(', ')}`,
-        ].join('\n');
+      const nodesForTheme = draftState.mapData.nodes.filter(
+        n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
+      );
+      const npcsForTheme = draftState.allNPCs;
+      const itemsForTheme = draftState.inventory.filter(
+        item =>
+          item.holderId === PLAYER_HOLDER_ID ||
+          nodesForTheme.some(n => n.id === item.holderId) ||
+          npcsForTheme.some(npc => npc.id === item.holderId),
+      );
+      const idsContext = [
+        `Node IDs: ${nodesForTheme.map(n => n.id).join(', ')}`,
+        `NPC IDs: ${npcsForTheme.map(n => n.id).join(', ')}`,
+        `Item IDs: ${itemsForTheme.map(i => i.id).join(', ')}`,
+      ].join('\n');
 
-        const contextParts = `${baseContext}\n${idsContext}`;
-        if (actIntroRef.current) {
-          onActIntro(actIntroRef.current);
-          actIntroRef.current = null;
-        }
-        const original = loadingReasonRef.current;
-        const refineResult = await refineLore_Service({
-          themeName: themeContextForResponse.name,
-          turnContext: contextParts,
-          existingFacts: draftState.loreFacts,
-          logMessage: aiData.logMessage ?? '',
-          currentScene: aiData.sceneDescription,
-          onFactsExtracted: debugLore
-            ? async (facts) =>
-                new Promise<{ proceed: boolean }>(resolve => {
-                  openDebugLoreModal(
-                    facts.map(f => f.text),
-                    (good, bad, proceed) => {
-                      if (proceed) {
-                        draftState.debugGoodFacts.push(...good);
-                        draftState.debugBadFacts.push(...bad);
-                      }
-                      resolve({ proceed });
-                    },
-                  );
-                })
-            : undefined,
-          onSetLoadingReason: setLoadingReason,
-        });
-        if (draftState.lastDebugPacket.loremasterDebugInfo) {
-          draftState.lastDebugPacket.loremasterDebugInfo.extract = refineResult?.debugInfo?.extract ?? null;
-          draftState.lastDebugPacket.loremasterDebugInfo.integrate = refineResult?.debugInfo?.integrate ?? null;
-        }
-        if (refineResult?.refinementResult) {
-          applyLoreFactChanges(
-            draftState,
-            refineResult.refinementResult.factsChange,
-            draftState.globalTurnNumber,
-          );
-        }
-        setLoadingReason(original);
+      const contextParts = `${baseContext}\n${idsContext}`;
+      if (actIntroRef.current) {
+        onActIntro(actIntroRef.current);
+        actIntroRef.current = null;
       }
+      const original = loadingReasonRef.current;
+      const refineResult = await refineLore_Service({
+        themeName: themeContextForResponse.name,
+        turnContext: contextParts,
+        existingFacts: draftState.loreFacts,
+        logMessage: aiData.logMessage ?? '',
+        currentScene: aiData.sceneDescription,
+        onFactsExtracted: debugLore
+          ? async (facts) =>
+              new Promise<{ proceed: boolean }>(resolve => {
+                openDebugLoreModal(
+                  facts.map(f => f.text),
+                  (good, bad, proceed) => {
+                    if (proceed) {
+                      draftState.debugGoodFacts.push(...good);
+                      draftState.debugBadFacts.push(...bad);
+                    }
+                    resolve({ proceed });
+                  },
+                );
+              })
+          : undefined,
+        onSetLoadingReason: setLoadingReason,
+      });
+      if (draftState.lastDebugPacket.loremasterDebugInfo) {
+        draftState.lastDebugPacket.loremasterDebugInfo.extract = refineResult?.debugInfo?.extract ?? null;
+        draftState.lastDebugPacket.loremasterDebugInfo.integrate = refineResult?.debugInfo?.integrate ?? null;
+      }
+      if (refineResult?.refinementResult) {
+        applyLoreFactChanges(
+          draftState,
+          refineResult.refinementResult.factsChange,
+          draftState.globalTurnNumber,
+        );
+      }
+      setLoadingReason(original);
 
       updateDialogueState(draftState, aiData, isFromDialogueSummary);
 
