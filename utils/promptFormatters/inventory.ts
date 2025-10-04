@@ -3,10 +3,10 @@
  * @description Functions for formatting player inventory for AI prompts.
  */
 
-import { Item, ItemTag } from '../../types';
+import { Item, ItemTag, KnownUse } from '../../types';
 
 export const DEFAULT_ITEM_PROMPT_TEMPLATE =
-  '<ID: {id}> - "{name}" (Type: "{type}"{tags}, Description: "{currentdescription}"{activehint}){availableactions};\n';
+  '<ID: {id}> - "{name}" (Type: "{type}"{tags}, Description: "{currentdescription}"{activehint}){availableactions}{unavailableactions};\n';
 
 const TAG_MEANINGS: Partial<Record<ItemTag, { notRecovered: string; recovered: string }>> = {
   foreign: {
@@ -88,25 +88,62 @@ const formatTagsWithDescription = (item: Item): string => {
   return meaning ? `, ${meaning}` : '';
 };
 
-const formatAvailableActions = (item: Item): string => {
+const isUseAvailable = (knownUse: KnownUse, isActive: boolean): boolean => {
+  const { appliesWhenActive, appliesWhenInactive } = knownUse;
+
+  if (appliesWhenActive !== undefined && appliesWhenInactive !== undefined) {
+    return (appliesWhenActive && isActive) || (appliesWhenInactive && !isActive);
+  }
+  if (appliesWhenActive !== undefined) {
+    return appliesWhenActive === isActive;
+  }
+  if (appliesWhenInactive !== undefined) {
+    return appliesWhenInactive === !isActive;
+  }
+  return true;
+};
+
+interface KnownUseAvailability {
+  available: Array<KnownUse>;
+  unavailable: Array<KnownUse>;
+}
+
+const computeKnownUseAvailability = (item: Item): KnownUseAvailability => {
   const knownUses = Array.isArray(item.knownUses) ? item.knownUses : [];
-  if (knownUses.length === 0) return '';
+  const availability: KnownUseAvailability = { available: [], unavailable: [] };
+  if (knownUses.length === 0) {
+    return availability;
+  }
+
   const isActive = Boolean(item.isActive);
-  const applicable = knownUses.filter(ku => {
-    if (ku.appliesWhenActive !== undefined && ku.appliesWhenInactive !== undefined) {
-      return (ku.appliesWhenActive && isActive) || (ku.appliesWhenInactive && !isActive);
+  for (const use of knownUses) {
+    if (isUseAvailable(use, isActive)) {
+      availability.available.push(use);
+    } else {
+      availability.unavailable.push(use);
     }
-    if (ku.appliesWhenActive !== undefined) {
-      return ku.appliesWhenActive === isActive;
-    }
-    if (ku.appliesWhenInactive !== undefined) {
-      return ku.appliesWhenInactive === !isActive;
-    }
-    return true;
-  });
-  if (applicable.length === 0) return '';
-  const list = applicable.map(use => `"${use.actionName}"`).join(', ');
-  return `, Available Actions: ${list}`;
+  }
+
+  return availability;
+};
+
+const stringifyActionList = (actions: Array<KnownUse>): string =>
+  actions.map(action => `"${action.actionName}"`).join(', ');
+
+const formatAvailableActions = (availability: KnownUseAvailability): string => {
+  if (availability.available.length === 0) {
+    return '';
+  }
+
+  return `, Available Actions: ${stringifyActionList(availability.available)}`;
+};
+
+const formatUnavailableActions = (availability: KnownUseAvailability): string => {
+  if (availability.unavailable.length === 0) {
+    return '';
+  }
+
+  return `, Unavailable Actions: ${stringifyActionList(availability.unavailable)}`;
 };
 
 const currentDescription = (item: Item): string => {
@@ -119,6 +156,7 @@ const currentDescription = (item: Item): string => {
 const activeHint = (item: Item): string => (item.isActive ? ', It is active' : '');
 
 const renderTemplateForItem = (item: Item, template: string, index: number, lastIndex: number): string => {
+  const knownUseAvailability = computeKnownUseAvailability(item);
   const rendered = template.replace(STRING_TEMPLATE_TOKEN, (_match, token) => {
     switch (token) {
       case 'tags':
@@ -126,7 +164,9 @@ const renderTemplateForItem = (item: Item, template: string, index: number, last
       case 'tagswithdescription':
         return formatTagsWithDescription(item);
       case 'availableactions':
-        return formatAvailableActions(item);
+        return formatAvailableActions(knownUseAvailability);
+      case 'unavailableactions':
+        return formatUnavailableActions(knownUseAvailability);
       case 'currentdescription':
         return currentDescription(item);
       case 'activehint':

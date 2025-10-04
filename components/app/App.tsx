@@ -832,8 +832,8 @@ function App() {
     <>
       <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-8 flex flex-col items-center">
         <AppHeader
-          theme={theme}
           hasGameBeenInitialized={hasGameBeenInitialized}
+          theme={theme}
         />
 
         {error && !isLoading && !dialogueState && hasGameBeenInitialized ? <div className="w-full max-w-3xl my-4">
@@ -853,8 +853,8 @@ function App() {
         <main className={`w-full max-w-screen-xl grid grid-cols-1 lg:grid-cols-4 gap-3 flex-grow ${(isAnyModalOrDialogueActive) ? 'filter blur-sm pointer-events-none' : ''}`}>
           <div className="lg:col-span-2 space-y-3 flex flex-col">
             <MainToolbar
-              currentSceneExists={!!currentScene}
               adventureName={adventureNameForUi}
+              currentSceneExists={!!currentScene}
               isLoading={isLoading || !!dialogueState || isTurnProcessing}
               isTurnProcessing={isTurnProcessing}
               onOpenKnowledgeBase={openKnowledgeBase}
@@ -1083,14 +1083,13 @@ function App() {
       ) : null}
 
       {hasGameBeenInitialized && !isPlaceholderTheme ? <AppModals
+        adventureName={adventureNameForUi}
         allNPCs={allNPCs}
         canInspectJournal={canInspectPlayerJournal}
         canWriteJournal={canWritePlayerJournal}
         currentMapNodeId={currentMapNodeId}
         currentQuest={mainQuest}
         currentScene={currentScene}
-        theme={theme}
-        adventureName={adventureNameForUi}
         destinationNodeId={destinationNodeId}
         handleCancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
         handleCancelNewGameFromMenu={handleCancelNewGameFromMenu}
@@ -1127,6 +1126,7 @@ function App() {
         playerJournal={playerJournal}
         setGeneratedImage={setGeneratedImageCache}
         storytellerThoughts={lastDebugPacket?.storytellerThoughts?.slice(-1)[0] ?? ''}
+        theme={theme}
         updateItemContent={updateItemContent}
         updatePlayerJournalContent={updatePlayerJournalContent}
         visualizerImageScene={visualizerImageScene}

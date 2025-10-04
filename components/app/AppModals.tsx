@@ -171,7 +171,6 @@ function AppModals({
         cachedImageScene={visualizerImageScene}
         cachedImageUrl={visualizerImageUrl}
         currentSceneDescription={currentScene}
-        theme={theme}
         isVisible={isVisualizerVisible}
         localEnvironment={localEnvironment}
         localPlace={localPlace}
@@ -179,13 +178,14 @@ function AppModals({
         mapData={mapData.nodes}
         onClose={onCloseVisualizer}
         setGeneratedImage={setGeneratedImage}
+        theme={theme}
       />
 
       <KnowledgeBase
         allNPCs={allNPCs}
-        theme={theme}
         isVisible={isKnowledgeBaseVisible}
         onClose={onCloseKnowledgeBase}
+        theme={theme}
       />
 
 
@@ -195,7 +195,6 @@ function AppModals({
         canWriteJournal={canWriteJournal}
         currentQuest={currentQuest}
         currentScene={currentScene}
-        theme={theme}
         isVisible={isPageVisible}
         isWritingJournal={isWritingJournal}
         item={
@@ -218,12 +217,13 @@ function AppModals({
         onWriteJournal={pageItemId ? writeJournalHandler : undefined}
         startIndex={pageStartChapterIndex}
         storytellerThoughts={storytellerThoughts}
+        theme={theme}
         updateItemContent={updateContentHandler}
       />
 
       <MapDisplay
-        currentMapNodeId={currentMapNodeId}
         adventureName={adventureName}
+        currentMapNodeId={currentMapNodeId}
         destinationNodeId={destinationNodeId}
         initialLayoutConfig={initialLayoutConfig}
         initialViewBox={initialViewBox}

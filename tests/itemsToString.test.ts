@@ -69,7 +69,7 @@ describe('itemsToString templating', () => {
     const formatted = itemsToString([arcanePage], TEMPLATE_WITH_TAG_MEANING);
 
     expect(formatted).toBe(
-      '<ID: item-page-5c6d> - "Ancient Page" (Type: "page", The text appears to be in an unfamiliar language and might be translated, Description: "Glowing script reveals itself.", It is active), Available Actions: "Study Page"',
+      '<ID: item-page-5c6d> - "Ancient Page" (Type: "page", The text appears to be in an unfamiliar language and might be translated, Description: "Glowing script reveals itself.", It is active), Available Actions: "Study Page", Unavailable Actions: "Translate Page"',
     );
   });
 

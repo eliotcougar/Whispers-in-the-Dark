@@ -73,7 +73,9 @@ function KnowledgeBase({
             <span className="ml-1 italic">
               {lastKnownLocation}
               {' '}
-              ({npc.presenceStatus})
+              (
+              {npc.presenceStatus}
+              )
             </span>
           </p>
         );
@@ -82,7 +84,9 @@ function KnowledgeBase({
       return (
         <p className="text-sm text-slate-500 flex items-center">
           <span className="ml-1 italic">
-            ({npc.presenceStatus})
+            (
+            {npc.presenceStatus}
+            )
           </span>
         </p>
       );
