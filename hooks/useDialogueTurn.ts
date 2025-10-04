@@ -82,19 +82,19 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
       setError(null);
 
       try {
-        const themeMapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
+        const mapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
           node => node.data.nodeType !== 'feature'
         );
-        const themeNPCs = stateAfterPlayerChoice.allNPCs;
+        const npcs = stateAfterPlayerChoice.allNPCs;
         const recentLogs = stateAfterPlayerChoice.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
         const detailedContextForFacts = formatDetailedContextForMentionedEntities(
-          themeMapNodes,
-          themeNPCs,
+          mapNodes,
+          npcs,
           `${stateAfterPlayerChoice.currentScene} ${option}`,
           'Locations mentioned:',
           'NPCs mentioned:'
         );
-        const sortedFacts = [...stateAfterPlayerChoice.themeFacts]
+        const sortedFacts = [...stateAfterPlayerChoice.loreFacts]
           .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
           .map(f => ({ text: f.text, tier: f.tier }));
         setLoadingReason('loremaster_collect');
@@ -117,8 +117,8 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           stateAfterPlayerChoice.localTime,
           stateAfterPlayerChoice.localEnvironment,
           stateAfterPlayerChoice.localPlace,
-          themeMapNodes,
-          stateAfterPlayerChoice.allNPCs,
+          mapNodes,
+          npcs,
           stateAfterPlayerChoice.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
           stateAfterPlayerChoice.heroSheet,
           historyWithPlayerChoice,

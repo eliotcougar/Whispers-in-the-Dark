@@ -3,7 +3,7 @@
  * @description Constructs prompts for the Loremaster service.
  */
 import {
-  ThemeFact,
+  LoreFact,
   FactWithEntities,
   WorldFacts,
   HeroSheet,
@@ -41,7 +41,7 @@ List immutable facts according to your instructions. Return JSON as:
 
 export const buildIntegrateFactsPrompt = (
   themeName: string,
-  existingFacts: Array<ThemeFact>,
+  existingFacts: Array<LoreFact>,
   newFacts: Array<FactWithEntities>,
   logMessage: string,
   currentScene: string,
@@ -108,7 +108,7 @@ ${factLines}
 
 export const buildDistillFactsPrompt = (
   themeName: string,
-  facts: Array<ThemeFact>,
+  facts: Array<LoreFact>,
   currentQuest: string | null,
   currentObjective: string | null,
   inventoryItemNames: Array<string>,

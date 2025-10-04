@@ -6,7 +6,6 @@ import { useCallback } from 'react';
 import * as React from 'react';
 import {
   GameStateFromAI,
-  AdventureTheme,
   FullGameState,
   LoadingReason,
   TurnChanges,
@@ -33,7 +32,6 @@ export const useMapUpdateProcessor = ({
       aiData: GameStateFromAI,
       draftState: FullGameState,
       baseStateSnapshot: FullGameState,
-      themeContext: AdventureTheme,
       turnChanges: TurnChanges,
     ) => {
       try {
@@ -41,7 +39,6 @@ export const useMapUpdateProcessor = ({
           aiData,
           draftState,
           baseStateSnapshot,
-          themeContext,
           loadingReasonRef.current,
           setLoadingReason,
           turnChanges,

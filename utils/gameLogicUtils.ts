@@ -34,45 +34,45 @@ export const removeDroppedItemLog = (
   return currentLog;
 };
 
-import { FullGameState, ThemeFactChange, ThemeFact } from '../types';
+import { FullGameState, LoreFactChange, LoreFact } from '../types';
 
-export const applyThemeFactChanges = (
+export const applyLoreFactChanges = (
   state: FullGameState,
-  changes: Array<ThemeFactChange>,
+  changes: Array<LoreFactChange>,
   currentTurn: number,
 ): void => {
   let nextId =
-    state.themeFacts.length > 0 ? Math.max(...state.themeFacts.map(f => f.id)) + 1 : 1;
+    state.loreFacts.length > 0 ? Math.max(...state.loreFacts.map(f => f.id)) + 1 : 1;
   for (const change of changes) {
     switch (change.action) {
       case 'add':
         if (change.text) {
-          const newFact: ThemeFact = {
+          const newFact: LoreFact = {
             id: nextId++,
             text: change.text,
             entities: change.entities ?? [],
             createdTurn: change.createdTurn ?? currentTurn,
             tier: change.tier ?? 1,
           };
-          state.themeFacts.push(newFact);
+          state.loreFacts.push(newFact);
         }
         break;
       case 'change': {
-        const idx = state.themeFacts.findIndex(f => f.id === change.id);
+        const idx = state.loreFacts.findIndex(f => f.id === change.id);
         if (idx >= 0) {
-          const updated: ThemeFact = {
-            ...state.themeFacts[idx],
-            text: change.text ?? state.themeFacts[idx].text,
-            entities: change.entities ?? state.themeFacts[idx].entities,
-            tier: change.tier ?? state.themeFacts[idx].tier,
+          const updated: LoreFact = {
+            ...state.loreFacts[idx],
+            text: change.text ?? state.loreFacts[idx].text,
+            entities: change.entities ?? state.loreFacts[idx].entities,
+            tier: change.tier ?? state.loreFacts[idx].tier,
           };
-          state.themeFacts[idx] = updated;
+          state.loreFacts[idx] = updated;
         }
         break;
       }
       case 'delete': {
-        const i = state.themeFacts.findIndex(f => f.id === change.id);
-        if (i >= 0) state.themeFacts.splice(i, 1);
+        const i = state.loreFacts.findIndex(f => f.id === change.id);
+        if (i >= 0) state.loreFacts.splice(i, 1);
         break;
       }
       default:
@@ -82,7 +82,7 @@ export const applyThemeFactChanges = (
 };
 
 export const updateEntityIdsInFacts = (
-  facts: Array<ThemeFact>,
+  facts: Array<LoreFact>,
   renameMap: Record<string, string>,
 ): void => {
   if (facts.length === 0 || Object.keys(renameMap).length === 0) return;

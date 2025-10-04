@@ -16,7 +16,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
     sceneDescription: ctx.sceneDesc,
     logMessage: ctx.logMsg,
     theme: ctx.theme,
-    themeNodes: ctx.newMapData.nodes,
+    mapNodes: ctx.newMapData.nodes,
   };
 
   while (chainRequests.length > 0 && refineAttempts < MAX_CHAIN_REFINEMENT_ROUNDS) {
@@ -86,8 +86,8 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
         } as MapNode;
         ctx.newMapData.nodes.push(node);
         ctx.newlyAddedNodes.push(node);
-        ctx.themeNodeIdMap.set(node.id, node);
-        ctx.themeNodeNameMap.set(node.placeName, node);
+        ctx.nodeIdMap.set(node.id, node);
+        ctx.nodeNameMap.set(node.placeName, node);
       });
       (chainResult.payload.edgesToAdd ?? []).forEach(eAdd => {
         const edgeData = eAdd as Partial<AIEdgeAdd>;
@@ -110,7 +110,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
               : `${tgt.id}|${src.id}|${edgeData.type ?? 'path'}`;
           if (ctx.processedChainKeys.has(pairKey)) return;
           ctx.processedChainKeys.add(pairKey);
-          if (isEdgeConnectionAllowed(src, tgt, edgeData.type, ctx.themeNodeIdMap)) {
+          if (isEdgeConnectionAllowed(src, tgt, edgeData.type, ctx.nodeIdMap)) {
             addEdgeWithTracking(
               src,
               tgt,
@@ -121,7 +121,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
                 type: edgeData.type,
               },
               ctx.newMapData.edges,
-              ctx.themeEdgesMap
+              ctx.edgesMap
             );
           } else {
             console.warn(
@@ -137,13 +137,13 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
                   travelTime: edgeData.travelTime,
                   type: edgeData.type,
                 },
-                ctx.themeNodeIdMap,
+                ctx.nodeIdMap,
               ),
             );
           }
         }
       });
-      chainContext.themeNodes = ctx.newMapData.nodes;
+      chainContext.mapNodes = ctx.newMapData.nodes;
     } else {
       console.warn(
         `Connector Chains Refinement failed after ${String(MAX_RETRIES)} attempts for round ${String(

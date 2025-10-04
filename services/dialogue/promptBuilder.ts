@@ -62,8 +62,8 @@ export const buildDialogueTurnPrompt = (
     localTime,
     localEnvironment,
     localPlace,
-    knownMainMapNodesInTheme,
-    knownNPCsInTheme: knownNPCsInTheme,
+    knownMainMapNodes,
+    knownNPCs,
     inventory,
     heroSheet,
     dialogueHistory,
@@ -113,20 +113,20 @@ export const buildDialogueTurnPrompt = (
     '\n'
   );
   const knownPlacesString = formatKnownPlacesForPrompt(
-    knownMainMapNodesInTheme,
+    knownMainMapNodes,
     true,
     false,
   );
 
   const npcContextString = npcsToString(
-    buildDialogueNpcPromptData(knownNPCsInTheme),
+    buildDialogueNpcPromptData(knownNPCs),
     DIALOGUE_KNOWN_NPC_TEMPLATE,
     '\n## Known NPCs:\n',
   );
 
   let pastDialogueSummariesContext = '';
   dialogueParticipants.forEach(participantName => {
-    const participantNPC = knownNPCsInTheme.find(npc => npc.name === participantName);
+    const participantNPC = knownNPCs.find(npc => npc.name === participantName);
     if (participantNPC?.dialogueSummaries && participantNPC.dialogueSummaries.length > 0) {
       pastDialogueSummariesContext += `\nRecent Past Conversations involving ${participantName}:\n`;
       const summariesToShow = participantNPC.dialogueSummaries.slice(-MAX_DIALOGUE_SUMMARIES_IN_PROMPT);
@@ -192,7 +192,7 @@ export const buildDialogueSummaryPrompt = (
     '\n'
   );
   const knownPlacesString = formatKnownPlacesForPrompt(
-    summaryContext.mapDataForTheme.nodes.filter(
+    summaryContext.mapDataSnapshot.nodes.filter(
       n => n.data.nodeType !== 'feature',
     ),
     true,
@@ -200,7 +200,7 @@ export const buildDialogueSummaryPrompt = (
   );
 
   const knownNpcSummarySection = npcsToString(
-    buildDialogueNpcPromptData(summaryContext.knownNPCsInTheme),
+    buildDialogueNpcPromptData(summaryContext.knownNPCs),
     DIALOGUE_KNOWN_NPC_TEMPLATE,
     '\n- Known NPCs:\n',
     '\n',

@@ -1,6 +1,6 @@
 # Whispers in the Dark
 
-Whispers in the Dark is a browser-based text adventure powered by Google's Gemini language models. The project grew out of an experiment in combining creative writing with real-time AI assistance. The player explores a node-based map and manages an inventory while pursuing quests in a themed setting of their choice. The entire experience runs in a single-page React application written in TypeScript and was co-created by **Eliot the Cougar** and **OpenAI Codex**.
+Whispers in the Dark is a browser-based text adventure powered by Google's Gemini language models. The project grew out of an experiment in combining creative writing with real-time AI assistance. The player explores a node-based map and manages an inventory while pursuing quests in a setting of their choice. The entire experience runs in a single-page React application written in TypeScript and was co-created by **Eliot the Cougar** and **OpenAI Codex**.
 
 ## What is Vibe-Coding?
 
@@ -43,7 +43,7 @@ Vibe-coding excels at creative exploration but still relies on human judgment to
 
 ## Features
 
-- AI driven storytelling that begins in a theme of your choice.
+- AI driven storytelling that begins in a setting of your choice.
 - Node-based map that evolves as the narrative unfolds.
 - Dialogue system where NPCs remember past conversations.
 - Inventory items persist on the map even when dropped.

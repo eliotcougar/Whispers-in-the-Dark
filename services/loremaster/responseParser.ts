@@ -2,12 +2,12 @@
  * @file responseParser.ts
  * @description Parses Loremaster AI responses.
  */
-import { LoreRefinementResult, ThemeFactChange, FactWithEntities } from '../../types';
+import { LoreRefinementResult, LoreFactChange, FactWithEntities } from '../../types';
 import { safeParseJson } from '../../utils/jsonUtils';
 
-const isThemeFactChange = (value: unknown): value is ThemeFactChange => {
+const isLoreFactChange = (value: unknown): value is LoreFactChange => {
   if (!value || typeof value !== 'object') return false;
-  const obj = value as Partial<ThemeFactChange>;
+  const obj = value as Partial<LoreFactChange>;
   if (typeof obj.action !== 'string') return false;
   if (
     obj.entities !== undefined &&
@@ -48,11 +48,11 @@ export const parseIntegrationResponse = (
   const parsed = safeParseJson<unknown>(responseText);
   if (!parsed || typeof parsed !== 'object') return null;
   const obj = parsed as Partial<LoreRefinementResult> & { factsChange?: unknown };
-  const factsArr: Array<ThemeFactChange> = [];
+  const factsArr: Array<LoreFactChange> = [];
   const validIds = existingFacts.map(f => f.id);
   if (Array.isArray(obj.factsChange)) {
     obj.factsChange.forEach(raw => {
-      if (isThemeFactChange(raw)) {
+      if (isLoreFactChange(raw)) {
         if (Array.isArray(raw.entities)) {
           raw.entities = raw.entities.filter(
             (id: unknown): id is string => typeof id === 'string',

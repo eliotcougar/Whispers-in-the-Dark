@@ -457,12 +457,12 @@ export async function parseAIResponse(
     logMessageFromPayload?: string,
     sceneDescriptionFromPayload?: string,
     allRelevantNPCs: Array<NPC> = [],
-    themeMapData: MapData = { nodes: [], edges: [] },
+    mapDataForResponse: MapData = { nodes: [], edges: [] },
     currentInventoryForCorrection: Array<Item> = []
 ): Promise<GameStateFromAI | null> {
     const jsonStr = responseText;
 
-    const allRelevantMainMapNodesForCorrection: Array<MapNode> = themeMapData.nodes.filter(node => node.data.nodeType !== 'feature');
+    const allRelevantMainMapNodesForCorrection: Array<MapNode> = mapDataForResponse.nodes.filter(node => node.data.nodeType !== 'feature');
 
     try {
         const parsedData = safeParseJson<Partial<GameStateFromAI>>(jsonStr);

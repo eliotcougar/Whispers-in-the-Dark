@@ -40,7 +40,7 @@ import { generateNextStoryAct } from '../services/worldData';
 import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
 import { distillFacts_Service } from '../services/loremaster';
-import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import { isStoryArcValid } from '../utils/storyArcUtils';
 
 export interface UsePlayerActionsProps {
@@ -127,13 +127,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         state.globalTurnNumber % DISTILL_LORE_INTERVAL === 0 &&
         state.lastLoreDistillTurn !== state.globalTurnNumber
       ) {
-        const themeNodes = state.mapData.nodes;
+        const mapNodes = state.mapData.nodes;
         const inventoryItemNames = Array.from(
           new Set(
             state.inventory
               .filter(item => {
                 if (item.holderId === PLAYER_HOLDER_ID) return true;
-                if (themeNodes.some(node => node.id === item.holderId)) return true;
+                if (mapNodes.some(node => node.id === item.holderId)) return true;
                 const holderNpc = state.allNPCs.find(
                   npc => npc.id === item.holderId,
                 );
@@ -142,7 +142,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
               .map(item => item.name),
           ),
         );
-        const mapNodeNames = themeNodes.map(n => n.placeName);
+        const mapNodeNames = mapNodes.map(n => n.placeName);
         const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
         setLoadingReason('loremaster_distill');
         const actIndex = state.storyArc.currentAct - 1;
@@ -150,7 +150,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         const act = actIndex >= 0 && actIndex < acts.length ? acts[actIndex] : null;
         const result = await distillFacts_Service({
           themeName: state.theme.name,
-          facts: state.themeFacts,
+          facts: state.loreFacts,
           currentQuest: act ? act.mainObjective : null,
           currentObjective: state.currentObjective,
           inventoryItemNames,
@@ -174,7 +174,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           state.lastDebugPacket.loremasterDebugInfo.distill = result?.debugInfo ?? null;
         }
         if (result?.refinementResult) {
-          applyThemeFactChanges(
+          applyLoreFactChanges(
             state,
             result.refinementResult.factsChange,
             state.globalTurnNumber,
@@ -209,26 +209,26 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const baseStateSnapshot = structuredCloneGameState(currentFullState);
       const scoreChangeFromAction = isFreeForm ? -FREE_FORM_ACTION_COST : 0;
 
-      const themeObj = currentFullState.theme;
+      const activeTheme = currentFullState.theme;
 
       const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
-      const themeMainMapNodes = currentFullState.mapData.nodes.filter(
+      const mapNodes = currentFullState.mapData.nodes.filter(
         n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
       );
-      const themeNPCs = currentFullState.allNPCs;
+      const npcs = currentFullState.allNPCs;
       const currentMapNodeDetails = currentFullState.currentMapNodeId
         ? currentFullState.mapData.nodes.find((n) => n.id === currentFullState.currentMapNodeId) ?? null
         : null;
 
       const detailedContextForFacts = formatDetailedContextForMentionedEntities(
-        themeMainMapNodes,
-        themeNPCs,
+        mapNodes,
+        npcs,
         `${currentFullState.currentScene} ${action}`,
         'Locations mentioned:',
         'NPCs mentioned:'
       );
 
-      const sortedFacts = [...currentFullState.themeFacts]
+      const sortedFacts = [...currentFullState.loreFacts]
         .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
         .map(f => ({ text: f.text, tier: f.tier }));
 
@@ -240,7 +240,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
       setLoadingReason('loremaster_collect');
       const collectResult = await collectRelevantFacts_Service({
-        themeName: themeObj.name,
+        themeName: activeTheme.name,
         facts: sortedFacts,
         lastScene: currentFullState.currentScene,
         playerAction: action,
@@ -259,10 +259,10 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           ? currentFullState.storyArc.acts[currentFullState.storyArc.currentAct - 1]?.mainObjective ?? null
           : null,
         currentFullState.currentObjective,
-        themeObj,
+        activeTheme,
         recentLogs,
-        themeMainMapNodes,
-        themeNPCs,
+        mapNodes,
+        npcs,
         relevantFacts,
         currentFullState.localTime,
         currentFullState.localEnvironment,
@@ -323,21 +323,21 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           prompt: promptUsed,
         };
 
-        const themeMapDataForParse = draftState.mapData;
+        const mapDataForParse = draftState.mapData;
 
         const parsedData = await parseAIResponse(
           response.text ?? '',
-          themeObj,
+          activeTheme,
           draftState.heroSheet,
           () => { setParseErrorCounter(1); },
           currentFullState.lastActionLog || undefined,
           currentFullState.currentScene,
-          themeNPCs,
-          themeMapDataForParse,
+          npcs,
+          mapDataForParse,
           currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
         );
 
-        await processAiResponse(parsedData, themeObj, draftState, {
+        await processAiResponse(parsedData, draftState, {
           baseStateSnapshot,
           onBeforeRefine: state => {
             commitGameState(state);

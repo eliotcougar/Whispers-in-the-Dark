@@ -1,7 +1,6 @@
 import { useCallback, useRef } from 'react';
 import * as React from 'react';
 import {
-  AdventureTheme,
   FullGameState,
   GameStateFromAI,
   GameStateStack,
@@ -17,7 +16,7 @@ import {
   addLogMessageToList,
   buildItemChangeRecords,
   applyAllItemChanges,
-  applyThemeFactChanges,
+  applyLoreFactChanges,
 } from '../utils/gameLogicUtils';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
@@ -37,7 +36,6 @@ import { filterDuplicateCreates } from '../utils/itemChangeUtils';
 interface CorrectItemChangesParams {
   aiItemChanges: Array<ItemChange>;
   aiData: GameStateFromAI;
-  theme: AdventureTheme | null;
   baseState: FullGameState;
   playerActionText?: string;
   loadingReason: LoadingReason | null;
@@ -47,12 +45,12 @@ interface CorrectItemChangesParams {
 const correctItemChanges = async ({
   aiItemChanges,
   aiData,
-  theme,
   baseState,
   playerActionText,
   loadingReason,
   setLoadingReason,
 }: CorrectItemChangesParams): Promise<Array<ItemChange>> => {
+  const theme = baseState.theme;
   if (!theme) return [...aiItemChanges];
 
   const result: Array<ItemChange> = [];
@@ -190,7 +188,6 @@ const correctItemChanges = async ({
 
 interface ApplyMapUpdatesParams {
   aiData: GameStateFromAI;
-  theme: AdventureTheme | null;
   draftState: FullGameState;
   baseState: FullGameState;
   turnChanges: TurnChanges;
@@ -198,33 +195,31 @@ interface ApplyMapUpdatesParams {
     aiData: GameStateFromAI,
     draftState: FullGameState,
     baseState: FullGameState,
-    theme: AdventureTheme,
     turnChanges: TurnChanges,
   ) => Promise<void>;
 }
 
 const applyMapUpdatesFromAi = async ({
   aiData,
-  theme,
   draftState,
   baseState,
   turnChanges,
   processMapUpdates,
 }: ApplyMapUpdatesParams) => {
+  const theme = draftState.theme;
   if (theme) {
     // Only run Cartographer when storyteller indicates map updates or
     // when the location changed.
     const shouldRunMap =
       aiData.mapUpdated === true || draftState.localPlace !== baseState.localPlace;
     if (shouldRunMap) {
-      await processMapUpdates(aiData, draftState, baseState, theme, turnChanges);
+      await processMapUpdates(aiData, draftState, baseState, turnChanges);
     }
   }
 };
 
 interface HandleInventoryHintsParams {
   aiData: GameStateFromAI;
-  theme: AdventureTheme | null;
   draftState: FullGameState;
   baseState: FullGameState;
   correctedItemChanges: Array<ItemChange>;
@@ -235,7 +230,6 @@ interface HandleInventoryHintsParams {
 
 const handleInventoryHints = async ({
   aiData,
-  theme,
   draftState,
   baseState,
   correctedItemChanges,
@@ -256,6 +250,7 @@ const handleInventoryHints = async ({
 
   let combinedItemChanges = [...correctedItemChanges];
 
+  const theme = draftState.theme;
   if (theme) {
     const original = loadingReason;
     setLoadingReason('inventory_updates');
@@ -383,7 +378,6 @@ export interface ProcessAiResponseOptions {
 
 export type ProcessAiResponseFn = (
   aiData: GameStateFromAI | null,
-  themeContextForResponse: AdventureTheme | null,
   draftState: FullGameState,
   options: ProcessAiResponseOptions,
 ) => Promise<void>;
@@ -428,13 +422,15 @@ export const useProcessAiResponse = ({
   }, []);
 
   const processAiResponse: ProcessAiResponseFn = useCallback(
-    async (aiData, themeContextForResponse, draftState, options) => {
+    async (aiData, draftState, options) => {
       const {
         baseStateSnapshot,
         isFromDialogueSummary = false,
         scoreChangeFromAction = 0,
         playerActionText,
       } = options;
+
+      const themeContextForResponse = draftState.theme;
 
       const turnChanges: TurnChanges = {
         itemChanges: [],
@@ -557,7 +553,6 @@ export const useProcessAiResponse = ({
       const correctedAndVerifiedItemChanges = await correctItemChanges({
         aiItemChanges: aiItemChangesFromParser,
         aiData,
-        theme: themeContextForResponse,
         baseState: baseStateSnapshot,
         playerActionText,
         loadingReason: loadingReasonRef.current,
@@ -569,9 +564,8 @@ export const useProcessAiResponse = ({
         aiData.mapUpdated === true || draftState.localPlace !== baseStateSnapshot.localPlace;
       if (shouldRunMap) {
         draftState.turnState = 'map_updates';
-        await applyMapUpdatesFromAi({
+       await applyMapUpdatesFromAi({
           aiData,
-          theme: themeContextForResponse,
           draftState,
           baseState: baseStateSnapshot,
           turnChanges,
@@ -592,7 +586,6 @@ export const useProcessAiResponse = ({
         if (hasInventoryHints) draftState.turnState = 'inventory_updates';
         const result = await handleInventoryHints({
           aiData,
-          theme: themeContextForResponse,
           draftState,
           baseState: baseStateSnapshot,
           correctedItemChanges: correctedAndVerifiedItemChanges,
@@ -732,7 +725,7 @@ export const useProcessAiResponse = ({
         const refineResult = await refineLore_Service({
           themeName: themeContextForResponse.name,
           turnContext: contextParts,
-          existingFacts: draftState.themeFacts,
+          existingFacts: draftState.loreFacts,
           logMessage: aiData.logMessage ?? '',
           currentScene: aiData.sceneDescription,
           onFactsExtracted: debugLore
@@ -757,7 +750,7 @@ export const useProcessAiResponse = ({
           draftState.lastDebugPacket.loremasterDebugInfo.integrate = refineResult?.debugInfo?.integrate ?? null;
         }
         if (refineResult?.refinementResult) {
-          applyThemeFactChanges(
+          applyLoreFactChanges(
             draftState,
             refineResult.refinementResult.factsChange,
             draftState.globalTurnNumber,

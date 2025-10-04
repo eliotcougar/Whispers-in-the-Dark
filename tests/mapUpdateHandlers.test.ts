@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type {
-  AdventureTheme,
   FullGameState,
   GameStateFromAI,
   TurnChanges,
@@ -45,12 +44,6 @@ vi.mock('../utils/mapNodeMatcher', () => ({
 const { handleMapUpdates } = await import('../utils/mapUpdateHandlers');
 
 type MutableGameState = FullGameState & { mapData: MapData };
-
-const createTheme = (): AdventureTheme => ({
-  name: 'Test Theme',
-  storyGuidance: 'Guidance',
-  playerJournalStyle: 'typed',
-});
 
 const makeNode = (id: string, placeName: string, visited = true): MapNode => ({
   id,
@@ -121,7 +114,7 @@ describe('handleMapUpdates', () => {
         holderId: 'node-old',
       },
     ];
-    baseState.themeFacts = [
+    baseState.loreFacts = [
       { id: 1, text: 'Fact', entities: ['node-old'], tier: 1, createdTurn: 0 },
     ];
 
@@ -139,13 +132,11 @@ describe('handleMapUpdates', () => {
     });
 
     const turnChanges = createTurnChanges();
-    const theme = createTheme();
 
     await handleMapUpdates(
       createAiPayload({ mapUpdated: true }),
       draftState,
       baseSnapshot,
-      theme,
       null,
       vi.fn(),
       turnChanges,
@@ -156,7 +147,7 @@ describe('handleMapUpdates', () => {
     expect(renamedNode.id).toBe('node-bright-plaza-abcd');
     expect(Array.isArray(renamedNode.data.aliases)).toBe(true);
     expect(draftState.inventory[0].holderId).toBe(renamedNode.id);
-    expect(draftState.themeFacts[0].entities).toContain(renamedNode.id);
+    expect(draftState.loreFacts[0].entities).toContain(renamedNode.id);
     expect(draftState.currentMapNodeId).toBeDefined();
     expect(turnChanges.mapDataChanged).toBe(true);
   });
@@ -189,13 +180,11 @@ describe('handleMapUpdates', () => {
     });
 
     const turnChanges = createTurnChanges();
-    const theme = createTheme();
 
     await handleMapUpdates(
       createAiPayload({ mapUpdated: true }),
       draftState,
       baseSnapshot,
-      theme,
       null,
       vi.fn(),
       turnChanges,

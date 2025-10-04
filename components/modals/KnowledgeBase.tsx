@@ -123,7 +123,7 @@ function KnowledgeBase({
 
           {isVisible ? (
             <section className="mb-8">
-              <h2 className="kb-theme-group-title">
+              <h2 className="kb-group-title">
                 NPCs
               </h2>
 

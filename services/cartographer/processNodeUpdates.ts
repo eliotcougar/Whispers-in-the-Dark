@@ -49,10 +49,10 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
         node.data.description = nodeUpdateOp.description;
       if (nodeUpdateOp.aliases !== undefined) {
         node.data.aliases = nodeUpdateOp.aliases;
-        for (const [k, v] of Array.from(ctx.themeNodeAliasMap.entries())) {
-          if (v.id === node.id) ctx.themeNodeAliasMap.delete(k);
+        for (const [k, v] of Array.from(ctx.nodeAliasMap.entries())) {
+          if (v.id === node.id) ctx.nodeAliasMap.delete(k);
         }
-        node.data.aliases.forEach(a => ctx.themeNodeAliasMap.set(a.toLowerCase(), node));
+        node.data.aliases.forEach(a => ctx.nodeAliasMap.set(a.toLowerCase(), node));
       }
       if (nodeUpdateOp.status !== undefined) node.data.status = nodeUpdateOp.status;
       node.data.parentNodeId = resolvedParentIdOnUpdate;
@@ -72,16 +72,16 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
             name: nodeUpdateOp.newPlaceName,
           };
         }
-        ctx.themeNodeNameMap.delete(node.placeName);
+        ctx.nodeNameMap.delete(node.placeName);
         const oldName = node.placeName;
         node.placeName = nodeUpdateOp.newPlaceName;
-        ctx.themeNodeNameMap.set(node.placeName, node);
+        ctx.nodeNameMap.set(node.placeName, node);
         node.data.aliases ??= [];
         if (!node.data.aliases.includes(oldName)) node.data.aliases.push(oldName);
-        for (const [k, v] of Array.from(ctx.themeNodeAliasMap.entries())) {
-          if (v.id === node.id) ctx.themeNodeAliasMap.delete(k);
+        for (const [k, v] of Array.from(ctx.nodeAliasMap.entries())) {
+          if (v.id === node.id) ctx.nodeAliasMap.delete(k);
         }
-        node.data.aliases.forEach(a => ctx.themeNodeAliasMap.set(a.toLowerCase(), node));
+        node.data.aliases.forEach(a => ctx.nodeAliasMap.set(a.toLowerCase(), node));
       }
     } else {
       console.warn(
@@ -116,20 +116,20 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
       const removedNodeId = node.id;
       const index = ctx.newMapData.nodes.findIndex(n => n.id === removedNodeId);
       if (index !== -1) ctx.newMapData.nodes.splice(index, 1);
-      ctx.themeNodeNameMap.delete(node.placeName);
-      ctx.themeNodeIdMap.delete(removedNodeId);
+      ctx.nodeNameMap.delete(node.placeName);
+      ctx.nodeIdMap.delete(removedNodeId);
       ctx.newMapData.edges = ctx.newMapData.edges.filter(
         edge => edge.sourceNodeId !== removedNodeId && edge.targetNodeId !== removedNodeId
       );
-      ctx.themeEdgesMap.forEach((edgesArr: Array<MapEdge>, nid: string) => {
-        ctx.themeEdgesMap.set(
+      ctx.edgesMap.forEach((edgesArr: Array<MapEdge>, nid: string) => {
+        ctx.edgesMap.set(
           nid,
           edgesArr.filter(e => e.sourceNodeId !== removedNodeId && e.targetNodeId !== removedNodeId)
         );
       });
-      ctx.themeEdgesMap.delete(removedNodeId);
-      for (const [k, v] of Array.from(ctx.themeNodeAliasMap.entries())) {
-        if (v.id === removedNodeId) ctx.themeNodeAliasMap.delete(k);
+      ctx.edgesMap.delete(removedNodeId);
+      for (const [k, v] of Array.from(ctx.nodeAliasMap.entries())) {
+        if (v.id === removedNodeId) ctx.nodeAliasMap.delete(k);
       }
       const batchKey = Object.keys(ctx.newNodesInBatchIdNameMap).find(
         k => ctx.newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.nodeName

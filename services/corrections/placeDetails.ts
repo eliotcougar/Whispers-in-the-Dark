@@ -362,8 +362,8 @@ export const fetchLikelyParentNode_Service = async (
     localPlace: string;
     theme: AdventureTheme;
     currentMapNodeId: string | null;
-    themeNodes: Array<MapNode>;
-    themeEdges: Array<MapEdge>;
+    mapNodes: Array<MapNode>;
+    mapEdges: Array<MapEdge>;
   },
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<string | null> => {
@@ -374,14 +374,14 @@ export const fetchLikelyParentNode_Service = async (
 
   const currentNode =
     context.currentMapNodeId &&
-    context.themeNodes.find(n => n.id === context.currentMapNodeId);
+    context.mapNodes.find(n => n.id === context.currentMapNodeId);
 
   const nodeMap = new Map<string, MapNode>();
-  context.themeNodes.forEach(n => nodeMap.set(n.id, n));
+  context.mapNodes.forEach(n => nodeMap.set(n.id, n));
 
   const adjacency = new Map<string, Set<string>>();
-  context.themeNodes.forEach(n => adjacency.set(n.id, new Set<string>()));
-  context.themeEdges.forEach(e => {
+  context.mapNodes.forEach(n => adjacency.set(n.id, new Set<string>()));
+  context.mapEdges.forEach(e => {
     if (!adjacency.has(e.sourceNodeId)) adjacency.set(e.sourceNodeId, new Set());
     if (!adjacency.has(e.targetNodeId)) adjacency.set(e.targetNodeId, new Set());
     const setA = adjacency.get(e.sourceNodeId);
@@ -393,12 +393,12 @@ export const fetchLikelyParentNode_Service = async (
   const proposedNodeType = (proposedNode.nodeType ?? 'feature') as MapNodeType;
   const proposedLevel = NODE_TYPE_LEVELS[proposedNodeType];
 
-  const nodeLines = context.themeNodes
+  const nodeLines = context.mapNodes
     .filter(n => NODE_TYPE_LEVELS[n.data.nodeType] < proposedLevel)
     .map(n => `- ${n.id} ("${n.placeName}")`)
     .join('\n');
 
-  const edgeLines = context.themeEdges
+  const edgeLines = context.mapEdges
     .map(e => `${e.id} ${e.sourceNodeId}->${e.targetNodeId}`)
     .join('\n');
 
@@ -446,7 +446,7 @@ Respond ONLY with the name or id of the best parent node, or "${ROOT_MAP_NODE_ID
 export const fetchCorrectedNodeIdentifier_Service = async (
   malformedIdentifier: string,
   context: {
-    themeNodes: Array<MapNode>;
+    mapNodes: Array<MapNode>;
     currentLocationId: string | null;
   },
   debugLog?: Array<MinimalModelCallRecord>,
@@ -456,7 +456,7 @@ export const fetchCorrectedNodeIdentifier_Service = async (
     return null;
   }
 
-  const nodeList = context.themeNodes.map(n => `- ${n.id} ("${n.placeName}")`).join('\n');
+  const nodeList = context.mapNodes.map(n => `- ${n.id} ("${n.placeName}")`).join('\n');
 
   const prompt = `A different AI referred to a map location using an incorrect identifier: "${malformedIdentifier}".
 Known map nodes in the current theme:\n${nodeList}\nChoose the most likely intended node ID from the list above. Respond with an empty string if none match.`;
@@ -477,9 +477,9 @@ Known map nodes in the current theme:\n${nodeList}\nChoose the most likely inten
       const resp = response.text?.trim();
       if (resp) {
         const cleaned = resp.trim();
-        const match = context.themeNodes.find(n => n.id === cleaned);
+        const match = context.mapNodes.find(n => n.id === cleaned);
         if (match) return { result: match.id };
-        const byName = context.themeNodes.find(n => n.placeName === cleaned);
+        const byName = context.mapNodes.find(n => n.placeName === cleaned);
         if (byName) return { result: byName.id };
       }
     } catch (error: unknown) {

@@ -14,8 +14,8 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       continue;
     }
 
-    const sourceNode = ctx.themeNodeIdMap.get(sourceNodeRef.id);
-    const targetNode = ctx.themeNodeIdMap.get(targetNodeRef.id);
+    const sourceNode = ctx.nodeIdMap.get(sourceNodeRef.id);
+    const targetNode = ctx.nodeIdMap.get(targetNodeRef.id);
     if (!sourceNode || !targetNode) {
       console.warn('MapUpdate: Failed to resolve edge nodes after lookup.');
       continue;
@@ -37,9 +37,9 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
         travelTime: edgeAddOp.travelTime,
         type: edgeAddOp.type,
       },
-      ctx.themeNodeIdMap,
+      ctx.nodeIdMap,
     );
-    if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.type, ctx.themeNodeIdMap)) {
+    if (!isEdgeConnectionAllowed(sourceNode, targetNode, edgeAddOp.type, ctx.nodeIdMap)) {
       ctx.pendingChainRequests.push(chainReq);
       continue;
     }
@@ -58,7 +58,7 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
             : 'open'),
       },
       ctx.newMapData.edges,
-      ctx.themeEdgesMap
+      ctx.edgesMap
     );
   }
 
@@ -73,18 +73,18 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
     }
     const sourceNodeId = sourceNodeRef.id;
     const targetNodeId = targetNodeRef.id;
-    const sourceNode = ctx.themeNodeIdMap.get(sourceNodeId);
-    const targetNode = ctx.themeNodeIdMap.get(targetNodeId);
+    const sourceNode = ctx.nodeIdMap.get(sourceNodeId);
+    const targetNode = ctx.nodeIdMap.get(targetNodeId);
     if (!sourceNode || !targetNode) continue;
 
-    const candidateEdges = (ctx.themeEdgesMap.get(sourceNodeId) ?? []).filter(
+    const candidateEdges = (ctx.edgesMap.get(sourceNodeId) ?? []).filter(
       e =>
         (e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId) ||
         (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)
     );
 
     const checkType = edgeUpdateOp.type ?? candidateEdges[0]?.data.type;
-    if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType, ctx.themeNodeIdMap)) {
+    if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType, ctx.nodeIdMap)) {
       console.warn(
         `MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`
       );
@@ -149,9 +149,9 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       continue;
     }
     ctx.newMapData.edges = ctx.newMapData.edges.filter(e => e !== edge);
-    const arr1 = ctx.themeEdgesMap.get(edge.sourceNodeId);
-    if (arr1) ctx.themeEdgesMap.set(edge.sourceNodeId, arr1.filter(e2 => e2 !== edge));
-    const arr2 = ctx.themeEdgesMap.get(edge.targetNodeId);
-    if (arr2) ctx.themeEdgesMap.set(edge.targetNodeId, arr2.filter(e2 => e2 !== edge));
+    const arr1 = ctx.edgesMap.get(edge.sourceNodeId);
+    if (arr1) ctx.edgesMap.set(edge.sourceNodeId, arr1.filter(e2 => e2 !== edge));
+    const arr2 = ctx.edgesMap.get(edge.targetNodeId);
+    if (arr2) ctx.edgesMap.set(edge.targetNodeId, arr2.filter(e2 => e2 !== edge));
   }
 }

@@ -214,7 +214,7 @@ export const fetchConnectorChains_Service = async (
     sceneDescription: string;
     logMessage: string | undefined;
     theme: AdventureTheme;
-    themeNodes: Array<MapNode>;
+    mapNodes: Array<MapNode>;
   },
 ): Promise<ConnectorChainsServiceResult> => {
   if (!isApiConfigured() || requests.length === 0)
@@ -267,7 +267,7 @@ export const fetchConnectorChains_Service = async (
     const nodeLines = Array.from(nodeMap.values())
       .map((p, i) => {
         const features =
-          context.themeNodes
+          context.mapNodes
             .filter(
               (n) =>
                 n.data.parentNodeId === p.id && n.data.nodeType === "feature",

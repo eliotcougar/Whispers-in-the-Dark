@@ -152,7 +152,7 @@ function MapNodeView({
     return (
       <div className="map-content-area">
         <p className="text-slate-500 italic">
-          No map data available for this theme yet.
+          No map data available.
         </p>
       </div>
     );

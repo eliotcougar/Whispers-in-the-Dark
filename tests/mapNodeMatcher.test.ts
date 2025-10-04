@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ROOT_MAP_NODE_ID } from '../constants';
 import { selectBestMatchingMapNode } from '../utils/mapNodeMatcher';
-import type { AdventureTheme, MapData, MapNode } from '../types';
-
-const theme: AdventureTheme = { name: 'TestTheme' } as AdventureTheme;
+import type { MapData, MapNode } from '../types';
 
 const nodes: Array<MapNode> = [
   {
@@ -34,21 +32,19 @@ const nodes: Array<MapNode> = [
 
 const mapData: MapData = { nodes, edges: [] };
 
-const themeNodes = nodes;
-
 describe('selectBestMatchingMapNode', () => {
   it('matches exact name', () => {
-    const result = selectBestMatchingMapNode('Utility Entrance', theme, mapData, themeNodes, null);
+    const result = selectBestMatchingMapNode('Utility Entrance', mapData, null);
     expect(result).toBe('node-feature');
   });
 
   it('matches alias', () => {
-    const result = selectBestMatchingMapNode('Utility Hatch', theme, mapData, themeNodes, null);
+    const result = selectBestMatchingMapNode('Utility Hatch', mapData, null);
     expect(result).toBe('node-feature');
   });
 
   it('prefers feature node when names tie', () => {
-    const result = selectBestMatchingMapNode('Narrow Passage', theme, mapData, themeNodes, null);
+    const result = selectBestMatchingMapNode('Narrow Passage', mapData, null);
     expect(result).toBe('node-alt-feature');
   });
 });

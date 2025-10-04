@@ -41,11 +41,20 @@ export function normalizeLoadedSaveData(
     );
   }
 
-  const candidateObj = { ...parsedObj } as Record<string, unknown> & { theme?: unknown; currentTheme?: unknown };
+  const candidateObj = { ...parsedObj } as Record<string, unknown> & {
+    theme?: unknown;
+    currentTheme?: unknown;
+    themeFacts?: unknown;
+    loreFacts?: unknown;
+  };
   if (candidateObj.theme === undefined && candidateObj.currentTheme !== undefined) {
     candidateObj.theme = candidateObj.currentTheme;
     delete candidateObj.currentTheme;
   }
+  if (candidateObj.loreFacts === undefined && Array.isArray(candidateObj.themeFacts)) {
+    candidateObj.loreFacts = candidateObj.themeFacts;
+  }
+  if ('themeFacts' in candidateObj) delete candidateObj.themeFacts;
   const candidate = candidateObj as SavedGameDataShape;
   ensureCompleteMapLayoutConfig(candidate);
   ensureCompleteMapNodeDataDefaults(candidate.mapData);
@@ -126,7 +135,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
       localEnvironment: gameState.localEnvironment,
       localPlace: gameState.localPlace,
     globalTurnNumber: gameState.globalTurnNumber,
-    themeFacts: gameState.themeFacts,
+    loreFacts: gameState.loreFacts,
     worldFacts: gameState.worldFacts,
     heroSheet: gameState.heroSheet,
     heroBackstory: gameState.heroBackstory,
@@ -171,7 +180,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     mapLayoutConfig: savedData.mapLayoutConfig,
     mapViewBox: savedData.mapViewBox,
     globalTurnNumber: savedData.globalTurnNumber,
-    themeFacts: savedData.themeFacts,
+    loreFacts: savedData.loreFacts,
     worldFacts: savedData.worldFacts,
     heroSheet: savedData.heroSheet,
     heroBackstory: savedData.heroBackstory,

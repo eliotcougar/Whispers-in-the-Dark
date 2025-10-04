@@ -68,13 +68,13 @@ Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
 
 ## Common Pitfalls
 - Skipping JSON helpers: always use `utils/jsonUtils` (e.g., `extractJsonFromFence`, `safeParseJson`) and validate against schemas before applying AI output.
-- Underscore IDs: all generated IDs use hyphens (e.g., `node-foo-1a2b`); do not introduce underscores.
+- ID suffixes: all generated IDs use hyphens (e.g., `node-foo-1a2b`); do not introduce underscores.
 - Prompt/code drift: when changing types or enums, update prompts and schemas in `services/*/systemPrompt.ts` and API wrappers.
 - Dialogue naming: use `heroShortName` in dialogue logs and prompts; avoid hardcoding “Player”.
 - Settings propagation: when adding settings, persist via `services/storage.ts` and include in hook dependency lists to avoid stale values.
 - Search noise: exclude `dist/`, `release/`, and `node_modules/` when grepping for references.
 - Act transitions: do NOT auto‑generate a new scene when switching acts; only show the New Act modal while background lore updates run.
-- Map integrity: ensure edges connect existing nodes within the theme; filter hidden/collapsed statuses in prompts.
+- Map integrity: ensure edges connect existing 'feature' nodes; filter hidden/collapsed statuses in prompts.
 - Performance: prefer `Set`/`Map` for membership checks in hot paths (e.g., NPC/name matching, node lookups).
 - Image safety: sanitize visual prompts; never pass raw user text directly to image models.
 

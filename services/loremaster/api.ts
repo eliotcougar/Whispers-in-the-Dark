@@ -22,7 +22,7 @@ import {
   parseCollectFactsResponse,
 } from './responseParser';
 import {
-  ThemeFact,
+  LoreFact,
   FactWithEntities,
   LoreRefinementResult,
   LoremasterRefineDebugInfo,
@@ -166,7 +166,7 @@ export const DISTILL_FACTS_JSON_SCHEMA = {
 export interface RefineLoreParams {
   themeName: string;
   turnContext: string;
-  existingFacts: Array<ThemeFact>;
+  existingFacts: Array<LoreFact>;
   logMessage: string;
   currentScene: string;
   worldFacts?: WorldFacts;
@@ -545,7 +545,7 @@ export const collectRelevantFacts_Service = async (
 
 export interface DistillFactsParams {
   themeName: string;
-  facts: Array<ThemeFact>;
+  facts: Array<LoreFact>;
   currentQuest: string | null;
   currentObjective: string | null;
   inventoryItemNames: Array<string>;

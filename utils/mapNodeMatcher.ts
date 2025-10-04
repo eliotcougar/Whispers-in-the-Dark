@@ -4,7 +4,7 @@
  * @description Utility functions for matching a local place description to the most relevant map node.
  */
 
-import { AdventureTheme, MapData, MapNode } from '../types'; // Removed Place
+import { MapData, MapNode } from '../types'; // Removed Place
 import { ROOT_MAP_NODE_ID } from '../constants';
 
 import {
@@ -269,7 +269,7 @@ interface ExactMatchCandidate {
  * @param source For logging purposes, indicates if suggestion is from 'mapAI' or 'mainAI'.
  * @param oldMapNodeIdIfAvailable The ID of the player's previous map node, used for tie-breaking. Can be null.
  * @param themeName The name of the active theme.
- * @param themeNodesFromDraft All MapNode objects for the current theme from the draft game state.
+ * @param nodesFromDraft All MapNode objects for the current theme from the draft game state.
  * @returns An object `{ matched: boolean, nodeId: string | null }`. 
  *          `matched` is true if a node was successfully matched, `nodeId` is its ID.
  */
@@ -278,7 +278,7 @@ export const attemptMatchAndSetNode = (
     source: 'mapAI' | 'mainAI',
     oldMapNodeIdIfAvailable: string | null,
     themeName: string,
-    themeNodesFromDraft: Array<MapNode>
+    nodesFromDraft: Array<MapNode>
   ): { matched: boolean; nodeId: string | null } => {
   
     if (!suggestedIdentifier || suggestedIdentifier.trim() === "") {
@@ -286,20 +286,20 @@ export const attemptMatchAndSetNode = (
       return { matched: false, nodeId: null };
     }
   
-    if (themeNodesFromDraft.length === 0) {
+    if (nodesFromDraft.length === 0) {
         console.log(`MapNodeMatcher (${source}): No nodes found for theme "${themeName}" in draft state.`);
         return { matched: false, nodeId: null };
     }
   
     // 1. Try to match by ID (exact match)
-    const foundNodeById = themeNodesFromDraft.find(n => n.id === suggestedIdentifier);
+    const foundNodeById = nodesFromDraft.find(n => n.id === suggestedIdentifier);
     if (foundNodeById) {
       console.log(`MapNodeMatcher (${source}): AI suggested node ID "${suggestedIdentifier}", matched to ID "${foundNodeById.id}".`);
       return { matched: true, nodeId: foundNodeById.id };
     }
 
     const lowerId = suggestedIdentifier.toLowerCase();
-    let partialIdMatch = themeNodesFromDraft.find(n => n.id.toLowerCase().includes(lowerId));
+    let partialIdMatch = nodesFromDraft.find(n => n.id.toLowerCase().includes(lowerId));
 
     const idPattern = /^(.*)-([a-zA-Z0-9]{4})$/;
     let extractedBase: string | null = null;
@@ -308,7 +308,7 @@ export const attemptMatchAndSetNode = (
       if (m) {
         const baseStr = m[1];
         extractedBase = baseStr;
-        partialIdMatch = themeNodesFromDraft.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
+        partialIdMatch = nodesFromDraft.find(n => n.id.toLowerCase().includes(baseStr.toLowerCase()));
       }
     }
 
@@ -319,7 +319,7 @@ export const attemptMatchAndSetNode = (
   
     // 2. Try to match by Name or Alias (case-insensitive)
     const lowerSuggestedIdentifier = suggestedIdentifier.toLowerCase();
-    const matchingNodesByNameOrAlias = themeNodesFromDraft.filter(n =>
+    const matchingNodesByNameOrAlias = nodesFromDraft.filter(n =>
       n.placeName.toLowerCase() === lowerSuggestedIdentifier ||
       (n.data.aliases?.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
     );
@@ -328,7 +328,7 @@ export const attemptMatchAndSetNode = (
       const baseForNames = extractedBase ?? suggestedIdentifier;
       const normalizedBase = baseForNames.replace(/_/g, ' ').toLowerCase();
       matchingNodesByNameOrAlias.push(
-        ...themeNodesFromDraft.filter(n =>
+        ...nodesFromDraft.filter(n =>
           n.placeName.toLowerCase() === normalizedBase ||
           (n.data.aliases?.some(a => a.toLowerCase() === normalizedBase)),
         ),
@@ -378,24 +378,19 @@ export const attemptMatchAndSetNode = (
  * from the description, preferring nodes that were previously nearby.
  *
  * @param localPlace - The freeform location string from the player.
- * @param theme - The current active theme object.
  * @param mapData - Complete map graph data.
- * @param allNodesForTheme - Nodes belonging to the current theme.
  * @param previousMapNodeId - ID of the player's previous map node if any.
  * @returns The best matching node ID or null when no suitable match is found.
  */
 export const selectBestMatchingMapNode = (
   localPlace: string | null,
-  theme: AdventureTheme | null,
   mapData: MapData, // Full map data
-  allNodesForTheme: Array<MapNode>, // Pre-filtered nodes for the current theme
   previousMapNodeId: string | null
 ): string | null => {
-  if (!localPlace || !theme || allNodesForTheme.length === 0) {
+  const nodes = mapData.nodes;
+  if (!localPlace || nodes.length === 0) {
     return null;
   }
-
-  const themeNodes = allNodesForTheme; // Use pre-filtered nodes
 
   const firstCommaIndex = localPlace.indexOf(',');
   const localPlaceForEarlyMatch = (firstCommaIndex !== -1 ? localPlace.substring(0, firstCommaIndex) : localPlace).trim();
@@ -405,7 +400,7 @@ export const selectBestMatchingMapNode = (
   const exactMatches = scoreExactMatchCandidates(
     normalizedLocalPlaceForEarlyMatch,
     tokenizedLocalPlaceString,
-    themeNodes,
+    nodes,
   );
 
   if (exactMatches.length > 0) {
@@ -430,7 +425,7 @@ export const selectBestMatchingMapNode = (
     });
   }
 
-  const nodesWithTokens: Array<NodeSemanticTokens> = themeNodes.map(n => ({
+  const nodesWithTokens: Array<NodeSemanticTokens> = nodes.map(n => ({
     node: n,
     nameTokenPairs: [n.placeName, ...(n.data.aliases ?? [])]
       .filter(name => name && name.trim() !== '')
@@ -441,13 +436,13 @@ export const selectBestMatchingMapNode = (
     const score = computeSemanticMatchScore(nodeInfo, extractedChunks, directNeighborIds);
     if (score > -1) {
       const candidate: Candidate = { nodeId: nodeInfo.node.id, score };
-      bestCandidate = applySemanticTieBreaker(bestCandidate, candidate, themeNodes);
+      bestCandidate = applySemanticTieBreaker(bestCandidate, candidate, nodes);
     }
   }
 
   let bestMatchNodeId = bestCandidate ? bestCandidate.nodeId : null;
   if (bestCandidate && bestCandidate.score > 0) {
-    bestMatchNodeId = selectFeatureChildIfMentioned(bestMatchNodeId, extractedChunks, themeNodes);
+    bestMatchNodeId = selectFeatureChildIfMentioned(bestMatchNodeId, extractedChunks, nodes);
   }
   return bestMatchNodeId;
 };

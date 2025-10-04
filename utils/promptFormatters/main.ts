@@ -132,7 +132,7 @@ export const formatDetailedContextForMentionedEntities = (
 
   let detailedContext = '';
   const formattedMentionedPlaces = formatKnownPlacesForPrompt(mentionedPlaces, true);
-  if (formattedMentionedPlaces && formattedMentionedPlaces !== 'None specifically known in this theme yet.') {
+  if (formattedMentionedPlaces && formattedMentionedPlaces !== 'None specifically known yet.') {
     detailedContext += `${placesPrefixIfAny}\n${formattedMentionedPlaces}\n`;
   }
   const mentionedNPCsSection = npcsToString(

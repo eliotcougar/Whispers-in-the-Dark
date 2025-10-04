@@ -5,7 +5,6 @@
 
 import {
   GameStateFromAI,
-  AdventureTheme,
   FullGameState,
   TurnChanges,
   MapNode,
@@ -36,11 +35,11 @@ export const handleMapUpdates = async (
   aiData: GameStateFromAI,
   draftState: FullGameState,
   baseStateSnapshot: FullGameState,
-  themeContextForResponse: AdventureTheme,
   loadingReason: LoadingReason | null,
   setLoadingReason: (reason: LoadingReason | null) => void,
   turnChanges: TurnChanges
 ): Promise<string | null | undefined> => {
+  const activeTheme = draftState.theme;
   let mapAISuggestedNodeIdentifier: string | null | undefined = undefined;
   let mapUpdateResult: MapUpdateServiceResult | null = null;
 
@@ -59,7 +58,7 @@ export const handleMapUpdates = async (
       mapUpdateResult = await updateMapFromAIData_Service(
         aiData,
         draftState.mapData,
-        themeContextForResponse,
+        activeTheme,
         knownMainMapNodesForTheme,
         baseStateSnapshot.currentMapNodeId,
         draftState.inventory,
@@ -88,7 +87,7 @@ export const handleMapUpdates = async (
       const suggestionResult = await suggestNodeFromLocationChange_Service(
         aiData,
         draftState.mapData,
-        themeContextForResponse,
+        activeTheme,
         prevNodeName,
         baseStateSnapshot.localPlace,
         draftState.localPlace,
@@ -139,7 +138,7 @@ export const handleMapUpdates = async (
                 added.placeName,
                 aiData.logMessage,
                 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
-                themeContextForResponse
+                activeTheme
               );
               setLoadingReason(originalLoadingReasonCorrection);
               if (placeDetails) {
@@ -158,7 +157,7 @@ export const handleMapUpdates = async (
 
       const renameResults = await assignSpecificNamesToDuplicateNodes_Service(
         draftState.mapData.nodes,
-        themeContextForResponse,
+        activeTheme,
         mapUpdateResult?.debugInfo?.minimalModelCalls,
       );
       if (renameResults.length > 0) {
@@ -186,7 +185,7 @@ export const handleMapUpdates = async (
           if (draftState.destinationNodeId === oldId) draftState.destinationNodeId = newId;
         }
         if (Object.keys(renameMap).length > 0) {
-          updateEntityIdsInFacts(draftState.themeFacts, renameMap);
+          updateEntityIdsInFacts(draftState.loreFacts, renameMap);
         }
         turnChanges.mapDataChanged = true;
       }
@@ -205,23 +204,21 @@ export const handleMapUpdates = async (
 
   const oldMapNodeId = baseStateSnapshot.currentMapNodeId;
   let finalChosenNodeId: string | null = oldMapNodeId;
-  const themeNodesFromDraftState = draftState.mapData.nodes;
+  const nodesFromDraftState = draftState.mapData.nodes;
 
   if (mapAISuggestedNodeIdentifier) {
-    const matchResult = attemptMatchAndSetNode(mapAISuggestedNodeIdentifier, 'mapAI', oldMapNodeId, themeContextForResponse.name, themeNodesFromDraftState);
+    const matchResult = attemptMatchAndSetNode(mapAISuggestedNodeIdentifier, 'mapAI', oldMapNodeId, activeTheme.name, nodesFromDraftState);
     if (matchResult.matched) finalChosenNodeId = matchResult.nodeId;
   }
   if (!mapAISuggestedNodeIdentifier && 'currentMapNodeId' in aiData && aiData.currentMapNodeId) {
-    const matchResult = attemptMatchAndSetNode(aiData.currentMapNodeId, 'mainAI', oldMapNodeId, themeContextForResponse.name, themeNodesFromDraftState);
+    const matchResult = attemptMatchAndSetNode(aiData.currentMapNodeId, 'mainAI', oldMapNodeId, activeTheme.name, nodesFromDraftState);
     if (matchResult.matched) finalChosenNodeId = matchResult.nodeId;
   }
   if (!mapAISuggestedNodeIdentifier && !('currentMapNodeId' in aiData && aiData.currentMapNodeId) && draftState.localPlace) {
     finalChosenNodeId =
       selectBestMatchingMapNode(
         draftState.localPlace,
-        themeContextForResponse,
         draftState.mapData,
-        themeNodesFromDraftState,
         oldMapNodeId
       ) ?? oldMapNodeId;
   }

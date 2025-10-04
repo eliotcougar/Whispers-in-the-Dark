@@ -10,7 +10,6 @@ import {
   FullGameState,
   DialogueSummaryContext,
   LoadingReason,
-  MapData,
   DialogueSummaryRecord,
   DialogueMemorySummaryContext,
   DialogueTurnDebugEntry,
@@ -85,7 +84,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     setError(null);
 
     const workingGameState = structuredCloneGameState(stateAtDialogueConclusionStart);
-    const themeObj = workingGameState.theme;
     const finalHistory = dialogueState.history;
     const finalParticipants = dialogueState.participants;
     // Enter dialogue memory creation phase in the FSM.
@@ -125,7 +123,6 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
     });
 
     setLoadingReason('dialogue_summary');
-    const mapDataForSummary: MapData = workingGameState.mapData;
     const act = isStoryArcValid(workingGameState.storyArc)
       ? workingGameState.storyArc.acts[
         workingGameState.storyArc.currentAct - 1
@@ -138,14 +135,14 @@ export const useDialogueSummary = (props: UseDialogueSummaryProps) => {
       localTime: workingGameState.localTime,
       localEnvironment: workingGameState.localEnvironment,
       localPlace: workingGameState.localPlace,
-      mapDataForTheme: mapDataForSummary,
-      knownNPCsInTheme: workingGameState.allNPCs,
+      mapDataSnapshot: workingGameState.mapData,
+      knownNPCs: workingGameState.allNPCs,
       inventory: workingGameState.inventory.filter(item => item.holderId === PLAYER_HOLDER_ID),
       dialogueLog: finalHistory,
       dialogueParticipants: finalParticipants,
       heroSheet: workingGameState.heroSheet,
-      themeName: themeObj.name,
-      theme: themeObj,
+      themeName: workingGameState.theme.name,
+      theme: workingGameState.theme,
       storyArc: workingGameState.storyArc,
     };
     const {

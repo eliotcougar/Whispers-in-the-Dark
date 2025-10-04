@@ -16,7 +16,7 @@ import {
   MapLayoutConfig,
   MapNodeData,
   DialogueSummaryRecord,
-  ThemeFact,
+  LoreFact,
   WorldFacts,
   HeroSheet,
   HeroBackstory,
@@ -110,9 +110,9 @@ export function isValidItemForSave(item: unknown): item is Item {
 }
 
 
-export function isValidThemeFact(fact: unknown): fact is ThemeFact {
+export function isValidLoreFact(fact: unknown): fact is LoreFact {
   if (!fact || typeof fact !== 'object') return false;
-  const maybe = fact as Partial<ThemeFact>;
+  const maybe = fact as Partial<LoreFact>;
   return (
     typeof maybe.id === 'number' &&
     typeof maybe.text === 'string' &&
@@ -309,7 +309,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
 
   const fields: Array<keyof SavedGameDataShape> = [
     'theme', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
-    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'themeFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
+    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'loreFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
     'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score',
     'localTime', 'localEnvironment', 'localPlace',
     'globalTurnNumber'
@@ -320,7 +320,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
         'currentObjective',
         'currentMapNodeId',
         'destinationNodeId',
-        'themeFacts',
+        'loreFacts',
         'worldFacts',
         'heroSheet',
         'heroBackstory',
@@ -328,7 +328,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
       if (
         !(nullableFields.includes(field) && obj[field] === null) &&
         field !== 'globalTurnNumber' &&
-        field !== 'themeFacts' &&
+        field !== 'loreFacts' &&
         field !== 'worldFacts' &&
         field !== 'heroSheet' &&
         field !== 'heroBackstory'
@@ -363,12 +363,12 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
   if (typeof obj.lastLoreDistillTurn !== 'number') { console.warn('Invalid save data (V3): lastLoreDistillTurn type.'); return false; }
   if (!Array.isArray(obj.gameLog) || !obj.gameLog.every((msg: unknown) => typeof msg === 'string')) { console.warn('Invalid save data (V3): gameLog.'); return false; }
   if (typeof obj.lastActionLog !== 'string') { console.warn('Invalid save data (V3): lastActionLog type.'); return false; }
-  if (obj.themeFacts !== undefined && !Array.isArray(obj.themeFacts)) {
-    console.warn('Invalid save data (V5): themeFacts type.');
+  if (obj.loreFacts !== undefined && !Array.isArray(obj.loreFacts)) {
+    console.warn('Invalid save data (V5): loreFacts type.');
     return false;
   }
-  if (Array.isArray(obj.themeFacts) && !obj.themeFacts.every(isValidThemeFact)) {
-    console.warn('Invalid save data (V5): themeFacts structure.');
+  if (Array.isArray(obj.loreFacts) && !obj.loreFacts.every(isValidLoreFact)) {
+    console.warn('Invalid save data (V5): loreFacts structure.');
     return false;
   }
   if (obj.worldFacts && !isValidWorldFacts(obj.worldFacts)) {
@@ -492,8 +492,8 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
     } as NPC;
   });
   cast.mapViewBox = typeof cast.mapViewBox === 'string' ? cast.mapViewBox : DEFAULT_VIEWBOX;
-  if (!Array.isArray(cast.themeFacts)) {
-    cast.themeFacts = [];
+  if (!Array.isArray(cast.loreFacts)) {
+    cast.loreFacts = [];
   }
   if (!cast.worldFacts || !isValidWorldFacts(cast.worldFacts)) {
     cast.worldFacts = createDefaultWorldFacts();

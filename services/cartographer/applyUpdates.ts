@@ -65,29 +65,29 @@ export const applyMapUpdates = async ({
       ? aiData.currentMapNodeId
       : previousMapNodeId;
 
-  const themeNodesFromMapData = currentMapData.nodes;
-  const themeNodeIdsSet = new Set(themeNodesFromMapData.map(n => n.id));
-  const themeEdgesFromMapData = currentMapData.edges.filter(e =>
-    themeNodeIdsSet.has(e.sourceNodeId) &&
-    themeNodeIdsSet.has(e.targetNodeId),
+  const nodesFromMapData = currentMapData.nodes;
+  const nodeIdsSet = new Set(nodesFromMapData.map(n => n.id));
+  const edgesFromMapData = currentMapData.edges.filter(e =>
+    nodeIdsSet.has(e.sourceNodeId) &&
+    nodeIdsSet.has(e.targetNodeId),
   );
-  const themeNodeIdMap = new Map<string, MapNode>();
-  const themeNodeNameMap = new Map<string, MapNode>();
-  const themeNodeAliasMap = new Map<string, MapNode>();
-  const themeEdgesMap = new Map<string, Array<MapEdge>>();
-  themeNodesFromMapData.forEach(n => {
-    themeNodeIdMap.set(n.id, n);
-    themeNodeNameMap.set(n.placeName, n);
+  const nodeIdMap = new Map<string, MapNode>();
+  const nodeNameMap = new Map<string, MapNode>();
+  const nodeAliasMap = new Map<string, MapNode>();
+  const edgesMap = new Map<string, Array<MapEdge>>();
+  nodesFromMapData.forEach(n => {
+    nodeIdMap.set(n.id, n);
+    nodeNameMap.set(n.placeName, n);
     if (n.data.aliases) {
-      n.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), n));
+      n.data.aliases.forEach(a => nodeAliasMap.set(a.toLowerCase(), n));
     }
   });
-  themeEdgesFromMapData.forEach(e => {
-    if (!themeEdgesMap.has(e.sourceNodeId)) themeEdgesMap.set(e.sourceNodeId, []);
-    if (!themeEdgesMap.has(e.targetNodeId)) themeEdgesMap.set(e.targetNodeId, []);
-    const arr1 = themeEdgesMap.get(e.sourceNodeId);
+  edgesFromMapData.forEach(e => {
+    if (!edgesMap.has(e.sourceNodeId)) edgesMap.set(e.sourceNodeId, []);
+    if (!edgesMap.has(e.targetNodeId)) edgesMap.set(e.targetNodeId, []);
+    const arr1 = edgesMap.get(e.sourceNodeId);
     if (arr1) arr1.push(e);
-    const arr2 = themeEdgesMap.get(e.targetNodeId);
+    const arr2 = edgesMap.get(e.targetNodeId);
     if (arr2) arr2.push(e);
   });
 
@@ -119,7 +119,7 @@ export const applyMapUpdates = async ({
       const corrected = await fetchCorrectedNodeIdentifier_Service(
         identifier,
         {
-          themeNodes: newMapData.nodes,
+          mapNodes: newMapData.nodes,
           currentLocationId: referenceMapNodeId,
         },
         minimalModelCalls,
@@ -185,22 +185,22 @@ export const applyMapUpdates = async ({
   const edgesToRemove_mut: NonNullable<AIMapUpdatePayload['edgesToRemove']> = [];
 
   // Refresh lookup maps for the cloned map data
-  themeNodeIdMap.clear();
-  themeNodeNameMap.clear();
-  themeNodeAliasMap.clear();
-  themeEdgesMap.clear();
+  nodeIdMap.clear();
+  nodeNameMap.clear();
+  nodeAliasMap.clear();
+  edgesMap.clear();
   newMapData.nodes.forEach(n => {
-      themeNodeIdMap.set(n.id, n);
-      themeNodeNameMap.set(n.placeName, n);
-      if (n.data.aliases) n.data.aliases.forEach(a => themeNodeAliasMap.set(a.toLowerCase(), n));
+      nodeIdMap.set(n.id, n);
+      nodeNameMap.set(n.placeName, n);
+      if (n.data.aliases) n.data.aliases.forEach(a => nodeAliasMap.set(a.toLowerCase(), n));
     });
   newMapData.edges.forEach(e => {
-    if (themeNodeIdMap.has(e.sourceNodeId) && themeNodeIdMap.has(e.targetNodeId)) {
-      if (!themeEdgesMap.has(e.sourceNodeId)) themeEdgesMap.set(e.sourceNodeId, []);
-      if (!themeEdgesMap.has(e.targetNodeId)) themeEdgesMap.set(e.targetNodeId, []);
-      const arr1 = themeEdgesMap.get(e.sourceNodeId);
+    if (nodeIdMap.has(e.sourceNodeId) && nodeIdMap.has(e.targetNodeId)) {
+      if (!edgesMap.has(e.sourceNodeId)) edgesMap.set(e.sourceNodeId, []);
+      if (!edgesMap.has(e.targetNodeId)) edgesMap.set(e.targetNodeId, []);
+      const arr1 = edgesMap.get(e.sourceNodeId);
       if (arr1) arr1.push(e);
-      const arr2 = themeEdgesMap.get(e.targetNodeId);
+      const arr2 = edgesMap.get(e.targetNodeId);
       if (arr2) arr2.push(e);
     }
   });
@@ -211,12 +211,12 @@ export const applyMapUpdates = async ({
     newMapData,
     theme,
     referenceMapNodeId,
-    themeNodesFromMapData,
-    themeEdgesFromMapData,
-    themeNodeIdMap,
-    themeNodeNameMap,
-    themeNodeAliasMap,
-    themeEdgesMap,
+    nodesFromMapData,
+    edgesFromMapData,
+    nodeIdMap,
+    nodeNameMap,
+    nodeAliasMap,
+    edgesMap,
     newNodesInBatchIdNameMap,
     newlyAddedNodes,
     newlyAddedEdges,
@@ -243,14 +243,14 @@ export const applyMapUpdates = async ({
 
   await processEdgeUpdates(ctx);
 
-  ctx.newMapData.edges = pruneInvalidEdges(ctx.newMapData.edges, ctx.themeNodeIdMap);
-  ctx.themeEdgesMap.clear();
+  ctx.newMapData.edges = pruneInvalidEdges(ctx.newMapData.edges, ctx.nodeIdMap);
+  ctx.edgesMap.clear();
   ctx.newMapData.edges.forEach(e => {
-    if (!ctx.themeEdgesMap.has(e.sourceNodeId)) ctx.themeEdgesMap.set(e.sourceNodeId, []);
-    if (!ctx.themeEdgesMap.has(e.targetNodeId)) ctx.themeEdgesMap.set(e.targetNodeId, []);
-    const arr1 = ctx.themeEdgesMap.get(e.sourceNodeId);
+    if (!ctx.edgesMap.has(e.sourceNodeId)) ctx.edgesMap.set(e.sourceNodeId, []);
+    if (!ctx.edgesMap.has(e.targetNodeId)) ctx.edgesMap.set(e.targetNodeId, []);
+    const arr1 = ctx.edgesMap.get(e.sourceNodeId);
     if (arr1) arr1.push(e);
-    const arr2 = ctx.themeEdgesMap.get(e.targetNodeId);
+    const arr2 = ctx.edgesMap.get(e.targetNodeId);
     if (arr2) arr2.push(e);
   });
 
@@ -271,20 +271,20 @@ export const applyMapUpdates = async ({
     const removedId = node.id;
     const idx = ctx.newMapData.nodes.findIndex(n => n.id === removedId);
     if (idx !== -1) ctx.newMapData.nodes.splice(idx, 1);
-    ctx.themeNodeNameMap.delete(node.placeName);
-    ctx.themeNodeIdMap.delete(removedId);
+    ctx.nodeNameMap.delete(node.placeName);
+    ctx.nodeIdMap.delete(removedId);
     ctx.newMapData.edges = ctx.newMapData.edges.filter(
       e => e.sourceNodeId !== removedId && e.targetNodeId !== removedId,
     );
-    ctx.themeEdgesMap.forEach((arr, nid) => {
-      ctx.themeEdgesMap.set(
+    ctx.edgesMap.forEach((arr, nid) => {
+      ctx.edgesMap.set(
         nid,
         arr.filter(e => e.sourceNodeId !== removedId && e.targetNodeId !== removedId),
       );
     });
-    ctx.themeEdgesMap.delete(removedId);
-    for (const [k, v] of Array.from(ctx.themeNodeAliasMap.entries())) {
-      if (v.id === removedId) ctx.themeNodeAliasMap.delete(k);
+    ctx.edgesMap.delete(removedId);
+    for (const [k, v] of Array.from(ctx.nodeAliasMap.entries())) {
+      if (v.id === removedId) ctx.nodeAliasMap.delete(k);
     }
     const batchKey = Object.keys(ctx.newNodesInBatchIdNameMap).find(
       k => ctx.newNodesInBatchIdNameMap[k].id === removedId || k === node.placeName,
@@ -327,14 +327,14 @@ export const applyMapUpdates = async ({
   });
   inventoryItems.splice(0, inventoryItems.length, ...filteredInventory);
 
-  ctx.newMapData.edges = pruneInvalidEdges(ctx.newMapData.edges, ctx.themeNodeIdMap);
-  ctx.themeEdgesMap.clear();
+  ctx.newMapData.edges = pruneInvalidEdges(ctx.newMapData.edges, ctx.nodeIdMap);
+  ctx.edgesMap.clear();
   ctx.newMapData.edges.forEach(e => {
-    if (!ctx.themeEdgesMap.has(e.sourceNodeId)) ctx.themeEdgesMap.set(e.sourceNodeId, []);
-    if (!ctx.themeEdgesMap.has(e.targetNodeId)) ctx.themeEdgesMap.set(e.targetNodeId, []);
-    const arr1 = ctx.themeEdgesMap.get(e.sourceNodeId);
+    if (!ctx.edgesMap.has(e.sourceNodeId)) ctx.edgesMap.set(e.sourceNodeId, []);
+    if (!ctx.edgesMap.has(e.targetNodeId)) ctx.edgesMap.set(e.targetNodeId, []);
+    const arr1 = ctx.edgesMap.get(e.sourceNodeId);
     if (arr1) arr1.push(e);
-    const arr2 = ctx.themeEdgesMap.get(e.targetNodeId);
+    const arr2 = ctx.edgesMap.get(e.targetNodeId);
     if (arr2) arr2.push(e);
   });
 

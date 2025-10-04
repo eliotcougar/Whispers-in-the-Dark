@@ -3,7 +3,7 @@
  * @description Helpers for resolving map hierarchy issues.
  */
 
-import { AdventureTheme, MapNode, MinimalModelCallRecord } from '../../types';
+import { MapNode, MinimalModelCallRecord } from '../../types';
 import {
   MAX_RETRIES,
   MINIMAL_MODEL_NAME,
@@ -20,7 +20,6 @@ import { isApiConfigured } from '../geminiClient';
 export const decideFeatureHierarchyUpgrade_Service = async (
   parentFeature: MapNode,
   childNode: MapNode,
-  theme: AdventureTheme,
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<'convert_child' | 'upgrade_parent' | null> => {
   if (!isApiConfigured()) {

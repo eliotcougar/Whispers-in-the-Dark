@@ -5,7 +5,6 @@
  */
 
 import {
-  AdventureTheme,
   MapData,
   MapNode,
   MapEdge,
@@ -248,7 +247,7 @@ export const formatKnownPlacesForPrompt = (
     node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
   );
   if (mainNodes.length === 0) {
-    return 'None specifically known in this theme yet.';
+    return 'None specifically known yet.';
   }
   if (detailed) {
     return (
@@ -308,12 +307,12 @@ const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
  */
 const getFormattedConnectionsForNode = (
   perspectiveNode: MapNode,
-  allThemeNodes: Array<MapNode>,
-  allThemeEdges: Array<MapEdge>,
+  allNodes: Array<MapNode>,
+  allEdges: Array<MapEdge>,
   excludeTargetId: string | null,
   processedTargets: Set<string>
 ): Array<string> => {
-  const connectedEdges = allThemeEdges.filter(
+  const connectedEdges = allEdges.filter(
     edge => edge.sourceNodeId === perspectiveNode.id || edge.targetNodeId === perspectiveNode.id
   );
 
@@ -351,7 +350,7 @@ const getFormattedConnectionsForNode = (
       return scoreB - scoreA;
     });
     const bestEdge = validCandidateEdges[0];
-    const otherNode = allThemeNodes.find(node => node.id === targetNodeId);
+    const otherNode = allNodes.find(node => node.id === targetNodeId);
     if (!otherNode) continue;
 
     const pathString = formatConnectionToNode(bestEdge, otherNode);
@@ -454,16 +453,15 @@ export const formatLimitedMapContextForPrompt = (
  */
 export const formatMapContextForPrompt = (
   mapData: MapData,
-  currentMapNodeId: string | null,
-  theme: AdventureTheme | null,
-  allNodesForTheme: Array<MapNode>,
-  allEdgesForTheme: Array<MapEdge>
+  currentMapNodeId: string | null
 ): string => {
-  if (!currentMapNodeId || !theme) {
+  const allNodes = mapData.nodes;
+  const allEdges = mapData.edges;
+  if (!currentMapNodeId) {
     return "Player's precise map location is currently unknown or they are between known locations.";
   }
 
-  const currentNode = allNodesForTheme.find(node => node.id === currentMapNodeId);
+  const currentNode = allNodes.find(node => node.id === currentMapNodeId);
   if (!currentNode) {
     return '';
   }
@@ -475,7 +473,7 @@ export const formatMapContextForPrompt = (
 
   const parentNodeForCurrent =
     currentNode.data.nodeType === 'feature' && currentNode.data.parentNodeId && currentNode.data.parentNodeId !== ROOT_MAP_NODE_ID
-      ? allNodesForTheme.find(n => n.id === currentNode.data.parentNodeId)
+      ? allNodes.find(n => n.id === currentNode.data.parentNodeId)
       : null;
 
   if (parentNodeForCurrent) {
@@ -493,20 +491,20 @@ export const formatMapContextForPrompt = (
       : currentNode.id;
   let exitsContext = '';
   if (areaMainNodeId) {
-    const areaMainNode = allNodesForTheme.find(node => node.id === areaMainNodeId);
+    const areaMainNode = allNodes.find(node => node.id === areaMainNodeId);
     if (areaMainNode && !(areaMainNode.data.nodeType === 'feature')) {
-      const exitFeatureNodesInCurrentArea = allNodesForTheme.filter(
+      const exitFeatureNodesInCurrentArea = allNodes.filter(
         node => node.data.nodeType === "feature" && node.data.parentNodeId === areaMainNode.id
       );
       const exitStrings: Array<string> = [];
       if (exitFeatureNodesInCurrentArea.length > 0) {
         for (const exitFeature of exitFeatureNodesInCurrentArea) {
           if (exitFeature.id === currentNode.id) continue;
-          for (const edge of allEdgesForTheme) {
+          for (const edge of allEdges) {
             if (edge.sourceNodeId !== exitFeature.id && edge.targetNodeId !== exitFeature.id) continue;
             if (edge.data.status && NON_DISPLAYABLE_EDGE_STATUSES.includes(edge.data.status)) continue;
             const otherEndNodeId = edge.sourceNodeId === exitFeature.id ? edge.targetNodeId : edge.sourceNodeId;
-            const entryFeature = allNodesForTheme.find(node => node.id === otherEndNodeId);
+            const entryFeature = allNodes.find(node => node.id === otherEndNodeId);
             if (
               entryFeature &&
               entryFeature.data.nodeType === 'feature' &&
@@ -514,7 +512,7 @@ export const formatMapContextForPrompt = (
               entryFeature.data.parentNodeId !== areaMainNode.id &&
               entryFeature.data.parentNodeId !== ROOT_MAP_NODE_ID
             ) {
-              const otherAreaMainNode = allNodesForTheme.find(
+              const otherAreaMainNode = allNodes.find(
                 node => node.id === entryFeature.data.parentNodeId && !(node.data.nodeType === "feature")
               );
               if (otherAreaMainNode) {
@@ -553,8 +551,8 @@ No mapped exits from the current main area ("${areaMainNode.placeName}") to othe
       : null;
   const pathsFromCurrentNode = getFormattedConnectionsForNode(
     currentNode,
-    allNodesForTheme,
-    allEdgesForTheme,
+    allNodes,
+    allEdges,
     excludeForCurrentNode,
     processedTargets
   );
@@ -562,8 +560,8 @@ No mapped exits from the current main area ("${areaMainNode.placeName}") to othe
   const pathsFromParentNode = parentNodeForCurrent
     ? getFormattedConnectionsForNode(
         parentNodeForCurrent,
-        allNodesForTheme,
-        allEdgesForTheme,
+        allNodes,
+        allEdges,
         currentNode.id,
         processedTargets
       )
@@ -581,10 +579,10 @@ ${pathsFromParentNode.join('\n')}`;
   }
   context += '\n';
 
-  const nearbyNodeIds = getNearbyNodeIds(currentNode.id, 2, allNodesForTheme, allEdgesForTheme);
+  const nearbyNodeIds = getNearbyNodeIds(currentNode.id, 2, allNodes, allEdges);
   if (nearbyNodeIds.size > 0) {
     const nearbyNodeNames = Array.from(nearbyNodeIds)
-      .map(id => allNodesForTheme.find(n => n.id === id)?.placeName)
+      .map(id => allNodes.find(n => n.id === id)?.placeName)
       .filter(name => !!name)
       .map(name => `"${String(name)}"`);
     if (nearbyNodeNames.length > 0) {

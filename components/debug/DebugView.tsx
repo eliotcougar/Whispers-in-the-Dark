@@ -168,7 +168,7 @@ function DebugView({
       case 'Lore':
         return (
           <LoreTab
-            themeFacts={currentState.themeFacts}
+            loreFacts={currentState.loreFacts}
           />
         );
       case 'GameLog':

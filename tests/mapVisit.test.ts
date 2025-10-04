@@ -2,10 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { handleMapUpdates } from '../utils/mapUpdateHandlers.ts';
 import { structuredCloneGameState } from '../utils/cloneUtils.ts';
 import { getInitialGameStates } from '../utils/initialStates';
-import type { AdventureTheme, FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig } from '../types';
+import type { FullGameState, GameStateFromAI, MapData, TurnChanges, MapLayoutConfig } from '../types';
 import { ROOT_MAP_NODE_ID } from '../constants';
-
-const theme: AdventureTheme = { name: 'Kaiju Defense Force' } as AdventureTheme;
 
 const mapData: MapData = {
   nodes: [
@@ -54,7 +52,6 @@ const mapData: MapData = {
 const baseState: FullGameState = {
   ...getInitialGameStates(),
   saveGameVersion: '9',
-  theme: theme,
   currentScene: '',
   actionOptions: [],
   currentObjective: null,
@@ -94,7 +91,7 @@ const turnChanges: TurnChanges = {
   scoreChangedBy: 0
 };
 
-await handleMapUpdates(aiData, draftState, baseState, theme, null, () => undefined, turnChanges);
+    await handleMapUpdates(aiData, draftState, baseState, null, () => undefined, turnChanges);
 
 const updatedMaybe = draftState.mapData.nodes.find(n => n.id === 'node-rim-test');
 if (!updatedMaybe) throw new Error('node-rim-test not found');
@@ -110,7 +107,7 @@ const aiData2 = {
   currentMapNodeId: 'node-utility-entrance-test'
 } as Partial<GameStateFromAI> as GameStateFromAI;
 
-await handleMapUpdates(aiData2, draftState, baseState, theme, null, () => undefined, turnChanges);
+    await handleMapUpdates(aiData2, draftState, baseState, null, () => undefined, turnChanges);
 
 const updated2Maybe = draftState.mapData.nodes.find(n => n.id === 'node-utility-entrance-test');
 const updated3Maybe = draftState.mapData.edges.find(n => n.id === 'edge-node-rim-test-to-node-utility-entrance-test-test');
@@ -143,7 +140,7 @@ const aiData3 = {
   currentMapNodeId: 'Yellow Door'
 } as Partial<GameStateFromAI> as GameStateFromAI;
 
-await handleMapUpdates(aiData3, draftState, baseState, theme, null, () => undefined, turnChanges);
+    await handleMapUpdates(aiData3, draftState, baseState, null, () => undefined, turnChanges);
 
 const updated6Maybe = draftState.mapData.nodes.find(n => n.id === 'node-main-entrance-test');
 if (!updated6Maybe) throw new Error('node-main-entrance-test not found');

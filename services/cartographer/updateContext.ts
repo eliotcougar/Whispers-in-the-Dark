@@ -15,12 +15,12 @@ export interface ApplyUpdatesContext {
   newMapData: MapData;
   theme: AdventureTheme;
   referenceMapNodeId: string | null;
-  themeNodesFromMapData: Array<MapNode>;
-  themeEdgesFromMapData: Array<MapEdge>;
-  themeNodeIdMap: Map<string, MapNode>;
-  themeNodeNameMap: Map<string, MapNode>;
-  themeNodeAliasMap: Map<string, MapNode>;
-  themeEdgesMap: Map<string, Array<MapEdge>>;
+  nodesFromMapData: Array<MapNode>;
+  edgesFromMapData: Array<MapEdge>;
+  nodeIdMap: Map<string, MapNode>;
+  nodeNameMap: Map<string, MapNode>;
+  nodeAliasMap: Map<string, MapNode>;
+  edgesMap: Map<string, Array<MapEdge>>;
   newNodesInBatchIdNameMap: Record<string, { id: string; name: string }>;
   newlyAddedNodes: Array<MapNode>;
   newlyAddedEdges: Array<MapEdge>;

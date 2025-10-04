@@ -14,7 +14,7 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
 *   **Responsibilities:**
     *   Rendering the game state (scene descriptions, inventory, quests, logs, map, etc.).
     *   Capturing player input (action selections, item interactions, custom text, dialogue choices).
-    *   Displaying modals for various features (Image Visualizer, Knowledge Base, Settings, Info, Theme Memory, Map Display, Debug View, Title Menu, Dialogue).
+    *   Displaying modals for various features (Image Visualizer, Knowledge Base, Settings, Info, Memories, Map Display, Debug View, Title Menu, Dialogue).
 *   **Key Components:**
     *   `App.tsx`: The root component, orchestrating the overall UI and integrating the `useGameLogic` hook.
     *   `SceneDisplay.tsx`: Renders the main narrative, quest, objective, and local context, using `MapNode` data for highlighting locations.
@@ -22,7 +22,7 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   `InventoryDisplay.tsx`: Manages the player's inventory, item interactions, and junk discarding. Items dropped are not removed; their `holderId` is set to the current map node so they remain in the world.
     *   `GameLogDisplay.tsx`: Shows a history of game events.
     *   `DialogueDisplay.tsx`: Handles the UI for conversations with NPCs, using `MapNode` data for highlighting.
-    *   `MapDisplay.tsx`: Visualizes the `MapData` for the current theme. Includes pan/zoom interactions and exposes layout tuning via `MapControls`.
+    *   `MapDisplay.tsx`: Visualizes the `MapData`. Includes pan/zoom interactions and exposes layout tuning via `MapControls`.
     *   `MapNodeView.tsx`: Renders individual nodes within the map SVG.
     *   `ItemChangeAnimator.tsx`: Animates inventory changes using `useItemChangeQueue`.
     *   Modal Components (`ImageVisualizer.tsx`, `KnowledgeBase.tsx`, `SettingsDisplay.tsx`, `InfoDisplay.tsx`, `PageView.tsx`, `DebugView.tsx`, `TitleMenu.tsx`): Provide focused views for specific functionalities. The `KnowledgeBase` primarily focuses on NPCs currently.
@@ -33,14 +33,14 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
 
 *   **Location:** `hooks/useGameLogic.ts`
 *   **Responsibilities:**
-    *   Manages the core game state using a stack of `FullGameState` objects. This stack holds snapshots of the narrative world state (current theme name, scene, inventory, quests, objectives, player score, local time/environment/place, `dialogueState` object, `mapData` object for all map nodes and edges, `currentMapNodeId`, etc.).
+    *   Manages the core game state using a stack of `FullGameState` objects. This stack holds snapshots of the narrative world state (current adventure name, scene, inventory, quests, objectives, player score, local time/environment/place, `dialogueState` object, `mapData` object for all map nodes and edges, `currentMapNodeId`, etc.).
     *   Handles player actions by constructing prompts for the AI based on the current game state.
     *   Orchestrates calls to AI services (main game turn, dialogue turns, summarization, corrections, map updates).
     *   Processes AI responses: parses JSON, validates data, and constructs a new `FullGameState`.
         *   If the storyteller AI's response includes `mapUpdated: true` or if `localPlace` changes significantly, it triggers the cartographer service.
         *   Applies the `AIMapUpdatePayload` returned by the cartographer service to `FullGameState.mapData`.
         *   If the cartographer service indicates a new main map node was added without full details, `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to complete its data.
-    *   Manages theme selection and dialogue mode.
+    *   Manages adventure theme selection and dialogue mode.
     *   Provides undo functionality by swapping the two-element `GameStateStack`.
     *   Determines `currentMapNodeId` based on AI suggestions or by using `selectBestMatchingMapNode`, which operates on `MapNode[]`.
     *   Delegates to sub hooks: `usePlayerActions`, `useDialogueFlow`, `useMapUpdates`, and `useGameInitialization`.
@@ -128,7 +128,7 @@ This layer abstracts external interactions and complex data processing.
     *   `services/cartographer/systemPrompt.ts`: Defines `MAP_UPDATE_SYSTEM_INSTRUCTION` (exported as `SYSTEM_INSTRUCTION`).
 *   **Theme Definitions:**
     *   `themes.ts`: Defines adventure themes.
-    *   `CustomGameSetupScreen.tsx` allows starting a game from a user-chosen theme.
+    *   `GameSetupScreen.tsx` displays the list of available adventure themes for the player to choose.
 
 ### 1.5. External Dependencies
 
@@ -175,7 +175,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   Updates `FullGameState.mapData` based on this payload.
     *   If a new *main* `MapNode` is added by the cartographer service and lacks full description/aliases (as per `MAP_UPDATE_SYSTEM_INSTRUCTION`), `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to populate them.
 *   **Cartographer service**:
-    *   Takes narrative context, current `MapData`, and known main place names for the theme.
+    *   Takes narrative context, current `MapData`, and known main place names.
     *   Uses an auxiliary AI to generate `AIMapUpdatePayload` (node/edge changes).
     *   Applies these changes, creating/updating/deleting `MapNode`s and `MapEdge`s within `MapData`.
     *   If a node is renamed via `nodesToUpdate`, any `nodesToRemove` entry with that old or new name is ignored.

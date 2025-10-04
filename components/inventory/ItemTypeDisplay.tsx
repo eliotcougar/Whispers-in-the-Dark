@@ -1,6 +1,6 @@
 /**
  * @file ItemTypeDisplay.tsx
- * @description Displays the item type label with theme-based coloring.
+ * @description Displays the item type label.
  */
 import * as React from 'react';
 import { Item } from '../../types';

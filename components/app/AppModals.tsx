@@ -37,7 +37,7 @@ interface AppModalsProps {
 
   readonly isMapVisible: boolean;
   readonly onCloseMap: () => void;
-  readonly themeName: string | null;
+  readonly adventureName: string | null;
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
   readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
@@ -98,7 +98,7 @@ function AppModals({
 
   isMapVisible,
   onCloseMap,
-  themeName,
+  adventureName,
   currentMapNodeId,
   destinationNodeId,
   itemPresenceByNode,
@@ -223,7 +223,7 @@ function AppModals({
 
       <MapDisplay
         currentMapNodeId={currentMapNodeId}
-        themeName={themeName}
+        adventureName={adventureName}
         destinationNodeId={destinationNodeId}
         initialLayoutConfig={initialLayoutConfig}
         initialViewBox={initialViewBox}

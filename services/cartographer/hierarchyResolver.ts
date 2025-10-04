@@ -19,7 +19,7 @@ export async function resolveHierarchyConflicts(ctx: ApplyUpdatesContext): Promi
   for (const node of ctx.newMapData.nodes) {
     const parentId = node.data.parentNodeId;
     if (!parentId || parentId === ROOT_MAP_NODE_ID) continue;
-    const parent = ctx.themeNodeIdMap.get(parentId);
+    const parent = ctx.nodeIdMap.get(parentId);
     if (!parent) continue;
     if (parent.data.nodeType !== node.data.nodeType) continue;
     await resolvePair(ctx, node, parent);
@@ -42,12 +42,12 @@ async function resolvePair(ctx: ApplyUpdatesContext, child: MapNode, parent: Map
 
   if (parent.data.parentNodeId !== undefined) {
     const candidateParentId = findClosestAllowedParent(
-      parent.data.parentNodeId === ROOT_MAP_NODE_ID ? undefined : ctx.themeNodeIdMap.get(parent.data.parentNodeId),
+      parent.data.parentNodeId === ROOT_MAP_NODE_ID ? undefined : ctx.nodeIdMap.get(parent.data.parentNodeId),
       child.data.nodeType,
-      ctx.themeNodeIdMap,
+      ctx.nodeIdMap,
     );
     if (candidateParentId !== undefined && candidateParentId !== child.data.parentNodeId) {
-      const parentName = ctx.themeNodeIdMap.get(candidateParentId)?.placeName ?? 'Unknown';
+      const parentName = ctx.nodeIdMap.get(candidateParentId)?.placeName ?? 'Unknown';
       nets.push({
         desc: `Reparent ${child.placeName} under ${parentName}`,
         apply: () => {

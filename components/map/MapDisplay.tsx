@@ -26,7 +26,7 @@ import MapControls from './MapControls';
 
 interface MapDisplayProps {
   readonly mapData: MapData;
-  readonly themeName: string | null;
+  readonly adventureName: string | null;
   readonly currentMapNodeId: string | null;
   readonly destinationNodeId: string | null;
   readonly itemPresenceByNode: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined>;
@@ -45,7 +45,7 @@ interface MapDisplayProps {
  */
 function MapDisplay({
   mapData,
-  themeName,
+  adventureName,
   currentMapNodeId,
   destinationNodeId,
   itemPresenceByNode,
@@ -121,24 +121,24 @@ function MapDisplay({
   }, [currentConfigToPropagate, onLayoutConfigChange]);
 
   /** Nodes belonging to the current theme. */
-  const themeNodes = useMemo(() => mapData.nodes, [mapData.nodes]);
+  const nodes = useMemo(() => mapData.nodes, [mapData.nodes]);
 
   /** Edges belonging to the current theme. */
-  const themeEdges = useMemo(() => mapData.edges, [mapData.edges]);
+  const edges = useMemo(() => mapData.edges, [mapData.edges]);
 
   /**
    * Prepares nodes for display. The force-directed layout algorithm is
    * intentionally disabled, so nodes are shown using their stored positions.
    */
   const runLayout = useCallback(() => {
-    const nodesToProcess = [...themeNodes];
+    const nodesToProcess = [...nodes];
     const laidOut = applyNestedCircleLayout(nodesToProcess, {
       padding: layoutNestedPadding,
       anglePadding: layoutNestedAnglePadding,
     });
     setDisplayedNodes(laidOut);
     onNodesPositioned(laidOut);
-  }, [themeNodes, layoutNestedPadding, layoutNestedAnglePadding, onNodesPositioned]);
+  }, [nodes, layoutNestedPadding, layoutNestedAnglePadding, onNodesPositioned]);
 
   useEffect(() => {
     if (isVisible) {
@@ -187,7 +187,7 @@ function MapDisplay({
           className="text-xl font-bold text-teal-400 mb-2 text-center"
           id="map-display-title"
         >
-          {themeName ? `Map: ${themeName}` : 'Map'}
+          {adventureName ? `Map: ${adventureName}` : 'Map'}
         </h1>
 
         <p className="text-center text-xs text-slate-300 mb-1">
@@ -197,7 +197,7 @@ function MapDisplay({
         <MapNodeView
           currentMapNodeId={currentMapNodeId}
           destinationNodeId={destinationNodeId}
-          edges={themeEdges}
+          edges={edges}
           initialViewBox={initialViewBox}
           itemIconScale={itemIconScale}
           itemPresenceByNode={itemPresenceByNode}

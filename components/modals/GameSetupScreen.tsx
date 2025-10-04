@@ -1,6 +1,6 @@
 
 /**
- * @file CustomGameSetupScreen.tsx
+ * @file GameSetupScreen.tsx
  * @description Allows the player to select a starting theme.
  */
 import { useCallback } from 'react';
@@ -11,7 +11,7 @@ import Button from '../elements/Button';
 import ThemeCard from '../elements/ThemeCard';
 import { Icon } from '../elements/icons';
 
-interface CustomGameSetupScreenProps {
+interface GameSetupScreenProps {
   readonly isVisible: boolean;
   readonly onClose: () => void;
   readonly onThemeSelected: (themeName: string) => void;
@@ -23,14 +23,14 @@ interface CustomGameSetupScreenProps {
 /**
  * Lets the player pick the starting theme.
  */
-function CustomGameSetupScreen({
+function GameSetupScreen({
   isVisible,
   onClose,
   onThemeSelected,
   disabledThemeName = null,
   titleText = undefined,
   descriptionText = undefined,
-}: CustomGameSetupScreenProps) {
+}: GameSetupScreenProps) {
   const handleThemeSelect = useCallback(
     (themeName: string) => () => { onThemeSelected(themeName); },
     [onThemeSelected]
@@ -124,10 +124,10 @@ function CustomGameSetupScreen({
   );
 }
 
-CustomGameSetupScreen.defaultProps = {
+GameSetupScreen.defaultProps = {
   descriptionText: undefined,
   disabledThemeName: null,
   titleText: undefined,
 };
 
-export default CustomGameSetupScreen;
+export default GameSetupScreen;

@@ -127,8 +127,8 @@ export const executeDialogueTurn = async (
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
-  knownMainMapNodesInTheme: Array<MapNode>,
-  knownNPCsInTheme: Array<NPC>,
+  knownMainMapNodes: Array<MapNode>,
+  knownNPCs: Array<NPC>,
   inventory: Array<Item>,
   heroSheet: HeroSheet | null,
   dialogueHistory: Array<DialogueHistoryEntry>,
@@ -149,8 +149,8 @@ export const executeDialogueTurn = async (
     localTime,
     localEnvironment,
     localPlace,
-    knownMainMapNodesInTheme,
-    knownNPCsInTheme: knownNPCsInTheme,
+    knownMainMapNodes,
+    knownNPCs,
     inventory,
     heroSheet,
     storyArc,
@@ -237,7 +237,7 @@ export const executeDialogueSummary = async (
     return Promise.reject(new Error('DialogueSummaryContext missing theme.'));
   }
 
-  const themeObject = summaryContext.theme;
+  const { theme } = summaryContext;
 
   const prompt = buildDialogueSummaryPrompt(summaryContext);
 
@@ -271,13 +271,13 @@ export const executeDialogueSummary = async (
         .map(p => p.text);
       const parsed = await parseAIResponse(
         response.text ?? '',
-        themeObject,
+        theme,
         summaryContext.heroSheet ?? null,
         undefined,
         undefined,
         undefined,
-        summaryContext.knownNPCsInTheme,
-        summaryContext.mapDataForTheme,
+        summaryContext.knownNPCs,
+        summaryContext.mapDataSnapshot,
         summaryContext.inventory,
       );
       if (parsed) {

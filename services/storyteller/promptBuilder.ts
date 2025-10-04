@@ -163,20 +163,9 @@ export const buildMainGameTurnPrompt = (
   const recentEventsContext = formatRecentEventsForPrompt(recentLogEntries);
   const arcContext = formatStoryArcContext(storyArc);
 
-  const mapData = fullMapData as Partial<MapData>;
-  const allNodesForCurrentTheme = Array.isArray(mapData.nodes) ? mapData.nodes : [];
-  const rawEdges = Array.isArray(mapData.edges) ? mapData.edges : [];
-  // Precompute node id set for O(1) membership checks
-  const nodeIdsForTheme = new Set(allNodesForCurrentTheme.map(n => n.id));
-  const allEdgesForCurrentTheme = rawEdges.filter(
-    edge => nodeIdsForTheme.has(edge.sourceNodeId) && nodeIdsForTheme.has(edge.targetNodeId)
-  );
   const mapContext = formatMapContextForPrompt(
     fullMapData,
-    currentMapNodeDetails?.id ?? null,
-    theme,
-    allNodesForCurrentTheme,
-    allEdgesForCurrentTheme
+    currentMapNodeDetails?.id ?? null
   );
 
   const travelPlanLine = formatTravelPlanLine(

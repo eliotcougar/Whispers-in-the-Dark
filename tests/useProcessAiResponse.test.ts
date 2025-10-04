@@ -3,7 +3,6 @@ import type {
   UseProcessAiResponseProps,
 } from '../hooks/useProcessAiResponse';
 import type {
-  AdventureTheme,
   FullGameState,
   GameStateFromAI,
   GameStateStack,
@@ -20,13 +19,12 @@ import { getInitialGameStates } from '../utils/initialStates';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import { PLAYER_HOLDER_ID } from '../constants';
 
-const processMapUpdatesMock = vi.fn<Promise<void>, [
-  GameStateFromAI,
-  FullGameState,
-  FullGameState,
-  AdventureTheme,
-  TurnChanges,
-]>();
+const processMapUpdatesMock = vi.fn<(
+  aiData: GameStateFromAI,
+  draftState: FullGameState,
+  baseSnapshot: FullGameState,
+  turnChanges: TurnChanges,
+) => Promise<void>>();
 const refineLoreServiceMock = vi.fn().mockResolvedValue(null);
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -111,12 +109,6 @@ const renderUseProcessAiResponse = ({ props }: HookSetupOptions) => {
   return { getResult, cleanup };
 };
 
-const createTheme = (): AdventureTheme => ({
-  name: 'Test Theme',
-  storyGuidance: 'Guidance',
-  playerJournalStyle: 'typed',
-});
-
 const createHookProps = (
   setGameStateStack: UseProcessAiResponseProps['setGameStateStack'],
 ): UseProcessAiResponseProps => ({
@@ -191,9 +183,8 @@ describe('useProcessAiResponse', () => {
       ],
     });
 
-    const theme = createTheme();
     await act(async () => {
-      await processAiResponse(aiData, theme, draftState, {
+      await processAiResponse(aiData, draftState, {
         baseStateSnapshot: baseSnapshot,
       });
     });
@@ -227,19 +218,17 @@ describe('useProcessAiResponse', () => {
       mapUpdated: true,
     });
 
-    const theme = createTheme();
     await act(async () => {
-      await processAiResponse(aiData, theme, draftState, {
+      await processAiResponse(aiData, draftState, {
         baseStateSnapshot: baseSnapshot,
       });
     });
 
     expect(processMapUpdatesMock).toHaveBeenCalledTimes(1);
-    const [aiArg, draftArg, snapshotArg, themeArg, turnChangesArg] = processMapUpdatesMock.mock.calls[0];
+    const [aiArg, draftArg, snapshotArg, turnChangesArg] = processMapUpdatesMock.mock.calls[0];
     expect(aiArg).toBe(aiData);
     expect(draftArg).toBe(draftState);
     expect(snapshotArg).toBe(baseSnapshot);
-    expect(themeArg).toBe(theme);
     expect(turnChangesArg).toBeDefined();
 
     cleanup();
@@ -270,9 +259,8 @@ describe('useProcessAiResponse', () => {
       logMessage: 'Insights gained.',
     });
 
-    const theme = createTheme();
     await act(async () => {
-      await processAiResponse(aiData, theme, draftState, {
+      await processAiResponse(aiData, draftState, {
         baseStateSnapshot: baseSnapshot,
         setIsLoading,
         setIsTurnProcessing,

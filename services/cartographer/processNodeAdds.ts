@@ -134,7 +134,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
               resolvedParentId = findClosestAllowedParent(
                 parent,
                 childType,
-                context.themeNodeIdMap,
+                context.nodeIdMap,
               );
             }
           } else {
@@ -213,10 +213,10 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
 
       context.newMapData.nodes.push(newNode);
       context.newlyAddedNodes.push(newNode);
-      context.themeNodeIdMap.set(newNodeId, newNode);
-      context.themeNodeNameMap.set(nodeAddOp.placeName, newNode);
+      context.nodeIdMap.set(newNodeId, newNode);
+      context.nodeNameMap.set(nodeAddOp.placeName, newNode);
       if (newNode.data.aliases) {
-        newNode.data.aliases.forEach(a => context.themeNodeAliasMap.set(a.toLowerCase(), newNode));
+        newNode.data.aliases.forEach(a => context.nodeAliasMap.set(a.toLowerCase(), newNode));
       }
       context.newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
 
@@ -229,10 +229,10 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
               : 'open',
           description: `Path between ${nodeAddOp.placeName} and ${sameTypeParent.placeName}`,
         };
-        if (isEdgeConnectionAllowed(newNode, sameTypeParent, 'path', context.themeNodeIdMap)) {
-          addEdgeWithTracking(newNode, sameTypeParent, edgeData, context.newMapData.edges, context.themeEdgesMap);
+        if (isEdgeConnectionAllowed(newNode, sameTypeParent, 'path', context.nodeIdMap)) {
+          addEdgeWithTracking(newNode, sameTypeParent, edgeData, context.newMapData.edges, context.edgesMap);
         } else {
-          context.pendingChainRequests.push(buildChainRequest(newNode, sameTypeParent, edgeData, context.themeNodeIdMap));
+          context.pendingChainRequests.push(buildChainRequest(newNode, sameTypeParent, edgeData, context.nodeIdMap));
         }
       }
     }
@@ -254,8 +254,8 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
               localPlace: context.localPlace,
               theme: context.theme,
               currentMapNodeId: context.referenceMapNodeId,
-              themeNodes: context.themeNodesFromMapData,
-              themeEdges: context.themeEdgesFromMapData,
+              mapNodes: context.nodesFromMapData,
+              mapEdges: context.edgesFromMapData,
             },
             context.minimalModelCalls
           );

@@ -19,7 +19,7 @@ import TitleMenu from '../modals/TitleMenu';
 import DialogueDisplay from '../DialogueDisplay';
 import DebugView from '../debug/DebugView';
 import ItemChangeAnimator from '../inventory/ItemChangeAnimator';
-import CustomGameSetupScreen from '../modals/CustomGameSetupScreen';
+import GameSetupScreen from '../modals/GameSetupScreen';
 import SettingsDisplay from '../modals/SettingsDisplay';
 import InfoDisplay from '../modals/InfoDisplay';
 import DebugLoreModal from '../modals/DebugLoreModal';
@@ -299,7 +299,7 @@ function App() {
   } = gameLogic;
 
   const isPlaceholderTheme = theme.name === PLACEHOLDER_THEME.name;
-  const themeNameForUi = isPlaceholderTheme ? null : theme.name;
+  const adventureNameForUi = isPlaceholderTheme ? null : theme.name;
 
   const isActTurnGenerating = pendingAct !== null && (isLoading || isTurnProcessing);
 
@@ -854,7 +854,7 @@ function App() {
           <div className="lg:col-span-2 space-y-3 flex flex-col">
             <MainToolbar
               currentSceneExists={!!currentScene}
-              themeName={themeNameForUi}
+              adventureName={adventureNameForUi}
               isLoading={isLoading || !!dialogueState || isTurnProcessing}
               isTurnProcessing={isTurnProcessing}
               onOpenKnowledgeBase={openKnowledgeBase}
@@ -1013,7 +1013,7 @@ function App() {
         onSaveGame={hasGameBeenInitialized ? handleSaveGameFromMenu : undefined}
       />
 
-      <CustomGameSetupScreen
+      <GameSetupScreen
         isVisible={isCustomGameSetupVisible}
         onClose={handleCloseCustomGameSetup}
         onThemeSelected={handleCustomThemeSelectedForNewGame}
@@ -1090,7 +1090,7 @@ function App() {
         currentQuest={mainQuest}
         currentScene={currentScene}
         theme={theme}
-        themeName={themeNameForUi}
+        adventureName={adventureNameForUi}
         destinationNodeId={destinationNodeId}
         handleCancelLoadGameFromMenu={handleCancelLoadGameFromMenu}
         handleCancelNewGameFromMenu={handleCancelNewGameFromMenu}

@@ -241,8 +241,8 @@ export interface DialogueTurnContext {
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null;
-  knownMainMapNodesInTheme: Array<MapNode>;
-  knownNPCsInTheme: Array<NPC>;
+  knownMainMapNodes: Array<MapNode>;
+  knownNPCs: Array<NPC>;
   inventory: Array<Item>;
   heroSheet: HeroSheet | null;
   dialogueHistory: Array<DialogueHistoryEntry>;
@@ -259,8 +259,8 @@ export interface DialogueSummaryContext {
   localTime: string | null;
   localEnvironment: string | null;
   localPlace: string | null; // The free-text local place string
-  mapDataForTheme: MapData; // Map data for the current theme (nodes and edges)
-  knownNPCsInTheme: Array<NPC>;
+  mapDataSnapshot: MapData; // Map data snapshot for summary generation
+  knownNPCs: Array<NPC>;
   inventory: Array<Item>;
   dialogueLog: Array<DialogueHistoryEntry>;
   dialogueParticipants: Array<string>;
@@ -347,7 +347,7 @@ export interface FactWithEntities {
   entities: Array<string>;
 }
 
-export interface ThemeFact {
+export interface LoreFact {
   id: number;
   text: string;
   entities: Array<string>;
@@ -355,7 +355,7 @@ export interface ThemeFact {
   tier: number;
 }
 
-export interface ThemeFactChange {
+export interface LoreFactChange {
   action: 'add' | 'change' | 'delete';
   text?: string;
   entities?: Array<string>;
@@ -370,7 +370,7 @@ export interface GeneratedJournalEntry {
 }
 
 export interface LoreRefinementResult {
-  factsChange: Array<ThemeFactChange>;
+  factsChange: Array<LoreFactChange>;
   loreRefinementOutcome: string;
   observations?: string;
   rationale?: string;
@@ -683,7 +683,7 @@ export interface FullGameState {
   lastLoreDistillTurn: number;
   gameLog: Array<string>;
   lastActionLog: string;
-  themeFacts: Array<ThemeFact>;
+  loreFacts: Array<LoreFact>;
   worldFacts: WorldFacts;
   heroSheet: HeroSheet;
   heroBackstory: HeroBackstory;
@@ -736,7 +736,7 @@ export type SavedGameDataShape = Pick<
   | 'lastLoreDistillTurn'
   | 'gameLog'
   | 'lastActionLog'
-  | 'themeFacts'
+  | 'loreFacts'
   | 'worldFacts'
   | 'heroSheet'
   | 'heroBackstory'

@@ -50,7 +50,7 @@ import {
   generateCharacterDescriptions,
 } from '../services/worldData';
 import { extractInitialFacts_Service } from '../services/loremaster';
-import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import { ensureCoreGameStateIntegrity } from '../utils/gameStateIntegrity';
 import { isStoryArcValid } from '../utils/storyArcUtils';
 
@@ -158,7 +158,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         ): Promise<FullGameState> => {
           const cloned = structuredCloneGameState(rawState);
           const theme = cloned.theme;
-          const repairedMap = await repairFeatureHierarchy(cloned.mapData, theme);
+          const repairedMap = await repairFeatureHierarchy(cloned.mapData);
           const normalizedDestination =
             typeof cloned.destinationNodeId === 'string' ? cloned.destinationNodeId : null;
           const hydrated = {
@@ -195,8 +195,8 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         return;
       }
 
-      let themeNameToLoad = explicitThemeName;
-      if (!themeNameToLoad) {
+      let nameToLoad = explicitThemeName;
+      if (!nameToLoad) {
         const availableThemes = getThemesFromPacks(enabledThemePacksProp);
         if (availableThemes.length === 0) {
           setError('No adventure themes are enabled or available. Please check settings.');
@@ -204,12 +204,12 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           setLoadingReason(null);
           return;
         }
-        themeNameToLoad = availableThemes[Math.floor(Math.random() * availableThemes.length)].name;
+        nameToLoad = availableThemes[Math.floor(Math.random() * availableThemes.length)].name;
       }
 
-      const themeObjToLoad = findThemeByName(themeNameToLoad);
-      if (!themeObjToLoad) {
-        setError(`Theme "${themeNameToLoad}" not found. Cannot start game.`);
+      const selectedTheme = findThemeByName(nameToLoad);
+      if (!selectedTheme) {
+        setError(`Theme "${nameToLoad}" not found. Cannot start game.`);
         setIsLoading(false);
         setLoadingReason(null);
         return;
@@ -233,7 +233,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.mapLayoutConfig = getDefaultMapLayoutConfig();
       draftState.mapViewBox = DEFAULT_VIEWBOX;
       draftState.globalTurnNumber = 0;
-      draftState.theme = themeObjToLoad;
+      draftState.theme = selectedTheme;
       draftState.thinkingEffort = thinkingEffortProp;
       draftState.heroSheet = {
         ...createDefaultHeroSheet(),
@@ -244,13 +244,13 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       };
       draftState.startState = 'seeding_facts';
 
-      const generatedWorldFacts = await generateWorldFacts(themeObjToLoad);
+      const generatedWorldFacts = await generateWorldFacts(selectedTheme);
       const worldFactsForGame = generatedWorldFacts ?? createDefaultWorldFacts();
       draftState.worldFacts = worldFactsForGame;
       commitGameState(draftState);
 
       const names = await generateCharacterNames(
-        themeObjToLoad,
+        selectedTheme,
         selectedGender,
         worldFactsForGame,
       );
@@ -272,7 +272,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.startState = 'character_select';
       commitGameState(draftState);
       const descriptions = await generateCharacterDescriptions(
-        themeObjToLoad,
+        selectedTheme,
         selectedGender,
         worldFactsForGame,
         shuffled,
@@ -288,7 +288,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       let hasGeneratedHeroData = false;
       const waitForBegin = openCharacterSelectModal(
         {
-          theme: themeObjToLoad,
+          theme: selectedTheme,
           heroGender: selectedGender,
           worldFacts: worldFactsForGame,
           options: descriptions,
@@ -317,7 +317,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
             draftState.startState = 'seeding_facts';
             if (generatedWorldFacts) {
               const initialFacts = await extractInitialFacts_Service({
-                themeName: themeObjToLoad.name,
+                themeName: selectedTheme.name,
                 worldFacts: generatedWorldFacts,
                 heroSheet: hasGeneratedHeroData ? heroSheetForState : undefined,
                 heroBackstory: hasGeneratedHeroData ? resolvedHeroBackstory : undefined,
@@ -333,7 +333,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                   text: f.text,
                   entities: f.entities,
                 }));
-                applyThemeFactChanges(
+                applyLoreFactChanges(
                   draftState,
                   changes,
                   draftState.globalTurnNumber,
@@ -349,7 +349,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
             let prompt = '';
             try {
               prompt = buildInitialGamePrompt({
-                theme: themeObjToLoad,
+                theme: selectedTheme,
                 storyArc: draftState.storyArc,
                 worldFacts: draftState.worldFacts,
                 heroSheet: draftState.heroSheet,
@@ -383,10 +383,9 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
               draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
               draftState.lastDebugPacket.prompt = promptUsed;
 
-              const themeMapDataForParse = draftState.mapData;
               const parsedData = await parseAIResponse(
                 response.text ?? '',
-                themeObjToLoad,
+                selectedTheme,
                 draftState.heroSheet,
                 () => {
                   setParseErrorCounter(1);
@@ -394,11 +393,11 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                 undefined,
                 undefined,
                 draftState.allNPCs,
-                themeMapDataForParse,
+                draftState.mapData,
                 draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
               );
 
-              await processAiResponse(parsedData, themeObjToLoad, draftState, {
+              await processAiResponse(parsedData, draftState, {
                 baseStateSnapshot: baseStateSnapshotForInitialTurn,
                 forceEmptyInventory: isRestart,
                 playerActionText: undefined,
@@ -416,7 +415,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                 setError(`AI service error (${String(status ?? 'unknown')}). Please retry.`);
               } else {
                 const errorMessage = e instanceof Error ? e.message : String(e);
-                setError(`Failed to initialize the adventure in "${themeObjToLoad.name}": ${errorMessage}`);
+                setError(`Failed to initialize the adventure in "${selectedTheme.name}": ${errorMessage}`);
               }
               if (draftState.lastDebugPacket) {
                 draftState.lastDebugPacket.error = e instanceof Error ? e.message : String(e);
@@ -536,7 +535,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     }
 
     const lastPrompt = currentFullState.lastDebugPacket?.prompt;
-    const themeObj = currentFullState.theme;
+    const activeTheme = currentFullState.theme;
 
     // Fallback to generic retry if prompt or theme data is missing
     if (!lastPrompt) {
@@ -596,22 +595,20 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
       draftState.lastDebugPacket.prompt = promptUsed;
 
-      const themeNPCs = draftState.allNPCs;
-      const themeMapDataForParse = draftState.mapData;
 
       const parsedData = await parseAIResponse(
         response.text ?? '',
-        themeObj,
+        activeTheme,
         draftState.heroSheet,
         () => { setParseErrorCounter(1); },
         currentFullState.lastActionLog || undefined,
         currentFullState.currentScene,
-        themeNPCs,
-        themeMapDataForParse,
+        draftState.allNPCs,
+        draftState.mapData,
         currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
       );
 
-      await processAiResponse(parsedData, themeObj, draftState, {
+      await processAiResponse(parsedData, draftState, {
         baseStateSnapshot,
         scoreChangeFromAction: 0,
         playerActionText: undefined,

@@ -1,12 +1,12 @@
 import DebugSection from '../DebugSection';
-import type { ThemeFact } from '../../../types';
+import type { LoreFact } from '../../../types';
 
 interface LoreTabProps {
-  readonly themeFacts: Array<ThemeFact>;
+  readonly loreFacts: Array<LoreFact>;
 }
 
-function LoreTab({ themeFacts }: LoreTabProps) {
-  const formatted = [...themeFacts]
+function LoreTab({ loreFacts }: LoreTabProps) {
+  const formatted = [...loreFacts]
     .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
     .map(
       (fact, idx) => `${String(idx + 1)}. (Tier ${String(fact.tier)}) ${fact.text}`,
@@ -18,7 +18,7 @@ function LoreTab({ themeFacts }: LoreTabProps) {
       content={formatted}
       isJson={false}
       maxHeightClass="max-h-[70vh]"
-      title="Current Theme Lore"
+      title="Current Lore"
     />
   );
 }

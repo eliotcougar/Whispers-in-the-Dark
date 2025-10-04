@@ -114,7 +114,7 @@ export const getInitialGameStates = (): FullGameState => {
     lastLoreDistillTurn: 0,
     gameLog: [],
     lastActionLog: 'No actions recorded yet.',
-    themeFacts: [],
+    loreFacts: [],
     worldFacts: createDefaultWorldFacts(),
     heroSheet: createDefaultHeroSheet(),
     heroBackstory: createDefaultHeroBackstory(),

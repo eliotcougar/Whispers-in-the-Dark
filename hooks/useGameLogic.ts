@@ -42,7 +42,7 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
   } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
-import { applyThemeFactChanges } from '../utils/gameLogicUtils';
+import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import {
   ensureCoreGameStateIntegrity,
   ensureCoreGameStateStackIntegrity,
@@ -394,7 +394,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
   setLoadingReason: setLoadingReasonRef,
   onDialogueConcluded: (summaryPayload, preparedGameState, debugInfo) => {
       const draftState = structuredCloneGameState(preparedGameState);
-      return processAiResponse(summaryPayload, preparedGameState.theme, draftState, {
+      return processAiResponse(summaryPayload, draftState, {
         baseStateSnapshot: structuredCloneGameState(preparedGameState),
         isFromDialogueSummary: true,
         playerActionText: undefined,
@@ -517,13 +517,13 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     const currentFullState = getCurrentGameState();
     setIsLoading(true);
     setError(null);
-    const themeNodes = currentFullState.mapData.nodes;
+    const mapNodes = currentFullState.mapData.nodes;
     const inventoryItemNames = Array.from(
       new Set(
         currentFullState.inventory
           .filter(item => {
             if (item.holderId === PLAYER_HOLDER_ID) return true;
-            if (themeNodes.some(node => node.id === item.holderId)) return true;
+            if (mapNodes.some(node => node.id === item.holderId)) return true;
             const holderNpc = currentFullState.allNPCs.find(
               npc => npc.id === item.holderId,
             );
@@ -532,7 +532,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
           .map(item => item.name),
       ),
     );
-    const mapNodeNames = themeNodes.map(n => n.placeName);
+    const mapNodeNames = mapNodes.map(n => n.placeName);
     const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
     setLoadingReasonRef('loremaster_distill');
     const storyArcActs = currentFullState.storyArc.acts;
@@ -543,7 +543,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     const actQuest = act ? act.mainObjective : null;
     const result = await distillFacts_Service({
       themeName: currentFullState.theme.name,
-      facts: currentFullState.themeFacts,
+      facts: currentFullState.loreFacts,
       currentQuest: actQuest,
       currentObjective: currentFullState.currentObjective,
       inventoryItemNames,
@@ -568,7 +568,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
       draftState.lastDebugPacket.loremasterDebugInfo.distill = result?.debugInfo ?? null;
     }
     if (result?.refinementResult) {
-      applyThemeFactChanges(
+      applyLoreFactChanges(
         draftState,
         result.refinementResult.factsChange,
         draftState.globalTurnNumber,
