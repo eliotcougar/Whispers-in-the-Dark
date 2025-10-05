@@ -240,6 +240,7 @@ export const MAP_NAVIGATION_ONLY_JSON_SCHEMA = {
     },
     nodeAndEdge: {
       type: 'object',
+      description: 'When no existing node fits, define exactly one new node and edge to add to the map.',
       properties: {
         edgeToAdd: {
           type: 'object',
@@ -247,12 +248,12 @@ export const MAP_NAVIGATION_ONLY_JSON_SCHEMA = {
             description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
             sourcePlaceName: {
               type: 'string',
-              description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.',
+              description: 'Node ID of the existing accessible node. Usually, the previous location of the player character.',
             },
             status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
             targetPlaceName: {
               type: 'string',
-              description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.',
+              description: 'placeName of the node being added in nodeToAdd.',
             },
             travelTime: { type: 'string' },
             type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
@@ -285,7 +286,7 @@ export const MAP_NAVIGATION_ONLY_JSON_SCHEMA = {
             nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
             parentNodeId: {
               type: 'string',
-              description: `Existing parent node id or placeName. Use place names only when referencing other nodes in this response.`,
+              description: `Existing parent node id`,
             },
             placeName: {
               type: 'string',
