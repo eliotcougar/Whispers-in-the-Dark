@@ -1,6 +1,6 @@
 export {
   generateWorldData,
-  generateWorldFacts,
+  generateWorldSheet,
   generateCharacterNames,
   generateCharacterDescriptions,
   generateHeroData,

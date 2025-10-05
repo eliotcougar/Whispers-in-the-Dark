@@ -36,7 +36,7 @@ let heroName: string;
 
 *Data Stored*:
 ```ts
-interface WorldFacts {
+interface WorldSheet {
   geography: string;
   climate: string;
   technologyLevel: string;
@@ -46,7 +46,7 @@ interface WorldFacts {
   culturalNotes: Array<string>;
   notableLocations: Array<string>;
 }
-const worldFacts: WorldFacts;
+const WorldSheet: WorldSheet;
 ```
 
 ## 4. Protagonist Narrative Sheet
@@ -114,7 +114,7 @@ After gathering all pieces, combine them into a single structure.
 ```ts
 interface GameWorld {
   theme: ThemeInfo;
-  world: WorldFacts;
+  world: WorldSheet;
   hero: HeroSheet;
   backstory: HeroBackstory;
   arc: StoryArc;

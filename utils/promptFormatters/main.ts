@@ -8,7 +8,7 @@ import {
   NPC,
   MapData,
   MapNode,
-  WorldFacts,
+  WorldSheet,
   HeroSheet,
   HeroBackstory,
   StoryArc,
@@ -216,16 +216,16 @@ export const formatTravelPlanLine = (
 /**
  * Formats world facts into a multiline string for prompts.
  */
-export const formatWorldFactsForPrompt = (worldFacts: WorldFacts): string => {
+export const formatWorldSheetForPrompt = (WorldSheet: WorldSheet): string => {
   const lines = [
-    `Geography: ${worldFacts.geography}`,
-    `Climate: ${worldFacts.climate}`,
-    `Technology Level: ${worldFacts.technologyLevel}`,
-    `Supernatural Elements: ${worldFacts.supernaturalElements}`,
-    `Major Factions: ${worldFacts.majorFactions.join(', ')}`,
-    `Key Resources: ${worldFacts.keyResources.join(', ')}`,
-    `Cultural Notes: ${worldFacts.culturalNotes.join(', ')}`,
-    `Notable Locations: ${worldFacts.notableLocations.join(', ')}`,
+    `Geography: ${WorldSheet.geography}`,
+    `Climate: ${WorldSheet.climate}`,
+    `Technology Level: ${WorldSheet.technologyLevel}`,
+    `Supernatural Elements: ${WorldSheet.supernaturalElements}`,
+    `Major Factions: ${WorldSheet.majorFactions.join(', ')}`,
+    `Key Resources: ${WorldSheet.keyResources.join(', ')}`,
+    `Cultural Notes: ${WorldSheet.culturalNotes.join(', ')}`,
+    `Notable Locations: ${WorldSheet.notableLocations.join(', ')}`,
   ];
   return lines.join('\n');
 };

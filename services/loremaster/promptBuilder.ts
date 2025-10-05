@@ -5,12 +5,12 @@
 import {
   LoreFact,
   FactWithEntities,
-  WorldFacts,
+  WorldSheet,
   HeroSheet,
   HeroBackstory,
 } from '../../types';
 import {
-  formatWorldFactsForPrompt,
+  formatWorldSheetForPrompt,
   formatHeroSheetForPrompt,
   formatHeroBackstoryForPrompt,
   formatRecentEventsForPrompt,
@@ -19,11 +19,11 @@ import {
 export const buildExtractFactsPrompt = (
   themeName: string,
   turnContext: string,
-  worldFacts?: WorldFacts,
+  WorldSheet?: WorldSheet,
   heroSheet?: HeroSheet,
   heroBackstory?: HeroBackstory,
 ): string => {
-  const worldInfo = worldFacts ? `\n${formatWorldFactsForPrompt(worldFacts)}` : '';
+  const worldInfo = WorldSheet ? `\n${formatWorldSheetForPrompt(WorldSheet)}` : '';
   const heroInfo = heroSheet ? `\n${formatHeroSheetForPrompt(heroSheet, false)}` : '';
   const heroPast = heroBackstory
     ? `\n${formatHeroBackstoryForPrompt(heroBackstory)}`

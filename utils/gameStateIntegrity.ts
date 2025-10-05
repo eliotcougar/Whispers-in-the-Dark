@@ -9,14 +9,14 @@ import {
   HeroBackstory,
   HeroSheet,
   StoryArc,
-  WorldFacts,
+  WorldSheet,
 } from '../types';
 import {
   PLACEHOLDER_THEME,
   createDefaultHeroBackstory,
   createDefaultHeroSheet,
   createDefaultStoryArc,
-  createDefaultWorldFacts,
+  createDefaultWorldSheet,
 } from './initialStates';
 import { isStoryArcValid } from './storyArcUtils';
 
@@ -28,7 +28,7 @@ export const ensureCoreGameStateIntegrity = (
     theme?: AdventureTheme | null;
     mainQuest?: string | null;
     lastActionLog?: string | null;
-    worldFacts?: WorldFacts | null;
+    WorldSheet?: WorldSheet | null;
     heroSheet?: HeroSheet | null;
     heroBackstory?: HeroBackstory | null;
     storyArc?: StoryArc | null;
@@ -54,9 +54,9 @@ export const ensureCoreGameStateIntegrity = (
     repaired.push('lastActionLog');
   }
 
-  if (!cast.worldFacts) {
-    cast.worldFacts = createDefaultWorldFacts();
-    repaired.push('worldFacts');
+  if (!cast.WorldSheet) {
+    cast.WorldSheet = createDefaultWorldSheet();
+    repaired.push('WorldSheet');
   }
 
   if (!cast.heroSheet) {

@@ -138,7 +138,7 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
       localPlace: gameState.localPlace,
     globalTurnNumber: gameState.globalTurnNumber,
     loreFacts: gameState.loreFacts,
-    worldFacts: gameState.worldFacts,
+    WorldSheet: gameState.WorldSheet,
     heroSheet: gameState.heroSheet,
     heroBackstory: gameState.heroBackstory,
   };
@@ -184,7 +184,7 @@ export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullG
     mapViewBox: savedData.mapViewBox,
     globalTurnNumber: savedData.globalTurnNumber,
     loreFacts: savedData.loreFacts,
-    worldFacts: savedData.worldFacts,
+    WorldSheet: savedData.WorldSheet,
     heroSheet: savedData.heroSheet,
     heroBackstory: savedData.heroBackstory,
     debugLore: false,

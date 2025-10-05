@@ -10,7 +10,7 @@ import { MAIN_TURN_OPTIONS_COUNT, LOCAL_STORAGE_SAVE_KEY } from '../constants';
 import { saveGameStateToLocalStorage } from '../services/storage';
 import { getInitialGameStates } from '../utils/initialStates';
 import type { GenerateContentResponse } from '@google/genai';
-import type { WorldFacts, HeroSheet, HeroBackstory, StoryArc } from '../types';
+import type { WorldSheet, HeroSheet, HeroBackstory, StoryArc } from '../types';
 
 vi.mock('../services/storyteller/api', () => ({
   executeAIMainTurn: vi.fn(),
@@ -39,7 +39,7 @@ const fakeAiJson = JSON.stringify({
   currentMapNodeId: 'cell_1',
 });
 
-const dummyWorldFacts: WorldFacts = {
+const dummyWorldSheet: WorldSheet = {
   geography: 'Mountains',
   climate: 'Mild',
   technologyLevel: 'Medieval',
@@ -100,7 +100,7 @@ describe('game start sequence', () => {
     const prompt = buildNewGameFirstTurnPrompt(
       theme,
       dummyArc,
-      dummyWorldFacts,
+      dummyWorldSheet,
       dummyHeroSheet,
       dummyHeroBackstory,
     );
@@ -167,7 +167,7 @@ describe('game start sequence', () => {
     const prompt = buildNewGameFirstTurnPrompt(
       theme,
       dummyArc,
-      dummyWorldFacts,
+      dummyWorldSheet,
       dummyHeroSheet,
       dummyHeroBackstory,
     );

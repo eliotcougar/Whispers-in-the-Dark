@@ -12,7 +12,7 @@ import {
   MapLayoutConfig,
   StoryArc,
   ThemePackName,
-  WorldFacts,
+  WorldSheet,
 } from '../types';
 import {
     CURRENT_SAVE_GAME_VERSION,
@@ -48,7 +48,7 @@ export const PLACEHOLDER_THEME: AdventureTheme = {
   playerJournalStyle: 'typed',
 };
 
-export const createDefaultWorldFacts = (): WorldFacts => ({
+export const createDefaultWorldSheet = (): WorldSheet => ({
   geography: 'Unknown',
   climate: 'Unknown',
   technologyLevel: 'Unknown',
@@ -115,7 +115,7 @@ export const getInitialGameStates = (): FullGameState => {
     gameLog: [],
     lastActionLog: 'No actions recorded yet.',
     loreFacts: [],
-    worldFacts: createDefaultWorldFacts(),
+    WorldSheet: createDefaultWorldSheet(),
     heroSheet: createDefaultHeroSheet(),
     heroBackstory: createDefaultHeroBackstory(),
     storyArc: createDefaultStoryArc(),

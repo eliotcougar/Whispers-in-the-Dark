@@ -4,7 +4,7 @@
  */
 import { useCallback, useState, useRef } from 'react';
 import { clearProgress } from '../utils/loadingProgress';
-import type { AdventureTheme, WorldFacts, CharacterOption, HeroSheet, HeroBackstory, StoryArc } from '../types';
+import type { AdventureTheme, WorldSheet, CharacterOption, HeroSheet, HeroBackstory, StoryArc } from '../types';
 
 export const useAppModals = () => {
   const [isVisualizerVisible, setIsVisualizerVisible] = useState(false);
@@ -34,7 +34,7 @@ export const useAppModals = () => {
   const [characterSelectData, setCharacterSelectData] = useState<{
     theme: AdventureTheme;
     heroGender: string;
-    worldFacts: WorldFacts;
+    WorldSheet: WorldSheet;
     options: Array<CharacterOption>;
   } | null>(null);
   const characterSelectResolveRef = useRef<(
@@ -114,7 +114,7 @@ export const useAppModals = () => {
       data: {
         theme: AdventureTheme;
         heroGender: string;
-        worldFacts: WorldFacts;
+        WorldSheet: WorldSheet;
         options: Array<CharacterOption>;
       },
       onHeroData: (result: {

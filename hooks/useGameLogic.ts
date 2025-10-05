@@ -12,7 +12,7 @@ import {
   DebugPacketStack,
   LoadingReason,
   AdventureTheme,
-  WorldFacts,
+  WorldSheet,
   CharacterOption,
   HeroSheet,
   HeroBackstory,
@@ -63,7 +63,7 @@ export interface UseGameLogicProps {
     data: {
       theme: AdventureTheme;
       heroGender: string;
-      worldFacts: WorldFacts;
+      WorldSheet: WorldSheet;
       options: Array<CharacterOption>;
     },
     onHeroData: (result: {

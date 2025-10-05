@@ -332,7 +332,6 @@ export interface GameStateFromAI {
   npcItemsHint?: string;
   librarianHint?: string;
   newItems?: Array<NewItemSuggestion>;
-  // placesAdded and placesUpdated are removed from storyteller responsibility
 }
 
 export interface AdventureTheme {
@@ -376,7 +375,7 @@ export interface LoreRefinementResult {
   rationale?: string;
 }
 
-export interface WorldFacts {
+export interface WorldSheet {
   geography: string;
   climate: string;
   technologyLevel: string;
@@ -684,7 +683,7 @@ export interface FullGameState {
   gameLog: Array<string>;
   lastActionLog: string;
   loreFacts: Array<LoreFact>;
-  worldFacts: WorldFacts;
+  WorldSheet: WorldSheet;
   heroSheet: HeroSheet;
   heroBackstory: HeroBackstory;
   storyArc: StoryArc;
@@ -720,7 +719,7 @@ export interface FullGameState {
   lastTurnChanges: TurnChanges | null; 
 }
 
-// Defines the subset of FullGameState that is actually saved for V3.
+// Defines the subset of FullGameState that is actually saved.
 export type SavedGameDataShape = Pick<
   FullGameState,
   | 'saveGameVersion'
@@ -737,7 +736,7 @@ export type SavedGameDataShape = Pick<
   | 'gameLog'
   | 'lastActionLog'
   | 'loreFacts'
-  | 'worldFacts'
+  | 'WorldSheet'
   | 'heroSheet'
   | 'heroBackstory'
   | 'storyArc'

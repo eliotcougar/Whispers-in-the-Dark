@@ -9,7 +9,7 @@ import type {
   NPC,
   MapData,
   MapNode,
-  WorldFacts,
+  WorldSheet,
   HeroSheet,
   HeroBackstory,
   StoryArc,
@@ -22,7 +22,7 @@ import {
   formatRecentEventsForPrompt,
   formatDetailedContextForMentionedEntities,
   formatTravelPlanLine,
-  formatWorldFactsForPrompt,
+  formatWorldSheetForPrompt,
   formatHeroSheetForPrompt,
   formatHeroBackstoryForPrompt,
   formatStoryArcContext,
@@ -37,11 +37,11 @@ const STORYTELLER_ITEM_TEMPLATE = '<ID: {id}> - "{name}" (Type: "{type}"{tagswit
 export const buildNewGameFirstTurnPrompt = (
   theme: AdventureTheme,
   storyArc: StoryArc,
-  worldFacts: WorldFacts,
+  WorldSheet: WorldSheet,
   heroSheet: HeroSheet,
   heroBackstory: HeroBackstory,
 ): string => {
-  const worldInfo = formatWorldFactsForPrompt(worldFacts);
+  const worldInfo = formatWorldSheetForPrompt(WorldSheet);
   const heroDescription = formatHeroSheetForPrompt(heroSheet, true);
   const heroPast = formatHeroBackstoryForPrompt(heroBackstory);
   const arcContext = formatStoryArcContext(storyArc);
@@ -94,7 +94,7 @@ export const buildMainGameTurnPrompt = (
   localTime: string | null,
   localEnvironment: string | null,
   localPlace: string | null,
-  worldFacts: WorldFacts,
+  WorldSheet: WorldSheet,
   heroSheet: HeroSheet,
   currentMapNodeDetails: MapNode | null,
   fullMapData: MapData,
@@ -201,7 +201,7 @@ export const buildMainGameTurnPrompt = (
     '### Details on relevant NPCs mentioned in current scene or action:'
   );
 
-  const worldInfo = formatWorldFactsForPrompt(worldFacts);
+  const worldInfo = formatWorldSheetForPrompt(WorldSheet);
   const heroDescription = formatHeroSheetForPrompt(heroSheet, false);
 
   const debugDirectiveSection = debugToolDirective

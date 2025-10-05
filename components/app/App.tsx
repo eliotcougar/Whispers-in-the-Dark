@@ -57,7 +57,7 @@ import {
   ItemChapter,
   FullGameState,
   AdventureTheme,
-  WorldFacts,
+  WorldSheet,
   CharacterOption,
   HeroSheet,
   HeroBackstory,
@@ -179,7 +179,7 @@ function App() {
       data: {
         theme: AdventureTheme;
         heroGender: string;
-        worldFacts: WorldFacts;
+        WorldSheet: WorldSheet;
         options: Array<CharacterOption>;
       },
       onHeroData: (result: {
@@ -1078,7 +1078,7 @@ function App() {
           onHeroData={submitCharacterSelectHeroData}
           options={characterSelectData.options}
           theme={characterSelectData.theme}
-          worldFacts={characterSelectData.worldFacts}
+          WorldSheet={characterSelectData.WorldSheet}
         />
       ) : null}
 

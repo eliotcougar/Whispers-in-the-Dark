@@ -264,7 +264,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         currentFullState.localTime,
         currentFullState.localEnvironment,
         currentFullState.localPlace,
-        currentFullState.worldFacts,
+        currentFullState.WorldSheet,
         currentFullState.heroSheet,
         currentMapNodeDetails,
         currentFullState.mapData,
@@ -534,7 +534,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     const {
       theme,
       storyArc,
-      worldFacts,
+      WorldSheet,
       heroSheet,
     } = currentState;
 
@@ -547,7 +547,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     draftState.turnState = 'act_transition';
     const newAct = await generateNextStoryAct(
       theme,
-      worldFacts,
+      WorldSheet,
       heroSheet,
       storyArc,
       draftState.gameLog,

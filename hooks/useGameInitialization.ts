@@ -10,7 +10,7 @@ import {
   LoadingReason,
   GameStateStack,
   AdventureTheme,
-  WorldFacts,
+  WorldSheet,
   CharacterOption,
   HeroSheet,
   HeroBackstory,
@@ -29,7 +29,7 @@ import {
   getInitialGameStates,
   getInitialGameStatesWithSettings,
   PLACEHOLDER_THEME,
-  createDefaultWorldFacts,
+  createDefaultWorldSheet,
   createDefaultStoryArc,
   createDefaultHeroSheet,
   createDefaultHeroBackstory,
@@ -42,7 +42,7 @@ import { ProcessAiResponseFn } from './useProcessAiResponse';
 import { repairFeatureHierarchy } from '../utils/mapHierarchyUpgradeUtils';
 import { clearAllImages } from '../services/imageDb';
 import {
-  generateWorldFacts,
+  generateWorldSheet,
   generateCharacterNames,
   generateCharacterDescriptions,
 } from '../services/worldData';
@@ -76,7 +76,7 @@ export interface UseGameInitializationProps {
     data: {
       theme: AdventureTheme;
       heroGender: string;
-      worldFacts: WorldFacts;
+      WorldSheet: WorldSheet;
       options: Array<CharacterOption>;
     },
     onHeroData: (result: {
@@ -241,15 +241,15 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       };
       draftState.startState = 'seeding_facts';
 
-      const generatedWorldFacts = await generateWorldFacts(selectedTheme);
-      const worldFactsForGame = generatedWorldFacts ?? createDefaultWorldFacts();
-      draftState.worldFacts = worldFactsForGame;
+      const generatedWorldSheet = await generateWorldSheet(selectedTheme);
+      const WorldSheetForGame = generatedWorldSheet ?? createDefaultWorldSheet();
+      draftState.WorldSheet = WorldSheetForGame;
       commitGameState(draftState);
 
       const names = await generateCharacterNames(
         selectedTheme,
         selectedGender,
-        worldFactsForGame,
+        WorldSheetForGame,
       );
       if (!names || names.length === 0) {
         setError('Failed to generate character options. Please retry.');
@@ -271,7 +271,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       const descriptions = await generateCharacterDescriptions(
         selectedTheme,
         selectedGender,
-        worldFactsForGame,
+        WorldSheetForGame,
         shuffled,
       );
       if (!descriptions) {
@@ -287,7 +287,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         {
           theme: selectedTheme,
           heroGender: selectedGender,
-          worldFacts: worldFactsForGame,
+          WorldSheet: WorldSheetForGame,
           options: descriptions,
         },
         result => {
@@ -312,10 +312,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           }
           initialTurnPromise = (async () => {
             draftState.startState = 'seeding_facts';
-            if (generatedWorldFacts) {
+            if (generatedWorldSheet) {
               const initialFacts = await extractInitialFacts({
                 themeName: selectedTheme.name,
-                worldFacts: generatedWorldFacts,
+                WorldSheet: generatedWorldSheet,
                 heroSheet: hasGeneratedHeroData ? heroSheetForState : undefined,
                 heroBackstory: hasGeneratedHeroData ? resolvedHeroBackstory : undefined,
                 onSetLoadingReason: setLoadingReason,
@@ -348,7 +348,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
               prompt = buildInitialGamePrompt({
                 theme: selectedTheme,
                 storyArc: draftState.storyArc,
-                worldFacts: draftState.worldFacts,
+                WorldSheet: draftState.WorldSheet,
                 heroSheet: draftState.heroSheet,
                 heroBackstory: draftState.heroBackstory,
               });

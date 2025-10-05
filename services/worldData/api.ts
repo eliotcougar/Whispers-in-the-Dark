@@ -13,7 +13,7 @@ import { isApiConfigured } from '../geminiClient';
 import { getThinkingBudget, getMaxOutputTokens } from '../thinkingConfig';
 import type {
   AdventureTheme,
-  WorldFacts,
+  WorldSheet,
   HeroSheet,
   HeroBackstory,
   CharacterOption,
@@ -36,7 +36,7 @@ interface StoryArcData {
   acts: Array<StoryActData>;
 }
 
-const worldFactsSchema = {
+const WorldSheetSchema = {
   type: 'object',
   properties: {
     geography: { type: 'string', minLength: 1000 },
@@ -132,17 +132,17 @@ const heroBackstorySchema = {
 } as const;
 
 export interface WorldDataResult {
-  worldFacts: WorldFacts | null;
+  WorldSheet: WorldSheet | null;
   heroSheet: HeroSheet | null;
   heroBackstory: HeroBackstory | null;
   storyArc: StoryArc | null;
 }
 
-export const generateWorldFacts = async (
+export const generateWorldSheet = async (
   theme: AdventureTheme,
-): Promise<WorldFacts | null> => {
+): Promise<WorldSheet | null> => {
   if (!isApiConfigured()) {
-    console.error('generateWorldFacts: API key not configured.');
+    console.error('generateWorldSheet: API key not configured.');
     return null;
   }
   const prompt =
@@ -157,23 +157,23 @@ export const generateWorldFacts = async (
         thinkingBudget,
         includeThoughts: false,
         responseMimeType: 'application/json',
-        jsonSchema: worldFactsSchema,
-        label: 'WorldFacts',
+        jsonSchema: WorldSheetSchema,
+        label: 'WorldSheet',
         maxOutputTokens,
       });
     return response.text ?? null;
   };
-  return retryAiCall<WorldFacts>(async () => {
+  return retryAiCall<WorldSheet>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
     const text = await request();
-    return { result: text ? safeParseJson<WorldFacts>(text) : null };
+    return { result: text ? safeParseJson<WorldSheet>(text) : null };
   });
 };
 
 export const generateCharacterNames = async (
   theme: AdventureTheme,
   gender: string,
-  worldFacts: WorldFacts,
+  WorldSheet: WorldSheet,
 ): Promise<Array<string> | null> => {
   if (!isApiConfigured()) {
     console.error('generateCharacterNames: API key not configured.');
@@ -181,7 +181,7 @@ export const generateCharacterNames = async (
   }
   const prompt =
     `Using this world description:
-    ${JSON.stringify(worldFacts)}
+    ${JSON.stringify(WorldSheet)}
     Generate 50 strictly ${gender} full names with occasional optional nicknames appropriate for the theme "${theme.name}".
     Allowed templates: 'FirstName LastName', 'FirstName "Nickname" LastName', or 'Prefix FirstName LastName'.
     UNIQUENESS REQUIREMENTS (very important):
@@ -217,7 +217,7 @@ export const generateCharacterNames = async (
 export const generateCharacterDescriptions = async (
   theme: AdventureTheme,
   gender: string,
-  worldFacts: WorldFacts,
+  WorldSheet: WorldSheet,
   names: Array<string>,
 ): Promise<Array<CharacterOption> | null> => {
   if (!isApiConfigured()) {
@@ -226,7 +226,7 @@ export const generateCharacterDescriptions = async (
   }
   const prompt =
     `Using this world description:
-    ${JSON.stringify(worldFacts)}
+    ${JSON.stringify(WorldSheet)}
     Provide a short adventurous description for each of these potential ${gender} player characters appropriate for the theme "${theme.name}":
     ${names.join('\n')}`;
   const request = async () => {
@@ -264,7 +264,7 @@ export const generateCharacterDescriptions = async (
 export const generateHeroData = async (
   theme: AdventureTheme,
   heroGender: string,
-  worldFacts: WorldFacts,
+  WorldSheet: WorldSheet,
   heroName?: string,
   heroDescription?: string,
 ): Promise<{ heroSheet: HeroSheet | null; heroBackstory: HeroBackstory | null; storyArc: StoryArc | null } | null> => {
@@ -273,7 +273,7 @@ export const generateHeroData = async (
     return null;
   }
   const heroSheetPrompt = `Using the theme "${theme.name}" and these world details:
-${JSON.stringify(worldFacts)}
+${JSON.stringify(WorldSheet)}
 The player's character gender is ${heroGender}.${heroName ? ` Their name is ${heroName}.` : ''}${heroDescription ? ` Here is a short description of the hero: ${heroDescription}.` : ''}
 Create a brief character sheet including occupation, notable traits, and starting items.
 Also include "heroShortName": a single-word short name used in UI and dialogue, composed only of alphanumeric characters and hyphens (no underscores). Strongly PREFER using the exact FirstName part of the full name for "heroShortName"; choose a different single-word alias only if the FirstName would be ambiguous in this world/context.`;
@@ -313,7 +313,7 @@ Also include "heroShortName": a single-word short name used in UI and dialogue, 
       }
       const finalHeroName = heroName ?? parsedSheet?.name ?? 'the hero';
       const backstoryPrompt = `Using these world details:
-${JSON.stringify(worldFacts)}
+${JSON.stringify(WorldSheet)}
 and this hero sheet:
 ${sheetText ?? ''}
 ${heroDescription ? `The hero's description is: ${heroDescription}.` : ''}
@@ -364,7 +364,7 @@ export const generateWorldData = async (
     return null;
   }
 
-  const worldFactsPrompt =
+  const WorldSheetPrompt =
     `Using the theme description "${theme.storyGuidance}", expand it into a detailed world profile.`;
 
     const request = async (
@@ -390,8 +390,8 @@ export const generateWorldData = async (
 
   return retryAiCall<WorldDataResult>(async () => {
     addProgressSymbol(LOADING_REASON_UI_MAP.initial_load.icon);
-    const factsText = await request(worldFactsPrompt, worldFactsSchema, 'WorldFacts');
-    const parsedFacts = factsText ? safeParseJson<WorldFacts>(factsText) : null;
+    const factsText = await request(WorldSheetPrompt, WorldSheetSchema, 'WorldSheet');
+    const parsedFacts = factsText ? safeParseJson<WorldSheet>(factsText) : null;
 
     const heroData = await generateHeroData(theme, heroGender, parsedFacts ?? {
       geography: '',
@@ -406,7 +406,7 @@ export const generateWorldData = async (
 
     return {
       result: {
-        worldFacts: parsedFacts ?? null,
+        WorldSheet: parsedFacts ?? null,
         heroSheet: heroData?.heroSheet ?? null,
         heroBackstory: heroData?.heroBackstory ?? null,
         storyArc: heroData?.storyArc ?? null,
@@ -417,7 +417,7 @@ export const generateWorldData = async (
 
 export const generateNextStoryAct = async (
   theme: AdventureTheme,
-  worldFacts: WorldFacts,
+  WorldSheet: WorldSheet,
   heroSheet: HeroSheet,
   storyArc: StoryArc,
   gameLog: Array<string>,
@@ -447,7 +447,7 @@ export const generateNextStoryAct = async (
       : '';
 
   const prompt = `Using the theme "${theme.name}" continue the narrative.\n\n` +
-    `World Facts:\n${JSON.stringify(worldFacts)}\n\n` +
+    `World Facts:\n${JSON.stringify(WorldSheet)}\n\n` +
     `Player Character:\n${JSON.stringify(heroSheet)}\n\n` +
     `Story Arc Title: ${storyArc.title}\nOverview: ${storyArc.overview}\n\n` +
     `Completed Acts:\n${completedActs}\n\n` +

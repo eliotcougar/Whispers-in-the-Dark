@@ -17,7 +17,7 @@ import {
   MapNodeData,
   DialogueSummaryRecord,
   LoreFact,
-  WorldFacts,
+  WorldSheet,
   HeroSheet,
   HeroBackstory,
   StoryArc,
@@ -36,7 +36,7 @@ import { getDefaultMapLayoutConfig } from '../../hooks/useMapUpdates';
 import { DEFAULT_VIEWBOX } from '../../constants';
 import { buildNPCId, buildItemId } from '../../utils/entityUtils';
 import {
-  createDefaultWorldFacts,
+  createDefaultWorldSheet,
   createDefaultHeroSheet,
   createDefaultHeroBackstory,
   createDefaultStoryArc,
@@ -124,9 +124,9 @@ export function isValidLoreFact(fact: unknown): fact is LoreFact {
   );
 }
 
-export function isValidWorldFacts(data: unknown): data is WorldFacts {
+export function isValidWorldSheet(data: unknown): data is WorldSheet {
   if (!data || typeof data !== 'object') return false;
-  const maybe = data as Partial<WorldFacts> & Record<string, unknown>;
+  const maybe = data as Partial<WorldSheet> & Record<string, unknown>;
   return (
     typeof maybe.geography === 'string' &&
     typeof maybe.climate === 'string' &&
@@ -310,7 +310,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
 
   const fields: Array<keyof SavedGameDataShape> = [
     'theme', 'currentScene', 'actionOptions', 'mainQuest', 'currentObjective',
-    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'loreFacts', 'worldFacts', 'heroSheet', 'heroBackstory',
+    'inventory', 'playerJournal', 'lastJournalWriteTurn', 'lastJournalInspectTurn', 'lastLoreDistillTurn', 'gameLog', 'lastActionLog', 'loreFacts', 'WorldSheet', 'heroSheet', 'heroBackstory',
     'allNPCs', 'mapData', 'currentMapNodeId', 'destinationNodeId', 'mapLayoutConfig', 'mapViewBox', 'score',
     'localTime', 'localEnvironment', 'localPlace',
     'globalTurnNumber'
@@ -322,7 +322,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
         'currentMapNodeId',
         'destinationNodeId',
         'loreFacts',
-        'worldFacts',
+        'WorldSheet',
         'heroSheet',
         'heroBackstory',
       ];
@@ -330,7 +330,7 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
         !(nullableFields.includes(field) && obj[field] === null) &&
         field !== 'globalTurnNumber' &&
         field !== 'loreFacts' &&
-        field !== 'worldFacts' &&
+        field !== 'WorldSheet' &&
         field !== 'heroSheet' &&
         field !== 'heroBackstory'
       ) {
@@ -372,8 +372,8 @@ export function validateSavedGameState(data: unknown): data is SavedGameDataShap
     console.warn('Invalid save data (V5): loreFacts structure.');
     return false;
   }
-  if (obj.worldFacts && !isValidWorldFacts(obj.worldFacts)) {
-    console.warn('Invalid save data (V5): worldFacts structure.');
+  if (obj.WorldSheet && !isValidWorldSheet(obj.WorldSheet)) {
+    console.warn('Invalid save data (V5): WorldSheet structure.');
     return false;
   }
   if (obj.heroSheet && !isValidHeroSheet(obj.heroSheet)) {
@@ -478,7 +478,7 @@ export function ensureCompleteMapEdgeDataDefaults(mapData: MapData | undefined):
 
 export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDataShape {
   const cast = data as Partial<SavedGameDataShape> & {
-    worldFacts?: WorldFacts | null;
+    WorldSheet?: WorldSheet | null;
     heroSheet?: HeroSheet | null;
     heroBackstory?: HeroBackstory | null;
     storyArc?: StoryArc | null;
@@ -519,8 +519,8 @@ export function postProcessValidatedData(data: SavedGameDataShape): SavedGameDat
   if (!Array.isArray(cast.loreFacts)) {
     cast.loreFacts = [];
   }
-  if (!cast.worldFacts || !isValidWorldFacts(cast.worldFacts)) {
-    cast.worldFacts = createDefaultWorldFacts();
+  if (!cast.WorldSheet || !isValidWorldSheet(cast.WorldSheet)) {
+    cast.WorldSheet = createDefaultWorldSheet();
   }
   if (!cast.heroSheet || !isValidHeroSheet(cast.heroSheet)) {
     cast.heroSheet = createDefaultHeroSheet();

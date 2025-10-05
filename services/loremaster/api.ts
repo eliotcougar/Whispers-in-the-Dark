@@ -27,7 +27,7 @@ import {
   LoreRefinementResult,
   LoremasterRefineDebugInfo,
   LoadingReason,
-  WorldFacts,
+  WorldSheet,
   HeroSheet,
   HeroBackstory,
 } from '../../types';
@@ -169,7 +169,7 @@ export interface RefineLoreParams {
   existingFacts: Array<LoreFact>;
   logMessage: string;
   currentScene: string;
-  worldFacts?: WorldFacts;
+  WorldSheet?: WorldSheet;
   heroSheet?: HeroSheet;
   heroBackstory?: HeroBackstory;
   onFactsExtracted?: (facts: Array<FactWithEntities>) => Promise<{ proceed: boolean }>;
@@ -183,7 +183,7 @@ export interface RefineLoreServiceResult {
 
 export interface ExtractInitialFactsParams {
   themeName: string;
-  worldFacts: WorldFacts;
+  WorldSheet: WorldSheet;
   heroSheet?: HeroSheet;
   heroBackstory?: HeroBackstory;
   onSetLoadingReason?: (reason: LoadingReason) => void;
@@ -201,12 +201,12 @@ export const extractInitialFacts = async (
     console.error('extractInitialFacts: API not configured');
     return null;
   }
-  const { themeName, worldFacts, heroSheet, heroBackstory } = params;
+  const { themeName, WorldSheet, heroSheet, heroBackstory } = params;
 
   const extractPrompt = buildExtractFactsPrompt(
     themeName,
     '',
-    worldFacts,
+    WorldSheet,
     heroSheet,
     heroBackstory,
   );
@@ -289,7 +289,7 @@ export const refineLore = async (
     existingFacts,
     logMessage,
     currentScene,
-    worldFacts,
+    WorldSheet,
     heroSheet,
     heroBackstory,
     onFactsExtracted,
@@ -298,7 +298,7 @@ export const refineLore = async (
   const extractPrompt = buildExtractFactsPrompt(
     themeName,
     turnContext,
-    worldFacts,
+    WorldSheet,
     heroSheet,
     heroBackstory,
   );

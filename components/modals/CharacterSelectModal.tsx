@@ -5,7 +5,7 @@ import type {
   HeroBackstory,
   HeroSheet,
   StoryArc,
-  WorldFacts,
+  WorldSheet,
 } from '../../types';
 import BackstoryItem from '../elements/BackstoryItem';
 import Button from '../elements/Button';
@@ -18,7 +18,7 @@ interface CharacterSelectModalProps {
   readonly isVisible: boolean;
   readonly theme: AdventureTheme;
   readonly heroGender: string;
-  readonly worldFacts: WorldFacts;
+  readonly WorldSheet: WorldSheet;
   readonly options: Array<CharacterOption>;
   readonly onHeroData: (result: {
     name: string;
@@ -33,7 +33,7 @@ function CharacterSelectModal({
   isVisible,
   theme,
   heroGender,
-  worldFacts,
+  WorldSheet,
   options,
   onHeroData,
   onComplete,
@@ -52,7 +52,7 @@ function CharacterSelectModal({
         const result = await generateHeroData(
           theme,
           heroGender,
-          worldFacts,
+          WorldSheet,
           option.name,
           option.description,
         );
@@ -71,7 +71,7 @@ function CharacterSelectModal({
         });
       })();
     },
-    [theme, heroGender, worldFacts, onHeroData]
+    [theme, heroGender, WorldSheet, onHeroData]
   );
 
   const handleBegin = useCallback(() => {
@@ -189,7 +189,7 @@ function CharacterSelectModal({
                     Geography:
                   </span> 
                   {' '}
-                  {worldFacts.geography}
+                  {WorldSheet.geography}
                 </p>
 
                 <p>
@@ -197,7 +197,7 @@ function CharacterSelectModal({
                     Climate:
                   </span> 
                   {' '}
-                  {worldFacts.climate}
+                  {WorldSheet.climate}
                 </p>
 
                 <p>
@@ -205,7 +205,7 @@ function CharacterSelectModal({
                     Technology Level:
                   </span> 
                   {' '}
-                  {worldFacts.technologyLevel}
+                  {WorldSheet.technologyLevel}
                 </p>
 
                 <p>
@@ -213,7 +213,7 @@ function CharacterSelectModal({
                     Supernatural Elements:
                   </span> 
                   {' '}
-                  {worldFacts.supernaturalElements}
+                  {WorldSheet.supernaturalElements}
                 </p>
 
                 <p className="whitespace-pre-line">
@@ -221,7 +221,7 @@ function CharacterSelectModal({
                     Major Factions:
                   </span> 
                   {' '}
-                  {worldFacts.majorFactions.join('\n')}
+                  {WorldSheet.majorFactions.join('\n')}
                 </p>
 
                 <p className="whitespace-pre-line">
@@ -229,7 +229,7 @@ function CharacterSelectModal({
                     Key Resources:
                   </span> 
                   {' '}
-                  {worldFacts.keyResources.join('\n')}
+                  {WorldSheet.keyResources.join('\n')}
                 </p>
 
                 <p className="whitespace-pre-line">
@@ -237,7 +237,7 @@ function CharacterSelectModal({
                     Cultural Notes:
                   </span> 
                   {' '}
-                  {worldFacts.culturalNotes.join('\n')}
+                  {WorldSheet.culturalNotes.join('\n')}
                 </p>
 
                 <p className="whitespace-pre-line">
@@ -245,7 +245,7 @@ function CharacterSelectModal({
                     Notable Locations:
                   </span> 
                   {' '}
-                  {worldFacts.notableLocations.join('\n')}
+                  {WorldSheet.notableLocations.join('\n')}
                 </p>
               </section>
             </div>
