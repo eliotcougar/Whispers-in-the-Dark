@@ -30,7 +30,7 @@ import { useGameTurn } from './useGameTurn';
 import { useGameInitialization, LoadInitialGameOptions } from './useGameInitialization';
 import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
-  import {
+import {
     PLAYER_HOLDER_ID,
     DISTILL_LORE_INTERVAL,
     RECENT_LOG_COUNT_FOR_DISTILL,
@@ -38,7 +38,7 @@ import { structuredCloneGameState } from '../utils/cloneUtils';
     KNOWN_USE_ACTION_COST,
     GENERIC_USE_ACTION_COST,
     INSPECT_ACTION_COST,
-    READABLE_ITEM_TYPES,
+    WRITTEN_ITEM_TYPES,
   } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
 import { distillFacts_Service } from '../services/loremaster';
@@ -111,7 +111,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   }, []);
   const [error, setError] = useState<string | null>(null);
   const [parseErrorCounter, setParseErrorCounter] = useState<number>(0);
-  void parseErrorCounter;
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
   const [queuedItemActions, setQueuedItemActions] = useState<
@@ -312,7 +311,7 @@ export const useGameLogic = (props: UseGameLogicProps) => {
               recordInspect(item.id);
             };
             cost = INSPECT_ACTION_COST;
-            if (READABLE_ITEM_TYPES.includes(item.type as (typeof READABLE_ITEM_TYPES)[number])) {
+            if (WRITTEN_ITEM_TYPES.includes(item.type as (typeof WRITTEN_ITEM_TYPES)[number])) {
               const showActual = item.tags?.includes('recovered');
               const contents = (item.chapters ?? [])
                 .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
@@ -723,5 +722,6 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     queuedItemActions,
     clearQueuedItemActions,
     remainingActionPoints,
+    parseErrorCounter,
   };
 };

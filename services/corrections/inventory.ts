@@ -103,7 +103,7 @@ export const fetchCorrectedItemChangeArray_Service = async (
     return null;
   }
 
-  const prompt = `You are an AI assistant fixing a malformed inventory update JSON payload for a text adventure game.
+  const basePrompt = `You are an AI assistant fixing a malformed inventory update JSON payload for a text adventure game.
 
 ## Malformed Payload:
 \`\`\`json
@@ -251,12 +251,20 @@ Valid item types: ${VALID_ITEM_TYPES_STRING}.
 
 Respond ONLY with the corrected JSON array.`;
 
+  let promptToUse = basePrompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<Array<ItemChange>>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = basePrompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         responseMimeType: 'application/json',
         jsonSchema: ITEM_CHANGE_SCHEMA,
@@ -264,15 +272,26 @@ Respond ONLY with the corrected JSON array.`;
         label: 'Corrections',
       });
       const aiResponse = safeParseJson<Array<ItemChange>>(response.text ?? '');
-      const parsedResult = aiResponse ? parseInventoryResponse(JSON.stringify(aiResponse)) : null;
+      let parseErrorThisAttempt: string | null = null;
+      const parsedResult = aiResponse
+        ? parseInventoryResponse(JSON.stringify(aiResponse), message => {
+            parseErrorThisAttempt = message;
+          })
+        : null;
       const validatedChanges = parsedResult ? parsedResult.itemChanges : null;
       if (validatedChanges) {
+        lastErrorMessage = null;
         return { result: validatedChanges };
       }
       console.warn(
         `fetchCorrectedItemChangeArray_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected payload invalid.`,
         aiResponse,
       );
+    if (typeof parseErrorThisAttempt === 'string') {
+      lastErrorMessage = parseErrorThisAttempt;
+    } else {
+      lastErrorMessage = 'Corrected inventory payload must contain valid ItemChange entries following the documented schema.';
+    }
     } catch (error: unknown) {
       console.error(
         `fetchCorrectedItemChangeArray_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,

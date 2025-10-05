@@ -334,6 +334,7 @@ export interface InventoryUpdateResult {
     observations?: string;
     rationale?: string;
     thoughts?: Array<string>;
+    validationError?: string;
   } | null;
 }
 
@@ -358,7 +359,7 @@ export const applyInventoryHints_Service = async (
     return { itemChanges: [], debugInfo: null };
   }
 
-  const { prompt, companionsContext, nearbyNpcsContext } = buildInventoryPrompt(
+  const { prompt: basePrompt, companionsContext, nearbyNpcsContext } = buildInventoryPrompt(
     playerLastAction,
     pHint,
     wHint,
@@ -369,60 +370,101 @@ export const applyInventoryHints_Service = async (
     npcs,
     limitedMapContext,
   );
-  const {
-    response,
-    thoughts,
-    systemInstructionUsed,
-    jsonSchemaUsed,
-    promptUsed,
-  } = await executeInventoryRequest(prompt);
-  let parsed = parseInventoryResponse(response.text ?? '');
-  if (!parsed) {
-    const corrected = await fetchCorrectedItemChangeArray_Service(
-      response.text ?? '',
-      logMessage,
-      sceneDescription,
-      pHint,
-      wHint,
-      nHint,
-      currentNodeId,
-      companionsContext,
-      nearbyNpcsContext,
-      theme,
-    );
-    if (corrected)
-      parsed = { itemChanges: corrected } as InventoryAIPayload;
-  }
-  if (parsed) {
-    for (const change of parsed.itemChanges) {
-      if (
-        change.action === 'addDetails' &&
-        (change as { invalidPayload?: unknown }).invalidPayload
-      ) {
-        const corrected = await fetchCorrectedAddDetailsPayload_Service(
-          JSON.stringify((change as { invalidPayload: unknown }).invalidPayload),
-          logMessage,
-          sceneDescription,
-          theme,
-        );
-        if (corrected) {
-          change.item = corrected;
-          delete (change as { invalidPayload?: unknown }).invalidPayload;
-        }
+  let attemptPrompt = basePrompt;
+  let parsed: InventoryAIPayload | null = null;
+  let lastErrorMessage: string | null = null;
+  let finalResponse: GenerateContentResponse | null = null;
+  let finalThoughts: Array<string> = [];
+  let finalSystemInstruction: string | undefined;
+  let finalJsonSchema: unknown;
+  let finalPromptUsed = attemptPrompt;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    const {
+      response,
+      thoughts,
+      systemInstructionUsed,
+      jsonSchemaUsed,
+      promptUsed,
+    } = await executeInventoryRequest(attemptPrompt);
+    finalResponse = response;
+    finalThoughts = thoughts;
+    finalSystemInstruction = systemInstructionUsed;
+    finalJsonSchema = jsonSchemaUsed;
+    finalPromptUsed = promptUsed;
+
+    let parseErrorThisAttempt: string | null = null;
+    parsed = parseInventoryResponse(response.text ?? '', message => {
+      parseErrorThisAttempt = message;
+    });
+
+    if (!parsed) {
+      const corrected = await fetchCorrectedItemChangeArray_Service(
+        response.text ?? '',
+        logMessage,
+        sceneDescription,
+        pHint,
+        wHint,
+        nHint,
+        currentNodeId,
+        companionsContext,
+        nearbyNpcsContext,
+        theme,
+      );
+      if (corrected) {
+        parsed = { itemChanges: corrected } as InventoryAIPayload;
       }
     }
+
+    if (parsed) {
+      for (const change of parsed.itemChanges) {
+        if (
+          change.action === 'addDetails' &&
+          (change as { invalidPayload?: unknown }).invalidPayload
+        ) {
+          const corrected = await fetchCorrectedAddDetailsPayload_Service(
+            JSON.stringify((change as { invalidPayload: unknown }).invalidPayload),
+            logMessage,
+            sceneDescription,
+            theme,
+          );
+          if (corrected) {
+            change.item = corrected;
+            delete (change as { invalidPayload?: unknown }).invalidPayload;
+          }
+        }
+      }
+      lastErrorMessage = null;
+      break;
+    }
+
+    if (typeof parseErrorThisAttempt === 'string') {
+      lastErrorMessage = parseErrorThisAttempt;
+    } else {
+      lastErrorMessage = 'Inventory response did not match the expected JSON schema. Return only valid item change entries.';
+    }
+
+    if (attempt === MAX_RETRIES) {
+      break;
+    }
+
+    attemptPrompt = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
   }
+
+  const validationError = lastErrorMessage ?? undefined;
+
   return {
     itemChanges: parsed ? parsed.itemChanges : [],
     debugInfo: {
-      prompt: promptUsed,
-      systemInstruction: systemInstructionUsed,
-      jsonSchema: jsonSchemaUsed,
-      rawResponse: response.text ?? '',
+      prompt: finalPromptUsed,
+      systemInstruction: finalSystemInstruction,
+      jsonSchema: finalJsonSchema,
+      rawResponse: finalResponse?.text ?? '',
       parsedItemChanges: parsed ? parsed.itemChanges : undefined,
       observations: parsed?.observations,
       rationale: parsed?.rationale,
-      thoughts: thoughts,
+      thoughts: finalThoughts,
+      validationError,
     },
   };
 };

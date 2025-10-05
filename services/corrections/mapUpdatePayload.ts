@@ -35,17 +35,25 @@ export const fetchCorrectedMapUpdatePayload_Service = async (
     return null;
   }
 
-  const prompt = `You are an AI assistant fixing a malformed map update payload for a text adventure game.
+  const basePrompt = `You are an AI assistant fixing a malformed map update payload for a text adventure game.
 \nMalformed JSON:\n\`\`\`json\n${malformedJson}\n\`\`\`\nValidation Error: "${validationError ?? 'Unknown'}"\nRespond ONLY with the corrected JSON object.`;
 
   const systemInstruction = `Correct the map update payload so it adheres to the expected structure. Valid node types: ${VALID_NODE_TYPE_STRING}. Valid node statuses: ${VALID_NODE_STATUS_STRING}. Valid edge types: ${VALID_EDGE_TYPE_STRING}. Valid edge statuses: ${VALID_EDGE_STATUS_STRING}. ${NODE_DESCRIPTION_INSTRUCTION} ${EDGE_DESCRIPTION_INSTRUCTION} ${ALIAS_INSTRUCTION} Theme Guidance: ${theme.storyGuidance}`;
 
+  let promptToUse = basePrompt;
+  let lastErrorMessage: string | null = validationError ?? null;
+
   return retryAiCall<AIMapUpdatePayload>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = basePrompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         responseMimeType: 'application/json',
         temperature: CORRECTION_TEMPERATURE,
@@ -56,10 +64,13 @@ export const fetchCorrectedMapUpdatePayload_Service = async (
         normalizeStatusAndTypeSynonyms(aiResponse);
         const valid = isValidAIMapUpdatePayload(aiResponse);
         if (valid) {
+          lastErrorMessage = null;
           return { result: aiResponse };
         }
       }
       console.warn(`fetchCorrectedMapUpdatePayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected payload invalid.`, aiResponse);
+      lastErrorMessage =
+        'Corrected map update payload must include valid nodes/edges arrays that follow the documented schema and reference existing locations.';
     } catch (error: unknown) {
       console.error(`fetchCorrectedMapUpdatePayload_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;

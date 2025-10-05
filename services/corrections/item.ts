@@ -116,7 +116,7 @@ Instructions for "change":
 4.  Ensure all present fields are valid.`;
   }
 
-  const prompt = `You are an AI assistant tasked with correcting malformed JSON item payloads for a text adventure game.
+  const basePrompt = `You are an AI assistant tasked with correcting malformed JSON item payloads for a text adventure game.
 Reconstruct the 'item' part of an ItemChange object based on the provided context and the malformed data.
 Action Type: "${actionType}" (this concerns ${itemContextDescription}).
 
@@ -140,26 +140,43 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
 
   const systemInstruction = `Correct JSON item payloads based on the provided structure, context, and specific instructions for the action type. Adhere strictly to the JSON format. Preserve the original intent of the item change if discernible. CRITICAL: Ensure the 'type' field is never 'junk'; use the 'tags' array with "junk" and a valid type instead.`;
 
+  let promptToUse = basePrompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<Item>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = basePrompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         responseMimeType: 'application/json',
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
       });
       const jsonStr = response.text ?? '';
-      const aiResponse = safeParseJson<Item>(jsonStr);
-      if (aiResponse && isValidItem(aiResponse, actionType === 'create' ? 'create' : 'change')) {
-        return { result: aiResponse };
+      const parsedItem = safeParseJson<Item>(jsonStr);
+      if (parsedItem === null) {
+        console.warn(
+          `fetchCorrectedItemPayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
+          parsedItem,
+        );
+        lastErrorMessage = 'Returned item payload could not be parsed as JSON. Respond with a single JSON object for the item.';
+      } else if (isValidItem(parsedItem, actionType === 'create' ? 'create' : 'change')) {
+        lastErrorMessage = null;
+        return { result: parsedItem };
+      } else {
+        console.warn(
+          `fetchCorrectedItemPayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
+          parsedItem,
+        );
+        lastErrorMessage = `Correct the '${actionType}' item payload so it includes valid values for name, type, description, holderId and other required fields. Types must be one of ${VALID_ITEM_TYPES_STRING} and never 'junk'.`;
       }
-      console.warn(
-        `fetchCorrectedItemPayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
-        aiResponse,
-      );
     } catch (error: unknown) {
       console.error(`fetchCorrectedItemPayload_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
@@ -195,7 +212,7 @@ export const fetchCorrectedItemAction_Service = async (
     /* ignore parse error */
   }
 
-  const prompt = `You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
+  const basePrompt = `You are an AI assistant specialized in determining the correct 'action' for an ItemChange object in a text adventure game, based on narrative context and a potentially malformed ItemChange object.
 Valid 'action' types are: ${VALID_ACTIONS_STRING}.
 
 Malformed ItemChange Object:
@@ -220,12 +237,20 @@ If no action can be confidently determined, respond with an empty string.`;
 
   const systemInstruction = `Determine the correct item 'action' (${VALID_ACTIONS_STRING}) from narrative context and a malformed item object. Respond ONLY with the action string or an empty string if unsure.`;
 
+  let promptToUse = basePrompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<ItemChange['action']>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = basePrompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
@@ -235,15 +260,18 @@ If no action can be confidently determined, respond with an empty string.`;
         const candidateAction = aiResponse.trim().toLowerCase();
         if (VALID_ACTIONS.includes(candidateAction as ItemChange['action'])) {
           console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, candidateAction, ".");
+          lastErrorMessage = null;
           return { result: candidateAction as ItemChange['action'] };
         }
         if (candidateAction === '') {
           console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
           return { result: null, retry: false };
         }
-          console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned invalid action "${candidateAction}".`);
+        console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned invalid action "${candidateAction}".`);
+        lastErrorMessage = `Returned action must be exactly one of ${VALID_ACTIONS_STRING}. Respond with only the action string.`;
       } else {
         console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for item action. Received: null`);
+        lastErrorMessage = `No action string was returned. Respond with exactly one of ${VALID_ACTIONS_STRING}, or an empty string if unsure.`;
       }
     } catch (error: unknown) {
       console.error(`fetchCorrectedItemAction_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
@@ -278,7 +306,7 @@ export const fetchCorrectedItemTag_Service = async (
     return null;
   }
 
-  const prompt = `Resolve an ambiguous item tag to one of the valid tags.
+  const basePrompt = `Resolve an ambiguous item tag to one of the valid tags.
 Candidate tag: "${proposedTag}"
 Item name: "${itemName}"
 Description: "${itemDescription}"
@@ -288,12 +316,20 @@ Respond ONLY with the single best tag.`;
 
   const systemInstruction = `Map ambiguous item tag synonyms to canonical tags. Choose from: ${VALID_TAGS_STRING}.`;
 
+  let promptToUse = basePrompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<ItemTag>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = basePrompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
@@ -303,9 +339,11 @@ Respond ONLY with the single best tag.`;
         const cleaned = aiResponse.replace(/^['"]+|['"]+$/g, '').trim().toLowerCase();
         const mapped = TAG_SYNONYMS[cleaned] ?? cleaned;
         if ((VALID_TAGS as ReadonlyArray<string>).includes(mapped as ItemTag)) {
+          lastErrorMessage = null;
           return { result: mapped as ItemTag };
         }
       }
+      lastErrorMessage = `Tag must be one of the canonical values: ${VALID_TAGS_STRING}. Respond with a single tag string.`;
     } catch (error: unknown) {
       console.error(
         `fetchCorrectedItemTag_Service error (Attempt ${String(attempt + 1)}/${String(
@@ -335,7 +373,7 @@ export const fetchAdditionalBookChapters_Service = async (
   if (countNeeded <= 0) return [];
 
   const list = existingHeadings.map(h => `- ${h}`).join('\n');
-  const prompt = `You are an AI assistant adding missing chapters to a book.
+  const basePrompt = `You are an AI assistant adding missing chapters to a book.
 Book Title: "${bookTitle}"
 Description: "${bookDescription}"
 Existing Chapter Headings:\n${list}
@@ -344,12 +382,20 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
 
   const systemInstruction = `Return ONLY the JSON array of ${String(countNeeded)} chapter objects.`;
 
+  let promptToUse = basePrompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<Array<ItemChapter>>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = basePrompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         responseMimeType: 'application/json',
         temperature: CORRECTION_TEMPERATURE,
@@ -358,6 +404,7 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
       const jsonStr = response.text ?? '';
       const parsed = safeParseJson<Array<ItemChapter>>(jsonStr);
       if (Array.isArray(parsed) && parsed.every(ch => typeof ch.heading === 'string')) {
+        lastErrorMessage = null;
         return { result: parsed };
       }
       console.warn(
@@ -366,6 +413,7 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
         )}): invalid response`,
         parsed,
       );
+      lastErrorMessage = `Return an array with ${String(countNeeded)} objects containing "heading", "description", and numeric "contentLength" between 50 and 200.`;
     } catch (error: unknown) {
       console.error(
         `fetchAdditionalBookChapters_Service error (Attempt ${String(attempt + 1)}/${String(
@@ -393,7 +441,7 @@ export const fetchCorrectedAddDetailsPayload_Service = async (
     return null;
   }
 
-  const prompt = `You are an AI assistant fixing a malformed addDetails JSON object for a text adventure game.
+  const basePrompt = `You are an AI assistant fixing a malformed addDetails JSON object for a text adventure game.
 
 Malformed Payload:
 \`\`\`json
@@ -408,12 +456,20 @@ Task: Provide ONLY the corrected JSON object with fields { "id": string, "name":
 
   const systemInstruction = 'Return only the corrected addDetails JSON object.';
 
+  let promptToUse = basePrompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<AddDetailsPayload>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = basePrompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         responseMimeType: 'application/json',
         temperature: CORRECTION_TEMPERATURE,
@@ -422,6 +478,7 @@ Task: Provide ONLY the corrected JSON object with fields { "id": string, "name":
       const jsonStr = response.text ?? '';
       const parsed = safeParseJson<AddDetailsPayload>(jsonStr);
       if (parsed && isValidAddDetailsPayload(parsed)) {
+        lastErrorMessage = null;
         return { result: parsed };
       }
       console.warn(
@@ -430,6 +487,8 @@ Task: Provide ONLY the corrected JSON object with fields { "id": string, "name":
         )}): invalid response`,
         parsed,
       );
+      lastErrorMessage =
+        'Corrected addDetails payload must include id, name, valid type, and optional knownUses/tags/chapters with proper structure.';
     } catch (error: unknown) {
       console.error(
         `fetchCorrectedAddDetailsPayload_Service error (Attempt ${String(attempt + 1)}/${String(

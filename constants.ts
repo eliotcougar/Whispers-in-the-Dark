@@ -76,7 +76,6 @@ export const MIN_BOOK_CHAPTERS = 4;
 export const MAX_BOOK_CHAPTERS = 10;
 
 export const WRITTEN_ITEM_TYPES = ['page', 'book', 'picture', 'map'] as const;
-export const READABLE_ITEM_TYPES = ['book', 'page'] as const;
 export const IMAGE_ITEM_TYPES = ['picture', 'map'] as const;
 export const SINGLE_CHAPTER_WRITTEN_ITEM_TYPES = ['page', 'picture', 'map'] as const;
 export const WRITTEN_ITEM_TYPES_STRING = WRITTEN_ITEM_TYPES.map(t => t).join(', ');

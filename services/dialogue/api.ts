@@ -141,7 +141,7 @@ export const executeDialogueTurn = async (
     return Promise.reject(new Error('API Key not configured.'));
   }
 
-  const prompt = buildDialogueTurnPrompt({
+  const basePrompt = buildDialogueTurnPrompt({
     theme,
     currentQuest,
     currentObjective,
@@ -160,12 +160,18 @@ export const executeDialogueTurn = async (
     relevantFacts,
   });
 
+  let lastErrorMessage: string | null = null;
+
   const result = await retryAiCall<{
     parsed: DialogueAIResponse;
     rawResponse: string;
     thoughts: Array<string>;
+    promptUsed: string;
   }>(async attempt => {
     try {
+      const currentPrompt = attempt > 0 && lastErrorMessage
+        ? `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`
+        : basePrompt;
       console.log(
         `Fetching dialogue turn (Participants: ${dialogueParticipants.join(', ')}, Attempt ${String(
           attempt + 1,
@@ -175,7 +181,7 @@ export const executeDialogueTurn = async (
       const thinkingBudget = getThinkingBudget(512);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: currentPrompt,
         systemInstruction: DIALOGUE_SYSTEM_INSTRUCTION,
         temperature: 0.8,
         responseMimeType: 'application/json',
@@ -191,7 +197,10 @@ export const executeDialogueTurn = async (
       const thoughtParts = parts
         .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
         .map(p => p.text);
-      let parsed = parseDialogueTurnResponse(response.text ?? '', thoughtParts);
+      let lastParseError: string | null = null;
+      let parsed = parseDialogueTurnResponse(response.text ?? '', thoughtParts, message => {
+        lastParseError = message;
+      });
       parsed ??= await fetchCorrectedDialogueTurn_Service(
         response.text ?? '',
         dialogueParticipants,
@@ -199,11 +208,17 @@ export const executeDialogueTurn = async (
         thoughtParts,
       );
       if (parsed) {
-        return { result: { parsed, rawResponse: response.text ?? '', thoughts: thoughtParts } };
+        lastErrorMessage = null;
+        return { result: { parsed, rawResponse: response.text ?? '', thoughts: thoughtParts, promptUsed: currentPrompt } };
       }
       console.warn(
         `executeDialogueTurn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): invalid response even after correction`,
       );
+      if (typeof lastParseError === 'string') {
+        lastErrorMessage = lastParseError;
+      } else {
+        lastErrorMessage = 'The previous dialogue response did not follow the required JSON schema for npcResponses/playerOptions. Return valid structured JSON only.';
+      }
     } catch (error: unknown) {
       console.error(
         `Error fetching dialogue turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
@@ -215,7 +230,12 @@ export const executeDialogueTurn = async (
   });
 
   if (result) {
-    return { parsed: result.parsed, prompt, rawResponse: result.rawResponse, thoughts: result.thoughts };
+    return {
+      parsed: result.parsed,
+      prompt: result.promptUsed,
+      rawResponse: result.rawResponse,
+      thoughts: result.thoughts,
+    };
   }
 
   throw new Error('Failed to fetch dialogue turn after maximum retries.');
@@ -239,14 +259,20 @@ export const executeDialogueSummary = async (
 
   const { theme } = summaryContext;
 
-  const prompt = buildDialogueSummaryPrompt(summaryContext);
+  const basePrompt = buildDialogueSummaryPrompt(summaryContext);
+
+  let lastErrorMessage: string | null = null;
 
   const summaryResult = await retryAiCall<{
     parsed: GameStateFromAI;
     rawResponse: string;
     thoughts: Array<string>;
+    promptUsed: string;
   }>(async attempt => {
     try {
+      const currentPrompt = attempt > 0 && lastErrorMessage
+        ? `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`
+        : basePrompt;
       console.log(
         `Summarizing dialogue with ${summaryContext.dialogueParticipants.join(', ')}, Attempt ${String(
           attempt + 1,
@@ -256,7 +282,7 @@ export const executeDialogueSummary = async (
       const thinkingBudget = getThinkingBudget(4096);
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_MODEL_NAME],
-        prompt,
+        prompt: currentPrompt,
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 1.0,
         responseMimeType: 'application/json',
@@ -269,7 +295,7 @@ export const executeDialogueSummary = async (
       const thoughtParts = parts
         .filter((p): p is { text: string; thought?: boolean } => p.thought === true && typeof p.text === 'string')
         .map(p => p.text);
-      const parsed = await parseAIResponse(
+      const parseResult = await parseAIResponse(
         response.text ?? '',
         theme,
         summaryContext.heroSheet ?? null,
@@ -280,12 +306,28 @@ export const executeDialogueSummary = async (
         summaryContext.mapDataSnapshot,
         summaryContext.inventory,
       );
-      if (parsed) {
-        return { result: { parsed, rawResponse: response.text ?? '', thoughts: thoughtParts } };
+      if (parseResult.data) {
+        lastErrorMessage = null;
+        return {
+          result: {
+            parsed: parseResult.data,
+            rawResponse: response.text ?? '',
+            thoughts: thoughtParts,
+            promptUsed: currentPrompt,
+          },
+        };
+      }
+      if (parseResult.error) {
+        console.warn(
+          `executeDialogueSummary (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): ${parseResult.error}`,
+        );
       }
       console.warn(
         `executeDialogueSummary (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): invalid JSON, retrying`,
       );
+      lastErrorMessage = typeof parseResult.error === 'string'
+        ? parseResult.error
+        : 'The previous dialogue summary did not match the expected storyteller schema. Return valid JSON only.';
     } catch (error: unknown) {
       console.error(
         `Error summarizing dialogue (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
@@ -297,10 +339,15 @@ export const executeDialogueSummary = async (
   });
 
   if (summaryResult) {
-    return { parsed: summaryResult.parsed, prompt, rawResponse: summaryResult.rawResponse, thoughts: summaryResult.thoughts };
+    return {
+      parsed: summaryResult.parsed,
+      prompt: summaryResult.promptUsed,
+      rawResponse: summaryResult.rawResponse,
+      thoughts: summaryResult.thoughts,
+    };
   }
 
-  return { parsed: null, prompt, rawResponse: '', thoughts: [] };
+  return { parsed: null, prompt: basePrompt, rawResponse: '', thoughts: [] };
 };
 
 /**
@@ -320,8 +367,13 @@ export const executeMemorySummary = async (
 
   const { systemInstructionPart, userPromptPart } = buildDialogueMemorySummaryPrompts(context);
 
+  let lastErrorMessage: string | null = null;
+
   const memoryResult = await retryAiCall<string>(async attempt => {
     try {
+      const currentPrompt = attempt > 0 && lastErrorMessage
+        ? `${userPromptPart}\n\n[Parser Feedback]\n${lastErrorMessage}`
+        : userPromptPart;
       console.log(
         `Generating memory summary for dialogue with ${context.dialogueParticipants.join(', ')}, Attempt ${String(
           attempt + 1,
@@ -330,7 +382,7 @@ export const executeMemorySummary = async (
       addProgressSymbol(LOADING_REASON_UI_MAP.dialogue_memory.icon);
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
-        prompt: userPromptPart,
+        prompt: currentPrompt,
         systemInstruction: systemInstructionPart,
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
@@ -340,11 +392,13 @@ export const executeMemorySummary = async (
         console.log(
           `summarizeDialogueForMemory: ${context.dialogueParticipants.join(', ')} will remember ${memoryText}`,
         );
+        lastErrorMessage = null;
         return { result: memoryText };
       }
       console.warn(
         `executeMemorySummary (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): empty memory text`,
       );
+      lastErrorMessage = 'The previous attempt returned an empty memory summary. Respond with a concise sentence describing the memory.';
     } catch (error: unknown) {
       console.error(
         `Error generating memory summary (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,

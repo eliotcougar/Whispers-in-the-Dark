@@ -37,7 +37,7 @@ export const fetchCorrectedName_Service = async (
 
   const validNamesContext = `The corrected ${entityTypeToCorrect} name MUST be one of these exact, case-sensitive full names: [${validNamesList.map(name => `"${name}"`).join(', ')}].`;
 
-  const prompt = `
+  const basePrompt = `
 You are an AI assistant specialized in matching a potentially incorrect or partial entity name against a predefined list of valid names, using narrative context.
 Entity Type: ${entityTypeToCorrect}
 Malformed/Partial Name Provided by another AI: "${malformedOrPartialName}"
@@ -55,12 +55,20 @@ If no suitable match can be confidently made, respond with an empty string.`;
 
   const systemInstruction = `Your task is to match a malformed ${entityTypeToCorrect} name against a provided list of valid names, using narrative context. Respond ONLY with the best-matched string from the valid list, or an empty string if no confident match is found. Adhere to the theme context: ${theme.storyGuidance}`;
 
+  let promptToUse = basePrompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<string>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = basePrompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
@@ -77,15 +85,18 @@ If no suitable match can be confidently made, respond with an empty string.`;
         }
         if (validNamesList.includes(correctedName)) {
           console.warn(`fetchCorrectedName_Service: Returned corrected Name `, correctedName, `.`);
+          lastErrorMessage = null;
           return { result: correctedName };
         }
         console.warn(
           `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`,
         );
+        lastErrorMessage = `Return exactly one of the provided valid ${entityTypeToCorrect} names: [${validNamesList.join(', ')}].`;
       } else {
         console.warn(
           `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for ${entityTypeToCorrect}. Received: null`,
         );
+        lastErrorMessage = 'No name was returned. Respond with a single name from the provided valid list, or an empty string if unsure.';
       }
     } catch (error: unknown) {
       console.error(

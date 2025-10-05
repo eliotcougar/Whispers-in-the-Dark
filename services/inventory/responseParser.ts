@@ -28,6 +28,7 @@ export interface InventoryAIPayload {
 const parseItemChange = (
   raw: Record<string, unknown>,
   action: ItemChange['action'],
+  recordError?: (message: string) => void,
 ): ItemChange | null => {
   switch (action) {
     case 'create': {
@@ -40,6 +41,7 @@ const parseItemChange = (
         itm.knownUses = filterBlockedKnownUses(itm.knownUses);
         return { action, item: item };
       }
+      recordError?.('Inventory create action was missing required item fields.');
       return null;
     }
     case 'change': {
@@ -58,19 +60,23 @@ const parseItemChange = (
           id: typeof rawItem.id === 'string' ? rawItem.id : undefined,
           name: typeof rawItem.name === 'string' ? rawItem.name : undefined,
         };
-        return isValidItemReference(itemRef) ? { action: 'destroy', item: itemRef } : null;
+        if (isValidItemReference(itemRef)) return { action: 'destroy', item: itemRef };
+        recordError?.('Inventory change action attempted to destroy an item without a valid id or name.');
+        return null;
       }
       if (isValidItem(raw, 'change')) {
         const itm = raw as { knownUses?: Array<KnownUse> };
         itm.knownUses = filterBlockedKnownUses(itm.knownUses);
         return { action: 'change', item: raw };
       }
+      recordError?.('Inventory change action had invalid item payload.');
       return null;
     }
     case 'addDetails': {
       if (isValidAddDetailsPayload(raw)) {
         return { action: 'addDetails', item: raw as AddDetailsPayload };
       }
+      recordError?.('Inventory addDetails action payload was invalid.');
       return {
         action: 'addDetails',
         item: raw as unknown as AddDetailsPayload,
@@ -78,7 +84,9 @@ const parseItemChange = (
       };
     }
     case 'destroy':
-      return isValidItemReference(raw) ? { action: 'destroy', item: raw } : null;
+      if (isValidItemReference(raw)) return { action: 'destroy', item: raw };
+      recordError?.('Inventory destroy action requires an item reference with id or name.');
+      return null;
     case 'move': {
       const maybe = raw as { id?: string; name?: string; newHolderId?: string };
       if (typeof maybe.id === 'string' && typeof maybe.newHolderId === 'string') {
@@ -89,18 +97,28 @@ const parseItemChange = (
         };
         return { action, item: payload };
       }
+      recordError?.('Inventory move action must include id and newHolderId strings.');
       return null;
     }
     default:
+      recordError?.(`Inventory action "${String(action)}" is not supported.`);
       return null;
   }
 };
 
 export const parseInventoryResponse = (
   responseText: string,
+  onParseError?: (message: string) => void,
 ): InventoryAIPayload | null => {
+  let firstError: string | null = null;
+  const recordError = (message: string) => {
+    firstError ??= message;
+  };
   const parsed = safeParseJson<unknown>(responseText);
-  if (!parsed) return null;
+  if (!parsed) {
+    onParseError?.('Inventory response was not valid JSON.');
+    return null;
+  }
 
   let payload: InventoryAIPayload | null = null;
 
@@ -111,7 +129,7 @@ export const parseInventoryResponse = (
     const validated: Array<ItemChange> = [];
     for (const raw of arr) {
       if (!raw || typeof raw !== 'object') continue;
-      const parsedChange = parseItemChange(raw as Record<string, unknown>, action);
+      const parsedChange = parseItemChange(raw as Record<string, unknown>, action, recordError);
       if (parsedChange) validated.push(parsedChange);
     }
     return validated;
@@ -125,7 +143,11 @@ export const parseInventoryResponse = (
       const act = typeof maybe.action === 'string' ? maybe.action : undefined;
       const itm = maybe.item && typeof maybe.item === 'object' ? maybe.item : undefined;
       if (act && itm) {
-        const parsedChange = parseItemChange(itm as Record<string, unknown>, act as ItemChange['action']);
+        const parsedChange = parseItemChange(
+          itm as Record<string, unknown>,
+          act as ItemChange['action'],
+          recordError,
+        );
         if (parsedChange) validated.push(parsedChange);
       }
     }
@@ -160,6 +182,14 @@ export const parseInventoryResponse = (
       observations: typeof obj.observations === 'string' ? obj.observations : undefined,
       rationale: typeof obj.rationale === 'string' ? obj.rationale : undefined,
     };
+  }
+
+  if (!payload) {
+    if (typeof firstError === 'string') {
+      onParseError?.(firstError);
+    } else {
+      onParseError?.('Inventory response must be a JSON object or array describing item changes.');
+    }
   }
 
   return payload;

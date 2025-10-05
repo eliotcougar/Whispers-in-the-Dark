@@ -11,6 +11,7 @@ import {
   MAX_BOOK_CHAPTERS,
   PLAYER_HOLDER_ID,
   WRITTEN_TAGS_STRING,
+  MAX_RETRIES,
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -292,6 +293,7 @@ export interface LibrarianUpdateResult {
     observations?: string;
     rationale?: string;
     thoughts?: Array<string>;
+    validationError?: string;
   } | null;
 }
 
@@ -308,7 +310,7 @@ export const applyLibrarianHints_Service = async (
   if (!hint && newItems.length === 0) {
     return { itemChanges: [], debugInfo: null };
   }
-  const prompt = buildLibrarianPrompt(
+  const basePrompt = buildLibrarianPrompt(
     playerLastAction,
     hint,
     newItems,
@@ -317,12 +319,59 @@ export const applyLibrarianHints_Service = async (
     npcs,
     limitedMapContext,
   );
-  const result = await executeLibrarianRequest(prompt);
-  if (!result) {
-    return { itemChanges: [], debugInfo: null };
+  let attemptPrompt = basePrompt;
+  let parsed: ReturnType<typeof parseLibrarianResponse> = null;
+  let lastErrorMessage: string | null = null;
+  let finalResult = null as Awaited<ReturnType<typeof executeLibrarianRequest>> | null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    const result = await executeLibrarianRequest(attemptPrompt);
+    if (!result) {
+      break;
+    }
+    finalResult = result;
+    let parseErrorThisAttempt: string | null = null;
+    parsed = parseLibrarianResponse(result.response.text ?? '', message => {
+      parseErrorThisAttempt = message;
+    });
+
+    if (parsed) {
+      lastErrorMessage = null;
+      break;
+    }
+
+    if (typeof parseErrorThisAttempt === 'string') {
+      lastErrorMessage = parseErrorThisAttempt;
+    } else {
+      lastErrorMessage = 'Librarian response did not match the expected JSON schema. Return only valid item entries.';
+    }
+
+    if (attempt === MAX_RETRIES) {
+      break;
+    }
+
+    attemptPrompt = `${basePrompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
   }
-  const { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed } = result;
-  const parsed = parseLibrarianResponse(response.text ?? '');
+
+  const validationError = lastErrorMessage ?? undefined;
+
+  if (!finalResult) {
+    return {
+      itemChanges: parsed ? parsed.itemChanges : [],
+      debugInfo: {
+        prompt: basePrompt,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        rawResponse: undefined,
+        parsedItemChanges: parsed ? parsed.itemChanges : undefined,
+        observations: parsed?.observations,
+        rationale: parsed?.rationale,
+        thoughts: undefined,
+        validationError,
+      },
+    };
+  }
+
+  const { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed } = finalResult;
   return {
     itemChanges: parsed ? parsed.itemChanges : [],
     debugInfo: {
@@ -334,6 +383,7 @@ export const applyLibrarianHints_Service = async (
       observations: parsed?.observations,
       rationale: parsed?.rationale,
       thoughts,
+      validationError,
     },
   };
 };

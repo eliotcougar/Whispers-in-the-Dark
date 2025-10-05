@@ -3,7 +3,7 @@
  * @description Hook containing helpers for loading and initializing games.
  */
 
-import { useCallback } from 'react';
+import { useCallback, Dispatch, SetStateAction } from 'react';
 import {
   FullGameState,
   ThemePackName,
@@ -18,10 +18,7 @@ import {
   StoryAct,
   ThinkingEffort,
 } from '../types';
-import {
-  executeAIMainTurn,
-  parseAIResponse,
-} from '../services/storyteller';
+import { runStorytellerTurnWithParseRetries } from './storytellerParseRetry';
 import { getMaxOutputTokens } from '../services/thinkingConfig';
 import { SYSTEM_INSTRUCTION } from '../services/storyteller/systemPrompt';
 import { getThemesFromPacks } from '../themes';
@@ -67,7 +64,7 @@ export interface UseGameInitializationProps {
   setIsLoading: (val: boolean) => void;
   setLoadingReason: (reason: LoadingReason | null) => void;
   setError: (err: string | null) => void;
-  setParseErrorCounter: (val: number) => void;
+  setParseErrorCounter: Dispatch<SetStateAction<number>>;
   setHasGameBeenInitialized: (val: boolean) => void;
   thinkingEffortProp: ThinkingEffort;
   getCurrentGameState: () => FullGameState;
@@ -370,43 +367,42 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
                 dialogueDebugInfo: null,
               };
               draftState.startState = 'first_turn_ai';
-              const {
-                response,
-                thoughts,
-                systemInstructionUsed,
-                jsonSchemaUsed,
-                promptUsed,
-              } = await executeAIMainTurn(prompt, { maxOutputTokensOverride: getMaxOutputTokens(4096) });
-              draftState.lastDebugPacket.rawResponseText = response.text ?? null;
-              draftState.lastDebugPacket.storytellerThoughts = thoughts;
-              draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
-              draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
-              draftState.lastDebugPacket.prompt = promptUsed;
-
-              const parsedData = await parseAIResponse(
-                response.text ?? '',
-                selectedTheme,
-                draftState.heroSheet,
-                () => {
-                  setParseErrorCounter(1);
+              const retryResult = await runStorytellerTurnWithParseRetries({
+                prompt,
+                draftState,
+                theme: selectedTheme,
+                heroSheet: draftState.heroSheet,
+                parseContext: {
+                  logMessageFromPayload: undefined,
+                  sceneDescriptionFromPayload: undefined,
+                  npcs: draftState.allNPCs,
+                  mapDataForResponse: draftState.mapData,
+                  inventoryForCorrection: draftState.inventory.filter(
+                    i => i.holderId === PLAYER_HOLDER_ID,
+                  ),
                 },
-                undefined,
-                undefined,
-                draftState.allNPCs,
-                draftState.mapData,
-                draftState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-              );
+                setParseErrorCounter,
+                executeOptions: { maxOutputTokensOverride: getMaxOutputTokens(4096) },
+              });
 
-              await processAiResponse(parsedData, draftState, {
+              await processAiResponse(retryResult.parsedData, draftState, {
                 baseStateSnapshot: baseStateSnapshotForInitialTurn,
                 forceEmptyInventory: isRestart,
                 playerActionText: undefined,
               });
 
-              setHasGameBeenInitialized(true);
-              draftState.globalTurnNumber = 1;
-              draftState.startState = 'ready';
-              draftState.turnState = 'awaiting_input';
+              const initializedSuccessfully = retryResult.parsedData !== null;
+              setHasGameBeenInitialized(initializedSuccessfully);
+              if (initializedSuccessfully) {
+                draftState.globalTurnNumber = 1;
+                draftState.startState = 'ready';
+                draftState.turnState = 'awaiting_input';
+              } else {
+                draftState.turnState = 'error';
+                if (retryResult.lastErrorMessage) {
+                  setError(retryResult.lastErrorMessage);
+                }
+              }
             } catch (e: unknown) {
               console.error('Error loading initial game:', e);
               if (isServerOrClientError(e)) {
@@ -582,40 +578,40 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     draftState.lastDebugPacket = debugPacket;
 
     try {
-      const {
-        response,
-        thoughts,
-        systemInstructionUsed,
-        jsonSchemaUsed,
-        promptUsed,
-      } = await executeAIMainTurn(lastPrompt);
-      draftState.lastDebugPacket.rawResponseText = response.text ?? null;
-      draftState.lastDebugPacket.storytellerThoughts = thoughts;
-      draftState.lastDebugPacket.systemInstruction = systemInstructionUsed;
-      draftState.lastDebugPacket.jsonSchema = jsonSchemaUsed;
-      draftState.lastDebugPacket.prompt = promptUsed;
+      const retryResult = await runStorytellerTurnWithParseRetries({
+        prompt: lastPrompt,
+        draftState,
+        theme: activeTheme,
+        heroSheet: draftState.heroSheet,
+        parseContext: {
+          logMessageFromPayload: currentFullState.lastActionLog || undefined,
+          sceneDescriptionFromPayload: currentFullState.currentScene,
+          npcs: draftState.allNPCs,
+          mapDataForResponse: draftState.mapData,
+          inventoryForCorrection: currentFullState.inventory.filter(
+            i => i.holderId === PLAYER_HOLDER_ID,
+          ),
+        },
+        setParseErrorCounter,
+      });
 
+      const parseFailed = retryResult.parsedData === null;
 
-      const parsedData = await parseAIResponse(
-        response.text ?? '',
-        activeTheme,
-        draftState.heroSheet,
-        () => { setParseErrorCounter(1); },
-        currentFullState.lastActionLog || undefined,
-        currentFullState.currentScene,
-        draftState.allNPCs,
-        draftState.mapData,
-        currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-      );
-
-      await processAiResponse(parsedData, draftState, {
+      await processAiResponse(retryResult.parsedData, draftState, {
         baseStateSnapshot,
         scoreChangeFromAction: 0,
         playerActionText: undefined,
       });
 
-      draftState.globalTurnNumber += 1;
-      draftState.turnState = 'awaiting_input';
+      if (!parseFailed) {
+        draftState.globalTurnNumber += 1;
+        draftState.turnState = 'awaiting_input';
+      } else {
+        draftState.turnState = 'error';
+        if (retryResult.lastErrorMessage) {
+          setError(retryResult.lastErrorMessage);
+        }
+      }
     } catch (e: unknown) {
       console.error('Error retrying last main AI request:', e);
       const errMsg = e instanceof Error ? e.message : String(e);

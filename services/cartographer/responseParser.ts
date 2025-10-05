@@ -32,6 +32,8 @@ export const parseAIMapUpdateResponse = async (
   responseText: string,
   theme: AdventureTheme,
 ): Promise<ParsedMapUpdateResult> => {
+  const defaultValidationError =
+    'Map update response must include valid nodes/edges formatted according to the documented schema.';
   const parsed: unknown = safeParseJson(responseText);
   try {
     if (parsed === null) throw new Error('JSON parse failed');
@@ -139,7 +141,7 @@ export const parseAIMapUpdateResponse = async (
       if (valid) {
         return { payload };
       }
-      validationError = warnings.length > 0 ? warnings.join('; ') : undefined;
+      validationError = warnings.length > 0 ? warnings.join('; ') : defaultValidationError;
     }
     console.warn(
       'Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:',
@@ -153,7 +155,7 @@ export const parseAIMapUpdateResponse = async (
     if (corrected) {
       return { payload: corrected };
     }
-    return { payload: null, validationError };
+    return { payload: null, validationError: validationError ?? defaultValidationError };
   } catch (e: unknown) {
     console.error('Failed to parse map update JSON response from AI:', e);
     console.debug('Original map update response text:', responseText);
@@ -165,6 +167,12 @@ export const parseAIMapUpdateResponse = async (
     if (corrected) {
       return { payload: corrected };
     }
-    return { payload: null, validationError: e instanceof Error ? e.message : String(e) };
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    return {
+      payload: null,
+      validationError: errorMessage && errorMessage.trim().length > 0
+        ? errorMessage
+        : defaultValidationError,
+    };
   }
 };

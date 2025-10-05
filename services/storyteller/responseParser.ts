@@ -31,6 +31,22 @@ import {
 import { safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
 import { buildNPCId, findNPCByIdentifier } from '../../utils/entityUtils';
 
+export type ParseFailureReason =
+    | 'json_parse_failed'
+    | 'non_object'
+    | 'missing_scene_description'
+    | 'invalid_base_fields'
+    | 'invalid_options'
+    | 'unknown';
+
+export interface ParseAIResponseResult {
+    data: GameStateFromAI | null;
+    error: string | null;
+    reason: ParseFailureReason | null;
+}
+
+type RecordParseFailure = (reason: ParseFailureReason, message: string) => void;
+
 const toAttitude = (value?: unknown): string => {
     if (typeof value === 'string') {
         const trimmed = value.trim();
@@ -453,6 +469,7 @@ interface ParserContext {
     allRelevantNPCs: Array<NPC>;
     allRelevantMainMapNodesForCorrection: Array<MapNode>;
     currentInventoryForCorrection: Array<Item>;
+    recordFailure?: RecordParseFailure;
 }
 
 /** Result object returned from the dialogue setup handler. */
@@ -468,11 +485,13 @@ interface DialogueResult {
  */
 function validateBasicStructure(
     parsedData: unknown,
-    onParseAttemptFailed?: () => void
+    onParseAttemptFailed?: () => void,
+    recordFailure?: RecordParseFailure,
 ): Partial<GameStateFromAI> | null {
     if (!parsedData || typeof parsedData !== 'object') {
         console.warn('parseAIResponse: Parsed data is not a valid object.', parsedData);
         onParseAttemptFailed?.();
+        recordFailure?.('non_object', 'Storyteller response must be a JSON object that matches the expected schema.');
         return null;
     }
 
@@ -480,6 +499,7 @@ function validateBasicStructure(
     if (typeof data.sceneDescription !== 'string' || data.sceneDescription.trim() === '') {
         console.warn('parseAIResponse: sceneDescription is missing or empty.', parsedData);
         onParseAttemptFailed?.();
+        recordFailure?.('missing_scene_description', 'Storyteller response must include a non-empty "sceneDescription" field.');
         return null;
     }
 
@@ -512,6 +532,7 @@ function validateBasicStructure(
     if (!baseFieldsValid) {
         console.warn('parseAIResponse: Basic field validation failed (pre-dialogue specifics and array checks).', parsedData);
         onParseAttemptFailed?.();
+        recordFailure?.('invalid_base_fields', 'Storyteller response contained invalid or mistyped base fields. Ensure optional arrays and strings use the correct types.');
         return null;
     }
 
@@ -567,6 +588,7 @@ async function handleDialogueSetup(
         if (!Array.isArray(options) || !options.every(opt => typeof opt === 'string')) {
             console.warn('parseAIResponse: options are missing or invalid (must be array of strings) when not in dialogue.', data);
             context.onParseAttemptFailed?.();
+            context.recordFailure?.('invalid_options', 'Storyteller response must provide six distinct action options when not initiating dialogue.');
             return null;
         }
     }
@@ -713,17 +735,35 @@ export async function parseAIResponse(
     allRelevantNPCs: Array<NPC> = [],
     mapDataForResponse: MapData = { nodes: [], edges: [] },
     currentInventoryForCorrection: Array<Item> = []
-): Promise<GameStateFromAI | null> {
+): Promise<ParseAIResponseResult> {
     const jsonStr = responseText;
 
     const allRelevantMainMapNodesForCorrection: Array<MapNode> = mapDataForResponse.nodes.filter(node => node.data.nodeType !== 'feature');
 
+    let failureReason: ParseFailureReason | null = null;
+    let failureMessage: string | null = null;
+    const recordFailure: RecordParseFailure = (reason, message) => {
+        if (failureReason === null) {
+            failureReason = reason;
+            failureMessage = message;
+        }
+    };
+
+    const buildFailureResult = (fallbackReason: ParseFailureReason, fallbackMessage: string): ParseAIResponseResult => ({
+        data: null,
+        reason: failureReason ?? fallbackReason,
+        error: failureMessage ?? fallbackMessage,
+    });
+
     try {
         const parsedData = safeParseJson<Partial<GameStateFromAI>>(jsonStr);
-        if (parsedData === null) throw new Error('JSON parse failed');
+        if (parsedData === null) {
+            recordFailure('json_parse_failed', 'Storyteller response could not be parsed as JSON.');
+            throw new Error('JSON parse failed');
+        }
 
-        const validated = validateBasicStructure(parsedData, onParseAttemptFailed);
-        if (!validated) return null;
+        const validated = validateBasicStructure(parsedData, onParseAttemptFailed, recordFailure);
+        if (!validated) return buildFailureResult('invalid_base_fields', 'Storyteller response failed base validation.');
 
         const context: ParserContext = {
             heroGender: heroSheet?.gender ?? 'Male',
@@ -734,10 +774,11 @@ export async function parseAIResponse(
             allRelevantNPCs: allRelevantNPCs,
             allRelevantMainMapNodesForCorrection,
             currentInventoryForCorrection,
+            recordFailure,
         };
 
         const dialogueResult = await handleDialogueSetup(validated, context);
-        if (!dialogueResult) return null;
+        if (!dialogueResult) return buildFailureResult('invalid_options', 'Storyteller response must include valid action options when dialogue is not triggered.');
 
         validated.dialogueSetup = dialogueResult.dialogueSetup;
         validated.options = dialogueResult.options;
@@ -814,7 +855,8 @@ export async function parseAIResponse(
             if (!Array.isArray(validated.options) || validated.options.length === 0 || !validated.options.every((opt: unknown) => typeof opt === 'string' && opt.trim() !== '')) {
                 console.warn('parseAIResponse: options are missing, empty, or invalid when not inDialogue (final check).', validated.options);
                 onParseAttemptFailed?.();
-                return null;
+                recordFailure('invalid_options', 'Storyteller response must provide six distinct action options when not initiating dialogue.');
+                return buildFailureResult('invalid_options', 'Storyteller response must provide six distinct action options when not initiating dialogue.');
             }
             while (validated.options.length < MAIN_TURN_OPTIONS_COUNT) validated.options.push('...');
             if (validated.options.length > MAIN_TURN_OPTIONS_COUNT) validated.options = validated.options.slice(0, MAIN_TURN_OPTIONS_COUNT);
@@ -832,14 +874,15 @@ export async function parseAIResponse(
         delete (validated as Record<string, unknown>).placesAdded;
         delete (validated as Record<string, unknown>).placesUpdated;
 
-        return validated as GameStateFromAI;
+        return { data: validated as GameStateFromAI, error: null, reason: null };
 
     } catch (e: unknown) {
         console.warn('parseAIResponse: Failed to parse JSON response from AI. This attempt will be considered a failure.', e);
         console.debug('parseAIResponse: Original response text (before any processing):', responseText);
         console.debug('parseAIResponse: JSON string after fence stripping (if any, input to JSON.parse):', jsonStr);
         onParseAttemptFailed?.();
-        return null;
+        recordFailure('json_parse_failed', 'Storyteller response could not be parsed as JSON.');
+        return buildFailureResult('unknown', 'Storyteller response failed due to an unknown parsing error.');
     }
 }
 

@@ -83,12 +83,20 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
 
   const systemInstruction = `Correct a malformed 'dialogueSetup' JSON payload. Ensure 'participants' are valid NPCs, 'initialNpcResponses' are logical, and 'initialPlayerOptions' are varied with an exit option. Adhere strictly to the JSON format.`;
 
+  let promptToUse = prompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<DialogueSetupPayload>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${prompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = prompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         responseMimeType: 'application/json',
         temperature: CORRECTION_TEMPERATURE,
@@ -96,12 +104,15 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
       });
       const aiResponse = safeParseJson<DialogueSetupPayload>(response.text ?? '');
       if (aiResponse && isDialogueSetupPayloadStructurallyValid(aiResponse)) {
+        lastErrorMessage = null;
         return { result: aiResponse };
       }
       console.warn(
         `fetchCorrectedDialogueSetup_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected dialogueSetup payload invalid. Response:`,
         aiResponse,
       );
+      lastErrorMessage =
+        'Corrected dialogueSetup payload must include non-empty initialNpcResponses, initialPlayerOptions, and participants drawn from known NPCs.';
     } catch (error: unknown) {
       console.error(`fetchCorrectedDialogueSetup_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
@@ -154,32 +165,50 @@ Respond ONLY with the corrected JSON object.`;
 
   const systemInstruction = `Correct a malformed dialogue turn JSON object without altering the dialogue text. Speaker names must be among: ${participantList}. Preserve any npcAttitudeUpdates entries if present. Adhere strictly to JSON format.`;
 
+  let promptToUse = prompt;
+  let lastErrorMessage: string | null = null;
+
   return retryAiCall<DialogueAIResponse>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
+      if (attempt > 0 && lastErrorMessage) {
+        promptToUse = `${prompt}\n\n[Parser Feedback]\n${lastErrorMessage}`;
+      } else {
+        promptToUse = prompt;
+      }
       const { response } = await dispatchAIRequest({
         modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
-        prompt,
+        prompt: promptToUse,
         systemInstruction,
         temperature: CORRECTION_TEMPERATURE,
         label: 'Corrections',
       });
       const aiResponse = response.text?.trim() ?? null;
       if (aiResponse) {
-        const parsedResponse = parseDialogueTurnResponse(aiResponse, npcThoughts);
+        let parseErrorThisAttempt: string | null = null;
+        const parsedResponse = parseDialogueTurnResponse(aiResponse, npcThoughts, message => {
+          parseErrorThisAttempt = message;
+        });
         if (
           parsedResponse?.npcResponses.every(r => validParticipants.includes(r.speaker))
         ) {
+          lastErrorMessage = null;
           return { result: parsedResponse };
         }
         console.warn(
           `fetchCorrectedDialogueTurn_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected response invalid or speakers not in list.`,
           aiResponse,
         );
+      if (typeof parseErrorThisAttempt === 'string') {
+        lastErrorMessage = parseErrorThisAttempt;
+      } else {
+        lastErrorMessage = 'Dialogue response must list npcResponses with valid speakers and provide playerOptions that match schema.';
+      }
       } else {
         console.warn(
           `fetchCorrectedDialogueTurn_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned empty response.`,
         );
+        lastErrorMessage = 'Dialogue response was empty. Return a complete JSON object matching the required structure.';
       }
     } catch (error: unknown) {
       console.error(

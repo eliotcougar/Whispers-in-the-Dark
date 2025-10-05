@@ -14,11 +14,7 @@ import {
   TurnChanges,
   StoryAct,
 } from '../types';
-import {
-  executeAIMainTurn,
-  parseAIResponse,
-  buildMainGameTurnPrompt
-} from '../services/storyteller';
+import { buildMainGameTurnPrompt } from '../services/storyteller';
 import { buildSystemInstructionWithDebug } from '../services/storyteller/systemPrompt';
 import { collectRelevantFacts_Service } from '../services/loremaster';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
@@ -31,7 +27,7 @@ import {
   DISTILL_LORE_INTERVAL,
   RECENT_LOG_COUNT_FOR_DISTILL,
   ACT_COMPLETION_SCORE,
-  READABLE_ITEM_TYPES,
+  WRITTEN_ITEM_TYPES,
 } from '../constants';
 
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -42,6 +38,7 @@ import { useInventoryActions } from './useInventoryActions';
 import { distillFacts_Service } from '../services/loremaster';
 import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import { isStoryArcValid } from '../utils/storyArcUtils';
+import { runStorytellerTurnWithParseRetries } from './storytellerParseRetry';
 
 export interface UsePlayerActionsProps {
   getCurrentGameState: () => FullGameState;
@@ -52,7 +49,7 @@ export interface UsePlayerActionsProps {
   setLoadingReason: (reason: LoadingReason | null) => void;
   loadingReasonRef: React.RefObject<LoadingReason | null>;
   setError: (err: string | null) => void;
-  setParseErrorCounter: (val: number) => void;
+  setParseErrorCounter: React.Dispatch<React.SetStateAction<number>>;
   freeFormActionText: string;
   setFreeFormActionText: (text: string) => void;
   isLoading: boolean;
@@ -307,35 +304,32 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       try {
         setLoadingReason('storyteller');
         draftState.turnState = 'storyteller';
-        const {
-          response,
-          thoughts,
-          systemInstructionUsed,
-          jsonSchemaUsed,
-          promptUsed,
-        } = await executeAIMainTurn(prompt, { systemInstructionOverride: systemInstructionForTurn });
-        draftState.lastDebugPacket = {
-          ...draftState.lastDebugPacket,
-          rawResponseText: response.text ?? null,
-          storytellerThoughts: thoughts,
-          systemInstruction: systemInstructionUsed,
-          jsonSchema: jsonSchemaUsed,
-          prompt: promptUsed,
-        };
+        const retryResult = await runStorytellerTurnWithParseRetries({
+          prompt,
+          draftState,
+          theme: activeTheme,
+          heroSheet: draftState.heroSheet,
+          parseContext: {
+            logMessageFromPayload: currentFullState.lastActionLog || undefined,
+            sceneDescriptionFromPayload: currentFullState.currentScene,
+            npcs,
+            mapDataForResponse: draftState.mapData,
+            inventoryForCorrection: currentFullState.inventory.filter(
+              i => i.holderId === PLAYER_HOLDER_ID,
+            ),
+          },
+          setParseErrorCounter,
+          executeOptions: { systemInstructionOverride: systemInstructionForTurn },
+        });
 
-        const mapDataForParse = draftState.mapData;
+        const { parsedData, lastErrorMessage } = retryResult;
 
-        const parsedData = await parseAIResponse(
-          response.text ?? '',
-          activeTheme,
-          draftState.heroSheet,
-          () => { setParseErrorCounter(1); },
-          currentFullState.lastActionLog || undefined,
-          currentFullState.currentScene,
-          npcs,
-          mapDataForParse,
-          currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID)
-        );
+        if (!parsedData) {
+          encounteredError = true;
+          if (lastErrorMessage) {
+            setError(lastErrorMessage);
+          }
+        }
 
         await processAiResponse(parsedData, draftState, {
           baseStateSnapshot,
@@ -424,7 +418,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
           const matchedItem = info?.entityData.item;
           if (
             matchedItem &&
-            READABLE_ITEM_TYPES.includes(matchedItem.type as (typeof READABLE_ITEM_TYPES)[number])
+            WRITTEN_ITEM_TYPES.includes(matchedItem.type as (typeof WRITTEN_ITEM_TYPES)[number])
           ) {
             matchedBooks.add(matchedItem);
           }
@@ -460,7 +454,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       if (interactionType === 'inspect') {
         const updatedState = recordInspect(item.id, stateOverride);
 
-        if (READABLE_ITEM_TYPES.includes(item.type as (typeof READABLE_ITEM_TYPES)[number])) {
+        if (WRITTEN_ITEM_TYPES.includes(item.type as (typeof WRITTEN_ITEM_TYPES)[number])) {
           const showActual = item.tags?.includes('recovered');
           const contents = (item.chapters ?? [])
             .map(

@@ -5,7 +5,7 @@
 - [ ] `components/app/App.tsx:75` – Replace the imperative `gameLogicRef`/`getGameLogic()` bridge with a provider or context so hooks like `useSaveLoad` consume stable state without ref lookups.
 - [ ] `components/modals/PageView.tsx:1` – Extract the chapter loading/image generation logic into a hook and break the UI into smaller subcomponents to tame the 590-line modal.
 - [ ] `hooks/useGameLogic.ts:1` – Decompose the monolithic hook into domain hooks (map, inventory, dialogue, journal) and expose grouped state instead of a 60+ field object.
-- [ ] `hooks/useGameLogic.ts:115` – Remove the placeholder `void parseErrorCounter;` by routing parse error tracking back into the retry logic so the state serves a purpose.
+- [x] `hooks/useGameLogic.ts:115` – Remove the placeholder `void parseErrorCounter;` by routing parse error tracking back into the retry logic so the state serves a purpose.
 - [ ] `hooks/usePlayerActions.ts:404` – Break `handleActionSelect` into discrete stages (prompt build, AI call, fallbacks) to clarify control flow and enable unit testing.
 - [ ] `hooks/useGameInitialization.ts:123` – Split `loadInitialGame` into helpers for saved-state hydration, theme selection, and new-game setup to reduce branching inside the callback.
 

@@ -106,7 +106,7 @@ describe('game start sequence', () => {
     );
 
     const { response } = await executeAIMainTurn(prompt);
-    const parsed = await parseAIResponse(
+    const parseResult = await parseAIResponse(
       response.text ?? '',
       theme,
       dummyHeroSheet,
@@ -119,8 +119,11 @@ describe('game start sequence', () => {
     );
 
     expect(mockedExecute).toHaveBeenCalledOnce();
-    expect(parsed).not.toBeNull();
-    if (!parsed) return;
+    expect(parseResult.error).toBeNull();
+    if (!parseResult.data) {
+      throw new Error('Expected storyteller data to be present.');
+    }
+    const parsed = parseResult.data;
     expect(parsed.sceneDescription).toBeTruthy();
     expect(Array.isArray(parsed.options)).toBe(true);
     expect(parsed.options.length).toBe(MAIN_TURN_OPTIONS_COUNT);
@@ -169,7 +172,7 @@ describe('game start sequence', () => {
       dummyHeroBackstory,
     );
     const { response } = await executeAIMainTurn(prompt);
-    const parsed = await parseAIResponse(
+    const parseResult = await parseAIResponse(
       response.text ?? '',
       theme,
       dummyHeroSheet,
@@ -181,8 +184,11 @@ describe('game start sequence', () => {
       [],
     );
 
-    expect(parsed).not.toBeNull();
-    if (!parsed) return;
+    expect(parseResult.error).toBeNull();
+    if (!parseResult.data) {
+      throw new Error('Expected storyteller data to be present.');
+    }
+    const parsed = parseResult.data;
 
     const state = getInitialGameStates();
     state.heroSheet = { ...dummyHeroSheet, gender: 'Male' };
