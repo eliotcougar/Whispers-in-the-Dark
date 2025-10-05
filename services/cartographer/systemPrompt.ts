@@ -57,13 +57,11 @@ Rules:
 - Prefer a specific sub-location (feature/room/interior) when the context clearly implies it; otherwise choose the closest higher-level location that fits.
 - Use the change in the player's local position (localPlace: from → to), the log message, and the current scene to infer movement.
 - If the best choice is the same as before, pick that node.
-- If NO accessible node fits, you must propose exactly one new node to add. The new node must:
+- If NO accessible node fits, you must propose exactly one new node and edge to add. The new node must:
   * Include complete fields (placeName, description ≥30 chars, aliases, status, nodeType, parentNodeId).
   * Use status "discovered" unless the narrative explicitly marks it as a quest target.
   * Reference an existing parent from the provided information (never invent a brand new parent hierarchy).
-- When proposing a new node, add it via a "nodesToAdd" array containing a single entry. Do NOT add edges or perform updates/removals.
-- Never modify or delete existing nodes or edges in this mode.
 - Response MUST be a JSON object with:
   * "suggestedCurrentMapNodeId": string (existing node ID, or the placeName of the newly added node when adding one).
-  * Optional "nodesToAdd": array of node definitions (required only when a new node is needed). Absence of this array means you matched an existing node.
+  * Optional "nodeAndEdge" containing 'edgeToAdd' and 'nodeToAdd' objects for adding a new node and edge.
 `;

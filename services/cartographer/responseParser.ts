@@ -42,6 +42,23 @@ export const parseAIMapUpdateResponse = async (
       payload = parsed.reduce<AIMapUpdatePayload>((acc, entry) => {
         if (entry && typeof entry === 'object') {
           const maybeObj = entry as Partial<AIMapUpdatePayload>;
+          // Recognize navigation-only schema fragments: { nodeAndEdge: { nodeToAdd, edgeToAdd }, suggestedCurrentMapNodeId }
+          const maybeNav: unknown = (maybeObj as unknown as Record<string, unknown>)['nodeAndEdge'];
+          if (maybeNav && typeof maybeNav === 'object') {
+            const navObj = maybeNav as Record<string, unknown>;
+            if (navObj.edgeToAdd && typeof navObj.edgeToAdd === 'object') {
+              acc.edgesToAdd = [
+                ...(acc.edgesToAdd ?? []),
+                navObj.edgeToAdd as NonNullable<AIMapUpdatePayload['edgesToAdd']>[number],
+              ];
+            }
+            if (navObj.nodeToAdd && typeof navObj.nodeToAdd === 'object') {
+              acc.nodesToAdd = [
+                ...(acc.nodesToAdd ?? []),
+                navObj.nodeToAdd as NonNullable<AIMapUpdatePayload['nodesToAdd']>[number],
+              ];
+            }
+          }
           if (Array.isArray(maybeObj.nodesToAdd)) {
             acc.nodesToAdd = [
               ...(acc.nodesToAdd ?? []),
@@ -94,7 +111,28 @@ export const parseAIMapUpdateResponse = async (
         return acc;
       }, {});
     } else if (parsed && typeof parsed === 'object') {
-      payload = parsed as AIMapUpdatePayload;
+      // If the object matches navigation-only schema, convert it to full payload shape
+      const asObj = parsed as Record<string, unknown>;
+      if (asObj.nodeAndEdge && typeof asObj.nodeAndEdge === 'object') {
+        const nav = asObj.nodeAndEdge as Record<string, unknown>;
+        const converted: AIMapUpdatePayload = {};
+        if (asObj.suggestedCurrentMapNodeId && typeof asObj.suggestedCurrentMapNodeId === 'string') {
+          converted.suggestedCurrentMapNodeId = asObj.suggestedCurrentMapNodeId as string;
+        }
+        if (nav.nodeToAdd && typeof nav.nodeToAdd === 'object') {
+          converted.nodesToAdd = [
+            nav.nodeToAdd as NonNullable<AIMapUpdatePayload['nodesToAdd']>[number],
+          ];
+        }
+        if (nav.edgeToAdd && typeof nav.edgeToAdd === 'object') {
+          converted.edgesToAdd = [
+            nav.edgeToAdd as NonNullable<AIMapUpdatePayload['edgesToAdd']>[number],
+          ];
+        }
+        payload = converted;
+      } else {
+        payload = parsed as AIMapUpdatePayload;
+      }
     }
     // Drop any illegal attempts to reference the root node before validation.
     if (payload && typeof payload === 'object') {

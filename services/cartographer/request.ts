@@ -238,49 +238,85 @@ export const MAP_NAVIGATION_ONLY_JSON_SCHEMA = {
       type: 'string',
       description: 'Existing node id or placeName representing the player\'s new location.',
     },
-    nodesToAdd: {
-      type: 'array',
-      minItems: 1,
-      maxItems: 1,
-      description: 'Provide exactly one new node definition only when no accessible node fits.',
-      items: {
-        type: 'object',
-        properties: {
-          aliases: {
-            type: 'array',
-            minItems: 1,
-            items: { type: 'string' },
-            description: ALIAS_INSTRUCTION,
+    nodeAndEdge: {
+      type: 'object',
+      properties: {
+        edgeToAdd: {
+          type: 'object',
+          properties: {
+            description: { type: 'string', description: EDGE_DESCRIPTION_INSTRUCTION },
+            sourcePlaceName: {
+              type: 'string',
+              description: 'Source node ID or placeName. Use placeName when referencing other nodes in this response.',
+            },
+            status: { enum: VALID_EDGE_STATUS_VALUES, description: `One of ${VALID_EDGE_STATUS_STRING}` },
+            targetPlaceName: {
+              type: 'string',
+              description: 'Target node ID or placeName. Use placeName when referencing other nodes in this response.',
+            },
+            travelTime: { type: 'string' },
+            type: { enum: VALID_EDGE_TYPE_VALUES, description: `One of ${VALID_EDGE_TYPE_STRING}` },
           },
-          description: {
-            type: 'string',
-            minLength: 30,
-            description: NODE_DESCRIPTION_INSTRUCTION,
-          },
-          nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
-          parentNodeId: {
-            type: 'string',
-            description: `Existing parent node id or placeName. Use place names only when referencing other nodes in this response.`,
-          },
-          placeName: {
-            type: 'string',
-            description: 'Name of the new node. Must be unique within the theme and free of commas.',
-          },
-          status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
+          propertyOrdering: [
+            'description',
+            'sourcePlaceName',
+            'status',
+            'targetPlaceName',
+            'travelTime',
+            'type',
+          ],
+          required: ['sourcePlaceName', 'status', 'targetPlaceName', 'type'],
+          additionalProperties: false,
         },
-        propertyOrdering: [
-          'aliases',
-          'description',
-          'nodeType',
-          'parentNodeId',
-          'placeName',
-          'status',
-        ],
-        required: ['aliases', 'description', 'nodeType', 'parentNodeId', 'placeName', 'status'],
-        additionalProperties: false,
+        nodeToAdd: {
+          type: 'object',
+          properties: {
+            aliases: {
+              type: 'array',
+              minItems: 1,
+              items: { type: 'string' },
+              description: ALIAS_INSTRUCTION,
+            },
+            description: {
+              type: 'string',
+              minLength: 30,
+              description: NODE_DESCRIPTION_INSTRUCTION,
+            },
+            nodeType: { enum: VALID_NODE_TYPE_VALUES, description: `One of ${VALID_NODE_TYPE_STRING}` },
+            parentNodeId: {
+              type: 'string',
+              description: `Existing parent node id or placeName. Use place names only when referencing other nodes in this response.`,
+            },
+            placeName: {
+              type: 'string',
+              description: 'Name of the new node. Must be unique within the theme and free of commas.',
+            },
+            status: { enum: VALID_NODE_STATUS_VALUES, description: `One of ${VALID_NODE_STATUS_STRING}` },
+          },
+          propertyOrdering: [
+            'aliases',
+            'description',
+            'nodeType',
+            'parentNodeId',
+            'placeName',
+            'status',
+          ],
+          required: ['aliases', 'description', 'nodeType', 'parentNodeId', 'placeName', 'status'],
+          additionalProperties: false,
+        },
       },
+      propertyOrdering: [
+        'edgeToAdd',
+        'nodeToAdd',
+      ],
+      required: ['edgeToAdd', 'nodeToAdd'],
+      additionalProperties: false,
     },
   },
+  propertyOrdering: [
+    'nodeAndEdge',
+    'suggestedCurrentMapNodeId',
+  ],
   required: ['suggestedCurrentMapNodeId'],
   additionalProperties: false,
 } as const;
@@ -368,7 +404,7 @@ export const executeNavigationOnlyRequest = async (
       includeThoughts: true,
       responseMimeType: 'application/json',
       jsonSchema: MAP_NAVIGATION_ONLY_JSON_SCHEMA,
-      temperature: 0.7,
+      temperature: 1.0,
       label: 'Cartographer (Quick)',
     });
     const parts = (response.candidates?.[0]?.content?.parts ?? []) as Array<{ text?: string; thought?: boolean }>;
@@ -398,6 +434,7 @@ export const parseNavigationOnlyResponse = (responseText: string): string | null
 export interface NavigationOnlyRequestResult {
   suggestedCurrentMapNodeId: string | null;
   nodesToAdd: Array<NonNullable<AIMapUpdatePayload['nodesToAdd']>[number]>;
+  edgesToAdd: Array<NonNullable<AIMapUpdatePayload['edgesToAdd']>[number]>;
   debugInfo: MapUpdateDebugInfo;
 }
 
@@ -428,6 +465,7 @@ export const fetchNavigationOnlySuggestion = async (
 
   let suggested: string | null = null;
   let nodesToAdd: Array<NonNullable<AIMapUpdatePayload['nodesToAdd']>[number]> = [];
+  let edgesToAdd: Array<NonNullable<AIMapUpdatePayload['edgesToAdd']>[number]> = [];
 
   if (parsedPayload) {
     const simplifiedPayload: AIMapUpdatePayload = {};
@@ -438,20 +476,25 @@ export const fetchNavigationOnlySuggestion = async (
     if (Array.isArray(parsedPayload.nodesToAdd) && parsedPayload.nodesToAdd.length > 0) {
       simplifiedPayload.nodesToAdd = parsedPayload.nodesToAdd.slice(0, 1);
     }
+    if (Array.isArray(parsedPayload.edgesToAdd) && parsedPayload.edgesToAdd.length > 0) {
+      simplifiedPayload.edgesToAdd = parsedPayload.edgesToAdd.slice(0, 1);
+    }
 
     debugInfo.parsedPayload = simplifiedPayload;
     suggested = simplifiedPayload.suggestedCurrentMapNodeId ?? null;
     nodesToAdd = simplifiedPayload.nodesToAdd ?? [];
+    edgesToAdd = simplifiedPayload.edgesToAdd ?? [];
     debugInfo.validationError = undefined;
   } else {
     suggested = parseNavigationOnlyResponse(rawText);
     nodesToAdd = [];
+    edgesToAdd = [];
     if (validationError) {
       debugInfo.validationError = validationError;
     }
   }
 
-  return { suggestedCurrentMapNodeId: suggested, nodesToAdd, debugInfo };
+  return { suggestedCurrentMapNodeId: suggested, nodesToAdd, edgesToAdd, debugInfo };
 };
 
 export interface MapUpdateRequestResult {

@@ -87,7 +87,7 @@ export const buildSimplifiedNavigationPrompt = (
   const prevNode = context.previousMapNodeName ?? 'Unknown or N/A';
 
   return `## Goal
-Pick the single best accessible node that matches the Player's current position. If none fits, define one new node to add.
+Pick the single best accessible node that matches the Player's current position. If none fits, define one new node and edge to add to the map.
 
 ## Theme
 - Name: "${theme.name}"
@@ -103,5 +103,12 @@ ${nodesList}
 
 Respond ONLY with JSON.
 - When an existing node works: { "suggestedCurrentMapNodeId": "<existing id>" }
-- When a new node is required: { "suggestedCurrentMapNodeId": "<new placeName>", "nodesToAdd": [ { "placeName": "...", "description": "...", "aliases": ["..."], "status": "discovered" (or "quest_target" if the story demands), "nodeType": "<type>", "parentNodeId": "<existing id or name>" } ] }`;
+- When a new node is required:
+{ 
+  "nodeAndEdge": { 
+    "edgeToAdd": { "description": "...", sourcePlaceName": "<existing id or name>", "status": "discovered", "targetPlaceName": "<new placeName>", "travelTime": "<optional>", "type": "<edge type>" },
+    "nodeToAdd": { "aliases": ["..."], "description": "...", "nodeType": "<type>", "parentNodeId": "<existing id or name>", "placeName": "...", "status": "discovered"}
+  },
+  "suggestedCurrentMapNodeId": "<new placeName>"
+}`;
 };

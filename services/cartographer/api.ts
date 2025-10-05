@@ -141,6 +141,9 @@ export const updateMapFromAIData = async (
 /**
  * Lightweight suggestion-only flow used when only the player's location text changes.
  */
+// Retry once when navigation-only suggestion cannot be matched to existing map nodes.
+const MAX_NAVIGATION_RETRY_ATTEMPTS = 2;
+
 export const suggestNodeFromLocationChange = async (
   aiData: GameStateFromAI,
   currentMapData: MapData,
@@ -180,15 +183,53 @@ export const suggestNodeFromLocationChange = async (
     },
   );
 
-  const { suggestedCurrentMapNodeId, nodesToAdd, debugInfo } = await fetchNavigationOnlySuggestion(
-    basePrompt,
-    CARTOGRAPHER_SIMPLIFIED_SYSTEM_INSTRUCTION,
-    theme,
-  );
+  let navigationResult: Awaited<ReturnType<typeof fetchNavigationOnlySuggestion>> | null = null;
+
+  for (let attempt = 0; attempt < MAX_NAVIGATION_RETRY_ATTEMPTS; attempt++) {
+    navigationResult = await fetchNavigationOnlySuggestion(
+      basePrompt,
+      CARTOGRAPHER_SIMPLIFIED_SYSTEM_INSTRUCTION,
+      theme,
+    );
+
+    const hasNodesToAdd = navigationResult.nodesToAdd.length > 0;
+    const suggestedIdentifier = navigationResult.suggestedCurrentMapNodeId?.trim() ?? null;
+    const matchesExistingNode = !suggestedIdentifier
+      ? true
+      : Boolean(
+          findMapNodeByIdentifier(
+            suggestedIdentifier,
+            currentMapData.nodes,
+            currentMapData,
+            previousMapNodeId,
+          ),
+        );
+
+    if (!hasNodesToAdd && suggestedIdentifier && !matchesExistingNode) {
+      const retryReason = `Navigation-only suggestion "${suggestedIdentifier}" did not match any known map node.`;
+      navigationResult.debugInfo.validationError = navigationResult.debugInfo.validationError
+        ? `${navigationResult.debugInfo.validationError}; ${retryReason}`
+        : retryReason;
+      console.warn(`Cartographer navigation-only retry (${attempt + 1}): ${retryReason}`);
+      if (attempt < MAX_NAVIGATION_RETRY_ATTEMPTS - 1) {
+        continue;
+      }
+    }
+
+    break;
+  }
+
+  if (!navigationResult) {
+    return null;
+  }
+
+  const { suggestedCurrentMapNodeId, nodesToAdd, edgesToAdd, debugInfo } = navigationResult;
   let finalSuggested = suggestedCurrentMapNodeId;
   let mapUpdateResult: MapUpdateServiceResult | null = null;
 
-  if (nodesToAdd.length > 0) {
+  const hasStructureUpdates = nodesToAdd.length > 0 || edgesToAdd.length > 0;
+
+  if (hasStructureUpdates) {
     const existingNode = finalSuggested
       ? (findMapNodeByIdentifier(
           finalSuggested,
@@ -198,10 +239,16 @@ export const suggestNodeFromLocationChange = async (
         ) as MapNode | undefined)
       : undefined;
 
-    if (!existingNode) {
-      const incrementalPayload: AIMapUpdatePayload = {
-        nodesToAdd,
-      };
+    const requiresNewNode = !existingNode && nodesToAdd.length > 0;
+
+    if (requiresNewNode || edgesToAdd.length > 0) {
+      const incrementalPayload: AIMapUpdatePayload = {};
+      if (nodesToAdd.length > 0) {
+        incrementalPayload.nodesToAdd = nodesToAdd;
+      }
+      if (edgesToAdd.length > 0) {
+        incrementalPayload.edgesToAdd = edgesToAdd;
+      }
       if (finalSuggested) {
         incrementalPayload.suggestedCurrentMapNodeId = finalSuggested;
       }
