@@ -25,13 +25,13 @@ import { isApiConfigured } from '../geminiClient';
 import { isValidAIMapUpdatePayload } from '../cartographer/mapUpdateValidation';
 import { normalizeStatusAndTypeSynonyms } from '../cartographer/mapUpdateUtils';
 
-export const fetchCorrectedMapUpdatePayload_Service = async (
+export const fetchCorrectedMapUpdatePayload = async (
   malformedJson: string,
   validationError: string | undefined,
   theme: AdventureTheme,
 ): Promise<AIMapUpdatePayload | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedMapUpdatePayload_Service: API Key not configured.');
+    console.error('fetchCorrectedMapUpdatePayload: API Key not configured.');
     return null;
   }
 
@@ -68,11 +68,11 @@ export const fetchCorrectedMapUpdatePayload_Service = async (
           return { result: aiResponse };
         }
       }
-      console.warn(`fetchCorrectedMapUpdatePayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected payload invalid.`, aiResponse);
+      console.warn(`fetchCorrectedMapUpdatePayload (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected payload invalid.`, aiResponse);
       lastErrorMessage =
         'Corrected map update payload must include valid nodes/edges arrays that follow the documented schema and reference existing locations.';
     } catch (error: unknown) {
-      console.error(`fetchCorrectedMapUpdatePayload_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
+      console.error(`fetchCorrectedMapUpdatePayload error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };

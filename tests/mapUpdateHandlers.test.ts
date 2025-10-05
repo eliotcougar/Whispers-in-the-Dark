@@ -16,14 +16,14 @@ const fetchFullPlaceDetailsMock = vi.fn().mockResolvedValue(null);
 
 vi.mock('../services/cartographer', () => ({
   __esModule: true,
-  updateMapFromAIData_Service: updateMapFromAIDataMock,
-  suggestNodeFromLocationChange_Service: suggestNodeFromLocationChangeMock,
+  updateMapFromAIData: updateMapFromAIDataMock,
+  suggestNodeFromLocationChange: suggestNodeFromLocationChangeMock,
 }));
 
 vi.mock('../services/corrections', () => ({
   __esModule: true,
-  fetchFullPlaceDetailsForNewMapNode_Service: fetchFullPlaceDetailsMock,
-  assignSpecificNamesToDuplicateNodes_Service: assignSpecificNamesMock,
+  fetchFullPlaceDetailsForNewMapNode: fetchFullPlaceDetailsMock,
+  assignSpecificNamesToDuplicateNodes: assignSpecificNamesMock,
 }));
 
 vi.mock('../utils/entityUtils', async () => {

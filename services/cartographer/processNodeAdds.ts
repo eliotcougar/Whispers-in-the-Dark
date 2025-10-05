@@ -5,7 +5,7 @@ import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { ROOT_MAP_NODE_ID } from '../../constants';
 import { buildChainRequest } from './connectorChains';
-import { fetchLikelyParentNode_Service } from '../corrections/placeDetails';
+import { fetchLikelyParentNode } from '../corrections/placeDetails';
 import type { ApplyUpdatesContext } from './updateContext';
 
 export async function processNodeAdds(context: ApplyUpdatesContext): Promise<void> {
@@ -240,7 +240,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
     if (nextQueue.length === unresolvedQueue.length) {
       if (!triedParentInference) {
         for (const unresolved of nextQueue) {
-          const guessed = await fetchLikelyParentNode_Service(
+          const guessed = await fetchLikelyParentNode(
             {
               placeName: unresolved.placeName,
               description: unresolved.description,

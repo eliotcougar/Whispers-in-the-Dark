@@ -39,7 +39,7 @@ UI Layer -> Game Logic Layer -> Service Layer -> Data Layer -> Gemini API
     *   Processes AI responses: parses JSON, validates data, and constructs a new `FullGameState`.
         *   If the storyteller AI's response includes `mapUpdated: true` or if `localPlace` changes significantly, it triggers the cartographer service.
         *   Applies the `AIMapUpdatePayload` returned by the cartographer service to `FullGameState.mapData`.
-        *   If the cartographer service indicates a new main map node was added without full details, `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to complete its data.
+        *   If the cartographer service indicates a new main map node was added without full details, `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode` to complete its data.
     *   Manages adventure theme selection and dialogue mode.
     *   Provides undo functionality by swapping the two-element `GameStateStack`.
     *   Determines `currentMapNodeId` based on AI suggestions or by using `selectBestMatchingMapNode`, which operates on `MapNode[]`.
@@ -76,7 +76,7 @@ This layer abstracts external interactions and complex data processing.
     *   `services/journal/` (Journal service):
         *   `api.ts` summarizes recent events into a new journal entry.
         *   `index.ts` re-exports the helper.
-    *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode_Service` is key for completing main map node data.
+    *   `services/correctionService.ts`: Attempts to fix malformed data from AI responses. `fetchFullPlaceDetailsForNewMapNode` is key for completing main map node data.
     *   `services/cartographer/` (Cartographer service):
         *   `api.ts` orchestrates map update requests.
         *   `promptBuilder.ts` constructs the AI prompt.
@@ -173,7 +173,7 @@ The game's state transitions are primarily driven by changes to `FullGameState` 
     *   If `mapUpdated` is true or `localPlace` significantly changes, calls the cartographer service.
     *   Receives `AIMapUpdatePayload` from the cartographer service.
     *   Updates `FullGameState.mapData` based on this payload.
-    *   If a new *main* `MapNode` is added by the cartographer service and lacks full description/aliases (as per `MAP_UPDATE_SYSTEM_INSTRUCTION`), `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode_Service` to populate them.
+    *   If a new *main* `MapNode` is added by the cartographer service and lacks full description/aliases (as per `MAP_UPDATE_SYSTEM_INSTRUCTION`), `useGameLogic` calls `fetchFullPlaceDetailsForNewMapNode` to populate them.
 *   **Cartographer service**:
     *   Takes narrative context, current `MapData`, and known main place names.
     *   Uses an auxiliary AI to generate `AIMapUpdatePayload` (node/edge changes).

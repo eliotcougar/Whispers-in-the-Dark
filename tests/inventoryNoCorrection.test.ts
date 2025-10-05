@@ -17,19 +17,19 @@ vi.mock('../utils/loadingProgress', () => ({
 }));
 
 vi.mock('../services/corrections', () => ({
-  fetchCorrectedItemChangeArray_Service: vi.fn(),
-  fetchCorrectedAddDetailsPayload_Service: vi.fn(),
+  fetchCorrectedItemChangeArray: vi.fn(),
+  fetchCorrectedAddDetailsPayload: vi.fn(),
 }));
 
 import { dispatchAIRequest } from '../services/modelDispatcher';
-import { fetchCorrectedItemChangeArray_Service } from '../services/corrections';
-import { applyInventoryHints_Service } from '../services/inventory/api.ts';
+import { fetchCorrectedItemChangeArray } from '../services/corrections';
+import { applyInventoryHints } from '../services/inventory/api.ts';
 import { FANTASY_AND_MYTH_THEMES } from '../themes';
 
 const mockedDispatch = vi.mocked(dispatchAIRequest);
-const mockedCorrection = vi.mocked(fetchCorrectedItemChangeArray_Service);
+const mockedCorrection = vi.mocked(fetchCorrectedItemChangeArray);
 
-describe('applyInventoryHints_Service', () => {
+describe('applyInventoryHints', () => {
   it('does not invoke correction when AI returns empty itemChanges', async () => {
     mockedDispatch.mockResolvedValue({
       response: { text: '{"itemChanges": []}' } as unknown as GenerateContentResponse,
@@ -40,7 +40,7 @@ describe('applyInventoryHints_Service', () => {
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
-    const res = await applyInventoryHints_Service(
+    const res = await applyInventoryHints(
       'nothing',
       undefined,
       undefined,

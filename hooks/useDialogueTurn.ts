@@ -12,7 +12,7 @@ import {
   ValidNPCUpdatePayload,
 } from '../types';
 import { executeDialogueTurn } from '../services/dialogue';
-import { collectRelevantFacts_Service } from '../services/loremaster';
+import { collectRelevantFacts } from '../services/loremaster';
 import { PLAYER_HOLDER_ID, RECENT_LOG_COUNT_FOR_PROMPT } from '../constants';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { DialogueTurnDebugEntry } from '../types';
@@ -98,7 +98,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
           .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
           .map(f => ({ text: f.text, tier: f.tier }));
         setLoadingReason('loremaster_collect');
-        const collectResult = await collectRelevantFacts_Service({
+        const collectResult = await collectRelevantFacts({
           themeName: theme.name,
           facts: sortedFacts,
           lastScene: stateAfterPlayerChoice.currentScene,

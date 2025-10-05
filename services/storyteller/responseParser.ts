@@ -23,9 +23,9 @@ import {
 } from '../parsers/validation';
 import { trimDialogueHints } from '../../utils/dialogueParsing';
 import {
-    fetchCorrectedName_Service,
-    fetchCorrectedNPCDetails_Service,
-    fetchCorrectedDialogueSetup_Service,
+    fetchCorrectedName,
+    fetchCorrectedNPCDetails,
+    fetchCorrectedDialogueSetup,
 } from '../corrections';
 
 import { safeParseJson, coerceNullToUndefined } from '../../utils/jsonUtils';
@@ -284,7 +284,7 @@ const buildNPCFromUpdateAsAddition = async (
 ): Promise<NPC> => {
     let npc = buildNPCFromUpdatePayload(update);
     if (npc.description === `Details for ${update.name} are emerging.`) {
-        const correctedDetails = await fetchCorrectedNPCDetails_Service(
+        const correctedDetails = await fetchCorrectedNPCDetails(
             update.name,
             context.logMessageFromPayload ?? baseData.logMessage,
             context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
@@ -339,7 +339,7 @@ const normalizeNPCUpdateCandidate = async (
         console.warn(
             `parseAIResponse ('npcsUpdated'): Identifier "${payloadIdentifierForLogs}" not found. Attempting name correction.`,
         );
-        const correctedName = await fetchCorrectedName_Service(
+        const correctedName = await fetchCorrectedName(
             'NPC name',
             rawPayload.name,
             context.logMessageFromPayload ?? baseData.logMessage,
@@ -407,7 +407,7 @@ const attemptCorrectNPCAdd = async (
     baseData: Partial<GameStateFromAI>,
     context: ParserContext,
 ): Promise<NPC | null> => {
-    const correctedDetails = await fetchCorrectedNPCDetails_Service(
+    const correctedDetails = await fetchCorrectedNPCDetails(
         originalName ?? 'Newly Mentioned NPC',
         context.logMessageFromPayload ?? baseData.logMessage,
         context.sceneDescriptionFromPayload ?? baseData.sceneDescription,
@@ -556,7 +556,7 @@ async function handleDialogueSetup(
         if (!dialogueSetupIsValid) {
             console.warn("parseAIResponse: 'dialogueSetup' is present but malformed. Attempting correction.");
             const npcDialogueContext = collectNPCsForDialogueContext(data, context);
-            const correctedDialogueSetup = await fetchCorrectedDialogueSetup_Service(
+            const correctedDialogueSetup = await fetchCorrectedDialogueSetup(
                 context.logMessageFromPayload ?? data.logMessage,
                 context.sceneDescriptionFromPayload ?? data.sceneDescription,
                 context.theme,
@@ -814,7 +814,7 @@ export async function parseAIResponse(
                     console.warn(
                         `parseAIResponse: Dialogue participant "${participant}" is not among known or newly added/updated NPCs. Attempting name correction against this turn's NPCs.`,
                     );
-                    const correctedParticipantName = await fetchCorrectedName_Service(
+                    const correctedParticipantName = await fetchCorrectedName(
                         'dialogue participant',
                         participant,
                         logMessageFromPayload ?? validated.logMessage,

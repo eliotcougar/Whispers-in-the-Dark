@@ -194,11 +194,11 @@ export interface ExtractInitialFactsServiceResult {
   debugInfo: LoremasterRefineDebugInfo;
 }
 
-export const extractInitialFacts_Service = async (
+export const extractInitialFacts = async (
   params: ExtractInitialFactsParams,
 ): Promise<ExtractInitialFactsServiceResult | null> => {
   if (!isApiConfigured()) {
-    console.error('extractInitialFacts_Service: API not configured');
+    console.error('extractInitialFacts: API not configured');
     return null;
   }
   const { themeName, worldFacts, heroSheet, heroBackstory } = params;
@@ -276,11 +276,11 @@ export const extractInitialFacts_Service = async (
   };
 };
 
-export const refineLore_Service = async (
+export const refineLore = async (
   params: RefineLoreParams,
 ): Promise<RefineLoreServiceResult | null> => {
   if (!isApiConfigured()) {
-    console.error('refineLore_Service: API not configured');
+    console.error('refineLore: API not configured');
     return null;
   }
   const {
@@ -464,11 +464,11 @@ export interface CollectFactsServiceResult {
   } | null;
 }
 
-export const collectRelevantFacts_Service = async (
+export const collectRelevantFacts = async (
   params: CollectFactsParams,
 ): Promise<CollectFactsServiceResult | null> => {
   if (!isApiConfigured()) {
-    console.error('collectRelevantFacts_Service: API not configured');
+    console.error('collectRelevantFacts: API not configured');
     return null;
   }
   const {
@@ -567,11 +567,11 @@ export interface DistillFactsServiceResult {
   } | null;
 }
 
-export const distillFacts_Service = async (
+export const distillFacts = async (
   params: DistillFactsParams,
 ): Promise<DistillFactsServiceResult | null> => {
   if (!isApiConfigured()) {
-    console.error('distillFacts_Service: API not configured');
+    console.error('distillFacts: API not configured');
     return null;
   }
   const {

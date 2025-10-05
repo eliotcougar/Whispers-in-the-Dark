@@ -1,7 +1,7 @@
 import { generateUniqueId, findMapNodeByIdentifier } from '../../utils/entityUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest, filterEdgeChainRequests } from './connectorChains';
-import { fetchConnectorChains_Service } from '../corrections/edgeFixes';
+import { fetchConnectorChains } from '../corrections/edgeFixes';
 import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS, ROOT_MAP_NODE_ID } from '../../constants';
 import type { MapNode, AINodeAdd, AIEdgeAdd } from '../../types';
 import type { ConnectorChainsServiceResult, EdgeChainRequest } from '../corrections/edgeFixes';
@@ -28,7 +28,7 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           MAX_CHAIN_REFINEMENT_ROUNDS
         )}, Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)}`
       );
-      chainResult = await fetchConnectorChains_Service(chainRequests, chainContext);
+      chainResult = await fetchConnectorChains(chainRequests, chainContext);
       if (chainResult.debugInfo) {
         ctx.debugInfo.connectorChainsDebugInfo?.push({
           round: refineAttempts + 1,

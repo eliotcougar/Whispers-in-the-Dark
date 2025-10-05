@@ -24,7 +24,7 @@ import { parseDialogueTurnResponse } from '../dialogue/responseParser';
 /**
  * Attempts to correct a malformed DialogueSetupPayload.
  */
-export const fetchCorrectedDialogueSetup_Service = async (
+export const fetchCorrectedDialogueSetup = async (
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
   theme: AdventureTheme,
@@ -35,7 +35,7 @@ export const fetchCorrectedDialogueSetup_Service = async (
   malformedDialogueSetup: Partial<DialogueSetupPayload>
 ): Promise<DialogueSetupPayload | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedDialogueSetup_Service: API Key not configured.');
+    console.error('fetchCorrectedDialogueSetup: API Key not configured.');
     return null;
   }
 
@@ -108,13 +108,13 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
         return { result: aiResponse };
       }
       console.warn(
-        `fetchCorrectedDialogueSetup_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected dialogueSetup payload invalid. Response:`,
+        `fetchCorrectedDialogueSetup (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected dialogueSetup payload invalid. Response:`,
         aiResponse,
       );
       lastErrorMessage =
         'Corrected dialogueSetup payload must include non-empty initialNpcResponses, initialPlayerOptions, and participants drawn from known NPCs.';
     } catch (error: unknown) {
-      console.error(`fetchCorrectedDialogueSetup_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
+      console.error(`fetchCorrectedDialogueSetup error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };
@@ -126,14 +126,14 @@ Respond ONLY with the single, complete, corrected JSON object for 'dialogueSetup
  * The original NPC thoughts (if any) should be provided so they can be
  * reattached to the corrected response.
  */
-export const fetchCorrectedDialogueTurn_Service = async (
+export const fetchCorrectedDialogueTurn = async (
   malformedResponseText: string,
   validParticipants: Array<string>,
   theme: AdventureTheme,
   npcThoughts?: Array<string>,
 ): Promise<DialogueAIResponse | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedDialogueTurn_Service: API Key not configured.');
+    console.error('fetchCorrectedDialogueTurn: API Key not configured.');
     return null;
   }
 
@@ -196,7 +196,7 @@ Respond ONLY with the corrected JSON object.`;
           return { result: parsedResponse };
         }
         console.warn(
-          `fetchCorrectedDialogueTurn_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected response invalid or speakers not in list.`,
+          `fetchCorrectedDialogueTurn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected response invalid or speakers not in list.`,
           aiResponse,
         );
       if (typeof parseErrorThisAttempt === 'string') {
@@ -206,13 +206,13 @@ Respond ONLY with the corrected JSON object.`;
       }
       } else {
         console.warn(
-          `fetchCorrectedDialogueTurn_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned empty response.`,
+          `fetchCorrectedDialogueTurn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned empty response.`,
         );
         lastErrorMessage = 'Dialogue response was empty. Return a complete JSON object matching the required structure.';
       }
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedDialogueTurn_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedDialogueTurn error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

@@ -2,12 +2,12 @@ import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('../services/corrections/placeDetails', async () => {
   const actual = await vi.importActual('../services/corrections/placeDetails');
-  return { ...actual, fetchCorrectedNodeIdentifier_Service: vi.fn() };
+  return { ...actual, fetchCorrectedNodeIdentifier: vi.fn() };
 });
 
 vi.mock('../services/corrections/edgeFixes', async () => {
   const actual = await vi.importActual('../services/corrections/edgeFixes');
-  return { ...actual, fetchConnectorChains_Service: vi.fn().mockResolvedValue({ payload: null }) };
+  return { ...actual, fetchConnectorChains: vi.fn().mockResolvedValue({ payload: null }) };
 });
 
 import { applyMapUpdates } from '../services/cartographer/applyUpdates';
@@ -18,7 +18,7 @@ import type {
   AIMapUpdatePayload,
   GameStateFromAI,
 } from '../types';
-import { fetchCorrectedNodeIdentifier_Service } from '../services/corrections/placeDetails';
+import { fetchCorrectedNodeIdentifier } from '../services/corrections/placeDetails';
 import { ROOT_MAP_NODE_ID } from '../constants';
 
 const theme: AdventureTheme = { name: 'TestTheme' } as AdventureTheme;
@@ -97,6 +97,6 @@ describe('applyMapUpdates partial id handling', () => {
       (e.targetNodeId === existingFeature.id && e.sourceNodeId === hiddenDoor.id)
     );
     expect(edge).toBeDefined();
-    expect(vi.mocked(fetchCorrectedNodeIdentifier_Service)).not.toHaveBeenCalled();
+    expect(vi.mocked(fetchCorrectedNodeIdentifier)).not.toHaveBeenCalled();
   });
 });

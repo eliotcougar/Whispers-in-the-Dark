@@ -297,7 +297,7 @@ export interface LibrarianUpdateResult {
   } | null;
 }
 
-export const applyLibrarianHints_Service = async (
+export const applyLibrarianHints = async (
   librarianHint: string | undefined,
   newItems: Array<NewItemSuggestion>,
   playerLastAction: string,

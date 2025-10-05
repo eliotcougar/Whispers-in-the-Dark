@@ -24,7 +24,7 @@ import { findMapNodeByIdentifier } from '../../utils/entityUtils';
 /**
  * Combines prompt creation, AI request and payload application.
  */
-export const updateMapFromAIData_Service = async (
+export const updateMapFromAIData = async (
   aiData: GameStateFromAI,
   currentMapData: MapData,
   theme: AdventureTheme,
@@ -141,7 +141,7 @@ export const updateMapFromAIData_Service = async (
 /**
  * Lightweight suggestion-only flow used when only the player's location text changes.
  */
-export const suggestNodeFromLocationChange_Service = async (
+export const suggestNodeFromLocationChange = async (
   aiData: GameStateFromAI,
   currentMapData: MapData,
   theme: AdventureTheme,

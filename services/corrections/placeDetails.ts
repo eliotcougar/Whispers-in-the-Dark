@@ -34,7 +34,7 @@ import {
 import { NODE_TYPE_SYNONYMS, createHeuristicRegexes } from '../../utils/mapSynonyms';
 import { MAP_NODE_TYPE_GUIDE } from '../../prompts/helperPrompts';
 
-export const fetchCorrectedLocalPlace_Service = async (
+export const fetchCorrectedLocalPlace = async (
   currentSceneDescription: string,
   theme: AdventureTheme,
   knownMapNodes: Array<MapNode>,
@@ -42,7 +42,7 @@ export const fetchCorrectedLocalPlace_Service = async (
   localEnvironment: string | null,
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedLocalPlace_Service: API Key not configured.');
+    console.error('fetchCorrectedLocalPlace: API Key not configured.');
     return null;
   }
 
@@ -85,18 +85,18 @@ Respond ONLY with the inferred "localPlace" as a single string.`;
       if (aiResponse !== null && aiResponse.trim().length > 0) {
         const correctedLocalPlace = aiResponse.trim();
         console.warn(
-          `fetchCorrectedLocalPlace_Service: Returned corrected localPlace `,
+          `fetchCorrectedLocalPlace: Returned corrected localPlace `,
           correctedLocalPlace,
           '.'
         );
         return { result: correctedLocalPlace };
       }
       console.warn(
-        `fetchCorrectedLocalPlace_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): AI call failed for localPlace. Received: null`,
+        `fetchCorrectedLocalPlace (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): AI call failed for localPlace. Received: null`,
       );
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedLocalPlace_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedLocalPlace error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -105,14 +105,14 @@ Respond ONLY with the inferred "localPlace" as a single string.`;
   });
 };
 
-export const fetchCorrectedPlaceDetails_Service = async (
+export const fetchCorrectedPlaceDetails = async (
   malformedMapNodePayloadString: string,
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
   theme: AdventureTheme,
 ): Promise<{ name: string; description: string; aliases?: Array<string> } | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedPlaceDetails_Service: API Key not configured.');
+    console.error('fetchCorrectedPlaceDetails: API Key not configured.');
     return null;
   }
 
@@ -187,12 +187,12 @@ Respond ONLY with the single, complete, corrected JSON object.`;
           return { result: aiResponse };
         }
         console.warn(
-          `fetchCorrectedPlaceDetails_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): Corrected map location payload invalid. Response:`,
+          `fetchCorrectedPlaceDetails (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): Corrected map location payload invalid. Response:`,
           aiResponse,
         );
       } catch (error: unknown) {
         console.error(
-          `fetchCorrectedPlaceDetails_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
+          `fetchCorrectedPlaceDetails error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
           error,
         );
         throw error;
@@ -202,14 +202,14 @@ Respond ONLY with the single, complete, corrected JSON object.`;
   );
 };
 
-export const fetchFullPlaceDetailsForNewMapNode_Service = async (
+export const fetchFullPlaceDetailsForNewMapNode = async (
   mapNodePlaceName: string,
   logMessageContext: string | undefined,
   sceneDescriptionContext: string | undefined,
   theme: AdventureTheme,
 ): Promise<{ name: string; description: string; aliases?: Array<string> } | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchFullPlaceDetailsForNewMapNode_Service: API Key not configured.');
+    console.error('fetchFullPlaceDetailsForNewMapNode: API Key not configured.');
     return null;
   }
 
@@ -263,12 +263,12 @@ Respond ONLY with the single, complete JSON object.`;
           return { result: aiResponse };
         }
         console.warn(
-          `fetchFullPlaceDetailsForNewMapNode_Service (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`,
+          `fetchFullPlaceDetailsForNewMapNode (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}): Corrected map location payload invalid or name mismatch for "${mapNodePlaceName}". Response:`,
           aiResponse,
         );
       } catch (error: unknown) {
         console.error(
-          `fetchFullPlaceDetailsForNewMapNode_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
+          `fetchFullPlaceDetailsForNewMapNode error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
           error,
         );
         throw error;
@@ -278,7 +278,7 @@ Respond ONLY with the single, complete JSON object.`;
   );
 };
 
-export const fetchCorrectedNodeType_Service = async (
+export const fetchCorrectedNodeType = async (
   nodeInfo: { placeName: string; nodeType?: string; description?: string },
 ): Promise<NonNullable<MapNodeData['nodeType']> | null> => {
   const synonyms = NODE_TYPE_SYNONYMS as Record<string, MapNodeData['nodeType'] | undefined>;
@@ -306,7 +306,7 @@ export const fetchCorrectedNodeType_Service = async (
   }
 
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedNodeType_Service: API Key not configured.');
+    console.error('fetchCorrectedNodeType: API Key not configured.');
     return null;
   }
 
@@ -338,7 +338,7 @@ Respond ONLY with the single node type.`;
       }
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedNodeType_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedNodeType error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -348,7 +348,7 @@ Respond ONLY with the single node type.`;
 };
 
 
-export const fetchLikelyParentNode_Service = async (
+export const fetchLikelyParentNode = async (
   proposedNode: {
     placeName: string;
     description?: string;
@@ -368,7 +368,7 @@ export const fetchLikelyParentNode_Service = async (
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchLikelyParentNode_Service: API Key not configured.');
+    console.error('fetchLikelyParentNode: API Key not configured.');
     return null;
   }
 
@@ -434,7 +434,7 @@ Respond ONLY with the name or id of the best parent node, or "${ROOT_MAP_NODE_ID
       }
     } catch (error: unknown) {
       console.error(
-        `fetchLikelyParentNode_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
+        `fetchLikelyParentNode error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -443,7 +443,7 @@ Respond ONLY with the name or id of the best parent node, or "${ROOT_MAP_NODE_ID
   });
 };
 
-export const fetchCorrectedNodeIdentifier_Service = async (
+export const fetchCorrectedNodeIdentifier = async (
   malformedIdentifier: string,
   context: {
     mapNodes: Array<MapNode>;
@@ -452,7 +452,7 @@ export const fetchCorrectedNodeIdentifier_Service = async (
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedNodeIdentifier_Service: API Key not configured.');
+    console.error('fetchCorrectedNodeIdentifier: API Key not configured.');
     return null;
   }
 
@@ -484,7 +484,7 @@ Known map nodes in the current theme:\n${nodeList}\nChoose the most likely inten
       }
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedNodeIdentifier_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedNodeIdentifier error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

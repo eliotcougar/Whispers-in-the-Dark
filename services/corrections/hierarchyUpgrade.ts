@@ -17,13 +17,13 @@ import { addProgressSymbol } from '../../utils/loadingProgress';
 import { retryAiCall } from '../../utils/retry';
 import { isApiConfigured } from '../geminiClient';
 
-export const decideFeatureHierarchyUpgrade_Service = async (
+export const decideFeatureHierarchyUpgrade = async (
   parentFeature: MapNode,
   childNode: MapNode,
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<'convert_child' | 'upgrade_parent' | null> => {
   if (!isApiConfigured()) {
-    console.error('decideFeatureHierarchyUpgrade_Service: API Key not configured.');
+    console.error('decideFeatureHierarchyUpgrade: API Key not configured.');
     return null;
   }
 
@@ -52,7 +52,7 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
         if (cleaned.includes('convert') || cleaned.includes('sibling')) return { result: 'convert_child' };
       }
     } catch (error: unknown) {
-      console.error(`decideFeatureHierarchyUpgrade_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
+      console.error(`decideFeatureHierarchyUpgrade error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };
@@ -60,7 +60,7 @@ Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_pa
 };
 
 
-export const chooseHierarchyResolution_Service = async (
+export const chooseHierarchyResolution = async (
   context: {
     sceneDescription: string;
     parent: MapNode;
@@ -70,7 +70,7 @@ export const chooseHierarchyResolution_Service = async (
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<number | null> => {
   if (!isApiConfigured()) {
-    console.error('chooseHierarchyResolution_Service: API Key not configured.');
+    console.error('chooseHierarchyResolution: API Key not configured.');
     return null;
   }
 
@@ -100,7 +100,7 @@ export const chooseHierarchyResolution_Service = async (
         }
       }
     } catch (error: unknown) {
-      console.error(`chooseHierarchyResolution_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
+      console.error(`chooseHierarchyResolution error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };

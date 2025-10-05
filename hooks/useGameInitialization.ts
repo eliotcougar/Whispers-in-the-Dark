@@ -46,7 +46,7 @@ import {
   generateCharacterNames,
   generateCharacterDescriptions,
 } from '../services/worldData';
-import { extractInitialFacts_Service } from '../services/loremaster';
+import { extractInitialFacts } from '../services/loremaster';
 import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import { ensureCoreGameStateIntegrity } from '../utils/gameStateIntegrity';
 import { isStoryArcValid } from '../utils/storyArcUtils';
@@ -313,7 +313,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           initialTurnPromise = (async () => {
             draftState.startState = 'seeding_facts';
             if (generatedWorldFacts) {
-              const initialFacts = await extractInitialFacts_Service({
+              const initialFacts = await extractInitialFacts({
                 themeName: selectedTheme.name,
                 worldFacts: generatedWorldFacts,
                 heroSheet: hasGeneratedHeroData ? heroSheetForState : undefined,

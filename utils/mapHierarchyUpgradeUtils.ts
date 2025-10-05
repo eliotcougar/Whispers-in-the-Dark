@@ -13,7 +13,7 @@ import {
 } from '../types';
 import { NODE_TYPE_LEVELS, ROOT_MAP_NODE_ID } from '../constants';
 import { structuredCloneGameState } from './cloneUtils';
-import { decideFeatureHierarchyUpgrade_Service } from '../services/corrections/hierarchyUpgrade';
+import { decideFeatureHierarchyUpgrade } from '../services/corrections/hierarchyUpgrade';
 import { generateUniqueId } from './entityUtils';
 
 export const NODE_TYPE_DOWNGRADE_MAP: Record<MapNodeType, MapNodeType | undefined> = {
@@ -188,7 +188,7 @@ export const upgradeFeaturesWithChildren = async (
     if (node.data.nodeType === 'feature') {
       const childNodes = working.nodes.filter(n => n.data.parentNodeId === node.id);
       if (childNodes.length > 0) {
-        const decision = await decideFeatureHierarchyUpgrade_Service(node, childNodes[0]);
+        const decision = await decideFeatureHierarchyUpgrade(node, childNodes[0]);
         if (decision === 'convert_child') {
           childNodes.forEach(child => { child.data.parentNodeId = node.data.parentNodeId; });
         } else {

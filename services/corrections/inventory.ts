@@ -86,7 +86,7 @@ const ITEM_CHANGE_SCHEMA = {
  * Attempts to correct a malformed array of ItemChange objects returned by the
  * Inventory AI helper.
  */
-export const fetchCorrectedItemChangeArray_Service = async (
+export const fetchCorrectedItemChangeArray = async (
   malformedResponseText: string,
   logMessage: string | undefined,
   sceneDescription: string | undefined,
@@ -99,7 +99,7 @@ export const fetchCorrectedItemChangeArray_Service = async (
   theme: AdventureTheme,
 ): Promise<Array<ItemChange> | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedItemChangeArray_Service: API Key not configured.');
+    console.error('fetchCorrectedItemChangeArray: API Key not configured.');
     return null;
   }
 
@@ -284,7 +284,7 @@ Respond ONLY with the corrected JSON array.`;
         return { result: validatedChanges };
       }
       console.warn(
-        `fetchCorrectedItemChangeArray_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected payload invalid.`,
+        `fetchCorrectedItemChangeArray (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): corrected payload invalid.`,
         aiResponse,
       );
     if (typeof parseErrorThisAttempt === 'string') {
@@ -294,7 +294,7 @@ Respond ONLY with the corrected JSON array.`;
     }
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedItemChangeArray_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedItemChangeArray error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

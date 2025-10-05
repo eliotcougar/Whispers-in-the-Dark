@@ -41,7 +41,7 @@ import {
     WRITTEN_ITEM_TYPES,
   } from '../constants';
 import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
-import { distillFacts_Service } from '../services/loremaster';
+import { distillFacts } from '../services/loremaster';
 import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import {
   ensureCoreGameStateIntegrity,
@@ -539,7 +539,7 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
       ? storyArcActs[actIndex]
       : null;
     const actQuest = act ? act.mainObjective : null;
-    const result = await distillFacts_Service({
+    const result = await distillFacts({
       themeName: currentFullState.theme.name,
       facts: currentFullState.loreFacts,
       currentQuest: actQuest,

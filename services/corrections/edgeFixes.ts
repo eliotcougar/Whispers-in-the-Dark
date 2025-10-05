@@ -36,7 +36,7 @@ import {
 } from "../../utils/mapSynonyms";
 import { MAP_NODE_TYPE_GUIDE, MAP_EDGE_TYPE_GUIDE, MAP_NODE_HIERARCHY_GUIDE } from "../../prompts/helperPrompts";
 
-export const fetchCorrectedEdgeType_Service = async (edgeInfo: {
+export const fetchCorrectedEdgeType = async (edgeInfo: {
   type?: string;
   description?: string;
 }): Promise<MapEdgeData["type"] | null> => {
@@ -70,7 +70,7 @@ export const fetchCorrectedEdgeType_Service = async (edgeInfo: {
   }
 
   if (!isApiConfigured()) {
-    console.error("fetchCorrectedEdgeType_Service: API Key not configured.");
+    console.error("fetchCorrectedEdgeType: API Key not configured.");
     return null;
   }
 
@@ -107,7 +107,7 @@ Respond ONLY with the single edge type.`;
       }
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedEdgeType_Service error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedEdgeType error (Attempt ${String(attempt + 1)}/$${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -208,7 +208,7 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-export const fetchConnectorChains_Service = async (
+export const fetchConnectorChains = async (
   requests: Array<EdgeChainRequest>,
   context: {
     sceneDescription: string;
@@ -322,7 +322,7 @@ ${MAP_NODE_HIERARCHY_GUIDE}
   const result = await retryAiCall<ConnectorChainsServiceResult>(async attempt => {
     try {
       console.log(
-        `fetchConnectorChains_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
+        `fetchConnectorChains (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const thinkingBudget = getThinkingBudget(2048);
@@ -402,7 +402,7 @@ ${MAP_NODE_HIERARCHY_GUIDE}
       return { result: { payload: null, debugInfo } };
     } catch (error: unknown) {
       console.error(
-        `fetchConnectorChains_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        `fetchConnectorChains error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

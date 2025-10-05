@@ -30,7 +30,7 @@ import { isValidAddDetailsPayload } from '../parsers/validation';
 /**
  * Fetches a corrected item payload from the AI when an itemChange object is malformed.
  */
-export const fetchCorrectedItemPayload_Service = async (
+export const fetchCorrectedItemPayload = async (
   actionType: 'create' | 'change',
   logMessage: string | undefined,
   sceneDescription: string | undefined,
@@ -38,7 +38,7 @@ export const fetchCorrectedItemPayload_Service = async (
   theme: AdventureTheme
 ): Promise<Item | null> => {
   if (!isApiConfigured()) {
-    console.error(`fetchCorrectedItemPayload_Service: API Key not configured. Cannot correct item payload for action "${actionType}".`);
+    console.error(`fetchCorrectedItemPayload: API Key not configured. Cannot correct item payload for action "${actionType}".`);
     return null;
   }
 
@@ -163,7 +163,7 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
       const parsedItem = safeParseJson<Item>(jsonStr);
       if (parsedItem === null) {
         console.warn(
-          `fetchCorrectedItemPayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
+          `fetchCorrectedItemPayload (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
           parsedItem,
         );
         lastErrorMessage = 'Returned item payload could not be parsed as JSON. Respond with a single JSON object for the item.';
@@ -172,13 +172,13 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
         return { result: parsedItem };
       } else {
         console.warn(
-          `fetchCorrectedItemPayload_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
+          `fetchCorrectedItemPayload (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected '${actionType}' payload invalid after validation. Response:`,
           parsedItem,
         );
         lastErrorMessage = `Correct the '${actionType}' item payload so it includes valid values for name, type, description, holderId and other required fields. Types must be one of ${VALID_ITEM_TYPES_STRING} and never 'junk'.`;
       }
     } catch (error: unknown) {
-      console.error(`fetchCorrectedItemPayload_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
+      console.error(`fetchCorrectedItemPayload error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };
@@ -188,14 +188,14 @@ Respond ONLY with the single, complete, corrected JSON object for the 'item' fie
 /**
  * Fetches a corrected item action when the 'action' field is missing or malformed.
  */
-export const fetchCorrectedItemAction_Service = async (
+export const fetchCorrectedItemAction = async (
   logMessage: string | undefined,
   sceneDescription: string | undefined,
   malformedItemChangeString: string,
   theme: AdventureTheme
 ): Promise<ItemChange['action'] | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedItemAction_Service: API Key not configured. Cannot correct item action.');
+    console.error('fetchCorrectedItemAction: API Key not configured. Cannot correct item action.');
     return null;
   }
 
@@ -259,29 +259,29 @@ If no action can be confidently determined, respond with an empty string.`;
       if (aiResponse !== null) {
         const candidateAction = aiResponse.trim().toLowerCase();
         if (VALID_ACTIONS.includes(candidateAction as ItemChange['action'])) {
-          console.warn(`fetchCorrectedItemAction_Service: Returned corrected itemAction `, candidateAction, ".");
+          console.warn(`fetchCorrectedItemAction: Returned corrected itemAction `, candidateAction, ".");
           lastErrorMessage = null;
           return { result: candidateAction as ItemChange['action'] };
         }
         if (candidateAction === '') {
-          console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
+          console.warn(`fetchCorrectedItemAction (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no confident action for itemChange: ${malformedItemChangeString}`);
           return { result: null, retry: false };
         }
-        console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned invalid action "${candidateAction}".`);
+        console.warn(`fetchCorrectedItemAction (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned invalid action "${candidateAction}".`);
         lastErrorMessage = `Returned action must be exactly one of ${VALID_ACTIONS_STRING}. Respond with only the action string.`;
       } else {
-        console.warn(`fetchCorrectedItemAction_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for item action. Received: null`);
+        console.warn(`fetchCorrectedItemAction (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for item action. Received: null`);
         lastErrorMessage = `No action string was returned. Respond with exactly one of ${VALID_ACTIONS_STRING}, or an empty string if unsure.`;
       }
     } catch (error: unknown) {
-      console.error(`fetchCorrectedItemAction_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
+      console.error(`fetchCorrectedItemAction error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`, error);
       throw error;
     }
     return { result: null };
   });
 };
 
-export const fetchCorrectedItemTag_Service = async (
+export const fetchCorrectedItemTag = async (
   proposedTag: string,
   itemName: string,
   itemDescription: string,
@@ -302,7 +302,7 @@ export const fetchCorrectedItemTag_Service = async (
   }
 
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedItemTag_Service: API Key not configured.');
+    console.error('fetchCorrectedItemTag: API Key not configured.');
     return null;
   }
 
@@ -346,7 +346,7 @@ Respond ONLY with the single best tag.`;
       lastErrorMessage = `Tag must be one of the canonical values: ${VALID_TAGS_STRING}. Respond with a single tag string.`;
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedItemTag_Service error (Attempt ${String(attempt + 1)}/${String(
+        `fetchCorrectedItemTag error (Attempt ${String(attempt + 1)}/${String(
           MAX_RETRIES + 1,
         )}):`,
         error,
@@ -360,14 +360,14 @@ Respond ONLY with the single best tag.`;
 /**
  * Generates additional chapters for a book item when fewer than MIN_BOOK_CHAPTERS exist.
  */
-export const fetchAdditionalBookChapters_Service = async (
+export const fetchAdditionalBookChapters = async (
   bookTitle: string,
   bookDescription: string,
   existingHeadings: Array<string>,
   countNeeded: number,
 ): Promise<Array<ItemChapter> | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchAdditionalBookChapters_Service: API Key not configured.');
+    console.error('fetchAdditionalBookChapters: API Key not configured.');
     return null;
   }
   if (countNeeded <= 0) return [];
@@ -408,7 +408,7 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
         return { result: parsed };
       }
       console.warn(
-        `fetchAdditionalBookChapters_Service (Attempt ${String(attempt + 1)}/${String(
+        `fetchAdditionalBookChapters (Attempt ${String(attempt + 1)}/${String(
           MAX_RETRIES + 1,
         )}): invalid response`,
         parsed,
@@ -416,7 +416,7 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
       lastErrorMessage = `Return an array with ${String(countNeeded)} objects containing "heading", "description", and numeric "contentLength" between 50 and 200.`;
     } catch (error: unknown) {
       console.error(
-        `fetchAdditionalBookChapters_Service error (Attempt ${String(attempt + 1)}/${String(
+        `fetchAdditionalBookChapters error (Attempt ${String(attempt + 1)}/${String(
           MAX_RETRIES + 1,
         )}):`,
         error,
@@ -430,14 +430,14 @@ Task: Provide ${String(countNeeded)} additional chapter objects as JSON array. E
 /**
  * Attempts to correct an addDetails payload when inventory AI returns a malformed object.
  */
-export const fetchCorrectedAddDetailsPayload_Service = async (
+export const fetchCorrectedAddDetailsPayload = async (
   malformedPayloadString: string,
   logMessage: string | undefined,
   sceneDescription: string | undefined,
   theme: AdventureTheme,
 ): Promise<AddDetailsPayload | null> => {
   if (!isApiConfigured()) {
-    console.error('fetchCorrectedAddDetailsPayload_Service: API Key not configured.');
+    console.error('fetchCorrectedAddDetailsPayload: API Key not configured.');
     return null;
   }
 
@@ -482,7 +482,7 @@ Task: Provide ONLY the corrected JSON object with fields { "id": string, "name":
         return { result: parsed };
       }
       console.warn(
-        `fetchCorrectedAddDetailsPayload_Service (Attempt ${String(attempt + 1)}/${String(
+        `fetchCorrectedAddDetailsPayload (Attempt ${String(attempt + 1)}/${String(
           MAX_RETRIES + 1,
         )}): invalid response`,
         parsed,
@@ -491,7 +491,7 @@ Task: Provide ONLY the corrected JSON object with fields { "id": string, "name":
         'Corrected addDetails payload must include id, name, valid type, and optional knownUses/tags/chapters with proper structure.';
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedAddDetailsPayload_Service error (Attempt ${String(attempt + 1)}/${String(
+        `fetchCorrectedAddDetailsPayload error (Attempt ${String(attempt + 1)}/${String(
           MAX_RETRIES + 1,
         )}):`,
         error,

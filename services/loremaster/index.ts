@@ -1,8 +1,8 @@
 export {
-  extractInitialFacts_Service,
-  refineLore_Service,
-  collectRelevantFacts_Service,
-  distillFacts_Service,
+  extractInitialFacts,
+  refineLore,
+  collectRelevantFacts,
+  distillFacts,
 } from './api';
 export type {
   ExtractInitialFactsParams,

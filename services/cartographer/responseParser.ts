@@ -6,7 +6,7 @@ import { AIMapUpdatePayload, AdventureTheme } from '../../types';
 import { safeParseJson } from '../../utils/jsonUtils';
 import { isValidAIMapUpdatePayload } from './mapUpdateValidation';
 import { normalizeStatusAndTypeSynonyms } from './mapUpdateUtils';
-import { fetchCorrectedMapUpdatePayload_Service } from '../corrections';
+import { fetchCorrectedMapUpdatePayload } from '../corrections';
 import { ROOT_MAP_NODE_ID } from '../../constants';
 
 /**
@@ -147,7 +147,7 @@ export const parseAIMapUpdateResponse = async (
       'Parsed map update JSON does not match AIMapUpdatePayload structure or is empty:',
       parsed,
     );
-    const corrected = await fetchCorrectedMapUpdatePayload_Service(
+    const corrected = await fetchCorrectedMapUpdatePayload(
       responseText,
       validationError,
       theme,
@@ -159,7 +159,7 @@ export const parseAIMapUpdateResponse = async (
   } catch (e: unknown) {
     console.error('Failed to parse map update JSON response from AI:', e);
     console.debug('Original map update response text:', responseText);
-    const corrected = await fetchCorrectedMapUpdatePayload_Service(
+    const corrected = await fetchCorrectedMapUpdatePayload(
       responseText,
       e instanceof Error ? e.message : String(e),
       theme,

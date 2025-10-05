@@ -30,8 +30,8 @@ import {
 import { buildInventoryPrompt } from './promptBuilder';
 import { parseInventoryResponse, InventoryAIPayload } from './responseParser';
 import {
-  fetchCorrectedItemChangeArray_Service,
-  fetchCorrectedAddDetailsPayload_Service,
+  fetchCorrectedItemChangeArray,
+  fetchCorrectedAddDetailsPayload,
 } from '../corrections';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { retryAiCall } from '../../utils/retry';
@@ -338,7 +338,7 @@ export interface InventoryUpdateResult {
   } | null;
 }
 
-export const applyInventoryHints_Service = async (
+export const applyInventoryHints = async (
   playerItemsHint: string | undefined,
   worldItemsHint: string | undefined,
   npcItemsHint: string | undefined,
@@ -399,7 +399,7 @@ export const applyInventoryHints_Service = async (
     });
 
     if (!parsed) {
-      const corrected = await fetchCorrectedItemChangeArray_Service(
+      const corrected = await fetchCorrectedItemChangeArray(
         response.text ?? '',
         logMessage,
         sceneDescription,
@@ -422,7 +422,7 @@ export const applyInventoryHints_Service = async (
           change.action === 'addDetails' &&
           (change as { invalidPayload?: unknown }).invalidPayload
         ) {
-          const corrected = await fetchCorrectedAddDetailsPayload_Service(
+          const corrected = await fetchCorrectedAddDetailsPayload(
             JSON.stringify((change as { invalidPayload: unknown }).invalidPayload),
             logMessage,
             sceneDescription,

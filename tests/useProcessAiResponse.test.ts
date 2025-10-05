@@ -41,17 +41,17 @@ vi.mock('../hooks/useMapUpdateProcessor', () => ({
 
 vi.mock('../services/loremaster', () => ({
   __esModule: true,
-  refineLore_Service: refineLoreServiceMock,
+  refineLore: refineLoreServiceMock,
 }));
 
 vi.mock('../services/inventory', () => ({
   __esModule: true,
-  applyInventoryHints_Service: applyInventoryHintsMock,
+  applyInventoryHints: applyInventoryHintsMock,
 }));
 
 vi.mock('../services/librarian', () => ({
   __esModule: true,
-  applyLibrarianHints_Service: applyLibrarianHintsMock,
+  applyLibrarianHints: applyLibrarianHintsMock,
 }));
 
 vi.mock('../services/page', () => ({
@@ -61,7 +61,7 @@ vi.mock('../services/page', () => ({
 
 vi.mock('../services/corrections', () => ({
   __esModule: true,
-  fetchCorrectedName_Service: fetchCorrectedNameMock,
+  fetchCorrectedName: fetchCorrectedNameMock,
 }));
 
 const { useProcessAiResponse } = await import('../hooks/useProcessAiResponse');

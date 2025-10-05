@@ -10,7 +10,7 @@ import {
   TurnChanges,
   StoryAct,
 } from '../types';
-import { fetchCorrectedName_Service } from '../services/corrections';
+import { fetchCorrectedName } from '../services/corrections';
 import { PLAYER_HOLDER_ID, MAX_LOG_MESSAGES, WRITTEN_ITEM_TYPES, REGULAR_ITEM_TYPES } from '../constants';
 import {
   addLogMessageToList,
@@ -20,9 +20,9 @@ import {
 } from '../utils/gameLogicUtils';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
-import { applyInventoryHints_Service } from '../services/inventory';
-import { applyLibrarianHints_Service } from '../services/librarian';
-import { refineLore_Service } from '../services/loremaster';
+import { applyInventoryHints } from '../services/inventory';
+import { applyLibrarianHints } from '../services/librarian';
+import { refineLore } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
 import { structuredCloneGameState } from '../utils/cloneUtils';
@@ -131,7 +131,7 @@ const correctItemChanges = async ({
       if (!exactMatchInInventory) {
         const original = loadingReason;
         setLoadingReason('corrections');
-        const correctedName = await fetchCorrectedName_Service(
+        const correctedName = await fetchCorrectedName(
           'item',
           itemNameFromAI ?? '',
           aiData.logMessage,
@@ -274,9 +274,9 @@ const handleInventoryHints = async ({
     'worldItemsHint' in aiData ? aiData.worldItemsHint?.trim() : '';
   const npcItemsHint =
     'npcItemsHint' in aiData ? aiData.npcItemsHint?.trim() : '';
-  let invResult: Awaited<ReturnType<typeof applyInventoryHints_Service>> | null = null;
+  let invResult: Awaited<ReturnType<typeof applyInventoryHints>> | null = null;
   if (playerItemsHint || worldItemsHint || npcItemsHint || inventoryNewItems.length > 0) {
-    invResult = await applyInventoryHints_Service(
+    invResult = await applyInventoryHints(
       playerItemsHint,
       worldItemsHint,
       npcItemsHint,
@@ -299,12 +299,12 @@ const handleInventoryHints = async ({
     const names = librarianNewItems.map(it => it.name).join(', ');
     librarianHint = `Found ${names}.`;
   }
-  let libResult: Awaited<ReturnType<typeof applyLibrarianHints_Service>> | null = null;
+  let libResult: Awaited<ReturnType<typeof applyLibrarianHints>> | null = null;
   if (librarianHint) {
     // Reflect librarian stage in FSM and loading indicator
     draftState.turnState = 'librarian_updates';
     setLoadingReason('librarian_updates');
-    libResult = await applyLibrarianHints_Service(
+    libResult = await applyLibrarianHints(
       librarianHint,
       librarianNewItems,
       playerActionText ?? '',
@@ -713,7 +713,7 @@ export const useProcessAiResponse = ({
         actIntroRef.current = null;
       }
       const original = loadingReasonRef.current;
-      const refineResult = await refineLore_Service({
+      const refineResult = await refineLore({
         themeName: themeContextForResponse.name,
         turnContext: contextParts,
         existingFacts: draftState.loreFacts,

@@ -16,7 +16,7 @@ import {
 } from '../types';
 import { buildMainGameTurnPrompt } from '../services/storyteller';
 import { buildSystemInstructionWithDebug } from '../services/storyteller/systemPrompt';
-import { collectRelevantFacts_Service } from '../services/loremaster';
+import { collectRelevantFacts } from '../services/loremaster';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { buildHighlightRegex } from '../utils/highlightHelper';
 import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
@@ -35,7 +35,7 @@ import { resetInspectCooldowns } from '../utils/undoUtils';
 import { generateNextStoryAct } from '../services/worldData';
 import { useProcessAiResponse } from './useProcessAiResponse';
 import { useInventoryActions } from './useInventoryActions';
-import { distillFacts_Service } from '../services/loremaster';
+import { distillFacts } from '../services/loremaster';
 import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import { isStoryArcValid } from '../utils/storyArcUtils';
 import { runStorytellerTurnWithParseRetries } from './storytellerParseRetry';
@@ -145,7 +145,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         const actIndex = state.storyArc.currentAct - 1;
         const acts = state.storyArc.acts;
         const act = actIndex >= 0 && actIndex < acts.length ? acts[actIndex] : null;
-        const result = await distillFacts_Service({
+        const result = await distillFacts({
           themeName: state.theme.name,
           facts: state.loreFacts,
           currentQuest: act ? act.mainObjective : null,
@@ -236,7 +236,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         commitGameState(beforeCollect);
       }
       setLoadingReason('loremaster_collect');
-      const collectResult = await collectRelevantFacts_Service({
+      const collectResult = await collectRelevantFacts({
         themeName: activeTheme.name,
         facts: sortedFacts,
         lastScene: currentFullState.currentScene,

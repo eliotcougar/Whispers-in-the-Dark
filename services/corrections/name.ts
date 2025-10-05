@@ -18,7 +18,7 @@ import { isApiConfigured } from '../geminiClient';
 /**
  * Attempts to match a malformed name against a list of valid names.
  */
-export const fetchCorrectedName_Service = async (
+export const fetchCorrectedName = async (
   entityTypeToCorrect: string,
   malformedOrPartialName: string,
   contextualLogMessage: string | undefined,
@@ -27,11 +27,11 @@ export const fetchCorrectedName_Service = async (
   theme: AdventureTheme
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
-    console.error(`fetchCorrectedName_Service: API Key not configured. Cannot correct ${entityTypeToCorrect} name.`);
+    console.error(`fetchCorrectedName: API Key not configured. Cannot correct ${entityTypeToCorrect} name.`);
     return null;
   }
   if (validNamesList.length === 0) {
-    console.warn(`fetchCorrectedName_Service: No valid names provided for ${entityTypeToCorrect} to match against. Returning original: "${malformedOrPartialName}".`);
+    console.warn(`fetchCorrectedName: No valid names provided for ${entityTypeToCorrect} to match against. Returning original: "${malformedOrPartialName}".`);
     return malformedOrPartialName;
   }
 
@@ -79,28 +79,28 @@ If no suitable match can be confidently made, respond with an empty string.`;
         correctedName = correctedName.replace(/^['"]+|['"]+$/g, '').trim();
         if (correctedName === '') {
           console.warn(
-            `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`,
+            `fetchCorrectedName (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI indicated no match for ${entityTypeToCorrect} "${malformedOrPartialName}" from the valid list.`,
           );
           return { result: null, retry: false };
         }
         if (validNamesList.includes(correctedName)) {
-          console.warn(`fetchCorrectedName_Service: Returned corrected Name `, correctedName, `.`);
+          console.warn(`fetchCorrectedName: Returned corrected Name `, correctedName, `.`);
           lastErrorMessage = null;
           return { result: correctedName };
         }
         console.warn(
-          `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`,
+          `fetchCorrectedName (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI returned name "${correctedName}" for ${entityTypeToCorrect} which is NOT in the validNamesList. Discarding result.`,
         );
         lastErrorMessage = `Return exactly one of the provided valid ${entityTypeToCorrect} names: [${validNamesList.join(', ')}].`;
       } else {
         console.warn(
-          `fetchCorrectedName_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for ${entityTypeToCorrect}. Received: null`,
+          `fetchCorrectedName (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for ${entityTypeToCorrect}. Received: null`,
         );
         lastErrorMessage = 'No name was returned. Respond with a single name from the provided valid list, or an empty string if unsure.';
       }
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedName_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedName error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

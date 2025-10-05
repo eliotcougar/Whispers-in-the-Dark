@@ -27,7 +27,7 @@ import { STORYTELLER_JSON_SCHEMA } from '../storyteller/api';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
 import { isServerOrClientError } from '../../utils/aiErrorUtils';
-import { fetchCorrectedDialogueTurn_Service } from '../corrections';
+import { fetchCorrectedDialogueTurn } from '../corrections';
 import { CORRECTION_TEMPERATURE } from '../../constants';
 import { MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -201,7 +201,7 @@ export const executeDialogueTurn = async (
       let parsed = parseDialogueTurnResponse(response.text ?? '', thoughtParts, message => {
         lastParseError = message;
       });
-      parsed ??= await fetchCorrectedDialogueTurn_Service(
+      parsed ??= await fetchCorrectedDialogueTurn(
         response.text ?? '',
         dialogueParticipants,
         theme,

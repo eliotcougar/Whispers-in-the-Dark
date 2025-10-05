@@ -14,8 +14,8 @@ import {
   ValidNewNPCPayload,
   ValidNPCUpdatePayload
 } from '../types';
-import { updateMapFromAIData_Service, MapUpdateServiceResult, MapUpdateDebugInfo, suggestNodeFromLocationChange_Service } from '../services/cartographer';
-import { fetchFullPlaceDetailsForNewMapNode_Service, assignSpecificNamesToDuplicateNodes_Service } from '../services/corrections';
+import { updateMapFromAIData, MapUpdateServiceResult, MapUpdateDebugInfo, suggestNodeFromLocationChange } from '../services/cartographer';
+import { fetchFullPlaceDetailsForNewMapNode, assignSpecificNamesToDuplicateNodes } from '../services/corrections';
 import type { NodeRenameResult } from '../services/corrections/duplicateNodeNames';
 import { selectBestMatchingMapNode, attemptMatchAndSetNode } from './mapNodeMatcher';
 import {
@@ -132,7 +132,7 @@ export const handleMapUpdates = async (
       const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
         node => node.data.nodeType !== 'feature'
       );
-      mapUpdateResult = await updateMapFromAIData_Service(
+      mapUpdateResult = await updateMapFromAIData(
         aiData,
         draftState.mapData,
         activeTheme,
@@ -160,7 +160,7 @@ export const handleMapUpdates = async (
         const previousNode = getNodeById(baseStateSnapshot.currentMapNodeId);
         return previousNode ? previousNode.placeName : null;
       })();
-      const suggestionResult = await suggestNodeFromLocationChange_Service(
+      const suggestionResult = await suggestNodeFromLocationChange(
         aiData,
         draftState.mapData,
         activeTheme,
@@ -214,7 +214,7 @@ export const handleMapUpdates = async (
             ) {
               const originalLoadingReasonCorrection = loadingReason;
               setLoadingReason('corrections');
-              const placeDetails = await fetchFullPlaceDetailsForNewMapNode_Service(
+              const placeDetails = await fetchFullPlaceDetailsForNewMapNode(
                 added.placeName,
                 aiData.logMessage,
                 'sceneDescription' in aiData ? aiData.sceneDescription : baseStateSnapshot.currentScene,
@@ -232,7 +232,7 @@ export const handleMapUpdates = async (
       }
     }
 
-      const renameResults = await assignSpecificNamesToDuplicateNodes_Service(
+      const renameResults = await assignSpecificNamesToDuplicateNodes(
         draftState.mapData.nodes,
         activeTheme,
         mapUpdateResult?.debugInfo?.minimalModelCalls,

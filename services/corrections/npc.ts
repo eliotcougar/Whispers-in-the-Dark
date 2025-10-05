@@ -36,7 +36,7 @@ export interface CorrectedNPCDetails {
 /**
  * Fetches corrected or inferred details for a newly mentioned NPC from the AI.
  */
-export const fetchCorrectedNPCDetails_Service = async (
+export const fetchCorrectedNPCDetails = async (
   npcName: string,
   logMessage: string | undefined,
   sceneDescription: string | undefined,
@@ -44,7 +44,7 @@ export const fetchCorrectedNPCDetails_Service = async (
   allRelevantMapNodes: Array<MapNode>
 ): Promise<CorrectedNPCDetails | null> => {
   if (!isApiConfigured()) {
-    console.error(`fetchCorrectedNPCDetails_Service: API Key not configured. Cannot fetch details for "${npcName}".`);
+    console.error(`fetchCorrectedNPCDetails: API Key not configured. Cannot fetch details for "${npcName}".`);
     return null;
   }
 
@@ -132,12 +132,12 @@ Constraints:
         } };
       }
       console.warn(
-        `fetchCorrectedNPCDetails_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected details for "${npcName}" invalid or incomplete. Response:`,
+        `fetchCorrectedNPCDetails (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected details for "${npcName}" invalid or incomplete. Response:`,
         aiResponse,
       );
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedNPCDetails_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedNPCDetails error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;
@@ -149,7 +149,7 @@ Constraints:
 /**
  * Fetches a corrected "preciseLocation" string for an NPC in the current scene.
  */
-export const fetchCorrectedCompanionOrNPCLocation_Service = async (
+export const fetchCorrectedCompanionOrNPCLocation = async (
   npcName: string,
   logMessage: string | undefined,
   sceneDescription: string | undefined,
@@ -158,7 +158,7 @@ export const fetchCorrectedCompanionOrNPCLocation_Service = async (
   theme: AdventureTheme
 ): Promise<string | null> => {
   if (!isApiConfigured()) {
-    console.error(`fetchCorrectedCompanionOrNPCLocation_Service: API Key not configured. Cannot correct location for "${npcName}".`);
+    console.error(`fetchCorrectedCompanionOrNPCLocation: API Key not configured. Cannot correct location for "${npcName}".`);
     return null;
   }
 
@@ -206,20 +206,20 @@ Example Response: If unclear from context, respond with a generic but plausible 
       if (aiResponse !== null) {
         const correctedLocation = aiResponse.trim();
         if (correctedLocation.length > 0 && correctedLocation.length <= 60) {
-          console.warn(`fetchCorrectedCompanionOrNPCLocation_Service: Returned corrected NPC Location `, correctedLocation, ".");
+          console.warn(`fetchCorrectedCompanionOrNPCLocation: Returned corrected NPC Location `, correctedLocation, ".");
           return { result: correctedLocation };
         }
         console.warn(
-          `fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected preciseLocation for "${npcName}" was empty or too long: "${correctedLocation}"`,
+          `fetchCorrectedCompanionOrNPCLocation (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): Corrected preciseLocation for "${npcName}" was empty or too long: "${correctedLocation}"`,
         );
       } else {
         console.warn(
-          `fetchCorrectedCompanionOrNPCLocation_Service (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for preciseLocation of "${npcName}". Received: null`,
+          `fetchCorrectedCompanionOrNPCLocation (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}): AI call failed for preciseLocation of "${npcName}". Received: null`,
         );
       }
     } catch (error: unknown) {
       console.error(
-        `fetchCorrectedCompanionOrNPCLocation_Service error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
+        `fetchCorrectedCompanionOrNPCLocation error (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
       throw error;

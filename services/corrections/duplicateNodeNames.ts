@@ -25,13 +25,13 @@ export interface NodeRenameResult {
   newName: string;
 }
 
-export const assignSpecificNamesToDuplicateNodes_Service = async (
+export const assignSpecificNamesToDuplicateNodes = async (
   nodes: Array<MapNode>,
   theme: AdventureTheme,
   debugLog?: Array<MinimalModelCallRecord>,
 ): Promise<Array<NodeRenameResult>> => {
   if (!isApiConfigured()) {
-    console.error('assignSpecificNamesToDuplicateNodes_Service: API Key not configured.');
+    console.error('assignSpecificNamesToDuplicateNodes: API Key not configured.');
     return [];
   }
 
@@ -79,7 +79,7 @@ export const assignSpecificNamesToDuplicateNodes_Service = async (
           }
         } catch (error: unknown) {
           console.error(
-            `assignSpecificNamesToDuplicateNodes_Service error (Attempt ${String(attempt + 1)}/${String(
+            `assignSpecificNamesToDuplicateNodes error (Attempt ${String(attempt + 1)}/${String(
               MAX_RETRIES + 1,
             )}):`,
             error,
