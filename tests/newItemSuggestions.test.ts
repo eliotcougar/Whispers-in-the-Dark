@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { trimDialogueHints, type DialogueHints } from '../utils/dialogueParsing';
-import type { NewItemSuggestion } from '../types';
+import type { ItemData } from '../types';
 
 describe('trimDialogueHints', () => {
   it('filters out invalid newItems and trims hints', () => {
@@ -32,12 +32,12 @@ describe('trimDialogueHints', () => {
   it('normalizes item type synonyms and removes invalid ones', () => {
     const obj: DialogueHints = {
       newItems: [
-        { name: 'Potion', type: 'single use', description: 'Heal' } as unknown as NewItemSuggestion,
-        { name: 'Bow', type: 'Weapon', description: 'Range' } as unknown as NewItemSuggestion,
-        { name: 'Rock', type: 'rubbish', description: 'Junk' } as unknown as NewItemSuggestion,
-        { name: 'Toolkit', type: 'tool', description: 'fix' } as unknown as NewItemSuggestion,
-        { name: 'Portrait', type: 'photograph', description: 'Old' } as unknown as NewItemSuggestion,
-        { name: 'Treasure Map', type: 'chart', description: 'X marks' } as unknown as NewItemSuggestion,
+        { name: 'Potion', type: 'single use', description: 'Heal' } as unknown as ItemData,
+        { name: 'Bow', type: 'Weapon', description: 'Range' } as unknown as ItemData,
+        { name: 'Rock', type: 'rubbish', description: 'Junk' } as unknown as ItemData,
+        { name: 'Toolkit', type: 'tool', description: 'fix' } as unknown as ItemData,
+        { name: 'Portrait', type: 'photograph', description: 'Old' } as unknown as ItemData,
+        { name: 'Treasure Map', type: 'chart', description: 'X marks' } as unknown as ItemData,
       ],
     };
 

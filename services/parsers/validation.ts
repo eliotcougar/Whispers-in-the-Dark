@@ -8,7 +8,7 @@ import {
   ItemChapter,
   AddDetailsPayload,
   KnownUse,
-  NewItemSuggestion,
+  ItemData,
   ValidNPCUpdatePayload,
   ValidNewNPCPayload,
   DialogueSetupPayload,
@@ -309,12 +309,41 @@ export function isValidAddDetailsPayload(obj: unknown): obj is AddDetailsPayload
   return true;
 }
 
-export function isValidNewItemSuggestion(obj: unknown): obj is NewItemSuggestion {
+export function isValidItemData(obj: unknown): obj is ItemData {
   if (!obj || typeof obj !== 'object') return false;
-  const maybe = obj as Partial<NewItemSuggestion>;
+  const maybe = obj as Partial<ItemData>;
   if (typeof maybe.type === 'string') {
     const normalized = normalizeItemType(maybe.type);
     if (normalized) maybe.type = normalized;
+  }
+  if (maybe.activeDescription !== undefined) {
+    if (maybe.activeDescription === null) return false;
+    if (typeof maybe.activeDescription !== 'string') return false;
+  }
+  if (
+    maybe.holderId !== undefined &&
+    (typeof maybe.holderId !== 'string' || maybe.holderId.trim() === '')
+  ) {
+    return false;
+  }
+  if (
+    maybe.tags !== undefined &&
+    (!Array.isArray(maybe.tags) ||
+      !maybe.tags.every(tag => typeof tag === 'string'))
+  ) {
+    return false;
+  }
+  if (
+    maybe.knownUses !== undefined &&
+    !(Array.isArray(maybe.knownUses) && maybe.knownUses.every(isValidKnownUse))
+  ) {
+    return false;
+  }
+  if (
+    maybe.chapters !== undefined &&
+    !Array.isArray(maybe.chapters)
+  ) {
+    return false;
   }
   return (
     typeof maybe.name === 'string' && maybe.name.trim() !== '' &&

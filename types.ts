@@ -75,76 +75,58 @@ export interface ItemChapter {
   heading: string;
   description: string;
   contentLength: number;
-  actualContent?: string;  //optional, added when the player reads the item
-  visibleContent?: string;  //optional, added when the player reads the item
-  imageData?: string;  //optional, added when the player reads the item
+  actualContent?: string;  // Optional, added when the player reads the item
+  visibleContent?: string;  // Optional, added when the player reads the item
+  imageData?: string;  // Optional, added when the player reads the item
 }
 
-export interface Item {
-  id: string;
+export interface ItemData {
   name: string;
   type: ItemType;
   description: string; // Default/inactive description
-  activeDescription?: string; // Optional: Description when item.isActive is true
+  activeDescription?: string | null; // Optional: Description when item.isActive is true, null clears it
   isActive?: boolean; // Defaults to false if undefined
   knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
   tags?: Array<ItemTag>; // Tags for classification, e.g., ["junk"]
-  stashed?: boolean; // Hidden pages and books when true
+  holderId?: string; // ID of the entity holding this item or 'player'
+  chapters?: Array<ItemChapter>; // Text content for written items
+}
+
+export interface Item extends ItemData {
+  id: string;
   holderId: string; // ID of the entity holding this item or 'player'
-  /**
-   * Text content for written items.
-   *
-   * For both 'page' and 'book' items, use the `chapters` array.
-   * Page items should contain a single chapter object in this array.
-   */
-  chapters?: Array<ItemChapter>;
+  stashed?: boolean; // Hidden pages and books when true
   lastWriteTurn?: number;
   lastInspectTurn?: number;
 }
 
-// This ItemChange is from the AI's perspective, and will be processed into ItemChangeRecord
+export type ItemCreatePayload = ItemData & { id?: string };
+
 export interface ItemReference {
-  id?: string;
-  name?: string;
+  id?: Item['id'];
+  name?: Item['name'];
 }
 
 export interface MoveItemPayload {
-  id?: string;
-  name?: string;
-  newHolderId: string;
+  id?: Item['id'];
+  name?: Item['name'];
+  newHolderId: Item['holderId'];
 }
 
 export type ItemChangePayload =
-  Partial<Omit<Item, 'activeDescription'>> & {
-    activeDescription?: string | null;
+  Partial<ItemData> & {
+    id?: string;
     newName?: string;
   };
 
-export interface NewItemSuggestion {
-  name: string;
-  type: ItemType;
-  description: string;
-  activeDescription?: string;
-  isActive?: boolean;
-  tags?: Array<ItemTag>;
-  holderId?: string;
-  chapters?: Array<ItemChapter>;
-  knownUses?: Array<KnownUse>;
-}
-
-export interface AddDetailsPayload {
-  id: string;
-  name: string;
-  type: ItemType;
-  knownUses?: Array<KnownUse>;
-  tags?: Array<ItemTag>;
-  chapters?: Array<ItemChapter>;
+export interface AddDetailsPayload extends Pick<ItemData, 'name' | 'type' | 'knownUses' | 'tags' | 'chapters'> {
+  id: Item['id'];
 }
 
 export type ItemChange =
   | {
       action: 'create';
-      item: Item;
+      item: ItemCreatePayload;
       invalidPayload?: unknown;
     }
   | {
@@ -284,7 +266,6 @@ export interface DialogueMemorySummaryContext {
   heroShortName?: string;
 }
 
-
 export type DialogueSummaryResponse = GameStateFromAI;
 // --- End Dialogue Mode Types ---
 
@@ -292,7 +273,6 @@ export type DialogueSummaryResponse = GameStateFromAI;
 export interface GameStateFromAI {
   sceneDescription: string; 
   options: Array<string>; 
-
   mainQuest?: string; 
   currentObjective?: string;
   itemChange: Array<ItemChange>; 
@@ -332,7 +312,7 @@ export interface GameStateFromAI {
   worldItemsHint?: string;
   npcItemsHint?: string;
   librarianHint?: string;
-  newItems?: Array<NewItemSuggestion>;
+  newItems?: Array<ItemData>;
 }
 
 export interface AdventureTheme {
@@ -528,7 +508,6 @@ export interface MapEdge extends MapEdgeData {
   targetNodeId: string;
 }
 
-
 export interface MapData {
   nodes: Array<MapNode>;
   edges: Array<MapEdge>;
@@ -570,9 +549,6 @@ export interface AINodeAdd extends AINodeUpdate {
 }
 
 export interface AIMapUpdatePayload {
-  // parentNodeId is mandatory for each entry in nodesToAdd. The value is a NAME
-  // of the intended parent node (use ROOT_MAP_NODE_ID for the root node).
-  // Description and aliases are required for all new nodes.
   observations?: string | null;
   rationale?: string | null;
   nodesToAdd?: Array<AINodeAdd> | null;

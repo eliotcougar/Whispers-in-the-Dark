@@ -2,8 +2,8 @@
  * @file dialogueParsing.ts
  * @description Shared helpers for trimming dialogue-related hints and new item suggestions.
  */
-import { NewItemSuggestion } from '../types';
-import { isValidNewItemSuggestion } from '../services/parsers/validation';
+import { ItemData } from '../types';
+import { isValidItemData } from '../services/parsers/validation';
 
 /**
  * Interface describing optional dialogue hint fields that may be present
@@ -14,7 +14,7 @@ export interface DialogueHints {
   playerItemsHint?: string;
   worldItemsHint?: string;
   npcItemsHint?: string;
-  newItems?: Array<NewItemSuggestion>;
+  newItems?: Array<ItemData>;
 }
 
 /**
@@ -35,7 +35,7 @@ export const trimDialogueHints = <T extends DialogueHints>(obj: T): T => {
     obj.npcItemsHint = obj.npcItemsHint.trim();
   }
   if (Array.isArray(obj.newItems)) {
-    obj.newItems = obj.newItems.filter(isValidNewItemSuggestion);
+    obj.newItems = obj.newItems.filter(isValidItemData);
   }
   return obj;
 };

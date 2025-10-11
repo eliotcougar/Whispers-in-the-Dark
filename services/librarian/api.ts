@@ -17,7 +17,7 @@ import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { getThinkingBudget } from '../thinkingConfig';
 import { isApiConfigured } from '../geminiClient';
-import { Item, ItemChange, NewItemSuggestion, NPC } from '../../types';
+import { Item, ItemChange, ItemData, NPC } from '../../types';
 import { buildLibrarianPrompt } from './promptBuilder';
 import { parseLibrarianResponse } from './responseParser';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -299,7 +299,7 @@ export interface LibrarianUpdateResult {
 
 export const applyLibrarianHints = async (
   librarianHint: string | undefined,
-  newItems: Array<NewItemSuggestion>,
+  newItems: Array<ItemData>,
   playerLastAction: string,
   inventory: Array<Item>,
   currentNodeId: string | null,

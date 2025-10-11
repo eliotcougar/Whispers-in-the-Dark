@@ -3,7 +3,7 @@
  * @description Helper for constructing prompts for the inventory service.
  */
 
-import { Item, NewItemSuggestion, NPC } from '../../types';
+import { Item, ItemData, NPC } from '../../types';
 import { PLAYER_HOLDER_ID, REGULAR_ITEM_TYPES } from '../../constants';
 import { itemsToString, DEFAULT_ITEM_PROMPT_TEMPLATE } from '../../utils/promptFormatters/inventory';
 
@@ -87,7 +87,7 @@ export const buildInventoryPrompt = (
   playerItemsHint: string,
   worldItemsHint: string,
   npcItemsHint: string,
-  newItems: Array<NewItemSuggestion>,
+  newItems: Array<ItemData>,
   inventory: Array<Item>,
   currentNodeId: string | null,
   npcs: Array<NPC>,

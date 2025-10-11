@@ -24,7 +24,7 @@ import {
   AdventureTheme,
   Item,
   ItemChange,
-  NewItemSuggestion,
+  ItemData,
   NPC,
 } from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
@@ -345,7 +345,7 @@ export const applyInventoryHints = async (
   playerItemsHint: string | undefined,
   worldItemsHint: string | undefined,
   npcItemsHint: string | undefined,
-  newItems: Array<NewItemSuggestion>,
+  newItems: Array<ItemData>,
   playerLastAction: string,
   inventory: Array<Item>,
   currentNodeId: string | null,

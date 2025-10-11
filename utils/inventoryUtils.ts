@@ -8,8 +8,24 @@ import {
   ItemChange,
   ItemChangePayload,
   ItemChangeRecord,
+  ItemCreatePayload,
 } from '../types';
 import { buildItemId, findItemByIdentifier } from './entityUtils';
+import { PLAYER_HOLDER_ID } from '../constants';
+
+const normalizeCreatedItem = (payload: ItemCreatePayload): Item => {
+  const id = payload.id ?? buildItemId(payload.name);
+  const holderId = payload.holderId ?? PLAYER_HOLDER_ID;
+  return {
+    ...payload,
+    id,
+    holderId,
+    activeDescription: payload.activeDescription ?? undefined,
+    isActive: payload.isActive ?? false,
+    knownUses: payload.knownUses ?? [],
+    tags: payload.tags ?? [],
+  };
+};
 
 const updateItemCore = (
   existing: Item,
@@ -48,10 +64,10 @@ export const applyItemChangeAction = (
   let inv = [...inventory];
   switch (change.action) {
     case 'create': {
-      const item = change.item;
-      const idx = inv.findIndex(i => i.id === item.id);
-      if (idx !== -1) inv[idx] = item;
-      else inv.push(item);
+      const newItem = normalizeCreatedItem(change.item);
+      const idx = inv.findIndex(i => i.id === newItem.id);
+      if (idx !== -1) inv[idx] = newItem;
+      else inv.push(newItem);
       break;
     }
     case 'destroy': {
@@ -133,16 +149,11 @@ export const buildItemChangeRecords = (
   for (const change of changes) {
     let record: ItemChangeRecord | null = null;
     if (change.action === 'create') {
-      const item = change.item;
-      if (!item.id) item.id = buildItemId(item.name);
+      const newItem = normalizeCreatedItem(change.item);
       record = {
         type: 'acquire',
         acquiredItem: {
-          ...item,
-          activeDescription: item.activeDescription ?? undefined,
-          isActive: item.isActive ?? false,
-          knownUses: item.knownUses ?? [],
-          tags: item.tags ?? [],
+          ...newItem,
         },
       };
     } else if (change.action === 'destroy') {
