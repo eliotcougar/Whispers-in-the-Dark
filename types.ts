@@ -62,6 +62,100 @@ export type MapNodeStatus = typeof VALID_NODE_STATUS_VALUES[number];
 export type MapEdgeType = typeof VALID_EDGE_TYPE_VALUES[number];
 export type MapEdgeStatus = typeof VALID_EDGE_STATUS_VALUES[number];
 
+// --- Narrative & World Types ---
+export interface AdventureTheme {
+  name: string;
+  storyGuidance: string;
+  playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
+}
+
+export interface FactWithEntities {
+  text: string;
+  entities: Array<string>;
+}
+
+export interface LoreFact {
+  id: number;
+  text: string;
+  entities: Array<string>;
+  createdTurn: number;
+  tier: number;
+}
+
+export interface LoreFactChange {
+  action: 'add' | 'change' | 'delete';
+  text?: string;
+  entities?: Array<string>;
+  tier?: number;
+  createdTurn?: number;
+  id?: number;
+}
+
+export interface GeneratedJournalEntry {
+  heading: string;
+  text: string;
+}
+
+export interface LoreRefinementResult {
+  factsChange: Array<LoreFactChange>;
+  loreRefinementOutcome: string;
+  observations?: string;
+  rationale?: string;
+}
+
+export interface WorldSheet {
+  geography: string;
+  climate: string;
+  technologyLevel: string;
+  supernaturalElements: string;
+  majorFactions: Array<string>;
+  keyResources: Array<string>;
+  culturalNotes: Array<string>;
+  notableLocations: Array<string>;
+}
+
+export interface HeroSheet {
+  name: string;
+  gender: string;
+  heroShortName: string; // Single-word UI name; only alphanumeric and hyphen
+  occupation: string;
+  traits: Array<string>;
+  startingItems: Array<string>;
+}
+
+export interface HeroBackstory {
+  fiveYearsAgo: string;
+  oneYearAgo: string;
+  sixMonthsAgo: string;
+  oneMonthAgo: string;
+  oneWeekAgo: string;
+  yesterday: string;
+  now: string;
+}
+
+export interface CharacterOption {
+  name: string;
+  description: string;
+}
+
+export interface StoryAct {
+  actNumber: number;
+  title: string;
+  description: string;
+  mainObjective: string;
+  sideObjectives: Array<string>;
+  successCondition: string;
+  completed: boolean;
+}
+
+export interface StoryArc {
+  title: string;
+  overview: string;
+  acts: Array<StoryAct>;
+  currentAct: number;
+}
+// --- End Narrative & World Types ---
+
 
 export interface KnownUse {
   actionName: string; // Text for the button, e.g., "Light Torch"
@@ -153,15 +247,7 @@ export type ItemChange =
       invalidPayload?: unknown;
     };
 
-export interface DialogueSummaryRecord {
-  summaryText: string;
-  participants: Array<string>; // Names of NPCs involved in that dialogue
-  timestamp: string; // localTime when the dialogue occurred
-  location: string; // localPlace where the dialogue occurred
-}
-
-export interface NPC {
-  id: string;
+export interface NPCData {
   name: string;
   description: string;
   aliases?: Array<string>;
@@ -170,7 +256,90 @@ export interface NPC {
   knowsPlayerAs: Array<string>;
   lastKnownLocation: string | null; // General location when not 'nearby' or 'companion', can be a MapNode.placeName or descriptive
   preciseLocation: string | null;    // Specific location in scene if 'nearby' or 'companion'
+}
+
+export interface NPC extends NPCData {
+  id: string;
   dialogueSummaries?: Array<DialogueSummaryRecord>; // Stores summaries of past dialogues
+}
+
+export interface ValidNPCUpdatePayload {
+  name: NPCData['name'];
+  newDescription?: NPCData['description'];
+  newAliases?: Array<string>;
+  addAlias?: string;
+  newPresenceStatus?: NPCData['presenceStatus'];
+  newAttitudeTowardPlayer?: NPCData['attitudeTowardPlayer'];
+  newKnownPlayerNames?: NPCData['knowsPlayerAs'];
+  newKnownPlayerName?: string | null;
+  newLastKnownLocation?: NPCData['lastKnownLocation'];
+  newPreciseLocation?: NPCData['preciseLocation'];
+}
+
+export interface ValidNewNPCPayload
+  extends Partial<Pick<NPCData, 'aliases' | 'presenceStatus' | 'knowsPlayerAs' | 'lastKnownLocation' | 'preciseLocation'>> {
+  name: NPCData['name'];
+  description: NPCData['description'];
+  attitudeTowardPlayer: NPCData['attitudeTowardPlayer'];
+}
+
+// --- Map Data Structures ---
+export interface MapLayoutConfig {
+  IDEAL_EDGE_LENGTH: number;
+  NESTED_PADDING: number;
+  NESTED_ANGLE_PADDING: number;
+  LABEL_MARGIN_PX: number;
+  LABEL_LINE_HEIGHT_EM: number;
+  LABEL_OVERLAP_MARGIN_PX: number;
+  /** Fraction of node diameter used for item icon size */
+  ITEM_ICON_SCALE: number;
+}
+
+export interface MapNodeData {
+  description: string; // Description is ALWAYS REQUIRED.
+  aliases?: Array<string>;  // Optional, can be updated.
+  status: MapNodeStatus;
+  visited?: boolean; // Managed by game logic, not AI directly.
+  parentNodeId?: string; // ID of parent node for hierarchical placement.
+  type: MapNodeType;
+  /** Optional legacy field retained for backward compatibility */
+  nodeType?: MapNodeType;
+  /** Pre-calculated radius used by nested circle layouts. */
+  visualRadius?: number;
+  [key: string]: unknown; // For any other custom data.
+}
+
+export interface MapNode extends MapNodeData {
+  id: string; // Unique identifier for the node
+  placeName: string; // User-facing name of the location/feature. Must be unique within its theme.
+  position: { x: number; y: number }; // For map visualization
+}
+
+export interface MapEdgeData {
+  description?: string;
+  type: MapEdgeType;
+  status: MapEdgeStatus;
+  travelTime?: string;
+  [key: string]: unknown;
+}
+
+export interface MapEdge extends MapEdgeData {
+  id: string; // Unique identifier for the edge
+  sourceNodeId: string;
+  targetNodeId: string;
+}
+
+export interface MapData {
+  nodes: Array<MapNode>;
+  edges: Array<MapEdge>;
+}
+// --- End Map Data Structures ---
+
+export interface DialogueSummaryRecord {
+  summaryText: string;
+  participants: Array<string>; // Names of NPCs involved in that dialogue
+  timestamp: string; // localTime when the dialogue occurred
+  location: string; // localPlace where the dialogue occurred
 }
 
 // --- Dialogue Mode Types ---
@@ -318,100 +487,6 @@ export interface GameStateFromAI {
   newItems?: Array<ItemData>;
 }
 
-export interface AdventureTheme {
-  name: string;
-  storyGuidance: string;
-  playerJournalStyle: 'handwritten' | 'typed' | 'printed' | 'digital';
-}
-
-
-export interface FactWithEntities {
-  text: string;
-  entities: Array<string>;
-}
-
-export interface LoreFact {
-  id: number;
-  text: string;
-  entities: Array<string>;
-  createdTurn: number;
-  tier: number;
-}
-
-export interface LoreFactChange {
-  action: 'add' | 'change' | 'delete';
-  text?: string;
-  entities?: Array<string>;
-  tier?: number;
-  createdTurn?: number;
-  id?: number;
-}
-
-export interface GeneratedJournalEntry {
-  heading: string;
-  text: string;
-}
-
-export interface LoreRefinementResult {
-  factsChange: Array<LoreFactChange>;
-  loreRefinementOutcome: string;
-  observations?: string;
-  rationale?: string;
-}
-
-export interface WorldSheet {
-  geography: string;
-  climate: string;
-  technologyLevel: string;
-  supernaturalElements: string;
-  majorFactions: Array<string>;
-  keyResources: Array<string>;
-  culturalNotes: Array<string>;
-  notableLocations: Array<string>;
-}
-
-export interface HeroSheet {
-  name: string;
-  gender: string;
-  heroShortName: string; // Single-word UI name; only alphanumeric and hyphen
-  occupation: string;
-  traits: Array<string>;
-  startingItems: Array<string>;
-}
-
-export interface HeroBackstory {
-  fiveYearsAgo: string;
-  oneYearAgo: string;
-  sixMonthsAgo: string;
-  oneMonthAgo: string;
-  oneWeekAgo: string;
-  yesterday: string;
-  now: string;
-}
-
-export interface CharacterOption {
-  name: string;
-  description: string;
-}
-
-export interface StoryAct {
-  actNumber: number;
-  title: string;
-  description: string;
-  mainObjective: string;
-  sideObjectives: Array<string>;
-  successCondition: string;
-  completed: boolean;
-}
-
-export interface StoryArc {
-  title: string;
-  overview: string;
-  acts: Array<StoryAct>;
-  currentAct: number;
-}
-
-
 export interface LoremasterModeDebugInfo {
   prompt: string;
   rawResponse?: string;
@@ -464,58 +539,6 @@ export interface TurnChanges {
   mapDataChanged?: boolean; 
 }
 // --- End TurnChanges Data Structures ---
-
-// --- Map Data Structures ---
-export interface MapLayoutConfig {
-  IDEAL_EDGE_LENGTH: number;
-  NESTED_PADDING: number;
-  NESTED_ANGLE_PADDING: number;
-  LABEL_MARGIN_PX: number;
-  LABEL_LINE_HEIGHT_EM: number;
-  LABEL_OVERLAP_MARGIN_PX: number;
-  /** Fraction of node diameter used for item icon size */
-  ITEM_ICON_SCALE: number;
-}
-
-export interface MapNodeData {
-  description: string; // Description is ALWAYS REQUIRED.
-  aliases?: Array<string>;  // Optional, can be updated.
-  status: MapNodeStatus;
-  visited?: boolean; // Managed by game logic, not AI directly.
-  parentNodeId?: string; // ID of parent node for hierarchical placement.
-  type: MapNodeType;
-  /** Optional legacy field retained for backward compatibility */
-  nodeType?: MapNodeType;
-  /** Pre-calculated radius used by nested circle layouts. */
-  visualRadius?: number;
-  [key: string]: unknown; // For any other custom data.
-}
-
-export interface MapNode extends MapNodeData {
-  id: string; // Unique identifier for the node
-  placeName: string; // User-facing name of the location/feature. Must be unique within its theme.
-  position: { x: number; y: number }; // For map visualization
-}
-
-export interface MapEdgeData {
-  description?: string;
-  type: MapEdgeType;
-  status: MapEdgeStatus;
-  travelTime?: string;
-  [key: string]: unknown;
-}
-
-export interface MapEdge extends MapEdgeData {
-  id: string; // Unique identifier for the edge
-  sourceNodeId: string;
-  targetNodeId: string;
-}
-
-export interface MapData {
-  nodes: Array<MapNode>;
-  edges: Array<MapEdge>;
-}
-// --- End Map Data Structures ---
 
 // --- Map Update Service Payload ---
 export interface AIEdgeUpdate {
@@ -742,32 +765,4 @@ export type DebugPacketStack = [DebugPacket | null, (DebugPacket | null)?];
 export interface SavedGameStack {
   current: SavedGameDataShape;
   previous: SavedGameDataShape | null;
-}
-
-
-
-// Payload for a validated NPC update, used in parsing
-export interface ValidNPCUpdatePayload {
-  name: string;
-  newDescription?: string;
-  newAliases?: Array<string>;
-  addAlias?: string;
-  newPresenceStatus?: NPC['presenceStatus'];
-  newAttitudeTowardPlayer?: string;
-  newKnownPlayerNames?: Array<string>;
-  newKnownPlayerName?: string | null;
-  newLastKnownLocation?: string | null;
-  newPreciseLocation?: string | null;
-}
-
-// Payload for a validated new NPC, used in parsing
-export interface ValidNewNPCPayload {
-  name: string;
-  description: string;
-  aliases?: Array<string>;
-  presenceStatus?: NPC['presenceStatus'];
-  attitudeTowardPlayer: string;
-  knowsPlayerAs?: Array<string>;
-  lastKnownLocation?: string | null;
-  preciseLocation?: string | null;
 }
