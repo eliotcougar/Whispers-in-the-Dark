@@ -114,7 +114,7 @@ function MapNodeView({
       if (!n) return 0;
       const cached = cache.get(n.id);
       if (cached !== undefined) return cached;
-      const parent = n.data.parentNodeId ? nodeMap.get(n.data.parentNodeId) : undefined;
+      const parent = n.parentNodeId ? nodeMap.get(n.parentNodeId) : undefined;
       const depth = parent ? getDepth(parent) + 1 : 0;
       cache.set(n.id, depth);
       return depth;
@@ -182,8 +182,8 @@ function MapNodeView({
             const targetNode = nodeMap.get(edge.targetNodeId);
             if (!sourceNode || !targetNode) return null;
             let edgeClass = 'map-edge';
-            edgeClass += ` ${edge.data.type.replace(/\s+/g, '_').toLowerCase()}`;
-            edgeClass += ` ${edge.data.status.replace(/\s+/g, '_').toLowerCase()}`;
+            edgeClass += ` ${edge.type.replace(/\s+/g, '_').toLowerCase()}`;
+            edgeClass += ` ${edge.status.replace(/\s+/g, '_').toLowerCase()}`;
             return (
               <g
                 className="map-edge-group"
@@ -192,7 +192,7 @@ function MapNodeView({
                 onMouseEnter={handleEdgeMouseEnterById}
                 onMouseLeave={handleMouseLeaveGeneral}
               >
-                {edge.data.type === 'shortcut' ? (
+                {edge.type === 'shortcut' ? (
                   <>
                     <path
                       d={buildShortcutPath(sourceNode, targetNode)}
@@ -232,9 +232,9 @@ function MapNodeView({
 
           {sortedNodes.map(node => {
             let nodeClass = 'map-node-circle';
-            nodeClass += ` ${node.data.nodeType}`;
+            nodeClass += ` ${node.type}`;
             if (node.id === currentMapNodeId) nodeClass += ' current';
-            const sanitizedStatus = node.data.status.replace(/\s+/g, '_').toLowerCase();
+            const sanitizedStatus = node.status.replace(/\s+/g, '_').toLowerCase();
             nodeClass += ` ${sanitizedStatus}`;
             const radius = getRadiusForNode(node);
             return (
@@ -250,15 +250,15 @@ function MapNodeView({
                   className={nodeClass}
                   data-node-id={node.id}
                   onMouseEnter={
-                    node.data.nodeType === 'feature' ? handleNodeMouseEnterById : undefined
+                    node.type === 'feature' ? handleNodeMouseEnterById : undefined
                   }
                   onMouseLeave={
-                    node.data.nodeType === 'feature'
+                    node.type === 'feature'
                       ? handleMouseLeaveGeneral
                       : undefined
                   }
                   pointerEvents={
-                    node.data.nodeType === 'feature' ? 'visible' : 'none'
+                    node.type === 'feature' ? 'visible' : 'none'
                   }
                   r={radius}
                 />
@@ -325,27 +325,27 @@ function MapNodeView({
 
           {sortedNodes.map(node => {
             const maxCharsPerLine =
-              isSmallFontType(node.data.nodeType) ? 20 : 25;
+              isSmallFontType(node.type) ? 20 : 25;
             const labelLines = splitTextIntoLines(
               node.placeName,
               maxCharsPerLine,
               MAX_LABEL_LINES
             );
             const radius = getRadiusForNode(node);
-            const fontSize = isSmallFontType(node.data.nodeType) ? 7 : 12;
+            const fontSize = isSmallFontType(node.type) ? 7 : 12;
             const baseOffsetPx = radius + DEFAULT_LABEL_MARGIN_PX + (labelOffsetMap[node.id] ?? 0);
             const initialDyOffset =
-              hasCenteredLabel(node.data.nodeType)
+              hasCenteredLabel(node.type)
                 ? -(labelLines.length - 1) * 0.5 * DEFAULT_LABEL_LINE_HEIGHT_EM + 0.3
                 : baseOffsetPx / fontSize;
 
             return (
               <text
                 className={`map-node-label${
-                  isSmallFontType(node.data.nodeType)
-                    ? node.data.nodeType === 'feature'
+                  isSmallFontType(node.type)
+                    ? node.type === 'feature'
                       ? ' feature-label'
-                      : node.data.nodeType === 'room'
+                      : node.type === 'room'
                         ? ' room-label'
                         : ' interior-label'
                     : ''

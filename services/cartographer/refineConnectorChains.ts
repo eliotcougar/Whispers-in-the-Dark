@@ -3,7 +3,7 @@ import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
 import { buildChainRequest, filterEdgeChainRequests } from './connectorChains';
 import { fetchConnectorChains } from '../corrections/edgeFixes';
 import { MAX_RETRIES, MAX_CHAIN_REFINEMENT_ROUNDS, ROOT_MAP_NODE_ID } from '../../constants';
-import type { MapNode, AINodeAdd, AIEdgeAdd } from '../../types';
+import type { MapNode, AINodeAdd, AIEdgeAdd, MapNodeData } from '../../types';
 import type { ConnectorChainsServiceResult, EdgeChainRequest } from '../corrections/edgeFixes';
 import type { ApplyUpdatesContext } from './updateContext';
 
@@ -48,6 +48,14 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
       chainRequests = [];
       (chainResult.payload.nodesToAdd ?? []).forEach(nAdd => {
         const nodeData = nAdd as Partial<AINodeAdd>;
+        const description = typeof nodeData.description === "string" ? nodeData.description : "Connector node";
+        const status: MapNodeData['status'] =
+          typeof nodeData.status === "string" ? (nodeData.status) : ("discovered" as MapNodeData['status']);
+        const type: MapNodeData['type'] =
+          typeof nodeData.type === "string" ? (nodeData.type) : 'feature';
+        const aliases = Array.isArray(nodeData.aliases)
+          ? nodeData.aliases.filter((alias): alias is string => typeof alias === "string")
+          : undefined;
         const parent =
           nodeData.parentNodeId && nodeData.parentNodeId !== ROOT_MAP_NODE_ID
             ? (findMapNodeByIdentifier(
@@ -67,12 +75,13 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
         ) as MapNode | undefined;
         if (existing) {
           if (Array.isArray(nodeData.aliases) && nodeData.aliases.length > 0) {
-            const aliasSet = new Set([...(existing.data.aliases ?? [])]);
+            const aliasSet = new Set([...(existing.aliases ?? [])]);
             nodeData.aliases.forEach(a => aliasSet.add(a));
-            existing.data.aliases = Array.from(aliasSet);
+            existing.aliases = Array.from(aliasSet);
+            existing.aliases.forEach(a => ctx.nodeAliasMap.set(a.toLowerCase(), existing));
           }
-          if (nodeData.description && existing.data.description.trim().length === 0) {
-            existing.data.description = nodeData.description;
+          if (nodeData.description && existing.description.trim().length === 0) {
+            existing.description = nodeData.description;
           }
           return;
         }
@@ -82,12 +91,27 @@ export async function refineConnectorChains(ctx: ApplyUpdatesContext): Promise<v
           id: newId,
           placeName: nAdd.placeName,
           position: parent ? { ...parent.position } : { x: 0, y: 0 },
-          data: { ...nodeData, parentNodeId: parentId },
-        } as MapNode;
+          description,
+          aliases,
+          status,
+          parentNodeId: parentId,
+          type,
+        };
+        const nodeRecord = node as Record<string, unknown>;
+        for (const key of Object.keys(nodeData) as Array<keyof typeof nodeData>) {
+          if (['description', 'aliases', 'status', 'parentNodeId', 'type', 'placeName'].includes(key)) continue;
+          const typedValue = nodeData[key];
+          if (typedValue === undefined) continue;
+          const keyName = key as string;
+          nodeRecord[keyName] = typedValue;
+        }
         ctx.newMapData.nodes.push(node);
         ctx.newlyAddedNodes.push(node);
         ctx.nodeIdMap.set(node.id, node);
         ctx.nodeNameMap.set(node.placeName, node);
+        if (node.aliases) {
+          node.aliases.forEach(a => ctx.nodeAliasMap.set(a.toLowerCase(), node));
+        }
       });
       (chainResult.payload.edgesToAdd ?? []).forEach(eAdd => {
         const edgeData = eAdd as Partial<AIEdgeAdd>;

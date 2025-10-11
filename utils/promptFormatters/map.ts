@@ -21,8 +21,8 @@ export const formatNodeLine = (
   inventory: Array<Item> = [],
   itemsByHolder?: Map<string, Array<Item>>,
 ): string => {
-  const parent = node.data.parentNodeId ?? ROOT_MAP_NODE_ID;
-  const desc = node.data.description;
+  const parent = node.parentNodeId ?? ROOT_MAP_NODE_ID;
+  const desc = node.description;
   const itemsAtNode = itemsByHolder
     ? itemsByHolder.get(node.id) ?? []
     : inventory.filter(item => item.holderId === node.id);
@@ -37,7 +37,7 @@ export const formatNodeLine = (
  * Formats a single map edge line for prompt context.
  */
 export const formatEdgeLine = (edge: MapEdge): string =>
-  `- ${edge.id} (${edge.data.status} ${edge.data.type})`;
+  `- ${edge.id} (${edge.status} ${edge.type})`;
 
 /**
  * Formats a list of map nodes for inclusion in prompts.
@@ -59,16 +59,16 @@ export const mapNodesToString = (
   const result = nodeList
     .map(n => {
       let str = `${prefix}${n.id} - "${n.placeName}"`;
-      if (addAliases && n.data.aliases && n.data.aliases.length > 0) {
-        str += ` (aka ${n.data.aliases.map(a => `"${a}"`).join(', ')})`;
+      if (addAliases && n.aliases && n.aliases.length > 0) {
+        str += ` (aka ${n.aliases.map(a => `"${a}"`).join(', ')})`;
       }
       if (addStatus) {
-        str += ` (Type: ${n.data.nodeType}, Visited: ${String(
-          Boolean(n.data.visited),
-        )}, ParentNodeId: ${n.data.parentNodeId ?? 'N/A'}, Status: ${n.data.status})`;
+        str += ` (Type: ${n.type}, Visited: ${String(
+          Boolean(n.visited),
+        )}, ParentNodeId: ${n.parentNodeId ?? 'N/A'}, Status: ${n.status})`;
       }
       if (addDescription) {
-        str += `, "${n.data.description}"`;
+        str += `, "${n.description}"`;
       }
       return str;
     })
@@ -94,12 +94,12 @@ export const mapEdgesToString = (
 
   const result = edgeList
     .map(e => {
-      const status = e.data.status;
-      const type = e.data.type;
+      const status = e.status;
+      const type = e.type;
       let str = `${prefix}${e.id} (${status} ${type})`;
       const details: Array<string> = [];
-      if (e.data.travelTime) details.push(`travel time: ${e.data.travelTime}`);
-      if (e.data.description) details.push(e.data.description);
+      if (e.travelTime) details.push(`travel time: ${e.travelTime}`);
+      if (e.description) details.push(e.description);
       if (addDescription && details.length > 0) {
         str += ` (${details.join(', ')})`;
       }
@@ -123,7 +123,7 @@ const buildMapPromptLookup = (mapData: MapData): MapPromptLookup => {
 
   mapData.nodes.forEach(node => {
     nodesById.set(node.id, node);
-    const parentId = node.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+    const parentId = node.parentNodeId ?? ROOT_MAP_NODE_ID;
     const siblings = nodesByParentId.get(parentId);
     if (siblings) {
       siblings.push(node);
@@ -162,7 +162,7 @@ const buildItemsByHolderMap = (inventory: Array<Item>): Map<string, Array<Item>>
   return itemsByHolder;
 };
 
-const isTraversableEdgeStatus = (status: MapEdge['data']['status']): boolean => {
+const isTraversableEdgeStatus = (status: MapEdge['status']): boolean => {
   return status === 'open' || status === 'accessible' || status === 'active';
 };
 
@@ -178,8 +178,8 @@ export const formatNodesAsTree = (
   const childMap = new Map<string, Array<MapNode>>();
   nodes.forEach(node => {
     const parent =
-      node.data.parentNodeId && node.data.parentNodeId !== ROOT_MAP_NODE_ID
-        ? node.data.parentNodeId
+      node.parentNodeId && node.parentNodeId !== ROOT_MAP_NODE_ID
+        ? node.parentNodeId
         : ROOT_MAP_NODE_ID;
     const list = childMap.get(parent);
     if (list) {
@@ -240,9 +240,9 @@ export const formatMapDataForAI = (mapData: MapData): string => {
   const resolveArea = (nodeId: string): { area: string; feature: string } => {
     const n = nodeById.get(nodeId);
     if (!n) return { area: 'Unknown', feature: nodeId };
-    if (n.data.nodeType === 'feature') {
-      const parent = n.data.parentNodeId && n.data.parentNodeId !== ROOT_MAP_NODE_ID
-        ? n.data.parentNodeId
+    if (n.type === 'feature') {
+      const parent = n.parentNodeId && n.parentNodeId !== ROOT_MAP_NODE_ID
+        ? n.parentNodeId
         : ROOT_MAP_NODE_ID;
       return { area: parent, feature: n.id };
     }
@@ -250,17 +250,17 @@ export const formatMapDataForAI = (mapData: MapData): string => {
   };
 
   const nodeLines = nodes.map(n =>
-    `NODE id=${n.id}; name="${n.placeName}"; type=${n.data.nodeType}; parent=${n.data.parentNodeId ?? ROOT_MAP_NODE_ID}; status=${n.data.status}; visited=${n.data.visited === true ? 'true' : 'false'}; aliases=${aliasList(n.data.aliases)}; desc="${sanitize(n.data.description)}"`
+    `NODE id=${n.id}; name="${n.placeName}"; type=${n.type}; parent=${n.parentNodeId ?? ROOT_MAP_NODE_ID}; status=${n.status}; visited=${n.visited === true ? 'true' : 'false'}; aliases=${aliasList(n.aliases)}; desc="${sanitize(n.description)}"`
   );
 
   const edgeLines = edges
     .filter(e => nodeById.has(e.sourceNodeId) && nodeById.has(e.targetNodeId))
-    .filter(e => !NON_DISPLAYABLE_EDGE_STATUSES.includes(e.data.status))
+    .filter(e => !NON_DISPLAYABLE_EDGE_STATUSES.includes(e.status))
     .map(e => {
       const from = resolveArea(e.sourceNodeId);
       const to = resolveArea(e.targetNodeId);
-      const travel = e.data.travelTime ?? '';
-      return `EDGE id=${e.id}; type=${e.data.type}; status=${e.data.status}; fromFeature=${from.feature}; fromArea=${from.area}; toFeature=${to.feature}; toArea=${to.area}; travelTime=${travel}; desc="${sanitize(e.data.description)}"`;
+      const travel = e.travelTime ?? '';
+      return `EDGE id=${e.id}; type=${e.type}; status=${e.status}; fromFeature=${from.feature}; fromArea=${from.area}; toFeature=${to.feature}; toArea=${to.area}; travelTime=${travel}; desc="${sanitize(e.description)}"`;
     });
 
   return [
@@ -273,14 +273,14 @@ export const formatMapDataForAI = (mapData: MapData): string => {
 };
 
 const formatConnectionToNode = (edge: MapEdge, otherNode: MapNode): string => {
-  const statusText = edge.data.status;
-  const typeText = edge.data.type;
+  const statusText = edge.status;
+  const typeText = edge.type;
   const details: Array<string> = [];
-  if (edge.data.travelTime) {
-    details.push(`travel time: ${edge.data.travelTime}`);
+  if (edge.travelTime) {
+    details.push(`travel time: ${edge.travelTime}`);
   }
-  if (edge.data.description) {
-    details.push(edge.data.description);
+  if (edge.description) {
+    details.push(edge.description);
   }
   const detailText = details.length > 0 ? ` (${details.join(', ')})` : '';
   return ` - ${statusText} ${typeText} to "${otherNode.placeName}"${detailText}.`;
@@ -303,7 +303,7 @@ export const formatKnownPlacesForPrompt = (
   includeIds = true
 ): string => {
   const mainNodes = mapNodes.filter(
-    node => node.data.nodeType !== 'feature' && node.data.nodeType !== 'room'
+    node => node.type !== 'feature' && node.type !== 'room'
   );
   if (mainNodes.length === 0) {
     return 'None specifically known yet.';
@@ -317,11 +317,11 @@ export const formatKnownPlacesForPrompt = (
             detailStr += `${node.id} - `;
           }
           detailStr += `"${node.placeName}"`;
-          if (node.data.aliases && node.data.aliases.length > 0) {
-            detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
+          if (node.aliases && node.aliases.length > 0) {
+            detailStr += ` (aka ${node.aliases.map(a => `"${a}"`).join(', ')})`;
           }
-          detailStr += node.data.status == 'rumored' ? ', rumored' : '';
-          detailStr += `, "${node.data.description || 'No description available.'}"`;
+          detailStr += node.status == 'rumored' ? ', rumored' : '';
+          detailStr += `, "${node.description || 'No description available.'}"`;
           return detailStr;
         })
         .join(';\n') + '.'
@@ -335,8 +335,8 @@ export const formatKnownPlacesForPrompt = (
           detailStr += `${node.id} - `;
         }
         detailStr += `"${node.placeName}"`;
-        if (node.data.aliases && node.data.aliases.length > 0) {
-          detailStr += ` (aka ${node.data.aliases.map(a => `"${a}"`).join(', ')})`;
+        if (node.aliases && node.aliases.length > 0) {
+          detailStr += ` (aka ${node.aliases.map(a => `"${a}"`).join(', ')})`;
         }
         return detailStr;
       })
@@ -344,7 +344,7 @@ export const formatKnownPlacesForPrompt = (
   );
 };
 
-const getEdgeStatusScore = (status: MapEdge['data']['status']): number => {
+const getEdgeStatusScore = (status: MapEdge['status']): number => {
   const scores: Record<string, number> = {
     open: 10,
     accessible: 9,
@@ -389,7 +389,7 @@ const getFormattedConnectionsForNode = (
   const formattedPaths: Array<string> = [];
   uniqueDestinations.forEach((candidateEdgesToTarget, targetNodeId) => {
     const validCandidateEdges = candidateEdgesToTarget.filter(edge => {
-      const status = edge.data.status;
+      const status = edge.status;
       if (NON_DISPLAYABLE_EDGE_STATUSES.includes(status)) {
         return false;
       }
@@ -400,8 +400,8 @@ const getFormattedConnectionsForNode = (
     });
     if (validCandidateEdges.length === 0) return;
     validCandidateEdges.sort((edgeA, edgeB) => {
-      const scoreA = (edgeA.sourceNodeId === perspectiveNode.id ? 100 : 0) + getEdgeStatusScore(edgeA.data.status);
-      const scoreB = (edgeB.sourceNodeId === perspectiveNode.id ? 100 : 0) + getEdgeStatusScore(edgeB.data.status);
+      const scoreA = (edgeA.sourceNodeId === perspectiveNode.id ? 100 : 0) + getEdgeStatusScore(edgeA.status);
+      const scoreB = (edgeB.sourceNodeId === perspectiveNode.id ? 100 : 0) + getEdgeStatusScore(edgeB.status);
       return scoreB - scoreA;
     });
     const bestEdge = validCandidateEdges[0];
@@ -443,7 +443,7 @@ const getNearbyNodeIds = (
         if (visitedForHops.has(neighborNodeId)) {
           continue;
         }
-        if (!isTraversableEdgeStatus(edge.data.status)) {
+        if (!isTraversableEdgeStatus(edge.status)) {
           continue;
         }
         const neighborNode = lookup.nodesById.get(neighborNodeId);
@@ -451,7 +451,7 @@ const getNearbyNodeIds = (
           continue;
         }
         const neighborNodeType =
-          neighborNode.data.nodeType === 'feature' || neighborNode.data.nodeType === 'room'
+          neighborNode.type === 'feature' || neighborNode.type === 'room'
             ? 'feature'
             : 'node';
         if (typesToTraverse && typesToTraverse.length > 0 && !typesToTraverse.includes(neighborNodeType)) {
@@ -468,7 +468,7 @@ const getNearbyNodeIds = (
     for (const nodeId of allReachableNodeIds) {
       const node = lookup.nodesById.get(nodeId);
       if (node) {
-        const nodeType = (node.data.nodeType === 'feature' || node.data.nodeType === 'room') ? 'feature' : 'node';
+        const nodeType = (node.type === 'feature' || node.type === 'room') ? 'feature' : 'node';
         if (typesToInclude.includes(nodeType)) {
           filteredReachableNodeIds.add(nodeId);
         }
@@ -519,17 +519,17 @@ export const formatMapContextForPrompt = (
   }
 
   let context = ` - You are currently at ${currentNode.id} - "${currentNode.placeName}".`;
-  if (currentNode.data.description) {
-    context += ` ${currentNode.data.description}.`;
+  if (currentNode.description) {
+    context += ` ${currentNode.description}.`;
   }
 
   const parentNodeForCurrent =
-    currentNode.data.nodeType === 'feature' && currentNode.data.parentNodeId && currentNode.data.parentNodeId !== ROOT_MAP_NODE_ID
-      ? lookup.nodesById.get(currentNode.data.parentNodeId)
+    currentNode.type === 'feature' && currentNode.parentNodeId && currentNode.parentNodeId !== ROOT_MAP_NODE_ID
+      ? lookup.nodesById.get(currentNode.parentNodeId)
       : null;
 
   if (parentNodeForCurrent) {
-    if (parentNodeForCurrent.data.nodeType === 'feature') {
+    if (parentNodeForCurrent.type === 'feature') {
       context += ` This is a feature of "${parentNodeForCurrent.placeName}".`;
     } else {
       context += ` This is part of the larger known location: "${parentNodeForCurrent.placeName}".`;
@@ -538,15 +538,15 @@ export const formatMapContextForPrompt = (
   context += '\n';
 
   const areaMainNodeId =
-    currentNode.data.nodeType === 'feature'
-      ? (currentNode.data.parentNodeId && currentNode.data.parentNodeId !== ROOT_MAP_NODE_ID ? currentNode.data.parentNodeId : undefined)
+    currentNode.type === 'feature'
+      ? (currentNode.parentNodeId && currentNode.parentNodeId !== ROOT_MAP_NODE_ID ? currentNode.parentNodeId : undefined)
       : currentNode.id;
   let exitsContext = '';
   if (areaMainNodeId) {
     const areaMainNode = lookup.nodesById.get(areaMainNodeId);
-    if (areaMainNode && !(areaMainNode.data.nodeType === 'feature')) {
+    if (areaMainNode && !(areaMainNode.type === 'feature')) {
       const exitFeatureNodesInCurrentArea = (lookup.nodesByParentId.get(areaMainNode.id) ?? []).filter(
-        node => node.data.nodeType === 'feature'
+        node => node.type === 'feature'
       );
       const exitStrings: Array<string> = [];
       if (exitFeatureNodesInCurrentArea.length > 0) {
@@ -554,24 +554,24 @@ export const formatMapContextForPrompt = (
           if (exitFeature.id === currentNode.id) continue;
           const featureEdges = lookup.edgesByNodeId.get(exitFeature.id) ?? [];
           for (const edge of featureEdges) {
-            const status = edge.data.status;
+            const status = edge.status;
             if (NON_DISPLAYABLE_EDGE_STATUSES.includes(status)) continue;
             const otherEndNodeId = edge.sourceNodeId === exitFeature.id ? edge.targetNodeId : edge.sourceNodeId;
             const entryFeature = lookup.nodesById.get(otherEndNodeId);
             if (
               entryFeature &&
-              entryFeature.data.nodeType === 'feature' &&
-              entryFeature.data.parentNodeId &&
-              entryFeature.data.parentNodeId !== areaMainNode.id &&
-              entryFeature.data.parentNodeId !== ROOT_MAP_NODE_ID
+              entryFeature.type === 'feature' &&
+              entryFeature.parentNodeId &&
+              entryFeature.parentNodeId !== areaMainNode.id &&
+              entryFeature.parentNodeId !== ROOT_MAP_NODE_ID
             ) {
-              const otherAreaMainNode = lookup.nodesById.get(entryFeature.data.parentNodeId);
-              if (otherAreaMainNode && otherAreaMainNode.data.nodeType === 'feature') {
+              const otherAreaMainNode = lookup.nodesById.get(entryFeature.parentNodeId);
+              if (otherAreaMainNode && otherAreaMainNode.type === 'feature') {
                 continue;
               }
               if (otherAreaMainNode) {
                 const edgeStatus = status;
-                const edgeType = edge.data.type;
+                const edgeType = edge.type;
                 exitStrings.push(
                   ` - '${edgeStatus} ${edgeType}' exit at '${exitFeature.placeName}', leading to '${otherAreaMainNode.placeName}' via '${entryFeature.placeName}'.`
                 );
@@ -588,7 +588,7 @@ ${exitStrings.join('\n')}`;
         exitsContext = `
 No mapped exits from the current main area ("${areaMainNode.placeName}") to other major areas are known.`;
       }
-    } else if (areaMainNode && (areaMainNode.data.nodeType === 'feature')) {
+    } else if (areaMainNode && (areaMainNode.type === 'feature')) {
       exitsContext = `You are at a detailed feature ("${areaMainNode.placeName}"). Connections to other major areas are listed below if available.`;
     }
   } else {
@@ -600,7 +600,7 @@ No mapped exits from the current main area ("${areaMainNode.placeName}") to othe
 
   const processedTargets = new Set<string>();
   const excludeForCurrentNode =
-    (currentNode.data.nodeType === 'feature') && parentNodeForCurrent
+    (currentNode.type === 'feature') && parentNodeForCurrent
       ? parentNodeForCurrent.id
       : null;
   const pathsFromCurrentNode = getFormattedConnectionsForNode(

@@ -17,6 +17,9 @@ export const DEFAULT_IDEAL_EDGE_LENGTH = 140;
 export const DEFAULT_NESTED_PADDING = 10;
 export const DEFAULT_NESTED_ANGLE_PADDING = 0.15;
 
+const roundMetric = (value: number, decimals = 3): number =>
+  Math.round(value * 10 ** decimals) / 10 ** decimals;
+
 /**
  * Each parent node encloses its children while children are positioned on the
  * circumference of a circle that is just large enough to avoid overlaps.
@@ -41,7 +44,7 @@ export const applyNestedCircleLayout = (
   const nodeMap = new Map(nodes.map(n => [n.id, structuredCloneGameState(n)]));
   const childrenByParent = new Map<string, Array<string>>();
   nodeMap.forEach(node => {
-    const pid = node.data.parentNodeId && node.data.parentNodeId !== ROOT_MAP_NODE_ID ? node.data.parentNodeId : undefined;
+    const pid = node.parentNodeId && node.parentNodeId !== ROOT_MAP_NODE_ID ? node.parentNodeId : undefined;
     if (pid) {
       if (!childrenByParent.has(pid)) childrenByParent.set(pid, []);
       const arr = childrenByParent.get(pid);
@@ -65,9 +68,9 @@ export const applyNestedCircleLayout = (
     const anglePadding = BASE_ANGLE_PADDING / Math.max(1, Math.sqrt(childIds.length));
 
     if (childIds.length === 0) {
-      node.data.visualRadius = BASE_FEATURE_RADIUS;
+      node.visualRadius = BASE_FEATURE_RADIUS;
       node.position = { x: 0, y: 0 };
-      return node.data.visualRadius;
+      return node.visualRadius;
     }
 
     // Layout children first
@@ -77,9 +80,9 @@ export const applyNestedCircleLayout = (
       const onlyChild = nodeMap.get(childIds[0]);
       if (!onlyChild) throw new Error('Child node missing');
       onlyChild.position = { x: 0, y: 0 };
-      node.data.visualRadius = (onlyChild.data.visualRadius ?? BASE_FEATURE_RADIUS) + PADDING;
+      node.visualRadius = (onlyChild.visualRadius ?? BASE_FEATURE_RADIUS) + PADDING;
       node.position = { x: 0, y: 0 };
-      return node.data.visualRadius;
+      return node.visualRadius;
     }
 
     const children = childIds
@@ -90,17 +93,17 @@ export const applyNestedCircleLayout = (
       })
       .sort(
         (a, b) =>
-          (b.data.visualRadius ?? BASE_FEATURE_RADIUS) -
-          (a.data.visualRadius ?? BASE_FEATURE_RADIUS)
+          (b.visualRadius ?? BASE_FEATURE_RADIUS) -
+          (a.visualRadius ?? BASE_FEATURE_RADIUS)
       );
 
-    let R = Math.max(...children.map(child => child.data.visualRadius ?? BASE_FEATURE_RADIUS)) + PADDING;
+    let R = Math.max(...children.map(child => child.visualRadius ?? BASE_FEATURE_RADIUS)) + PADDING;
 
     for (;;) {
       let totalAngle = 0;
       for (let i = 0; i < children.length; i++) {
-        const r1 = children[i].data.visualRadius ?? BASE_FEATURE_RADIUS;
-        const r2 = children[(i + 1) % children.length].data.visualRadius ?? BASE_FEATURE_RADIUS;
+        const r1 = children[i].visualRadius ?? BASE_FEATURE_RADIUS;
+        const r2 = children[(i + 1) % children.length].visualRadius ?? BASE_FEATURE_RADIUS;
         const needed = (r1 + r2 + PADDING) / (2 * R);
         if (needed > 1) {
           totalAngle = 2 * Math.PI + 1;
@@ -114,20 +117,20 @@ export const applyNestedCircleLayout = (
 
     let totalAngleUsed = 0;
     for (let i = 0; i < children.length; i++) {
-      const r1 = children[i].data.visualRadius ?? BASE_FEATURE_RADIUS;
-      const r2 = children[(i + 1) % children.length].data.visualRadius ?? BASE_FEATURE_RADIUS;
+      const r1 = children[i].visualRadius ?? BASE_FEATURE_RADIUS;
+      const r2 = children[(i + 1) % children.length].visualRadius ?? BASE_FEATURE_RADIUS;
       totalAngleUsed += 2 * Math.asin((r1 + r2 + PADDING) / (2 * R)) + anglePadding;
     }
 
     let currentAngle = Math.max(0, (2 * Math.PI - totalAngleUsed) / 2);
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      const rCurr = child.data.visualRadius ?? BASE_FEATURE_RADIUS;
+      const rCurr = child.visualRadius ?? BASE_FEATURE_RADIUS;
       child.position = {
         x: R * Math.cos(currentAngle),
         y: R * Math.sin(currentAngle),
       };
-      const rNext = children[(i + 1) % children.length].data.visualRadius ?? BASE_FEATURE_RADIUS;
+      const rNext = children[(i + 1) % children.length].visualRadius ?? BASE_FEATURE_RADIUS;
       currentAngle += 2 * Math.asin((rCurr + rNext + PADDING) / (2 * R)) + anglePadding;
     }
 
@@ -136,7 +139,7 @@ export const applyNestedCircleLayout = (
     let minY = Infinity;
     let maxY = -Infinity;
     children.forEach(child => {
-      const r = child.data.visualRadius ?? BASE_FEATURE_RADIUS;
+      const r = child.visualRadius ?? BASE_FEATURE_RADIUS;
       minX = Math.min(minX, child.position.x - r);
       maxX = Math.max(maxX, child.position.x + r);
       minY = Math.min(minY, child.position.y - r);
@@ -152,17 +155,17 @@ export const applyNestedCircleLayout = (
     const radius =
       Math.max(
         ...children.map(child => {
-          const r = child.data.visualRadius ?? BASE_FEATURE_RADIUS;
+          const r = child.visualRadius ?? BASE_FEATURE_RADIUS;
           return Math.hypot(child.position.x, child.position.y) + r;
         })
       ) + PADDING;
-    node.data.visualRadius = radius;
+    node.visualRadius = radius;
     node.position = { x: 0, y: 0 };
-    return node.data.visualRadius;
+    return node.visualRadius;
   };
 
   const rootIds = Array.from(nodeMap.values())
-    .filter(n => !n.data.parentNodeId || n.data.parentNodeId === ROOT_MAP_NODE_ID)
+    .filter(n => !n.parentNodeId || n.parentNodeId === ROOT_MAP_NODE_ID)
     .map(n => n.id);
 
   const pseudoRootId = '__root__';
@@ -171,7 +174,9 @@ export const applyNestedCircleLayout = (
     id: pseudoRootId,
     placeName: 'root',
     position: { x: 0, y: 0 },
-    data: { description: 'root', nodeType: 'region', status: 'discovered' },
+    description: 'root',
+    type: 'region',
+    status: 'discovered',
   };
   nodeMap.set(pseudoRootId, pseudoRootNode);
 
@@ -192,6 +197,15 @@ export const applyNestedCircleLayout = (
 
   nodeMap.delete(pseudoRootId);
 
+  nodeMap.forEach(node => {
+    node.position = {
+      x: roundMetric(node.position.x),
+      y: roundMetric(node.position.y),
+    };
+    if (typeof node.visualRadius === 'number') {
+      node.visualRadius = roundMetric(node.visualRadius);
+    }
+  });
+
   return Array.from(nodeMap.values());
 };
-

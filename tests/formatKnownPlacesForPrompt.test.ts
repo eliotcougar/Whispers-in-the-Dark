@@ -7,13 +7,13 @@ const baseNodes: Array<MapNode> = [
     id: 'loc1',
     placeName: 'Town',
     position: { x: 0, y: 0 },
-    data: { description: 'Desc', status: 'discovered', nodeType: 'location' },
+    description: 'Desc', status: 'discovered', type: 'location',
   },
   {
     id: 'loc2',
     placeName: 'Forest',
     position: { x: 0, y: 0 },
-    data: { description: 'Trees', status: 'discovered', nodeType: 'location' },
+    description: 'Trees', status: 'discovered', type: 'location',
   },
 ];
 

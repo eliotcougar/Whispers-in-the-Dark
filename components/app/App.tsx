@@ -1072,13 +1072,13 @@ function App() {
 
       {characterSelectData ? (
         <CharacterSelectModal
+          WorldSheet={characterSelectData.WorldSheet}
           heroGender={characterSelectData.heroGender}
           isVisible={isCharacterSelectVisible}
           onComplete={submitCharacterSelectModal}
           onHeroData={submitCharacterSelectHeroData}
           options={characterSelectData.options}
           theme={characterSelectData.theme}
-          WorldSheet={characterSelectData.WorldSheet}
         />
       ) : null}
 

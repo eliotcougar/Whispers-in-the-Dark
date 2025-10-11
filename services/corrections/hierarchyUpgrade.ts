@@ -28,8 +28,8 @@ export const decideFeatureHierarchyUpgrade = async (
   }
 
   const prompt = `A feature node has acquired a child which violates the map hierarchy rules.
-Parent Feature: "${parentFeature.placeName}" (Desc: "${parentFeature.data.description}")
-Child Node: "${childNode.placeName}" (Type: ${childNode.data.nodeType})
+Parent Feature: "${parentFeature.placeName}" (Desc: "${parentFeature.description}")
+Child Node: "${childNode.placeName}" (Type: ${childNode.type})
 Choose the best fix: "convert_child" to make the child a sibling, or "upgrade_parent" to upgrade the parent to a higher-level node.`;
 
   const systemInstruction = 'Respond only with convert_child or upgrade_parent.';
@@ -77,7 +77,7 @@ export const chooseHierarchyResolution = async (
   const optionsText = context.options
     .map((opt, idx) => `${String(idx + 1)}. ${opt}`)
     .join('\n');
-  const prompt = `Scene: ${context.sceneDescription}\nParent: "${context.parent.placeName}" (${context.parent.data.nodeType}) - ${context.parent.data.description}\nChild: "${context.child.placeName}" (${context.child.data.nodeType}) - ${context.child.data.description}\nChoose the most sensible resolution for their hierarchy conflict:\n${optionsText}\nRespond ONLY with the option number.`;
+  const prompt = `Scene: ${context.sceneDescription}\nParent: "${context.parent.placeName}" (${context.parent.type}) - ${context.parent.description}\nChild: "${context.child.placeName}" (${context.child.type}) - ${context.child.description}\nChoose the most sensible resolution for their hierarchy conflict:\n${optionsText}\nRespond ONLY with the option number.`;
 
   const systemInstruction = 'Answer with the single number of the best option.';
 

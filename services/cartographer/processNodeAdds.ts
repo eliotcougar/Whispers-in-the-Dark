@@ -1,9 +1,9 @@
-import type { MapNode, MapNodeData, MapEdgeData } from '../../types';
+import type { MapNode, MapEdgeData, MapNodeData } from '../../types';
 import { findMapNodeByIdentifier, buildNodeId } from '../../utils/entityUtils';
 import { findClosestAllowedParent } from '../../utils/mapGraphUtils';
 import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import { isEdgeConnectionAllowed, addEdgeWithTracking } from './edgeUtils';
-import { ROOT_MAP_NODE_ID } from '../../constants';
+import { ROOT_MAP_NODE_ID, VALID_NODE_TYPE_VALUES } from '../../constants';
 import { buildChainRequest } from './connectorChains';
 import { fetchLikelyParentNode } from '../corrections/placeDetails';
 import type { ApplyUpdatesContext } from './updateContext';
@@ -88,6 +88,26 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
   while (unresolvedQueue.length > 0) {
     const nextQueue: typeof unresolvedQueue = [];
     for (const nodeAddOp of unresolvedQueue) {
+      const normalizedDescription = typeof nodeAddOp.description === "string" ? nodeAddOp.description : "";
+      if (typeof nodeAddOp.description !== "string") nodeAddOp.description = normalizedDescription;
+      const normalizedAliases = Array.isArray(nodeAddOp.aliases)
+        ? nodeAddOp.aliases.filter((alias): alias is string => typeof alias === "string")
+        : [];
+      nodeAddOp.aliases = normalizedAliases;
+      const normalizedStatus: MapNodeData['status'] =
+        typeof nodeAddOp.status === "string" ? nodeAddOp.status : ("discovered" as MapNodeData['status']);
+      nodeAddOp.status = normalizedStatus;
+      const legacyNodeType = (nodeAddOp as { nodeType?: unknown }).nodeType;
+      const candidateType =
+        isValidNodeType(nodeAddOp.type)
+          ? nodeAddOp.type
+          : isValidNodeType(legacyNodeType)
+            ? legacyNodeType
+            : 'feature';
+      const childType: MapNodeData['type'] = candidateType;
+      nodeAddOp.type = childType;
+      (nodeAddOp as { nodeType?: MapNodeData['type'] }).nodeType = childType;
+
       let resolvedParentId: string | undefined = undefined;
       let sameTypeParent: MapNode | null = null;
       if (nodeAddOp.parentNodeId) {
@@ -101,27 +121,25 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
             context.referenceMapNodeId,
           ) as MapNode | undefined;
           if (parent) {
-            let childType = nodeAddOp.nodeType;
-            if (parent.data.nodeType === childType) {
+            let adjustedChildType = nodeAddOp.type;
+            if (parent.type === adjustedChildType) {
               const downgraded = suggestNodeTypeDowngrade(
                 {
                   id: 'temp',
                   placeName: nodeAddOp.placeName,
                   position: { x: 0, y: 0 },
-                  data: {
-                    description: nodeAddOp.description,
-                    aliases: nodeAddOp.aliases,
-                    status: nodeAddOp.status,
-                    parentNodeId: parent.id,
-                    nodeType: childType,
-                  },
+                  description: nodeAddOp.description,
+                  aliases: nodeAddOp.aliases,
+                  status: normalizedStatus,
+                  parentNodeId: parent.id,
+                  type: adjustedChildType,
                 },
-                parent.data.nodeType,
+                parent.type,
                 context.newMapData.nodes,
               );
               if (downgraded) {
-                nodeAddOp.nodeType = downgraded;
-                childType = downgraded;
+                nodeAddOp.type = downgraded;
+                adjustedChildType = downgraded;
                 resolvedParentId = parent.id;
               } else {
                 sameTypeParent = parent;
@@ -132,7 +150,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
             } else {
               resolvedParentId = findClosestAllowedParent(
                 parent,
-                childType,
+                adjustedChildType,
                 context.nodeIdMap,
               );
             }
@@ -166,20 +184,20 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
 
       const reusableNode =
         existingNode &&
-        ((resolvedParentId === undefined && !existingNode.data.parentNodeId) ||
-          existingNode.data.parentNodeId === resolvedParentId) &&
+        ((resolvedParentId === undefined && !existingNode.parentNodeId) ||
+          existingNode.parentNodeId === resolvedParentId) &&
         (existingNode.placeName.toLowerCase() === nodeAddOp.placeName.toLowerCase() ||
-          (existingNode.data.aliases?.some(a => a.toLowerCase() === nodeAddOp.placeName.toLowerCase()) ?? false) ||
+          (existingNode.aliases?.some(a => a.toLowerCase() === nodeAddOp.placeName.toLowerCase()) ?? false) ||
           nodeAddOp.aliases.some(a => a.toLowerCase() === existingNode.placeName.toLowerCase()))
           ? existingNode
           : null;
 
       if (reusableNode) {
-        const aliasSet = new Set([...(reusableNode.data.aliases ?? [])]);
+        const aliasSet = new Set([...(reusableNode.aliases ?? [])]);
         nodeAddOp.aliases.forEach(a => aliasSet.add(a));
-        reusableNode.data.aliases = Array.from(aliasSet);
-        if (nodeAddOp.description && reusableNode.data.description.trim().length === 0) {
-          reusableNode.data.description = nodeAddOp.description;
+        reusableNode.aliases = Array.from(aliasSet);
+        if (nodeAddOp.description && reusableNode.description.trim().length === 0) {
+          reusableNode.description = nodeAddOp.description;
         }
         Reflect.deleteProperty(
           context.newNodesInBatchIdNameMap,
@@ -192,31 +210,32 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
         string | undefined;
       const newNodeId = preId ?? buildNodeId(nodeAddOp.placeName);
 
-      const { description, aliases, status, nodeType, parentNodeId: _unused, ...rest } = nodeAddOp;
-      void _unused;
-
-      const newNodeData: MapNodeData = {
-        description,
-        aliases,
-        status,
-        parentNodeId: resolvedParentId,
-        nodeType,
-        ...rest,
-      };
+      const additionalFields: Record<string, unknown> = {};
+      const nodeAddRecord = nodeAddOp as unknown as Record<string, unknown>;
+      for (const [key, value] of Object.entries(nodeAddRecord)) {
+        if (!['placeName', 'description', 'aliases', 'status', 'parentNodeId', 'type', 'nodeType', '__generatedId'].includes(key)) {
+          additionalFields[key] = value;
+        }
+      }
 
       const newNode: MapNode = {
         id: newNodeId,
         placeName: nodeAddOp.placeName,
         position: { x: 0, y: 0 },
-        data: newNodeData,
+        description: normalizedDescription,
+        aliases: normalizedAliases,
+        status: normalizedStatus,
+        parentNodeId: resolvedParentId,
+        type: nodeAddOp.type,
+        ...additionalFields,
       };
 
       context.newMapData.nodes.push(newNode);
       context.newlyAddedNodes.push(newNode);
       context.nodeIdMap.set(newNodeId, newNode);
       context.nodeNameMap.set(nodeAddOp.placeName, newNode);
-      if (newNode.data.aliases) {
-        newNode.data.aliases.forEach(a => context.nodeAliasMap.set(a.toLowerCase(), newNode));
+      if (newNode.aliases) {
+        newNode.aliases.forEach(a => context.nodeAliasMap.set(a.toLowerCase(), newNode));
       }
       context.newNodesInBatchIdNameMap[nodeAddOp.placeName] = { id: newNodeId, name: nodeAddOp.placeName };
 
@@ -224,7 +243,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
         const edgeData: MapEdgeData = {
           type: 'path',
           status:
-            newNode.data.status === 'rumored' || sameTypeParent.data.status === 'rumored'
+            newNode.status === 'rumored' || sameTypeParent.status === 'rumored'
               ? 'rumored'
               : 'open',
           description: `Path between ${nodeAddOp.placeName} and ${sameTypeParent.placeName}`,
@@ -244,7 +263,7 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
             {
               placeName: unresolved.placeName,
               description: unresolved.description,
-              nodeType: unresolved.nodeType,
+              type: unresolved.type,
               status: unresolved.status,
               aliases: unresolved.aliases,
             },
@@ -275,3 +294,5 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
     unresolvedQueue = nextQueue;
   }
 }
+const isValidNodeType = (value: unknown): value is MapNodeData['type'] =>
+  typeof value === 'string' && (VALID_NODE_TYPE_VALUES as ReadonlyArray<string>).includes(value);

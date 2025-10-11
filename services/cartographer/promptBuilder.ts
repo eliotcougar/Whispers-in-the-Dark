@@ -15,7 +15,7 @@ export const buildCartographerPrompt = (
   narrativeContext: string,
 ): string => {
   const mapNodes = mapData.nodes
-    .map(n => `- "${n.placeName}" (${n.data.nodeType})`)
+    .map(n => `- "${n.placeName}" (${n.type})`)
     .join('\n');
 
   return `Narrative Context:\n${narrativeContext}\n\nKnown Map Nodes for theme "${theme.name}":\n${mapNodes}\n\nProvide JSON updates as per the SYSTEM_INSTRUCTION.`;
@@ -73,10 +73,10 @@ export const buildSimplifiedNavigationPrompt = (
     previousMapNodeName: string | null;
   },
 ): string => {
-  const accessibleNodes = mapData.nodes.filter(n => ACCESSIBLE_NODE_STATUSES.includes(n.data.status));
+  const accessibleNodes = mapData.nodes.filter(n => ACCESSIBLE_NODE_STATUSES.includes(n.status));
   const nodesList = accessibleNodes.length > 0
     ? accessibleNodes
-        .map(n => `<ID: ${n.id}> - name: "${n.placeName}"; type: ${n.data.nodeType}; description: ${n.data.description}`)
+        .map(n => `<ID: ${n.id}> - name: "${n.placeName}"; type: ${n.type}; description: ${n.description}`)
         .join('\n')
     : 'None (no accessible nodes discovered yet).';
 
@@ -107,7 +107,7 @@ Respond ONLY with JSON.
 { 
   "nodeAndEdge": { 
     "edgeToAdd": { "description": "...", sourcePlaceName": "<existing id or name>", "status": "discovered", "targetPlaceName": "<new placeName>", "travelTime": "<optional>", "type": "<edge type>" },
-    "nodeToAdd": { "aliases": ["..."], "description": "...", "nodeType": "<type>", "parentNodeId": "<existing id or name>", "placeName": "...", "status": "discovered"}
+    "nodeToAdd": { "aliases": ["..."], "description": "...", "parentNodeId": "<existing id or name>", "placeName": "...", "status": "discovered", "type": "<type>"}
   },
   "suggestedCurrentMapNodeId": "<new placeName>"
 }`;

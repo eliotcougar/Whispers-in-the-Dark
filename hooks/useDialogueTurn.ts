@@ -83,7 +83,7 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
 
       try {
         const mapNodes = stateAfterPlayerChoice.mapData.nodes.filter(
-          node => node.data.nodeType !== 'feature'
+          node => node.type !== 'feature'
         );
         const npcs = stateAfterPlayerChoice.allNPCs;
         const recentLogs = stateAfterPlayerChoice.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);

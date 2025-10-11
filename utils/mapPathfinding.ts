@@ -43,12 +43,12 @@ export const buildTravelAdjacency = (mapData: MapData): TravelAdjacency => {
   const nodeMap = new Map(mapData.nodes.map(n => [n.id, n]));
   const isTraversable = (id: string | undefined): boolean => {
     const node = id ? nodeMap.get(id) : undefined;
-    return !!node && node.data.status !== 'blocked';
+    return !!node && node.status !== 'blocked';
   };
 
   const childrenByParent = new Map<string, Array<string>>();
   for (const node of mapData.nodes) {
-    const p = node.data.parentNodeId;
+    const p = node.parentNodeId;
     if (!p) continue;
     if (!childrenByParent.has(p)) childrenByParent.set(p, []);
     const arr = childrenByParent.get(p);
@@ -63,7 +63,7 @@ export const buildTravelAdjacency = (mapData: MapData): TravelAdjacency => {
 
   for (const edge of mapData.edges) {
     if (!isTraversable(edge.sourceNodeId) || !isTraversable(edge.targetNodeId)) continue;
-    const status = edge.data.status;
+    const status = edge.status;
     const cost = EDGE_STATUS_TRAVEL_COSTS[status];
     if (cost === Infinity) continue;
     addAdj(edge.sourceNodeId, edge.targetNodeId, edge.id, cost);
@@ -73,7 +73,7 @@ export const buildTravelAdjacency = (mapData: MapData): TravelAdjacency => {
   }
 
   for (const node of mapData.nodes) {
-    const parentId = node.data.parentNodeId;
+    const parentId = node.parentNodeId;
     if (!parentId || parentId === ROOT_MAP_NODE_ID) continue;
     if (!isTraversable(node.id) || !isTraversable(parentId)) continue;
     const siblings = childrenByParent.get(parentId) ?? [];
@@ -87,7 +87,7 @@ export const buildTravelAdjacency = (mapData: MapData): TravelAdjacency => {
 
   const siblingsMap = new Map<string, MapData['nodes']>();
   for (const node of mapData.nodes) {
-    const p = node.data.parentNodeId;
+    const p = node.parentNodeId;
     if (!p) continue;
     if (!siblingsMap.has(p)) siblingsMap.set(p, []);
     const arr2 = siblingsMap.get(p);
@@ -96,7 +96,7 @@ export const buildTravelAdjacency = (mapData: MapData): TravelAdjacency => {
 
   for (const siblings of siblingsMap.values()) {
     const isFeatureNode = (n: (typeof siblings)[number]): boolean =>
-      n.data.nodeType === 'feature' || n.data.isFeature === true;
+      n.type === 'feature' || ((n as { isFeature?: boolean }).isFeature === true);
     const features = siblings.filter(isFeatureNode);
     const others = siblings.filter(n => !isFeatureNode(n));
     for (const f of features) {
@@ -131,7 +131,7 @@ export const findTravelPath = (
   const { adjacency, nodeMap, childrenByParent } = prebuilt ?? buildTravelAdjacency(mapData);
   const isTraversable = (id: string | undefined): boolean => {
     const node = id ? nodeMap.get(id) : undefined;
-    return !!node && node.data.status !== 'blocked';
+    return !!node && node.status !== 'blocked';
   };
 
   const allowHierarchyEdge = (from: string, to: string): boolean => {

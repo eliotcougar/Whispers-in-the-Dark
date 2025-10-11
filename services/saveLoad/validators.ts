@@ -15,6 +15,7 @@ import {
   MapEdge,
   MapLayoutConfig,
   MapNodeData,
+  MapEdgeData,
   DialogueSummaryRecord,
   LoreFact,
   WorldSheet,
@@ -222,10 +223,10 @@ export function isValidMapNodeData(data: unknown): data is MapNodeData {
       (Array.isArray(maybe.aliases) &&
         maybe.aliases.every((alias: unknown) => typeof alias === 'string'))) &&
     (maybe.status === undefined ||
-      ['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(maybe.status)) &&
+      (typeof maybe.status === "string" && ['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(maybe.status))) &&
     (maybe.visited === undefined || typeof maybe.visited === 'boolean') &&
-    (maybe.isFeature === undefined || typeof maybe.isFeature === 'boolean') &&
-    (maybe.parentNodeId === undefined || typeof maybe.parentNodeId === 'string')
+    (maybe.parentNodeId === undefined || typeof maybe.parentNodeId === 'string') &&
+    (maybe.type === undefined || typeof maybe.type === "string")
   );
 }
 
@@ -241,7 +242,7 @@ export function isValidMapNode(node: unknown): node is MapNode {
     pos !== undefined &&
     typeof pos.x === 'number' &&
     typeof pos.y === 'number' &&
-    isValidMapNodeData(maybe.data)
+    isValidMapNodeData(maybe)
   );
 }
 
@@ -255,7 +256,9 @@ export function isValidMapEdge(edge: unknown): edge is MapEdge {
     maybe.sourceNodeId.trim() !== '' &&
     typeof maybe.targetNodeId === 'string' &&
     maybe.targetNodeId.trim() !== '' &&
-    typeof maybe.data === 'object'
+    (maybe.type === undefined || (typeof maybe.type === 'string' && VALID_EDGE_TYPE_VALUES.includes(maybe.type))) &&
+    (maybe.status === undefined || (typeof maybe.status === 'string' && VALID_EDGE_STATUS_VALUES.includes(maybe.status))) &&
+    (maybe.description === undefined || typeof maybe.description === 'string')
   );
 }
 
@@ -425,32 +428,56 @@ export function ensureCompleteMapLayoutConfig(configHolder: { mapLayoutConfig?: 
   }
 }
 
+const roundMetric = (value: unknown, decimals = 3): number | undefined => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return undefined;
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+};
+
 export function ensureCompleteMapNodeDataDefaults(mapData: MapData | undefined): void {
   if (!mapData || !Array.isArray(mapData.nodes)) {
     return;
   }
-  mapData.nodes.forEach(node => {
-    const data = (node as { data?: MapNodeData }).data;
-    if (!data) {
-      node.data = {} as MapNodeData;
+  mapData.nodes = mapData.nodes.map(rawNode => {
+    const legacyNode = rawNode as MapNode & { data?: Partial<MapNodeData> | null; isFeature?: boolean };
+    let working: MapNode = { ...legacyNode };
+    if (legacyNode.data && typeof legacyNode.data === 'object') {
+      const { data, ...rest } = legacyNode;
+      working = {
+        ...(rest as Record<string, unknown>),
+        ...(data as Record<string, unknown>),
+      } as MapNode;
     }
-    if (typeof node.data.description !== 'string') {
-      node.data.description = 'No description provided.';
+    delete (working as Record<string, unknown>).data;
+    if (typeof working.description !== 'string' || working.description.trim().length === 0) {
+      working.description = 'No description provided.';
     }
-    if (!Array.isArray(node.data.aliases)) {
-      node.data.aliases = [];
+    if (!Array.isArray(working.aliases)) {
+      working.aliases = [];
     } else {
-      node.data.aliases = node.data.aliases.filter(alias => typeof alias === 'string');
+      working.aliases = working.aliases.filter((alias): alias is string => typeof alias === 'string');
     }
-    if (!['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(node.data.status)) {
-      node.data.status = 'discovered';
+    if (!['undiscovered', 'discovered', 'rumored', 'quest_target', 'blocked'].includes(working.status)) {
+      working.status = 'discovered';
     }
-    if (typeof node.data.visited !== 'boolean') {
-      node.data.visited = false;
+    if (typeof working.visited !== 'boolean') {
+      working.visited = false;
     }
-    if (typeof node.data.isFeature !== 'boolean') {
-      node.data.isFeature = false;
+    const legacyType = typeof legacyNode.nodeType === 'string' ? legacyNode.nodeType : undefined;
+    if (typeof working.type !== 'string' || working.type.trim().length === 0) {
+      working.type = legacyType && legacyType.trim().length > 0 ? legacyType : 'location';
     }
+    delete (working as Record<string, unknown>).isFeature;
+    delete (working as Record<string, unknown>).nodeType;
+
+    const roundedX = roundMetric(working.position.x);
+    const roundedY = roundMetric(working.position.y);
+    if (roundedX !== undefined) working.position.x = roundedX;
+    if (roundedY !== undefined) working.position.y = roundedY;
+    const roundedRadius = roundMetric(working.visualRadius);
+    if (roundedRadius !== undefined) working.visualRadius = roundedRadius;
+
+    return working;
   });
 }
 
@@ -459,20 +486,30 @@ export function ensureCompleteMapEdgeDataDefaults(mapData: MapData | undefined):
     return;
   }
 
-  mapData.edges.forEach(edge => {
-    const data = edge.data;
-    if (typeof data.description !== 'string') {
-      data.description = '';
+  mapData.edges = mapData.edges.map(rawEdge => {
+    const legacyEdge = rawEdge as MapEdge & { data?: Partial<MapEdgeData> | null };
+    let working: MapEdge = { ...legacyEdge };
+    if (legacyEdge.data && typeof legacyEdge.data === 'object') {
+      const { data, ...rest } = legacyEdge;
+      working = {
+        ...(rest as Record<string, unknown>),
+        ...(data as Record<string, unknown>),
+      } as MapEdge;
     }
-    if (typeof data.type !== 'string' || data.type.trim().length === 0) {
-      data.type = 'path';
+    delete (working as Record<string, unknown>).data;
+    if (typeof working.description !== 'string') {
+      working.description = '';
     }
-    if (!VALID_EDGE_TYPE_VALUES.includes(data.type)) {
-      data.type = 'path';
+    if (typeof working.type !== 'string' || working.type.trim().length === 0 || !VALID_EDGE_TYPE_VALUES.includes(working.type)) {
+      working.type = 'path';
     }
-    if (!VALID_EDGE_STATUS_VALUES.includes(data.status)) {
-      data.status = 'open';
+    if (typeof working.status !== 'string' || !VALID_EDGE_STATUS_VALUES.includes(working.status)) {
+      working.status = 'open';
     }
+    if (typeof working.travelTime !== 'string') {
+      delete (working as Record<string, unknown>).travelTime;
+    }
+    return working;
   });
 }
 

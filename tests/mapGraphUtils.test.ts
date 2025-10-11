@@ -12,7 +12,8 @@ const makeEdge = (
   id,
   sourceNodeId: source,
   targetNodeId: target,
-  data: { status, type: 'path' },
+  status,
+  type: 'path',
 });
 
 type Node = MapData['nodes'][number];
@@ -21,7 +22,10 @@ const makeNode = (id: string): Node => ({
   id,
   placeName: id,
   position: { x: 0, y: 0 },
-  data: { description: '', status: 'discovered', nodeType: 'location', parentNodeId: ROOT_MAP_NODE_ID },
+  description: '',
+  status: 'discovered',
+  type: 'location',
+  parentNodeId: ROOT_MAP_NODE_ID,
 });
 
 const mapData: MapData = {
@@ -51,7 +55,7 @@ const oldExistsNonRumoredPath = (
     if (current === end) return true;
     for (const edge of data.edges) {
       if (edge.id === excludeEdgeId) continue;
-      if (!isTraversable(edge.data.status)) continue;
+      if (!isTraversable(edge.status)) continue;
       let next: string | null = null;
       if (edge.sourceNodeId === current) next = edge.targetNodeId;
       else if (edge.targetNodeId === current) next = edge.sourceNodeId;

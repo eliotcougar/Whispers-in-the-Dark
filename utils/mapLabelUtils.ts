@@ -16,8 +16,8 @@ const SMALL_FONT_TYPES = new Set(['feature', 'room', 'interior']);
 
 /** Returns the radius for a node's circle. */
 export const getRadiusForNode = (node: MapNode): number => {
-  if (node.data.visualRadius) return node.data.visualRadius;
-  switch (node.data.nodeType) {
+  if (node.visualRadius) return node.visualRadius;
+  switch (node.type) {
     case 'region':
       return NODE_RADIUS * 2.4;
     case 'location':
@@ -117,10 +117,10 @@ export const calculateLabelOffsets = (
 
   const childrenMap = new Map<string, Array<MapNode>>();
   nodes.forEach(n => {
-    if (n.data.parentNodeId) {
-      const arr = childrenMap.get(n.data.parentNodeId) ?? [];
+    if (n.parentNodeId) {
+      const arr = childrenMap.get(n.parentNodeId) ?? [];
       arr.push(n);
-      childrenMap.set(n.data.parentNodeId, arr);
+      childrenMap.set(n.parentNodeId, arr);
     }
   });
 
@@ -129,7 +129,7 @@ export const calculateLabelOffsets = (
     if (!node) return 0;
     const cached = depthCache.get(node.id);
     if (cached !== undefined) return cached;
-    const parent = node.data.parentNodeId ? idToNode.get(node.data.parentNodeId) : undefined;
+    const parent = node.parentNodeId ? idToNode.get(node.parentNodeId) : undefined;
     const depth = parent ? getDepth(parent) + 1 : 0;
     depthCache.set(node.id, depth);
     return depth;
@@ -138,12 +138,12 @@ export const calculateLabelOffsets = (
 
   const isParent = (n: MapNode) => childrenMap.has(n.id);
 
-  const fontSizeFor = (n: MapNode) => (isSmallFontType(n.data.nodeType) ? 7 : 12);
+  const fontSizeFor = (n: MapNode) => (isSmallFontType(n.type) ? 7 : 12);
   const linesCache: Record<string, Array<string> | undefined> = {};
   const getLines = (n: MapNode): Array<string> => {
     const cached = linesCache[n.id];
     if (cached) return cached;
-    const maxChars = isSmallFontType(n.data.nodeType) || !isParent(n) ? 20 : 25;
+    const maxChars = isSmallFontType(n.type) || !isParent(n) ? 20 : 25;
     const lines = splitTextIntoLines(n.placeName, maxChars, MAX_LABEL_LINES);
     linesCache[n.id] = lines;
     return lines;
@@ -156,7 +156,7 @@ export const calculateLabelOffsets = (
   const getLabelBox = (n: MapNode, offset: number) => {
     const width = labelWidth(n);
     const height = labelHeight(n);
-    if (hasCenteredLabel(n.data.nodeType)) {
+    if (hasCenteredLabel(n.type)) {
       return {
         x: n.position.x - width / 2,
         y: n.position.y - height / 2,
@@ -194,10 +194,10 @@ export const calculateLabelOffsets = (
 
       if (boxesOverlap(boxLeft, boxRight)) {
         const delta = boxLeft.y + boxLeft.height - boxRight.y + labelOverlapMarginPx;
-        if (right.data.nodeType !== 'feature') {
+        if (right.type !== 'feature') {
           offsets[right.id] += delta;
           boxRight = getLabelBox(right, offsets[right.id]);
-        } else if (left.data.nodeType !== 'feature') {
+        } else if (left.type !== 'feature') {
           offsets[left.id] += delta;
           boxLeft = getLabelBox(left, offsets[left.id]);
         }
@@ -206,8 +206,8 @@ export const calculateLabelOffsets = (
   });
 
   nodes.forEach(node => {
-    if (node.data.nodeType === 'feature') return;
-    const featureDescendants = nodes.filter(n => n.data.nodeType === 'feature' && isDescendantOf(n, node, idToNode));
+    if (node.type === 'feature') return;
+    const featureDescendants = nodes.filter(n => n.type === 'feature' && isDescendantOf(n, node, idToNode));
     for (const feature of featureDescendants) {
       const nodeBox = getLabelBox(node, offsets[node.id]);
       const featureBox = getLabelBox(feature, offsets[feature.id]);

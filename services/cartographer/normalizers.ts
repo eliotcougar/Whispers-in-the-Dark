@@ -21,7 +21,7 @@ export const applyNodeDataFix = (
   context: string,
 ): void => {
   if (!data) return;
-  if (data.status) {
+  if (typeof data.status === "string") {
     const mapped = (NODE_STATUS_SYNONYMS as Record<string, MapNodeData['status'] | undefined>)[
       data.status.toLowerCase()
     ];
@@ -30,13 +30,13 @@ export const applyNodeDataFix = (
       errors.push(`${context} invalid status "${data.status}"`);
     }
   }
-  if (data.nodeType) {
-    const mapped = (NODE_TYPE_SYNONYMS as Record<string, MapNodeData['nodeType'] | undefined>)[
-      data.nodeType.toLowerCase()
+  if (typeof data.type === "string") {
+    const mapped = (NODE_TYPE_SYNONYMS as Record<string, MapNodeData['type'] | undefined>)[
+      data.type.toLowerCase()
     ];
-    if (mapped !== undefined) data.nodeType = mapped;
-    if (!VALID_NODE_TYPE_VALUES.includes(data.nodeType)) {
-      errors.push(`${context} invalid nodeType "${data.nodeType}"`);
+    if (mapped !== undefined) data.type = mapped;
+    if (!VALID_NODE_TYPE_VALUES.includes(data.type)) {
+      errors.push(`${context} invalid type "${data.type}"`);
     }
   }
 };
@@ -50,7 +50,7 @@ export const applyEdgeDataFix = (
   context: string,
 ): void => {
   if (!data) return;
-  if (data.type) {
+  if (typeof data.type === "string") {
     const mapped = (EDGE_TYPE_SYNONYMS as Record<string, MapEdgeData['type'] | undefined>)[
       data.type.toLowerCase()
     ];
@@ -59,7 +59,7 @@ export const applyEdgeDataFix = (
       errors.push(`${context} invalid type "${data.type}"`);
     }
   }
-  if (data.status) {
+  if (typeof data.status === "string") {
     const mapped = (EDGE_STATUS_SYNONYMS as Record<string, MapEdgeData['status'] | undefined>)[
       data.status.toLowerCase()
     ];

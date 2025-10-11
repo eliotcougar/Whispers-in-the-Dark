@@ -5,8 +5,8 @@ import { isEdgeConnectionAllowed } from './edgeUtils';
 function getNodeDepth(node: MapNode, lookup: Map<string, MapNode>): number {
   let depth = 0;
   let current: MapNode | undefined = node;
-  while (current.data.parentNodeId) {
-    const parent = lookup.get(current.data.parentNodeId);
+  while (current.parentNodeId) {
+    const parent = lookup.get(current.parentNodeId);
     if (!parent) break;
     depth++;
     current = parent;
@@ -35,14 +35,14 @@ export function buildChainRequest(
     }
     const depthA = getNodeDepth(nodeA, nodeLookup);
     const depthB = getNodeDepth(nodeB, nodeLookup);
-    if (depthA >= depthB && nodeA.data.parentNodeId) {
-      const parentA = nodeLookup.get(nodeA.data.parentNodeId);
+    if (depthA >= depthB && nodeA.parentNodeId) {
+      const parentA = nodeLookup.get(nodeA.parentNodeId);
       if (parentA) {
         nodeA = parentA;
         sourceChain.push(nodeA);
       } else break;
-    } else if (nodeB.data.parentNodeId) {
-      const parentB = nodeLookup.get(nodeB.data.parentNodeId);
+    } else if (nodeB.parentNodeId) {
+      const parentB = nodeLookup.get(nodeB.parentNodeId);
       if (parentB) {
         nodeB = parentB;
         targetChain.push(nodeB);
@@ -72,7 +72,7 @@ function buildParentChainIds(request: EdgeChainRequest): Array<string> {
   const visited = new Set<string>();
   const ordered: Array<string> = [];
   [...request.sourceChain, ...request.targetChain.slice().reverse()].forEach(p => {
-    if (p.data.nodeType !== 'feature' && !visited.has(p.id)) {
+    if (p.type !== 'feature' && !visited.has(p.id)) {
       ordered.push(p.id);
       visited.add(p.id);
     }

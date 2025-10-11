@@ -27,13 +27,11 @@ const existingFeature: MapNode = {
   id: 'node-gate-real1',
   placeName: 'Ancient Gate',
   position: { x: 0, y: 0 },
-  data: {
-    description: '',
-    aliases: [],
-    status: 'discovered',
-    nodeType: 'feature',
-    parentNodeId: ROOT_MAP_NODE_ID,
-  },
+  description: '',
+  aliases: [],
+  status: 'discovered',
+  type: 'feature',
+  parentNodeId: ROOT_MAP_NODE_ID,
 };
 
 const baseMap: MapData = {
@@ -49,7 +47,7 @@ const payload: AIMapUpdatePayload = {
       aliases: [],
       status: 'rumored',
       parentNodeId: ROOT_MAP_NODE_ID,
-      nodeType: 'location',
+      type: 'location',
     },
     {
       placeName: 'Hidden Door',
@@ -57,7 +55,7 @@ const payload: AIMapUpdatePayload = {
       aliases: [],
       status: 'rumored',
       parentNodeId: 'node-side-tunnel-fake',
-      nodeType: 'feature',
+      type: 'feature',
     },
   ],
   edgesToAdd: [
@@ -90,7 +88,7 @@ describe('applyMapUpdates partial id handling', () => {
     expect(sideTunnel).toBeDefined();
     expect(hiddenDoor).toBeDefined();
     if (!sideTunnel || !hiddenDoor) throw new Error('Missing nodes');
-    expect(hiddenDoor.data.parentNodeId).toBe(sideTunnel.id);
+    expect(hiddenDoor.parentNodeId).toBe(sideTunnel.id);
 
     const edge = result.updatedMapData.edges.find(e =>
       (e.sourceNodeId === existingFeature.id && e.targetNodeId === hiddenDoor.id) ||

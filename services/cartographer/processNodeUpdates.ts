@@ -1,4 +1,4 @@
-import type { Item, MapEdge } from '../../types';
+import type { Item, MapEdge, MapNodeData } from '../../types';
 import { suggestNodeTypeDowngrade } from '../../utils/mapHierarchyUpgradeUtils';
 import type { ApplyUpdatesContext } from './updateContext';
 import { ROOT_MAP_NODE_ID } from '../../constants';
@@ -8,7 +8,7 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
     const node = await ctx.resolveNodeReference(nodeUpdateOp.placeName);
 
     if (node) {
-      let resolvedParentIdOnUpdate: string | undefined = node.data.parentNodeId ?? undefined;
+      let resolvedParentIdOnUpdate: string | undefined = node.parentNodeId ?? undefined;
 
       if (nodeUpdateOp.parentNodeId !== undefined) {
         const parentField = nodeUpdateOp.parentNodeId;
@@ -18,21 +18,24 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
           const parentNode = await ctx.resolveNodeReference(parentField);
           if (parentNode) {
             resolvedParentIdOnUpdate = parentNode.id;
-            let finalType = nodeUpdateOp.nodeType ?? node.data.nodeType;
-            if (parentNode.data.nodeType === finalType) {
+            let finalType: MapNodeData['type'] =
+              typeof nodeUpdateOp.type === "string"
+                ? (nodeUpdateOp.type)
+                : node.type;
+            if (parentNode.type === finalType) {
               const downgraded = suggestNodeTypeDowngrade(
                 node,
-                parentNode.data.nodeType,
+                parentNode.type,
                 ctx.newMapData.nodes,
               );
               if (downgraded) {
                 finalType = downgraded;
                 resolvedParentIdOnUpdate = parentNode.id;
               } else {
-                resolvedParentIdOnUpdate = parentNode.data.parentNodeId;
+                resolvedParentIdOnUpdate = parentNode.parentNodeId;
               }
             }
-            node.data.nodeType = finalType;
+            node.type = finalType;
           } else {
             console.warn(
               `MapUpdate (nodesToUpdate): Feature node "${nodeUpdateOp.placeName}" trying to update parentNodeId to NAME "${nodeUpdateOp.parentNodeId}" which was not found.`
@@ -41,24 +44,27 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
           }
         }
       }
-      if (nodeUpdateOp.parentNodeId === undefined && nodeUpdateOp.nodeType !== undefined) {
-        node.data.nodeType = nodeUpdateOp.nodeType;
+      if (nodeUpdateOp.parentNodeId === undefined && typeof nodeUpdateOp.type === "string") {
+        node.type = nodeUpdateOp.type;
       }
 
-      if (nodeUpdateOp.description !== undefined)
-        node.data.description = nodeUpdateOp.description;
-      if (nodeUpdateOp.aliases !== undefined) {
-        node.data.aliases = nodeUpdateOp.aliases;
+      if (typeof nodeUpdateOp.description === "string")
+        node.description = nodeUpdateOp.description;
+      if (Array.isArray(nodeUpdateOp.aliases)) {
+        node.aliases = nodeUpdateOp.aliases.filter((alias): alias is string => typeof alias === "string");
         for (const [k, v] of Array.from(ctx.nodeAliasMap.entries())) {
           if (v.id === node.id) ctx.nodeAliasMap.delete(k);
         }
-        node.data.aliases.forEach(a => ctx.nodeAliasMap.set(a.toLowerCase(), node));
+        node.aliases.forEach(a => ctx.nodeAliasMap.set(a.toLowerCase(), node));
       }
-      if (nodeUpdateOp.status !== undefined) node.data.status = nodeUpdateOp.status;
-      node.data.parentNodeId = resolvedParentIdOnUpdate;
+      if (typeof nodeUpdateOp.status === "string") node.status = nodeUpdateOp.status;
+      node.parentNodeId = resolvedParentIdOnUpdate;
+      if ('nodeType' in (node as unknown as Record<string, unknown>)) {
+        delete (node as unknown as Record<string, unknown>).nodeType;
+      }
       for (const key in nodeUpdateOp) {
-        if (!['description', 'aliases', 'status', 'parentNodeId', 'nodeType', 'placeName', 'visited', 'newPlaceName'].includes(key)) {
-          (node.data as Record<string, unknown>)[key] = (nodeUpdateOp as unknown as Record<string, unknown>)[key];
+        if (!['description', 'aliases', 'status', 'parentNodeId', 'type', 'nodeType', 'placeName', 'visited', 'newPlaceName'].includes(key)) {
+          (node as Record<string, unknown>)[key] = (nodeUpdateOp as unknown as Record<string, unknown>)[key];
         }
       }
       if (nodeUpdateOp.newPlaceName && nodeUpdateOp.newPlaceName !== node.placeName) {
@@ -76,12 +82,12 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
         const oldName = node.placeName;
         node.placeName = nodeUpdateOp.newPlaceName;
         ctx.nodeNameMap.set(node.placeName, node);
-        node.data.aliases ??= [];
-        if (!node.data.aliases.includes(oldName)) node.data.aliases.push(oldName);
+        node.aliases ??= [];
+        if (!node.aliases.includes(oldName)) node.aliases.push(oldName);
         for (const [k, v] of Array.from(ctx.nodeAliasMap.entries())) {
           if (v.id === node.id) ctx.nodeAliasMap.delete(k);
         }
-        node.data.aliases.forEach(a => ctx.nodeAliasMap.set(a.toLowerCase(), node));
+        node.aliases.forEach(a => ctx.nodeAliasMap.set(a.toLowerCase(), node));
       }
     } else {
       console.warn(

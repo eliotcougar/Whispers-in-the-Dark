@@ -18,7 +18,7 @@ import { generateImageWithFallback, getThemeStylePrompt, sanitizeVisualPrompt } 
 
 const buildMapSignature = (nodes: Array<MapNode>): string => {
   return nodes
-    .map(node => `${node.id}|${node.placeName}|${node.data.description}`)
+    .map(node => `${node.id}|${node.placeName}|${node.description}`)
     .sort()
     .join('||');
 };
@@ -199,7 +199,7 @@ function ImageVisualizer({
     mapDataRef.current
       .forEach(node => {
         if (currentSceneDescription.toLowerCase().includes(node.placeName.toLowerCase())) {
-          rawPrompt += ` The ${node.placeName} is prominent, described as: ${node.data.description || 'A notable location.'}.`;
+          rawPrompt += ` The ${node.placeName} is prominent, described as: ${node.description || 'A notable location.'}.`;
           mentionedPlaces.push(node.placeName);
         }
       });

@@ -18,7 +18,7 @@ export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
   const updatedNodesToUpdate: typeof payload.nodesToUpdate = [];
   const updatedNodesToRemove: typeof payload.nodesToRemove = payload.nodesToRemove ? [...payload.nodesToRemove] : [];
   (payload.nodesToUpdate ?? []).forEach(nodeUpd => {
-    const statusVal = nodeUpd.status?.toLowerCase();
+    const statusVal = typeof nodeUpd.status === "string" ? nodeUpd.status.toLowerCase() : undefined;
     if (statusVal && NODE_REMOVAL_SYNONYM_SET.has(statusVal)) {
       updatedNodesToRemove.push({ nodeId: nodeUpd.placeName, nodeName: nodeUpd.placeName });
     } else {
@@ -31,7 +31,7 @@ export function normalizeRemovalUpdates(payload: AIMapUpdatePayload): void {
   const updatedEdgesToUpdate: typeof payload.edgesToUpdate = [];
   const updatedEdgesToRemove: typeof payload.edgesToRemove = payload.edgesToRemove ? [...payload.edgesToRemove] : [];
   (payload.edgesToUpdate ?? []).forEach(edgeUpd => {
-    const statusVal = edgeUpd.status?.toLowerCase();
+    const statusVal = typeof edgeUpd.status === "string" ? edgeUpd.status.toLowerCase() : undefined;
     if (statusVal && EDGE_REMOVAL_SYNONYM_SET.has(statusVal)) {
       updatedEdgesToRemove.push({ edgeId: '', sourceId: edgeUpd.sourcePlaceName, targetId: edgeUpd.targetPlaceName });
     } else {
@@ -49,7 +49,7 @@ export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
     const normalizeKey = (source: string, target: string, type: string | undefined): string => {
       const a = source.toLowerCase();
       const b = target.toLowerCase();
-      const t = (type ?? 'any').toLowerCase();
+      const t = typeof type === "string" ? type.toLowerCase() : "any";
       return a < b ? `${a}|${b}|${t}` : `${b}|${a}|${t}`;
     };
 
@@ -70,8 +70,8 @@ export function dedupeEdgeOps(payload: AIMapUpdatePayload): void {
     return result;
   };
 
-  payload.edgesToAdd = dedupeNamed(payload.edgesToAdd ?? undefined, e => e.type);
-  payload.edgesToUpdate = dedupeNamed(payload.edgesToUpdate ?? undefined, e => e.type);
+  payload.edgesToAdd = dedupeNamed(payload.edgesToAdd ?? undefined, e => (typeof e.type === "string" ? e.type : undefined));
+  payload.edgesToUpdate = dedupeNamed(payload.edgesToUpdate ?? undefined, e => (typeof e.type === "string" ? e.type : undefined));
 
   if (payload.edgesToRemove) {
     const seen = new Set<string>();

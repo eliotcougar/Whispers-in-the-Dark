@@ -80,12 +80,12 @@ export const useMapUpdates = (props: UseMapUpdatesProps) => {
               existing.position.x !== n.position.x ||
               existing.position.y !== n.position.y;
             const vrDiff =
-              n.data.visualRadius !== undefined &&
-              existing.data.visualRadius !== n.data.visualRadius;
+              n.visualRadius !== undefined &&
+              existing.visualRadius !== n.visualRadius;
             if (posDiff || vrDiff) {
               existing.position = { ...n.position };
-              if (n.data.visualRadius !== undefined) {
-                existing.data.visualRadius = n.data.visualRadius;
+              if (n.visualRadius !== undefined) {
+                existing.visualRadius = n.visualRadius;
               }
               changed = true;
             }

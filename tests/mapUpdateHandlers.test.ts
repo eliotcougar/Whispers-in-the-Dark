@@ -49,21 +49,20 @@ const makeNode = (id: string, placeName: string, visited = true): MapNode => ({
   id,
   placeName,
   position: { x: 0, y: 0 },
-  data: {
-    description: `${placeName} description`,
-    status: 'discovered',
-    nodeType: 'location',
-    parentNodeId: 'universe',
-    visited,
-    aliases: [],
-  },
+  description: `${placeName} description`,
+  status: 'discovered',
+  type: 'location',
+  parentNodeId: 'universe',
+  visited,
+  aliases: [],
 });
 
-const makeEdge = (id: string, source: string, target: string, status: MapEdge['data']['status']): MapEdge => ({
+const makeEdge = (id: string, source: string, target: string, status: MapEdge['status']): MapEdge => ({
   id,
   sourceNodeId: source,
   targetNodeId: target,
-  data: { status, type: 'path' },
+  status,
+  type: 'path',
 });
 
 const createTurnChanges = (): TurnChanges => ({
@@ -145,7 +144,7 @@ describe('handleMapUpdates', () => {
     const renamedNode = draftState.mapData.nodes[0];
     expect(renamedNode.placeName).toBe('Bright Plaza');
     expect(renamedNode.id).toBe('node-bright-plaza-abcd');
-    expect(Array.isArray(renamedNode.data.aliases)).toBe(true);
+    expect(Array.isArray(renamedNode.aliases)).toBe(true);
     expect(draftState.inventory[0].holderId).toBe(renamedNode.id);
     expect(draftState.loreFacts[0].entities).toContain(renamedNode.id);
     expect(draftState.currentMapNodeId).toBeDefined();

@@ -499,17 +499,18 @@ export interface MapNodeData {
   status: MapNodeStatus;
   visited?: boolean; // Managed by game logic, not AI directly.
   parentNodeId?: string; // ID of parent node for hierarchical placement.
-  nodeType: MapNodeType;
+  type: MapNodeType;
+  /** Optional legacy field retained for backward compatibility */
+  nodeType?: MapNodeType;
   /** Pre-calculated radius used by nested circle layouts. */
   visualRadius?: number;
   [key: string]: unknown; // For any other custom data.
 }
 
-export interface MapNode {
+export interface MapNode extends MapNodeData {
   id: string; // Unique identifier for the node
   placeName: string; // User-facing name of the location/feature. Must be unique within its theme.
   position: { x: number; y: number }; // For map visualization
-  data: MapNodeData;
 }
 
 export interface MapEdgeData {
@@ -520,12 +521,12 @@ export interface MapEdgeData {
   [key: string]: unknown;
 }
 
-export interface MapEdge {
+export interface MapEdge extends MapEdgeData {
   id: string; // Unique identifier for the edge
   sourceNodeId: string;
   targetNodeId: string;
-  data: MapEdgeData;
 }
+
 
 export interface MapData {
   nodes: Array<MapNode>;
@@ -552,7 +553,8 @@ export interface AINodeUpdate {
   placeName: string; // Existing node ID or name to identify it.
   aliases?: Array<string>;
   description?: string;
-  nodeType?: MapNodeData['nodeType'];
+  type?: MapNodeData['type'];
+  nodeType?: MapNodeData['type'];
   parentNodeId?: string;
   status?: MapNodeData['status'];
   newPlaceName?: string;
@@ -561,7 +563,7 @@ export interface AINodeUpdate {
 export interface AINodeAdd extends AINodeUpdate {
   aliases: Array<string>;
   description: string;
-  nodeType: MapNodeData['nodeType'];
+  type: MapNodeData['type'];
   parentNodeId: string;
   status: MapNodeData['status'];
 }

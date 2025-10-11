@@ -8,7 +8,8 @@ import {
   AINodeUpdate,
   AIEdgeAdd,
   AIEdgeUpdate,
-  MapNodeData,
+  MapNodeType,
+  MapNodeStatus,
   MapEdgeType,
   MapEdgeStatus,
 } from '../../types';
@@ -34,15 +35,15 @@ function isValidAINodeAdd(op: unknown): op is AINodeAdd {
     console.warn("Validation Error (NodeAdd): 'description' is required and must be a non-empty string. Value:", n.description);
     return false;
   }
-  if (typeof n.nodeType !== 'string' || !VALID_NODE_TYPE_VALUES.includes(n.nodeType as MapNodeData['nodeType'])) {
-    console.warn("Validation Error (NodeAdd): 'nodeType' is invalid. Value:", n.nodeType);
+  if (typeof n.type !== 'string' || !VALID_NODE_TYPE_VALUES.includes(n.type as MapNodeType)) {
+    console.warn("Validation Error (NodeAdd): 'type' is invalid. Value:", n.type);
     return false;
   }
   if (typeof n.parentNodeId !== 'string' || n.parentNodeId.trim() === '') {
     console.warn("Validation Error (NodeAdd): 'parentNodeId' is required. Value:", n.parentNodeId);
     return false;
   }
-  if (typeof n.status !== 'string' || !VALID_NODE_STATUS_VALUES.includes(n.status as MapNodeData['status'])) {
+  if (typeof n.status !== 'string' || !VALID_NODE_STATUS_VALUES.includes(n.status as MapNodeStatus)) {
     console.warn("Validation Error (NodeAdd): 'status' is invalid. Value:", n.status);
     return false;
   }
@@ -64,15 +65,15 @@ function isValidAINodeUpdate(op: unknown): op is AINodeUpdate {
     console.warn("Validation Error (NodeUpdate): 'description' must be a string if provided. Value:", n.description);
     return false;
   }
-  if (n.nodeType !== undefined && (typeof n.nodeType !== 'string' || !VALID_NODE_TYPE_VALUES.includes(n.nodeType as MapNodeData['nodeType']))) {
-    console.warn("Validation Error (NodeUpdate): 'nodeType' is invalid. Value:", n.nodeType);
+  if (n.type !== undefined && (typeof n.type !== 'string' || !VALID_NODE_TYPE_VALUES.includes(n.type as MapNodeType))) {
+    console.warn("Validation Error (NodeUpdate): 'type' is invalid. Value:", n.type);
     return false;
   }
   if (n.parentNodeId !== undefined && typeof n.parentNodeId !== 'string') {
     console.warn("Validation Error (NodeUpdate): 'parentNodeId' must be a string if provided. Value:", n.parentNodeId);
     return false;
   }
-  if (n.status !== undefined && (typeof n.status !== 'string' || !VALID_NODE_STATUS_VALUES.includes(n.status as MapNodeData['status']))) {
+  if (n.status !== undefined && (typeof n.status !== 'string' || !VALID_NODE_STATUS_VALUES.includes(n.status as MapNodeStatus))) {
     console.warn("Validation Error (NodeUpdate): 'status' is invalid. Value:", n.status);
     return false;
   }
@@ -98,8 +99,7 @@ function isValidAIEdgeAdd(op: unknown): op is AIEdgeAdd {
     console.warn("Validation Error (EdgeAdd): 'type' is invalid. Value:", e.type);
     return false;
   }
-  const edgeType = e.type as MapEdgeType;
-  if (!VALID_EDGE_TYPE_VALUES.includes(edgeType)) {
+  if (!VALID_EDGE_TYPE_VALUES.includes(e.type as MapEdgeType)) {
     console.warn("Validation Error (EdgeAdd): 'type' is invalid. Value:", e.type);
     return false;
   }
@@ -107,8 +107,7 @@ function isValidAIEdgeAdd(op: unknown): op is AIEdgeAdd {
     console.warn("Validation Error (EdgeAdd): 'status' is invalid. Value:", e.status);
     return false;
   }
-  const edgeStatus = e.status as MapEdgeStatus;
-  if (!VALID_EDGE_STATUS_VALUES.includes(edgeStatus)) {
+  if (!VALID_EDGE_STATUS_VALUES.includes(e.status as MapEdgeStatus)) {
     console.warn("Validation Error (EdgeAdd): 'status' is invalid. Value:", e.status);
     return false;
   }
@@ -139,8 +138,7 @@ function isValidAIEdgeUpdate(op: unknown): op is AIEdgeUpdate {
       console.warn("Validation Error (EdgeUpdate): 'type' is invalid. Value:", e.type);
       return false;
     }
-    const updEdgeType = e.type as MapEdgeType;
-    if (!VALID_EDGE_TYPE_VALUES.includes(updEdgeType)) {
+    if (!VALID_EDGE_TYPE_VALUES.includes(e.type as MapEdgeType)) {
       console.warn("Validation Error (EdgeUpdate): 'type' is invalid. Value:", e.type);
       return false;
     }
@@ -150,8 +148,7 @@ function isValidAIEdgeUpdate(op: unknown): op is AIEdgeUpdate {
       console.warn("Validation Error (EdgeUpdate): 'status' is invalid. Value:", e.status);
       return false;
     }
-    const updEdgeStatus = e.status as MapEdgeStatus;
-    if (!VALID_EDGE_STATUS_VALUES.includes(updEdgeStatus)) {
+    if (!VALID_EDGE_STATUS_VALUES.includes(e.status as MapEdgeStatus)) {
       console.warn("Validation Error (EdgeUpdate): 'status' is invalid. Value:", e.status);
       return false;
     }

@@ -7,7 +7,10 @@ const makeNode = (id: string, parentId = ROOT_MAP_NODE_ID): MapData['nodes'][num
   id,
   placeName: id,
   position: { x: 0, y: 0 },
-  data: { description: '', status: 'discovered', nodeType: 'location', parentNodeId: parentId }
+  description: '',
+  status: 'discovered',
+  type: 'location',
+  parentNodeId: parentId,
 });
 
 const makeEdge = (
@@ -19,7 +22,8 @@ const makeEdge = (
   id,
   sourceNodeId: source,
   targetNodeId: target,
-  data: { status, type: 'path' }
+  status,
+  type: 'path',
 });
 
 describe('findTravelPath', () => {

@@ -210,7 +210,8 @@ export const suggestNodeFromLocationChange = async (
       navigationResult.debugInfo.validationError = navigationResult.debugInfo.validationError
         ? `${navigationResult.debugInfo.validationError}; ${retryReason}`
         : retryReason;
-      console.warn(`Cartographer navigation-only retry (${attempt + 1}): ${retryReason}`);
+      const attemptIndex = (attempt + 1).toString();
+      console.warn(`Cartographer navigation-only retry (${attemptIndex}): ${retryReason}`);
       if (attempt < MAX_NAVIGATION_RETRY_ATTEMPTS - 1) {
         continue;
       }
@@ -279,7 +280,7 @@ export const suggestNodeFromLocationChange = async (
               const normalizedTargets = [
                 newNode.id.toLowerCase(),
                 newNode.placeName.toLowerCase(),
-                ...(newNode.data.aliases ?? []).map(a => a.toLowerCase()),
+                ...(newNode.aliases ?? []).map(a => a.toLowerCase()),
               ];
               return normalizedTargets.includes(targetToMatch);
             })

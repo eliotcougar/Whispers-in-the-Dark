@@ -42,7 +42,7 @@ export const fetchCorrectedEdgeType = async (edgeInfo: {
 }): Promise<MapEdgeData["type"] | null> => {
   const synonyms = EDGE_TYPE_SYNONYMS as Record<
     string,
-    MapEdgeData["type"] | undefined
+    string | undefined
   >;
 
   if (edgeInfo.type) {
@@ -56,16 +56,16 @@ export const fetchCorrectedEdgeType = async (edgeInfo: {
   }
 
   const heuristics = createHeuristicRegexes(
-    EDGE_TYPE_SYNONYMS,
+    EDGE_TYPE_SYNONYMS as Record<string, string>,
     VALID_EDGE_TYPE_VALUES,
   );
 
   for (const [regex, type] of heuristics) {
     if (
-      (edgeInfo.type && regex.test(edgeInfo.type)) ||
-      (edgeInfo.description && regex.test(edgeInfo.description))
+      (typeof edgeInfo.type === "string" && regex.test(edgeInfo.type)) ||
+      (typeof edgeInfo.description === "string" && regex.test(edgeInfo.description))
     ) {
-      return type;
+      return type as MapEdgeData["type"];
     }
   }
 
@@ -187,13 +187,13 @@ export const CONNECTOR_CHAINS_JSON_SCHEMA = {
             items: { type: "string" },
           },
           description: { type: "string", minLength: 30, description: NODE_DESCRIPTION_INSTRUCTION },
-          nodeType: { enum: ["feature"] },
+          type: { enum: ["feature"] },
           parentNodeId: { type: "string", description: `Name of the Parent Node this feature belongs to, or '${ROOT_MAP_NODE_ID}' (keyword for root node) if it has no parent` },
           placeName: { type: "string", description: "A contextually relevant location name, based on Theme and Scene Description" },
           status: { enum: VALID_NODE_STATUS_VALUES },
         },
-        propertyOrdering: ["aliases", "description", "nodeType", "parentNodeId", "placeName", "status"],
-        required: ["aliases", "description", "nodeType", "parentNodeId", "placeName", "status"],
+        propertyOrdering: ["aliases", "description", "parentNodeId", "placeName", "status", "type"],
+        required: ["aliases", "description", "parentNodeId", "placeName", "status", "type"],
         additionalProperties: false,
       },
     },
@@ -232,7 +232,7 @@ export const fetchConnectorChains = async (
       const visited = new Set<string>();
       const orderedParents: Array<MapNode> = [];
       [...r.sourceChain, ...r.targetChain.slice().reverse()].forEach((p) => {
-        if (p.data.nodeType !== "feature" && !visited.has(p.id)) {
+        if (p.type !== "feature" && !visited.has(p.id)) {
           orderedParents.push(p);
           visited.add(p.id);
           nodeMap.set(p.id, p);
@@ -270,14 +270,14 @@ export const fetchConnectorChains = async (
           context.mapNodes
             .filter(
               (n) =>
-                n.data.parentNodeId === p.id && n.data.nodeType === "feature",
+                n.parentNodeId === p.id && n.type === "feature",
             )
             .map(
               (f) =>
-                ` - "${f.placeName}" (${f.data.nodeType}, ${f.data.status}, ${f.data.description})`,
+                ` - "${f.placeName}" (${f.type}, ${f.status}, ${f.description})`,
             )
             .join("\n") || " - None";
-        return `Node ${String(i + 1)}: "${p.placeName}" (Type: ${p.data.nodeType}, Status: ${p.data.status}, Description: ${p.data.description})\n${features}`;
+        return `Node ${String(i + 1)}: "${p.placeName}" (Type: ${p.type}, Status: ${p.status}, Description: ${p.description})\n${features}`;
       })
       .join("\n");
 

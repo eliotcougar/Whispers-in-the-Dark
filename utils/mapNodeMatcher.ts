@@ -139,7 +139,7 @@ const scoreExactMatchCandidates = (
 ): Array<ExactMatchCandidate> => {
   const matches: Array<ExactMatchCandidate> = [];
   for (const node of nodes) {
-    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.data.aliases ?? [])];
+    const nodeNamesAndAliases: Array<string> = [node.placeName, ...(node.aliases ?? [])];
     for (const nameOrAlias of nodeNamesAndAliases.filter(name => name && name.trim() !== '')) {
       const normName = normalizeStringForMatching(nameOrAlias);
       const tokenizedName = tokenizeForMatching(nameOrAlias).join(' ');
@@ -152,7 +152,7 @@ const scoreExactMatchCandidates = (
         currentMatchScore = 800 + (normName.length * 0.5);
       }
       if (currentMatchScore > 0) {
-        const isFeatureNode = node.data.nodeType === 'feature';
+        const isFeatureNode = node.type === 'feature';
         matches.push({
           nodeId: node.id,
           score: currentMatchScore + (isFeatureNode ? EXACT_MATCH_FEATURE_BONUS : 0),
@@ -227,8 +227,8 @@ const applySemanticTieBreaker = (
   const newNode = nodes.find(n => n.id === newCandidate.nodeId);
   const bestNode = nodes.find(n => n.id === currentBest.nodeId);
   if (!newNode || !bestNode) return currentBest;
-  const newIsFeature = newNode.data.nodeType === 'feature';
-  const bestIsFeature = bestNode.data.nodeType === 'feature';
+  const newIsFeature = newNode.type === 'feature';
+  const bestIsFeature = bestNode.type === 'feature';
   if (newIsFeature && !bestIsFeature) return newCandidate;
   if (!newIsFeature && bestIsFeature) return currentBest;
   const newLen = normalizeStringForMatching(newNode.placeName).length;
@@ -244,9 +244,9 @@ const selectFeatureChildIfMentioned = (
   if (!bestNodeId) return null;
   const bestNode = nodes.find(n => n.id === bestNodeId);
   if (!bestNode) return bestNodeId;
-  if (bestNode.data.nodeType === 'feature') return bestNodeId;
-  if (bestNode.data.parentNodeId && bestNode.data.parentNodeId !== ROOT_MAP_NODE_ID) return bestNodeId;
-  const featureChildren = nodes.filter(child => child.data.nodeType === 'feature' && child.data.parentNodeId === bestNode.id);
+  if (bestNode.type === 'feature') return bestNodeId;
+  if (bestNode.parentNodeId && bestNode.parentNodeId !== ROOT_MAP_NODE_ID) return bestNodeId;
+  const featureChildren = nodes.filter(child => child.type === 'feature' && child.parentNodeId === bestNode.id);
   for (const featureChild of featureChildren) {
     const featureName = featureChild.placeName;
     const normalizedFeatureName = normalizeStringForMatching(featureName);
@@ -321,7 +321,7 @@ export const attemptMatchAndSetNode = (
     const lowerSuggestedIdentifier = suggestedIdentifier.toLowerCase();
     const matchingNodesByNameOrAlias = nodesFromDraft.filter(n =>
       n.placeName.toLowerCase() === lowerSuggestedIdentifier ||
-      (n.data.aliases?.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
+      (n.aliases?.some(alias => alias.toLowerCase() === lowerSuggestedIdentifier))
     );
 
     if (matchingNodesByNameOrAlias.length === 0) {
@@ -330,7 +330,7 @@ export const attemptMatchAndSetNode = (
       matchingNodesByNameOrAlias.push(
         ...nodesFromDraft.filter(n =>
           n.placeName.toLowerCase() === normalizedBase ||
-          (n.data.aliases?.some(a => a.toLowerCase() === normalizedBase)),
+          (n.aliases?.some(a => a.toLowerCase() === normalizedBase)),
         ),
       );
     }
@@ -359,7 +359,7 @@ export const attemptMatchAndSetNode = (
     }
   
     // Tie-breaker 2: Prefer non-feature nodes
-    const nonFeatureMatches = matchingNodesByNameOrAlias.filter(n => n.data.nodeType !== 'feature');
+    const nonFeatureMatches = matchingNodesByNameOrAlias.filter(n => n.type !== 'feature');
     if (nonFeatureMatches.length > 0) {
       const chosenNonFeature = nonFeatureMatches[0]; // Could add more heuristics like name length later if needed
       console.log(`MapNodeMatcher (${source}): Tie-breaker: Chose non-feature node "${chosenNonFeature.placeName}" (ID: ${chosenNonFeature.id}).`);
@@ -427,7 +427,7 @@ export const selectBestMatchingMapNode = (
 
   const nodesWithTokens: Array<NodeSemanticTokens> = nodes.map(n => ({
     node: n,
-    nameTokenPairs: [n.placeName, ...(n.data.aliases ?? [])]
+    nameTokenPairs: [n.placeName, ...(n.aliases ?? [])]
       .filter(name => name && name.trim() !== '')
       .map(name => ({ name, tokens: tokenizeForMatching(name) })),
   }));

@@ -114,7 +114,7 @@ export const formatDetailedContextForMentionedEntities = (
 ): string => {
   const mentionedPlaces: Array<MapNode> = [];
   allKnownMainMapNodes.forEach(node => {
-    const allNames = [node.placeName, ...(node.data.aliases ?? [])];
+    const allNames = [node.placeName, ...(node.aliases ?? [])];
     const nameRegex = new RegExp(allNames.map(name => `\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`).join('|'), 'i');
     if (nameRegex.test(contextString)) {
       mentionedPlaces.push(node);
@@ -164,13 +164,13 @@ export const formatTravelPlanLine = (
   if (!path || path.length < 3) return null;
   const destination = mapData.nodes.find(n => n.id === destinationNodeId);
   const destName = destination?.placeName ?? destinationNodeId;
-  const destParentId = destination?.data.parentNodeId;
+  const destParentId = destination?.parentNodeId;
   const destParentName =
     destParentId && destParentId !== ROOT_MAP_NODE_ID
       ? mapData.nodes.find(n => n.id === destParentId)?.placeName ?? destParentId
       : null;
   const destDisplay = destParentName ? `${destName} in ${destParentName}` : destName;
-  const destRumored = destination?.data.status === 'rumored';
+  const destRumored = destination?.status === 'rumored';
   const firstEdge = path[1];
   const nextNodeStep = path[2];
   const furtherNodeStep = path.length > 4 ? path[4] : undefined;
@@ -184,8 +184,8 @@ export const formatTravelPlanLine = (
   const furtherName = furtherNodeStep
     ? furtherNode?.placeName ?? furtherNodeStep.id
     : '';
-  const nextRumored = nextNode?.data.status === 'rumored';
-  const furtherRumored = furtherNode?.data.status === 'rumored';
+  const nextRumored = nextNode?.status === 'rumored';
+  const furtherRumored = furtherNode?.status === 'rumored';
 
   let line = destRumored
     ? `Player wants to reach a rumored place - ${destDisplay}.`
@@ -198,9 +198,9 @@ export const formatTravelPlanLine = (
     line += ` The journey leads towards ${toName} in the general area of ${fromName}, and then towards ${furtherRumored ? 'a rumored place - ' + furtherName : furtherName}.`;
   } else {
     const edge = mapData.edges.find(e => e.id === firstEdge.id);
-    const edgeStatus = edge ? edge.data.status : 'open';
+    const edgeStatus = edge ? edge.status : 'open';
     const edgeName = edge
-      ? edge.data.description ?? edge.data.type
+      ? edge.description ?? edge.type
       : 'path';
     if (edgeStatus === 'rumored') {
       line += ` There is a rumor a path exists from here to ${nextRumored ? 'a rumored place - ' + nextName : nextName}.`;

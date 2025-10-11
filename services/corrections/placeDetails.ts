@@ -279,29 +279,29 @@ Respond ONLY with the single, complete JSON object.`;
 };
 
 export const fetchCorrectedNodeType = async (
-  nodeInfo: { placeName: string; nodeType?: string; description?: string },
-): Promise<NonNullable<MapNodeData['nodeType']> | null> => {
-  const synonyms = NODE_TYPE_SYNONYMS as Record<string, MapNodeData['nodeType'] | undefined>;
+  nodeInfo: { placeName: string; type?: string; description?: string },
+): Promise<NonNullable<MapNodeData['type']> | null> => {
+  const synonyms = NODE_TYPE_SYNONYMS as Record<string, string | undefined>;
 
-  if (nodeInfo.nodeType) {
+  if (typeof nodeInfo.type === "string") {
       const normalized =
-        synonyms[nodeInfo.nodeType.toLowerCase()] ?? nodeInfo.nodeType.toLowerCase();
+        synonyms[nodeInfo.type.toLowerCase()] ?? nodeInfo.type.toLowerCase();
     if ((VALID_NODE_TYPE_VALUES as ReadonlyArray<string>).includes(normalized)) {
-      return normalized as MapNodeData['nodeType'];
+      return normalized as MapNodeData['type'];
     }
   }
 
   const heuristics = createHeuristicRegexes(
-    NODE_TYPE_SYNONYMS,
+    NODE_TYPE_SYNONYMS as Record<string, string>,
     VALID_NODE_TYPE_VALUES,
   );
 
   for (const [regex, type] of heuristics) {
     if (
       regex.test(nodeInfo.placeName) ||
-      (nodeInfo.description && regex.test(nodeInfo.description))
+      (typeof nodeInfo.description === "string" && regex.test(nodeInfo.description))
     ) {
-      return type;
+      return type as MapNodeData["type"];
     }
   }
 
@@ -310,7 +310,7 @@ export const fetchCorrectedNodeType = async (
     return null;
   }
 
-  const prompt = `Determine the most appropriate nodeType for a map location in a text adventure game.
+  const prompt = `Determine the most appropriate type for a map location in a text adventure game.
 ${MAP_NODE_TYPE_GUIDE}
 Location Name: "${nodeInfo.placeName}"
 Description: "${nodeInfo.description ?? 'No description provided.'}"
@@ -318,7 +318,7 @@ Valid node types: ${VALID_NODE_TYPE_VALUES.join(', ')}
 Respond ONLY with the single node type.`;
 
   const systemInstruction = `Infer a map node's type. Answer with one of: ${VALID_NODE_TYPE_VALUES.join(', ')}.`;
-  return retryAiCall<NonNullable<MapNodeData['nodeType']>>(async attempt => {
+  return retryAiCall<NonNullable<MapNodeData['type']>>(async attempt => {
     try {
       addProgressSymbol(LOADING_REASON_UI_MAP.corrections.icon);
       const { response } = await dispatchAIRequest({
@@ -333,7 +333,7 @@ Respond ONLY with the single node type.`;
         const cleaned = aiResponse.trim().toLowerCase();
         const mapped = synonyms[cleaned] ?? cleaned;
         if ((VALID_NODE_TYPE_VALUES as ReadonlyArray<string>).includes(mapped)) {
-          return { result: mapped as MapNodeData['nodeType'] };
+          return { result: mapped as MapNodeData['type'] };
         }
       }
     } catch (error: unknown) {
@@ -352,7 +352,7 @@ export const fetchLikelyParentNode = async (
   proposedNode: {
     placeName: string;
     description?: string;
-    nodeType?: string;
+    type?: string;
     status?: string;
     aliases?: Array<string>;
   },
@@ -390,11 +390,11 @@ export const fetchLikelyParentNode = async (
     if (setB) setB.add(e.sourceNodeId);
   });
 
-  const proposedNodeType = (proposedNode.nodeType ?? 'feature') as MapNodeType;
+  const proposedNodeType = (proposedNode.type ?? 'feature') as MapNodeType;
   const proposedLevel = NODE_TYPE_LEVELS[proposedNodeType];
 
   const nodeLines = context.mapNodes
-    .filter(n => NODE_TYPE_LEVELS[n.data.nodeType] < proposedLevel)
+    .filter(n => NODE_TYPE_LEVELS[n.type] < proposedLevel)
     .map(n => `- ${n.id} ("${n.placeName}")`)
     .join('\n');
 
@@ -402,7 +402,7 @@ export const fetchLikelyParentNode = async (
     .map(e => `${e.id} ${e.sourceNodeId}->${e.targetNodeId}`)
     .join('\n');
 
-  const prompt = `Map Node: "${proposedNode.placeName}" (${proposedNode.nodeType ?? 'feature'})
+  const prompt = `Map Node: "${proposedNode.placeName}" (${proposedNode.type ?? 'feature'})
 Scene: "${context.sceneDescription}"
 Current location: ${context.localPlace}
 Current Map Node: ${currentNode ? currentNode.placeName : 'Unknown'}

@@ -210,7 +210,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
       const recentLogs = currentFullState.gameLog.slice(-RECENT_LOG_COUNT_FOR_PROMPT);
       const mapNodes = currentFullState.mapData.nodes.filter(
-        n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room'
+        n => n.type !== 'feature' && n.type !== 'room'
       );
       const npcs = currentFullState.allNPCs;
       const currentMapNodeDetails = currentFullState.currentMapNodeId

@@ -20,7 +20,7 @@ ${MAP_NODE_HIERARCHY_GUIDE}
 
 CRITICAL INSTRUCTIONS:
 - All nodes MUST represent physical locations. NEVER add small items and NPCs to the map!!! Nodes represent spaces the player can occupy: regions, general locations, settlements, building exteriors or interiors, rooms, and notable landscape or architectural features. Feature-type nodes represent sub-spaces within larger spaces. NEVER create nodes that represent inventory items.
-- IMPORTANT: Large multi-crew vehicles (e.g., ships, airships, spaceships, trains) can be represented as nodes if they are significant locations in the narrative. They should have a "nodeType" of "exterior" and MUST have sub-nodes for their interior spaces. When creating a node for a large vehicle, ensure it has a "description" that indicates its size and purpose, and that it contains a significant number of constituent nodes required for the large vehicle operation (e.g. main deck, engine room, captain's quarters, cargo hold, bridge, observation deck, reactor room, life support, etc.). At least one of the feature nodes must be clearly defined as a connection point to the outer world (e.g., "Docking Bay", "Hangar", "Airlock", "Gang Plank" etc.).
+- IMPORTANT: Large multi-crew vehicles (e.g., ships, airships, spaceships, trains) can be represented as nodes if they are significant locations in the narrative. They should have a "type" of "exterior" and MUST have sub-nodes for their interior spaces. When creating a node for a large vehicle, ensure it has a "description" that indicates its size and purpose, and that it contains a significant number of constituent nodes required for the large vehicle operation (e.g. main deck, engine room, captain's quarters, cargo hold, bridge, observation deck, reactor room, life support, etc.). At least one of the feature nodes must be clearly defined as a connection point to the outer world (e.g., "Docking Bay", "Hangar", "Airlock", "Gang Plank" etc.).
 - When considering a new location, check existing item and NPC names (including aliases). If the name matches or closely resembles one, SKIP adding that node and omit any edges that would connect to it.
 - Node Fields for "nodesToAdd":
     - "aliases", "description", and "status" are ALWAYS REQUIRED for ALL added nodes.
@@ -58,7 +58,7 @@ Rules:
 - Use the change in the player's local position (localPlace: from → to), the log message, and the current scene to infer movement.
 - If the best choice is the same as before, pick that node.
 - If NO accessible node fits, you must propose exactly one new node and edge to add. The new node must:
-  * Include complete fields (placeName, description ≥30 chars, aliases, status, nodeType, parentNodeId).
+  * Include complete fields (placeName, description ≥30 chars, aliases, status, type, parentNodeId).
   * Use status "discovered" unless the narrative explicitly marks it as a quest target.
   * Reference an existing parent from the provided information (never invent a brand new parent hierarchy).
 - Response MUST be a JSON object with:

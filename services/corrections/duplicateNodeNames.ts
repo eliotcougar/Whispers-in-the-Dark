@@ -53,9 +53,9 @@ export const assignSpecificNamesToDuplicateNodes = async (
       const prompt = `You are an AI assistant disambiguating map location names in a text adventure game.\n` +
         `Theme: "${theme.name}"\n` +
         `Another map node shares the name "${group[0].placeName}". Provide a short, unique new name for the following node.\n` +
-        `Node Type: ${node.data.nodeType}\n` +
-        `Aliases: ${(node.data.aliases ?? []).join(', ') || 'None'}\n` +
-        `Description: ${node.data.description}`;
+        `Node Type: ${node.type}\n` +
+        `Aliases: ${(node.aliases ?? []).join(', ') || 'None'}\n` +
+        `Description: ${node.description}`;
       const systemInstruction =
         'Respond ONLY with a short Title Case name that distinguishes this location.';
 

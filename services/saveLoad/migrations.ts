@@ -6,6 +6,8 @@ import {
   FullGameState,
   SavedGameDataShape,
   MapData,
+  MapNode,
+  MapEdge,
   GameStateStack,
   SavedGameStack,
 } from '../../types';
@@ -90,21 +92,32 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
   void debugBadFacts;
   void isVictory;
 
+  const workingMapData: MapData = {
+    nodes: gameState.mapData.nodes.map(node => ({ ...node })),
+    edges: gameState.mapData.edges.map(edge => ({ ...edge })),
+  };
+  ensureCompleteMapNodeDataDefaults(workingMapData);
+  ensureCompleteMapEdgeDataDefaults(workingMapData);
+
   const mapDataForSave: MapData = {
-      nodes: gameState.mapData.nodes.map(node => ({
-      ...node,
-      data: {
-        description: node.data.description || 'Description missing in save prep',
-        aliases: node.data.aliases ?? [],
-        status: node.data.status,
-        isFeature: node.data.isFeature,
-        visited: node.data.visited,
-        parentNodeId: node.data.parentNodeId,
-        nodeType: node.data.nodeType,
-        ...Object.fromEntries(Object.entries(node.data).filter(([key]) => !['description', 'aliases'].includes(key)))
+    nodes: workingMapData.nodes.map(node => {
+      const { description, aliases, ...rest } = node;
+      return {
+        ...rest,
+        description: description || 'Description missing in save prep',
+        aliases: aliases ?? [],
+      };
+    }),
+    edges: workingMapData.edges.map(edge => {
+      const edgeCopy: MapEdge = {
+        ...edge,
+        description: edge.description ?? '',
+      };
+      if (edgeCopy.travelTime === undefined) {
+        delete (edgeCopy as Record<string, unknown>).travelTime;
       }
-    })),
-      edges: gameState.mapData.edges,
+      return edgeCopy;
+    }),
   };
 
   const savedData: SavedGameDataShape = {
@@ -147,16 +160,51 @@ export const prepareGameStateForSaving = (gameState: FullGameState): SavedGameDa
 
 export const expandSavedDataToFullState = (savedData: SavedGameDataShape): FullGameState => {
   const mapDataFromLoad: MapData = {
-    nodes: savedData.mapData.nodes.map(node => ({
-      ...node,
-      data: {
-        ...node.data,
-        description: node.data.description || 'Description missing on load',
-        aliases: node.data.aliases ?? []
+    nodes: savedData.mapData.nodes.map(node => {
+      const legacyNode = node as MapNode & { data?: Partial<MapNode> | null };
+      const mergedRecord: Record<string, unknown> = {
+        ...(legacyNode as Record<string, unknown>),
+      };
+      if (legacyNode.data && typeof legacyNode.data === 'object') {
+        Object.assign(mergedRecord, legacyNode.data as Record<string, unknown>);
       }
-    })),
-    edges: savedData.mapData.edges,
+      delete mergedRecord.data;
+      const rawDescription = typeof mergedRecord.description === "string" ? mergedRecord.description : "";
+      const description = rawDescription.trim().length > 0 ? rawDescription : "Description missing on load";
+      const aliasesSource = mergedRecord.aliases;
+      const aliases =
+        Array.isArray(aliasesSource)
+          ? aliasesSource.filter((alias): alias is string => typeof alias === 'string')
+          : [];
+      const normalized = {
+        ...mergedRecord,
+        description,
+        aliases,
+      } as MapNode;
+      return normalized;
+    }),
+    edges: savedData.mapData.edges.map(edge => {
+      const legacyEdge = edge as MapEdge & { data?: Partial<MapEdge> | null };
+      const mergedRecord: Record<string, unknown> = {
+        ...(legacyEdge as Record<string, unknown>),
+      };
+      if (legacyEdge.data && typeof legacyEdge.data === 'object') {
+        Object.assign(mergedRecord, legacyEdge.data as Record<string, unknown>);
+      }
+      delete mergedRecord.data;
+      const description = typeof mergedRecord.description === "string" ? mergedRecord.description : "";
+      const flattened = {
+        ...mergedRecord,
+        description,
+      } as MapEdge;
+      const edgeCopy: MapEdge = { ...flattened };
+      if (typeof edgeCopy.travelTime !== "string") {
+        Reflect.deleteProperty(edgeCopy, "travelTime");
+      }
+      return edgeCopy;
+    }),
   };
+  ensureCompleteMapNodeDataDefaults(mapDataFromLoad);
   ensureCompleteMapEdgeDataDefaults(mapDataFromLoad);
 
   const baseState: FullGameState = {

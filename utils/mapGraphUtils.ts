@@ -18,8 +18,8 @@ export const getParent = (
   node: MapNode,
   nodeMap: Map<string, MapNode>
 ): MapNode | undefined => {
-  if (!node.data.parentNodeId || node.data.parentNodeId === ROOT_MAP_NODE_ID) return undefined;
-  return nodeMap.get(node.data.parentNodeId);
+  if (!node.parentNodeId || node.parentNodeId === ROOT_MAP_NODE_ID) return undefined;
+  return nodeMap.get(node.parentNodeId);
 };
 
 /**
@@ -35,7 +35,7 @@ export const getChildren = (
 ): Array<MapNode> => {
   const children: Array<MapNode> = [];
   nodeMap.forEach(n => {
-    if (n.data.parentNodeId === node.id) children.push(n);
+    if (n.parentNodeId === node.id) children.push(n);
   });
   return children;
 };
@@ -49,11 +49,11 @@ export const getAncestors = (
   nodeMap: Map<string, MapNode>
 ): Array<MapNode> => {
   const ancestors: Array<MapNode> = [];
-  let current: MapNode | undefined = nodeMap.get(node.data.parentNodeId ?? '');
+  let current: MapNode | undefined = nodeMap.get(node.parentNodeId ?? '');
   while (current) {
     ancestors.push(current);
-    if (!current.data.parentNodeId || current.data.parentNodeId === ROOT_MAP_NODE_ID) break;
-    current = nodeMap.get(current.data.parentNodeId);
+    if (!current.parentNodeId || current.parentNodeId === ROOT_MAP_NODE_ID) break;
+    current = nodeMap.get(current.parentNodeId);
   }
   return ancestors;
 };
@@ -68,9 +68,9 @@ export const isDescendantOf = (
   nodeMap: Map<string, MapNode>
 ): boolean => {
   let current: MapNode | undefined = possibleDescendant;
-  while (current?.data.parentNodeId && current.data.parentNodeId !== ROOT_MAP_NODE_ID) {
-    if (current.data.parentNodeId === possibleAncestor.id) return true;
-    current = nodeMap.get(current.data.parentNodeId);
+  while (current?.parentNodeId && current.parentNodeId !== ROOT_MAP_NODE_ID) {
+    if (current.parentNodeId === possibleAncestor.id) return true;
+    current = nodeMap.get(current.parentNodeId);
   }
   return false;
 };
@@ -102,7 +102,7 @@ export const getAdjacentNodeIds = (
     .filter(a => {
       const edge = edgeMap.get(a.edgeId);
       if (!edge) return true;
-      return allowed.includes(edge.data.status);
+      return allowed.includes(edge.status);
     })
     .map(a => a.to);
 };
@@ -117,7 +117,7 @@ export const buildNonRumoredAdjacencyMap = (mapData: MapData): NonRumoredAdjacen
   const adjacency: NonRumoredAdjacencyMap = new Map();
   const isTraversable = (status: MapEdgeStatus) => status !== 'rumored' && status !== 'removed';
   for (const edge of mapData.edges) {
-    if (!isTraversable(edge.data.status)) continue;
+    if (!isTraversable(edge.status)) continue;
     if (!adjacency.has(edge.sourceNodeId)) adjacency.set(edge.sourceNodeId, []);
     const fromList = adjacency.get(edge.sourceNodeId) ?? [];
     fromList.push({ nodeId: edge.targetNodeId, edgeId: edge.id });
@@ -170,7 +170,7 @@ export const existsNonRumoredPath = (
 
 /** Returns numeric hierarchy level for a node type. Lower number = higher level. */
 export const getNodeTypeLevel = (
-  type: MapNode['data']['nodeType'] | undefined,
+  type: MapNode['type'] | undefined,
 ): number => {
   if (!type) return -1;
   return NODE_TYPE_LEVELS[type];
@@ -182,14 +182,14 @@ export const getNodeTypeLevel = (
  */
 export const findClosestAllowedParent = (
   startingParent: MapNode | undefined,
-  childType: MapNode['data']['nodeType'],
+  childType: MapNode['type'],
   nodeMap: Map<string, MapNode>
 ): string | undefined => {
   let current = startingParent;
   const childLevel = getNodeTypeLevel(childType);
-  while (current && getNodeTypeLevel(current.data.nodeType) >= childLevel) {
-    if (!current.data.parentNodeId) return undefined;
-    current = nodeMap.get(current.data.parentNodeId);
+  while (current && getNodeTypeLevel(current.type) >= childLevel) {
+    if (!current.parentNodeId) return undefined;
+    current = nodeMap.get(current.parentNodeId);
   }
   return current ? current.id : undefined;
 };

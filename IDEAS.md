@@ -13,9 +13,9 @@ v1.5.1 Bugfix
   + NPCs attitude towards the Player.
 
 v1.5.2 Bugfix
-  - Combine MapNode and MapNodeData to flatten the object.
-  - Combine MapEdge and MapEdgeData to flatten the object.
-  - Also update the Schemas, Prompts, and examples.
+  + Combine MapNode and MapNodeData to flatten the object.
+  + Combine MapEdge and MapEdgeData to flatten the object.
+  + Also update the Schemas, Prompts, and examples.
   - Further delineate responsibilities of the System Prompt and Prompt Builder in each service.
   - Simplify GameState Update-from-AI types similar to mapUpdate.
   - Have types for each entity type and verify/fix each of them separately.

@@ -738,7 +738,7 @@ export async function parseAIResponse(
 ): Promise<ParseAIResponseResult> {
     const jsonStr = responseText;
 
-    const allRelevantMainMapNodesForCorrection: Array<MapNode> = mapDataForResponse.nodes.filter(node => node.data.nodeType !== 'feature');
+    const allRelevantMainMapNodesForCorrection: Array<MapNode> = mapDataForResponse.nodes.filter(node => node.type !== 'feature');
 
     let failureReason: ParseFailureReason | null = null;
     let failureMessage: string | null = null;

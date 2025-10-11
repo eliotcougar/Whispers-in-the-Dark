@@ -71,8 +71,8 @@ const applyNodeRenameResults = (
     nodesById.set(newId, node);
 
     draftState.mapData.nodes.forEach(child => {
-      if (child.data.parentNodeId === oldId) {
-        child.data.parentNodeId = newId;
+      if (child.parentNodeId === oldId) {
+        child.parentNodeId = newId;
       }
     });
 
@@ -130,7 +130,7 @@ export const handleMapUpdates = async (
 
     if (needsFullUpdate) {
       const knownMainMapNodesForTheme: Array<MapNode> = draftState.mapData.nodes.filter(
-        node => node.data.nodeType !== 'feature'
+        node => node.type !== 'feature'
       );
       mapUpdateResult = await updateMapFromAIData(
         aiData,
@@ -203,14 +203,14 @@ export const handleMapUpdates = async (
 
     if (mapUpdateResult && mapUpdateResult.newlyAddedNodes.length > 0) {
       for (const added of mapUpdateResult.newlyAddedNodes) {
-          const isMainNode = added.data.nodeType !== 'feature';
+          const isMainNode = added.type !== 'feature';
           if (isMainNode) {
             const newlyAddedNodeInDraft = getNodeById(added.id);
             if (
               newlyAddedNodeInDraft &&
-              (!newlyAddedNodeInDraft.data.description ||
-                newlyAddedNodeInDraft.data.description.trim() === '' ||
-                newlyAddedNodeInDraft.data.description.startsWith('Description missing'))
+              (!newlyAddedNodeInDraft.description ||
+                newlyAddedNodeInDraft.description.trim() === '' ||
+                newlyAddedNodeInDraft.description.startsWith('Description missing'))
             ) {
               const originalLoadingReasonCorrection = loadingReason;
               setLoadingReason('corrections');
@@ -222,8 +222,8 @@ export const handleMapUpdates = async (
               );
               setLoadingReason(originalLoadingReasonCorrection);
               if (placeDetails) {
-                newlyAddedNodeInDraft.data.description = placeDetails.description;
-                newlyAddedNodeInDraft.data.aliases = placeDetails.aliases ?? [];
+                newlyAddedNodeInDraft.description = placeDetails.description;
+                newlyAddedNodeInDraft.aliases = placeDetails.aliases ?? [];
                 turnChanges.mapDataChanged = true;
               }
             }
@@ -292,25 +292,25 @@ export const handleMapUpdates = async (
   if (draftState.currentMapNodeId) {
     const currentNode = getNodeById(draftState.currentMapNodeId);
     if (currentNode) {
-      if (!currentNode.data.visited) {
-        currentNode.data.visited = true;
+      if (!currentNode.visited) {
+        currentNode.visited = true;
         if (
-          currentNode.data.status === 'rumored' ||
-          currentNode.data.status === 'undiscovered'
+          currentNode.status === 'rumored' ||
+          currentNode.status === 'undiscovered'
         ) {
-          currentNode.data.status = 'discovered';
+          currentNode.status = 'discovered';
         }
         turnChanges.mapDataChanged = true;
       }
       const ancestors = getAncestors(currentNode, nodesById);
       for (const ancestor of ancestors) {
-        if (!ancestor.data.visited) {
-          ancestor.data.visited = true;
+        if (!ancestor.visited) {
+          ancestor.visited = true;
           if (
-            ancestor.data.status === 'rumored' ||
-            ancestor.data.status === 'undiscovered'
+            ancestor.status === 'rumored' ||
+            ancestor.status === 'undiscovered'
           ) {
-            ancestor.data.status = 'discovered';
+            ancestor.status = 'discovered';
           }
           turnChanges.mapDataChanged = true;
         }
@@ -319,13 +319,13 @@ export const handleMapUpdates = async (
   }
 
   if (turnChanges.mapDataChanged) {
-    const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.data.visited).map(n => n.id));
+    const visitedNodeIds = new Set(draftState.mapData.nodes.filter(n => n.visited).map(n => n.id));
     const edgesToRemoveIds = new Set<string>();
     const adjacency = buildNonRumoredAdjacencyMap(draftState.mapData);
     edgesById.forEach(edge => {
       if (newlyAddedEdgeIds.has(edge.id)) return;
       if (visitedNodeIds.has(edge.sourceNodeId) && visitedNodeIds.has(edge.targetNodeId)) {
-        if (edge.data.status === 'rumored' || edge.data.status === 'removed') {
+        if (edge.status === 'rumored' || edge.status === 'removed') {
           const altExists = existsNonRumoredPath(
             adjacency,
             edge.sourceNodeId,
@@ -335,7 +335,7 @@ export const handleMapUpdates = async (
           if (altExists) {
             edgesToRemoveIds.add(edge.id);
           } else {
-            edge.data.status = 'open';
+            edge.status = 'open';
             turnChanges.mapDataChanged = true;
           }
         }

@@ -8,25 +8,25 @@ const nodes: Array<MapNode> = [
     id: 'node-area',
     placeName: 'Coast',
     position: { x: 0, y: 0 },
-    data: { description: '', aliases: ['Sea Side'], status: 'rumored', nodeType: 'location', parentNodeId: ROOT_MAP_NODE_ID }
+    description: '', aliases: ['Sea Side'], status: 'rumored', type: 'location', parentNodeId: ROOT_MAP_NODE_ID
   },
   {
     id: 'node-feature',
     placeName: 'Utility Entrance',
     position: { x: 0, y: 0 },
-    data: { description: '', aliases: ['Utility Hatch'], status: 'rumored', nodeType: 'feature', parentNodeId: 'node-area' }
+    description: '', aliases: ['Utility Hatch'], status: 'rumored', type: 'feature', parentNodeId: 'node-area'
   },
   {
     id: 'node-alt-feature',
     placeName: 'Narrow Passage',
     position: { x: 0, y: 0 },
-    data: { description: '', aliases: [], status: 'rumored', nodeType: 'feature', parentNodeId: 'node-area' }
+    description: '', aliases: [], status: 'rumored', type: 'feature', parentNodeId: 'node-area'
   },
   {
     id: 'node-location-same-name',
     placeName: 'Narrow Passage',
     position: { x: 0, y: 0 },
-    data: { description: '', aliases: [], status: 'rumored', nodeType: 'location', parentNodeId: ROOT_MAP_NODE_ID }
+    description: '', aliases: [], status: 'rumored', type: 'location', parentNodeId: ROOT_MAP_NODE_ID
   }
 ];
 

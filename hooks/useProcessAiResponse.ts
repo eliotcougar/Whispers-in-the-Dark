@@ -692,7 +692,7 @@ export const useProcessAiResponse = ({
             .join('\n');
 
       const nodesForTheme = draftState.mapData.nodes.filter(
-        n => n.data.nodeType !== 'feature' && n.data.nodeType !== 'room',
+        n => n.type !== 'feature' && n.type !== 'room',
       );
       const npcsForTheme = draftState.allNPCs;
       const itemsForTheme = draftState.inventory.filter(

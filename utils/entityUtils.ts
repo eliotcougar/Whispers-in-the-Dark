@@ -52,7 +52,7 @@ export const findMapNodeByIdentifier = (
   const aliasMatches = nodes
     .filter(
       n =>
-        n.data.aliases?.some(a => sanitize(a) === normalized)
+        n.aliases?.some(a => sanitize(a) === normalized)
     )
     .filter(node => !nameMatches.includes(node));
 
@@ -105,7 +105,7 @@ export const findMapNodeByIdentifier = (
   const byName = nodes.find(node => sanitize(node.placeName) === normalizedBase);
   if (byName) return byName;
   const byAlias = nodes.find(
-    n => n.data.aliases?.some(a => sanitize(a) === normalizedBase),
+    n => n.aliases?.some(a => sanitize(a) === normalizedBase),
   );
   if (byAlias) return byAlias;
 

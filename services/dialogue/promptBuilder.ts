@@ -193,7 +193,7 @@ export const buildDialogueSummaryPrompt = (
   );
   const knownPlacesString = formatKnownPlacesForPrompt(
     summaryContext.mapDataSnapshot.nodes.filter(
-      n => n.data.nodeType !== 'feature',
+      n => n.type !== 'feature',
     ),
     true,
     false,

@@ -91,10 +91,10 @@ export const useMapTooltip = ({
       const sourceNode = nodes.find(n => n.id === edge.sourceNodeId);
       const targetNode = nodes.find(n => n.id === edge.targetNodeId);
       let content =
-        edge.data.description ??
+        edge.description ??
         `Path between ${sourceNode?.placeName ?? 'Unknown'} and ${targetNode?.placeName ?? 'Unknown'}`;
-      if (edge.data.travelTime) content += `\n${edge.data.travelTime}`;
-      content += `\nStatus: ${edge.data.status}`;
+      if (edge.travelTime) content += `\n${edge.travelTime}`;
+      content += `\nStatus: ${edge.status}`;
       const anchor = computeAnchor(x, y, svgRect);
       if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
       tooltipTimeout.current = window.setTimeout(() => {
@@ -117,9 +117,9 @@ export const useMapTooltip = ({
       const y = event.clientY - svgRect.top;
       const svgCoords = svgRef.current ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY) : { x: 0, y: 0 };
       let content = node.placeName;
-      if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
-      if (node.data.description) content += `\n${node.data.description}`;
-      content += `\nStatus: ${node.data.status}`;
+      if (node.aliases && node.aliases.length > 0) content += ` (aka ${node.aliases.join(', ')})`;
+      if (node.description) content += `\n${node.description}`;
+      content += `\nStatus: ${node.status}`;
       const anchor = computeAnchor(x, y, svgRect);
       if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
       tooltipTimeout.current = window.setTimeout(() => {
@@ -146,9 +146,9 @@ export const useMapTooltip = ({
       const y = event.clientY - svgRect.top;
       const svgCoords = svgRef.current ? getSVGCoordinates(svgRef.current, event.clientX, event.clientY) : { x: 0, y: 0 };
       let content = node.placeName;
-      if (node.data.aliases && node.data.aliases.length > 0) content += ` (aka ${node.data.aliases.join(', ')})`;
-      if (node.data.description) content += `\n${node.data.description}`;
-      content += `\nStatus: ${node.data.status}`;
+      if (node.aliases && node.aliases.length > 0) content += ` (aka ${node.aliases.join(', ')})`;
+      if (node.description) content += `\n${node.description}`;
+      content += `\nStatus: ${node.status}`;
       setIsTooltipLocked(true);
       const anchor = computeAnchor(x, y, svgRect);
       setTooltip({ content, svgX: svgCoords.x, svgY: svgCoords.y, anchor, nodeId });

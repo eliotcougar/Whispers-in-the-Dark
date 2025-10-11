@@ -15,7 +15,7 @@ describe('correction heuristics', () => {
   it('infers node and edge types without API calls', async () => {
     const nodeType = await fetchCorrectedNodeType({
       placeName: 'Example',
-      nodeType: 'castle',
+      type: 'castle',
     });
     expect(nodeType).toBe('exterior');
 

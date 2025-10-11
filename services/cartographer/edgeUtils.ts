@@ -11,14 +11,14 @@ export function isEdgeConnectionAllowed(
   edgeType?: MapEdgeData['type'],
   nodeLookup?: Map<string, MapNode>
 ): boolean {
-  if (nodeA.data.nodeType !== 'feature' || nodeB.data.nodeType !== 'feature') {
+  if (nodeA.type !== 'feature' || nodeB.type !== 'feature') {
     return false;
   }
   if (edgeType === 'shortcut') return true;
 
   const lookup = nodeLookup ?? new Map<string, MapNode>();
-  const parentAId = nodeA.data.parentNodeId ?? ROOT_MAP_NODE_ID;
-  const parentBId = nodeB.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+  const parentAId = nodeA.parentNodeId ?? ROOT_MAP_NODE_ID;
+  const parentBId = nodeB.parentNodeId ?? ROOT_MAP_NODE_ID;
   const parentA = parentAId === ROOT_MAP_NODE_ID ? null : lookup.get(parentAId);
   const parentB = parentBId === ROOT_MAP_NODE_ID ? null : lookup.get(parentBId);
 
@@ -26,16 +26,16 @@ export function isEdgeConnectionAllowed(
   if (!parentB && parentBId !== ROOT_MAP_NODE_ID) return false;
   if (parentAId === parentBId) return true;
 
-  const grandAId = parentAId === ROOT_MAP_NODE_ID ? ROOT_MAP_NODE_ID : lookup.get(parentAId)?.data.parentNodeId ?? ROOT_MAP_NODE_ID;
-  const grandBId = parentBId === ROOT_MAP_NODE_ID ? ROOT_MAP_NODE_ID : lookup.get(parentBId)?.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+  const grandAId = parentAId === ROOT_MAP_NODE_ID ? ROOT_MAP_NODE_ID : lookup.get(parentAId)?.parentNodeId ?? ROOT_MAP_NODE_ID;
+  const grandBId = parentBId === ROOT_MAP_NODE_ID ? ROOT_MAP_NODE_ID : lookup.get(parentBId)?.parentNodeId ?? ROOT_MAP_NODE_ID;
 
   if (grandAId && grandBId && grandAId === grandBId) return true;
   if (grandAId && parentBId === grandAId) return true;
   if (grandBId && parentAId === grandBId) return true;
 
   if (parentAId !== ROOT_MAP_NODE_ID && parentBId !== ROOT_MAP_NODE_ID) {
-    const parentAParent = lookup.get(parentAId)?.data.parentNodeId ?? ROOT_MAP_NODE_ID;
-    const parentBParent = lookup.get(parentBId)?.data.parentNodeId ?? ROOT_MAP_NODE_ID;
+    const parentAParent = lookup.get(parentAId)?.parentNodeId ?? ROOT_MAP_NODE_ID;
+    const parentBParent = lookup.get(parentBId)?.parentNodeId ?? ROOT_MAP_NODE_ID;
     if (parentAParent === ROOT_MAP_NODE_ID && parentBParent === ROOT_MAP_NODE_ID) return true;
   }
   if (parentAId === ROOT_MAP_NODE_ID && grandBId === ROOT_MAP_NODE_ID) return true;
@@ -57,11 +57,24 @@ export function addEdgeWithTracking(
   const existing = (edgeLookup.get(a.id) ?? []).find(
     e =>
       ((e.sourceNodeId === a.id && e.targetNodeId === b.id) || (e.sourceNodeId === b.id && e.targetNodeId === a.id)) &&
-      e.data.type === data.type,
+      e.type === data.type,
   );
   if (existing) return existing;
   const id = generateUniqueId(`edge-${a.id}-to-${b.id}-`);
-  const edge: MapEdge = { id, sourceNodeId: a.id, targetNodeId: b.id, data };
+  const edge: MapEdge = {
+    id,
+    sourceNodeId: a.id,
+    targetNodeId: b.id,
+    description: data.description,
+    type: data.type,
+    status: data.status,
+    travelTime: data.travelTime,
+  };
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    if (!['description', 'type', 'status', 'travelTime'].includes(key)) {
+      (edge as Record<string, unknown>)[key] = value;
+    }
+  }
   edges.push(edge);
   let arrA = edgeLookup.get(a.id);
   if (!arrA) {
@@ -86,6 +99,6 @@ export function pruneInvalidEdges(
     const src = nodeLookup.get(e.sourceNodeId);
     const tgt = nodeLookup.get(e.targetNodeId);
     if (!src || !tgt) return false;
-    return isEdgeConnectionAllowed(src, tgt, e.data.type, nodeLookup);
+    return isEdgeConnectionAllowed(src, tgt, e.type, nodeLookup);
   });
 }

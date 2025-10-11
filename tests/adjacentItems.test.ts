@@ -14,7 +14,10 @@ const makeNode = (
   id,
   placeName: id,
   position: { x: 0, y: 0 },
-  data: { description: '', status, nodeType: 'location', parentNodeId: parent },
+  description: '',
+  status,
+  type: 'location',
+  parentNodeId: parent,
 });
 
 const makeEdge = (
@@ -26,7 +29,8 @@ const makeEdge = (
   id,
   sourceNodeId: source,
   targetNodeId: target,
-  data: { status, type: 'path' },
+  status,
+  type: 'path',
 });
 
 describe('getAdjacentNodeIds for item reachability', () => {

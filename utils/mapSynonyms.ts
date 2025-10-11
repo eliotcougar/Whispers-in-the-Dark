@@ -4,7 +4,7 @@ import edgeSynonymsRaw from '../resources/mapEdgeSynonyms';
 
 const nodeSynonyms = nodeSynonymsRaw as {
   status: Record<string, MapNodeData['status']>;
-  type: Record<string, NonNullable<MapNodeData['nodeType']>>;
+  type: Record<string, NonNullable<MapNodeData['type']>>;
   remove: Array<string>;
 };
 
@@ -17,7 +17,7 @@ const edgeSynonyms = edgeSynonymsRaw as {
 export const NODE_STATUS_SYNONYMS: Record<string, MapNodeData['status']> =
   nodeSynonyms.status;
 
-export const NODE_TYPE_SYNONYMS: Record<string, NonNullable<MapNodeData['nodeType']>> =
+export const NODE_TYPE_SYNONYMS: Record<string, NonNullable<MapNodeData['type']>> =
   nodeSynonyms.type;
 
 export const EDGE_TYPE_SYNONYMS: Record<string, NonNullable<MapEdgeData['type']>> =

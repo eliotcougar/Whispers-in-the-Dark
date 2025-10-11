@@ -82,7 +82,7 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
         (e.sourceNodeId === targetNodeId && e.targetNodeId === sourceNodeId)
     );
 
-    const checkType = edgeUpdateOp.type ?? candidateEdges[0]?.data.type;
+    const checkType = edgeUpdateOp.type ?? candidateEdges[0]?.type;
     if (!isEdgeConnectionAllowed(sourceNode, targetNode, checkType, ctx.nodeIdMap)) {
       console.warn(
         `MapUpdate: Edge update between "${sourceNode.placeName}" and "${targetNode.placeName}" violates hierarchy rules. Skipping update.`
@@ -90,7 +90,7 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       continue;
     }
     const edgeToUpdate = candidateEdges.find(e =>
-      edgeUpdateOp.type ? e.data.type === edgeUpdateOp.type : true
+      edgeUpdateOp.type ? e.type === edgeUpdateOp.type : true
     );
 
     if (!edgeToUpdate) {
@@ -100,13 +100,10 @@ export async function processEdgeUpdates(ctx: ApplyUpdatesContext): Promise<void
       continue;
     }
 
-    edgeToUpdate.data = {
-      ...edgeToUpdate.data,
-      description: edgeUpdateOp.description ?? edgeToUpdate.data.description,
-      status: edgeUpdateOp.status ?? edgeToUpdate.data.status,
-      travelTime: edgeUpdateOp.travelTime ?? edgeToUpdate.data.travelTime,
-      type: edgeUpdateOp.type ?? edgeToUpdate.data.type,
-    };
+    if (typeof edgeUpdateOp.description === "string") edgeToUpdate.description = edgeUpdateOp.description;
+    if (typeof edgeUpdateOp.status === "string") edgeToUpdate.status = edgeUpdateOp.status;
+    if (typeof edgeUpdateOp.travelTime === "string") edgeToUpdate.travelTime = edgeUpdateOp.travelTime;
+    if (typeof edgeUpdateOp.type === "string") edgeToUpdate.type = edgeUpdateOp.type;
   }
 
   for (const edgeRemoveOp of ctx.edgesToRemove_mut) {

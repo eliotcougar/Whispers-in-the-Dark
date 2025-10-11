@@ -43,12 +43,12 @@ export const suggestNodeTypeDowngrade = (
   parentType: MapNodeType,
   allNodes: Array<MapNode>,
 ): MapNodeType | null => {
-  const candidate = NODE_TYPE_DOWNGRADE_MAP[node.data.nodeType];
+  const candidate = NODE_TYPE_DOWNGRADE_MAP[node.type];
   if (!candidate) return null;
   if (NODE_TYPE_LEVELS[parentType] >= NODE_TYPE_LEVELS[candidate]) return null;
   const candidateLevel = NODE_TYPE_LEVELS[candidate];
-  const children = allNodes.filter(n => n.data.parentNodeId === node.id);
-  if (children.every(c => NODE_TYPE_LEVELS[c.data.nodeType] > candidateLevel)) {
+  const children = allNodes.filter(n => n.parentNodeId === node.id);
+  if (children.every(c => NODE_TYPE_LEVELS[c.type] > candidateLevel)) {
     return candidate;
   }
   return null;
@@ -58,15 +58,15 @@ export const suggestNodeTypeUpgrade = (
   node: MapNode,
   allNodes: Array<MapNode>,
 ): MapNodeType | null => {
-  const candidate = NODE_TYPE_UPGRADE_MAP[node.data.nodeType];
+  const candidate = NODE_TYPE_UPGRADE_MAP[node.type];
   if (!candidate) return null;
   const candidateLevel = NODE_TYPE_LEVELS[candidate];
-  if (node.data.parentNodeId) {
-    const parent = allNodes.find(n => n.id === node.data.parentNodeId);
-    if (parent && NODE_TYPE_LEVELS[parent.data.nodeType] >= candidateLevel) return null;
+  if (node.parentNodeId) {
+    const parent = allNodes.find(n => n.id === node.parentNodeId);
+    if (parent && NODE_TYPE_LEVELS[parent.type] >= candidateLevel) return null;
   }
-  const children = allNodes.filter(n => n.data.parentNodeId === node.id);
-  if (children.some(c => NODE_TYPE_LEVELS[c.data.nodeType] <= candidateLevel)) {
+  const children = allNodes.filter(n => n.parentNodeId === node.id);
+  if (children.some(c => NODE_TYPE_LEVELS[c.type] <= candidateLevel)) {
     return null;
   }
   return candidate;
@@ -75,11 +75,11 @@ export const suggestNodeTypeUpgrade = (
 export const mapHasHierarchyConflict = (nodes: Array<MapNode>): boolean => {
   const lookup = new Map(nodes.map(n => [n.id, n]));
   for (const node of nodes) {
-    const parentId = node.data.parentNodeId;
+    const parentId = node.parentNodeId;
     if (!parentId || parentId === ROOT_MAP_NODE_ID) continue;
     const parent = lookup.get(parentId);
     if (!parent) continue;
-    if (NODE_TYPE_LEVELS[parent.data.nodeType] >= NODE_TYPE_LEVELS[node.data.nodeType]) {
+    if (NODE_TYPE_LEVELS[parent.type] >= NODE_TYPE_LEVELS[node.type]) {
       return true;
     }
   }
@@ -116,13 +116,13 @@ export const upgradeFeatureToRegion = (
   }
 
   const featureNode = working.nodes[featureIndex];
-  if (featureNode.data.nodeType !== 'feature') {
+  if (featureNode.type !== 'feature') {
     return { updatedMapData: working, newNode: null, newEdges: [] };
   }
 
 
   // Promote feature to region level
-  featureNode.data.nodeType = 'region';
+  featureNode.type = 'region';
 
   // Create connector feature as child of new region
   const connectorId = generateUniqueId(`node-${connectorName}-`);
@@ -130,14 +130,12 @@ export const upgradeFeatureToRegion = (
     id: connectorId,
     placeName: connectorName,
     position: { ...featureNode.position },
-    data: {
-      description: featureNode.data.description,
-      aliases: featureNode.data.aliases ?? [],
-      status: featureNode.data.status,
-      nodeType: 'feature',
-      parentNodeId: featureNode.id,
-      visited: featureNode.data.visited,
-    },
+    description: featureNode.description,
+    aliases: featureNode.aliases ?? [],
+    status: featureNode.status,
+    type: 'feature',
+    parentNodeId: featureNode.id,
+    visited: featureNode.visited,
   };
   working.nodes.push(connectorNode);
 
@@ -149,7 +147,7 @@ export const upgradeFeatureToRegion = (
 
   // Add edges from connector to existing children
   const childNodes = working.nodes.filter(
-    n => n.data.parentNodeId === featureNodeId && n.id !== connectorId
+    n => n.parentNodeId === featureNodeId && n.id !== connectorId
   );
   const createdEdges: Array<MapEdge> = [];
 
@@ -159,11 +157,9 @@ export const upgradeFeatureToRegion = (
       id: edgeId,
       sourceNodeId: connectorId,
       targetNodeId: child.id,
-      data: {
-        type: 'path',
-        status: featureNode.data.status === 'rumored' ? 'rumored' : 'open',
-        description: `Connection from ${connectorName} to ${child.placeName}`,
-      },
+      type: 'path',
+      status: featureNode.status === 'rumored' ? 'rumored' : 'open',
+      description: `Connection from ${connectorName} to ${child.placeName}`,
     };
     working.edges.push(newEdge);
     createdEdges.push(newEdge);
@@ -185,12 +181,12 @@ export const upgradeFeaturesWithChildren = async (
   const addedEdges: Array<MapEdge> = [];
 
   for (const node of working.nodes) {
-    if (node.data.nodeType === 'feature') {
-      const childNodes = working.nodes.filter(n => n.data.parentNodeId === node.id);
+    if (node.type === 'feature') {
+      const childNodes = working.nodes.filter(n => n.parentNodeId === node.id);
       if (childNodes.length > 0) {
         const decision = await decideFeatureHierarchyUpgrade(node, childNodes[0]);
         if (decision === 'convert_child') {
-          childNodes.forEach(child => { child.data.parentNodeId = node.data.parentNodeId; });
+          childNodes.forEach(child => { child.parentNodeId = node.parentNodeId; });
         } else {
           const res = upgradeFeatureToRegion(working, node.id, 'Temp Approach');
           working = res.updatedMapData;

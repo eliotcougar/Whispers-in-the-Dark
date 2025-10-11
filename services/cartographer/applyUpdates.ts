@@ -78,8 +78,8 @@ export const applyMapUpdates = async ({
   nodesFromMapData.forEach(n => {
     nodeIdMap.set(n.id, n);
     nodeNameMap.set(n.placeName, n);
-    if (n.data.aliases) {
-      n.data.aliases.forEach(a => nodeAliasMap.set(a.toLowerCase(), n));
+    if (n.aliases) {
+      n.aliases.forEach(a => nodeAliasMap.set(a.toLowerCase(), n));
     }
   });
   edgesFromMapData.forEach(e => {
@@ -190,10 +190,10 @@ export const applyMapUpdates = async ({
   nodeAliasMap.clear();
   edgesMap.clear();
   newMapData.nodes.forEach(n => {
-      nodeIdMap.set(n.id, n);
-      nodeNameMap.set(n.placeName, n);
-      if (n.data.aliases) n.data.aliases.forEach(a => nodeAliasMap.set(a.toLowerCase(), n));
-    });
+    nodeIdMap.set(n.id, n);
+    nodeNameMap.set(n.placeName, n);
+    if (n.aliases) n.aliases.forEach(a => nodeAliasMap.set(a.toLowerCase(), n));
+  });
   newMapData.edges.forEach(e => {
     if (nodeIdMap.has(e.sourceNodeId) && nodeIdMap.has(e.targetNodeId)) {
       if (!edgesMap.has(e.sourceNodeId)) edgesMap.set(e.sourceNodeId, []);

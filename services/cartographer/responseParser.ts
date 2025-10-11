@@ -43,7 +43,7 @@ export const parseAIMapUpdateResponse = async (
         if (entry && typeof entry === 'object') {
           const maybeObj = entry as Partial<AIMapUpdatePayload>;
           // Recognize navigation-only schema fragments: { nodeAndEdge: { nodeToAdd, edgeToAdd }, suggestedCurrentMapNodeId }
-          const maybeNav: unknown = (maybeObj as unknown as Record<string, unknown>)['nodeAndEdge'];
+          const maybeNav: unknown = (maybeObj as unknown as Record<string, unknown>).nodeAndEdge;
           if (maybeNav && typeof maybeNav === 'object') {
             const navObj = maybeNav as Record<string, unknown>;
             if (navObj.edgeToAdd && typeof navObj.edgeToAdd === 'object') {
@@ -117,7 +117,7 @@ export const parseAIMapUpdateResponse = async (
         const nav = asObj.nodeAndEdge as Record<string, unknown>;
         const converted: AIMapUpdatePayload = {};
         if (asObj.suggestedCurrentMapNodeId && typeof asObj.suggestedCurrentMapNodeId === 'string') {
-          converted.suggestedCurrentMapNodeId = asObj.suggestedCurrentMapNodeId as string;
+          converted.suggestedCurrentMapNodeId = asObj.suggestedCurrentMapNodeId;
         }
         if (nav.nodeToAdd && typeof nav.nodeToAdd === 'object') {
           converted.nodesToAdd = [

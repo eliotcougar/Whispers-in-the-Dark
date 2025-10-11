@@ -184,7 +184,7 @@ export const buildMainGameTurnPrompt = (
     const nodeById = new Map(fullMapData.nodes.map(n => [n.id, n]));
     const destNode = nodeById.get(destinationNodeId);
     const placeName = destNode?.placeName ?? destinationNodeId;
-    const destParentId = destNode?.data.parentNodeId;
+    const destParentId = destNode?.parentNodeId;
     const destParent =
       destParentId && destParentId !== ROOT_MAP_NODE_ID
         ? nodeById.get(destParentId)?.placeName ?? destParentId

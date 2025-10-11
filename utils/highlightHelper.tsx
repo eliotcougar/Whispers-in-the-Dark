@@ -213,8 +213,8 @@ export const buildHighlightableEntities = (
   const places: Array<HighlightableEntity> = mapData.map(node => ({
     name: node.placeName,
     type: 'place',
-    description: node.data.description,
-    aliases: node.data.aliases ?? [],
+    description: node.description,
+    aliases: node.aliases ?? [],
   }));
 
   const npcs: Array<HighlightableEntity> = allNPCs.map(npc => ({
