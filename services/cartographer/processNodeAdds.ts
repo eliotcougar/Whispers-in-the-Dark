@@ -67,7 +67,6 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
 
   nodesToAddOps_mut.forEach(nAdd => {
     const id = buildNodeId(nAdd.placeName);
-    (nAdd as unknown as Record<string, unknown>).__generatedId = id;
     context.newNodesInBatchIdNameMap[nAdd.placeName] = { id, name: nAdd.placeName };
   });
 
@@ -206,14 +205,13 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
         continue;
       }
 
-      const preId = (nodeAddOp as unknown as Record<string, unknown>).__generatedId as
-        string | undefined;
+      const preId = context.newNodesInBatchIdNameMap[nodeAddOp.placeName]?.id;
       const newNodeId = preId ?? buildNodeId(nodeAddOp.placeName);
 
       const additionalFields: Record<string, unknown> = {};
       const nodeAddRecord = nodeAddOp as unknown as Record<string, unknown>;
       for (const [key, value] of Object.entries(nodeAddRecord)) {
-        if (!['placeName', 'description', 'aliases', 'status', 'parentNodeId', 'type', 'nodeType', '__generatedId'].includes(key)) {
+        if (!['placeName', 'description', 'aliases', 'status', 'parentNodeId', 'type', 'nodeType'].includes(key)) {
           additionalFields[key] = value;
         }
       }

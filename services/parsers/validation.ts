@@ -321,12 +321,6 @@ export function isValidItemData(obj: unknown): obj is ItemData {
     if (typeof maybe.activeDescription !== 'string') return false;
   }
   if (
-    maybe.holderId !== undefined &&
-    (typeof maybe.holderId !== 'string' || maybe.holderId.trim() === '')
-  ) {
-    return false;
-  }
-  if (
     maybe.tags !== undefined &&
     (!Array.isArray(maybe.tags) ||
       !maybe.tags.every(tag => typeof tag === 'string'))

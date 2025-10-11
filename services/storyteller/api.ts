@@ -16,7 +16,6 @@ import {
   VALID_ITEM_TYPES_STRING,
   VALID_TAGS,
   TEXT_STYLE_TAGS_STRING,
-  PLAYER_HOLDER_ID,
   DEDICATED_BUTTON_USES_STRING,
   MIN_BOOK_CHAPTERS,
   MAX_BOOK_CHAPTERS,
@@ -156,10 +155,6 @@ export const STORYTELLER_JSON_SCHEMA = {
             type: 'string',
             description: 'Concise explanation of what the item is.'
           },
-          holderId: {
-            type: 'string',
-            description: `ID or Name of the item holder. CAN be NPC, Location, or '${PLAYER_HOLDER_ID}'. CAN NOT be an Item. Use '${PLAYER_HOLDER_ID}' only if it is obvious from the context that the player actually acquired the item.`,
-          },
           isActive: {
             type: 'boolean',
             description: 'Whether the item is currently active, equipped, worn, or piloted (if vehicle).'
@@ -202,7 +197,6 @@ export const STORYTELLER_JSON_SCHEMA = {
           'activeDescription',
           'chapters',
           'description',
-          'holderId',
           'isActive',
           'knownUses',
           'name',

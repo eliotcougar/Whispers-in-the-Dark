@@ -76,7 +76,6 @@ newItems:
 [
   {
     "description": "A key for the armory door.",
-    "holderId": "npc-guard-4f3a",
     "name": "Rusty Key",
     "type": "key"
   }
@@ -96,7 +95,6 @@ newItems:
       }
     ],
     "description": "A hastily scribbled message with a big smudge over it.",
-    "holderId": "player",
     "name": "Smudged Note",
     "tags": ["typed", "smudged"],
     "type": "page"
@@ -132,7 +130,6 @@ newItems:
       }
     ],
     "description": "Weathered log of travels.",
-    "holderId": "player",
     "name": "Explorer's Adventures",
     "tags": ["handwritten", "faded"],
     "type": "book"

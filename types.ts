@@ -88,7 +88,6 @@ export interface ItemData {
   isActive?: boolean; // Defaults to false if undefined
   knownUses?: Array<KnownUse>; // Discovered specific ways to use the item
   tags?: Array<ItemTag>; // Tags for classification, e.g., ["junk"]
-  holderId?: string; // ID of the entity holding this item or 'player'
   chapters?: Array<ItemChapter>; // Text content for written items
 }
 
@@ -100,7 +99,10 @@ export interface Item extends ItemData {
   lastInspectTurn?: number;
 }
 
-export type ItemCreatePayload = ItemData & { id?: string };
+export type ItemCreatePayload = ItemData & {
+  id?: string;
+  holderId: string;
+};
 
 export interface ItemReference {
   id?: Item['id'];
@@ -116,6 +118,7 @@ export interface MoveItemPayload {
 export type ItemChangePayload =
   Partial<ItemData> & {
     id?: string;
+    holderId?: string;
     newName?: string;
   };
 
