@@ -115,9 +115,17 @@ export function isValidItem(item: unknown, context?: 'create' | 'change'): item 
         return false;
       }
   }
-  if (obj.activeDescription !== undefined && typeof obj.activeDescription !== 'string') {
-    console.warn("isValidItem: 'activeDescription' is present but invalid.", item);
-    return false;
+  if (obj.activeDescription !== undefined) {
+    const isNullActiveDescription = obj.activeDescription === null;
+    if (isNullActiveDescription) {
+      if (context !== 'change') {
+        console.warn("isValidItem: 'activeDescription' cannot be null for this context.", item);
+        return false;
+      }
+    } else if (typeof obj.activeDescription !== 'string') {
+      console.warn("isValidItem: 'activeDescription' is present but invalid.", item);
+      return false;
+    }
   }
   if (obj.isActive !== undefined && typeof obj.isActive !== 'boolean') {
     console.warn("isValidItem: 'isActive' is present but invalid.", item);

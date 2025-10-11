@@ -55,7 +55,7 @@ function InventoryItem({
   queuedActionIds,
   remainingActionPoints,
 }: InventoryItemProps) {
-  const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description;
+  const displayDescription = item.isActive && item.activeDescription ? item.activeDescription : item.description; // Show regular description if active item doesn't have an activeDescription
   const isWrittenItem = WRITTEN_ITEM_TYPES.includes(
     item.type as (typeof WRITTEN_ITEM_TYPES)[number],
   );

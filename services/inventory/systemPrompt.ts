@@ -97,6 +97,12 @@ Use 'addDetails' to add new Known Uses or Tags.
         "newName": "Makeshift Shiv",
         "tags": [], /* empty array to remove the 'junk' tag from scrap metal */
         "type": "weapon"
+    },
+    { // Example for clearing the special active description text on an existing item:
+        "activeDescription": null,
+        "id": "item-old-lantern-7fr4",
+        "isActive": false,
+        "name": "Old Lantern"
     }
 ],
 addDetails: [
@@ -121,6 +127,8 @@ IMPORTANT: For items that CLEARLY can be enabled or disabled (e.g., light source
   - The knownUse to turn off, extinguish, or disable the item should ALWAYS have "appliesWhenActive": true (and typically "appliesWhenInactive": false or undefined).
   - ALWAYS provide these actions in pairs, e.g. turn on/turn off, wield/put away, wear/take off, light/extinguish, activate/deactivate, start/stop, etc.
 IMPORTANT: NEVER add ${DEDICATED_BUTTON_USES_STRING} known uses - there are dedicated buttons for those in the game.
+IMPORTANT: To clear an item's special active description, set "activeDescription": null inside a "change" action.
+IMPORTANT: When you clear the special active description, also set "isActive": false for that item.
 
 ${REGULAR_ITEM_TYPES_GUIDE}
 

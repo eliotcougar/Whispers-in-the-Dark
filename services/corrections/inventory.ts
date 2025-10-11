@@ -33,7 +33,7 @@ const ITEM_CHANGE_SCHEMA = {
           name: { type: 'string' },
           type: { enum: VALID_ITEM_TYPES },
           description: { type: 'string' },
-          activeDescription: { type: 'string' },
+          activeDescription: { type: ['string', 'null'] },
           isActive: { type: 'boolean' },
           holderId: {
             type: 'string',
@@ -127,6 +127,7 @@ Task: Provide ONLY the corrected JSON array of ItemChange objects.`;
 Each element must be { "action": (${VALID_ACTIONS_STRING}), "item": { ... } }.
 Item properties must appear in this order: id, name, type, description, activeDescription, isActive, holderId, newHolderId, newName, tags, knownUses, chapters.
 Valid item types: ${VALID_ITEM_TYPES_STRING}.
+Use "activeDescription": null in a "change" action to clear an existing active description, and set "isActive": false when you do so.
 
 ## Examples:
 [
@@ -180,6 +181,15 @@ Valid item types: ${VALID_ITEM_TYPES_STRING}.
       "id": "item-plasma-torch-7fr4",
       "name": "Plasma Torch",
       "isActive": true
+    }
+  },
+  { // Example for clearing the special active description
+    "action": "change",
+    "item": {
+      "id": "item-old-lantern-7fr4",
+      "name": "Old Lantern",
+      "activeDescription": null,
+      "isActive": false
     }
   },
   { // Example for adding new details to an existing item

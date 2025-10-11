@@ -98,7 +98,10 @@ export const INVENTORY_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          activeDescription: { type: 'string', description: 'Updated active description.' },
+          activeDescription: {
+            type: ['string', 'null'],
+            description: 'Updated active description. Use null to clear the current active description.',
+          },
           description: { type: 'string', description: 'Updated description if changed.' },
           id: { type: 'string', description: 'Identifier of the item to change.' },
           isActive: { type: 'boolean', description: 'True if the item becomes active, worn, wielded, etc. False otherwise.' },

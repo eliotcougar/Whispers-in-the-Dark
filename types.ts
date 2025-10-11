@@ -57,8 +57,8 @@ export interface GameSettings {
   preferredPlayerName?: string;
 }
 
-export type MapNodeStatus = typeof VALID_NODE_STATUS_VALUES[number];
 export type MapNodeType = typeof VALID_NODE_TYPE_VALUES[number];
+export type MapNodeStatus = typeof VALID_NODE_STATUS_VALUES[number];
 export type MapEdgeType = typeof VALID_EDGE_TYPE_VALUES[number];
 export type MapEdgeStatus = typeof VALID_EDGE_STATUS_VALUES[number];
 

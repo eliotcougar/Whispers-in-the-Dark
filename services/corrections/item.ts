@@ -61,7 +61,7 @@ export const fetchCorrectedItemPayload = async (
 `;
 
   const baseItemStructureForPrompt = `{
-  "activeDescription?": "string",
+  "activeDescription?": "string | null /* use null in change actions to clear the active description */",
   "addKnownUse?": { },
   "chapters"?: [
     {
@@ -100,10 +100,11 @@ export const fetchCorrectedItemPayload = async (
 The "name" field in the corrected JSON **MUST** be the *original name* of item being updated. If this original name is unclear from malformed payload, infer it from Log/Scene, ideally referencing "${originalItemNameFromMalformed}".
 Instructions for "change":
 1.  **Simple Update (No Transformation):** If the malformed payload does NOT contain a "newName" AND the Log/Scene context does NOT clearly indicate the item is transforming into something else:
-    -   Only include fields ("type", "description", "isActive", "tags", "contentLength", "knownUses", "addKnownUse") if they are being explicitly changed or were present in the original payload.
+    -   Only include fields ("type", "description", "activeDescription", "isActive", "tags", "contentLength", "knownUses", "addKnownUse") if they are being explicitly changed or were present in the original payload.
     -   If "type" or "description" are not provided, the item's existing values will be retained.
     -   If "type" is provided, it must be from ${VALID_ITEM_TYPES_STRING} and CANNOT be 'junk'. If the item becomes junk, ensure "tags" includes "junk".
     -   Always include the current "holderId" of the item.
+    -   Set "activeDescription": null if the item should lose its special active description text, and include "isActive": false so the item becomes inactive.
 2.  **Transformation (Using "newName"):** If the malformed payload contains a "newName" OR the context clearly indicates a transformation:
     -   The corrected payload MUST include the "newName" field.
     -   Optionally include "type" and "description" if they change; otherwise they will be inherited.

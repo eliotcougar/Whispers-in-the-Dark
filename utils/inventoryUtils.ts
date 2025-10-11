@@ -18,9 +18,20 @@ const updateItemCore = (
   const updated: Item = { ...existing };
   if (payload.type !== undefined) updated.type = payload.type;
   if (payload.description !== undefined) updated.description = payload.description;
-  if (payload.activeDescription !== undefined)
-    updated.activeDescription = payload.activeDescription ?? undefined;
-  if (payload.isActive !== undefined) updated.isActive = payload.isActive;
+  if (payload.activeDescription !== undefined) {
+    if (payload.activeDescription === null) {
+      updated.activeDescription = undefined;
+    } else {
+      updated.activeDescription = payload.activeDescription;
+    }
+  }
+  if (payload.isActive !== undefined) {
+    updated.isActive = payload.isActive;
+  }
+  if (payload.activeDescription === null) {
+    // Clearing the active description should always put the item back into an inactive state.
+    updated.isActive = false;
+  }
   if (payload.tags !== undefined) updated.tags = payload.tags;
   if (payload.chapters !== undefined) updated.chapters = payload.chapters;
   if (payload.knownUses !== undefined) updated.knownUses = payload.knownUses;

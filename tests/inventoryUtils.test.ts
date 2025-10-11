@@ -102,4 +102,29 @@ describe('inventoryUtils', () => {
     expect(result[0].chapters?.length).toBe(2);
     expect(result[0].lastInspectTurn).toBeUndefined();
   });
+
+  it('change action with activeDescription null clears the stored active text', () => {
+    const initial: Array<Item> = [
+      {
+        id: 'lantern1',
+        name: 'Old Lantern',
+        type: 'equipment',
+        description: 'A dusty lantern.',
+        holderId: PLAYER_HOLDER_ID,
+        activeDescription: 'The lantern is lit and casts a warm glow.',
+        isActive: true,
+      },
+    ];
+    const change: ItemChange = {
+      action: 'change',
+      item: {
+        id: 'lantern1',
+        name: 'Old Lantern',
+        activeDescription: null,
+      },
+    };
+    const result = applyItemChangeAction(initial, change);
+    expect(result[0].activeDescription).toBeUndefined();
+    expect(result[0].isActive).toBe(false);
+  });
 });
