@@ -159,9 +159,11 @@ export async function processNodeAdds(context: ApplyUpdatesContext): Promise<voi
             if (m) {
               const rawBase = m[1].toLowerCase();
               const baseHyphen = rawBase.replace(/_/g, '-');
-              const candidates = Object.values(context.newNodesInBatchIdNameMap).filter(entry =>
-                entry.id.toLowerCase().startsWith(`${baseHyphen}-`)
-              );
+              const candidates = Object.values(context.newNodesInBatchIdNameMap)
+                .filter((entry): entry is { id: string; name: string } => entry != null)
+                .filter(entry =>
+                  entry.id.toLowerCase().startsWith(`${baseHyphen}-`)
+                );
               if (candidates.length === 1) {
                 resolvedParentId = candidates[0].id;
               }

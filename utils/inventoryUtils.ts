@@ -15,7 +15,8 @@ import { PLAYER_HOLDER_ID } from '../constants';
 
 const normalizeCreatedItem = (payload: ItemCreatePayload): Item => {
   const id = payload.id ?? buildItemId(payload.name);
-  const holderId = payload.holderId ?? PLAYER_HOLDER_ID;
+  const holderId =
+    payload.holderId.trim() === '' ? PLAYER_HOLDER_ID : payload.holderId;
   return {
     ...payload,
     id,

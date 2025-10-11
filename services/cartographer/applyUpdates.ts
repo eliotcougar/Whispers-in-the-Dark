@@ -106,9 +106,11 @@ export const applyMapUpdates = async ({
       if (m) {
         const rawBase = m[1].toLowerCase();
         const baseHyphen = rawBase.replace(/_/g, '-');
-        const candidates = Object.values(newNodesInBatchIdNameMap).filter(entry =>
-          entry.id.toLowerCase().startsWith(`${baseHyphen}-`)
-        );
+        const candidates = Object.values(newNodesInBatchIdNameMap)
+          .filter((entry): entry is { id: string; name: string } => entry != null)
+          .filter(entry =>
+            entry.id.toLowerCase().startsWith(`${baseHyphen}-`)
+          );
         if (candidates.length === 1) {
           node = newMapData.nodes.find(n => n.id === candidates[0].id);
           if (!node) return undefined;
@@ -175,7 +177,7 @@ export const applyMapUpdates = async ({
 
   // Proceed with map data processing using payload
   const newMapData: MapData = structuredCloneGameState(currentMapData);
-  const newNodesInBatchIdNameMap: Record<string, { id: string; name: string }> = {};
+  const newNodesInBatchIdNameMap: Record<string, { id: string; name: string } | undefined> = {};
   const newlyAddedNodes: Array<MapNode> = [];
   const newlyAddedEdges: Array<MapEdge> = [];
   const pendingChainRequests: Array<EdgeChainRequest> = [];
@@ -287,7 +289,10 @@ export const applyMapUpdates = async ({
       if (v.id === removedId) ctx.nodeAliasMap.delete(k);
     }
     const batchKey = Object.keys(ctx.newNodesInBatchIdNameMap).find(
-      k => ctx.newNodesInBatchIdNameMap[k].id === removedId || k === node.placeName,
+      k => {
+        const entry = ctx.newNodesInBatchIdNameMap[k];
+        return (entry != null && entry.id === removedId) || k === node.placeName;
+      },
     );
     if (batchKey) Reflect.deleteProperty(ctx.newNodesInBatchIdNameMap, batchKey);
   };

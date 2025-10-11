@@ -21,7 +21,7 @@ export interface ApplyUpdatesContext {
   nodeNameMap: Map<string, MapNode>;
   nodeAliasMap: Map<string, MapNode>;
   edgesMap: Map<string, Array<MapEdge>>;
-  newNodesInBatchIdNameMap: Record<string, { id: string; name: string }>;
+  newNodesInBatchIdNameMap: Record<string, { id: string; name: string } | undefined>;
   newlyAddedNodes: Array<MapNode>;
   newlyAddedEdges: Array<MapEdge>;
   pendingChainRequests: Array<EdgeChainRequest>;

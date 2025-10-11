@@ -69,7 +69,10 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
       }
       if (nodeUpdateOp.newPlaceName && nodeUpdateOp.newPlaceName !== node.placeName) {
         const oldBatchEntryKey = Object.keys(ctx.newNodesInBatchIdNameMap).find(
-          key => ctx.newNodesInBatchIdNameMap[key].id === node.id
+          key => {
+            const entry = ctx.newNodesInBatchIdNameMap[key];
+            return entry != null && entry.id === node.id;
+          }
         );
         if (oldBatchEntryKey) {
           Reflect.deleteProperty(ctx.newNodesInBatchIdNameMap, oldBatchEntryKey);
@@ -138,7 +141,10 @@ export async function processNodeUpdates(ctx: ApplyUpdatesContext): Promise<void
         if (v.id === removedNodeId) ctx.nodeAliasMap.delete(k);
       }
       const batchKey = Object.keys(ctx.newNodesInBatchIdNameMap).find(
-        k => ctx.newNodesInBatchIdNameMap[k].id === removedNodeId || k === nodeRemoveOp.nodeName
+        k => {
+          const entry = ctx.newNodesInBatchIdNameMap[k];
+          return (entry != null && entry.id === removedNodeId) || k === nodeRemoveOp.nodeName;
+        }
       );
       if (batchKey) Reflect.deleteProperty(ctx.newNodesInBatchIdNameMap, batchKey);
     } else {

@@ -107,8 +107,7 @@ const correctItemChanges = async ({
     if ('item' in currentChange && (currentChange.item as { type?: string }).type === 'immovable') {
       if (currentChange.action === 'create') {
         const itm = currentChange.item;
-        const holderId = itm.holderId ?? '';
-        if (!holderId.startsWith('node-')) {
+        if (!itm.holderId.startsWith('node-')) {
           itm.holderId = baseState.currentMapNodeId ?? 'unknown';
         }
       } else if (currentChange.action === 'move') {
