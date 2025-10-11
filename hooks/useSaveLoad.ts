@@ -1,9 +1,22 @@
 /**
  * @file useSaveLoad.ts
- * @description Hook managing save/load operations and related state for App.
+ * @description Hooks managing save/load state and interactions for the App shell.
  */
-import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
-import { ThemePackName, GameStateStack, DebugPacketStack, ThinkingEffort } from '../types';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
+import {
+  ThemePackName,
+  GameStateStack,
+  DebugPacketStack,
+  ThinkingEffort,
+} from '../types';
 import {
   saveGameStateToFile,
   loadGameStateFromFile,
@@ -22,31 +35,24 @@ import {
 import { DEFAULT_ENABLED_THEME_PACKS } from '../constants';
 import { setThinkingEffortLevel } from '../services/thinkingConfig';
 import { sanitizePlayerName } from '../utils/textSanitizers';
+import { useGameLogicContext } from './useGameLogicContext';
 
-export interface UseSaveLoadOptions {
-  gatherGameStateStack?: () => GameStateStack;
-  gatherDebugPacketStack?: () => DebugPacketStack;
-  applyLoadedGameState?: (opts: {
-    savedStateToLoad: GameStateStack;
-    clearImages?: boolean;
-  }) => Promise<void>;
-  setError?: Dispatch<SetStateAction<string | null>>;
-  setIsLoading?: Dispatch<SetStateAction<boolean>>;
-  isLoading?: boolean;
-  dialogueState?: unknown;
+export interface SaveLoadState {
+  readonly enabledThemePacks: Array<ThemePackName>;
+  readonly setEnabledThemePacks: Dispatch<SetStateAction<Array<ThemePackName>>>;
+  readonly thinkingEffort: ThinkingEffort;
+  readonly setThinkingEffort: Dispatch<SetStateAction<ThinkingEffort>>;
+  readonly preferredPlayerName: string;
+  readonly setPreferredPlayerName: Dispatch<SetStateAction<string>>;
+  readonly initialSavedState: GameStateStack | null;
+  readonly initialDebugStack: DebugPacketStack | null;
+  readonly appReady: boolean;
 }
 
-
-export const useSaveLoad = ({
-  gatherGameStateStack,
-  gatherDebugPacketStack,
-  applyLoadedGameState,
-  setError,
-  setIsLoading,
-  isLoading = false,
-  dialogueState = null,
-}: UseSaveLoadOptions) => {
-  const [enabledThemePacks, setEnabledThemePacks] = useState<Array<ThemePackName>>([...DEFAULT_ENABLED_THEME_PACKS]);
+export const useSaveLoadState = (): SaveLoadState => {
+  const [enabledThemePacks, setEnabledThemePacks] = useState<Array<ThemePackName>>(
+    [...DEFAULT_ENABLED_THEME_PACKS],
+  );
   const [thinkingEffort, setThinkingEffort] = useState<ThinkingEffort>('Medium');
   const [preferredPlayerName, setPreferredPlayerName] = useState<string>('');
   const [initialSavedState, setInitialSavedState] = useState<GameStateStack | null>(null);
@@ -59,16 +65,21 @@ export const useSaveLoad = ({
       const loadedDebug = loadDebugPacketStackFromLocalStorage();
       const loadedDebugLore = loadDebugLoreFromLocalStorage();
       const loadedSettings = loadSettingsFromLocalStorage();
+
       setEnabledThemePacks(loadedSettings.enabledThemePacks);
       setThinkingEffort(loadedSettings.thinkingEffort);
       setPreferredPlayerName(loadedSettings.preferredPlayerName ?? '');
+
       if (loadedState) {
-        if (loadedDebug) setInitialDebugStack(loadedDebug);
+        if (loadedDebug) {
+          setInitialDebugStack(loadedDebug);
+        }
         if (loadedDebugLore) {
           loadedState[0].debugLore = loadedDebugLore.debugLore;
           loadedState[0].debugGoodFacts = loadedDebugLore.debugGoodFacts;
           loadedState[0].debugBadFacts = loadedDebugLore.debugBadFacts;
         }
+
         const { thinkingEffort: effort, enabledThemePacks: packs } = loadedSettings;
         loadedState[0].thinkingEffort = effort;
         loadedState[0].enabledThemePacks = packs;
@@ -76,10 +87,12 @@ export const useSaveLoad = ({
           loadedState[1].thinkingEffort = effort;
           loadedState[1].enabledThemePacks = packs;
         }
+
         setInitialSavedState(loadedState);
       } else {
         setInitialSavedState(null);
       }
+
       setAppReady(true);
     })();
   }, []);
@@ -87,45 +100,72 @@ export const useSaveLoad = ({
   useEffect(() => {
     setThinkingEffortLevel(thinkingEffort);
     const sanitized = sanitizePlayerName(preferredPlayerName);
-    saveSettingsToLocalStorage({ enabledThemePacks, thinkingEffort, preferredPlayerName: sanitized });
+    saveSettingsToLocalStorage({
+      enabledThemePacks,
+      thinkingEffort,
+      preferredPlayerName: sanitized,
+    });
   }, [enabledThemePacks, thinkingEffort, preferredPlayerName]);
 
+  return {
+    enabledThemePacks,
+    setEnabledThemePacks,
+    thinkingEffort,
+    setThinkingEffort,
+    preferredPlayerName,
+    setPreferredPlayerName,
+    initialSavedState,
+    initialDebugStack,
+    appReady,
+  };
+};
+
+interface UseSaveLoadActionsOptions {
+  readonly enabledThemePacks: Array<ThemePackName>;
+  readonly thinkingEffort: ThinkingEffort;
+}
+
+export const useSaveLoadActions = ({
+  enabledThemePacks,
+  thinkingEffort,
+}: UseSaveLoadActionsOptions) => {
+  const gameLogic = useGameLogicContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveToFile = useCallback(async () => {
-    if (isLoading || !!dialogueState) {
-      setError?.('Cannot save to file while loading or in dialogue.');
+    if (gameLogic.isLoading || gameLogic.dialogueState) {
+      gameLogic.setError('Cannot save to file while loading or in dialogue.');
       return;
     }
-    if (gatherGameStateStack && gatherDebugPacketStack) {
-      const gameState = gatherGameStateStack();
-      const debugStack = gatherDebugPacketStack();
-      await saveGameStateToFile(
-        gameState,
-        debugStack,
-        setError ? msg => { setError(msg); } : undefined,
-      );
-    }
-  }, [gatherGameStateStack, gatherDebugPacketStack, isLoading, dialogueState, setError]);
 
-  const handleLoadFromFileClick = () => {
-    if (isLoading || !!dialogueState) {
-      setError?.('Cannot load from file while another operation is in progress or while in dialogue.');
+    const gameState = gameLogic.gatherCurrentGameState();
+    const debugStack = gameLogic.gatherDebugPacketStack();
+    await saveGameStateToFile(
+      gameState,
+      debugStack,
+      msg => { gameLogic.setError(msg); },
+    );
+  }, [gameLogic]);
+
+  const handleLoadFromFileClick = useCallback(() => {
+    if (gameLogic.isLoading || gameLogic.dialogueState) {
+      gameLogic.setError('Cannot load from file while another operation is in progress or while in dialogue.');
       return;
     }
     fileInputRef.current?.click();
-  };
+  }, [gameLogic]);
 
-  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (isLoading || !!dialogueState) {
-      setError?.('Cannot load from file while another operation is in progress or while in dialogue.');
+  const handleFileSelected = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
+    if (gameLogic.isLoading || gameLogic.dialogueState) {
+      gameLogic.setError('Cannot load from file while another operation is in progress or while in dialogue.');
       event.target.value = '';
       return;
     }
+
     const file = event.target.files?.[0];
     if (file) {
-      setIsLoading?.(true);
-      setError?.(null);
+      gameLogic.setIsLoading(true);
+      gameLogic.setError(null);
       await clearAllImages();
       const loaded = await loadGameStateFromFile(file);
       if (loaded) {
@@ -142,12 +182,10 @@ export const useSaveLoad = ({
           mergedStack[0].debugGoodFacts = existingLore.debugGoodFacts;
           mergedStack[0].debugBadFacts = existingLore.debugBadFacts;
         }
-        if (applyLoadedGameState) {
-          await applyLoadedGameState({ savedStateToLoad: mergedStack });
-        }
+        await gameLogic.applyLoadedGameState({ savedStateToLoad: mergedStack });
         saveGameStateToLocalStorage(
           mergedStack,
-          setError ? (msg) => { setError(msg); } : undefined,
+          msg => { gameLogic.setError(msg); },
         );
         saveDebugPacketStackToLocalStorage(loadedDebug);
         if (existingLore) {
@@ -160,27 +198,20 @@ export const useSaveLoad = ({
           });
         }
       } else {
-        setError?.('Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file.');
+        gameLogic.setError(
+          'Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file.',
+        );
       }
-      setIsLoading?.(false);
+      gameLogic.setIsLoading(false);
     }
     event.target.value = '';
-  };
+  }, [enabledThemePacks, gameLogic, thinkingEffort]);
 
-  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     void handleFileSelected(event);
-  };
+  }, [handleFileSelected]);
 
   return {
-    enabledThemePacks,
-    setEnabledThemePacks,
-    thinkingEffort,
-    setThinkingEffort,
-    preferredPlayerName,
-    setPreferredPlayerName,
-    initialSavedState,
-    initialDebugStack,
-    appReady,
     fileInputRef,
     handleSaveToFile,
     handleLoadFromFileClick,

@@ -141,11 +141,8 @@ function MapDisplay({
   }, [nodes, layoutNestedPadding, layoutNestedAnglePadding, onNodesPositioned]);
 
   useEffect(() => {
-    if (isVisible) {
-      runLayout();
-    } else {
-      setDisplayedNodes([]);
-    }
+    if (!isVisible) return;
+    runLayout();
   }, [isVisible, runLayout]);
 
   /** Triggers a recalculation of node positions using the current settings. */
@@ -162,13 +159,12 @@ function MapDisplay({
     setItemIconScale(DEFAULT_ITEM_ICON_SCALE);
   }, []);
 
-  if (!isVisible) return null;
-
   return (
     <div
+      aria-hidden={!isVisible}
       aria-labelledby="map-display-title"
       aria-modal="true"
-      className="animated-frame open"
+      className={`animated-frame ${isVisible ? 'open' : ''}`}
       role="dialog"
     >
       <div className="animated-frame-content">

@@ -725,3 +725,5 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     parseErrorCounter,
   };
 };
+
+export type UseGameLogicReturn = ReturnType<typeof useGameLogic>;
