@@ -75,9 +75,9 @@ export interface ItemChapter {
   heading: string;
   description: string;
   contentLength: number;
-  actualContent?: string;
-  visibleContent?: string;
-  imageData?: string;
+  actualContent?: string;  //optional, added when the player reads the item
+  visibleContent?: string;  //optional, added when the player reads the item
+  imageData?: string;  //optional, added when the player reads the item
 }
 
 export interface Item {
@@ -100,8 +100,6 @@ export interface Item {
   chapters?: Array<ItemChapter>;
   lastWriteTurn?: number;
   lastInspectTurn?: number;
-  // --- Fields for "change" action payloads ---
-  newName?: string;
 }
 
 // This ItemChange is from the AI's perspective, and will be processed into ItemChangeRecord
@@ -117,7 +115,10 @@ export interface MoveItemPayload {
 }
 
 export type ItemChangePayload =
-  Partial<Omit<Item, 'activeDescription'>> & { activeDescription?: string | null };
+  Partial<Omit<Item, 'activeDescription'>> & {
+    activeDescription?: string | null;
+    newName?: string;
+  };
 
 export interface NewItemSuggestion {
   name: string;

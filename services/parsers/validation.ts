@@ -56,6 +56,7 @@ export function isValidKnownUse(ku: unknown): ku is KnownUse {
 export function isValidItem(item: unknown, context?: 'create' | 'change'): item is Item {
   if (!item || typeof item !== 'object') return false;
   const obj = item as Partial<Item> & {
+    newName?: string;
     contentLength?: number;
     actualContent?: string;
     visibleContent?: string;
