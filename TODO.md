@@ -10,8 +10,8 @@
 - [x] `hooks/useGameInitialization.ts:123` – Split `loadInitialGame` into helpers for saved-state hydration, theme selection, and new-game setup to reduce branching inside the callback.
 
 ## Performance & Responsiveness
-- [ ] `hooks/useProcessAiResponse.ts:60` – Precompute maps of nodes, NPCs, and inventory items so `correctItemChanges` stops scanning arrays on every change.
-- [ ] `hooks/useProcessAiResponse.ts:137` – Batch or short-circuit repeated correction service calls so multiple `destroy` fixes do not await sequential network trips.
+- [x] `hooks/useProcessAiResponse.ts:60` – Precompute maps of nodes, NPCs, and inventory items so `correctItemChanges` stops scanning arrays on every change.
+- [x] `hooks/useProcessAiResponse.ts:137` – Batch or short-circuit repeated correction service calls so multiple `destroy` fixes do not await sequential network trips.
 - [x] `hooks/usePlayerActions.ts:123` – Cache frequently used collections in `runDistillIfNeeded` instead of recomputing `mapNodes`, player inventory filters, and NPC lookups inside nested loops.
 - [x] `hooks/useAutosave.ts:40` – Replace the `JSON.stringify(dependencies)` sentinel with a stable dependency signature to avoid needless effect reruns and string allocations.
 - [x] `hooks/useSaveLoad.ts:99` – Reuse the autosave hook/timer instead of maintaining a second nearly identical effect.
@@ -21,7 +21,7 @@
 - [x] `utils/modelUsageTracker.ts:16` – Replace the `while (arr.shift())` cleanup with pointer arithmetic or `splice` to avoid O(n²) array shifting under high throughput.
 
 ## Code Quality & Maintainability
-- [ ] `hooks/useProcessAiResponse.ts:430` – Refactor the response pipeline into composable steps (state prep, map inventory, lore, logging) with typed outputs for readability.
+- [x] `hooks/useProcessAiResponse.ts:430` – Refactor the response pipeline into composable steps (state prep, map inventory, lore, logging) with typed outputs for readability.
 - [ ] `services/loremaster/api.ts:214` – Consolidate the repeated `retryAiCall` + `dispatchAIRequest` scaffolding into a shared helper so extract/collect/integrate/distill stay in sync.
 - [x] `services/storyteller/responseParser.ts:135` – Tidy the dialogue correction branch by normalizing imports, removing redundant aliasing, and leaning on reusable validators.
 - [x] `services/storyteller/responseParser.ts:147` – Extract the ad-hoc NPC merge/correction block into helpers to reduce duplication and tighten the correction path.

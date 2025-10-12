@@ -196,6 +196,66 @@ describe('useProcessAiResponse', () => {
     cleanup();
   });
 
+  it('deduplicates correction requests for repeated destroy entries', async () => {
+    const baseState = getInitialGameStates();
+    const playerItem: Item = {
+      id: 'item-mystic',
+      name: 'Mystic Orb',
+      type: 'equipment',
+      description: 'A glowing relic.',
+      holderId: PLAYER_HOLDER_ID,
+      tags: [],
+    };
+    baseState.inventory = [playerItem];
+
+    const draftState = cloneState(baseState);
+    const baseSnapshot = cloneState(baseState);
+
+    const stackRef: { value: GameStateStack } = {
+      value: [cloneState(baseState), cloneState(baseState)],
+    };
+    const setGameStateStack = vi.fn((updater: React.SetStateAction<GameStateStack>) => {
+      stackRef.value = typeof updater === 'function' ? updater(stackRef.value) : updater;
+    });
+
+    const { getResult, cleanup } = renderUseProcessAiResponse({
+      props: createHookProps(setGameStateStack),
+    });
+
+    const { processAiResponse } = getResult();
+
+    fetchCorrectedNameMock.mockResolvedValue('Mystic Orb');
+
+    const aiData = makeAiResponse({
+      itemChange: [
+        {
+          action: 'destroy',
+          item: {
+            id: 'temp-1',
+            name: 'Mystic Orb?',
+          },
+        },
+        {
+          action: 'destroy',
+          item: {
+            id: 'temp-2',
+            name: 'Mystic Orb?',
+          },
+        },
+      ],
+    });
+
+    await act(async () => {
+      await processAiResponse(aiData, draftState, {
+        baseStateSnapshot: baseSnapshot,
+      });
+    });
+
+    expect(fetchCorrectedNameMock).toHaveBeenCalledTimes(1);
+
+    cleanup();
+  });
+
   it('delegates map updates when mapUpdated flag is set', async () => {
     const baseState = getInitialGameStates();
     const draftState = cloneState(baseState);
