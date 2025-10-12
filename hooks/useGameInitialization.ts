@@ -24,7 +24,7 @@ import { SYSTEM_INSTRUCTION } from '../services/storyteller/systemPrompt';
 import { getThemesFromPacks } from '../themes';
 import { PLAYER_HOLDER_ID } from '../constants';
 import { findThemeByName } from '../utils/themeUtils';
-import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
+import { isServerOrClientError, extractStatusFromError, isInvalidApiKeyError, INVALID_API_KEY_USER_MESSAGE } from '../utils/aiErrorUtils';
 import {
   getInitialGameStates,
   getInitialGameStatesWithSettings,
@@ -414,7 +414,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
               }
             } catch (e: unknown) {
               console.error('Error loading initial game:', e);
-              if (isServerOrClientError(e)) {
+              if (isInvalidApiKeyError(e)) {
+                draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
+                setError(INVALID_API_KEY_USER_MESSAGE);
+              } else if (isServerOrClientError(e)) {
                 draftState = structuredCloneGameState(baseStateSnapshotForInitialTurn);
                 const status = extractStatusFromError(e);
                 setError(`AI service error (${String(status ?? 'unknown')}). Please retry.`);

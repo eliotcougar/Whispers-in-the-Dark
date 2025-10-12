@@ -5,7 +5,12 @@ export interface RetryResult<T> {
 }
 
 import { MAX_RETRIES } from '../constants';
-import { isServerOrClientError, isTransientNetworkError } from './aiErrorUtils';
+import {
+  isServerOrClientError,
+  isTransientNetworkError,
+  isInvalidApiKeyError,
+  toInvalidApiKeyError,
+} from './aiErrorUtils';
 import { incrementRetryCount, clearRetryCount } from './loadingProgress';
 
 /**
@@ -27,6 +32,9 @@ export const retryAiCall = async <T>(
       if (result !== null) return result;
       if (!retry) return null;
     } catch (error: unknown) {
+      if (isInvalidApiKeyError(error)) {
+        throw toInvalidApiKeyError(error);
+      }
       transient = isTransientNetworkError(error);
       if (!isServerOrClientError(error) && !transient) throw error;
     }

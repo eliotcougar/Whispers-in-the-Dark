@@ -43,6 +43,91 @@ export const isServerOrClientError = (err: unknown): boolean => {
   return status !== null && status >= 400 && status < 600;
 };
 
+interface ErrorDetail {
+  ['@type']?: string;
+  reason?: string;
+  metadata?: Record<string, unknown>;
+}
+
+const matchesApiKeyInvalidDetail = (detail: unknown): boolean => {
+  if (!detail || typeof detail !== 'object') return false;
+  const d = detail as ErrorDetail;
+  if (d.reason === 'API_KEY_INVALID') return true;
+  if (
+    typeof d['@type'] === 'string' &&
+    d['@type'] === 'type.googleapis.com/google.rpc.ErrorInfo' &&
+    d.reason === 'API_KEY_INVALID'
+  ) {
+    return true;
+  }
+  return false;
+};
+
+export const INVALID_API_KEY_USER_MESSAGE =
+  'Gemini API key is invalid. Open the Title menu and choose "Change Gemini Key" to enter a new key.';
+
+export class InvalidApiKeyError extends Error {
+  constructor(message: string = INVALID_API_KEY_USER_MESSAGE) {
+    super(message);
+    this.name = 'InvalidApiKeyError';
+  }
+}
+
+export const isInvalidApiKeyResponse = (err: unknown): boolean => {
+  if (!err || typeof err !== 'object') return false;
+  const errObj = err as {
+    error?: {
+      status?: string;
+      code?: number | string;
+      message?: string;
+      details?: Array<unknown>;
+    };
+    message?: string;
+  };
+  const status = errObj.error?.status ?? errObj.error?.code;
+  if (typeof status === 'string' && status.toUpperCase() === 'API_KEY_INVALID') {
+    return true;
+  }
+  const rawDetails = errObj.error?.details;
+  const details = Array.isArray(rawDetails) ? rawDetails : [];
+  const hasInvalidDetail = details.some(matchesApiKeyInvalidDetail);
+  if (
+    typeof status === 'string' &&
+    status.toUpperCase() === 'INVALID_ARGUMENT' &&
+    hasInvalidDetail
+  ) {
+    return true;
+  }
+  if (
+    typeof status === 'number' &&
+    status === 400 &&
+    hasInvalidDetail
+  ) {
+    return true;
+  }
+  const msgCandidates = [errObj.error?.message, errObj.message];
+  if (
+    msgCandidates.some(
+      msg => typeof msg === 'string' && msg.toLowerCase().includes('api key not valid'),
+    )
+  ) {
+    return true;
+  }
+  return false;
+};
+
+export const isInvalidApiKeyError = (err: unknown): err is InvalidApiKeyError =>
+  err instanceof InvalidApiKeyError || isInvalidApiKeyResponse(err);
+
+export const toInvalidApiKeyError = (err: unknown): InvalidApiKeyError => {
+  if (err instanceof InvalidApiKeyError) return err;
+  const invalid = new InvalidApiKeyError();
+  if (err instanceof Error && typeof err.stack === 'string') {
+    invalid.stack = `${invalid.stack ?? ''}\nCaused by: ${err.stack}`;
+  }
+  return invalid;
+};
+
 /**
  * Determines if the error is likely transient (e.g. network hiccups).
  * Currently checks for common messages like net::ERR_SSL_PROTOCOL_ERROR.

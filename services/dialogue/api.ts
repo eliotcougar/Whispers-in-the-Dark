@@ -26,7 +26,7 @@ import { SYSTEM_INSTRUCTION } from '../storyteller/systemPrompt';
 import { STORYTELLER_JSON_SCHEMA } from '../storyteller/api';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { retryAiCall } from '../../utils/retry';
-import { isServerOrClientError } from '../../utils/aiErrorUtils';
+import { isServerOrClientError, isInvalidApiKeyError } from '../../utils/aiErrorUtils';
 import { fetchCorrectedDialogueTurn } from '../corrections';
 import { CORRECTION_TEMPERATURE } from '../../constants';
 import { MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME, LOADING_REASON_UI_MAP } from '../../constants';
@@ -404,6 +404,9 @@ export const executeMemorySummary = async (
         `Error generating memory summary (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
+      if (isInvalidApiKeyError(error)) {
+        throw error;
+      }
       if (!isServerOrClientError(error)) {
         return { result: null, retry: false };
       }

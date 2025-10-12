@@ -9,6 +9,8 @@ import {
   isServerOrClientError,
   extractStatusFromError,
   isTransientNetworkError,
+  isInvalidApiKeyResponse,
+  toInvalidApiKeyError,
 } from '../utils/aiErrorUtils';
 import { MinimalModelCallRecord } from '../types';
 import {
@@ -168,6 +170,10 @@ export const dispatchAIRequest = async (
             responseText: `ERROR: ${err instanceof Error ? err.message : String(err)}`,
             promptUsed: contents,
           });
+        }
+
+        if (isInvalidApiKeyResponse(err)) {
+          throw toInvalidApiKeyError(err);
         }
 
         lastError = err;

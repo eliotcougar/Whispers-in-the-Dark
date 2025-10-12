@@ -85,6 +85,16 @@ function TitleMenu({
               />
             ) : null}
 
+            {isApiConfigured() && !isApiKeyFromEnv() && onOpenGeminiKeyModal ? (
+              <Button
+                ariaLabel="Change the Gemini API key"
+                label="Change Gemini Key"
+                onClick={onOpenGeminiKeyModal}
+                preset="indigo"
+                size="lg"
+              />
+            ) : null}
+
             <Button
               ariaLabel={isGameActive ? 'Start a New Game (Progress will be lost)' : 'Start a New Game'}
               disabled={!isApiConfigured()}

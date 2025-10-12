@@ -13,6 +13,7 @@ import {
 } from '../types';
 import { executeDialogueTurn } from '../services/dialogue';
 import { collectRelevantFacts } from '../services/loremaster';
+import { isInvalidApiKeyError, INVALID_API_KEY_USER_MESSAGE } from '../utils/aiErrorUtils';
 import { PLAYER_HOLDER_ID, RECENT_LOG_COUNT_FOR_PROMPT } from '../constants';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { DialogueTurnDebugEntry } from '../types';
@@ -205,7 +206,11 @@ export const useDialogueTurn = (props: UseDialogueTurnProps) => {
         }
       } catch (e: unknown) {
         console.error('Error during dialogue turn:', e);
-        setError('An error occurred in the conversation. You might need to end it.');
+        if (isInvalidApiKeyError(e)) {
+          setError(INVALID_API_KEY_USER_MESSAGE);
+        } else {
+          setError('An error occurred in the conversation. You might need to end it.');
+        }
         const stateToRevertToOnError = getCurrentGameState();
         if (stateToRevertToOnError.dialogueState) {
           const restoredOptions = originalOptions.length > 0 ? originalOptions : ['Try to end the conversation.'];

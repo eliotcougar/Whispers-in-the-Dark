@@ -13,13 +13,19 @@ import {
   LoadingReason,
   TurnChanges,
   StoryAct,
+  DebugPacket,
 } from '../types';
 import { buildMainGameTurnPrompt } from '../services/storyteller';
 import { buildSystemInstructionWithDebug } from '../services/storyteller/systemPrompt';
 import { collectRelevantFacts } from '../services/loremaster';
 import { formatDetailedContextForMentionedEntities } from '../utils/promptFormatters';
 import { buildHighlightRegex } from '../utils/highlightHelper';
-import { isServerOrClientError, extractStatusFromError } from '../utils/aiErrorUtils';
+import {
+  isServerOrClientError,
+  extractStatusFromError,
+  isInvalidApiKeyError,
+  INVALID_API_KEY_USER_MESSAGE,
+} from '../utils/aiErrorUtils';
 import {
   FREE_FORM_ACTION_COST,
   RECENT_LOG_COUNT_FOR_PROMPT,
@@ -323,67 +329,24 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         .sort((a, b) => (b.tier - a.tier) || (b.createdTurn - a.createdTurn))
         .map(f => ({ text: f.text, tier: f.tier }));
 
-      // Enter Loremaster collection stage in FSM before storyteller call
-      {
-        const beforeCollect = structuredCloneGameState(currentFullState);
-        beforeCollect.turnState = 'loremaster_collect';
-        commitGameState(beforeCollect);
-      }
-      setLoadingReason('loremaster_collect');
-      const collectResult = await collectRelevantFacts({
-        themeName: activeTheme.name,
-        facts: sortedFacts,
-        lastScene: currentFullState.currentScene,
-        playerAction: action,
-        recentLogEntries: recentLogs,
-        detailedContext: detailedContextForFacts,
-      });
-      const relevantFacts = collectResult?.facts ?? [];
-
+      let collectResult: Awaited<ReturnType<typeof collectRelevantFacts>> | null = null;
+      let relevantFacts: Array<string> = [];
       const debugDirective = debugToolDirective?.trim() ?? '';
-      const prompt = buildMainGameTurnPrompt(
-        currentFullState.currentScene,
-        action,
-        currentFullState.inventory,
-        currentFullState.currentMapNodeId ?? null,
-        isStoryArcValid(currentFullState.storyArc)
-          ? currentFullState.storyArc.acts[currentFullState.storyArc.currentAct - 1]?.mainObjective ?? null
-          : null,
-        currentFullState.currentObjective,
-        activeTheme,
-        recentLogs,
-        mapNodes,
-        npcs,
-        relevantFacts,
-        currentFullState.localTime,
-        currentFullState.localEnvironment,
-        currentFullState.localPlace,
-        currentFullState.WorldSheet,
-        currentFullState.heroSheet,
-        currentMapNodeDetails,
-        currentFullState.mapData,
-        currentFullState.destinationNodeId,
-        currentFullState.storyArc,
-        debugDirective ? debugDirective : undefined
-      );
-
-      const systemInstructionForTurn = buildSystemInstructionWithDebug(debugDirective);
 
       let draftState = structuredCloneGameState(currentFullState);
-      draftState.turnState = 'player_action_prompt';
-      const debugPacket = {
-        prompt,
-        systemInstruction: systemInstructionForTurn,
-        jsonSchema: undefined,
+      let debugPacket: DebugPacket = {
+        prompt: '',
         rawResponseText: null,
         parsedResponse: null,
         timestamp: new Date().toISOString(),
+        systemInstruction: undefined,
+        jsonSchema: undefined,
         storytellerThoughts: null,
         mapUpdateDebugInfo: null,
         inventoryDebugInfo: null,
         librarianDebugInfo: null,
         loremasterDebugInfo: {
-          collect: collectResult?.debugInfo ?? null,
+          collect: null,
           extract: null,
           integrate: null,
           distill: null,
@@ -391,11 +354,79 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         },
         dialogueDebugInfo: null,
       };
-      draftState.lastDebugPacket = debugPacket;
-      if (isFreeForm) draftState.score -= FREE_FORM_ACTION_COST;
 
+      let systemInstructionForTurn = '';
+      let prompt = '';
       let encounteredError = false;
       try {
+        const beforeCollect = structuredCloneGameState(currentFullState);
+        beforeCollect.turnState = 'loremaster_collect';
+        commitGameState(beforeCollect);
+
+        setLoadingReason('loremaster_collect');
+        collectResult = await collectRelevantFacts({
+          themeName: activeTheme.name,
+          facts: sortedFacts,
+          lastScene: currentFullState.currentScene,
+          playerAction: action,
+          recentLogEntries: recentLogs,
+          detailedContext: detailedContextForFacts,
+        });
+        relevantFacts = collectResult?.facts ?? [];
+
+        prompt = buildMainGameTurnPrompt(
+          currentFullState.currentScene,
+          action,
+          currentFullState.inventory,
+          currentFullState.currentMapNodeId ?? null,
+          isStoryArcValid(currentFullState.storyArc)
+            ? currentFullState.storyArc.acts[currentFullState.storyArc.currentAct - 1]?.mainObjective ?? null
+            : null,
+          currentFullState.currentObjective,
+          activeTheme,
+          recentLogs,
+          mapNodes,
+          npcs,
+          relevantFacts,
+          currentFullState.localTime,
+          currentFullState.localEnvironment,
+          currentFullState.localPlace,
+          currentFullState.WorldSheet,
+          currentFullState.heroSheet,
+          currentMapNodeDetails,
+          currentFullState.mapData,
+          currentFullState.destinationNodeId,
+          currentFullState.storyArc,
+          debugDirective ? debugDirective : undefined
+        );
+
+        systemInstructionForTurn = buildSystemInstructionWithDebug(debugDirective);
+
+        draftState = structuredCloneGameState(currentFullState);
+        draftState.turnState = 'player_action_prompt';
+        debugPacket = {
+          prompt,
+          systemInstruction: systemInstructionForTurn,
+          jsonSchema: undefined,
+          rawResponseText: null,
+          parsedResponse: null,
+          timestamp: new Date().toISOString(),
+          storytellerThoughts: null,
+          mapUpdateDebugInfo: null,
+          inventoryDebugInfo: null,
+          librarianDebugInfo: null,
+          loremasterDebugInfo: {
+            collect: collectResult?.debugInfo ?? null,
+            extract: null,
+            integrate: null,
+            distill: null,
+            journal: null,
+          },
+          dialogueDebugInfo: null,
+        };
+        draftState.lastDebugPacket = debugPacket;
+        if (isFreeForm) draftState.score -= FREE_FORM_ACTION_COST;
+
         setLoadingReason('storyteller');
         draftState.turnState = 'storyteller';
         const retryResult = await runStorytellerTurnWithParseRetries({
@@ -438,7 +469,9 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       } catch (e: unknown) {
         encounteredError = true;
         console.error('Error executing player action:', e);
-        if (isServerOrClientError(e)) {
+        if (isInvalidApiKeyError(e)) {
+          setError(INVALID_API_KEY_USER_MESSAGE);
+        } else if (isServerOrClientError(e)) {
           const status = extractStatusFromError(e);
           setError(`AI service error (${String(status ?? 'unknown')}). Please retry.`);
         } else {
