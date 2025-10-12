@@ -77,7 +77,7 @@ export const STORYTELLER_JSON_SCHEMA = {
           maxItems: MAX_DIALOGUE_TURN_OPTIONS,
           items: { type: 'string' },
           description:
-            'First-person dialogue choices, always in the form of direct speech. The last option must contextually approprialely end the conversation.',
+            'First-person dialogue choices, MUST ALWAYS be in the form of direct speech without quotemarks. The last option must contextually approprialely end the conversation.',
         },
         participants: {
           type: 'array',
@@ -361,7 +361,7 @@ export const STORYTELLER_JSON_SCHEMA = {
       items: { type: 'string' },
       description: `Exactly ${String(
         MAIN_TURN_OPTIONS_COUNT,
-      )} distinct action options for the player to choose to progress in the story, tailored to the context.`,
+      )} distinct action options for the player to choose from to progress in the story, tailored to the context. Do NOT use direct speech.`,
     },
     playerItemsHint: {
       type: 'string',

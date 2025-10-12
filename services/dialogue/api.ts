@@ -68,7 +68,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
       minItems: MIN_DIALOGUE_TURN_OPTIONS,
       maxItems: MAX_DIALOGUE_TURN_OPTIONS,
       description:
-        'Possible player replies, always in the form of direct speech. The last option must contextually appropriately end the conversation.',
+        'Possible player replies, MUST ALWAYS be in the form of direct speech. The last option must contextually appropriately end the conversation.',
       items: { type: 'string' },
     },
     updatedParticipants: {

@@ -43,6 +43,7 @@ import { useGameInventoryDomain } from './gameLogic/useGameInventoryDomain';
 import { useGameMapDomain } from './gameLogic/useGameMapDomain';
 import { useGameJournalDomain } from './gameLogic/useGameJournalDomain';
 import { useGameDialogueDomain } from './gameLogic/useGameDialogueDomain';
+import { resolveNextStackForCommit } from '../utils/gameStateStackUtils';
 
 export interface UseGameLogicProps {
   enabledThemePacksProp: Array<ThemePackName>;
@@ -140,21 +141,25 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const commitGameState = useCallback((newGameState: FullGameState) => {
     const sanitized = ensureCoreGameStateIntegrity(newGameState, 'commitGameState');
     let fallbackDebugForAwaiting: DebugPacket | null = null;
+    let dialogueFallbackDebug: DebugPacket | null = null;
+    let preserveDialogueFallback = false;
+
     setGameStateStack(prev => {
       const [prevCurrent, prevPrevious] = prev;
-      if (sanitized.turnState === 'awaiting_input') {
-        const fallbackPrevState = prevCurrent.turnState === 'awaiting_input'
-          ? prevCurrent
-          : prevPrevious ?? prevCurrent;
-        fallbackDebugForAwaiting = fallbackPrevState.lastDebugPacket ?? null;
-        return [sanitized, fallbackPrevState];
-      }
-      return [sanitized, prevCurrent];
+      const resolution = resolveNextStackForCommit(sanitized, prevCurrent, prevPrevious);
+      fallbackDebugForAwaiting = resolution.fallbackDebugForAwaiting;
+      dialogueFallbackDebug = resolution.dialogueFallbackDebug;
+      preserveDialogueFallback = resolution.preserveDialogueFallback;
+      return resolution.nextStack;
     });
+
     setDebugPacketStack(prev => {
       const nextCurrentDebug = sanitized.lastDebugPacket ?? null;
       if (sanitized.turnState === 'awaiting_input') {
         return [nextCurrentDebug, fallbackDebugForAwaiting];
+      }
+      if (preserveDialogueFallback) {
+        return [nextCurrentDebug, dialogueFallbackDebug];
       }
       return [nextCurrentDebug, prev[0]];
     });
