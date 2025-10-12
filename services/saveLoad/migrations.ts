@@ -58,6 +58,31 @@ export function normalizeLoadedSaveData(
     candidateObj.loreFacts = candidateObj.themeFacts;
   }
   if ('themeFacts' in candidateObj) delete candidateObj.themeFacts;
+
+  const candidateRecord = candidateObj as Record<string, unknown> & {
+    worldFacts?: unknown;
+    WorldFacts?: unknown;
+    worldSheet?: unknown;
+  };
+  if (candidateObj.WorldSheet === undefined) {
+    const legacyWorldSheet =
+      candidateRecord.worldSheet ??
+      candidateRecord.worldFacts ??
+      candidateRecord.WorldFacts;
+    if (legacyWorldSheet !== undefined) {
+      candidateObj.WorldSheet = legacyWorldSheet as SavedGameDataShape['WorldSheet'];
+    }
+  }
+  if ('worldFacts' in candidateRecord) {
+    delete candidateRecord.worldFacts;
+  }
+  if ('WorldFacts' in candidateRecord) {
+    delete candidateRecord.WorldFacts;
+  }
+  if ('worldSheet' in candidateRecord) {
+    delete candidateRecord.worldSheet;
+  }
+
   const candidate = candidateObj as SavedGameDataShape;
   ensureCompleteMapLayoutConfig(candidate);
   ensureCompleteMapNodeDataDefaults(candidate.mapData);
