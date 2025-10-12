@@ -7,7 +7,7 @@
 - [x] `hooks/useGameLogic.ts:1` – Decompose the monolithic hook into domain hooks (map, inventory, dialogue, journal) and expose grouped state instead of a 60+ field object.
 - [x] `hooks/useGameLogic.ts:115` – Remove the placeholder `void parseErrorCounter;` by routing parse error tracking back into the retry logic so the state serves a purpose.
 - [x] `hooks/usePlayerActions.ts:404` – Break `handleActionSelect` into discrete stages (prompt build, AI call, fallbacks) to clarify control flow and enable unit testing.
-- [ ] `hooks/useGameInitialization.ts:123` – Split `loadInitialGame` into helpers for saved-state hydration, theme selection, and new-game setup to reduce branching inside the callback.
+- [x] `hooks/useGameInitialization.ts:123` – Split `loadInitialGame` into helpers for saved-state hydration, theme selection, and new-game setup to reduce branching inside the callback.
 
 ## Performance & Responsiveness
 - [ ] `hooks/useProcessAiResponse.ts:60` – Precompute maps of nodes, NPCs, and inventory items so `correctItemChanges` stops scanning arrays on every change.

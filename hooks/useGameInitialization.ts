@@ -113,85 +113,81 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
     onActIntro,
   } = props;
 
+  const mergeMapLayoutConfig = useCallback(
+    (
+      config?: Partial<FullGameState['mapLayoutConfig']> | null,
+    ): FullGameState['mapLayoutConfig'] => {
+      const defaults = getDefaultMapLayoutConfig();
+      const merged = { ...defaults };
+      const source = config ?? {};
+      (Object.keys(defaults) as Array<keyof typeof defaults>).forEach(key => {
+        const rawValue = (source as Partial<Record<keyof typeof defaults, number>>)[key];
+        merged[key] = typeof rawValue === 'number' ? rawValue : defaults[key];
+      });
+      return merged;
+    },
+    [],
+  );
 
-  /**
-   * Loads the initial game state or applies a saved state to the game.
-   */
-  const loadInitialGame = useCallback(
-    async (options: LoadInitialGameOptions = {}) => {
-      const {
-        isRestart = false,
-        explicitThemeName = null,
-        savedStateToLoad = null,
-        clearImages = false,
-      } = options;
+  const hydrateLoadedState = useCallback(
+    async (
+      rawState: FullGameState,
+      context: 'current' | 'previous',
+    ): Promise<FullGameState> => {
+      const cloned = structuredCloneGameState(rawState);
+      const repairedMap = await repairFeatureHierarchy(cloned.mapData);
+      const normalizedDestination =
+        typeof cloned.destinationNodeId === 'string' ? cloned.destinationNodeId : null;
+      const hydrated = {
+        ...cloned,
+        mapData: repairedMap,
+        mapLayoutConfig: mergeMapLayoutConfig(cloned.mapLayoutConfig),
+        destinationNodeId: normalizedDestination,
+        enabledThemePacks: enabledThemePacksProp,
+        thinkingEffort: thinkingEffortProp,
+        isVictory: false,
+      } as FullGameState;
+      return ensureCoreGameStateIntegrity(hydrated, `loadInitialGame.${context}`);
+    },
+    [enabledThemePacksProp, thinkingEffortProp, mergeMapLayoutConfig],
+  );
 
-      setIsLoading(true);
-      setLoadingReason('initial_load');
-      setError(null);
-      setParseErrorCounter(0);
+  const hydrateSavedGameStack = useCallback(
+    async (stackToLoad: GameStateStack | null): Promise<boolean> => {
+      if (!stackToLoad) return false;
 
-      if (isRestart || clearImages) {
-        await clearAllImages();
-      }
+      const [rawCurrent, rawPrevious] = stackToLoad;
+      const hydratedCurrent = await hydrateLoadedState(rawCurrent, 'current');
+      const hydratedPrevious = rawPrevious
+        ? await hydrateLoadedState(rawPrevious, 'previous')
+        : hydratedCurrent;
 
-      if (savedStateToLoad) {
-        const mergeMapLayoutConfig = (
-          config?: Partial<FullGameState['mapLayoutConfig']> | null,
-        ): FullGameState['mapLayoutConfig'] => {
-          const defaults = getDefaultMapLayoutConfig();
-          const merged = { ...defaults };
-          const source = config ?? {};
-          (Object.keys(defaults) as Array<keyof typeof defaults>).forEach(key => {
-            const rawValue = (source as Partial<Record<keyof typeof defaults, number>>)[key];
-            merged[key] = typeof rawValue === 'number' ? rawValue : defaults[key];
-          });
-          return merged;
-        };
-
-        const hydrateLoadedState = async (
-          rawState: FullGameState,
-          context: 'current' | 'previous',
-        ): Promise<FullGameState> => {
-          const cloned = structuredCloneGameState(rawState);
-          const theme = cloned.theme;
-          const repairedMap = await repairFeatureHierarchy(cloned.mapData);
-          const normalizedDestination =
-            typeof cloned.destinationNodeId === 'string' ? cloned.destinationNodeId : null;
-          const hydrated = {
-            ...cloned,
-            theme: theme,
-            mapData: repairedMap,
-            mapLayoutConfig: mergeMapLayoutConfig(cloned.mapLayoutConfig),
-            destinationNodeId: normalizedDestination,
-            enabledThemePacks: enabledThemePacksProp,
-            thinkingEffort: thinkingEffortProp,
-            isVictory: false,
-          } as FullGameState;
-          return ensureCoreGameStateIntegrity(hydrated, `loadInitialGame.${context}`);
-        };
-
-        const [rawCurrent, rawPrevious] = savedStateToLoad;
-        const hydratedCurrent = await hydrateLoadedState(rawCurrent, 'current');
-        const hydratedPrevious = rawPrevious
-          ? await hydrateLoadedState(rawPrevious, 'previous')
-          : hydratedCurrent;
-
-        setGameStateStack([hydratedCurrent, hydratedPrevious]);
-        if (isStoryArcValid(hydratedCurrent.storyArc)) {
-          const acts = hydratedCurrent.storyArc.acts;
-          const actIndex = Math.max(0, hydratedCurrent.storyArc.currentAct - 1);
-          if (actIndex < acts.length) {
-            onActIntro(acts[actIndex]);
-          }
+      setGameStateStack([hydratedCurrent, hydratedPrevious]);
+      if (isStoryArcValid(hydratedCurrent.storyArc)) {
+        const acts = hydratedCurrent.storyArc.acts;
+        const actIndex = Math.max(0, hydratedCurrent.storyArc.currentAct - 1);
+        if (actIndex < acts.length) {
+          onActIntro(acts[actIndex]);
         }
-
-        setHasGameBeenInitialized(true);
-        setIsLoading(false);
-        setLoadingReason(null);
-        return;
       }
 
+      setHasGameBeenInitialized(true);
+      setIsLoading(false);
+      setLoadingReason(null);
+      return true;
+    },
+    [
+      hydrateLoadedState,
+      setGameStateStack,
+      onActIntro,
+      setHasGameBeenInitialized,
+      setIsLoading,
+      setLoadingReason,
+    ],
+  );
+
+  const pickThemeForNewGame = useCallback(
+    (explicitThemeName: string | null): AdventureTheme | null => {
       let nameToLoad = explicitThemeName;
       if (!nameToLoad) {
         const availableThemes = getThemesFromPacks(enabledThemePacksProp);
@@ -199,7 +195,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
           setError('No adventure themes are enabled or available. Please check settings.');
           setIsLoading(false);
           setLoadingReason(null);
-          return;
+          return null;
         }
         nameToLoad = availableThemes[Math.floor(Math.random() * availableThemes.length)].name;
       }
@@ -209,10 +205,21 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         setError(`Theme "${nameToLoad}" not found. Cannot start game.`);
         setIsLoading(false);
         setLoadingReason(null);
-        return;
+        return null;
       }
 
-      // Enter gender selection stage
+      return selectedTheme;
+    },
+    [enabledThemePacksProp, setError, setIsLoading, setLoadingReason],
+  );
+
+  interface NewGameSetupOptions {
+    selectedTheme: AdventureTheme;
+    isRestart: boolean;
+  }
+
+  const runNewGameSetup = useCallback(
+    async ({ selectedTheme, isRestart }: NewGameSetupOptions): Promise<void> => {
       {
         const s = getCurrentGameState();
         const draft = { ...s, startState: 'gender_select' } as FullGameState;
@@ -265,9 +272,10 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
       const shuffled = sanitizedPref && sanitizedPref.length > 0
         ? [sanitizedPref, ...shuffledBase.filter(n => n !== sanitizedPref)].slice(0, 10)
         : shuffledBase;
-      // Move to character selection stage
+
       draftState.startState = 'character_select';
       commitGameState(draftState);
+
       const descriptions = await generateCharacterDescriptions(
         selectedTheme,
         selectedGender,
@@ -280,6 +288,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         setLoadingReason(null);
         return;
       }
+
       let initialTurnPromise: Promise<void> = Promise.resolve();
       let hasValidStoryArc = false;
       let hasGeneratedHeroData = false;
@@ -428,7 +437,6 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
 
       await waitForBegin;
 
-      // After player closes character select, always show Act 1 intro when valid data exists
       if (isStoryArcValid(draftState.storyArc)) {
         const acts = draftState.storyArc.acts;
         const actIdx = Math.max(0, draftState.storyArc.currentAct - 1);
@@ -437,24 +445,69 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
         }
       }
       await initialTurnPromise;
-      return;
-    }, [
+    },
+    [
+      commitGameState,
       enabledThemePacksProp,
       thinkingEffortProp,
+      getCurrentGameState,
+      openGenderSelectModal,
+      preferredPlayerNameProp,
+      setError,
       setIsLoading,
       setLoadingReason,
-      setError,
-      setParseErrorCounter,
-      setHasGameBeenInitialized,
-      commitGameState,
-      processAiResponse,
-      setGameStateStack,
       openCharacterSelectModal,
-      openGenderSelectModal,
-      getCurrentGameState,
+      setParseErrorCounter,
+      processAiResponse,
+      setHasGameBeenInitialized,
       onActIntro,
-      preferredPlayerNameProp,
-    ]);
+    ],
+  );
+
+
+  /**
+   * Loads the initial game state or applies a saved state to the game.
+   */
+  const loadInitialGame = useCallback(
+    async (options: LoadInitialGameOptions = {}) => {
+      const {
+        isRestart = false,
+        explicitThemeName = null,
+        savedStateToLoad = null,
+        clearImages = false,
+      } = options;
+
+      setIsLoading(true);
+      setLoadingReason('initial_load');
+      setError(null);
+      setParseErrorCounter(0);
+
+      if (isRestart || clearImages) {
+        await clearAllImages();
+      }
+
+      const handledSavedState = await hydrateSavedGameStack(savedStateToLoad);
+      if (handledSavedState) {
+        return;
+      }
+
+      const selectedTheme = pickThemeForNewGame(explicitThemeName);
+      if (!selectedTheme) {
+        return;
+      }
+
+      await runNewGameSetup({ selectedTheme, isRestart });
+    },
+    [
+      hydrateSavedGameStack,
+      pickThemeForNewGame,
+      runNewGameSetup,
+      setError,
+      setIsLoading,
+      setLoadingReason,
+      setParseErrorCounter,
+    ],
+  );
 
   /**
    * Starts a completely new game.

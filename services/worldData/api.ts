@@ -39,10 +39,10 @@ interface StoryArcData {
 const WorldSheetSchema = {
   type: 'object',
   properties: {
-    geography: { type: 'string', minLength: 1000 },
-    climate: { type: 'string' },
-    technologyLevel: { type: 'string' },
-    supernaturalElements: { type: 'string' },
+    geography: { type: 'string', minLength: 200, maxLength: 400 },
+    climate: { type: 'string', minLength: 100, maxLength: 200  },
+    technologyLevel: { type: 'string', minLength: 100, maxLength: 200  },
+    supernaturalElements: { type: 'string', minLength: 100, maxLength: 200  },
     majorFactions: { type: 'array', items: { type: 'string' }, description: 'Names of the factions and their brief description' },
     keyResources: { type: 'array', items: { type: 'string' } },
     culturalNotes: { type: 'array', items: { type: 'string' } },
@@ -79,7 +79,7 @@ const storyActSchema = {
   type: 'object',
   properties: {
     title: { type: 'string', description: 'Creative title for the act.' },
-    description: { type: 'string', minLength: 3000 },
+    description: { type: 'string', minLength: 500, maxLength: 1000 },
     mainObjective: { type: 'string', description: 'Main objective that must be achieved in order to complete the act.' },
     sideObjectives: { type: 'array', items: { type: 'string' } },
     successCondition: { type: 'string', description: 'Actionable, clearly defined condition for finishing the act and moving forvard into the next act.' },
@@ -98,7 +98,7 @@ const storyArcSchema = {
   type: 'object',
   properties: {
     title: { type: 'string', description: 'Creative title for the whole storyline.' },
-    overview: { type: 'string', description: 'High level story overview, like a book series synopsis, without going into specifics of the story, and not describing specific acts.', minLength: 3000 },
+    overview: { type: 'string', description: 'High level story overview, like a book series synopsis, without going into specifics of the story, and not describing specific acts.', minLength: 500, maxLength: 1000 },
     acts: { type: 'array', minItems: 1, maxItems: 1, items: storyActSchema },
   },
   required: ['title', 'overview', 'acts'],
@@ -109,13 +109,13 @@ const heroBackstorySchema = {
   type: 'object',
   description: 'Narrative description of what was happening to the player character in each of the time periods up until present moment.',
   properties: {
-    fiveYearsAgo: { type: 'string', minLength: 2000, description: 'Narrative story from 5 years ago.' },
-    oneYearAgo: { type: 'string', minLength: 2000, description: 'Narrative story from one year ago.' }, 
-    sixMonthsAgo: { type: 'string', minLength: 2000, description: 'Narrative story from 6 months ago.' },
-    oneMonthAgo: { type: 'string', minLength: 2000, description: 'Narrative story from one month ago.' },
-    oneWeekAgo: { type: 'string', minLength: 2000, description: 'Narrative story from last week.' },
-    yesterday: { type: 'string', minLength: 2000, description: 'Narrative story from yesterday.' },
-    now: { type: 'string', minLength: 2000, description: 'Narrative story leading to the present moment.' },
+    fiveYearsAgo: { type: 'string', minLength: 100, maxLength: 500, description: 'Narrative story from 5 years ago.' },
+    oneYearAgo: { type: 'string', minLength: 100, maxLength: 500, description: 'Narrative story from one year ago.' }, 
+    sixMonthsAgo: { type: 'string', minLength: 100, maxLength: 500, description: 'Narrative story from 6 months ago.' },
+    oneMonthAgo: { type: 'string', minLength: 100, maxLength: 500, description: 'Narrative story from one month ago.' },
+    oneWeekAgo: { type: 'string', minLength: 100, maxLength: 500, description: 'Narrative story from last week.' },
+    yesterday: { type: 'string', minLength: 100, maxLength: 500, description: 'Narrative story from yesterday.' },
+    now: { type: 'string', minLength: 100, maxLength: 500, description: 'Narrative story leading to the present moment.' },
     storyArc: storyArcSchema,
   },
   required: [
@@ -231,7 +231,7 @@ export const generateCharacterDescriptions = async (
     ${names.join('\n')}`;
   const request = async () => {
     const thinkingBudget = getThinkingBudget(1024);
-    const maxOutputTokens = getMaxOutputTokens(1024);
+    const maxOutputTokens = getMaxOutputTokens(4096);
     const { response } = await dispatchAIRequest({
       modelNames: [GEMINI_LITE_MODEL_NAME, GEMINI_MODEL_NAME],
       prompt,
@@ -244,7 +244,7 @@ export const generateCharacterDescriptions = async (
           type: 'array',
           items: {
             type: 'object',
-            properties: { name: { type: 'string' }, description: { type: 'string', minLength: 2000 } },
+            properties: { name: { type: 'string' }, description: { type: 'string', minLength: 100, maxLength: 300 } },
             required: ['name', 'description'],
             additionalProperties: false,
           },
@@ -318,8 +318,8 @@ and this hero sheet:
 ${sheetText ?? ''}
 ${heroDescription ? `The hero's description is: ${heroDescription}.` : ''}
 Write a short backstory for ${finalHeroName} using these time markers: 5 years ago, 1 year ago, 6 months ago, 1 month ago, 1 week ago, yesterday, and now.
-Then outline a five act narrative arc for this adventure with an overview of at least 3000 characters.
-Provide details only for Act 1 (exposition) including a description of at least 3000 characters, the main objective, two side quests, and the success condition to proceed to the next act (rising action).`;
+Then outline a five act narrative arc for this adventure with a creative overview.
+Provide details only for Act 1 (exposition) including a creative description, the main objective, 2-4 side quests, and the success condition to proceed to the next act (rising action).`;
       const backstoryText = await request(backstoryPrompt, heroBackstorySchema, 'HeroBackstory');
       const parsedData = backstoryText
         ? safeParseJson<HeroBackstory & { storyArc: StoryArcData }>(backstoryText)

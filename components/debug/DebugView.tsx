@@ -25,6 +25,9 @@ import {
   MiscStateTab,
   TravelPathTab,
   ToolsTab,
+  WorldSheetTab,
+  HeroSheetTab,
+  StoryArcTab,
 } from './tabs';
 
 interface DebugViewProps {
@@ -64,6 +67,9 @@ type DebugTab =
   | "NPCs"
   | "MapDataFull"
   | "Lore"
+  | "WorldSheet"
+  | "HeroSheet"
+  | "StoryArc"
   | "GameLog"
   | "TravelPath"
   | "MiscState"
@@ -121,6 +127,9 @@ function DebugView({
     { name: "NPCs", label: "NPCs" },
     { name: "MapDataFull", label: "Map Data" },
     { name: "Lore", label: "Lore" },
+    { name: "WorldSheet", label: "World Sheet" },
+    { name: "HeroSheet", label: "Hero Sheet" },
+    { name: "StoryArc", label: "Story Arc" },
     { name: "GameLog", label: "Game Log" },
     { name: "TravelPath", label: "Travel Path" },
     { name: "MiscState", label: "Misc State" },
@@ -171,6 +180,17 @@ function DebugView({
             loreFacts={currentState.loreFacts}
           />
         );
+      case 'WorldSheet':
+        return <WorldSheetTab worldSheet={currentState.WorldSheet} />;
+      case 'HeroSheet':
+        return (
+          <HeroSheetTab
+            heroBackstory={currentState.heroBackstory}
+            heroSheet={currentState.heroSheet}
+          />
+        );
+      case 'StoryArc':
+        return <StoryArcTab storyArc={currentState.storyArc} />;
       case 'GameLog':
         return <GameLogTab gameLog={currentState.gameLog} />;
       case 'TravelPath':
