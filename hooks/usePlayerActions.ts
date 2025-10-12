@@ -40,6 +40,71 @@ import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import { isStoryArcValid } from '../utils/storyArcUtils';
 import { runStorytellerTurnWithParseRetries } from './storytellerParseRetry';
 
+type HighlightMatcherResult = ReturnType<typeof buildHighlightRegex>;
+
+interface ActionSelectionContext {
+  state: FullGameState;
+  highlightMatcher: HighlightMatcherResult;
+}
+
+const READABLE_PROMPT_PREFIX = 'The contents of the ';
+const PLAYER_READS_PROMPT_PREFIX = 'Player reads the ';
+
+const isReadableItem = (item: Item): boolean =>
+  WRITTEN_ITEM_TYPES.includes(item.type as (typeof WRITTEN_ITEM_TYPES)[number]);
+
+export const collectReadableItemsFromAction = (
+  action: string,
+  matcher: HighlightMatcherResult,
+): Array<Item> => {
+  if (!matcher) return [];
+
+  const { regex, lookup } = matcher;
+  regex.lastIndex = 0;
+
+  const matchedById = new Map<string, Item>();
+  let match: RegExpExecArray | null = regex.exec(action);
+  while (match) {
+    const info = lookup.get(match[0].toLowerCase());
+    const matchedItem = info?.entityData.item;
+    if (matchedItem && isReadableItem(matchedItem)) {
+      matchedById.set(matchedItem.id, matchedItem);
+    }
+    match = regex.exec(action);
+  }
+
+  return Array.from(matchedById.values());
+};
+
+export const appendReadableItemContents = (
+  baseAction: string,
+  readableItems: Array<Item>,
+): string => {
+  let enrichedAction = baseAction;
+
+  for (const item of readableItems) {
+    const alreadyIncluded =
+      enrichedAction.includes(`${PLAYER_READS_PROMPT_PREFIX}${item.name}`) ||
+      enrichedAction.includes(`${READABLE_PROMPT_PREFIX}${item.name} follow:`);
+
+    if (alreadyIncluded) continue;
+
+    const showActual = item.tags?.includes('recovered');
+    const contents = (item.chapters ?? [])
+      .map(
+        chapter =>
+          `${chapter.heading}\n${
+            showActual ? chapter.actualContent ?? '' : chapter.visibleContent ?? ''
+          }`,
+      )
+      .join('\n\n');
+
+    enrichedAction = `${enrichedAction}\n${READABLE_PROMPT_PREFIX}${item.name} follow:\n${contents}`;
+  }
+
+  return enrichedAction;
+};
+
 export interface UsePlayerActionsProps {
   getCurrentGameState: () => FullGameState;
   commitGameState: (state: FullGameState) => void;
@@ -125,20 +190,22 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
         state.lastLoreDistillTurn !== state.globalTurnNumber
       ) {
         const mapNodes = state.mapData.nodes;
-        const inventoryItemNames = Array.from(
-          new Set(
-            state.inventory
-              .filter(item => {
-                if (item.holderId === PLAYER_HOLDER_ID) return true;
-                if (mapNodes.some(node => node.id === item.holderId)) return true;
-                const holderNpc = state.allNPCs.find(
-                  npc => npc.id === item.holderId,
-                );
-                return Boolean(holderNpc);
-              })
-              .map(item => item.name),
-          ),
-        );
+        const knownHolderIds = new Set<string>([PLAYER_HOLDER_ID]);
+        for (const node of mapNodes) {
+          knownHolderIds.add(node.id);
+        }
+        for (const npc of state.allNPCs) {
+          knownHolderIds.add(npc.id);
+        }
+
+        const inventoryItemNamesSet = new Set<string>();
+        for (const item of state.inventory) {
+          const holderId = item.holderId;
+          if (!holderId) continue;
+          if (!knownHolderIds.has(holderId)) continue;
+          inventoryItemNamesSet.add(item.name);
+        }
+        const inventoryItemNames = Array.from(inventoryItemNamesSet);
         const mapNodeNames = mapNodes.map(n => n.placeName);
         const recentLogs = state.gameLog.slice(-RECENT_LOG_COUNT_FOR_DISTILL);
         setLoadingReason('loremaster_distill');
@@ -180,6 +247,33 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       }
     },
     [setLoadingReason],
+  );
+
+  const buildActionSelectionContext = useCallback(
+    (state: FullGameState): ActionSelectionContext => ({
+      state,
+      highlightMatcher: buildHighlightRegex(
+        state.inventory.map(item => ({
+          name: item.name,
+          type: 'item',
+          description: item.description,
+          item,
+        })),
+      ),
+    }),
+    [],
+  );
+
+  const resolveActionForExecution = useCallback(
+    (rawAction: string, context: ActionSelectionContext): string => {
+      const readableItems = collectReadableItemsFromAction(rawAction, context.highlightMatcher);
+      if (!readableItems.length) {
+        return rawAction;
+      }
+
+      return appendReadableItemContents(rawAction, readableItems);
+    },
+    [],
   );
 
   /**
@@ -398,48 +492,13 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
   const handleActionSelect = useCallback(
     (action: string, stateOverride?: FullGameState): Promise<void> => {
       const currentFullState = stateOverride ?? getCurrentGameState();
-      let finalAction = action;
+      const context = buildActionSelectionContext(currentFullState);
+      const finalAction = resolveActionForExecution(action, context);
 
-      const highlightMatcher = buildHighlightRegex(
-        currentFullState.inventory.map(item => ({
-          name: item.name,
-          type: 'item',
-          description: item.description,
-          item,
-        }))
-      );
-
-      if (highlightMatcher) {
-        const { regex, lookup } = highlightMatcher;
-        const matchedBooks = new Set<Item>();
-        let match;
-        while ((match = regex.exec(action)) !== null) {
-          const info = lookup.get(match[0].toLowerCase());
-          const matchedItem = info?.entityData.item;
-          if (
-            matchedItem &&
-            WRITTEN_ITEM_TYPES.includes(matchedItem.type as (typeof WRITTEN_ITEM_TYPES)[number])
-          ) {
-            matchedBooks.add(matchedItem);
-          }
-        }
-
-        for (const item of matchedBooks) {
-          const alreadyIncluded =
-            finalAction.includes(`Player reads the ${item.name}`) ||
-            finalAction.includes(`The contents of the ${item.name} follow:`);
-          if (!alreadyIncluded) {
-            const showActual = item.tags?.includes('recovered');
-            const contents = (item.chapters ?? [])
-              .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
-              .join('\n\n');
-            finalAction += `\nThe contents of the ${item.name} follow:\n${contents}`;
-          }
-        }
-      }
-
-      return executePlayerAction(finalAction, false, currentFullState);
-    }, [getCurrentGameState, executePlayerAction]);
+      return executePlayerAction(finalAction, false, context.state);
+    },
+    [buildActionSelectionContext, executePlayerAction, getCurrentGameState, resolveActionForExecution],
+  );
 
   /**
    * Triggers an action based on the player's interaction with an item.
