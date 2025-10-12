@@ -20,6 +20,8 @@ import {
   MIN_BOOK_CHAPTERS,
   MAX_BOOK_CHAPTERS,
   ALIAS_INSTRUCTION,
+  MIN_DIALOGUE_TURN_OPTIONS,
+  MAX_DIALOGUE_TURN_OPTIONS,
 } from '../../constants';
 import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
@@ -61,7 +63,7 @@ export const STORYTELLER_JSON_SCHEMA = {
               },
               speaker: {
                 type: 'string',
-                description: 'Speaker NPC delivering the line.',
+                description: 'Speaker NPC id or name delivering the line.',
               },
             },
             propertyOrdering: ['line', 'speaker'],
@@ -71,18 +73,18 @@ export const STORYTELLER_JSON_SCHEMA = {
         },
         initialPlayerOptions: {
           type: 'array',
-          minItems: 4,
-          maxItems: 8,
+          minItems: MIN_DIALOGUE_TURN_OPTIONS,
+          maxItems: MAX_DIALOGUE_TURN_OPTIONS,
           items: { type: 'string' },
           description:
-            'First-person dialogue choices, last one not necessarily politely, but contextually approprialely ends the conversation.',
+            'First-person dialogue choices, always in the form of direct speech. The last option must contextually approprialely end the conversation.',
         },
         participants: {
           type: 'array',
           minItems: 1,
           items: { type: 'string' },
           description:
-            'NPC names taking part in the conversation, excluding the player.',
+            'NPC IDs or names who take part in the conversation, excluding the player.',
         },
       },
       propertyOrdering: ['initialNpcResponses', 'initialPlayerOptions', 'participants'],

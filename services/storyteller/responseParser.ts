@@ -14,6 +14,7 @@ import {
     DialogueSetupPayload,
     MapNode,
     AdventureTheme,
+    DialogueTurnResponsePart,
 } from '../../types';
 import { MAIN_TURN_OPTIONS_COUNT, DEFAULT_NPC_ATTITUDE } from '../../constants';
 import {
@@ -191,6 +192,153 @@ const collectNPCsForDialogueContext = (
     }
 
     return npcsForContext;
+};
+
+const sanitizeDialogueSetupPayload = async (
+    rawDialogueSetup: unknown,
+    data: Partial<GameStateFromAI>,
+    context: ParserContext,
+): Promise<DialogueSetupPayload | null> => {
+    if (!rawDialogueSetup || typeof rawDialogueSetup !== 'object') return null;
+
+    const raw = rawDialogueSetup as Partial<DialogueSetupPayload>;
+    const rawParticipants: Array<unknown> = Array.isArray(raw.participants)
+        ? raw.participants
+        : [];
+    const rawResponses: Array<unknown> = Array.isArray(raw.initialNpcResponses)
+        ? raw.initialNpcResponses
+        : [];
+    const rawOptions: Array<unknown> = Array.isArray(raw.initialPlayerOptions)
+        ? raw.initialPlayerOptions
+        : [];
+
+    if (rawParticipants.length === 0 && rawResponses.length === 0) {
+        return null;
+    }
+
+    const npcsForContext = collectNPCsForDialogueContext(data, context);
+    const availableNames = new Set<string>(npcsForContext.map(npc => npc.name));
+    const validNamesList = Array.from(availableNames);
+    const ensureNameTracked = (name: string): void => {
+        if (!availableNames.has(name)) {
+            availableNames.add(name);
+            validNamesList.push(name);
+        }
+    };
+    const correctionCache = new Map<string, string | null>();
+
+    const resolveParticipantName = async (value: unknown): Promise<string | null> => {
+        if (typeof value !== 'string') return null;
+        const trimmed = value.trim();
+        if (trimmed.length === 0) return null;
+        const cached = correctionCache.get(trimmed);
+        if (cached !== undefined) return cached;
+
+        if (availableNames.has(trimmed)) {
+            correctionCache.set(trimmed, trimmed);
+            return trimmed;
+        }
+
+        const matched = findNPCByIdentifier(trimmed, npcsForContext);
+        if (matched && !Array.isArray(matched)) {
+            ensureNameTracked(matched.name);
+            correctionCache.set(trimmed, matched.name);
+            return matched.name;
+        }
+
+        if (validNamesList.length === 0) {
+            correctionCache.set(trimmed, null);
+            return null;
+        }
+
+        const corrected = await fetchCorrectedName(
+            'dialogue participant',
+            trimmed,
+            context.logMessageFromPayload ?? data.logMessage,
+            context.sceneDescriptionFromPayload ?? data.sceneDescription,
+            validNamesList,
+            context.theme,
+        );
+        if (corrected && availableNames.has(corrected)) {
+            correctionCache.set(trimmed, corrected);
+            return corrected;
+        }
+
+        correctionCache.set(trimmed, null);
+        return null;
+    };
+
+    const participantSet = new Set<string>();
+    const sanitizedParticipants: Array<string> = [];
+    for (const entry of rawParticipants) {
+        const resolved = await resolveParticipantName(entry);
+        if (resolved && !participantSet.has(resolved)) {
+            participantSet.add(resolved);
+            sanitizedParticipants.push(resolved);
+        }
+    }
+
+    const sanitizedResponses: Array<DialogueTurnResponsePart> = [];
+    for (const response of rawResponses) {
+        if (!response || typeof response !== 'object') continue;
+        const candidate = response as Partial<DialogueTurnResponsePart>;
+        if (typeof candidate.line !== 'string') continue;
+        const line = candidate.line.trim();
+        if (line.length === 0) continue;
+        const resolvedSpeaker = await resolveParticipantName(candidate.speaker);
+        if (!resolvedSpeaker) continue;
+        if (!participantSet.has(resolvedSpeaker)) {
+            participantSet.add(resolvedSpeaker);
+            sanitizedParticipants.push(resolvedSpeaker);
+        }
+        const sanitized: DialogueTurnResponsePart = {
+            speaker: resolvedSpeaker,
+            line,
+        };
+        if (typeof candidate.thought === 'string') {
+            const thought = candidate.thought.trim();
+            if (thought.length > 0) sanitized.thought = thought;
+        }
+        sanitizedResponses.push(sanitized);
+    }
+
+    const extractOptionText = (option: unknown): string | null => {
+        if (typeof option === 'string') {
+            const trimmed = option.trim();
+            return trimmed.length > 0 ? trimmed : null;
+        }
+        if (option && typeof option === 'object') {
+            const candidate = (option as { text?: unknown }).text;
+            if (typeof candidate === 'string') {
+                const trimmed = candidate.trim();
+                return trimmed.length > 0 ? trimmed : null;
+            }
+        }
+        return null;
+    };
+
+    const sanitizedOptions: Array<string> = [];
+    for (const option of rawOptions) {
+        const text = extractOptionText(option);
+        if (!text) continue;
+        if (!sanitizedOptions.includes(text)) {
+            sanitizedOptions.push(text);
+        }
+    }
+
+    if (
+        sanitizedParticipants.length === 0 ||
+        sanitizedResponses.length === 0 ||
+        sanitizedOptions.length === 0
+    ) {
+        return null;
+    }
+
+    return {
+        participants: sanitizedParticipants,
+        initialNpcResponses: sanitizedResponses,
+        initialPlayerOptions: sanitizedOptions,
+    };
 };
 
 const ensurePresenceConsistency = (npc: NPC): NPC => {
@@ -552,6 +700,14 @@ async function handleDialogueSetup(
     let isDialogueTurn = false;
 
     if (dialogueSetup) {
+        const sanitizedDialogue = await sanitizeDialogueSetupPayload(
+            dialogueSetup,
+            data,
+            context,
+        );
+        if (sanitizedDialogue) {
+            dialogueSetup = sanitizedDialogue;
+        }
         let dialogueSetupIsValid = isDialogueSetupPayloadStructurallyValid(dialogueSetup);
         if (!dialogueSetupIsValid) {
             console.warn("parseAIResponse: 'dialogueSetup' is present but malformed. Attempting correction.");

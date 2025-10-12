@@ -68,7 +68,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
       minItems: MIN_DIALOGUE_TURN_OPTIONS,
       maxItems: MAX_DIALOGUE_TURN_OPTIONS,
       description:
-        'Possible player replies. The last option must contextually appropriately end the conversation.',
+        'Possible player replies, always in the form of direct speech. The last option must contextually appropriately end the conversation.',
       items: { type: 'string' },
     },
     updatedParticipants: {
@@ -80,7 +80,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
     },
     npcAttitudeUpdates: {
       type: 'array',
-      description: 'Describe any change in an NPC\'s attitude toward the player during this turn.',
+      description: 'Describe any change in NPC\'s attitude toward the player during this turn.',
       items: {
         type: 'object',
         properties: {
@@ -93,7 +93,7 @@ export const DIALOGUE_TURN_JSON_SCHEMA = {
     },
     npcKnownNameUpdates: {
       type: 'array',
-      description: 'Describe any change in the name or nickname an NPC uses for the player.',
+      description: 'Describe any change in the name or nickname the NPC uses for the player.',
       items: {
         type: 'object',
         properties: {
