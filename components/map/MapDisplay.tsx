@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import type React from 'react';
 
 import { MapData, MapNode, MapLayoutConfig } from '../../types';
 import {
@@ -38,25 +39,27 @@ interface MapDisplayProps {
   readonly onLayoutConfigChange: (newConfig: MapLayoutConfig) => void;
   readonly isVisible: boolean;
   readonly onClose: () => void;
+  readonly onTransitionEnd: (event: React.TransitionEvent<HTMLDivElement>) => void;
 }
 
 /**
  * Renders the interactive map with controls for layout tweaking.
  */
 function MapDisplay({
-  mapData,
   adventureName,
   currentMapNodeId,
   destinationNodeId,
-  itemPresenceByNode,
-  onSelectDestination,
   initialLayoutConfig,
   initialViewBox,
-  onViewBoxChange,
-  onNodesPositioned,
-  onLayoutConfigChange,
   isVisible,
+  itemPresenceByNode,
+  mapData,
   onClose,
+  onLayoutConfigChange,
+  onNodesPositioned,
+  onSelectDestination,
+  onTransitionEnd,
+  onViewBoxChange,
 }: MapDisplayProps) {
   const [displayedNodes, setDisplayedNodes] = useState<Array<MapNode>>([]);
 
@@ -165,7 +168,9 @@ function MapDisplay({
       aria-labelledby="map-display-title"
       aria-modal="true"
       className={`animated-frame ${isVisible ? 'open' : ''}`}
+      onTransitionEnd={onTransitionEnd}
       role="dialog"
+      style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
     >
       <div className="animated-frame-content">
         <Button
@@ -195,6 +200,7 @@ function MapDisplay({
           destinationNodeId={destinationNodeId}
           edges={edges}
           initialViewBox={initialViewBox}
+          isInteractive={isVisible}
           itemIconScale={itemIconScale}
           itemPresenceByNode={itemPresenceByNode}
           labelOverlapMarginPx={labelOverlapMarginPx}

@@ -4,7 +4,8 @@ import ConfirmationDialog from '../ConfirmationDialog';
 import ImageVisualizer from '../modals/ImageVisualizer';
 import PageView from '../modals/PageView';
 import { PLAYER_HOLDER_ID, PLAYER_JOURNAL_ID } from '../../constants';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type React from 'react';
 import {
   AdventureTheme,
   MapData,
@@ -132,6 +133,121 @@ function AppModals({
   canWriteJournal,
   isWritingJournal,
 }: AppModalsProps) {
+  const [shouldRenderMap, setShouldRenderMap] = useState(isMapVisible);
+  const [mapVisibleForAnimation, setMapVisibleForAnimation] = useState(isMapVisible);
+  const mapUnmountTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (isMapVisible) {
+      setShouldRenderMap(true);
+      if (mapUnmountTimeoutRef.current !== null) {
+        clearTimeout(mapUnmountTimeoutRef.current);
+        mapUnmountTimeoutRef.current = null;
+      }
+      setMapVisibleForAnimation(false);
+      if (typeof window !== 'undefined') {
+        let rafId: number | null = null;
+        let rafId2: number | null = null;
+        rafId = window.requestAnimationFrame(() => {
+          rafId2 = window.requestAnimationFrame(() => {
+            setMapVisibleForAnimation(true);
+          });
+        });
+        return () => {
+          if (rafId) window.cancelAnimationFrame(rafId);
+          if (rafId2) window.cancelAnimationFrame(rafId2);
+        };
+      }
+      setMapVisibleForAnimation(true);
+      return undefined;
+    }
+
+    setMapVisibleForAnimation(false);
+    return undefined;
+  }, [isMapVisible]);
+
+  useEffect(() => {
+    if (mapVisibleForAnimation) {
+      if (mapUnmountTimeoutRef.current !== null) {
+        clearTimeout(mapUnmountTimeoutRef.current);
+        mapUnmountTimeoutRef.current = null;
+      }
+      return undefined;
+    }
+
+    if (!shouldRenderMap) return undefined;
+
+    const schedule: typeof setTimeout =
+      typeof window !== 'undefined' ? window.setTimeout.bind(window) : setTimeout;
+    const timeoutId = schedule(() => {
+      setShouldRenderMap(false);
+      mapUnmountTimeoutRef.current = null;
+      setMapVisibleForAnimation(false);
+    }, 400);
+    mapUnmountTimeoutRef.current = timeoutId;
+
+    return () => {
+      clearTimeout(mapUnmountTimeoutRef.current ?? timeoutId);
+      mapUnmountTimeoutRef.current = null;
+    };
+  }, [mapVisibleForAnimation, shouldRenderMap]);
+
+  useEffect(() => {
+    return () => {
+      if (mapUnmountTimeoutRef.current !== null) {
+        clearTimeout(mapUnmountTimeoutRef.current);
+        mapUnmountTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleMapTransitionEnd = useCallback((event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (mapVisibleForAnimation) return;
+    setShouldRenderMap(false);
+    if (mapUnmountTimeoutRef.current !== null) {
+      clearTimeout(mapUnmountTimeoutRef.current);
+      mapUnmountTimeoutRef.current = null;
+    }
+  }, [mapVisibleForAnimation]);
+
+  const mapModal = useMemo(() => {
+    if (!shouldRenderMap) return null;
+    return (
+      <MapDisplay
+        adventureName={adventureName}
+        currentMapNodeId={currentMapNodeId}
+        destinationNodeId={destinationNodeId}
+        initialLayoutConfig={initialLayoutConfig}
+        initialViewBox={initialViewBox}
+        isVisible={mapVisibleForAnimation}
+        itemPresenceByNode={itemPresenceByNode}
+        mapData={mapData}
+        onClose={onCloseMap}
+        onLayoutConfigChange={onLayoutConfigChange}
+        onNodesPositioned={onNodesPositioned}
+        onSelectDestination={onSelectDestination}
+        onTransitionEnd={handleMapTransitionEnd}
+        onViewBoxChange={onViewBoxChange}
+      />
+    );
+  }, [
+    adventureName,
+    currentMapNodeId,
+    destinationNodeId,
+    initialLayoutConfig,
+    initialViewBox,
+    mapVisibleForAnimation,
+    itemPresenceByNode,
+    mapData,
+    handleMapTransitionEnd,
+    onCloseMap,
+    onLayoutConfigChange,
+    onNodesPositioned,
+    onSelectDestination,
+    onViewBoxChange,
+    shouldRenderMap,
+  ]);
 
   const updateContentHandler = useCallback(
     (
@@ -221,21 +337,7 @@ function AppModals({
         updateItemContent={updateContentHandler}
       />
 
-      <MapDisplay
-        adventureName={adventureName}
-        currentMapNodeId={currentMapNodeId}
-        destinationNodeId={destinationNodeId}
-        initialLayoutConfig={initialLayoutConfig}
-        initialViewBox={initialViewBox}
-        isVisible={isMapVisible}
-        itemPresenceByNode={itemPresenceByNode}
-        mapData={mapData}
-        onClose={onCloseMap}
-        onLayoutConfigChange={onLayoutConfigChange}
-        onNodesPositioned={onNodesPositioned}
-        onSelectDestination={onSelectDestination}
-        onViewBoxChange={onViewBoxChange}
-      />
+      {mapModal}
 
 
       <ConfirmationDialog

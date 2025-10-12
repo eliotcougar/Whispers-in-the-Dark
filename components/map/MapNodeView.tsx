@@ -52,6 +52,7 @@ interface MapNodeViewProps {
   readonly itemIconScale: number;
   readonly initialViewBox: string;
   readonly onViewBoxChange: (viewBox: string) => void;
+  readonly isInteractive: boolean;
 }
 
 /**
@@ -74,6 +75,7 @@ function MapNodeView({
   itemIconScale,
   initialViewBox,
   onViewBoxChange,
+  isInteractive,
 }: MapNodeViewProps) {
   const interactions = useMapInteractions(initialViewBox, onViewBoxChange);
   const { svgRef, viewBox, handleMouseDown, handleMouseMove, handleMouseUp, handleMouseLeave, handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd } = interactions;
@@ -162,17 +164,18 @@ function MapNodeView({
     <div className="map-content-area">
       <svg
         className="map-svg-container"
-        onClick={handleSvgClick}
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseLeave}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchMove}
-        onTouchStart={handleTouchStart}
-        onWheel={handleWheel}
+        onClick={isInteractive ? handleSvgClick : undefined}
+        onMouseDown={isInteractive ? handleMouseDown : undefined}
+        onMouseLeave={isInteractive ? handleMouseLeave : undefined}
+        onMouseMove={isInteractive ? handleMouseMove : undefined}
+        onMouseUp={isInteractive ? handleMouseUp : undefined}
+        onTouchEnd={isInteractive ? handleTouchEnd : undefined}
+        onTouchMove={isInteractive ? handleTouchMove : undefined}
+        onTouchStart={isInteractive ? handleTouchStart : undefined}
+        onWheel={isInteractive ? handleWheel : undefined}
         preserveAspectRatio="xMidYMid meet"
         ref={svgRef}
+        style={{ pointerEvents: isInteractive ? 'auto' : 'none', touchAction: isInteractive ? undefined : 'none' }}
         viewBox={viewBox}
       >
         <g>
@@ -189,8 +192,8 @@ function MapNodeView({
                 className="map-edge-group"
                 data-edge-id={edge.id}
                 key={edge.id}
-                onMouseEnter={handleEdgeMouseEnterById}
-                onMouseLeave={handleMouseLeaveGeneral}
+                onMouseEnter={isInteractive ? handleEdgeMouseEnterById : undefined}
+                onMouseLeave={isInteractive ? handleMouseLeaveGeneral : undefined}
               >
                 {edge.type === 'shortcut' ? (
                   <>
@@ -242,8 +245,8 @@ function MapNodeView({
                 className="map-node"
                 data-node-id={node.id}
                 key={node.id}
-                onClick={handleNodeClickById}
-                onMouseLeave={handleMouseLeaveGeneral}
+                onClick={isInteractive ? handleNodeClickById : undefined}
+                onMouseLeave={isInteractive ? handleMouseLeaveGeneral : undefined}
                 transform={`translate(${String(node.position.x)}, ${String(node.position.y)})`}
               >
                 <circle
@@ -267,9 +270,9 @@ function MapNodeView({
                   className="map-node-hover-ring"
                   data-node-id={node.id}
                   fill="none"
-                  onMouseEnter={handleNodeMouseEnterById}
-                  onMouseLeave={handleMouseLeaveGeneral}
-                  pointerEvents="stroke"
+                  onMouseEnter={isInteractive ? handleNodeMouseEnterById : undefined}
+                  onMouseLeave={isInteractive ? handleMouseLeaveGeneral : undefined}
+                  pointerEvents={isInteractive ? 'stroke' : 'none'}
                   r={radius}
                   stroke="transparent"
                   strokeWidth={8}
