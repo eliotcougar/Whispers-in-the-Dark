@@ -136,86 +136,143 @@ function AppContent({
   const openGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(true); }, []);
   const closeGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(false); }, []);
 
+  const {
+    status,
+    story,
+    map: mapDomain,
+    inventory: inventoryDomain,
+    journal: journalDomain,
+    dialogue: dialogueDomain,
+    actions: actionDomain,
+    debug: debugDomain,
+    system: systemDomain,
+    npcs: npcDomain,
+  } = gameLogic;
+
+  const { isLoading, isTurnProcessing, error, hasGameBeenInitialized } = status;
+  const {
+    theme,
+    currentScene,
+    mainQuest,
+    currentObjective,
+    actionOptions,
+    storyArc,
+    heroSheet,
+    objectiveAnimationType,
+    gameLog,
+    lastActionLog,
+    lastTurnChanges,
+    score,
+    globalTurnNumber,
+    localTime,
+    localEnvironment,
+    localPlace,
+    isVictory,
+    handlers: storyHandlers,
+  } = story;
+  const { triggerMainQuestAchieved, simulateVictory } = storyHandlers;
+
+  const {
+    data: mapData,
+    currentNodeId: currentMapNodeId,
+    destinationNodeId,
+    layoutConfig: mapLayoutConfig,
+    viewBox: mapViewBox,
+    itemPresenceByNode,
+    handlers: mapHandlers,
+  } = mapDomain;
+  const {
+    setLayoutConfig: handleMapLayoutConfigChange,
+    setViewBox: handleMapViewBoxChange,
+    setNodePositions: handleMapNodesPositionChange,
+    selectDestination: handleSelectDestinationNode,
+  } = mapHandlers;
+
+  const {
+    items: inventory,
+    itemsHere,
+    handlers: inventoryHandlers,
+    queue: inventoryQueue,
+  } = inventoryDomain;
+  const {
+    executeItemInteraction,
+    handleStashToggle,
+    updateItemContent,
+  } = inventoryHandlers;
+  const {
+    actions: queuedItemActions,
+    enqueue: queueItemAction,
+    clear: clearQueuedItemActions,
+    remainingActionPoints,
+  } = inventoryQueue;
+
+  const {
+    playerJournal,
+    lastWriteTurn: lastJournalWriteTurn,
+    lastInspectTurn: lastJournalInspectTurn,
+    handlers: journalHandlers,
+  } = journalDomain;
+  const {
+    addPlayerEntry: addPlayerJournalEntry,
+    updatePlayerEntryContent: updatePlayerJournalContent,
+    recordInspect: recordPlayerJournalInspect,
+    distillLore: handleDistillFacts,
+  } = journalHandlers;
+
+  const {
+    state: dialogueState,
+    isExiting: isDialogueExiting,
+    handlers: dialogueHandlers,
+  } = dialogueDomain;
+  const {
+    selectOption: handleDialogueOptionSelect,
+    forceExit: handleForceExitDialogue,
+  } = dialogueHandlers;
+
+  const {
+    freeFormActionText,
+    setFreeFormActionText,
+    handleFreeFormActionSubmit,
+    handleActionSelect,
+    handleUndoTurn,
+    handleRetry,
+    startCustomGame,
+  } = actionDomain;
+
+  const {
+    lastDebugPacket,
+    gameStateStack,
+    debugPacketStack,
+    toggleDebugLore,
+    clearDebugFacts,
+    debugLore,
+    debugGoodFacts,
+    debugBadFacts,
+    gatherCurrentGameState: gatherGameStateStack,
+    gatherDebugPacketStack,
+    spawnBookForPlayer,
+    spawnMapForPlayer,
+    spawnPictureForPlayer,
+    spawnPageForPlayer,
+    spawnVehicleForPlayer,
+    spawnNpcAtPlayerLocation,
+  } = debugDomain;
+
+  const { commitGameState, setError } = systemDomain;
+  const { all: allNPCs } = npcDomain;
+
   const handleThinkingEffortChange = useCallback(
     (value: ThinkingEffort) => {
       setThinkingEffort(value);
-      const current = gameLogic.gatherCurrentGameState()[0];
-      gameLogic.commitGameState({ ...current, thinkingEffort: value });
+      const current = gatherGameStateStack()[0];
+      commitGameState({ ...current, thinkingEffort: value });
     },
-    [gameLogic, setThinkingEffort],
+    [commitGameState, gatherGameStateStack, setThinkingEffort],
   );
 
   const handlePreferredPlayerNameChange = useCallback((value: string) => {
     setPreferredPlayerName(value);
   }, [setPreferredPlayerName]);
-
-  const {
-    theme,
-    currentScene, mainQuest, currentObjective, actionOptions, storyArc, heroSheet,
-    inventory,
-    itemsHere,
-    itemPresenceByNode,
-    gameLog,
-    isLoading,
-    isTurnProcessing,
-    error,
-    lastActionLog,
-    mapData,
-    currentMapNodeId, mapLayoutConfig,
-    allNPCs,
-    score, freeFormActionText, setFreeFormActionText,
-    handleFreeFormActionSubmit, objectiveAnimationType, handleActionSelect,
-    executeItemInteraction, handleRetry,
-    startCustomGame,
-    gatherCurrentGameState: gatherGameStateStack,
-    gatherDebugPacketStack,
-    hasGameBeenInitialized,
-    localTime, localEnvironment, localPlace,
-    dialogueState,
-    handleDialogueOptionSelect,
-    handleForceExitDialogue,
-    isDialogueExiting,
-    lastDebugPacket,
-    lastTurnChanges,
-    globalTurnNumber,
-    gameStateStack,
-    debugPacketStack,
-    handleMapLayoutConfigChange,
-    handleUndoTurn,
-    triggerMainQuestAchieved,
-    destinationNodeId,
-    handleSelectDestinationNode,
-    mapViewBox,
-    handleMapViewBoxChange,
-    handleMapNodesPositionChange,
-    commitGameState,
-    updateItemContent,
-    addPlayerJournalEntry,
-    updatePlayerJournalContent,
-    recordPlayerJournalInspect,
-    playerJournal,
-    lastJournalWriteTurn,
-    lastJournalInspectTurn,
-    handleDistillFacts,
-    toggleDebugLore,
-    clearDebugFacts,
-    debugLore,
-    debugGoodFacts,
-      debugBadFacts,
-      isVictory,
-      simulateVictory,
-      spawnBookForPlayer,
-      spawnMapForPlayer,
-      spawnPictureForPlayer,
-      spawnPageForPlayer,
-      spawnVehicleForPlayer,
-      spawnNpcAtPlayerLocation,
-      handleStashToggle,
-      queueItemAction,
-      queuedItemActions,
-    clearQueuedItemActions,
-    remainingActionPoints,
-  } = gameLogic;
 
   const isPlaceholderTheme = theme.name === PLACEHOLDER_THEME.name;
   const adventureNameForUi = isPlaceholderTheme ? null : theme.name;
@@ -423,7 +480,7 @@ function AppContent({
     hasGameBeenInitialized,
     isLoading,
     isTurnProcessing,
-    setError: (msg) => { gameLogic.setError(msg); },
+    setError: (msg) => { setError(msg); },
   });
 
 
@@ -597,13 +654,13 @@ function AppContent({
           ? prevPacks.filter(p => p !== packName)
           : [...prevPacks, packName];
         if (newPacks.length === 0) {
-          gameLogic.setError('At least one theme pack must be enabled.');
+          setError('At least one theme pack must be enabled.');
           return prevPacks;
         }
         return newPacks;
       });
     },
-    [gameLogic, setEnabledThemePacks]
+    [setEnabledThemePacks, setError]
   );
   /**
    * Wrapper ensuring lint compliance for the async dialogue option handler.

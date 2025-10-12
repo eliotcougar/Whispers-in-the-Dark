@@ -19,8 +19,6 @@ import {
   StoryAct,
   StoryArc,
   ThinkingEffort,
-  Item,
-  KnownUse,
 } from '../types';
 import { setLoadingReason as setGlobalLoadingReason } from '../utils/loadingState';
 import { useLoadingReason } from './useLoadingReason';
@@ -31,22 +29,20 @@ import { useGameInitialization, LoadInitialGameOptions } from './useGameInitiali
 import { buildSaveStateSnapshot } from './saveSnapshotHelpers';
 import { structuredCloneGameState } from '../utils/cloneUtils';
 import {
-    PLAYER_HOLDER_ID,
-    DISTILL_LORE_INTERVAL,
-    RECENT_LOG_COUNT_FOR_DISTILL,
-    ACTION_POINTS_PER_TURN,
-    KNOWN_USE_ACTION_COST,
-    GENERIC_USE_ACTION_COST,
-    INSPECT_ACTION_COST,
-    WRITTEN_ITEM_TYPES,
-  } from '../constants';
-import { getAdjacentNodeIds } from '../utils/mapGraphUtils';
+  PLAYER_HOLDER_ID,
+  DISTILL_LORE_INTERVAL,
+  RECENT_LOG_COUNT_FOR_DISTILL,
+} from '../constants';
 import { distillFacts } from '../services/loremaster';
 import { applyLoreFactChanges } from '../utils/gameLogicUtils';
 import {
   ensureCoreGameStateIntegrity,
   ensureCoreGameStateStackIntegrity,
 } from '../utils/gameStateIntegrity';
+import { useGameInventoryDomain } from './gameLogic/useGameInventoryDomain';
+import { useGameMapDomain } from './gameLogic/useGameMapDomain';
+import { useGameJournalDomain } from './gameLogic/useGameJournalDomain';
+import { useGameDialogueDomain } from './gameLogic/useGameDialogueDomain';
 
 export interface UseGameLogicProps {
   enabledThemePacksProp: Array<ThemePackName>;
@@ -113,16 +109,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
   const [parseErrorCounter, setParseErrorCounter] = useState<number>(0);
   const [freeFormActionText, setFreeFormActionText] = useState<string>('');
   const [hasGameBeenInitialized, setHasGameBeenInitialized] = useState<boolean>(false);
-  const [queuedItemActions, setQueuedItemActions] = useState<
-    Array<{ id: string; displayText: string; promptText: string; cost: number; effect?: () => void }>
-  >([]);
-
-  const totalQueuedActionCost = useMemo(
-    () => queuedItemActions.reduce((sum, a) => sum + a.cost, 0),
-    [queuedItemActions],
-  );
-  const remainingActionPoints = ACTION_POINTS_PER_TURN - totalQueuedActionCost;
-
   // Tracks whether a saved game from app initialization has already been
   // applied to prevent re-loading it when starting a new game.
   const hasLoadedInitialSave = useRef<boolean>(false);
@@ -264,99 +250,6 @@ export const useGameLogic = (props: UseGameLogicProps) => {
     onActIntro,
   });
 
-    const toggleQueuedAction = useCallback(
-      (action: { id: string; displayText: string; promptText: string; cost: number; effect?: () => void }) => {
-        setQueuedItemActions(prev => {
-          const exists = prev.some(a => a.id === action.id);
-          return exists ? prev.filter(a => a.id !== action.id) : [...prev, action];
-        });
-      },
-      [],
-    );
-
-  const clearQueuedItemActions = useCallback(() => {
-    setQueuedItemActions([]);
-  }, []);
-
-    const queueItemAction = useCallback(
-      (
-        item: Item,
-        interactionType: 'generic' | 'specific' | 'inspect' | 'take' | 'drop' | 'discard',
-        knownUse?: KnownUse,
-      ) => {
-        if (interactionType === 'take') {
-          handleTakeLocationItem(item.id);
-          return;
-        }
-        if (interactionType === 'drop') {
-          handleDropItem(item.id);
-          return;
-        }
-        if (interactionType === 'discard') {
-          handleDiscardItem(item.id);
-          return;
-        }
-
-        let id = '';
-        let displayText = '';
-        let promptText = '';
-        let effect: (() => void) | undefined;
-        let cost = 0;
-
-        switch (interactionType) {
-          case 'inspect': {
-            id = `${item.id}-inspect`;
-            displayText = `Inspect the ${item.name}`;
-            effect = () => {
-              recordInspect(item.id);
-            };
-            cost = INSPECT_ACTION_COST;
-            if (WRITTEN_ITEM_TYPES.includes(item.type as (typeof WRITTEN_ITEM_TYPES)[number])) {
-              const showActual = item.tags?.includes('recovered');
-              const contents = (item.chapters ?? [])
-                .map(ch => `${ch.heading}\n${showActual ? ch.actualContent ?? '' : ch.visibleContent ?? ''}`)
-                .join('\n\n');
-              promptText = `Player reads the ${item.name} - ${item.description}. Here's what the player reads:\n${contents}`;
-            } else {
-              promptText = `Player investigates the ${item.name} - ${item.description}.`;
-            }
-            break;
-          }
-          case 'generic':
-            id = `${item.id}-generic`;
-            displayText = `Attempt to use the ${item.name}`;
-            promptText = `Attempt to use: ${item.name}`;
-            cost = GENERIC_USE_ACTION_COST;
-            break;
-          case 'specific':
-            if (knownUse) {
-              id = `${item.id}-specific-${knownUse.actionName}`;
-              displayText = knownUse.actionName;
-              promptText = knownUse.promptEffect;
-              cost = KNOWN_USE_ACTION_COST;
-            }
-            break;
-          default:
-            break;
-        }
-
-        if (id && displayText && promptText) {
-          const isQueued = queuedItemActions.some(a => a.id === id);
-          if (!isQueued && cost > remainingActionPoints) return;
-          toggleQueuedAction({ id, displayText, promptText, cost, effect });
-        }
-      },
-      [
-        handleDropItem,
-        handleDiscardItem,
-        handleTakeLocationItem,
-        toggleQueuedAction,
-        recordInspect,
-        queuedItemActions,
-        remainingActionPoints,
-      ],
-    );
-
   const {
     loadInitialGame,
     handleStartNewGameFromButton,
@@ -497,20 +390,6 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     });
   }, [enabledThemePacksProp, hasGameBeenInitialized, setGameStateStack]);
 
-  const itemPresenceByNode = useMemo(() => {
-    const map: Record<string, { hasUseful: boolean; hasVehicle: boolean } | undefined> = {};
-    const nodeIds = new Set(currentFullState.mapData.nodes.map(n => n.id));
-    currentFullState.inventory.forEach(item => {
-      if (nodeIds.has(item.holderId)) {
-        const entry = map[item.holderId] ?? { hasUseful: false, hasVehicle: false };
-        if (!item.tags?.includes('junk')) entry.hasUseful = true;
-        if (item.type === 'vehicle') entry.hasVehicle = true;
-        map[item.holderId] = entry;
-      }
-    });
-    return map;
-  }, [currentFullState.inventory, currentFullState.mapData.nodes]);
-
   const handleDistillFacts = useCallback(async () => {
     const currentFullState = getCurrentGameState();
     setIsLoading(true);
@@ -601,6 +480,41 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     currentFullState.dialogueState,
   ]);
 
+  const map = useGameMapDomain({
+    fullState: currentFullState,
+    handleMapLayoutConfigChange,
+    handleMapViewBoxChange,
+    handleMapNodesPositionChange,
+    handleSelectDestinationNode,
+  });
+
+  const inventory = useGameInventoryDomain({
+    fullState: currentFullState,
+    executeItemInteraction,
+    handleDropItem,
+    handleDiscardItem,
+    handleTakeLocationItem,
+    handleStashToggle,
+    updateItemContent,
+    recordInspect,
+  });
+
+  const journal = useGameJournalDomain({
+    fullState: currentFullState,
+    addJournalEntry,
+    addPlayerJournalEntry,
+    updatePlayerJournalContent,
+    recordPlayerJournalInspect,
+    handleDistillFacts,
+  });
+
+  const dialogue = useGameDialogueDomain({
+    dialogueState: currentFullState.dialogueState,
+    isDialogueExiting,
+    handleDialogueOptionSelect,
+    handleForceExitDialogue,
+  });
+
   const arcActs = currentFullState.storyArc.acts;
   const currentActIndex = currentFullState.storyArc.currentAct - 1;
   const currentAct = currentActIndex >= 0 && currentActIndex < arcActs.length
@@ -608,7 +522,16 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     : null;
   const mainQuest = currentAct ? currentAct.mainObjective : null;
 
-  return {
+  const status = {
+    isLoading,
+    isTurnProcessing,
+    loadingReason,
+    error,
+    parseErrorCounter,
+    hasGameBeenInitialized,
+  };
+
+  const story = {
     theme: currentFullState.theme,
     currentScene: currentFullState.currentScene,
     actionOptions: currentFullState.actionOptions,
@@ -616,113 +539,75 @@ const { isDialogueExiting, handleDialogueOptionSelect, handleForceExitDialogue }
     storyArc: currentFullState.storyArc,
     heroSheet: currentFullState.heroSheet,
     currentObjective: currentFullState.currentObjective,
-    inventory: currentFullState.inventory.filter(i => i.holderId === PLAYER_HOLDER_ID),
-    playerJournal: currentFullState.playerJournal,
-    lastJournalWriteTurn: currentFullState.lastJournalWriteTurn,
-    lastJournalInspectTurn: currentFullState.lastJournalInspectTurn,
-    lastLoreDistillTurn: currentFullState.lastLoreDistillTurn,
-    itemsHere: useMemo(() => {
-      if (!currentFullState.currentMapNodeId) return [];
-      const atCurrent = currentFullState.inventory.filter(
-        i => i.holderId === currentFullState.currentMapNodeId
-      );
-      const adjIds = getAdjacentNodeIds(
-        currentFullState.mapData,
-        currentFullState.currentMapNodeId
-      );
-      const nearbyItems = currentFullState.inventory.filter(i =>
-        adjIds.includes(i.holderId)
-      );
-      const combined = [...atCurrent];
-      nearbyItems.forEach(it => {
-        if (!combined.includes(it)) combined.push(it);
-      });
-      return combined;
-    }, [
-      currentFullState.currentMapNodeId,
-      currentFullState.inventory,
-      currentFullState.mapData,
-    ]),
-    itemPresenceByNode,
+    objectiveAnimationType: currentFullState.objectiveAnimationType,
     gameLog: currentFullState.gameLog,
     lastActionLog: currentFullState.lastActionLog,
-    isLoading: isLoading,
-    isTurnProcessing,
-    loadingReason,
-    error,
-    allNPCs: currentFullState.allNPCs,
-    mapData: currentFullState.mapData,
-    currentMapNodeId: currentFullState.currentMapNodeId,
-    destinationNodeId: currentFullState.destinationNodeId,
-    mapLayoutConfig: currentFullState.mapLayoutConfig,
-    mapViewBox: currentFullState.mapViewBox,
+    lastTurnChanges: currentFullState.lastTurnChanges,
     score: currentFullState.score,
-    freeFormActionText,
-    setFreeFormActionText,
-    handleFreeFormActionSubmit,
-    objectiveAnimationType: currentFullState.objectiveAnimationType,
+    globalTurnNumber: currentFullState.globalTurnNumber,
     localTime: currentFullState.localTime,
     localEnvironment: currentFullState.localEnvironment,
     localPlace: currentFullState.localPlace,
-    globalTurnNumber: currentFullState.globalTurnNumber,
-
-    dialogueState: currentFullState.dialogueState,
-    isDialogueExiting,
-    handleDialogueOptionSelect,
-    handleForceExitDialogue,
-
     isVictory: currentFullState.isVictory,
+    handlers: {
+      triggerMainQuestAchieved,
+      simulateVictory,
+    },
+  };
+
+  const actionsGroup = {
+    freeFormActionText,
+    setFreeFormActionText,
+    handleFreeFormActionSubmit,
+    handleActionSelect,
+    handleUndoTurn,
+    handleRetry,
+    startCustomGame,
+    executeRestartGame,
+    handleStartNewGameFromButton,
+  };
+
+  const debug = {
     lastDebugPacket: debugPacketStack[0],
-    lastTurnChanges: currentFullState.lastTurnChanges,
     gameStateStack: gameStateStackValue,
     debugPacketStack,
-
-    handleActionSelect,
-    executeItemInteraction,
-    handleDropItem,
-    handleDiscardItem,
-    handleTakeLocationItem,
-    updateItemContent,
-    handleRetry,
-    executeRestartGame,
-    startCustomGame,
+    toggleDebugLore,
+    clearDebugFacts,
+    debugLore: currentFullState.debugLore,
+    debugGoodFacts: currentFullState.debugGoodFacts,
+    debugBadFacts: currentFullState.debugBadFacts,
     gatherCurrentGameState: gatherGameStateStackForSave,
     gatherDebugPacketStack: gatherDebugPacketStackForSave,
-    applyLoadedGameState: loadInitialGame,
-    setError,
-    setIsLoading,
-    hasGameBeenInitialized,
-    handleStartNewGameFromButton,
-    handleMapLayoutConfigChange,
-    handleMapViewBoxChange,
-    handleMapNodesPositionChange,
-    handleSelectDestinationNode,
-    handleUndoTurn,
-    triggerMainQuestAchieved,
-    simulateVictory,
     spawnBookForPlayer,
     spawnMapForPlayer,
     spawnPictureForPlayer,
     spawnPageForPlayer,
     spawnVehicleForPlayer,
     spawnNpcAtPlayerLocation,
-    handleStashToggle,
-    addJournalEntry,
-    addPlayerJournalEntry,
-    updatePlayerJournalContent,
-    recordPlayerJournalInspect,
+  };
+
+  const system = {
     commitGameState,
-    handleDistillFacts,
-    toggleDebugLore,
-    clearDebugFacts,
-    debugLore: currentFullState.debugLore,
-    debugGoodFacts: currentFullState.debugGoodFacts,
-    debugBadFacts: currentFullState.debugBadFacts,
-    queueItemAction,
-    queuedItemActions,
-    clearQueuedItemActions,
-    remainingActionPoints,
-    parseErrorCounter,
+    applyLoadedGameState: loadInitialGame,
+    setError,
+    setIsLoading,
+  };
+
+  const npcs = {
+    all: currentFullState.allNPCs,
+  };
+
+  return {
+    status,
+    story,
+    map,
+    inventory,
+    journal,
+    dialogue,
+    actions: actionsGroup,
+    debug,
+    system,
+    npcs,
   };
 };
 

@@ -129,43 +129,59 @@ export const useSaveLoadActions = ({
   enabledThemePacks,
   thinkingEffort,
 }: UseSaveLoadActionsOptions) => {
-  const gameLogic = useGameLogicContext();
+  const {
+    status,
+    dialogue,
+    debug,
+    system,
+  } = useGameLogicContext();
+  const { isLoading } = status;
+  const { state: dialogueState } = dialogue;
+  const {
+    gatherCurrentGameState,
+    gatherDebugPacketStack,
+  } = debug;
+  const {
+    setError,
+    setIsLoading,
+    applyLoadedGameState,
+  } = system;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveToFile = useCallback(async () => {
-    if (gameLogic.isLoading || gameLogic.dialogueState) {
-      gameLogic.setError('Cannot save to file while loading or in dialogue.');
+    if (isLoading || dialogueState) {
+      setError('Cannot save to file while loading or in dialogue.');
       return;
     }
 
-    const gameState = gameLogic.gatherCurrentGameState();
-    const debugStack = gameLogic.gatherDebugPacketStack();
+    const gameState = gatherCurrentGameState();
+    const debugStack = gatherDebugPacketStack();
     await saveGameStateToFile(
       gameState,
       debugStack,
-      msg => { gameLogic.setError(msg); },
+      msg => { setError(msg); },
     );
-  }, [gameLogic]);
+  }, [dialogueState, gatherCurrentGameState, gatherDebugPacketStack, isLoading, setError]);
 
   const handleLoadFromFileClick = useCallback(() => {
-    if (gameLogic.isLoading || gameLogic.dialogueState) {
-      gameLogic.setError('Cannot load from file while another operation is in progress or while in dialogue.');
+    if (isLoading || dialogueState) {
+      setError('Cannot load from file while another operation is in progress or while in dialogue.');
       return;
     }
     fileInputRef.current?.click();
-  }, [gameLogic]);
+  }, [dialogueState, isLoading, setError]);
 
   const handleFileSelected = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
-    if (gameLogic.isLoading || gameLogic.dialogueState) {
-      gameLogic.setError('Cannot load from file while another operation is in progress or while in dialogue.');
+    if (isLoading || dialogueState) {
+      setError('Cannot load from file while another operation is in progress or while in dialogue.');
       event.target.value = '';
       return;
     }
 
     const file = event.target.files?.[0];
     if (file) {
-      gameLogic.setIsLoading(true);
-      gameLogic.setError(null);
+      setIsLoading(true);
+      setError(null);
       await clearAllImages();
       const loaded = await loadGameStateFromFile(file);
       if (loaded) {
@@ -182,10 +198,10 @@ export const useSaveLoadActions = ({
           mergedStack[0].debugGoodFacts = existingLore.debugGoodFacts;
           mergedStack[0].debugBadFacts = existingLore.debugBadFacts;
         }
-        await gameLogic.applyLoadedGameState({ savedStateToLoad: mergedStack });
+        await applyLoadedGameState({ savedStateToLoad: mergedStack });
         saveGameStateToLocalStorage(
           mergedStack,
-          msg => { gameLogic.setError(msg); },
+          msg => { setError(msg); },
         );
         saveDebugPacketStackToLocalStorage(loadedDebug);
         if (existingLore) {
@@ -198,14 +214,22 @@ export const useSaveLoadActions = ({
           });
         }
       } else {
-        gameLogic.setError(
+        setError(
           'Failed to load game from file. The file might be corrupted, an incompatible version, or not a valid save file.',
         );
       }
-      gameLogic.setIsLoading(false);
+      setIsLoading(false);
     }
     event.target.value = '';
-  }, [enabledThemePacks, gameLogic, thinkingEffort]);
+  }, [
+    applyLoadedGameState,
+    dialogueState,
+    enabledThemePacks,
+    isLoading,
+    setError,
+    setIsLoading,
+    thinkingEffort,
+  ]);
 
   const handleFileInputChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     void handleFileSelected(event);
