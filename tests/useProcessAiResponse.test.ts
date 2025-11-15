@@ -334,4 +334,85 @@ describe('useProcessAiResponse', () => {
 
     cleanup();
   });
+
+  it('enters dialogue mode when dialogue setup is present by default', async () => {
+    const baseState = getInitialGameStates();
+    const draftState = cloneState(baseState);
+    const baseSnapshot = cloneState(baseState);
+
+    const stackRef: { value: GameStateStack } = {
+      value: [cloneState(baseState), cloneState(baseState)],
+    };
+    const setGameStateStack = vi.fn((updater: React.SetStateAction<GameStateStack>) => {
+      stackRef.value = typeof updater === 'function' ? updater(stackRef.value) : updater;
+    });
+
+    const { getResult, cleanup } = renderUseProcessAiResponse({
+      props: createHookProps(setGameStateStack),
+    });
+
+    const { processAiResponse } = getResult();
+
+    const aiData = makeAiResponse({
+      options: [],
+      dialogueSetup: {
+        participants: ['Hero', 'Caretaker'],
+        initialNpcResponses: [{ speaker: 'Caretaker', line: 'Welcome to the keep.' }],
+        initialPlayerOptions: ['Greet the caretaker.'],
+      },
+    });
+
+    await act(async () => {
+      await processAiResponse(aiData, draftState, {
+        baseStateSnapshot: baseSnapshot,
+      });
+    });
+
+    expect(draftState.dialogueState).not.toBeNull();
+    expect(draftState.dialogueState?.participants).toContain('Caretaker');
+    expect(draftState.turnState).toBe('dialogue_turn');
+    expect(draftState.actionOptions).toEqual([]);
+
+    cleanup();
+  });
+
+  it('suppresses dialogue setup when requested', async () => {
+    const baseState = getInitialGameStates();
+    const draftState = cloneState(baseState);
+    const baseSnapshot = cloneState(baseState);
+
+    const stackRef: { value: GameStateStack } = {
+      value: [cloneState(baseState), cloneState(baseState)],
+    };
+    const setGameStateStack = vi.fn((updater: React.SetStateAction<GameStateStack>) => {
+      stackRef.value = typeof updater === 'function' ? updater(stackRef.value) : updater;
+    });
+
+    const { getResult, cleanup } = renderUseProcessAiResponse({
+      props: createHookProps(setGameStateStack),
+    });
+
+    const { processAiResponse } = getResult();
+
+    const aiData = makeAiResponse({
+      dialogueSetup: {
+        participants: ['Hero', 'Caretaker'],
+        initialNpcResponses: [{ speaker: 'Caretaker', line: 'Welcome to the keep.' }],
+        initialPlayerOptions: ['Greet the caretaker.'],
+      },
+    });
+
+    await act(async () => {
+      await processAiResponse(aiData, draftState, {
+        baseStateSnapshot: baseSnapshot,
+        suppressDialogueSetup: true,
+      });
+    });
+
+    expect(draftState.dialogueState).toBeNull();
+    expect(draftState.turnState).toBe('awaiting_input');
+    expect(draftState.actionOptions).toEqual(aiData.options);
+
+    cleanup();
+  });
 });

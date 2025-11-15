@@ -397,6 +397,7 @@ export const useGameInitialization = (props: UseGameInitializationProps) => {
               await processAiResponse(retryResult.parsedData, draftState, {
                 baseStateSnapshot: baseStateSnapshotForInitialTurn,
                 forceEmptyInventory: isRestart,
+                suppressDialogueSetup: true,
                 playerActionText: undefined,
               });
 

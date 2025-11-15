@@ -554,8 +554,9 @@ const updateDialogueState = (
   draftState: FullGameState,
   aiData: GameStateFromAI,
   isFromDialogueSummary: boolean,
+  allowDialogueSetup: boolean,
 ) => {
-  if ('dialogueSetup' in aiData && aiData.dialogueSetup) {
+  if (allowDialogueSetup && 'dialogueSetup' in aiData && aiData.dialogueSetup) {
     draftState.actionOptions = [];
     draftState.dialogueState = {
       participants: aiData.dialogueSetup.participants,
@@ -700,16 +701,19 @@ interface ConfigureOptionsParams {
   draftState: FullGameState;
   aiData: GameStateFromAI;
   isFromDialogueSummary: boolean;
+  dialogueSuppressed: boolean;
 }
 
 const configureActionOptions = ({
   draftState,
   aiData,
   isFromDialogueSummary,
+  dialogueSuppressed,
 }: ConfigureOptionsParams) => {
-  if (aiData.options.length > 0 && !aiData.dialogueSetup) {
+  const dialogueSetupActive = Boolean(aiData.dialogueSetup) && !dialogueSuppressed;
+  if (aiData.options.length > 0 && !dialogueSetupActive) {
     draftState.actionOptions = aiData.options;
-  } else if (!isFromDialogueSummary && !aiData.dialogueSetup) {
+  } else if (!isFromDialogueSummary && !dialogueSetupActive) {
     draftState.actionOptions = [
       'Look around.',
       'Ponder your situation.',
@@ -1030,6 +1034,7 @@ export interface ProcessAiResponseOptions {
   scoreChangeFromAction?: number;
   setIsLoading?: (val: boolean) => void;
   setIsTurnProcessing?: (val: boolean) => void;
+  suppressDialogueSetup?: boolean;
 }
 
 export type ProcessAiResponseFn = (
@@ -1084,10 +1089,13 @@ export const useProcessAiResponse = ({
         isFromDialogueSummary = false,
         scoreChangeFromAction = 0,
         playerActionText,
+        suppressDialogueSetup = false,
       } = options;
 
       const turnChanges = createInitialTurnChanges(scoreChangeFromAction);
       const themeContextForResponse = draftState.theme;
+      const allowDialogueSetup = !suppressDialogueSetup;
+      const dialogueSetupActive = Boolean(aiData?.dialogueSetup) && allowDialogueSetup;
 
       if (!aiData) {
         handleMissingAiResponse({
@@ -1114,10 +1122,15 @@ export const useProcessAiResponse = ({
         setGameStateStack,
       });
 
-      configureActionOptions({ draftState, aiData, isFromDialogueSummary });
+      configureActionOptions({
+        draftState,
+        aiData,
+        isFromDialogueSummary,
+        dialogueSuppressed: suppressDialogueSetup,
+      });
 
-      if (aiData.dialogueSetup) {
-        updateDialogueState(draftState, aiData, false);
+      if (dialogueSetupActive) {
+        updateDialogueState(draftState, aiData, false, allowDialogueSetup);
         draftState.lastTurnChanges = turnChanges;
         return;
       }
@@ -1159,7 +1172,7 @@ export const useProcessAiResponse = ({
         onActIntro,
       });
 
-      updateDialogueState(draftState, aiData, isFromDialogueSummary);
+      updateDialogueState(draftState, aiData, isFromDialogueSummary, allowDialogueSetup);
 
       draftState.lastTurnChanges = turnChanges;
       if (!options.isFromDialogueSummary) {
