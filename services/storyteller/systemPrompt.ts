@@ -15,8 +15,8 @@ ${LOCAL_CONDITIONS_GUIDE}
 ${ITEMS_GUIDE}
 
 ## Managing Player Input:
-- If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, mention it in playerItemsHint.
-- If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, mention the new knownUse in playerItemsHint.
+- If Player's Action is "Inspect: [item_name]": Provide details about the item in "logMessage". If new info/use is found, add an item directive that references the item id (when known) and the discovered details.
+- If Player's Action is "Attempt to use: [item_name]": Treat it as the most logical action. Describe the outcome in "logMessage". If specific function is revealed, add it to an item directive that makes the action clear for downstream services.
 - If Player's Action implies verbal interaction with an NPC (e.g., "Talk", "Ask", "Negotiate", "Bargain", "Threaten", "Intimidate", "Persuade", "Bribe", "Flirt", "Seduce", "Romance", etc.), you MUST provide an appropriate dialogueSetup object to initiate dialogue mode.
 - Pay close attention to Active items and their available actions.
 
@@ -35,9 +35,14 @@ ${ITEMS_GUIDE}
 - The response MUST include "localTime", "localEnvironment", and "localPlace".
 - Very subtly and indirectly take into account Player's Character Gender, but do not focus attention on it in the text, only on its consequences.
 
-CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" implies items were gained, lost, moved, or changed, you MUST summarize these changes using "playerItemsHint", "worldItemsHint", and "npcItemsHint" and list new items in "newItems". Summarize any discoveries or updates to books, pages, pictures, or maps in the librarianHint.
-If a new item is mentioned in any hint, also include it exactly once in newItems.
-Mention each new item in exactly one hint: player → playerItemsHint; NPC-held → npcItemsHint; on ground/location → worldItemsHint; written items/revealed pages → librarianHint.
+CRITICALLY IMPORTANT: If "logMessage" or "sceneDescription" implies items were gained, lost, moved, read, transformed, or destroyed, you MUST emit concise "itemDirectives" (array) describing the observation. Each directive MUST include a short unique "directiveId" (e.g., "note-3fj2") and free-form "instruction". Whenever possible, include "itemIds" of existing items involved, location/holder names, and descriptive cues (type/purpose/state) for any new items so downstream services can build structured updates.
+Written content still begins as directives: describe what was revealed on a page/book/map (chapters/topics, tone, number of stanzas) so the Librarian can create proper entries.
+If interacting items together, a single directive can cover multiple steps, but be explicit about before/after states and disposition (who holds it, whether it remains active, where it was placed).
+Examples (concise instructions, alphabetized fields inside itemDirectives):
+- note-lantern-3fj2 (itemIds: item-old-lantern-7fr4): "Player snatches the Old Lantern from the workbench, stashes it in their satchel, and keeps it unlit."
+- note-tonic-1pqa (provisionalNames: Nightglass Tonic): "Raen mixes two vials, leaving the Nightglass Tonic on the infirmary tray for anyone."
+- note-etched-plate-9kdm (suggestedHandler: librarian, provisionalNames: Etched Plague Tablet): "Bronze tablet slides from the altar; script describes the rite of cleansing in three stanzas."
+Respond with alphabetized properties per directive: directiveId, instruction, itemIds, metadata, provisionalNames, suggestedHandler.
 CRITICALLY IMPORTANT: Names and Aliases (of items, places, NPCs, etc) cannot contain a comma.
 `;
 

@@ -1,9 +1,9 @@
 /**
  * @file promptBuilder.ts
- * @description Helper for constructing prompts for the inventory service.
+ * @description Helper for constructing prompts for the inventory service using item directives.
  */
 
-import { Item, ItemData, NPC } from '../../types';
+import { Item, ItemDirective, NPC } from '../../types';
 import { PLAYER_HOLDER_ID, REGULAR_ITEM_TYPES } from '../../constants';
 import { itemsToString, DEFAULT_ITEM_PROMPT_TEMPLATE } from '../../utils/promptFormatters/inventory';
 
@@ -16,6 +16,19 @@ export interface InventoryPromptBuildResult {
   prompt: string;
   companionsContext: string;
   nearbyNpcsContext: string;
+}
+
+export interface InventoryPromptBuildParams {
+  directives: Array<ItemDirective>;
+  inventory: Array<Item>;
+  currentNodeId: string | null;
+  npcs: Array<NPC>;
+  limitedMapContext: string;
+  holderNames: Record<string, string>;
+  playerLastAction: string;
+  sceneDescription?: string;
+  logMessage?: string;
+  locationSnippet?: string;
 }
 
 const filterAllowedItems = (items: Array<Item>): Array<Item> => {
@@ -51,7 +64,7 @@ const formatNpcInventories = (
 
   npcs.forEach((npc, index) => {
     const npcItems = itemsByHolder.get(npc.id) ?? [];
-    const labelPrefix = `ID: ${npc.id} - ${npc.name}: `;
+    const labelPrefix = `<ID: ${npc.id}> - ${npc.name}: `;
     const promptPrefix = `${index === 0 ? `${heading}\n` : ''}${labelPrefix}`;
     const promptLine = itemsToString(
       npcItems,
@@ -82,17 +95,62 @@ const formatNpcInventories = (
   };
 };
 
-export const buildInventoryPrompt = (
-  playerLastAction: string,
-  playerItemsHint: string,
-  worldItemsHint: string,
-  npcItemsHint: string,
-  newItems: Array<ItemData>,
-  inventory: Array<Item>,
-  currentNodeId: string | null,
-  npcs: Array<NPC>,
-  limitedMapContext: string,
-): InventoryPromptBuildResult => {
+const formatHolderCatalog = (holderNames: Record<string, string>): string => {
+  const entries = Object.entries(holderNames);
+  if (entries.length === 0) return 'None.';
+  return entries.map(([id, name]) => `${id}: ${name}`).join('\n');
+};
+
+const describeDirective = (
+  directive: ItemDirective,
+  matchingItems: Array<Item>,
+  holderNames: Record<string, string>,
+): string => {
+  const itemIds = Array.isArray(directive.itemIds)
+    ? directive.itemIds
+    : directive.itemIds
+      ? [directive.itemIds]
+      : [];
+  const matched = matchingItems
+    .map(item => {
+      const holderLabel = holderNames[item.holderId] ?? item.holderId;
+      return `<ID: ${item.id}> - ${item.name} (${item.type}) held by ${holderLabel}`;
+    })
+    .join('\n');
+  const provisional = directive.provisionalNames?.length
+    ? `\nProvisional (untracked placeholders for new items): ${directive.provisionalNames.join(', ')}`
+    : '';
+  const suggested = directive.suggestedHandler ? `\nSuggested Handler: ${directive.suggestedHandler}` : '';
+  const idsLine = itemIds.length > 0 ? `\nItem IDs: ${itemIds.map(id => `<ID: ${id}>`).join(', ')}` : '';
+  const metadata =
+    directive.metadata && Object.keys(directive.metadata).length > 0
+      ? `\nMetadata: ${JSON.stringify(directive.metadata)}`
+      : '';
+  const matchesLine = matched ? `\nMatched Items:\n${matched}` : '';
+  return [
+    `<ID: ${directive.directiveId}> - ${directive.instruction}`,
+    suggested,
+    idsLine,
+    provisional,
+    metadata,
+    matchesLine,
+  ]
+    .filter(Boolean)
+    .join('');
+};
+
+export const buildInventoryPrompt = ({
+  directives,
+  inventory,
+  currentNodeId,
+  npcs,
+  limitedMapContext,
+  holderNames,
+  playerLastAction,
+  sceneDescription,
+  logMessage,
+  locationSnippet,
+}: InventoryPromptBuildParams): InventoryPromptBuildResult => {
   const filteredInventory = filterAllowedItems(inventory);
   const itemsByHolder = groupItemsByHolder(filteredInventory);
 
@@ -111,7 +169,7 @@ export const buildInventoryPrompt = (
   const locationInventorySection = itemsToString(
     locationItems,
     DEFAULT_ITEM_PROMPT_TEMPLATE,
-    `Current Location Inventory - ID: ${currentNodeId ?? 'unknown'}\n`,
+    `Current Location Inventory - <ID: ${currentNodeId ?? 'unknown'}>\n`,
     '\n',
   );
 
@@ -127,13 +185,37 @@ export const buildInventoryPrompt = (
     itemsByHolder,
   );
 
-  const filteredNewItems = newItems.filter(it =>
-    REGULAR_ITEM_TYPES.includes(it.type as (typeof REGULAR_ITEM_TYPES)[number]),
-  );
-  const newItemsSection = `New Items from Storyteller AI or Dialogue AI:\n${JSON.stringify(filteredNewItems, null, 2)}\n`;
+  const directiveMatches = directives.map(directive => ({
+    directive,
+    matches: filteredInventory.filter(item => {
+      if (!directive.itemIds) return false;
+      const ids = Array.isArray(directive.itemIds) ? directive.itemIds : [directive.itemIds];
+      return ids.includes(item.id);
+    }),
+  }));
+
+  const directiveSection = directives.length
+    ? directives
+        .map(dir => {
+          const match = directiveMatches.find(dm => dm.directive.directiveId === dir.directiveId);
+          return describeDirective(dir, match?.matches ?? [], holderNames);
+        })
+        .join('\n\n')
+    : 'None.';
+
+  const holderCatalog = formatHolderCatalog(holderNames);
+  const contextLines = [
+    `- Player's Last Action: ${playerLastAction}`,
+    `- Scene Snapshot: ${sceneDescription ?? 'N/A'}`,
+    `- Log Message: ${logMessage ?? 'N/A'}`,
+    `- Location Snippet: ${locationSnippet ?? (limitedMapContext || 'N/A')}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   const sections: Array<string> = [];
-  sections.push(newItemsSection);
+  sections.push(`Holder Catalog:\n${holderCatalog}\n`);
+  sections.push(`## Item Directives (Inventory + Shared)\n${directiveSection}\n`);
   if (playerInventorySection) sections.push(`${playerInventorySection}\n`);
   if (locationInventorySection) sections.push(`${locationInventorySection}\n`);
   if (companionsInventory.promptSection) sections.push(companionsInventory.promptSection);
@@ -142,14 +224,18 @@ export const buildInventoryPrompt = (
     sections.push(`Nearby Map Context where you can put Items:\n${limitedMapContext}\n`);
   }
 
-  const body = sections.join('');
+  const body = sections.join('\n');
 
-  const prompt = `- Player's Last Action: ${playerLastAction}
-- Player Items Hint: "${playerItemsHint}";
-- World Items Hint: "${worldItemsHint}";
-- NPC Items Hint: "${npcItemsHint}".
+  const prompt = `${contextLines}
 
 ${body}
+
+Safety rails:
+- Echo the directiveId on every action you output so the supervisor can deduplicate work.
+- Prefer existing itemIds and holderIds from the catalog; avoid inventing new IDs.
+- Only create new regular items when directives clearly describe a new object; do not fabricate written items.
+- Names must be comma-free.
+
 Provide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
 
   return {

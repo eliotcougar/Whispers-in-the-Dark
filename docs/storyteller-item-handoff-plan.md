@@ -37,7 +37,6 @@ Add to `GameStateFromAI`:
 ### Storyteller Prompt Changes
 - System prompt: remove explicit instructions for writing the four hints/newItems; replace with directive to populate `itemDirectives` per the schema above, emphasising concise actionable text.
 - Prompt builder: keep inventories/known uses/locations in context so the storyteller can reference item IDs when possible; avoid hint-specific reminders.
-- Migration safety: while Inventory/Librarian still expect hints, optionally generate both structures (with nightly diff checks) until parity confirmed.
 - Add examples that demonstrate the minimum descriptive payload for a directive (e.g., state transitions, item type cues, new item appearance/function) so downstream services can reconstruct full schema entries without guesswork.
 
 ## Auxiliary Item Router (Optional AI Call)
@@ -49,7 +48,6 @@ interface ItemDispatchRequest {
   directives: Array<ItemDirective>;
   knownInventoryItemIds: Array<string>;
   knownWrittenItemIds: Array<string>;
-  pendingNewItems?: Array<ItemData>; // optional legacy bridge
 }
 ```
 
@@ -104,21 +102,28 @@ interface ItemDispatchResponse {
   - Render each directive with instruction text, any supplied provisional names, and linked item metadata for referenced IDs (including existing chapter summaries where available).
   - Keep a “Relevant Scene Excerpt” snippet (scene description + log message) near the directives so the Librarian can infer tone and content details even if the storyteller kept the directive terse.
 
+## Required Context for Directive Execution (Inventory & Librarian)
+To allow every create/move/change/destroy action without guessing, the prompt builders must supply all of the following alongside the directives:
+- **Item records:** Full schema for referenced items (id, name, type, description, tags, knownUses with on/off variants, isActive, holderId, condition fields, stack counts, written content summaries for books/scrolls). This enables safe `change` actions (toggles, renames, tag updates) without hallucinating state.
+- **Holder catalog:** Player entry plus all valid holder IDs with human-readable labels and types (map nodes with placeName/type/parent if relevant; NPCs with name/aliases/presenceStatus/location). This is required for `create`/`move` decisions and holder validation.
+- **New-item scaffolding:** Allowed item types (regular vs written), any template defaults (e.g., chapter count expectations), and the storyteller’s provisional names/type cues from directives so the AI can synthesise full schema objects.
+- **Location context:** Short scene/log snippet and current map node labels so the AI can infer where to place newly created items or written clues even when the directive omits an explicit holder.
+- **Duplication guards:** Existing item and written titles per holder (including known aliases) so the AI can avoid duplicate creates and pick the right target for `change`/`destroy`.
+- **Safety rails:** The shared create/move/destroy contract, holder-type rules, and dedicated-button/knownUses warnings from `prompts/helperPrompts.ts` to prevent invalid operations.
+
 ## Supervisor / State Application Changes
 1. Update turn-processing pipeline to call the router after Storyteller, before Inventory/Librarian.
-2. Change data model (`GameStateFromAI`) consumers to handle absence of old hints.
+2. Change data model (`GameStateFromAI`) consumers to handle absence of old hints and depend solely on directives.
 3. Modify `turnReducer` (or equivalent store logic) to read `directiveId`s and confirm each directive is processed once; raise warnings otherwise.
 4. Adjust persistence schema if hints were stored in save files; ensure migration script handles new structure.
 
 ## Migration Plan
-1. **Phase 0 (Discovery):** Instrument current turn processor to log actual item updates from Inventory/Librarian vs hints to inform schema.
-2. **Phase 1 (Dual output):** Storyteller emits both legacy hints and `itemDirectives`. Implement telemetry to compare router classification vs manual hints.
-3. **Phase 2 (Router integration):** Build deterministic router, keep legacy hints for fallback. Inventory/Librarian consume router output but still accept hints when provided (for rollback).
-4. **Phase 3 (Remove hints):** After confidence, delete hint fields from storyteller system prompt, response parser, and types.
-5. **Phase 4 (Cleanup):** Update docs, tests, snapshot fixtures, save-game schema, and remove redundant helper strings.
+1. **Discovery:** Instrument the current turn processor to log actual item updates from Inventory/Librarian to inform directive examples and router rules.
+2. **Cutover:** Storyteller emits only `itemDirectives`; Inventory/Librarian consume only routed directives. Remove legacy hint/newItems paths from prompts, parsers, and reducers in the same change.
+3. **Cleanup:** Update docs, tests, snapshot fixtures, save-game schema, and remove redundant helper strings.
 
 ## Testing Checklist
-- Parser unit tests for `itemDirectives` (validations, backward compatibility).
+- Parser unit tests for `itemDirectives` (validations, error handling).
 - Router tests covering deterministic and AI-assisted branches, duplicate detection, unresolved flows.
 - Integration tests verifying Inventory/Librarian outputs match existing behaviour across representative scenarios (create, move, destroy, written pages, mixed items).
 - Regression tests for Storyteller output to ensure narrative unchanged and map/NPC logic unaffected.
@@ -144,12 +149,12 @@ interface ItemDispatchResponse {
 - Storyteller directive guidelines need concrete prompts/examples to guarantee that new-item creations carry enough descriptive detail (type, purpose, activation rules) for downstream services to synthesise valid JSON without guessing.
 
 ## Checklist for Implementation
-- [ ] Extend `GameStateFromAI` types and validation to support `itemDirectives`.
-- [ ] Update Storyteller prompts (system + examples) and response parser to emit/accept the new directives while maintaining backward compatibility during migration.
-- [ ] Implement `services/itemDispatch` (deterministic classifier + optional AI fallback) and wire it into the turn pipeline.
-- [ ] Adjust Inventory and Librarian prompt builders/system prompts to consume routed directives, including echoing `directiveId` in responses.
+- [x] Extend `GameStateFromAI` types and validation to support `itemDirectives`.
+- [x] Update Storyteller prompts (system + examples) and response parser to emit/accept the new directives; remove hint/newItems handling.
+- [x] Implement `services/itemDispatch` (deterministic classifier + optional AI fallback) and wire it into the turn pipeline.
+- [x] Adjust Inventory and Librarian prompt builders/system prompts to consume routed directives, including echoing `directiveId` in responses.
 - [ ] Update Inventory/Librarian response schemas and reducers to guard against duplicate processing using directive IDs.
-- [ ] Refresh helper literals in `prompts/helperPrompts.ts` to document the new directive schema and remove legacy hint guidance once phased out.
-- [ ] Revise save/load and serialization logic to persist `itemDirectives` (and to gracefully read legacy saves).
+- [x] Refresh helper literals in `prompts/helperPrompts.ts` to document the new directive schema and delete legacy hint guidance.
+- [x] Revise save/load and serialization logic to keep `itemDirectives` transient (legacy hint fields already dropped from saves).
 - [ ] Expand unit/integration test coverage and add telemetry/dashboards noted above.
 - [ ] Clean up deprecated hint fields, helpers, and documentation after rollout completes.

@@ -49,6 +49,13 @@ const infoDisplayContent = {
   ],
   "changelog": [
     {
+      "title": "Version 1.5.2 (bugfix)",
+      "items": [
+        "Storyteller AI is no longer responsible for creating new items. Storyteller AI only provides free-form directives for Inventory and Librarian AIs for them to make all item-related decisions.",
+        "Less errors, more auto-retries."
+      ]
+    },
+    {
       "title": "Version 1.5.1 (bugfix)",
       "items": [
         "Some stages of turn generation now proceed in the background.",

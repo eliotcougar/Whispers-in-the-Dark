@@ -67,11 +67,6 @@ export const updateMapFromAIData = async (
   inventoryItems.forEach(item => {
     if (item.type !== 'vehicle') itemNameSet.add(item.name);
   });
-  if ('newItems' in aiData && aiData.newItems) {
-    aiData.newItems.forEach(item => {
-      if (item.type !== 'vehicle') itemNameSet.add(item.name);
-    });
-  }
   const itemNames = Array.from(itemNameSet);
 
   const npcNameSet = new Set<string>();

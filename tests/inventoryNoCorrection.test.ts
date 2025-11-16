@@ -23,13 +23,13 @@ vi.mock('../services/corrections', () => ({
 
 import { dispatchAIRequest } from '../services/modelDispatcher';
 import { fetchCorrectedItemChangeArray } from '../services/corrections';
-import { applyInventoryHints } from '../services/inventory/api.ts';
+import { applyInventoryDirectives } from '../services/inventory/api.ts';
 import { FANTASY_AND_MYTH_THEMES } from '../themes';
 
 const mockedDispatch = vi.mocked(dispatchAIRequest);
 const mockedCorrection = vi.mocked(fetchCorrectedItemChangeArray);
 
-describe('applyInventoryHints', () => {
+describe('applyInventoryDirectives', () => {
   it('does not invoke correction when AI returns empty itemChanges', async () => {
     mockedDispatch.mockResolvedValue({
       response: { text: '{"itemChanges": []}' } as unknown as GenerateContentResponse,
@@ -40,20 +40,7 @@ describe('applyInventoryHints', () => {
     });
 
     const theme = FANTASY_AND_MYTH_THEMES[0];
-    const res = await applyInventoryHints(
-      'nothing',
-      undefined,
-      undefined,
-      [],
-      '',
-      [],
-      null,
-      [],
-      undefined,
-      undefined,
-      theme,
-      '',
-    );
+    const res = await applyInventoryDirectives([], '', [], null, [], undefined, undefined, theme, '', {});
 
     expect(res).not.toBeNull();
     expect(res?.itemChanges).toHaveLength(0);

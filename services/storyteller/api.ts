@@ -11,14 +11,6 @@ import {
   LOADING_REASON_UI_MAP,
   MAIN_TURN_OPTIONS_COUNT,
   VALID_PRESENCE_STATUS_VALUES,
-
-  VALID_ITEM_TYPES,
-  VALID_ITEM_TYPES_STRING,
-  VALID_TAGS,
-  TEXT_STYLE_TAGS_STRING,
-  DEDICATED_BUTTON_USES_STRING,
-  MIN_BOOK_CHAPTERS,
-  MAX_BOOK_CHAPTERS,
   ALIAS_INSTRUCTION,
   MIN_DIALOGUE_TURN_OPTIONS,
   MAX_DIALOGUE_TURN_OPTIONS,
@@ -30,10 +22,6 @@ import { isApiConfigured } from '../geminiClient';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
 import { safeParseJson } from '../../utils/jsonUtils';
-
-const STORYTELLER_VALID_TAGS = (VALID_TAGS).filter(
-  tag => tag !== 'recovered' && tag !== 'stashed'
-)
 
 export const STORYTELLER_JSON_SCHEMA = {
   type: 'object',
@@ -123,99 +111,58 @@ export const STORYTELLER_JSON_SCHEMA = {
       description:
         'Set to true if new locations or changes mean the map might need updating.',
     },
-    newItems: {
+    itemDirectives: {
       type: 'array',
-      description: `Brand new items that must appear in the game this turn. Also includes status effects and afflictions of the player with item type "status effect"`,
+      description:
+        'Concise instructions describing observed item changes. Keep free-form and actionable; downstream services will generate structured JSON.',
       items: {
         type: 'object',
         properties: {
-          activeDescription: {
+          directiveId: {
             type: 'string',
-            description: 'Optional description shown when the item is active or equipped.',
+            description: 'Short unique id for this directive (e.g., "note-3fj2").',
           },
-          chapters: {
-            type: 'array',
-            description: `For the item types 'page', 'map', or 'picture' - exactly one chapter REQUIRED. For the item type 'book' - between ${String(
-              MIN_BOOK_CHAPTERS,
-            )} and ${String(MAX_BOOK_CHAPTERS)} chapters REQUIRED.`,
-            items: {
-              type: 'object',
-              properties: {
-                contentLength: { type: 'number', minLength: 50, maxLength: 500, description: 'Approximate length in words.' },
-                description: {
-                  type: 'string',
-                  description: 'Detailed abstract of the chapter contents.',
-                },
-                heading: { type: 'string', description: 'Short heading for the chapter.' },
-              },
-              propertyOrdering: ['contentLength', 'description', 'heading'],
-              required: ['contentLength', 'description', 'heading'],
-              additionalProperties: false,
-            },
-          },
-          description: {
+          instruction: {
             type: 'string',
-            description: 'Concise explanation of what the item is.'
+            minLength: 20,
+            description: 'Free-form instruction describing the change or observation.',
           },
-          isActive: {
-            type: 'boolean',
-            description: 'Whether the item is currently active, equipped, worn, or piloted (if vehicle).'
-          },
-          knownUses: {
-            type: 'array',
-            description: `Optional interactive uses not covered by ${DEDICATED_BUTTON_USES_STRING}.`,
-            items: {
-              type: 'object',
-              properties: {
-                actionName: { type: 'string', description: 'Name of the use action.' },
-                appliesWhenActive: { type: 'boolean', description: 'Use is available when item is active.' },
-                appliesWhenInactive: { type: 'boolean', description: 'Use is available when item is inactive.' },
-                description: { type: 'string', description: 'Tooltip hint for this use.' },
-                promptEffect: { type: 'string', description: 'Short effect description for the AI.' },
+          itemIds: {
+            oneOf: [
+              { type: 'string' },
+              {
+                type: 'array',
+                items: { type: 'string' },
               },
-              propertyOrdering: [
-                'actionName',
-                'appliesWhenActive',
-                'appliesWhenInactive',
-                'description',
-                'promptEffect',
-              ],
-              required: ['actionName', 'description', 'promptEffect'],
-              additionalProperties: false,
-            },
+            ],
+            description: 'Optional existing item ids relevant to this directive',
           },
-          name: { type: 'string', description: 'Item name as it will appear to the player.' },
-          tags: {
+          metadata: {
+            type: 'object',
+            description: 'Optional metadata for future extensions (urgency, confidence).',
+          },
+          provisionalNames: {
             type: 'array',
-            items: { enum: STORYTELLER_VALID_TAGS },
-            description: `Descriptor tags. For written items such as page, book, map, picture, always supply the text style tag, one of ${TEXT_STYLE_TAGS_STRING}. Assign 'junk' only to unusable items.`,
+            description: 'Optional provisional names for items not yet tracked in state.',
+            items: { type: 'string' },
           },
-          type: {
-            enum: VALID_ITEM_TYPES,
-            description: `Item type. One of ${VALID_ITEM_TYPES_STRING}`,
+          suggestedHandler: {
+            enum: ['inventory', 'librarian', 'either', 'unknown'],
+            description: 'Optional routing hint to steer this directive to a handler.',
           },
         },
         propertyOrdering: [
-          'activeDescription',
-          'chapters',
-          'description',
-          'isActive',
-          'knownUses',
-          'name',
-          'tags',
-          'type',
+          'directiveId',
+          'instruction',
+          'itemIds',
+          'metadata',
+          'provisionalNames',
+          'suggestedHandler',
+          'metadata',
         ],
-        required: ['description', 'name', 'type'],
+        required: ['directiveId', 'instruction'],
         additionalProperties: false,
       },
-    },
-    npcItemsHint: {
-      type: 'string',
-      description: 'Summary of items revealed to be carried by NPCs.',
-    },
-    librarianHint: {
-      type: 'string',
-      description: 'Summary of written material updates.',
     },
     npcsAdded: {
       type: 'array',
@@ -363,19 +310,11 @@ export const STORYTELLER_JSON_SCHEMA = {
         MAIN_TURN_OPTIONS_COUNT,
       )} distinct action options for the player to choose from to progress in the story, tailored to the context. Do NOT use direct speech.`,
     },
-    playerItemsHint: {
-      type: 'string',
-      description: 'Summary of player item gains, losses or state changes.',
-    },
     sceneDescription: {
       type: 'string',
       minLength: 500,
       description:
         "Description of the scene, taking into account the entirety of the player's current situation and surroundings. Include relevant details the player must be aware of to make informed decisions. This should be an engaging text that sets the stage for the player's next actions.",
-    },
-    worldItemsHint: {
-      type: 'string',
-      description: 'Summary of items discovered or dropped in the world.',
     },
   },
   required: [
@@ -398,17 +337,13 @@ export const STORYTELLER_JSON_SCHEMA = {
     'mainQuest',
     'mapHint',
     'mapUpdated',
-    'newItems',
-    'npcItemsHint',
-    'librarianHint',
+    'itemDirectives',
     'npcsAdded',
     'npcsUpdated',
     'objectiveAchieved',
     'mainQuestAchieved',
     'options',
-    'playerItemsHint',
     'sceneDescription',
-    'worldItemsHint',
   ],
   additionalProperties: false,
 } as const;
@@ -481,7 +416,7 @@ export const executeAIMainTurn = async (
       const parsed = safeParseJson<unknown>(nonThoughtText);
       if (parsed === null) {
         console.warn('executeAIMainTurn: Malformed JSON from AI after in-place fence extraction. Will retry.');
-        throw new Error('Malformed AI JSON response');
+        return { result: null };
       }
       return {
         result: { response, thoughts, systemInstructionUsed, jsonSchemaUsed, promptUsed },

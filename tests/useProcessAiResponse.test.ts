@@ -29,8 +29,8 @@ const refineLoreServiceMock = vi.fn().mockResolvedValue(null);
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const applyInventoryHintsMock = vi.fn().mockResolvedValue(null);
-const applyLibrarianHintsMock = vi.fn().mockResolvedValue(null);
+const applyInventoryDirectivesMock = vi.fn().mockResolvedValue(null);
+const applyLibrarianDirectivesMock = vi.fn().mockResolvedValue(null);
 const generatePageTextMock = vi.fn().mockResolvedValue(null);
 const fetchCorrectedNameMock = vi.fn().mockResolvedValue(null);
 
@@ -46,12 +46,12 @@ vi.mock('../services/loremaster', () => ({
 
 vi.mock('../services/inventory', () => ({
   __esModule: true,
-  applyInventoryHints: applyInventoryHintsMock,
+  applyInventoryDirectives: applyInventoryDirectivesMock,
 }));
 
 vi.mock('../services/librarian', () => ({
   __esModule: true,
-  applyLibrarianHints: applyLibrarianHintsMock,
+  applyLibrarianDirectives: applyLibrarianDirectivesMock,
 }));
 
 vi.mock('../services/page', () => ({

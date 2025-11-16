@@ -709,7 +709,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
       const currentFullState = getCurrentGameState();
       if (currentFullState.dialogueState) return;
 
-      const debugDirective = `Spawn exactly one ${itemLabel} directly into the player's inventory this turn.\n- Include the full item in "newItems" with type "${itemType}" and holderId "${PLAYER_HOLDER_ID}".\n- Provide a vivid description and all required fields for this type.\n- Summarize the gain in "playerItemsHint" so downstream systems pick it up.\n${extraInstructions}\n- Avoid unrelated story or world changes.`;
+    const debugDirective = `Emit a single item directive to spawn exactly one ${itemLabel} directly into the player's inventory this turn.\n- Use holderId "${PLAYER_HOLDER_ID}" and type "${itemType}" in the directive details.\n- Provide a vivid description and all required fields implied by this type so the Inventory AI can build the item.\n${extraInstructions}\n- Avoid unrelated story or world changes.`;
 
       void executePlayerAction('[DEBUG TOOL INVOCATION]', false, currentFullState, debugDirective);
     },
@@ -729,7 +729,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
 
     const shouldBeCompanion = Math.random() < 0.3;
     const presenceStatus = shouldBeCompanion ? 'companion' : 'nearby';
-    const debugDirective = `Spawn a single new NPC directly at the player's current location.\n- presenceStatus must be "${presenceStatus}" with a fitting preciseLocation.\n- Provide a concise description, attitudeTowardPlayer, and at least one knownPlayerName when sensible.\n- Update newItems only if the NPC brings items, otherwise avoid unrelated world changes.\n- Do NOT initiate dialogue, simply add the NPC to the state.`;
+  const debugDirective = `Spawn a single new NPC directly at the player's current location.\n- presenceStatus must be "${presenceStatus}" with a fitting preciseLocation.\n- Provide a concise description, attitudeTowardPlayer, and at least one knownPlayerName when sensible.\n- If the NPC brings items, include itemDirectives describing them; otherwise avoid unrelated world changes.\n- Do NOT initiate dialogue, simply add the NPC to the state.`;
 
     void executePlayerAction('[DEBUG TOOL INVOCATION]', false, currentFullState, debugDirective);
   }, [
@@ -744,7 +744,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     spawnItemForPlayer(
       'book',
       'book of written lore',
-      '- Provide between 2 and 4 concise chapters in "chapters" so the Librarian can parse it.\n- Mention the new book in "librarianHint" as well.',
+      '- Provide between 2 and 4 concise chapters in "chapters" so the Librarian can parse it.\n- Include an item directive describing the new book discovery.',
     );
   }, [spawnItemForPlayer]);
 
@@ -752,7 +752,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     spawnItemForPlayer(
       'map',
       'map with useful annotations',
-      '- Supply exactly one chapter entry describing the map contents.\n- Mention the new map in "librarianHint".',
+      '- Supply exactly one chapter entry describing the map contents.\n- Include an item directive describing the new map.',
     );
   }, [spawnItemForPlayer]);
 
@@ -760,7 +760,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     spawnItemForPlayer(
       'picture',
       'illustrated picture or photograph',
-      '- Include a single chapter entry describing what the picture shows.\n- Mention the new picture in "librarianHint".',
+      '- Include a single chapter entry describing what the picture shows.\n- Include an item directive describing the new picture.',
     );
   }, [spawnItemForPlayer]);
 
@@ -768,7 +768,7 @@ export const usePlayerActions = (props: UsePlayerActionsProps) => {
     spawnItemForPlayer(
       'page',
       'loose written page',
-      '- Include exactly one chapter entry capturing the page contents.\n- Mention the new page in "librarianHint".',
+      '- Include exactly one chapter entry capturing the page contents.\n- Include an item directive describing the new page.',
     );
   }, [spawnItemForPlayer]);
 

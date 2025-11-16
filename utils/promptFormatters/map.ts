@@ -30,14 +30,14 @@ export const formatNodeLine = (
     itemsAtNode.length > 0
       ? ` Items: ${itemsAtNode.map(i => `"${i.name}"`).join(', ')}`
       : '';
-  return ` - ${node.id} - "${node.placeName}" (parent: ${parent}), "${desc}"${itemsStr}`;
+  return `<ID: ${node.id}> - "${node.placeName}" (parent: ${parent}), "${desc}"${itemsStr}`;
 };
 
 /**
  * Formats a single map edge line for prompt context.
  */
 export const formatEdgeLine = (edge: MapEdge): string =>
-  `- ${edge.id} (${edge.status} ${edge.type})`;
+  `<ID: ${edge.id}> - (${edge.status} ${edge.type})`;
 
 /**
  * Formats a list of map nodes for inclusion in prompts.
@@ -58,7 +58,7 @@ export const mapNodesToString = (
 
   const result = nodeList
     .map(n => {
-      let str = `${prefix}${n.id} - "${n.placeName}"`;
+      let str = `${prefix}<ID: ${n.id}> - "${n.placeName}"`;
       if (addAliases && n.aliases && n.aliases.length > 0) {
         str += ` (aka ${n.aliases.map(a => `"${a}"`).join(', ')})`;
       }
@@ -312,9 +312,9 @@ export const formatKnownPlacesForPrompt = (
     return (
       mainNodes
         .map(node => {
-          let detailStr = ' - ';
+          let detailStr = '';
           if (includeIds) {
-            detailStr += `${node.id} - `;
+            detailStr += `<ID: ${node.id}> - `;
           }
           detailStr += `"${node.placeName}"`;
           if (node.aliases && node.aliases.length > 0) {
@@ -332,7 +332,7 @@ export const formatKnownPlacesForPrompt = (
       .map(node => {
         let detailStr = '';
         if (includeIds) {
-          detailStr += `${node.id} - `;
+          detailStr += `<ID: ${node.id}> - `;
         }
         detailStr += `"${node.placeName}"`;
         if (node.aliases && node.aliases.length > 0) {
@@ -518,7 +518,7 @@ export const formatMapContextForPrompt = (
     return '';
   }
 
-  let context = ` - You are currently at ${currentNode.id} - "${currentNode.placeName}".`;
+  let context = `- You are currently at <ID: ${currentNode.id}> - "${currentNode.placeName}".`;
   if (currentNode.description) {
     context += ` ${currentNode.description}.`;
   }

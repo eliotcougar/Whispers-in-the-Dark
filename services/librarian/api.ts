@@ -17,7 +17,7 @@ import { SYSTEM_INSTRUCTION } from './systemPrompt';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { getThinkingBudget } from '../thinkingConfig';
 import { isApiConfigured } from '../geminiClient';
-import { Item, ItemChange, ItemData, NPC } from '../../types';
+import { Item, ItemChange, ItemDirective, NPC } from '../../types';
 import { buildLibrarianPrompt } from './promptBuilder';
 import { parseLibrarianResponse } from './responseParser';
 import { addProgressSymbol } from '../../utils/loadingProgress';
@@ -44,7 +44,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
         properties: {
           chapters: {
             type: 'array',
-            description: 'Only add chapters if Librarian Hint directly instructs that.',
+            description: 'Only add chapters if the directive directly instructs that.',
             items: {
               type: 'object',
               properties: {
@@ -154,7 +154,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
           description: { type: 'string', description: 'Concise explanation of what the item is.' },
           holderId: {
             type: 'string',
-            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*', depending on Librarian Hints.`,
+            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*', guided by the directive context.`,
           },
           knownUses: {
             type: 'array',
@@ -297,28 +297,33 @@ export interface LibrarianUpdateResult {
   } | null;
 }
 
-export const applyLibrarianHints = async (
-  librarianHint: string | undefined,
-  newItems: Array<ItemData>,
+export const applyLibrarianDirectives = async (
+  directives: Array<ItemDirective>,
   playerLastAction: string,
   inventory: Array<Item>,
   currentNodeId: string | null,
   npcs: Array<NPC>,
   limitedMapContext: string,
+  holderNames: Record<string, string>,
+  sceneDescription?: string,
+  logMessage?: string,
+  locationSnippet?: string,
 ): Promise<LibrarianUpdateResult | null> => {
-  const hint = librarianHint?.trim() ?? '';
-  if (!hint && newItems.length === 0) {
+  if (directives.length === 0) {
     return { itemChanges: [], debugInfo: null };
   }
-  const basePrompt = buildLibrarianPrompt(
-    playerLastAction,
-    hint,
-    newItems,
+  const basePrompt = buildLibrarianPrompt({
+    directives,
     inventory,
     currentNodeId,
     npcs,
     limitedMapContext,
-  );
+    holderNames,
+    playerLastAction,
+    sceneDescription,
+    logMessage,
+    locationSnippet,
+  });
   let attemptPrompt = basePrompt;
   let parsed: ReturnType<typeof parseLibrarianResponse> = null;
   let lastErrorMessage: string | null = null;

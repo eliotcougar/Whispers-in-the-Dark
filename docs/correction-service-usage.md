@@ -7,7 +7,7 @@ This document lists every helper exported from `services/corrections` and explai
 - **`fetchCorrectedDialogueTurn`** – Used in the dialogue API to repair malformed turn responses after the primary parser fails, keeping conversational flows alive. 【F:services/dialogue/api.ts†L180-L229】
 
 ## Inventory helpers
-- **`fetchCorrectedItemChangeArray`** – Called by `applyInventoryHints` whenever the inventory response cannot be parsed so it can retry with a corrected list of changes; tests also mock it to verify no unnecessary correction occurs. 【F:services/inventory/api.ts†L382-L452】【F:tests/inventoryNoCorrection.test.ts†L19-L60】
+- **`fetchCorrectedItemChangeArray`** – Called by `applyInventoryDirectives` whenever the inventory response cannot be parsed so it can retry with a corrected list of changes; tests also mock it to verify no unnecessary correction occurs. 【F:services/inventory/api.ts†L382-L452】【F:tests/inventoryNoCorrection.test.ts†L19-L60】
 - **`fetchCorrectedAddDetailsPayload`** – Rehydrates `addDetails` actions that arrive with malformed payloads inside the same inventory workflow. 【F:services/inventory/api.ts†L382-L436】
 - **`fetchCorrectedItemPayload`** – Currently exported but unused; a repository-wide search only finds the definition in `services/corrections/item.ts`. 【c30210†L1-L9】
 - **`fetchCorrectedItemAction`** – Likewise only defined at present with no active call sites beyond the helper itself. 【a8516e†L1-L12】

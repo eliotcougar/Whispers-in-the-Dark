@@ -2,7 +2,7 @@
  * @file services/corrections/inventory.ts
  * @description Correction helper for malformed inventory AI responses.
  */
-import { AdventureTheme, ItemChange } from '../../types';
+import { AdventureTheme, ItemChange, ItemDirective } from '../../types';
 import {
   MAX_RETRIES,
   VALID_ITEM_TYPES,
@@ -90,9 +90,8 @@ export const fetchCorrectedItemChangeArray = async (
   malformedResponseText: string,
   logMessage: string | undefined,
   sceneDescription: string | undefined,
-  playerItemsHint: string,
-  worldItemsHint: string,
-  npcItemsHint: string,
+  directives: Array<ItemDirective>,
+  holderNames: Record<string, string>,
   currentNodeId: string | null,
   companionsContext: string,
   nearbyNpcsContext: string,
@@ -113,10 +112,9 @@ ${malformedResponseText}
 ## Narrative Context:
 - Log Message: "${logMessage ?? 'Not specified'}"
 - Scene Description: "${sceneDescription ?? 'Not specified'}"
-- Player Items Hint: "${playerItemsHint}"
-- World Items Hint: "${worldItemsHint}"
-- NPC Items Hint: "${npcItemsHint}"
-- Current Place ID: "${currentNodeId ?? 'unknown'}"
+- Item Directives: ${JSON.stringify(directives, null, 2)}
+- Holder Catalog: ${JSON.stringify(holderNames, null, 2)}
+- Current Place ID: "<ID: ${currentNodeId ?? 'unknown'}>"
 - Companions: ${companionsContext}
 - Nearby NPCs: ${nearbyNpcsContext}
 - Theme Guidance: "${theme.storyGuidance || 'General adventure theme.'}"

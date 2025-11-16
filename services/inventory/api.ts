@@ -24,7 +24,7 @@ import {
   AdventureTheme,
   Item,
   ItemChange,
-  ItemData,
+  ItemDirective,
   NPC,
 } from '../../types';
 import { buildInventoryPrompt } from './promptBuilder';
@@ -155,7 +155,7 @@ export const INVENTORY_JSON_SCHEMA = {
     },
     create: {
       type: 'array',
-      description: `New items to create, taken exactly from the provided New Items JSON`,
+      description: `New items to create, derived from item directives`,
       items: {
         type: 'object',
         properties: {
@@ -163,7 +163,7 @@ export const INVENTORY_JSON_SCHEMA = {
           description: { type: 'string', description: 'Concise explanation of what the item is.' },
           holderId: {
             type: 'string',
-            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*', depending on Item Hints.`,
+            description: `ID of the location or holder. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*', following the directive context.`,
           },
           isActive: { type: 'boolean', description: 'True if the item is active, worn, wielded right now.' },
           knownUses: {
@@ -341,11 +341,8 @@ export interface InventoryUpdateResult {
   } | null;
 }
 
-export const applyInventoryHints = async (
-  playerItemsHint: string | undefined,
-  worldItemsHint: string | undefined,
-  npcItemsHint: string | undefined,
-  newItems: Array<ItemData>,
+export const applyInventoryDirectives = async (
+  directives: Array<ItemDirective>,
   playerLastAction: string,
   inventory: Array<Item>,
   currentNodeId: string | null,
@@ -354,25 +351,25 @@ export const applyInventoryHints = async (
   logMessage: string | undefined,
   theme: AdventureTheme,
   limitedMapContext: string,
+  holderNames: Record<string, string>,
+  locationSnippet?: string,
 ): Promise<InventoryUpdateResult | null> => {
-  const pHint = playerItemsHint?.trim() ?? '';
-  const wHint = worldItemsHint?.trim() ?? '';
-  const nHint = npcItemsHint?.trim() ?? '';
-  if (!pHint && !wHint && !nHint && newItems.length === 0) {
+  if (directives.length === 0) {
     return { itemChanges: [], debugInfo: null };
   }
 
-  const { prompt: basePrompt, companionsContext, nearbyNpcsContext } = buildInventoryPrompt(
-    playerLastAction,
-    pHint,
-    wHint,
-    nHint,
-    newItems,
+  const { prompt: basePrompt, companionsContext, nearbyNpcsContext } = buildInventoryPrompt({
+    directives,
     inventory,
     currentNodeId,
     npcs,
     limitedMapContext,
-  );
+    holderNames,
+    playerLastAction,
+    sceneDescription,
+    logMessage,
+    locationSnippet,
+  });
   let attemptPrompt = basePrompt;
   let parsed: InventoryAIPayload | null = null;
   let lastErrorMessage: string | null = null;
@@ -406,9 +403,8 @@ export const applyInventoryHints = async (
         response.text ?? '',
         logMessage,
         sceneDescription,
-        pHint,
-        wHint,
-        nHint,
+        directives,
+        holderNames,
         currentNodeId,
         companionsContext,
         nearbyNpcsContext,

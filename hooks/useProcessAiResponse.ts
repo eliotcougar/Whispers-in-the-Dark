@@ -6,6 +6,7 @@ import {
   GameStateStack,
   Item,
   ItemChange,
+  ItemDirective,
   LoadingReason,
   TurnChanges,
   StoryAct,
@@ -22,8 +23,10 @@ import {
 } from '../utils/gameLogicUtils';
 import { formatLimitedMapContextForPrompt } from '../utils/promptFormatters/map';
 import { useMapUpdateProcessor } from './useMapUpdateProcessor';
-import { applyInventoryHints } from '../services/inventory';
-import { applyLibrarianHints } from '../services/librarian';
+import { applyInventoryDirectives } from '../services/inventory';
+import { applyLibrarianDirectives } from '../services/librarian';
+import { dispatchItemDirectives } from '../services/itemDispatch';
+import { resolveItemDirectives } from '../services/corrections/itemDirectives';
 import { refineLore } from '../services/loremaster';
 import { generatePageText } from '../services/page';
 import { rot13, toRunic, tornVisibleText } from '../utils/textTransforms';
@@ -57,6 +60,21 @@ interface EntityLookupContext {
   playerInventory: Array<Item>;
   playerInventoryByToken: Map<string, Item>;
 }
+
+const buildHolderNameLookup = (state: FullGameState): Record<string, string> => {
+  const lookup: Record<string, string> = {
+    [PLAYER_HOLDER_ID]: 'Player',
+  };
+  state.mapData.nodes
+    .filter(node => node.type === 'feature')
+    .forEach(node => {
+      lookup[node.id] = node.placeName;
+    });
+  state.allNPCs.forEach(npc => {
+    lookup[npc.id] = npc.name;
+  });
+  return lookup;
+};
 
 const normalizeNodeToken = (value: string | undefined | null): string | null => {
   if (!value) return null;
@@ -434,7 +452,7 @@ interface HandleInventoryHintsParams {
   setLoadingReason: (reason: LoadingReason | null) => void;
 }
 
-const handleInventoryHints = async ({
+const handleItemDirectives = async ({
   aiData,
   draftState,
   baseState,
@@ -455,6 +473,25 @@ const handleInventoryHints = async ({
   ): Array<Item> => items.filter(it => allowed.includes(it.type));
 
   let combinedItemChanges = [...correctedItemChanges];
+  const directives = aiData.itemDirectives ?? [];
+  if (directives.length === 0) {
+    return { combinedItemChanges, baseInventoryForPlayer };
+  }
+
+  const holderNamesForResolution = buildHolderNameLookup(draftState);
+  const resolvedDirectives =
+    (await resolveItemDirectives({
+      directives,
+      sceneDescription: aiData.sceneDescription,
+      logMessage: aiData.logMessage,
+      knownInventoryItemIds: filterItemsByType(baseState.inventory, REGULAR_ITEM_TYPES).map(
+        it => it.id,
+      ),
+      knownWrittenItemIds: filterItemsByType(baseState.inventory, WRITTEN_ITEM_TYPES).map(
+        it => it.id,
+      ),
+      holderNames: holderNamesForResolution,
+    })) ?? directives;
 
   const theme = draftState.theme;
   const original = loadingReason;
@@ -469,28 +506,85 @@ const handleInventoryHints = async ({
     draftState.currentMapNodeId,
     filterItemsByType(baseState.inventory, WRITTEN_ITEM_TYPES),
   );
-  const allNewItems =
-    'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
-  const librarianNewItems = allNewItems.filter(it =>
-    WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
-  );
-  const inventoryNewItems = allNewItems.filter(
-    it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]),
-  );
 
-  const playerItemsHint =
-    'playerItemsHint' in aiData ? aiData.playerItemsHint?.trim() : '';
-  const worldItemsHint =
-    'worldItemsHint' in aiData ? aiData.worldItemsHint?.trim() : '';
-  const npcItemsHint =
-    'npcItemsHint' in aiData ? aiData.npcItemsHint?.trim() : '';
-  let invResult: Awaited<ReturnType<typeof applyInventoryHints>> | null = null;
-  if (playerItemsHint || worldItemsHint || npcItemsHint || inventoryNewItems.length > 0) {
-    invResult = await applyInventoryHints(
-      playerItemsHint,
-      worldItemsHint,
-      npcItemsHint,
-      inventoryNewItems,
+  const holderNames = holderNamesForResolution;
+  const dispatchResult = dispatchItemDirectives({
+    directives: resolvedDirectives,
+    knownInventoryItemIds: filterItemsByType(baseState.inventory, REGULAR_ITEM_TYPES).map(
+      it => it.id,
+    ),
+    knownWrittenItemIds: filterItemsByType(baseState.inventory, WRITTEN_ITEM_TYPES).map(
+      it => it.id,
+    ),
+  });
+
+  const inventoryDirectives = [...dispatchResult.inventoryDirectives];
+  const librarianDirectives = [...dispatchResult.librarianDirectives];
+
+  const writtenCueKeywords = [
+    'page',
+    'book',
+    'map',
+    'picture',
+    'scroll',
+    'chapter',
+    'inscription',
+    'journal',
+    'tablet',
+    'script',
+    'verse',
+    'stanza',
+    'read',
+  ];
+  const hasWrittenCue = (directive: ItemDirective): boolean => {
+    if (directive.suggestedHandler === 'librarian') return true;
+    const lower = directive.instruction.toLowerCase();
+    return writtenCueKeywords.some(k => lower.includes(k));
+  };
+
+  const exclusiveInventoryDirectives: Array<ItemDirective> = [];
+  const exclusiveLibrarianDirectives: Array<ItemDirective> = [];
+  const duplicateIds = new Set<string>();
+  const seenIds = new Set<string>();
+
+  const assignDirective = (directive: ItemDirective, preferred: 'inventory' | 'librarian') => {
+    if (seenIds.has(directive.directiveId)) {
+      duplicateIds.add(directive.directiveId);
+      return;
+    }
+    seenIds.add(directive.directiveId);
+    if (preferred === 'librarian') {
+      exclusiveLibrarianDirectives.push(directive);
+    } else {
+      exclusiveInventoryDirectives.push(directive);
+    }
+  };
+
+  const librarianIdSet = new Set(librarianDirectives.map(d => d.directiveId));
+
+  inventoryDirectives.forEach(directive => {
+    const alsoInLibrarian = librarianIdSet.has(directive.directiveId);
+    if (alsoInLibrarian && hasWrittenCue(directive)) {
+      assignDirective(directive, 'librarian');
+    } else {
+      assignDirective(directive, 'inventory');
+    }
+  });
+
+  librarianDirectives.forEach(directive => {
+    if (seenIds.has(directive.directiveId)) return;
+    if (hasWrittenCue(directive)) {
+      assignDirective(directive, 'librarian');
+    } else {
+      assignDirective(directive, 'inventory');
+    }
+  });
+
+  let invResult: Awaited<ReturnType<typeof applyInventoryDirectives>> | null = null;
+  if (exclusiveInventoryDirectives.length > 0) {
+    draftState.turnState = 'inventory_updates';
+    invResult = await applyInventoryDirectives(
+      exclusiveInventoryDirectives,
       playerActionText ?? '',
       baseState.inventory,
       baseState.currentMapNodeId ?? null,
@@ -499,29 +593,30 @@ const handleInventoryHints = async ({
       aiData.logMessage,
       theme,
       limitedMapContextRegular,
+      holderNames,
+      aiData.mapHint,
     );
+    setLoadingReason(original);
+  } else {
+    setLoadingReason(original);
   }
-  setLoadingReason(original);
 
-  let librarianHint =
-    'librarianHint' in aiData ? aiData.librarianHint?.trim() : '';
-  if (!librarianHint && librarianNewItems.length > 0) {
-    const names = librarianNewItems.map(it => it.name).join(', ');
-    librarianHint = `Found ${names}.`;
-  }
-  let libResult: Awaited<ReturnType<typeof applyLibrarianHints>> | null = null;
-  if (librarianHint) {
+  let libResult: Awaited<ReturnType<typeof applyLibrarianDirectives>> | null = null;
+  if (exclusiveLibrarianDirectives.length > 0) {
     // Reflect librarian stage in FSM and loading indicator
     draftState.turnState = 'librarian_updates';
     setLoadingReason('librarian_updates');
-    libResult = await applyLibrarianHints(
-      librarianHint,
-      librarianNewItems,
+    libResult = await applyLibrarianDirectives(
+      exclusiveLibrarianDirectives,
       playerActionText ?? '',
       baseState.inventory,
       baseState.currentMapNodeId ?? null,
       baseState.allNPCs,
       limitedMapContextWritten,
+      holderNames,
+      'sceneDescription' in aiData ? aiData.sceneDescription : baseState.currentScene,
+      aiData.logMessage,
+      aiData.mapHint,
     );
     setLoadingReason(original);
   }
@@ -536,14 +631,26 @@ const handleInventoryHints = async ({
   if (invResult) {
     combinedItemChanges = combinedItemChanges.concat(invResult.itemChanges);
     if (draftState.lastDebugPacket) {
-      draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo;
+      draftState.lastDebugPacket.inventoryDebugInfo = invResult.debugInfo
+        ? {
+            ...invResult.debugInfo,
+            dispatchRationale: dispatchResult.rationale,
+            unresolved: Array.from(duplicateIds).length > 0 ? dispatchResult.unresolvedDirectives : [],
+          }
+        : invResult.debugInfo;
     }
   }
 
   if (libResult) {
     combinedItemChanges = combinedItemChanges.concat(libResult.itemChanges);
     if (draftState.lastDebugPacket) {
-      draftState.lastDebugPacket.librarianDebugInfo = libResult.debugInfo;
+      draftState.lastDebugPacket.librarianDebugInfo = libResult.debugInfo
+        ? {
+            ...libResult.debugInfo,
+            dispatchRationale: dispatchResult.rationale,
+            unresolved: Array.from(duplicateIds).length > 0 ? dispatchResult.unresolvedDirectives : [],
+          }
+        : libResult.debugInfo;
     }
   }
 
@@ -778,21 +885,15 @@ const processMapAndInventoryStages = async ({
     });
   }
 
-  const allNewItems =
-    'newItems' in aiData && Array.isArray(aiData.newItems) ? aiData.newItems : [];
-  const hasLibrarianNew = allNewItems.some(it => WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]));
-  const hasInventoryNew = allNewItems.some(it => !WRITTEN_ITEM_TYPES.includes(it.type as (typeof WRITTEN_ITEM_TYPES)[number]));
-  const hasInventoryHints = !!aiData.playerItemsHint || !!aiData.worldItemsHint || !!aiData.npcItemsHint || hasInventoryNew;
-  const hasLibrarianHints = !!aiData.librarianHint || hasLibrarianNew;
-
   let combinedItemChanges: Array<ItemChange> = correctedAndVerifiedItemChanges;
   let baseInventoryForPlayer: Array<Item> = baseStateSnapshot.inventory.filter(
     it => it.holderId === PLAYER_HOLDER_ID,
   );
 
-  if (hasInventoryHints || hasLibrarianHints) {
-    if (hasInventoryHints) draftState.turnState = 'inventory_updates';
-    const result = await handleInventoryHints({
+  const directives = aiData.itemDirectives ?? [];
+  if (directives.length > 0) {
+    draftState.turnState = 'inventory_updates';
+    const result = await handleItemDirectives({
       aiData,
       draftState,
       baseState: baseStateSnapshot,
@@ -974,9 +1075,9 @@ const performLoreRefinementStage = async ({
       npcsForTheme.some(npc => npc.id === item.holderId),
   );
   const idsContext = [
-    `Node IDs: ${nodesForTheme.map(n => n.id).join(', ')}`,
-    `NPC IDs: ${npcsForTheme.map(n => n.id).join(', ')}`,
-    `Item IDs: ${itemsForTheme.map(i => i.id).join(', ')}`,
+    `Node IDs: ${nodesForTheme.map(n => `<ID: ${n.id}>`).join(', ')}`,
+    `NPC IDs: ${npcsForTheme.map(n => `<ID: ${n.id}>`).join(', ')}`,
+    `Item IDs: ${itemsForTheme.map(i => `<ID: ${i.id}>`).join(', ')}`,
   ].join('\n');
 
   const contextParts = `${baseContext}\n${idsContext}`;

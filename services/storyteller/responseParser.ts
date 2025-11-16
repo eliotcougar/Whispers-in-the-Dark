@@ -671,11 +671,7 @@ function validateBasicStructure(
         isOptionalBoolean(data.mapUpdated) &&
         isOptionalString(data.currentMapNodeId) &&
         isOptionalString(data.mapHint) &&
-        isOptionalString(data.playerItemsHint) &&
-        isOptionalString(data.worldItemsHint) &&
-        isOptionalString(data.npcItemsHint) &&
-        isOptionalString(data.librarianHint) &&
-        isOptionalArray(data.newItems);
+        isOptionalArray(data.itemDirectives);
 
     if (!baseFieldsValid) {
         console.warn('parseAIResponse: Basic field validation failed (pre-dialogue specifics and array checks).', parsedData);
@@ -1026,6 +1022,7 @@ export async function parseAIResponse(
         validated.localEnvironment = validated.localEnvironment?.trim() ?? 'Environment Undetermined';
         validated.localPlace = validated.localPlace?.trim() ?? 'Undetermined Location';
         trimDialogueHints(validated);
+        validated.itemDirectives = validated.itemDirectives ?? [];
 
         delete (validated as Record<string, unknown>).placesAdded;
         delete (validated as Record<string, unknown>).placesUpdated;

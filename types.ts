@@ -41,8 +41,8 @@ export type GameTurnState =
   | 'storyteller'          // storyteller call in-flight
   | 'loremaster_collect'   // loremaster selecting relevant facts before storyteller
   | 'map_updates'          // applying map updates
-  | 'inventory_updates'    // applying inventory/librarian hints
-  | 'librarian_updates'    // applying librarian (written items) hints
+  | 'inventory_updates'    // applying inventory directives
+  | 'librarian_updates'    // applying librarian (written items) directives
   | 'loremaster_extract'    // loremaster refinement main step (extract)
   | 'dialogue_memory'      // creating NPC memories from dialogue
   | 'dialogue_turn'        // in-dialogue per-turn
@@ -193,6 +193,15 @@ export interface Item extends ItemData {
   lastInspectTurn?: number;
 }
 
+export interface ItemDirective {
+  directiveId: string;
+  itemIds?: string | Array<string>;
+  provisionalNames?: Array<string>;
+  suggestedHandler?: 'inventory' | 'librarian' | 'either' | 'unknown';
+  instruction: string;
+  metadata?: Record<string, unknown>;
+}
+
 export type ItemCreatePayload = ItemData & {
   id?: string;
   holderId: string;
@@ -220,32 +229,46 @@ export interface AddDetailsPayload extends Pick<ItemData, 'name' | 'type' | 'kno
   id: Item['id'];
 }
 
+interface ItemChangeBase {
+  directiveId?: string;
+  invalidPayload?: unknown;
+}
+
 export type ItemChange =
-  | {
+  | ({
       action: 'create';
       item: ItemCreatePayload;
-      invalidPayload?: unknown;
-    }
-  | {
+    } & ItemChangeBase)
+  | ({
       action: 'destroy';
       item: ItemReference;
-      invalidPayload?: unknown;
-    }
-  | {
+    } & ItemChangeBase)
+  | ({
       action: 'change';
       item: ItemChangePayload;
-      invalidPayload?: unknown;
-    }
-  | {
+    } & ItemChangeBase)
+  | ({
       action: 'addDetails';
       item: AddDetailsPayload;
-      invalidPayload?: unknown;
-    }
-  | {
+    } & ItemChangeBase)
+  | ({
       action: 'move';
       item: MoveItemPayload;
-      invalidPayload?: unknown;
-    };
+    } & ItemChangeBase);
+
+export interface ItemDispatchRequest {
+  directives: Array<ItemDirective>;
+  knownInventoryItemIds: Array<string>;
+  knownWrittenItemIds: Array<string>;
+}
+
+export interface ItemDispatchResponse {
+  inventoryDirectives: Array<ItemDirective>;
+  librarianDirectives: Array<ItemDirective>;
+  sharedDirectives: Array<ItemDirective>;
+  unresolvedDirectives: Array<ItemDirective>;
+  rationale: string;
+}
 
 export interface NPCData {
   name: string;
@@ -480,11 +503,7 @@ export interface GameStateFromAI {
   mapUpdated?: boolean; // This flag signals the map service to run
   currentMapNodeId?: string | undefined; // Suggestion for current location node ID
   mapHint?: string; // Optional hint about distant quest-related locations for MapAI
-  playerItemsHint?: string;
-  worldItemsHint?: string;
-  npcItemsHint?: string;
-  librarianHint?: string;
-  newItems?: Array<ItemData>;
+  itemDirectives?: Array<ItemDirective>;
 }
 
 export interface LoremasterModeDebugInfo {
@@ -644,6 +663,8 @@ export interface DebugPacket {
     observations?: string;
     rationale?: string;
     thoughts?: Array<string>;
+    dispatchRationale?: string;
+    unresolved?: Array<ItemDirective>;
   } | null;
   librarianDebugInfo?: {
     prompt: string;
@@ -654,6 +675,8 @@ export interface DebugPacket {
     observations?: string;
     rationale?: string;
     thoughts?: Array<string>;
+    dispatchRationale?: string;
+    unresolved?: Array<ItemDirective>;
   } | null;
   loremasterDebugInfo?: {
     collect?: LoremasterModeDebugInfo | null;

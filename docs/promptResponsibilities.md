@@ -14,7 +14,7 @@
 ### Storyteller
 - **System prompt** (`services/storyteller/systemPrompt.ts:8`) casts the model as Dungeon Master, mandates quest/map/NPC tracking, and imports `LOCAL_CONDITIONS_GUIDE` plus `ITEMS_GUIDE` to keep evergreen rules centralized.
 - **Prompt builders** (`services/storyteller/promptBuilder.ts:37` and `services/storyteller/promptBuilder.ts:82`) seed new games and assemble turn context: inventories, map state, recent events, travel goals, and optional debug directives.
-- **Responsibility split**: the system instruction demands outputs such as `mapHint`, `playerItemsHint`, comma-free names, and dialogue hooks; the builders only surface the structured data required to satisfy those demands.
+- **Responsibility split**: the system instruction demands outputs such as `mapHint`, `itemDirectives`, comma-free names, and dialogue hooks; the builders only surface the structured data required to satisfy those demands.
 
 ### Dialogue
 - **System prompt** (`services/dialogue/systemPrompt.ts:7`) defines the JSON layout, exit-option rule, and persona constraints for conversational turns.

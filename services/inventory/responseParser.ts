@@ -30,22 +30,29 @@ const parseItemChange = (
   action: ItemChange['action'],
   recordError?: (message: string) => void,
 ): ItemChange | null => {
+  const directiveId =
+    typeof (raw as { directiveId?: unknown }).directiveId === 'string'
+      ? ((raw as { directiveId: string }).directiveId.trim() || undefined)
+      : undefined;
+  const payload: Record<string, unknown> = { ...raw };
+  delete (payload as { directiveId?: unknown }).directiveId;
+
   switch (action) {
     case 'create': {
-      const item = raw;
+      const item = payload;
       if (typeof item.holderId !== 'string' || item.holderId.trim() === '') {
         item.holderId = PLAYER_HOLDER_ID;
       }
       if (isValidItem(item, 'create')) {
         const itm = item as { knownUses?: Array<KnownUse> };
         itm.knownUses = filterBlockedKnownUses(itm.knownUses);
-        return { action, item: item };
+        return { action, item: item, directiveId };
       }
       recordError?.('Inventory create action was missing required item fields.');
       return null;
     }
     case 'change': {
-      const rawItem = raw;
+      const rawItem = payload;
       const t = typeof rawItem.type === 'string' ? rawItem.type : undefined;
       const status = typeof rawItem.status === 'string' ? rawItem.status : undefined;
       const mapped = t ? normalizeItemType(t) : null;
@@ -60,42 +67,44 @@ const parseItemChange = (
           id: typeof rawItem.id === 'string' ? rawItem.id : undefined,
           name: typeof rawItem.name === 'string' ? rawItem.name : undefined,
         };
-        if (isValidItemReference(itemRef)) return { action: 'destroy', item: itemRef };
+        if (isValidItemReference(itemRef)) return { action: 'destroy', item: itemRef, directiveId };
         recordError?.('Inventory change action attempted to destroy an item without a valid id or name.');
         return null;
       }
-      if (isValidItem(raw, 'change')) {
-        const itm = raw as { knownUses?: Array<KnownUse> };
+      if (isValidItem(payload, 'change')) {
+        const itm = payload as { knownUses?: Array<KnownUse> };
         itm.knownUses = filterBlockedKnownUses(itm.knownUses);
-        return { action: 'change', item: raw };
+        return { action: 'change', item: payload, directiveId };
       }
       recordError?.('Inventory change action had invalid item payload.');
       return null;
     }
     case 'addDetails': {
-      if (isValidAddDetailsPayload(raw)) {
-        return { action: 'addDetails', item: raw as AddDetailsPayload };
+      if (isValidAddDetailsPayload(payload)) {
+        const sanitized = payload as AddDetailsPayload;
+        return { action: 'addDetails', item: sanitized, directiveId };
       }
       recordError?.('Inventory addDetails action payload was invalid.');
       return {
         action: 'addDetails',
-        item: raw as unknown as AddDetailsPayload,
-        invalidPayload: raw,
+        item: payload as unknown as AddDetailsPayload,
+        invalidPayload: payload,
+        directiveId,
       };
     }
     case 'destroy':
-      if (isValidItemReference(raw)) return { action: 'destroy', item: raw };
+      if (isValidItemReference(payload)) return { action: 'destroy', item: payload, directiveId };
       recordError?.('Inventory destroy action requires an item reference with id or name.');
       return null;
     case 'move': {
-      const maybe = raw as { id?: string; name?: string; newHolderId?: string };
+      const maybe = payload as { id?: string; name?: string; newHolderId?: string };
       if (typeof maybe.id === 'string' && typeof maybe.newHolderId === 'string') {
         const payload: MoveItemPayload = {
           id: maybe.id,
           name: maybe.name,
           newHolderId: maybe.newHolderId,
         };
-        return { action, item: payload };
+        return { action, item: payload, directiveId };
       }
       recordError?.('Inventory move action must include id and newHolderId strings.');
       return null;
@@ -143,8 +152,15 @@ export const parseInventoryResponse = (
       const act = typeof maybe.action === 'string' ? maybe.action : undefined;
       const itm = maybe.item && typeof maybe.item === 'object' ? maybe.item : undefined;
       if (act && itm) {
+        const directiveId =
+          typeof (maybe as { directiveId?: unknown }).directiveId === 'string'
+            ? (maybe as { directiveId: string }).directiveId
+            : undefined;
+        const payloadWithDirective = directiveId
+          ? { ...(itm as Record<string, unknown>), directiveId }
+          : (itm as Record<string, unknown>);
         const parsedChange = parseItemChange(
-          itm as Record<string, unknown>,
+          payloadWithDirective,
           act as ItemChange['action'],
           recordError,
         );
