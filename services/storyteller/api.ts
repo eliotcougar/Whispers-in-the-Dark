@@ -93,8 +93,9 @@ export const STORYTELLER_JSON_SCHEMA = {
     },
     logMessage: {
       type: 'string',
+      maxLength: 1000,
       description:
-        "Outcome of the player's previous actions, including any significant events, discoveries, or changes in the scene. This should be a concise narrative that captures the essence of what has happened since the last turn, providing additional context for the current scene.",
+        "Outcome of the player's previous actions. This should be a concise narrative that captures the essence of what has happened since the last turn, including any significant events, discoveries, or changes in the scene. Literary style, with no mentions of IDs.",
     },
     mainQuest: {
       type: 'string',
@@ -120,7 +121,7 @@ export const STORYTELLER_JSON_SCHEMA = {
         properties: {
           directiveId: {
             type: 'string',
-            description: 'Short unique id for this directive (e.g., "note-3fj2").',
+            description: 'Short unique id for this directive (e.g., "note-found-sword-3fj2").',
           },
           instruction: {
             type: 'string',
@@ -157,8 +158,7 @@ export const STORYTELLER_JSON_SCHEMA = {
           'itemIds',
           'metadata',
           'provisionalNames',
-          'suggestedHandler',
-          'metadata',
+          'suggestedHandler'
         ],
         required: ['directiveId', 'instruction'],
         additionalProperties: false,
@@ -308,13 +308,14 @@ export const STORYTELLER_JSON_SCHEMA = {
       items: { type: 'string' },
       description: `Exactly ${String(
         MAIN_TURN_OPTIONS_COUNT,
-      )} distinct action options for the player to choose from to progress in the story, tailored to the context. Do NOT use direct speech.`,
+      )} distinct action options for the player to choose from to progress in the story, tailored to the context. Avoid existing knownUses of the items. Do NOT use direct speech.`,
     },
     sceneDescription: {
       type: 'string',
       minLength: 500,
+      maxLength: 2000,
       description:
-        "Description of the scene, taking into account the entirety of the player's current situation and surroundings. Include relevant details the player must be aware of to make informed decisions. This should be an engaging text that sets the stage for the player's next actions.",
+        "Description of the scene, taking into account the entirety of the player's current situation and surroundings. Include relevant details the player must be aware of to make informed decisions. This should be an engaging text that sets the stage for the player's next actions. Literary style, with no mentions of IDs.",
     },
   },
   required: [
