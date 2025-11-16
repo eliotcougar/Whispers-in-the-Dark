@@ -18,7 +18,7 @@ export const buildCartographerPrompt = (
     .map(n => `- "${n.placeName}" (${n.type})`)
     .join('\n');
 
-  return `Narrative Context:\n${narrativeContext}\n\nKnown Map Nodes for theme "${theme.name}":\n${mapNodes}\n\nProvide JSON updates as per the SYSTEM_INSTRUCTION.`;
+  return `Narrative Context:\n${narrativeContext}\n\nKnown Map Nodes for theme "${theme.name}":\n${mapNodes}`;
 };
 
 /**
@@ -54,9 +54,6 @@ export const buildMapUpdatePrompt = (
   }.
 
 ${existingMapContext}
----
-Based on the Narrative Context and existing map context, provide a JSON response strongly adhering to the System Instructions.
-
 `;
 
 /**
@@ -86,10 +83,7 @@ export const buildSimplifiedNavigationPrompt = (
   const currLP = context.currentLocalPlace ?? 'Unknown';
   const prevNode = context.previousMapNodeName ?? 'Unknown or N/A';
 
-  return `## Goal
-Pick the single best accessible node that matches the Player's current position. If none fits, define one new node and edge to add to the map.
-
-## Theme
+  return `## Theme
 - Name: "${theme.name}"
 
 ## Player Context
@@ -99,16 +93,5 @@ Pick the single best accessible node that matches the Player's current position.
 - localPlace change: "${prevLP}" → "${currLP}"
 
 ## Accessible Nodes (existing map only)
-${nodesList}
-
-Respond ONLY with JSON.
-- When an existing node works: { "suggestedCurrentMapNodeId": "<existing id>" }
-- When a new node is required:
-{ 
-  "nodeAndEdge": { 
-    "edgeToAdd": { "description": "...", sourcePlaceName": "<existing id or name>", "status": "discovered", "targetPlaceName": "<new placeName>", "travelTime": "<optional>", "type": "<edge type>" },
-    "nodeToAdd": { "aliases": ["..."], "description": "...", "parentNodeId": "<existing id or name>", "placeName": "...", "status": "discovered", "type": "<type>"}
-  },
-  "suggestedCurrentMapNodeId": "<new placeName>"
-}`;
+${nodesList}`;
 };

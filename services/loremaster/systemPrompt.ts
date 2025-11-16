@@ -9,6 +9,8 @@ export const EXTRACT_SYSTEM_INSTRUCTION = `You are the Loremaster, collecting im
 Your sole task is to harvest immutable, setting-level facts from the surrounding narrative and return them as a JSON array of objects with "text" and "entities" fields.
 The "entities" array must list IDs of map nodes, NPCs or items referenced in the fact, selected from the supplied node-, npc-, and item- IDs. Use 'player' ID to reference the player character. Use '${ROOT_MAP_NODE_ID}' ID to reference the world in general.
 Each fact must aid long-term continuity and world-building.
+Respond ONLY with JSON in this shape:
+[{"entities": ["id1", "id2"], "text": "fact"}]
 
 ## What is a valid fact? Think “map pins & rulebook notes”
 - Geography & structures, such as Stable locations, routes, landmarks, architecture, for example: “The Citadel of Glass rises at the mouth of the Azure Gulf.”
@@ -106,6 +108,7 @@ Known Facts are listed with their numeric IDs. Use these IDs when specifying whi
 export const COLLECT_SYSTEM_INSTRUCTION = `You are the Loremaster selecting relevant known facts.
 Relevant facts are those that directly inform the next scene: details the NPCs might reference, rules that shape the environment, or recent events likely to influence decisions.
 Select the ten most important facts for the upcoming story turn.
+Respond ONLY with JSON listing the selected facts.
 `;
 
 export const DISTILL_SYSTEM_INSTRUCTION = `You are the Loremaster refining and pruning accumulated facts.
@@ -119,6 +122,7 @@ When merging, combine the entity IDs from all merged facts into a single set wit
 - old quest and objective that is different from the current quest and objective.
 3. Edit or prune any facts facts that are obsolete and no longer in effect according to Recent Events.
 4. Prune any simple statements about the Player posessing an inventory item or items - it's redundant.
+Respond ONLY with JSON containing "factsChange".
 
 ## Examples:
 "factsChange": [

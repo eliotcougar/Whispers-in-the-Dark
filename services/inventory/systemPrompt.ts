@@ -20,6 +20,7 @@ Input:
 Allowed actions are: ${VALID_ACTIONS_STRING}.
 Rules:
 - Echo the directiveId on every action you output to confirm coverage.
+- Prefer existing itemIds and holderIds from the provided catalog; only invent new IDs when a directive clearly requires creating a new regular item.
 - When itemIds are provided, prefer change/move/addDetails/destroy; use create only when the directive clearly introduces a new regular item.
 - holderId/newHolderId MUST be 'node-*', 'npc-*', or 'player'. NEVER put an item inside another item.
 - Avoid creating or modifying written items (book/page/map/picture); those belong to the Librarian service.

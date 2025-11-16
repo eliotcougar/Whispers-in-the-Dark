@@ -32,11 +32,7 @@ export const buildExtractFactsPrompt = (
   return `Theme: ${themeName}
 
   ## Context:
-${turnContext}${extras}
-
-List immutable facts according to your instructions. Return JSON as:
-[{"entities": ["id1", "id2"], "text": "fact"}]
-`;
+${turnContext}${extras}`;
 };
 
 export const buildIntegrateFactsPrompt = (
@@ -66,10 +62,7 @@ ${events || 'None'}
 ${existing}
 
   ## New Candidate Facts:
-${proposed}
-
-Provide facts integration, changes and pruning instructions acording to your instructions.
-`;
+${proposed}`;
 };
 
 export interface FactForSelection {
@@ -99,11 +92,8 @@ Recent Log:
   ## Player Actions:
 ${playerAction}
 
-  ------
-  
-Select the 10 most relevant facts from the list of Known Facts:
-${factLines}
-`;
+Known Facts:
+${factLines}`;
 };
 
 export const buildDistillFactsPrompt = (
@@ -140,9 +130,5 @@ ${inventoryLines || 'None'}
 ${mapLines || 'None'}
 
 ## Current Facts:
-${factLines}
-
-Identify sets of facts that could be merged into a single, more specific statement.
-Delete facts that reference obsolete quests, objectives, conditions, items or places. If merging or deleting, provide instructions.
-`;
+${factLines}`;
 };

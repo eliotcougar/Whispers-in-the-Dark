@@ -190,15 +190,7 @@ export const buildLibrarianPrompt = ({
 - Log Message: ${logMessage ?? 'N/A'}
 - Location Snippet: ${locationSnippet ?? (limitedMapContext || 'N/A')}
 
-${sections.join('\n')}
-
-Safety rails:
-- Echo the directiveId on every action you output so the supervisor can deduplicate work.
-- Prefer existing itemIds and holderIds from the catalog; avoid inventing new IDs.
-- Create or update ONLY written items (book/page/map/picture) here; ignore regular gear.
-- Names must be comma-free.
-
-Provide the librarian update as JSON as described in the SYSTEM_INSTRUCTION.`;
+${sections.join('\n')}`;
 
   return prompt;
 };

@@ -13,6 +13,7 @@ You may receive a "Map Hint" string from the storyteller describing distant ques
 Fill the JSON object with nodes and edges to add, update, or remove based on the provided context.
 Assign relevant node and edge types, statuses, and descriptions.
 Ensure that the hierarchy of nodes is logical and consistent, with no feature nodes as parents of other feature nodes.
+Respond ONLY with JSON shaped like the documented schema.
 
 ${MAP_NODE_TYPE_GUIDE}
 ${MAP_EDGE_TYPE_GUIDE}
@@ -61,7 +62,14 @@ Rules:
   * Include complete fields (placeName, description ≥30 chars, aliases, status, type, parentNodeId).
   * Use status "discovered" unless the narrative explicitly marks it as a quest target.
   * Reference an existing parent from the provided information (never invent a brand new parent hierarchy).
-- Response MUST be a JSON object with:
-  * "suggestedCurrentMapNodeId": string (existing node ID, or the placeName of the newly added node when adding one).
-  * Optional "nodeAndEdge" containing 'edgeToAdd' and 'nodeToAdd' objects for adding a new node and edge.
+- Respond ONLY with JSON:
+  - When an existing node fits: { "suggestedCurrentMapNodeId": "<existing id>" }
+  - When a new node is required:
+    {
+      "nodeAndEdge": {
+        "edgeToAdd": { "description": "...", "sourcePlaceName": "<existing id or name>", "status": "discovered", "targetPlaceName": "<new placeName>", "travelTime": "<optional>", "type": "<edge type>" },
+        "nodeToAdd": { "aliases": ["..."], "description": "...", "parentNodeId": "<existing id or name>", "placeName": "...", "status": "discovered", "type": "<type>" }
+      },
+      "suggestedCurrentMapNodeId": "<new placeName>"
+    }
 `;

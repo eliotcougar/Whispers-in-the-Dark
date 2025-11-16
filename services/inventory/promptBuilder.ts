@@ -228,15 +228,7 @@ export const buildInventoryPrompt = ({
 
   const prompt = `${contextLines}
 
-${body}
-
-Safety rails:
-- Echo the directiveId on every action you output so the supervisor can deduplicate work.
-- Prefer existing itemIds and holderIds from the catalog; avoid inventing new IDs.
-- Only create new regular items when directives clearly describe a new object; do not fabricate written items.
-- Names must be comma-free.
-
-Provide the inventory update as JSON as described in the SYSTEM_INSTRUCTION.`;
+${body}`;
 
   return {
     prompt,
