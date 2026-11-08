@@ -55,6 +55,7 @@ export const INVENTORY_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
           id: { type: 'string', description: 'ID of the item like item-* .' },
           knownUses: {
             type: 'array',
@@ -83,12 +84,12 @@ export const INVENTORY_JSON_SCHEMA = {
           tags: {
             type: 'array',
             maxItems: 1,
-            items: { enum: [COMMON_TAGS] },
+            items: { enum: COMMON_TAGS },
             description: `Additional tags. One of ${COMMON_TAGS_STRING}`,
           },
         },
-        propertyOrdering: ['id', 'knownUses', 'name', 'tags'],
-        required: ['id', 'name'],
+        propertyOrdering: ['directiveId', 'id', 'knownUses', 'name', 'tags'],
+        required: ['directiveId', 'id', 'name'],
         additionalProperties: false,
       },
     },
@@ -98,6 +99,7 @@ export const INVENTORY_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
           activeDescription: {
             type: ['string', 'null'],
             description: 'Updated active description. Use null to clear the current active description.',
@@ -139,6 +141,7 @@ export const INVENTORY_JSON_SCHEMA = {
           type: { enum: REGULAR_ITEM_TYPES, description: `Updated type if changed. One of ${REGULAR_ITEM_TYPES_STRING}.` },
         },
         propertyOrdering: [
+          'directiveId',
           'activeDescription',
           'description',
           'id',
@@ -149,7 +152,7 @@ export const INVENTORY_JSON_SCHEMA = {
           'tags',
           'type',
         ],
-        required: ['id', 'name'],
+        required: ['directiveId', 'id', 'name'],
         additionalProperties: false,
       },
     },
@@ -159,6 +162,7 @@ export const INVENTORY_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
           activeDescription: { type: 'string', description: 'Description when item is active.' },
           description: { type: 'string', description: 'Concise explanation of what the item is.' },
           holderId: {
@@ -198,6 +202,7 @@ export const INVENTORY_JSON_SCHEMA = {
           type: { enum: REGULAR_ITEM_TYPES, description: `Item type. One of ${REGULAR_ITEM_TYPES_STRING}` },
         },
         propertyOrdering: [
+          'directiveId',
           'activeDescription',
           'description',
           'holderId',
@@ -207,7 +212,7 @@ export const INVENTORY_JSON_SCHEMA = {
           'tags',
           'type',
         ],
-        required: ['description', 'holderId', 'name', 'tags', 'type'],
+        required: ['directiveId', 'description', 'holderId', 'name', 'tags', 'type'],
         additionalProperties: false,
       },
     },
@@ -216,9 +221,13 @@ export const INVENTORY_JSON_SCHEMA = {
       items: {
         type: 'object',
         description: 'Remove items from the world.',
-        properties: { id: { type: 'string' }, name: { type: 'string' } },
-        propertyOrdering: ['id', 'name'],
-        required: ['id', 'name'],
+        properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
+          id: { type: 'string' },
+          name: { type: 'string' },
+        },
+        propertyOrdering: ['directiveId', 'id', 'name'],
+        required: ['directiveId', 'id', 'name'],
         additionalProperties: false,
       },
     },
@@ -228,6 +237,7 @@ export const INVENTORY_JSON_SCHEMA = {
         type: 'object',
         description: 'Move an existing item to a new holder.',
         properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
           id: { type: 'string' },
           name: { type: 'string' },
           newHolderId: {
@@ -235,8 +245,8 @@ export const INVENTORY_JSON_SCHEMA = {
             description: `ID of the new location or holder of the Item. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*'.`,
           },
         },
-        propertyOrdering: ['id', 'name', 'newHolderId'],
-        required: ['id', 'name', 'newHolderId'],
+        propertyOrdering: ['directiveId', 'id', 'name', 'newHolderId'],
+        required: ['directiveId', 'id', 'name', 'newHolderId'],
         additionalProperties: false,
       },
     },

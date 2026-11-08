@@ -8,7 +8,7 @@ Input:
 - Current written items grouped by holder (player, location, NPCs), plus holder catalog and scene snippets.
 
 Rules:
-- Echo the directiveId on every action you output to confirm coverage.
+- Echo the source directiveId in the separate directiveId field on every action object to confirm coverage. Never place directiveId, its value, or other tracking metadata in item names, descriptions, active descriptions, chapters, or known uses.
 - Prefer existing itemIds and holderIds from the provided catalog; only invent new IDs when a directive clearly requires creating a new written item.
 - Only handle written items; ignore regular gear and status effects.
 - When itemIds are provided, prefer change/addDetails/destroy; create only when the directive clearly introduces a new written item.
@@ -24,16 +24,16 @@ Examples (echo directiveId on each action):
       { "directiveId": "note-etched-plate-9kdm", "chapters": [{ "contentLength": 120, "description": "Three-stanza ritual inscribed into the bronze surface.", "heading": "Rite of Cleansing" }], "description": "Bronze tablet scratched with a cleansing rite.", "holderId": "node-altar", "name": "Etched Plague Tablet", "tags": ["engraved"], "type": "page" }
     ],
     "observations": "...",
-    "rationale": "...",
+    "rationale": "..."
   }
 - Directive: note-journal-2bxa (itemIds: item-journal-7fr4) "Adds a new entry describing the canal ambush."
   Response:
   {
     "addDetails": [
-      { "directiveId": "note-journal-2bxa", "chapters": [{ "contentLength": 90, "description": "Entry about the sudden attack near the canal locks.", "heading": "Canal Ambush" }], "id": "item-journal-7fr4", "name": "Scout's Journal", "type": "book" }
+      { "directiveId": "note-journal-2bxa", "chapters": [{ "contentLength": 90, "description": "Entry about the sudden attack near the canal locks.", "heading": "Canal Ambush" }], "id": "item-journal-7fr4", "name": "Scout's Journal" }
     ],
     "observations": "...",
-    "rationale": "...",
+    "rationale": "..."
   }
 
 ${WRITTEN_ITEM_TYPES_GUIDE}

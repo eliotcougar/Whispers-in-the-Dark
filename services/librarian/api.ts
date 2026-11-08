@@ -42,6 +42,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
           chapters: {
             type: 'array',
             description: 'Only add chapters if the directive directly instructs that.',
@@ -80,8 +81,8 @@ export const LIBRARIAN_JSON_SCHEMA = {
             items: { enum: ['recovered'] },
           },
         },
-        propertyOrdering: ['chapters', 'id', 'knownUses', 'name', 'tags'],
-        required: ['id', 'name'],
+        propertyOrdering: ['directiveId', 'chapters', 'id', 'knownUses', 'name', 'tags'],
+        required: ['directiveId', 'id', 'name'],
         additionalProperties: false,
       },
     },
@@ -91,6 +92,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
       items: {
         type: 'object',
         properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
           description: { type: 'string', description: 'Updated description if changed.' },
           id: { type: 'string', description: 'ID of the item to change.' },
           knownUses: {
@@ -118,6 +120,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
           type: { enum: WRITTEN_ITEM_TYPES, description: `Updated type if changed. One of ${WRITTEN_ITEM_TYPES_STRING}.` },
         },
         propertyOrdering: [
+          'directiveId',
           'description',
           'id',
           'knownUses',
@@ -126,16 +129,17 @@ export const LIBRARIAN_JSON_SCHEMA = {
           'tags',
           'type',
         ],
-        required: ['id', 'name'],
+        required: ['directiveId', 'id', 'name'],
         additionalProperties: false,
       },
     },
     create: {
       type: 'array',
-      description: `New items to create, taken exactly from the provided New Items JSON`,
+      description: `New written items to create, derived from the provided item directives`,
       items: {
         type: 'object',
         properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
           chapters: {
             type: 'array',
             description: `For type page, map, or picture - exactly one chapter. For type book - between ${String(MIN_BOOK_CHAPTERS)} and ${String(MAX_BOOK_CHAPTERS)} chapters.`,
@@ -180,6 +184,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
           type: { enum: WRITTEN_ITEM_TYPES, description: `Item type. One of ${WRITTEN_ITEM_TYPES_STRING}` },
         },
         propertyOrdering: [
+          'directiveId',
           'chapters',
           'description',
           'holderId',
@@ -188,7 +193,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
           'tags',
           'type',
         ],
-        required: ['chapters', 'description', 'holderId', 'name', 'tags', 'type'],
+        required: ['directiveId', 'chapters', 'description', 'holderId', 'name', 'tags', 'type'],
         additionalProperties: false,
       },
     },
@@ -197,9 +202,13 @@ export const LIBRARIAN_JSON_SCHEMA = {
       items: {
         type: 'object',
         description: 'Remove items from the world.',
-        properties: { id: { type: 'string' }, name: { type: 'string' } },
-        propertyOrdering: ['id', 'name'],
-        required: ['id', 'name'],
+        properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
+          id: { type: 'string' },
+          name: { type: 'string' },
+        },
+        propertyOrdering: ['directiveId', 'id', 'name'],
+        required: ['directiveId', 'id', 'name'],
         additionalProperties: false,
       },
     },
@@ -209,6 +218,7 @@ export const LIBRARIAN_JSON_SCHEMA = {
         type: 'object',
         description: 'Move an existing item to a new holder.',
         properties: {
+          directiveId: { type: 'string', minLength: 1, description: 'Exact ID of the source item directive. Tracking metadata only; never part of the item description.' },
           id: { type: 'string' },
           name: { type: 'string' },
           newHolderId: {
@@ -216,8 +226,8 @@ export const LIBRARIAN_JSON_SCHEMA = {
             description: `ID of the new location or holder of the Item. Use '${PLAYER_HOLDER_ID}', 'npc-*' or 'node-*'.`,
           },
         },
-        propertyOrdering: ['id', 'name', 'newHolderId'],
-        required: ['id', 'name', 'newHolderId'],
+        propertyOrdering: ['directiveId', 'id', 'name', 'newHolderId'],
+        required: ['directiveId', 'id', 'name', 'newHolderId'],
         additionalProperties: false,
       },
     },

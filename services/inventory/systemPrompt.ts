@@ -19,7 +19,7 @@ Input:
 
 Allowed actions are: ${VALID_ACTIONS_STRING}.
 Rules:
-- Echo the directiveId on every action you output to confirm coverage.
+- Echo the source directiveId in the separate directiveId field on every action object to confirm coverage. Never place directiveId, its value, or other tracking metadata in item names, descriptions, active descriptions, chapters, or known uses.
 - Prefer existing itemIds and holderIds from the provided catalog; only invent new IDs when a directive clearly requires creating a new regular item.
 - When itemIds are provided, prefer change/move/addDetails/destroy; use create only when the directive clearly introduces a new regular item.
 - holderId/newHolderId MUST be 'node-*', 'npc-*', or 'player'. NEVER put an item inside another item.
@@ -36,13 +36,13 @@ Examples (echo directiveId on each action):
   Response:
   {
     "change": [
-      { "directiveId": "note-lantern-3fj2", "holderId": "player", "id": "item-old-lantern-7fr4", "isActive": false, "name": "Old Lantern" }
+      { "directiveId": "note-lantern-3fj2", "id": "item-old-lantern-7fr4", "isActive": false, "name": "Old Lantern" }
     ],
     "move": [
       { "directiveId": "note-lantern-3fj2", "id": "item-old-lantern-7fr4", "name": "Old Lantern", "newHolderId": "player" }
     ],
     "observations": "...",
-    "rationale": "...",
+    "rationale": "..."
   }
 - Directive: note-tonic-1pqa (provisionalNames: ["Nightglass Tonic"]) "Fresh tonic left on the infirmary tray; anyone can take it."
   Response:
@@ -51,7 +51,7 @@ Examples (echo directiveId on each action):
       { "directiveId": "note-tonic-1pqa", "description": "Dark, viscous tonic brewed from two vials.", "holderId": "node-infirmary-tray", "isActive": false, "knownUses": [{ "actionName": "Drink", "appliesWhenInactive": true, "description": "Sip the tonic to feel its effect.", "promptEffect": "Player drinks the Nightglass Tonic." }], "name": "Nightglass Tonic", "tags": [], "type": "single-use" }
     ],
     "observations": "...",
-    "rationale": "...",
+    "rationale": "..."
   }
 
 ${REGULAR_ITEM_TYPES_GUIDE}
