@@ -5,6 +5,7 @@
 
 import { GenerateContentResponse } from '@google/genai';
 import { geminiClient as ai, isApiConfigured } from './geminiClient';
+import { getAIConnection, generateChatGPTText } from './aiProvider';
 import {
   isServerOrClientError,
   extractStatusFromError,
@@ -25,10 +26,12 @@ import {
   MINIMAL_MODEL_RPM,
   GEMINI_MODEL_RPM,
   GEMINI_LITE_MODEL_RPM,
+  GEMINI_PRO_MODEL_RPM,
   TINY_MODEL_RPM,
   MAX_RETRIES,
 } from '../constants';
 import { jsonSchemaToPrompt, JsonSchema } from '../utils/schemaPrompt';
+import { isGeminiTextModel } from '../shared/gemini';
 
 export type ModelFeature = 'thinking' | 'system' | 'schema';
 
@@ -69,6 +72,22 @@ export const dispatchAIRequest = async (
   jsonSchemaUsed?: unknown;
   promptUsed: string;
 }> => {
+  const connection = getAIConnection();
+  if (connection.provider === 'chatgpt') {
+    if (!isApiConfigured()) throw new Error('Open AI connection and connect ChatGPT with an available model.');
+    const { model } = connection;
+    const schemaInstruction = options.jsonSchema
+      ? '\nReturn only valid JSON matching this schema. Optional properties may be omitted.\n' + JSON.stringify(options.jsonSchema)
+      : options.responseMimeType === 'application/json' ? '\nReturn only valid JSON.' : '';
+    const instructions = (options.systemInstruction ?? '') + schemaInstruction;
+    const result = await generateChatGPTText({ model, prompt: options.prompt, instructions });
+    const response = new GenerateContentResponse();
+    response.candidates = [{ content: { role: 'model', parts: [{ text: result.text }] } }];
+    response.usageMetadata = { promptTokenCount: result.inputTokens, candidatesTokenCount: result.outputTokens, totalTokenCount: result.inputTokens + result.outputTokens };
+    options.debugLog?.push({ prompt: options.prompt, systemInstruction: instructions, jsonSchema: options.jsonSchema, modelUsed: result.model || model, responseText: result.text, promptUsed: options.prompt });
+    return { response, modelUsed: result.model || model, systemInstructionUsed: instructions, jsonSchemaUsed: options.jsonSchema, promptUsed: options.prompt };
+  }
+
   if (!isApiConfigured() || !ai) {
     return Promise.reject(new Error('API Key not configured.'));
   }
@@ -78,10 +97,17 @@ export const dispatchAIRequest = async (
     [GEMINI_LITE_MODEL_NAME]: GEMINI_LITE_MODEL_RPM,
     [MINIMAL_MODEL_NAME]: MINIMAL_MODEL_RPM,
     [TINY_MODEL_NAME]: TINY_MODEL_RPM,
+    'gemini-pro-latest': GEMINI_PRO_MODEL_RPM,
   };
 
+  const selectedModel = isGeminiTextModel(connection.geminiModel) && connection.geminiModel !== 'auto'
+    ? connection.geminiModel : null;
+  const modelNames: Array<ModelEntry> = selectedModel
+    ? [[selectedModel, ['thinking', 'system', 'schema']]]
+    : options.modelNames;
+
   let lastError: unknown = null;
-  for (const entry of options.modelNames) {
+  for (const [modelIndex, entry] of modelNames.entries()) {
     const [model, features] = Array.isArray(entry)
       ? entry
       : [entry, DEFAULT_FEATURES[entry] ?? []];
@@ -128,13 +154,16 @@ export const dispatchAIRequest = async (
         const delay = 5000 + extraDelay;
         await new Promise(res => setTimeout(res, delay));
       }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => { controller.abort(); }, 120_000);
       try {
+        // Failed requests also contribute to the provider's request limits.
+        recordModelCall(model);
         const response = await ai.models.generateContent({
           model,
           contents,
-          config: cfg,
+          config: { ...cfg, abortSignal: controller.signal },
         });
-        recordModelCall(model);
 
         if (options.label) {
           console.log(
@@ -160,7 +189,10 @@ export const dispatchAIRequest = async (
           jsonSchemaUsed: supportsSchema ? options.jsonSchema : undefined,
           promptUsed: contents,
         };
-      } catch (err: unknown) {
+      } catch (cause: unknown) {
+        const err: unknown = controller.signal.aborted
+          ? Object.assign(new Error('The Gemini request timed out. Please try again.'), { status: 504 })
+          : cause;
         if (options.debugLog) {
           options.debugLog.push({
             prompt: options.prompt,
@@ -182,16 +214,22 @@ export const dispatchAIRequest = async (
         }
 
         const status = extractStatusFromError(err);
+        if (status !== null && (status === 429 || status === 503 || status === 504) && modelIndex + 1 < modelNames.length) {
+          console.warn(`dispatchAIRequest: Model ${model} failed with ${String(status)}. Trying the next model.`);
+          break;
+        }
         const errorMsg = err instanceof Error ? err.message : String(err);
         const statusInfo = status !== null ? String(status) : errorMsg;
         console.warn(
           `dispatchAIRequest: Model ${model} failed with ${statusInfo}. Retry ${String(attempt)}/${String(MAX_RETRIES)}`
         );
+      } finally {
+        clearTimeout(timeout);
       }
     }
 
     console.warn(
-      `dispatchAIRequest: Model ${model} exhausted retries. Falling back if another model is available.`
+      `dispatchAIRequest: Model ${model} failed. Falling back if another model is available.`
     );
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));

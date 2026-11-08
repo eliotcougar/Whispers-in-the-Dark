@@ -1,3 +1,4 @@
+import { useAIConnection } from '../services/aiProvider';
 /**
  * @file ErrorDisplay.tsx
  * @description Shows an error message with optional retry.
@@ -15,6 +16,9 @@ interface ErrorDisplayProps {
  * Renders a flashing error message with an optional retry button.
  */
 function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
+  const { provider } = useAIConnection();
+  const displayMessage = provider === 'chatgpt' && /API.?key not configured/i.test(message)
+    ? 'Open the Title menu → AI Connection and reconnect ChatGPT to continue.' : message;
   return (
     <div className="bg-red-800 border border-red-600 text-red-100 p-6 rounded-lg shadow-xl my-4 animate-pulse">
       <div className="flex items-center mb-2">
@@ -32,7 +36,7 @@ function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
       </div>
 
       <p className="text-red-200 mb-4">
-        {message}
+        {displayMessage}
       </p>
 
       {onRetry ? (

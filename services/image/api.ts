@@ -1,14 +1,9 @@
-import { geminiClient as ai, isApiConfigured } from '../geminiClient';
+import { canGenerateImages, getImageConnection, getImageModel } from '../imageProvider';
 import { AdventureTheme, Item } from '../../types';
-import {
-  GEMINI_LITE_MODEL_NAME,
-  LOADING_REASON_UI_MAP,
-  MINIMAL_MODEL_NAME,
-} from '../../constants';
-import { dispatchAIRequest } from '../modelDispatcher';
+import { LOADING_REASON_UI_MAP } from '../../constants';
 import { retryAiCall } from '../../utils/retry';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { convertToJpeg, generateImageWithFallback, getThemeStylePrompt } from './common';
+import { convertToJpeg, generateConfiguredImage, getThemeStylePrompt, sanitizeVisualPrompt } from './common';
 import { getChapter as getNormalizedChapter } from '../../utils/writtenItemChapters';
 
 const inFlightGenerations: Record<string, Promise<string> | undefined> = {};
@@ -22,14 +17,12 @@ export const generateChapterImage = async (
   theme: AdventureTheme,
   chapter: number,
 ): Promise<string> => {
-  const key = `${item.id}-${String(chapter)}`;
+  if (!canGenerateImages()) return '';
+  const selection = getImageConnection();
+  const key = `${selection.provider}-${getImageModel(selection)}-${selection.quality}-${item.id}-${String(chapter)}`;
   const existing = inFlightGenerations[key];
   if (existing) {
     return existing;
-  }
-  if (!isApiConfigured() || !ai) {
-    console.error('generateChapterImage: API key not configured.');
-    return '';
   }
 
   const chapterData = getChapterData(item, chapter);
@@ -43,25 +36,15 @@ export const generateChapterImage = async (
   const prefix = `A detailed, ${item.type} in ${getThemeStylePrompt(theme)} without ANY text on it.`;
   const rawPrompt = `${prefix} ${baseDescription}`;
 
-  let safePrompt = rawPrompt;
-  try {
-    const { response: safeResp } = await dispatchAIRequest({
-      modelNames: [MINIMAL_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
-      prompt: `Rewrite the following item depiction so it prioritizes the item's name and description while including any chapter details. Ensure the result is safe for a highly censored image generation system.\n\nDescription:\n${rawPrompt}`,
-      systemInstruction: 'Respond ONLY with the visual description.',
-      temperature: 1,
-      label: 'ImagePromptSanitizer',
-    });
-    safePrompt = `${prefix} ${safeResp.text?.trim() ?? baseDescription}`;
-  } catch (err: unknown) {
-    console.warn('Prompt sanitization failed, using raw prompt.', err);
-  }
-
   const generationPromise = (async () => {
+    const safePrompt = await sanitizeVisualPrompt(
+      `Rewrite this item depiction into a safe visual description. Prioritize the item, preserving relevant chapter details. Theme: ${theme.name}\n\n${rawPrompt}`,
+      prefix,
+    );
     const result = await retryAiCall<string>(async attempt => {
       try {
         addProgressSymbol(LOADING_REASON_UI_MAP.visualize_scene.icon);
-        const bytes = await generateImageWithFallback(safePrompt, '4:3');
+        const bytes = await generateConfiguredImage(safePrompt, '4:3', selection);
         if (bytes) return { result: bytes };
       } catch (err: unknown) {
         console.error(`generateChapterImage error (Attempt ${String(attempt + 1)}):`, err);

@@ -1,3 +1,4 @@
+import { refreshOpenAIImageStatus } from '../../services/imageProvider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import * as React from 'react';
@@ -12,6 +13,7 @@ import { useAutosave } from '../../hooks/useAutosave';
 import { buildTravelAdjacency, findTravelPath, type TravelAdjacency, type TravelStep } from '../../utils/mapPathfinding';
 import { isDescendantIdOf } from '../../utils/mapGraphUtils';
 import { isApiConfigured } from '../../services/geminiClient';
+import { refreshChatGPTStatus, useAIConnection } from '../../services/aiProvider';
 import {
   FREE_FORM_ACTION_COST,
   RECENT_LOG_COUNT_FOR_PROMPT,
@@ -50,6 +52,7 @@ function AppContent({
   setPendingAct,
 }: AppContentProps) {
   const { clearProgress } = useLoadingProgress();
+  useAIConnection();
   const {
     enabledThemePacks,
     setEnabledThemePacks,
@@ -128,9 +131,12 @@ function AppContent({
   });
 
   useEffect(() => {
-    if (!isApiConfigured()) {
-      setGeminiKeyVisible(true);
-    }
+    let active = true;
+    void refreshOpenAIImageStatus().catch(() => undefined);
+    void refreshChatGPTStatus().catch(() => undefined).finally(() => {
+      if (active && !isApiConfigured()) setGeminiKeyVisible(true);
+    });
+    return () => { active = false; };
   }, []);
 
   const openGeminiKeyModal = useCallback(() => { setGeminiKeyVisible(true); }, []);

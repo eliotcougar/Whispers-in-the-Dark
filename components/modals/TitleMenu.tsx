@@ -7,6 +7,7 @@ import { useCallback } from 'react';
 import { CURRENT_GAME_VERSION } from '../../constants';
 import { isApiConfigured, isApiKeyFromEnv } from '../../services/geminiClient';
 import AppHeader from '../app/AppHeader';
+import { useAIConnection } from '../../services/aiProvider';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
 import VersionBadge from '../elements/VersionBadge';
@@ -37,6 +38,7 @@ function TitleMenu({
   onOpenGeminiKeyModal,
   isGameActive,
 }: TitleMenuProps) {
+  const { provider } = useAIConnection();
 
   const handleSaveClick = useCallback(() => {
     if (onSaveGame) {
@@ -75,24 +77,8 @@ function TitleMenu({
           />
 
           <div className="space-y-3 sm:space-y-3 w-full max-w-xs sm:max-w-sm">
-            {!isApiConfigured() && onOpenGeminiKeyModal ? (
-              <Button
-                ariaLabel="Set Gemini API key"
-                label="Set Gemini Key"
-                onClick={onOpenGeminiKeyModal}
-                preset="indigo"
-                size="lg"
-              />
-            ) : null}
-
-            {isApiConfigured() && !isApiKeyFromEnv() && onOpenGeminiKeyModal ? (
-              <Button
-                ariaLabel="Change the Gemini API key"
-                label="Change Gemini Key"
-                onClick={onOpenGeminiKeyModal}
-                preset="indigo"
-                size="lg"
-              />
+            {onOpenGeminiKeyModal ? (
+              <Button ariaLabel="Configure AI connection" label="AI Connection" onClick={onOpenGeminiKeyModal} preset="indigo" size="lg" />
             ) : null}
 
             <Button
@@ -154,7 +140,7 @@ function TitleMenu({
 
         {/* Version Number Display */}
         <VersionBadge
-          sourceInfo={isApiKeyFromEnv() ? 'Using System Gemini Key' : undefined}
+          sourceInfo={provider === 'chatgpt' ? 'Text: ChatGPT' : isApiKeyFromEnv() ? 'Using System Gemini Key' : undefined}
           version={CURRENT_GAME_VERSION}
         />
       </div>

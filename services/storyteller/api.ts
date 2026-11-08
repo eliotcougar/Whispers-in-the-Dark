@@ -7,6 +7,7 @@ import { GenerateContentResponse } from "@google/genai";
 
 import {
   GEMINI_MODEL_NAME,
+  GEMINI_LITE_MODEL_NAME,
   MAX_RETRIES,
   LOADING_REASON_UI_MAP,
   MAIN_TURN_OPTIONS_COUNT,
@@ -368,6 +369,7 @@ export const executeAIMainTurn = async (
     return Promise.reject(new Error('API Key not configured.'));
   }
 
+  let lastRequestError: Error | undefined;
   const result = await retryAiCall<{
     response: GenerateContentResponse;
     thoughts: Array<string>;
@@ -377,7 +379,7 @@ export const executeAIMainTurn = async (
   }>(async attempt => {
     try {
       console.log(
-        `Executing storyteller turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES)})`,
+        `Executing storyteller turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)})`,
       );
       addProgressSymbol(LOADING_REASON_UI_MAP.storyteller.icon);
       const thinkingBudget = getThinkingBudget(4096);
@@ -389,7 +391,7 @@ export const executeAIMainTurn = async (
         jsonSchemaUsed,
         promptUsed,
       } = await dispatchAIRequest({
-        modelNames: [GEMINI_MODEL_NAME],
+        modelNames: [GEMINI_MODEL_NAME, GEMINI_LITE_MODEL_NAME],
         prompt: fullPrompt,
         systemInstruction: systemInstructionToUse,
         temperature: 1.0,
@@ -427,13 +429,17 @@ export const executeAIMainTurn = async (
         `Error executing AI Main Turn (Attempt ${String(attempt + 1)}/${String(MAX_RETRIES + 1)}):`,
         error,
       );
-      throw error;
+      // The dispatcher already retries transport errors. Keep this loop for JSON repair.
+      lastRequestError = error instanceof Error ? error : new Error(String(error));
+      return { result: null, retry: false };
     }
   });
 
   if (result) {
     return result;
   }
+
+  if (lastRequestError !== undefined) throw lastRequestError;
 
   throw new Error('Failed to execute AI Main Turn after maximum retries.');
 };

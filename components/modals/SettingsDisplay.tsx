@@ -1,3 +1,4 @@
+import AIConnectionSettings from '../AIConnectionSettings';
 
 /**
  * @file SettingsDisplay.tsx
@@ -94,6 +95,7 @@ function SettingsDisplay({
             Game Settings
           </h1>
 
+          {isVisible ? <div className="mb-6"><h2 className="text-xl font-semibold text-amber-400 mb-3">AI Connection</h2><AIConnectionSettings /></div> : null}
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
               Preferred Player Name
@@ -113,12 +115,8 @@ function SettingsDisplay({
           
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-amber-400 mb-3 pb-1 border-b border-amber-600">
-              Thinking Effort
+              Thinking Effort (Gemini)
             </h2>
-
-            <p className="settings-explanation mb-3">
-              Select how much reasoning the AI uses. Higher levels may improve quality at the cost of time, but will not affect API usage quotas.
-            </p>
 
             <RadioSelector
               name="thinking-effort"

@@ -1,3 +1,4 @@
+import { canGenerateImages, useImageConnection } from '../services/imageProvider';
 
 /**
  * @file MainToolbar.tsx
@@ -33,6 +34,8 @@ function MainToolbar({
   onOpenMap, // Added for Map
   onOpenTitleMenu,
 }: MainToolbarProps) {
+  useImageConnection();
+  const imagesReady = canGenerateImages();
   return (
     <div className="flex justify-between items-center w-full">
       {/* Score and Turns Display */}
@@ -70,7 +73,7 @@ function MainToolbar({
       <div className="flex space-x-2">
         <Button
           ariaLabel="Visualize Scene"
-          disabled={isLoading || isTurnProcessing || !adventureName || !currentSceneExists}
+          disabled={!imagesReady || isLoading || isTurnProcessing || !adventureName || !currentSceneExists}
           icon={<Icon
             inline
             name="visualize"
@@ -79,7 +82,7 @@ function MainToolbar({
           onClick={onOpenVisualizer}
           preset="blue"
           size="md"
-          title="Visualize Scene"
+          title={imagesReady ? 'Visualize Scene' : 'Configure images in AI Connection'}
           variant="toolbar"
         />
 

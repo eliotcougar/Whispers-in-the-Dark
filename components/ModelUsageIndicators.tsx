@@ -1,3 +1,4 @@
+import { useAIConnection } from '../services/aiProvider';
 /**
  * @file ModelUsageIndicators.tsx
  * @description Shows recent AI model usage levels.
@@ -17,6 +18,8 @@ const getColorClass = (pct: number) => {
 
 function ModelUsageIndicators() {
   const usage = useModelUsage();
+  const { provider } = useAIConnection();
+  if (provider === 'chatgpt') return null;
 
   return (
     <div

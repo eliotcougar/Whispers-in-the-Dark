@@ -1,7 +1,6 @@
 # Repository Guidelines
 
 ## Tooling Notes
-- You work under Bash, or Git Bash console. Do not use PowerShell.
 - When piping Windows paths into POSIX tools, translate backslashes (e.g., `tr '\\' '/'`) or use fd's `--path-separator '//'` to avoid escape parsing.
 - `fd` 10.3.0 is available;
 - `fzf` 0.65.1 is available;
@@ -64,7 +63,7 @@ Tip: exclude `dist/`, `release/`, and `node_modules/` from searches.
    - `loremaster_distill`: periodic consolidation.
 - Cartographer updates the map graph (nodes/edges) from hints; features belong to main areas.
 - Dialogue Mode: AI returns NPC lines and options; memory summaries are written to NPCs.
-- Images: Visualizer prompts Imagen 4; falls back to Gemini image streaming when needed.
+- Images: Visualizer uses the selected OpenAI or Gemini image model; the text provider rewrites visual prompts before generation.
 
 ## Common Pitfalls
 - Skipping JSON helpers: always use `utils/jsonUtils` (e.g., `extractJsonFromFence`, `safeParseJson`) and validate against schemas before applying AI output.

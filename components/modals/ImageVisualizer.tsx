@@ -6,15 +6,14 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { geminiClient as ai, isApiConfigured } from '../../services/geminiClient';
+import { canGenerateImages, getImageConnection, useImageConnection } from '../../services/imageProvider';
 import { AdventureTheme, NPC, MapNode } from '../../types';
 import LoadingSpinner from '../LoadingSpinner';
-import { extractStatusFromError } from '../../utils/aiErrorUtils';
 // Prompt sanitization and image generation handled by shared helpers
 import { setLoadingReason } from '../../utils/loadingState';
 import Button from '../elements/Button';
 import { Icon } from '../elements/icons';
-import { generateImageWithFallback, getThemeStylePrompt, sanitizeVisualPrompt } from '../../services/image/common';
+import { generateConfiguredImage, getThemeStylePrompt, sanitizeVisualPrompt } from '../../services/image/common';
 
 const buildMapSignature = (nodes: Array<MapNode>): string => {
   return nodes
@@ -31,9 +30,6 @@ const buildNpcSignature = (npcs: Array<NPC>): string => {
 };
 
 
-if (!isApiConfigured()) {
-  console.error('Gemini API key is not set. Image visualization will not work.');
-}
 
 interface ImageVisualizerProps {
   readonly currentSceneDescription: string;
@@ -67,6 +63,9 @@ function ImageVisualizer({
   cachedImageUrl,
   cachedImageScene,
 }: ImageVisualizerProps) {
+  const { provider: imageProvider, quality, openaiModel, geminiModel } = useImageConnection();
+  const imagesReady = canGenerateImages();
+  const generationInFlight = useRef(false);
   const [internalImageUrl, setInternalImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -178,21 +177,23 @@ function ImageVisualizer({
    * Calls the AI service to generate an image of the current scene.
    */
   const generateImage = useCallback(async () => {
-    if (!ai || !theme) {
-      setError("Image generation service or theme is not available.");
+    if (generationInFlight.current) return;
+    if (!imagesReady || !theme) {
+      setError("Configure images in AI Connection, then try again.");
       setIsLoading(false);
       setLoadingReason(null);
       return;
     }
 
+    generationInFlight.current = true;
+    const selection = { ...getImageConnection(), provider: imageProvider, quality, openaiModel, geminiModel };
     setIsLoading(true);
     setLoadingReason('visualize_scene');
     setError(null);
 
     const prefix = `A detailed, digital painting in ${getThemeStylePrompt(theme)} without ANY text on it.
-    Aspect ratio 4:3.
-    It is ${localTime}. ${localEnvironment}. ${localPlace}. ${currentSceneDescription}`;
-    let rawPrompt = prefix;
+    Aspect ratio 4:3.`;
+    let rawPrompt = `${prefix} Theme: ${theme.name}. It is ${localTime}. ${localEnvironment}. ${localPlace}. ${currentSceneDescription}`;
 
     const mentionedPlaces: Array<string> = [];
     // Derive places from mapData (main nodes)
@@ -214,15 +215,15 @@ function ImageVisualizer({
     
     rawPrompt += " Focus on creating a faithful representation based on this description. Do not generate any text on the image.";
     // Ask a minimal model to rewrite the prompt to avoid unsafe elements
-    const safePrompt = await sanitizeVisualPrompt(
+    try {
+      const safePrompt = await sanitizeVisualPrompt(
       `Rewrite the following scene description into a safe and aestetic visual depiction suitable for highly censored image generation. Only include the elements that are definitely present in the scene and omit anything non-visual, that is mentioned only for unrelated context. Preserve all details of the landscape or environment. Mention time, weather, mood of the environment. Preserve small details. Avoid any depressing, explicit or unsafe elements. Absolutely avoid nudity or corpses.\n\nScene:\n${rawPrompt}`,
       prefix,
       'Respond ONLY with the visual description of the scene.',
       'ImagePromptSanitizer',
     );
 
-    try {
-      const base64ImageBytes = await generateImageWithFallback(safePrompt, '4:3');
+      const base64ImageBytes = await generateConfiguredImage(safePrompt, '4:3', selection);
       if (base64ImageBytes) {
         const imageUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
         setInternalImageUrl(imageUrl);
@@ -234,32 +235,19 @@ function ImageVisualizer({
       console.error("Error generating image:", err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error during image generation.";
 
-      const status = extractStatusFromError(err);
-      const isStatus400 = status === 400;
-
-      // The Imagen API may respond with HTTP 400 when the request is not allowed
-      // for the current project. Treat it similarly to the explicit billing
-      // error so the Gemini fallback is attempted.
-
-      
-      if (isStatus400) {
-        // generateImageWithFallback already attempted fallback; just update error
-        setError('Fallback image generation failed.');
-      }
-
-      if (errorMessage.includes("quota") || errorMessage.includes("billing")) {
-        setError("Image generation quota exceeded or billing issue. Please check your Google Cloud project.");
-      } else if (errorMessage.includes("API key not valid")) {
-        setError("Image generation failed: API key is not valid. Please check configuration.");
-      } else {
-        setError(`Failed to visualize scene: ${errorMessage.substring(0,100)}`);
-      }
+      setError(`Failed to visualize scene: ${errorMessage}`);
     } finally {
+      generationInFlight.current = false;
       setIsLoading(false);
       setLoadingReason(null);
     }
   }, [
     currentSceneDescription,
+    imagesReady,
+    imageProvider,
+    quality,
+    openaiModel,
+    geminiModel,
     theme,
     localTime,
     localEnvironment,

@@ -17,7 +17,7 @@ export const CODE_FENCE = '```';
 export const CORRECTION_TEMPERATURE = 0.8;
 
 // Per-minute rate limits for each model
-export const GEMINI_MODEL_RPM = 10;
+export const GEMINI_MODEL_RPM = 5;
 export const GEMINI_LITE_MODEL_RPM = 15;
 export const GEMINI_PRO_MODEL_RPM = 2; // Very limited; only for key tasks
 export const MINIMAL_MODEL_RPM = 30;

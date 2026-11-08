@@ -64,7 +64,7 @@ const matchesApiKeyInvalidDetail = (detail: unknown): boolean => {
 };
 
 export const INVALID_API_KEY_USER_MESSAGE =
-  'Gemini API key is invalid. Open the Title menu and choose "Change Gemini Key" to enter a new key.';
+  'Gemini API key is invalid. Open the Title menu and choose "AI Connection" to enter a new key.';
 
 export class InvalidApiKeyError extends Error {
   constructor(message: string = INVALID_API_KEY_USER_MESSAGE) {

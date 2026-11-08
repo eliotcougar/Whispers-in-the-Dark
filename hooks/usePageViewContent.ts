@@ -1,3 +1,4 @@
+import { canGenerateImages, getImageModel, useImageConnection } from '../services/imageProvider';
 import {
   useState,
   useMemo,
@@ -60,6 +61,7 @@ interface PageViewContentState {
   readonly textClassNames: string;
   readonly tearOrientation: 'top' | 'bottom' | null;
   readonly imageUrl: string | null;
+  readonly imageError: string | null;
   readonly isLoading: boolean;
   readonly canInspectItem: boolean;
   readonly pendingWrite: boolean;
@@ -82,12 +84,17 @@ export function usePageViewContent({
   isWritingJournal,
   updateItemContent,
 }: UsePageViewContentParams): PageViewContentState {
+  const imageConnection = useImageConnection();
+  const { provider: imageProvider, quality } = imageConnection;
+  const imageModel = getImageModel(imageConnection);
+  const imagesReady = canGenerateImages();
   const [chapterIndex, setChapterIndex] = useState(startIndex);
   const [showDecoded, setShowDecoded] = useState(false);
   const [text, setText] = useState<string | null>(null);
   const [isTextLoading, setIsTextLoading] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const isGeneratingImageRef = useRef(false);
   const textRequestTokenRef = useRef<symbol | null>(null);
   const imageRequestTokenRef = useRef<symbol | null>(null);
@@ -294,6 +301,7 @@ export function usePageViewContent({
 
   useEffect(() => {
     setIsImageLoading(false);
+    setImageError(null);
     if (
       !isVisible ||
       !item ||
@@ -357,6 +365,7 @@ export function usePageViewContent({
         return;
       }
 
+      if (!imagesReady) return;
       if (isGeneratingImageRef.current || imageRequestTokenRef.current !== requestToken) return;
       isGeneratingImageRef.current = true;
       setIsImageLoading(true);
@@ -375,6 +384,8 @@ export function usePageViewContent({
         );
         if (imageRequestTokenRef.current !== requestToken) return;
         setImageUrl(`data:image/jpeg;base64,${img}`);
+      } catch (failure: unknown) {
+        if (imageRequestTokenRef.current === requestToken) setImageError(failure instanceof Error ? failure.message : 'Could not generate the item image.');
       } finally {
         if (imageRequestTokenRef.current === requestToken) {
           setIsImageLoading(false);
@@ -395,6 +406,10 @@ export function usePageViewContent({
     isVisible,
     item,
     theme,
+    imageProvider,
+    quality,
+    imageModel,
+    imagesReady,
     updateItemContent,
   ]);
 
@@ -495,6 +510,7 @@ export function usePageViewContent({
     textClassNames,
     tearOrientation,
     imageUrl,
+    imageError,
     isLoading,
     canInspectItem,
     pendingWrite,

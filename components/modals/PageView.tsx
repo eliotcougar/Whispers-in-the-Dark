@@ -60,6 +60,7 @@ function PageView({
     textClassNames,
     tearOrientation,
     imageUrl,
+    imageError,
     isLoading,
     pendingWrite,
     canInspectItem,
@@ -155,6 +156,8 @@ function PageView({
             />
           </div>
         ) : null}
+
+        {imageError ? <p className="text-red-700 px-5" role="alert">{imageError}</p> : null}
 
         <PageContentSection
           chapterIndex={chapterIndex}

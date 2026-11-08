@@ -1,14 +1,14 @@
+import { canGenerateImages, generateOpenAIImage, getImageConnection, getImageModel } from '../imageProvider';
 /**
  * @file services/image/common.ts
  * @description Shared helpers for building safe visual prompts and generating images.
  */
 
-import { geminiClient as ai, isApiConfigured } from '../geminiClient';
+import { geminiClient as ai, isGeminiConfigured as isApiConfigured } from '../geminiClient';
 import { AdventureTheme } from '../../types';
 import { GEMINI_LITE_MODEL_NAME, LOADING_REASON_UI_MAP, MINIMAL_MODEL_NAME } from '../../constants';
 import { dispatchAIRequest } from '../modelDispatcher';
 import { addProgressSymbol } from '../../utils/loadingProgress';
-import { extractStatusFromError } from '../../utils/aiErrorUtils';
 
 const THEME_STYLE_PROMPTS: Record<string, string> = {
   dungeon: 'a dark, gritty medieval fantasy style, dungeons and dragons concept art',
@@ -29,7 +29,7 @@ export const getThemeStylePrompt = (theme: AdventureTheme | null): string => {
   for (const keyword in THEME_STYLE_PROMPTS) {
     if (lowerName.includes(keyword)) return THEME_STYLE_PROMPTS[keyword];
   }
-  return `a style fitting for ${theme.name}`;
+  return 'an atmospheric illustration matching the setting';
 };
 
 export const sanitizeVisualPrompt = async (
@@ -47,10 +47,11 @@ export const sanitizeVisualPrompt = async (
       label,
     });
     const body = response.text?.trim();
-    return body && body.length > 0 ? `${prefix} ${body}` : `${prefix} ${rawPrompt}`;
-  } catch (err: unknown) {
-    console.warn('sanitizeVisualPrompt: prompt sanitization failed, using raw prompt.', err);
-    return `${prefix} ${rawPrompt}`;
+    if (!body) throw new Error('The visual prompt was empty.');
+    return `${prefix} ${body}`;
+  } catch {
+    console.warn('sanitizeVisualPrompt: prompt preparation failed.');
+    throw new Error('Could not prepare the image prompt. Check the text AI connection and try again.');
   }
 };
 
@@ -82,72 +83,26 @@ export const convertToJpeg = async (base64: string): Promise<string> =>
     img.src = `data:${detectMimeType(base64)};base64,${base64}`;
   });
 
-export const generateImageWithFallback = async (
+export const generateConfiguredImage = async (
   prompt: string,
   aspectRatio: '4:3' | '16:9' | '1:1' = '4:3',
+  selection = getImageConnection(),
 ): Promise<string> => {
-  if (!isApiConfigured() || !ai) {
-    console.error('generateImageWithFallback: API key not configured.');
-    return '';
-  }
+  const current = getImageConnection();
+  if (selection.provider !== current.provider || selection.quality !== current.quality || getImageModel(selection) !== getImageModel(current)) throw new Error('Image settings changed while preparing the picture. Please try again.');
+  if (!canGenerateImages()) throw new Error('Choose and configure an image provider in AI Connection → Images.');
   addProgressSymbol(LOADING_REASON_UI_MAP.visualize_scene.icon);
-  try {
-    const response = await ai.models.generateImages({
-      model: 'imagen-4.0-generate-001',
-      prompt,
-      config: { aspectRatio, imageSize: '1K', numberOfImages: 1, outputMimeType: 'image/jpeg' },
-    });
-    const bytes = response.generatedImages?.[0]?.image?.imageBytes;
-    if (bytes) return bytes;
-    throw new Error('No image data received from API.');
-  } catch (err: unknown) {
-    // Try Gemini image generation fallback (streaming inline image data)
-    try {
-      const stream = await ai.models.generateContentStream({
-        model: 'gemini-2.5-flash-image',
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: prompt }],
-          },
-        ],
-        config: {
-          responseModalities: ['IMAGE', 'TEXT'],
-          responseMimeType: 'text/plain',
-        },
-      });
-
-      interface InlineData { data?: string; mimeType?: string }
-      interface InlinePart { inlineData?: InlineData }
-      interface CandidateContent { parts?: Array<InlinePart> }
-      interface Candidate { finishReason?: string; content?: CandidateContent }
-      interface StreamChunk { candidates?: Array<Candidate> }
-
-      const gotBytes = async (): Promise<string> => {
-        for await (const chunk of stream as AsyncIterable<StreamChunk>) {
-          const candidate = chunk.candidates?.[0];
-          const parts = candidate?.content?.parts;
-          if (Array.isArray(parts)) {
-            const inline = parts.find(p => !!p.inlineData);
-            const data = inline?.inlineData?.data;
-            if (data) {
-              // Return raw base64 bytes. Caller prefixes data URL if needed.
-              return data;
-            }
-          }
-        }
-        return '';
-      };
-      const bytes = await gotBytes();
-      return bytes;
-    } catch (fallbackErr: unknown) {
-      console.error('generateImageWithFallback: Gemini fallback failed:', fallbackErr);
-      const status = extractStatusFromError(err);
-      if (status === 400) {
-        // Maintain previous semantics: treat 400 specially but still end gracefully
-        return '';
-      }
-      return '';
+  if (selection.provider === 'openai') return generateOpenAIImage(prompt, aspectRatio);
+  if (!isApiConfigured() || !ai) throw new Error('Configure a Gemini API key in AI Connection.');
+  const stream = await ai.models.generateContentStream({
+    model: selection.geminiModel,
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    config: { responseModalities: ['IMAGE', 'TEXT'], imageConfig: { aspectRatio } },
+  });
+  for await (const chunk of stream) {
+    for (const part of chunk.candidates?.[0]?.content?.parts ?? []) {
+      if (part.inlineData?.data) return part.inlineData.data;
     }
   }
+  throw new Error('Gemini did not return an image.');
 };

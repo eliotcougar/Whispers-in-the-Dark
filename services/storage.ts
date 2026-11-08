@@ -240,3 +240,5 @@ export const clearDebugLoreFromLocalStorage = (): void => {
   }
 };
 
+
+export { loadAIConnectionSettings, saveAIConnectionSettings, loadImageConnectionSettings, saveImageConnectionSettings } from './aiConnectionStorage';

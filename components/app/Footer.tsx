@@ -1,3 +1,4 @@
+import { useAIConnection } from '../../services/aiProvider';
 import { useCallback } from 'react';
 import * as React from 'react';
 import { DEVELOPER } from '../../constants';
@@ -13,6 +14,7 @@ function Footer({
   isDebugViewVisible,
   setIsDebugViewVisible,
 }: FooterProps) {
+  const { provider } = useAIConnection();
   const handleToggleDebug = useCallback(() => {
     setIsDebugViewVisible(prev => !prev);
   }, [setIsDebugViewVisible]);
@@ -40,7 +42,7 @@ function Footer({
           {' '}
 
           <br />
-          Powered by Gemini.
+          Powered by {provider === 'chatgpt' ? 'ChatGPT' : 'Gemini'}.
         </p>
 
         <button

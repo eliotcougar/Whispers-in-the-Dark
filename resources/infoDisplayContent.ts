@@ -4,7 +4,7 @@ const infoDisplayContent = {
     {
       "header": "About \"Whispers in the Dark\"",
       "text": [
-        "Welcome to \"Whispers in the Dark,\" an AI-powered text adventure game where your choices directly shape your fate. Uncover secrets, manage your inventory, and survive the challenges presented by an enigmatic Dungeon Master powered by Google's Gemini AI. Choose a starting theme and dive into quests and dangers unique to that setting."
+        "Welcome to \"Whispers in the Dark,\" an AI-powered text adventure game where your choices directly shape your fate. Uncover secrets, manage your inventory, and survive the challenges presented by an enigmatic Dungeon Master. Choose a starting theme and dive into quests and dangers unique to that setting."
       ]
     },
     {
@@ -21,7 +21,7 @@ const infoDisplayContent = {
     {
       "header": "Notable Features",
       "text": [
-        "Image Visualizer: Click the \"eye\" icon to generate an AI-powered image representing the current scene. It uses Imagen 4, and the daily quota is not very big. If you use it up, it will fall back to Gemini 2.0 Image Generation Preview",
+        "Image Visualizer: Click the \"eye\" icon to illustrate the current scene. Choose your image provider and model in AI Connection.",
         "Knowledge Base: Click the \"book\" icon to view details about all NPCs you've discovered across different themes.",
         "Map Display: Use the map icon to view a dynamic graph of locations within the current theme, showing connections and your current position."
       ]
@@ -32,18 +32,6 @@ const infoDisplayContent = {
         "Autosave: The game automatically saves your progress to your browser's local storage periodically. However, this save can be lost if the current version of the game you play is updated. Please, do a manual save to a file before closing the game.",
         "Manual Save/Load: You can manually save your game to a file (.json) and load it later using the dedicated toolbar buttons. This is useful for backups or transferring saves between devices.",
         "Game Updates & Save Compatibility: \"Whispers in the Dark\" is an evolving game. While we strive for backward compatibility with save files, significant updates that change the game's data structure might affect older saves. The game tracks a `saveGameVersion` (currently: {{CURRENT_SAVE_GAME_VERSION}}). If you load a save from an older version, the game will attempt to adapt it. For example, if a new field like \"Local Place\" is added, the game might infer its value or use a default for older saves. However, very old or structurally incompatible saves might not load correctly or could lead to unexpected behavior. It's always a good idea to manually save your game before major updates if you wish to preserve a specific state."
-      ]
-    },
-    {
-      "header": "AI Models & Disclaimers",
-      "text": [
-        "This game uses Google AI models:",
-        "Main Storyteller/Text: {{GEMINI_MODEL_NAME}} (fallback: {{GEMINI_LITE_MODEL_NAME}})",
-        "Lore Distillation (sparingly): {{GEMINI_PRO_MODEL_NAME}} (very limited RPM)",
-        "Prompt Utilities/Light rewrites: {{MINIMAL_MODEL_NAME}}",
-        "Image Generation: Primary imagen-4.0-generate-001; fallback gemini-2.0-flash-preview-image-generation",
-        "AI Unpredictability: As with any generative AI, the responses can sometimes be unpredictable, creative in unexpected ways, or may not perfectly adhere to all instructions or context. This is part of the charm and challenge of an AI-driven adventure!",
-        "API Quotas: The use of these AI models is subject to API call limits and quotas. If you (or the environment this app is running in) exceed these daily quotas, the game's AI features (text generation, image visualization) may temporarily stop working until the quota resets."
       ]
     }
   ],

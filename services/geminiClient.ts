@@ -3,6 +3,7 @@
  * @description Consolidated Gemini client and API key management.
  */
 import { GoogleGenAI } from '@google/genai';
+import { getAIConnection, isChatGPTConfigured, notifyAIConnectionChanged } from './aiProvider';
 import { LOCAL_STORAGE_GEMINI_KEY } from '../constants';
 
 declare global {
@@ -54,15 +55,14 @@ if (!geminiApiKey) {
   }
 }
 
-if (!geminiApiKey) {
-  console.error('Gemini API key is not set. Gemini services will be unavailable.');
-}
-
 export let geminiClient: GoogleGenAI | null = geminiApiKey
   ? new GoogleGenAI({ apiKey: geminiApiKey })
   : null;
 
-export const isApiConfigured = (): boolean => !!geminiApiKey;
+export const isGeminiConfigured = (): boolean => !!geminiApiKey;
+
+/** Backwards-compatible readiness check for all existing text services. */
+export const isApiConfigured = (): boolean => getAIConnection().provider === 'chatgpt' ? isChatGPTConfigured() : isGeminiConfigured();
 
 export const isApiKeyFromEnv = (): boolean => geminiKeyFromEnv;
 
@@ -78,7 +78,8 @@ export const setApiKey = (key: string): void => {
   } catch {
     // Ignore storage access errors
   }
-  geminiClient = new GoogleGenAI({ apiKey: key });
+  geminiClient = key ? new GoogleGenAI({ apiKey: key }) : null;
+  notifyAIConnectionChanged();
 };
 
 /** Back-compat alias used across services. Note: this is a snapshot reference. */

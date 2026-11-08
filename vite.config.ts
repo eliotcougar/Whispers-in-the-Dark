@@ -6,12 +6,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig, loadEnv, Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
+import { localAIPlugin } from './server/localAIPlugin';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }: { mode: string }) => {
   const env = loadEnv(mode, '.', '');
-  const plugins: Array<Plugin> = [svgr()];
+  const plugins: Array<Plugin> = [svgr(), localAIPlugin()];
 
   if (mode !== 'production' && env.GEMINI_API_KEY) {
     const injectGeminiKey = (): Plugin => ({
